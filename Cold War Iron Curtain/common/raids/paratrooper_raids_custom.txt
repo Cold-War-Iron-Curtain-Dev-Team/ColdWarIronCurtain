@@ -1,0 +1,328 @@
+types = {
+
+	GER_eben_emael_raid = {
+
+		days_to_prepare = 30
+
+		category = paratrooper_raids
+		custom_map_icon = GFX_raid_type_icon_other_raid
+
+		ai_will_do = {
+			base = 100 # Unique raid that we really want to do
+
+			modifier = {
+				# no longer meaningful
+				factor = 0
+				OR = {
+					date > 1941.1.1
+					is_in_faction_with = BEL
+				}
+			}
+		}
+
+		command_power = 20
+
+		allowed = {
+			has_dlc = "Gotterdammerung"
+			original_tag = GER
+		}
+
+		fire_only_once = yes
+
+		visible = {
+			has_completed_focus = GER_expanding_the_luftwaffe #Todo_Danne change to Fallschirmsjäger
+			has_tech = paratroopers
+		}
+
+		show_target = {
+			34 = {
+				is_owned_and_controlled_by = BEL
+			}
+		}
+
+		available = {
+			34 = {
+				is_owned_and_controlled_by = BEL
+			}
+		}
+
+		launchable = {
+			has_war_with = BEL
+		}
+
+		unit_requirements = {
+			battalion_types = {
+				paratrooper = { min = 2 }
+			}
+		}
+		essential_equipment = {
+			transport_plane_equipment = 5
+		}
+
+		additional_equipment = {
+			# list of equipment archetypes and numbers
+			support_equipment = 100
+			infantry_equipment = 200
+		}
+
+		target_type = {
+			province = 11519
+		}
+		target_icon = GFX_eben_emael_target_icon
+		target_loc_key = raid_target_name_eben_emael
+
+		launch_sound = raid_launch_paratrooper
+		arrow = {
+		    type = air
+		}
+        unit_model = {
+            type = transport
+        }
+
+		starting_point = {
+		    types = { air_base }
+		}
+
+		success_factors = {
+			success = {
+				base = 0.75
+
+				# Raiding unit modifiers
+				experience = {
+					weight = 0.25
+					start_weight = -0.2
+					reference = 1.0
+				}
+
+				organisation = {
+					weight = 0.1
+					start_weight = -0.1
+					reference = 100
+				}
+				strength = {
+					weight = 0.1
+					start_weight = -0.1
+					reference = 1
+				}
+				recon = {
+					weight = 0.05
+					reference = 10
+				}
+
+				### Target Modifiers
+
+				resistance = {
+					reference = 100
+					start_reference = 20 # Resistance below 20 doesn't help
+					weight = 0.4
+				}
+				air_superiority = {
+					reference = 1
+					start_reference = 0.5
+					weight = 0.2
+				}
+
+				anti_air = {
+					reference = 5
+					weight = -0.1
+				}
+				interception = {
+					reference = 500 # More than 500 fighters won't really make any difference
+					weight = -0.2
+				}
+				enemy_units = {
+					reference = 2 # More than 2 DIVs in the target Province shouldn't make any difference
+					weight = -0.4
+				}
+				intel = {
+					weight = 0.2
+					#start_reference = 50
+					reference = 100
+				}
+			}
+		}
+
+		success_levels = {
+			failure = {
+			    victim_effects = {
+					var:target_state = {
+						IF = {
+							limit = { bunker > 0 }
+							damage_building = {
+								type = bunker
+								damage = 1 # levels of damage
+								province = var:ROOT.target_province
+							}
+						}
+					}
+			    }
+				actor_effects = {
+
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 0.95
+						str_damage = 0.95
+						ratio = yes
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.05
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 50
+				}
+				visual_effect = {
+					entity = "raid_failed_entity"
+					animation = "attack"
+					}
+			}
+			limited_success = {
+			    victim_effects = {
+					var:target_state = {
+						IF = {
+							limit = { bunker > 0 }
+							damage_building = {
+								type = bunker
+								damage = 1 # levels of damage
+								province = var:ROOT.target_province
+								repair_speed_modifier = -0.1
+							}
+						}
+
+						add_dynamic_modifier = {
+							modifier = eben_emael_raided_limited_success_modifier
+							days = 180
+						}
+					}
+			    }
+				actor_effects = {
+
+					var:actor_country = {
+						add_timed_idea = {
+							idea = GER_eben_emael_partial_success_ns
+							days = 180
+						}
+					}
+
+
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 0.65
+						str_damage = 0.60
+						ratio = yes
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.1
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 50
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_limited_success_entity"
+					animation = "attack"
+					}
+			}
+			success = {
+			    victim_effects = {
+					var:target_state = {
+						IF = {
+							limit = { bunker > 0 }
+							damage_building = {
+								type = bunker
+								damage = 4 # levels of damage
+								province = var:ROOT.target_province
+								repair_speed_modifier = -0.25
+							}
+						}
+
+						add_dynamic_modifier = {
+							modifier = eben_emael_raided_success_modifier
+							days = 180
+						}
+					}
+			    }
+				actor_effects = {
+
+					var:actor_country = {
+						add_timed_idea = {
+							idea = GER_eben_emael_success_ns
+							days = 180
+						}
+					}
+
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 0.45
+						str_damage = 0.30
+						ratio = yes
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.2
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 50
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_success_entity"
+					animation = "attack"
+					}
+			}
+			critical_success = {
+			    victim_effects = {
+					var:target_state = {
+						IF = {
+							limit = { bunker > 0 }
+							damage_building = {
+								type = bunker
+								damage = 6 # levels of damage
+								province = var:ROOT.target_province
+								repair_speed_modifier = -0.4
+							}
+						}
+
+						add_dynamic_modifier = {
+							modifier = eben_emael_raided_critical_modifier
+							days = 180
+						}
+					}
+			    }
+				actor_effects = {
+
+					var:actor_country = {
+						add_timed_idea = {
+							idea = GER_eben_emael_success_ns
+							days = 180
+						}
+					}
+
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 0.25
+						str_damage = 0.15
+						ratio = yes
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.35
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 50
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_critical_success_entity"
+					animation = "attack"
+					}
+			}
+		}
+	}
+}
