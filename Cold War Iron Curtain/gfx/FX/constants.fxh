@@ -66,6 +66,8 @@ static const float 	SNOW_OPACITY_MIN			= 0.95f;
 static const float 	SNOW_OPACITY_MAX			= 0.2f;
 static const float 	SNOW_CAM_MIN 				= 50.0f;
 static const float 	SNOW_CAM_MAX 				= 300.0f;
+static const float 	MUD_CAM_MIN 				= 50.0f;
+static const float 	MUD_CAM_MAX 				= 300.0f;
 static const float 	ICE_CAM_MIN 				= 100.0f;
 static const float 	ICE_CAM_MAX 				= 350.0f;
 
@@ -89,6 +91,8 @@ static const float WATER_COLOR_LIGHTNESS = 0.7;
 static const float WATER_RIPPLE_EFFECT = 0.0035;
 
 static const float COLORMAP_OVERLAY_STRENGTH 	= 0.75f; //0.7f;
+static const float COLORMAP_MUD_OVERLAY_STRENGTH = 0.5f;
+
 static const float3 FAKE_CUBEMAP_COLOR 			= float3(0.0f, 0.0f, 0.1f);
 
 // MILD_WINTER_VALUE = ###,						defines.lua   (reload defines)
@@ -201,8 +205,8 @@ static const float BORDER_NIGHT_DESATURATION_MAX = 0.4f; // how much border colo
 static const float BORDER_FOW_REMOVAL_FACTOR = .845f; // How much of the FOW that is removed from the borders. 1.0f is no FOW
 static const float BORDER_LIGHT_REMOVAL_FACTOR = 0.2f; // How much of the light calculations that are removed from the borders. 1.0f is no light
 static const float GB_STRENGTH_CH1 = 1.0; // Opacity of bottom layer
-static const float GB_STRENGTH_CH2 = 0.0; // Opacity of top layer
-static const float GB_FIRST_LAYER_PRIORITY = 0.3; // Priority for first/second layer when both are active at the same pixel
+static const float GB_STRENGTH_CH2 = 0.5; // Opacity of top layer
+static const float GB_FIRST_LAYER_PRIORITY = 0.7; // Priority for first/second layer when both are active at the same pixel
 static const float BORDER_MAP_TILE = 18000.0f;
 
 // --------------------------------------------------------------
