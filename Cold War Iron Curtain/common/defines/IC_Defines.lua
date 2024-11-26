@@ -173,3 +173,4 @@ NDefines.NMilitary.LAND_COMBAT_COLLATERAL_FORT_FACTOR = 0.005	-- Factor to scale
 NDefines.NMilitary.LAND_COMBAT_COLLATERAL_INFRA_FACTOR = 0.0022	-- Factor to scale collateral damage to infra with.
 
 NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 2
+NDefines.NCountry.BASE_MAX_COMMAND_POWER = 200
