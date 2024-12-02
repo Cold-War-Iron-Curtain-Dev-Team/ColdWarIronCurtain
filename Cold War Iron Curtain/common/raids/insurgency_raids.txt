@@ -1,4 +1,581 @@
 types = {
+	#Algerian War
+
+	raid_type_Algeria_War_France = {
+		category = insurgency_raids
+ 
+		days_to_prepare = 14
+
+		custom_map_icon = GFX_raid_type_icon_other_raid
+		target_icon = GFX_other_target_icon
+
+		ai_will_do = {
+			base = 20
+		}
+
+		command_power = 2
+
+		allowed = {
+			
+		}
+		visible = {
+            OR = {
+                tag = FRA
+                tag = ALE
+            }
+			FRA = {
+				has_country_flag = FLN_uprising
+			}		
+		}
+		available = {
+            OR = {
+                tag = FRA
+                tag = ALE
+            }
+		}
+		launchable = {
+
+		}
+
+		show_target = {
+            FROM = {
+				tag = ALG
+            }
+		}
+
+		arrow = {
+		    type = line
+		}
+
+		essential_equipment = {
+			infantry_equipment = 50
+		}
+		additional_equipment = {
+			# list of equipment archetypes and numbers
+		}
+		
+		target_type = {
+            province = any
+ 
+		}
+		
+		unit_requirements = {
+            battalion_types = { infantry = { min = 2 } }
+		}
+		unit_requirements = {
+            battalion_types = { militia = { min = 2 } }
+		}
+        unit_requirements = { 
+            battalion_types = { marine = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mechanized_marine = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mountaineers = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { airborne = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mechanized_airborne = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { motorized_infantry = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mechanized_infantry = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { armored_infantry = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { ffl = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { air_cavalry = { min = 2 } } 
+        }
+		starting_point = {
+		    types = { air_base naval_base }
+		}
+
+		success_levels = {
+			failure = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = ALG.Algeria_Conflict_Strength
+							value = 10
+							tooltip = ALG_Algeria_Conflict_Strength_10
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 30
+						str_damage = 10
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.05
+					add_raid_history_entry = yes
+
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 50
+				}
+				visual_effect = {
+					entity = "raid_failed_entity"
+					animation = "attack"
+					}
+			}
+			limited_success = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = FRA.Algeria_Conflict_Strength
+							value = 5
+							tooltip = FRA_Algeria_Conflict_Strength_5
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 20
+						str_damage = 5
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.1
+					add_raid_history_entry = yes
+				}
+				division_effects = {
+					add_divisional_commander_xp = 100
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_limited_success_entity"
+					animation = "attack"
+				}
+			}
+			success = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = FRA.Algeria_Conflict_Strength
+							value = 10
+							tooltip = FRA_Algeria_Conflict_Strength_10
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 25
+						str_damage = 2
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.2
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 250
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_success_entity"
+					animation = "attack"
+					}
+			}
+			critical_success = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = FRA.Algeria_Conflict_Strength
+							value = 15
+							tooltip = FRA_Algeria_Conflict_Strength_15
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 20
+						str_damage = 0
+					}
+
+
+					# Unit Experience
+					raid_add_unit_experience = 0.35
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 500
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_critical_success_entity"
+					animation = "attack"
+					}
+			}
+		}
+
+		success_factors = {
+			success = {
+				base = 0.25
+
+				# Raiding unit modifiers
+				experience = {
+					weight = 0.1
+					start_weight = -0.05
+					reference = 0.5
+				}
+
+				organisation = {
+					weight = 0.05
+					start_weight = -0.05
+					reference = 100
+				}
+				strength = {
+					weight = 0.05
+					start_weight = -0.05
+					reference = 1
+				}
+				recon = {
+					weight = 0.08
+					reference = 10
+				}
+
+				### Target Modifiers
+				resistance = {
+					reference = 100
+					start_reference = 20 # Resistance below 20 doesn't help
+					weight = 0.4
+				}
+				air_superiority = {
+					reference = 1
+					weight = 0.25
+					start_weight = -0.25
+				}
+
+
+				anti_air = {
+					reference = 0
+					weight = 0
+				}
+				interception = {
+					reference = 0
+					weight = 0
+				}
+				enemy_units = {
+					reference = 2 # More than 2 DIVs in the target Province shouldn't make any difference
+					weight = -0.5
+				}
+				intel = {
+					weight = 0.2
+					#start_reference = 50
+					reference = 100
+				}
+			}
+
+			critical = {
+				base = 0.15
+			}
+		}
+		
+	}
+
+	raid_type_Algeria_War_Algeria = {
+		category = insurgency_raids
+ 
+		days_to_prepare = 14
+
+		custom_map_icon = GFX_raid_type_icon_other_raid
+		target_icon = GFX_other_target_icon
+
+		ai_will_do = {
+			base = 20
+		}
+
+		command_power = 2
+
+		allowed = {
+			tag = ALG
+		}
+		visible = {
+			FRA = {
+				has_country_flag = FLN_uprising
+			}
+            tag = ALG
+		}
+		available = {
+            tag = ALG
+		}
+		launchable = {
+
+		}
+
+		show_target = {
+            FROM = {
+				OR = {
+                    tag = FRA
+                    tag = ALE
+                }
+            }
+            var:target_state = {
+                is_core_of = ALG
+            }
+		}
+
+		arrow = {
+		    type = line
+		}
+
+		essential_equipment = {
+			infantry_equipment = 50
+		}
+		additional_equipment = {
+			# list of equipment archetypes and numbers
+		}
+		
+		target_type = {
+            province = any
+ 
+		}
+		
+		unit_requirements = {
+            battalion_types = { infantry = { min = 2 } }
+		}
+		unit_requirements = {
+            battalion_types = { militia = { min = 2 } }
+		}
+        unit_requirements = { 
+            battalion_types = { marine = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mechanized_marine = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mountaineers = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { airborne = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mechanized_airborne = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { motorized_infantry = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { mechanized_infantry = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { armored_infantry = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { ffl = { min = 2 } } 
+        }
+        unit_requirements = { 
+            battalion_types = { air_cavalry = { min = 2 } } 
+        }
+		starting_point = {
+		    types = { air_base naval_base }
+		}
+
+		success_levels = {
+			failure = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = FRA.Algeria_Conflict_Strength
+							value = 10
+							tooltip = FRA_Algeria_Conflict_Strength_10
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 30
+						str_damage = 10
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.05
+					add_raid_history_entry = yes
+
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 50
+				}
+				visual_effect = {
+					entity = "raid_failed_entity"
+					animation = "attack"
+					}
+			}
+			limited_success = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = ALG.Algeria_Conflict_Strength
+							value = 5
+							tooltip = ALG_Algeria_Conflict_Strength_5
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 20
+						str_damage = 5
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.1
+					add_raid_history_entry = yes
+				}
+				division_effects = {
+					add_divisional_commander_xp = 100
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_limited_success_entity"
+					animation = "attack"
+				}
+			}
+			success = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = ALG.Algeria_Conflict_Strength
+							value = 10
+							tooltip = ALG_Algeria_Conflict_Strength_10
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 25
+						str_damage = 2
+					}
+
+					# Unit Experience
+					raid_add_unit_experience = 0.2
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 250
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_success_entity"
+					animation = "attack"
+					}
+			}
+			critical_success = {
+				victim_effects = {
+                    var:victim_country = {
+						add_to_variable = {
+							var = ALG.Algeria_Conflict_Strength
+							value = 15
+							tooltip = ALG_Algeria_Conflict_Strength_15
+						}
+                    }
+				}
+				actor_effects = {
+					# Damage to unit
+					raid_damage_units = {
+						org_damage = 20
+						str_damage = 0
+					}
+
+
+					# Unit Experience
+					raid_add_unit_experience = 0.35
+					add_raid_history_entry = yes
+				}
+				# Other unit effects
+				division_effects = {
+					add_divisional_commander_xp = 500
+				}
+				visual_effect = {
+					entity = "air_raids_paradrop_critical_success_entity"
+					animation = "attack"
+					}
+			}
+		}
+
+		success_factors = {
+			success = {
+				base = 0.25
+
+				# Raiding unit modifiers
+				experience = {
+					weight = 0.1
+					start_weight = -0.05
+					reference = 0.5
+				}
+
+				organisation = {
+					weight = 0.05
+					start_weight = -0.05
+					reference = 100
+				}
+				strength = {
+					weight = 0.05
+					start_weight = -0.05
+					reference = 1
+				}
+				recon = {
+					weight = 0.08
+					reference = 10
+				}
+
+				### Target Modifiers
+				resistance = {
+					reference = 100
+					start_reference = 20 # Resistance below 20 doesn't help
+					weight = 0.4
+				}
+				air_superiority = {
+					reference = 1
+					weight = 0.25
+					start_weight = -0.25
+				}
+
+
+				anti_air = {
+					reference = 0
+					weight = 0
+				}
+				interception = {
+					reference = 0
+					weight = 0
+				}
+				enemy_units = {
+					reference = 2 # More than 2 DIVs in the target Province shouldn't make any difference
+					weight = -0.5
+				}
+				intel = {
+					weight = 0.2
+					#start_reference = 50
+					reference = 100
+				}
+			}
+
+			critical = {
+				base = 0.15
+			}
+		}
+		
+	}
+
+	#Burma
 	raid_type_insurgency_raid_BRM_government = {
 		category = insurgency_raids
  
