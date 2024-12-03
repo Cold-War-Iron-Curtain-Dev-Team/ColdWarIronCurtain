@@ -1795,51 +1795,86 @@ focus_tree = {
 		completion_reward = {
 			add_stability = -0.05
 			hidden_effect = {
+				FRA = { set_autonomy = { target = MOR autonomy_state = autonomy_free } }
 				news_event = FRANCAFRIQUE_MOR.10
-				leave_faction = yes
 				every_owned_state = {
 					limit = {
-						check_variable = {
-							istqal_influence > spanish_influence
-						}
-						check_variable = {
-							istqal_influence > french_influence
-						}
-						check_variable = {
-							istqal_influence > nobility_influence
-						}
-						check_variable = {
-							istqal_influence > republican_influence
+						OR = {
+							AND = {
+								check_variable = {
+									istqal_influence > spanish_influence
+								}
+								check_variable = {
+									istqal_influence > french_influence
+								}
+								check_variable = {
+									istqal_influence > nobility_influence
+								}
+								check_variable = {
+									istqal_influence > republican_influence
+								}
+							}
+							AND = {
+								check_variable = {
+									republican_influence > spanish_influence
+								}
+								check_variable = {
+									republican_influence > french_influence
+								}
+								check_variable = {
+									republican_influence > nobility_influence
+								}
+								check_variable = {
+									republican_influence > istqal_influence
+								}
+							}
 						}
 					}
-					add_to_variable = {
-						MOR.MOR_ff_coup_size = 1
-					}
-					set_state_flag = revolt_state_MOR
+					transfer_state_to = RIF
 				}
-				start_civil_war = {
-					ruling_party = monarchism
-					ideology = monarchism
-					size = MOR_ff_coup_size
-					states = all
-					states_filter = {
-						has_state_flag = revolt_state_MOR
-					}
+				every_state = {
+					limit = { is_core_of = MOR }
+					add_core_of = RIF
 				}
-				random_country = {
-					limit = {
-						original_tag = MOR
-						NOT = {
-							tag = MOR
-						}
-					}
-					leave_faction = yes
+				RIF = {
+					set_capital = { state = 461 }
+					set_cosmetic_tag = MOR_REP
 					create_country_leader = {
 						name = "Mohammed V"
-						picture = "Mohammed_V.dds"
+						picture = "gfx/leaders/MOR/Mohammed_V_50s.dds"
 						ideology = monarchist
 					}
+					set_politics = {
+						ruling_party = monarchism
+						elections_allowed = no
+						name = "Hizb Al-Istiqlal"
+						long_name = "Hizb Al-Istiqlal"
+					}
+					set_popularities = {
+						monarchism = 60
+						nationalist = 40
+					}
+					load_oob = "generic_insurgency"
+					if = {
+						limit = { num_of_controlled_states > 4 }
+						capital_scope = { create_unit = { division = "name = \"1st Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } create_unit = { division = "name = \"2nd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF }  create_unit = { division = "name = \"3rd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } }
+						capital_scope = { create_unit = { division = "name = \"1st Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } create_unit = { division = "name = \"2nd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF }  create_unit = { division = "name = \"3rd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } }
+					}
+					else_if = {
+						limit = { num_of_controlled_states > 2 }
+						capital_scope = { create_unit = { division = "name = \"1st Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } create_unit = { division = "name = \"2nd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF }  create_unit = { division = "name = \"3rd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } }
+					}
+					else = {
+						capital_scope = { create_unit = { division = "name = \"2nd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF }  create_unit = { division = "name = \"3rd Revolutionary Infantry Division\" division_template = \"Infantry Division\" start_experience_factor = 1.0" owner = RIF } }
+					}
+					on_independence_run = yes
 				}
+				declare_war_on = {
+					target = RIF
+					type = annex_everything
+				}
+				add_civil_war_target = RIF
+				set_global_flag = morocco_civil_war
 			}
 		}
 	}
