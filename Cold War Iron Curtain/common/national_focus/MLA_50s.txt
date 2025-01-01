@@ -139,6 +139,10 @@ focus_tree = {
 			336 = {
 				set_state_name = "Singapura"
 			}
+			set_province_name = {
+					id = 12299
+					name = "Singapura"
+				}
 			hidden_effect = {
 				every_country = {
 					limit = {
@@ -314,9 +318,8 @@ focus_tree = {
 				has_completed_focus = MLA_Support_Boestamamites
 			}
 		}
-		offset = {
-			x = 1
-			trigger = {
+		allow_branch = {
+			NOT = {
 				has_completed_focus = MLA_Support_Syndicalists
 			}
 		}
@@ -327,7 +330,31 @@ focus_tree = {
 		x = 1
 		y = 1
 		completion_reward = {
-			set_country_flag = MLA_Syndies
+			mark_focus_tree_layout_dirty = yes
+			hidden_effect = {
+				336 = {
+				set_state_name = "Sindikalipura"
+				}
+				set_province_name = {
+					id = 12299
+					name = "Sindikalipura"
+				}
+				country_event = { id = MLA_Syndies.1 }
+				complete_national_focus = MLA_Syndies_Takeover
+					set_politics = {
+						ruling_party = trotskyism
+					}
+				every_country = {
+					limit = {
+						tag = MAL
+						tag = SWK
+					}
+					country_event = { id = MLA_Syndies.2 hours = 3 }
+				}
+				every_country = {
+					news_event = { id = MLA_Syndies.100 hours = 3 }
+				}
+			}
 		}
 	}
 
@@ -336,13 +363,45 @@ focus_tree = {
 		id = MLA_Syndies_Takeover
 		icon = GFX_MLA_Syndies_Takeover
 		cost = 7
-		allow_branch = {
-			has_country_flag = MLA_Syndies
+		prerequisite = { 
+			focus = MLA_Seek_Alternative_Paths
 		}
-		x = 50
-		y = 20
+		allow_branch = {
+			has_completed_focus = MLA_Support_Syndicalists
+		}
+		relative_position_id = MLA_Seek_Alternative_Paths
+		x = 0
+		y = 1
 		completion_reward = {
-			
+			set_variable = { MLA_Main_Support = 10 }
+			set_variable = { MLA_Alt_Support = 20 }
+			clr_country_flag = MLA_Main_Chin_Peng
+			set_country_flag = MLA_Main_PP_Narayanan
+			add_to_variable = { MLA_Refresh_Variable = 1 }
+			hidden_effect = {
+				promote_character = MLA_pp_narayanan
+				add_country_leader_role = {
+					character = MLA_pp_narayanan
+					promote_leader = yes
+					country_leader = {
+						ideology = marxism_leninism
+					}
+				}
+				add_country_leader_role = {
+					character = MLA_pp_narayanan
+					promote_leader = yes
+					country_leader = {
+						ideology = maoist
+					}
+				}
+				set_popularities = {
+					trotskyism = 20
+					communism = 50
+					maoism = 18
+					nationalist = 12
+				}
+				retire_character = MLA_chin_peng
+			}
 		}
 	}
 	focus = {
@@ -356,7 +415,24 @@ focus_tree = {
 		x = 0
 		y = 1
 		completion_reward = {
-
+			country_event = MLA_Syndies.3
+			country_event = {
+				id = MLA_Syndies.5
+				days = 14
+				random_days = 3
+			}
+			add_popularity = {
+				ideology = trotskyism
+				popularity = 0.2
+			}
+			add_to_variable = { MLA_Refresh_Variable = 1 }
+			set_temp_variable = { MLA_Main_Support_temp = 5 }
+			minus_Main_Support = yes
+			set_temp_variable = { MLA_Alt_Support_temp = 10 }
+			add_Alt_Support = yes
+			MLA_Malayan_Trade_Union_Council = {
+				promote_character = syndicalism			
+			}
 		}
 	}
 	focus = { 
@@ -366,14 +442,21 @@ focus_tree = {
 		prerequisite = {
 			focus = MLA_Syndies_Takeover
 		}
-		prerequisite = {
-			focus = MLA_Collaborating_Shamsiah_Fakeh
+		available = {
+			has_completed_focus = MLA_Collaborating_Shamsiah_Fakeh
 		}
 		relative_position_id = MLA_Syndies_Takeover
 		x = -2
-		y = 2
+		y = 1
 		completion_reward = {
-
+			set_temp_variable = { MLA_Influence_temp = 5 }
+			add_MLA_Influence = yes
+			all_army_leader = {
+				limit = {
+					OR = {
+					}
+				}
+			}
 		}
 	}
 	focus = {
@@ -383,14 +466,18 @@ focus_tree = {
 		prerequisite = {
 			focus = MLA_Syndies_Takeover
 		}
-		prerequisite = {
-			focus = MLA_Collaborating_Shamsiah_Fakeh
+		available = {
+			has_completed_focus = MLA_Collaborating_Shamsiah_Fakeh
 		}
 		relative_position_id = MLA_Syndies_Takeover
 		x = 2
-		y = 2
+		y = 1
 		completion_reward = {
-
+			set_temp_variable = { MLA_Influence_temp = 10 }
+			add_MLA_Influence = yes
+			set_temp_variable = { MLA_Main_Support_temp = 5 }
+			minus_Main_Support = yes
+			add_manpower = -10000
 		}
 	}
 	focus = {
@@ -408,9 +495,33 @@ focus_tree = {
 		}
 		relative_position_id = MLA_Collaborating_Shamsiah_Fakeh
 		x = 0
-		y = 2
+		y = 1
 		completion_reward = {
-
+			country_event = MLA_Syndies.4
+			add_stability = 0.05
+			set_cosmetic_tag = MLA_Syndicalist
+			set_party_name = {
+				ideology = trotskyism
+				long_name = "All-Malayan Confederation of Labour Party - Syndicalists"
+				short_name = "AMCLP (S)"
+			}
+			hidden_effect = {
+			set_party_name = {
+				ideology = socialist
+				long_name = "All-Malayan Confederation of Labour Party - Socialists"
+				short_name = "AMCLP (S)"
+			}
+			set_party_name = {
+				ideology = communism
+				long_name = "All-Malayan Confederation of Labour Party - Communists"
+				short_name = "AMCLP (C)"
+			}
+			set_party_name = {
+				ideology = maoism
+				long_name = "All-Malayan Confederation of Labour Party - Maoists"
+				short_name = "AMCLP (M)"
+			}
+			}
 		}
 	}
 	focus = {
@@ -424,23 +535,56 @@ focus_tree = {
 		x = 0
 		y = 1
 		completion_reward = {
-
+			12299 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+					type = industrial_complex
+					level = 2
+					instant_build = yes
+				}
+				add_tech_bonus = {
+					bonus = 0.1
+					uses = 2
+					category = industry
+				}
+			}
 		}
 	}
 	focus = {
 		id = MLA_Purge_Chin_Goons
 		icon = GFX_MLA_Purge_Chin_Goons
+		cost = 7
 		prerequisite = {
 			focus = MLA_Formation_Syndicalist_System
 		}
-		prerequisite = {
-			focus = MLA_Enforce_Syndicalization
+		available = {
+			has_completed_focus = MLA_Enforce_Syndicalization
 		}
 		relative_position_id = MLA_Formation_Syndicalist_System
 		x = -2
-		y = 2
+		y = 1
 		completion_reward = {
-
+			set_temp_variable = { MLA_Main_Support_temp = 5 }
+			add_Main_Support = yes
+			set_temp_variable = { MLA_Alt_Support_temp = 5 }
+			add_Alt_Support = yes
+			MLA_shamsiah_fakeh = {
+				promote_leader = yes
+			}
+			MLA_pp_narayanan = {
+				promote_leader = yes
+			}
+			random_army_leader = {
+				limit = {
+					NOT = {
+						OR = {
+							is_character = MLA_pp_narayanan
+							is_character = MLA_shamsiah_fakeh
+						}
+					}
+				}
+				retire_character = yes
+			}
 		}
 	}
 	focus = {
@@ -449,14 +593,18 @@ focus_tree = {
 		prerequisite = {
 			focus = MLA_Formation_Syndicalist_System
 		}
-		prerequisite = {
-			focus = MLA_Enforce_Syndicalization
+		available = {
+			has_completed_focus = MLA_Enforce_Syndicalization
 		}
+		cost = 7 
 		relative_position_id = MLA_Formation_Syndicalist_System
 		x = 2
-		y = 2
+		y = 1
 		completion_reward = {
-
+			set_temp_variable = { MLA_Influence_temp = 10 }
+			add_MLA_Influence = yes
+			set_temp_variable = { MLA_Main_Support_temp = 5 }
+			add_Main_Support = yes
 		}
 	}
 	focus = {
@@ -471,11 +619,13 @@ focus_tree = {
 		prerequisite = {
 			focus = MLA_Purge_Chin_Goons
 		}
+		cost = 2
 		relative_position_id = MLA_Enforce_Syndicalization
 		x = 0
-		y = 2
+		y = 1
 		completion_reward = {
-
+			add_political_power = 100
+			custom_effect_tooltip = MLA_Syndies_Last_Focus_tt
 		}
 	}
 	#End of Syndies branch
@@ -674,7 +824,6 @@ focus_tree = {
 		y = 1
 		completion_reward = {
 			country_event = MLA_KMT.4
-			add_stability = 0.05
 			set_party_name = { 
 				ideology = Social_Democratic
 				name = "PRM(T)"
@@ -688,7 +837,7 @@ focus_tree = {
 			set_party_name = { 
 				ideology = maoism
 				name = "PRM(M)"
-				long_name = "Parti Rakyat Malaya - Maoist"
+				long_name = "Parti Rakyat Malaya - Maoist"		
 			}
 		}
 	}
