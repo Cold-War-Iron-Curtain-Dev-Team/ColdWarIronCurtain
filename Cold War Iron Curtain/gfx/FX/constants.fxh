@@ -205,7 +205,7 @@ static const float BORDER_NIGHT_DESATURATION_MAX = 0.4f; // how much border colo
 static const float BORDER_FOW_REMOVAL_FACTOR = .845f; // How much of the FOW that is removed from the borders. 1.0f is no FOW
 static const float BORDER_LIGHT_REMOVAL_FACTOR = 0.2f; // How much of the light calculations that are removed from the borders. 1.0f is no light
 static const float GB_STRENGTH_CH1 = 1.0; // Opacity of bottom layer
-static const float GB_STRENGTH_CH2 = 0.5; // Opacity of top layer
+static const float GB_STRENGTH_CH2 = 0.8; // Opacity of top layer
 static const float GB_FIRST_LAYER_PRIORITY = 0.7; // Priority for first/second layer when both are active at the same pixel
 static const float BORDER_MAP_TILE = 18000.0f;
 
