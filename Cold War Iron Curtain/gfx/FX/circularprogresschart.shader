@@ -72,33 +72,38 @@ PixelShader =
 	[[
 		
 		float4 main( VS_OUTPUT v ) : PDX_COLOR
-		{
-			if( v.vTexCoord0.x <= CurrentState / 2.f )
-				return vFirstColor;
-			else
-				return vSecondColor;
-		}
+{
+    // 1. Circle masking
+    float2 uv = v.vTexCoord0 - 0.5f;
+    float distance = length(uv);
+    if (distance > 0.5f) discard; // Cutoff for circle shape
+    
+    // 2. Progress calculation (0-1 to 0-2π)
+    float progress = CurrentState * 6.283185307f; // 2π
+    
+    // 3. Angle calculation (clockwise from top)
+    float angle = atan2(uv.y, -uv.x) - 1.5707963268f; // Offset to start from top
+    if(angle < 0) angle += 6.283185307f; // Normalize to 0-2π
+    
+    // 4. Color selection
+    if(angle < progress) {
+        return vFirstColor;
+    }
+    
+    // 5. Anti-aliased edge
+    float edge = smoothstep(0.48f, 0.5f, distance);
+    return lerp(vSecondColor, float4(0,0,0,0), edge);
+}
 		
 	]]
 
 	MainCode PixelTexture
 	[[
-		
 		float4 main( VS_OUTPUT v ) : PDX_COLOR
 		{
-			float rot = CurrentState * 3.14159265f * 2.f;
-			float rot2 = atan2(v.vTexCoord0.y - 0.5f, -(v.vTexCoord0.x - 0.5f)) - 3.14159265f / 2;
-
-			if (rot2 < 0.f) {
-				rot2 = rot2 + 3.14159265f * 2.f;
-			}
-
-			if (rot2 > rot) {
-				return tex2D( TextureTwo, float2(v.vTexCoord0.x, -v.vTexCoord0.y) );
-			}
-
-			return tex2D( TextureOne, float2(v.vTexCoord0.x, -v.vTexCoord0.y) );
+            return float4(1, 1, 1, 1);
 		}
+		
 		
 	]]
 }
