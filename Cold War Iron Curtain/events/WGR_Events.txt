@@ -293,29 +293,21 @@ country_event = {
     id = WGRElection.2
 immediate = {log = "[GetDateText]: [Root.GetTag]: id = WGRElection.2"}
     title = "1953 West German Federal Election"
-    picture = GFX_WGRElection.2
+    picture = GFX_Generic_WGR_Parliament
     desc = WGRElection.2.d
 
     fire_only_once = yes
     is_triggered_only = yes
-	immediate = {
-		country_event = {
-			id = WGRElection.3
-			days = 1471
-		}
-	}
+	
 
     option = {
-        name = "Christian Democratic Union (CDU)"
-		if = {
-			limit = {
-				has_government = Christian_Democratic
-			}
-			load_focus_tree = WGR_Adenauer_53
-		}
+        name = "The Christian Democrats."
+		load_focus_tree = WGR_Adenauer_53
+		trigger = {has_government = Christian_Democratic}		
+	
     }
 	option = {
-        name = "Social Democratic Party (SPD)"
+        name = "The Social Democrats."
         if = {
             limit = {
                 has_country_flag = SPD_Ollenhauer
@@ -328,6 +320,13 @@ immediate = {log = "[GetDateText]: [Root.GetTag]: id = WGRElection.2"}
             }
             load_focus_tree = WGR_Franke_53
         }
+		trigger = {
+			AND = {
+				has_completed_focus = WGR_Schumacher_49_Prepare_For_the_1953_Federal_Election
+				NOT = {has_government = Christian_Democratic}
+			}
+			
+		}
     }
 }
 
@@ -1631,6 +1630,21 @@ immediate = {log = "[GetDateText]: [Root.GetTag]: id = Schumacher49.0"}
 }
 
 country_event = {
+    id = Schumacher49.01
+ immediate = {log = "[GetDateText]: [Root.GetTag]: id = Schumacher49.01"}
+    title = Schumacher49.01.t
+    picture = GFX_WGR_Ollenhauer_and_Franke
+    desc = Schumacher49.01.d
+
+    is_triggered_only = yes
+    fire_only_once = yes
+
+    option = {
+        name = Schumacher49.01.a
+    }
+}
+
+country_event = {
     id = Schumacher49.1
  immediate = {log = "[GetDateText]: [Root.GetTag]: id = Schumacher49.1"}
     title = "CDU Actions in Government Denounced!"
@@ -2437,30 +2451,26 @@ country_event = {
  immediate = {log = "[GetDateText]: [Root.GetTag]: id = SchuStroke.2"}
     title = "Dealing with the Aftermath"
     picture = GFX_SchumacherSpeaking
-    desc = SchuStroke.2.d
+    desc = SchuStroke.2.d 
 
     is_triggered_only = yes
     fire_only_once = yes
 
     option = {
         name = "Nominate Vice Chancellor Egon Franke."
-        if = {
-            limit = {
-                check_variable = {
-                    Franke_Influence > Ollenhauer_Influence
-                }
+        trigger = {
+            check_variable = {
+                Franke_Influence > Ollenhauer_Influence
             }
         }
         complete_national_focus = WGR_Schumacher_49_Choose_Franke
     }
-
+ 
     option = {
         name = "Nominate Federal President Erich Ollenhauer"
-        if = {
-            limit = {
-                check_variable = {
-                    Ollenhauer_Influence > Franke_Influence 
-                }
+        trigger = {
+            check_variable = {
+                Ollenhauer_Influence > Franke_Influence 
             }
         }
         complete_national_focus = WGR_Schumacher_49_Choose_Ollenhauer
@@ -2631,13 +2641,7 @@ country_event = {
     fire_only_once = yes
 
     option = {
-        name = "All hail the Bundeskanzler!"
-        create_country_leader = {
-            name = "Kurt Schumacher"
-            picture = "Kurt_Schumacher.dds"
-            desc = "POLITICS_KURT_SCHUMACHER_DESC"
-            ideology = social_democrat
-        }
+        name = "Willkommen zurück!"
         add_stability = 0.05
         WGR_Decrease_Party_Cooperation = yes
         WGR_Decrease_Kanalarbeiter_Cooperation = yes
@@ -2701,10 +2705,12 @@ country_event = {
     fire_only_once = yes
 
     option = {
-        name = "The death of a great man."
-		trigger = {
-			check_variable = { Ollenhauer_Influence > Franke_Influence }
-		}
+        name = "Ruhe in Frieden."
+		 trigger = {
+            check_variable = {
+                Ollenhauer_Influence > Franke_Influence 
+            }
+        }
         create_country_leader = {
             name = "Erich Ollenhauer"
             picture = "Erich_Ollenhauer.dds"
@@ -2721,8 +2727,10 @@ country_event = {
 	option = {
         name = "The death of a great man."
 		trigger = {
-			check_variable = { Ollenhauer_Influence > Franke_Influence }
-		}
+            check_variable = {
+                Franke_Influence > Ollenhauer_Influence
+            }
+        }
         create_country_leader = {
             name = "Egon Franke"
             picture = "Egon_Franke.dds"
@@ -2731,7 +2739,7 @@ country_event = {
         }
         add_stability = -0.10
         WGR_Decrease_Party_Cooperation = yes
-        WGR_Decrease_Kanalarbeiter_Cooperation = yes
+        WGR_Increase_Kanalarbeiter_Cooperation = yes
         custom_effect_tooltip = WGR_Decrease_Party_Cooperation_tt
         custom_effect_tooltip = WGR_Decrease_Kanalarbeiter_Cooperation_tt
 		complete_national_focus = WGR_Schumacher_49_Franke_March_on_Chancellery
@@ -2790,7 +2798,7 @@ country_event = {
     id = SchuDeath.4
  immediate = {log = "[GetDateText]: [Root.GetTag]: id = SchuDeath.4"}
     title = "Franke v. Ollenhauer Case Brief"
-    picture = GFX_WGRSeal
+    picture = GFX_WGR_Bundesverfassungsgericht_1950s
     desc = SchuDeath.4.d
 
     is_triggered_only = yes
@@ -2798,11 +2806,9 @@ country_event = {
 
     option = {
         name = "Rule in Franke and the Bundestag's favor."
-        if = {
-            limit = {
-                check_variable = {
-                    Franke_Influence > Ollenhauer_Influence
-                }
+		trigger = {
+            check_variable = {
+                Franke_Influence > Ollenhauer_Influence
             }
         }
         complete_national_focus = WGR_Schumacher_49_Rule_Bundestag
@@ -2810,11 +2816,9 @@ country_event = {
 
     option = {
         name = "Rule in Ollenhauer's favor."
-        if = {
-            limit = {
-                check_variable = {
-                    Ollenhauer_Influence > Franke_Influence
-                }
+        trigger = {
+            check_variable = {
+                Ollenhauer_Influence > Franke_Influence
             }
         }
         complete_national_focus = WGR_Schumacher_49_Rule_Ollenhauer
