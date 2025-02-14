@@ -1,4 +1,168 @@
 Huks_Insurgency_Decisions = {
+	huks_surrender = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		available = {
+			NOT = { country_exists = HUK }
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		fire_only_once = yes
+		complete_effect = {
+			every_state = {
+				limit = {
+					is_core_of = HUK
+				}
+				remove_core_of = HUK
+			}
+			annex_country = {
+				target = HUK
+				transfer_troops = no
+			}
+			news_event = HUK_insurgency_options.10
+			every_state = {
+				limit = { is_core_of = HUK }
+				clear_variable = huk_barrios
+			}
+			clr_global_flag = huks_insurgency
+			set_country_flag = huks_crushed
+		}
+	}
+	huks_attack_manila = {
+		icon = generic_civil_support
+		allowed = { tag = HUK }
+		visible = { NOT = { owns_state = 327 } }
+		available = {
+			any_owned_state = { limit = { any_neighbor_state = { state = 327 } } }
+			has_army_manpower = {
+				size > 50000
+			}
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		fire_only_once = no
+		complete_effect = {
+			random_owned_state = {
+				prioritize = { 1950 1959 }
+				limit = {
+					any_neighbor_state = {
+						state = 327
+					}
+				}
+				set_variable = { ROOT.attacker_state = THIS.id }
+			}
+			start_border_war = {
+				change_state_after_war = yes
+				defender = {
+					state = 327
+					num_provinces = 1
+					on_win = HUK_insurgency.1
+					on_lose = HUK_insurgency.2
+					on_cancel = Indochina_War.4
+				}
+				attacker = {
+					state = var:attacker_state
+					num_provinces = 1
+					on_win = HUK_insurgency.3
+					on_lose = HUK_insurgency.4
+					on_cancel = Indochina_War.4
+				}
+			}
+		}
+	}
+	huks_attack_hacienda_luisita = {
+		icon = generic_civil_support
+		allowed = { tag = HUK }
+		visible = { owns_state = 1949 }
+		available = {
+			has_army_manpower = {
+				size > 50000
+			}
+		}
+		ai_will_do = {
+			factor = 0
+		}
+		fire_only_once = yes
+		complete_effect = {
+			set_country_flag = time_to_end_plantations
+			PHI = { country_event = HUK_insurgency.7 }
+		}
+	}
+	huks_reestablish_communications = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			any_owned_state = { has_state_flag = huk_disrupted_control }
+		}
+		on_map_mode = map_and_decisions_view
+		state_target = any_owned_state
+		target_trigger = {
+			FROM = { has_state_flag = huk_disrupted_control }
+		}
+		available = {
+			ROOT = {
+				divisions_in_state = {
+					state = FROM
+					size > 1
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		complete_effect = {
+			activate_mission = huks_reestablish_communications_timer
+			set_variable = { huks_fixin_control = FROM.id }
+		}
+	}
+	huks_reestablish_communications_timer = {
+		icon = generic_civil_support
+		available = {
+			always = no
+		}
+		days_mission_timeout = 15
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			divisions_in_state = {
+				state = huks_fixin_control	
+				size < 2
+			}
+		}
+		is_good = yes
+		timeout_effect = {
+			any_owned_state = {
+				limit = { state = huks_fixin_control }
+				remove_state_flag = huk_disrupted_control
+			}
+			clear_variable = huks_fixin_control
+		}
+	}
+	huks_offer_magsaysay_secnatdef = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			date > 1950.9.1	#replace with flags on pulse for performance
+		}
+		available = {
+
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		fire_only_once = yes
+		complete_effect = {
+			set_country_flag = magsaysay_secnatdef
+			#add_ideas = magsaysay_secnatdef_1
+			HUK = { country_event = HUK_insurgency.8 }
+		}
+	}
+}
+
+Huks_Insurgency_Decisions_legacy = {
 	The_Hukbalahap_Revolution = {
 
 		icon = generic_civil_support
