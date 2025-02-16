@@ -1,4 +1,110 @@
 scripted_gui = {
+	Indochina_Phase_Prompt = {
+
+		context_type = player_context
+		window_name = "Indochina_Phase_Prompt"
+		dirty = communist_check
+		properties = {
+			flag_for_conflict_screen = {
+				image = "[ROOT.GetFlag]"
+			}	
+			flag_for_conflict_screen_2 = {
+				image = "[ROOT.GetFlag]"
+			}	
+		}
+		visible = { 
+            NOT = { check_variable = { global.indochina_phase_check = 0 } } 
+		}
+        effects = {
+            okay_button_click = {
+                set_variable = {
+                    global.indochina_phase_check = 0
+                }
+            }
+        } 
+    }
+
+	Indochina_Conflict_Prompt = {
+
+		context_type = player_context
+		window_name = "Indochina_Conflict_Prompt"
+		dirty = communist_check
+		properties = {
+			flag_for_conflict_screen = {
+				image = "[Defending_TAG.GetFlag]"
+			}	
+			flag_for_conflict_screen_2 = {
+				image = "[Attacking_TAG.GetFlag]"
+			}	
+		}
+		visible = { 
+            NOT = { check_variable = { global.indochina_border_war_check = 0 } }  
+		}
+        effects = {
+            okay_button_click = {
+                set_variable = {
+                    global.indochina_border_war_check = 0
+                }
+            }
+        } 
+    }
+	Struggle_Intro_Indochina = { 
+		context_type = player_context
+		window_name = "CWIC_Struggle_Introduction_Indochina" 
+		visible = {
+			check_variable = {
+				View_Indochina_Struggle_Startup = 1
+			}
+		}
+		ai_enabled = {
+			always = no
+		} 
+		properties = {
+			Background2 = {
+				image = "[GetIndochinaStruggleIntroductionPicture]"
+			}
+		}
+		effects = {
+			Close_Button_click = { 
+				set_variable = {
+					View_Indochina_Struggle_Startup = 0
+				}
+			}
+			Struggle_Army_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_ARMY_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+			Struggle_Economy_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_ECON_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+			Struggle_Government_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_GOVT_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+			Struggle_Diplomacy_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_DIPL_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+		}
+	}
+	
 	Struggle_GUI_Burma = { 
 		context_type = player_context
 		window_name = "CWIC_Struggle_Mechanic_Burma" 
@@ -21,9 +127,12 @@ scripted_gui = {
 			Burmese_Struggle_Ending_Icon_Inactive = {
 				image = "[BurmaStruggleEndImageInactive]"
 			}
+			Burmese_Struggle_Ending_Icon_Active = {
+				image = "[BurmaStruggleEndImageInactive]"
+			}
 		}
 		triggers = {
-           # Bottom_Inactive_Overlay_Layer_3_visible = {
+           # Bottom_Top_Overlay_visible = {
            #     check_variable = {
            #         test_struggle = 0
            #     }
@@ -35,8 +144,176 @@ scripted_gui = {
            # }
 		}
 		effects = {
+
 		}
 	}
+    CWIC_Indochina_Struggle_Ending_Popup = { 
+		context_type = player_context
+		window_name = "CWIC_Indochina_Struggle_Ending_Popup" 
+		visible = {
+            check_variable = {
+                show_indochina_end_gui = 1
+            }
+		}
+		ai_enabled = {
+			always = no
+		} 
+        triggers = {
+            Confirmation_Button_click_enabled = {
+                check_variable = {
+                    show_indochina_end_gui_active = 1
+                }
+            }
+            Bottom_Top_Overlay_Inactive_visible = {
+                check_variable = {
+                    show_indochina_end_gui_active = 0
+                }
+            }
+            Bottom_Top_Overlay_Active_visible = {
+                check_variable = {
+                    show_indochina_end_gui_active = 1
+                }
+            }
+        }
+        properties = {
+            Indochina_Struggle_Ending_Icon = {
+                image = "[IndochinaStruggleEndPicturePrompt]"
+            } 
+
+        }
+        effects = {
+            Confirmation_Button_click = {
+                if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 1
+                        }
+                    }
+                    indochina_struggle_communist_victory = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 2
+                        }
+                    }
+                    indochina_struggle_southern_victory = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 3
+                        }
+                    }
+                    indochina_struggle_federal_vietnam = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 4
+                        }
+                    }
+                    indochina_struggle_balkanized_vietnam = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 5
+                        }
+                    }
+                    indochina_struggle_dan_quoc_peace = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 6
+                        }
+                    }
+                    indochina_struggle_american_north_vietnam = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 7
+                        }
+                    }
+                    indochina_struggle_kuomintang_victory = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 8
+                        }
+                        NOT = {
+                            country_exists = PQC
+                        }
+                    }
+                    indochina_struggle_run_geneva_ending_effect = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 9
+                        }
+                    }
+                    indochina_struggle_run_never_ending_conflict_ending_effect = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 10
+                        }
+                    }
+                    indochina_struggle_run_failed_state_ending_effect = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            struggle_ending_display_value = 8
+                        }
+                    }
+                    indochina_struggle_run_geneva_ending_alternate_effect = yes
+                }
+                else = { }
+            }
+            close_button_click = {
+                set_variable = {
+                    show_indochina_end_gui = 0
+                }
+            }
+        }
+    }
+	CWIC_Indochina_Struggle_Phase_List = { 
+		context_type = player_context
+		window_name = "CWIC_Indochina_Struggle_Phase_List" 
+		visible = {
+            check_variable = {
+                show_indochina_phase_gui = 1
+            }
+		}
+		ai_enabled = {
+			always = no
+		} 
+        properties = {
+            Possible_Conflict_Phase = {
+                image = "[GetIndochinaPhaseIcon]"
+            } 
+        }
+        dynamic_lists = { 
+            indochina_struggle_phase_listing_grid = {
+                array = global.Indochina_War_Phases
+                change_scope = no
+				entry_container = indochina_phase_list_entry
+            }
+        }
+        effects = {
+            close_button_click = {
+                set_variable = {
+                    show_indochina_phase_gui = 0
+                }
+            }
+        }
+    }
 	Struggle_GUI_Indochina = { 
 		context_type = player_context
 		window_name = "CWIC_Struggle_Mechanic_Indochina" 
@@ -59,23 +336,171 @@ scripted_gui = {
 			Indochina_Struggle_Ending_Icon = {
 				image = "[IndochinaStruggleEndImage]"
 			}
+			Current_Conflict_Phase = {
+				image = "[IndochinaStruggleCurrentPhase]"
+			}
+			Next_Conflict_Phase_A = {
+				image = "[IndochinaStruggleNextPhaseA]"
+			}
+			Next_Conflict_Phase_B = {
+				image = "[IndochinaStruggleNextPhaseB]"
+			}
+			
+			
 		}
 		triggers = {
-           # Bottom_Inactive_Overlay_Layer_3_visible = {
-           #     check_variable = {
-           #         test_struggle = 0
-           #     }
-           # }
-           # Bottom_Active_Overlay_Layer_3_visible = {
-           #     check_variable = {
-           #         test_struggle = 1
-           #     }
-           # }
+           Bottom_Top_Overlay_Inactive_visible = {
+               OR = {
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 1 }
+                        indochina_struggle_ending_communist_victory_trigger = no
+                    }
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 2 }
+                        indochina_struggle_ending_southern_victory_trigger = no
+                    }
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 3 }
+                        indochina_struggle_ending_federal_vietnam_trigger = no
+                    }                    
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 4 }
+                        indochina_struggle_ending_balkanized_vietnam_trigger = no
+                    }                                  
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 5 }
+                        indochina_struggle_ending_dan_quoc_peace_trigger = no
+                    }                               
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 6 }
+                        indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = no
+                    }                                     
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 7 }
+                        indochina_struggle_ending_kuomintang_victory_trigger = no
+                    }                         
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 8 }
+                        indochina_struggle_ending_geneva_trigger = no
+                    }          
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 9 }
+                        indochina_struggle_ending_never_ending_trigger = no
+                    }               
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 10 }
+                        indochina_struggle_ending_failed_state_trigger = no
+                    }   
+               }
+           }
+           Bottom_Top_Overlay_Active_visible = {
+               OR = {
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 1 }
+                        indochina_struggle_ending_communist_victory_trigger = yes
+                    }
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 2 }
+                        indochina_struggle_ending_southern_victory_trigger = yes
+                    }
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 3 }
+                        indochina_struggle_ending_federal_vietnam_trigger = yes
+                    }                    
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 4 }
+                        indochina_struggle_ending_balkanized_vietnam_trigger = yes
+                    }                                  
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 5 }
+                        indochina_struggle_ending_dan_quoc_peace_trigger = yes
+                    }                               
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 6 }
+                        indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+                    }                                     
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 7 }
+                        indochina_struggle_ending_kuomintang_victory_trigger = yes
+                    }                         
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 8 }
+                        indochina_struggle_ending_geneva_trigger = yes
+                    }          
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 9 }
+                        indochina_struggle_ending_never_ending_trigger = yes
+                    }               
+                    AND = {
+                        check_variable = { global.Indochina_War_Endings^i = 10 }
+                        indochina_struggle_ending_failed_state_trigger = yes
+                    }   
+               }
+           }
 		}
 		effects = {
+            Bottom_Top_Overlay_Inactive_click = {
+                set_variable = {
+                    struggle_ending_display_value = global.Indochina_War_Endings^i
+                }
+                set_variable = {
+                    show_indochina_end_gui = 1
+                }
+                set_variable = {
+                    show_indochina_end_gui_active = 0
+                }
+            }
+            Bottom_Top_Overlay_Active_click = {
+                set_variable = {
+                    struggle_ending_display_value = global.Indochina_War_Endings^i
+                }
+                set_variable = {
+                    show_indochina_end_gui = 1
+                }
+                set_variable = {
+                    show_indochina_end_gui_active = 1
+                }
+            }
 			close_button_click = { 
 				set_variable = {
 					View_Indochina_Struggle = 0
+				}
+			}
+            Ending_Toggle_Button_click = {
+                set_variable = {
+                    show_indochina_phase_gui = 1
+                }
+            }
+			Struggle_Army_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_ARMY_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+			Struggle_Economy_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_ECON_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+			Struggle_Government_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_GOVT_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
+				}
+			}
+			Struggle_Diplomacy_Icon_click = {
+				meta_effect = {
+					text = {
+						show_ideas_tooltip = STRUGGLE_INDO_DIPL_LEVEL_[PHASE]
+					}
+					PHASE = "[?global.Indochina_War_Active_Phase]"
 				}
 			}
 		}
