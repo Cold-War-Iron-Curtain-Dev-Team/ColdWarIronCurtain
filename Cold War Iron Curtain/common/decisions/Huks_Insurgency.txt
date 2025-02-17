@@ -87,6 +87,58 @@ Huks_Insurgency_Decisions = {
 		fire_only_once = yes
 		complete_effect = {
 			set_country_flag = time_to_end_plantations
+			PHI = { country_event = HUK_insurgency.7 }
+		}
+	}
+	huks_reestablish_communications = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			any_owned_state = { has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+		}
+		on_map_mode = map_and_decisions_view
+		state_target = any_owned_state
+		target_trigger = {
+			FROM = { has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+		}
+		available = {
+			ROOT = {
+				divisions_in_state = {
+					state = FROM
+					size > 1
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		complete_effect = {
+			activate_mission = huks_reestablish_communications_timer
+			set_variable = { huks_fixin_control = FROM.id }
+		}
+	}
+	huks_reestablish_communications_timer = {
+		icon = generic_civil_support
+		available = {
+			always = no
+		}
+		days_mission_timeout = 15
+		activation = {
+			always = no
+		}
+		cancel_trigger = {
+			divisions_in_state = {
+				state = huks_fixin_control	
+				size < 2
+			}
+		}
+		is_good = yes
+		timeout_effect = {
+			every_state = {
+				limit = { state = huks_fixin_control }
+				remove_dynamic_modifier = { modifier = HUK_disrupted_control_modifier }
+			}
+			clear_variable = huks_fixin_control
 		}
 	}
 	huks_offer_magsaysay_secnatdef = {
@@ -105,6 +157,7 @@ Huks_Insurgency_Decisions = {
 		complete_effect = {
 			set_country_flag = magsaysay_secnatdef
 			#add_ideas = magsaysay_secnatdef_1
+			HUK = { country_event = HUK_insurgency.8 }
 		}
 	}
 }

@@ -1,0 +1,600 @@
+Indochina_War_Rework = { 
+    
+	Indochina_Wrapup_Timer = {
+		allowed = {
+			always = no
+		}
+		
+		available = {
+			always = no
+		}
+		activation = {
+			always = no
+		}
+		is_good = no
+
+		selectable_mission = no
+		days_mission_timeout = 60
+
+		timeout_effect = {
+            set_global_flag = Indochina_War_Over
+            if = {
+                limit = {
+                    check_variable = {
+                        global.Indochina_War_Next_Phase_B > global.Indochina_War_Next_Phase_A
+                    }
+                }
+                indochina_struggle_run_geneva_ending_effect = yes
+            }
+            else = {
+                if = {
+                    limit = {
+                        check_variable = {
+                            global.Indochina_War_Next_Phase_B = 10
+                        }
+                    }
+                    indochina_struggle_run_failed_state_ending_effect = yes
+                }
+                else_if = {
+                    limit = {
+                        check_variable = {
+                            global.Indochina_War_Next_Phase_B = 9
+                        }
+                    }
+                    indochina_struggle_run_never_ending_conflict_ending_effect = yes
+                }
+            }
+
+            set_variable = { 
+                global.Indochina_War_Active_Phase = 100 #Over
+            }
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+    Debug_Test_Indochina = {
+
+		icon = generic_political_discourse
+
+		visible = {
+		}
+		cost = 50
+
+		fire_only_once = no
+
+		complete_effect = {
+		} 
+	}
+	Indochina_Struggle_Border_Conflict_Anti_Commie = {
+		icon = border_war		
+        state_target = yes
+        target_root_trigger = {
+           check_variable = {
+               global.Indochina_War_Active_Phase < 4
+           }
+            OR = {
+                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+            }
+        }
+        target_array = global.indochina_cores
+        target_trigger = {
+            FROM = {
+                has_border_war = no
+                NOT = { 
+                    is_owned_by = ROOT
+                }
+                owner = {
+                    OR = {
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+                    }
+                }
+                any_neighbor_state = {
+                    is_owned_by = ROOT
+                }
+            }
+
+        }
+        on_map_mode = map_and_decisions_view
+        cost = 5
+        complete_effect = {
+            indochina_border_war_start_gui_prompt_display = yes
+            FROM = {
+                set_variable = { ROOT.defender_state = THIS.id }
+                owner = {
+                    set_variable = { ROOT.defender_tag = THIS.id }
+                }
+            }
+            random_state = {
+                limit = {
+                    is_fully_controlled_by = ROOT
+                    has_border_war = no
+                    has_ROOT_at_least_1_div_in_current_state_scope = yes
+                    any_neighbor_state = {
+                        state = var:ROOT.defender_state
+                    }
+                }
+                set_variable = { ROOT.attacker_state = THIS.id }
+                set_variable = { ROOT.attacker_tag = ROOT.id }
+                set_temp_variable = { attacker_state_temp = id }
+                if = {
+                    limit = {
+                        FROM = {
+                            OWNER = {
+                                is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                            }
+                        }
+                    }
+                    if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.1
+                                on_lose = Indochina_Border_War.2
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.3
+                                on_lose = Indochina_Border_War.4
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                    else_if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.5
+                                on_lose = Indochina_Border_War.6
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.3
+                                on_lose = Indochina_Border_War.4
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                    else_if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.7
+                                on_lose = Indochina_Border_War.8
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.3
+                                on_lose = Indochina_Border_War.4
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                    else = { }
+                }
+                else_if = {
+                    limit = {
+                        FROM = {
+                            OWNER = {
+                                is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+                            }
+                        }
+                    }
+                    if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.11
+                                on_lose = Indochina_Border_War.12
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.9
+                                on_lose = Indochina_Border_War.10
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                    else_if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.13
+                                on_lose = Indochina_Border_War.14
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.9
+                                on_lose = Indochina_Border_War.10
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                    else_if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.15
+                                on_lose = Indochina_Border_War.16
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.100
+                                on_lose = Indochina_Border_War.10
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                    else = { }
+                }
+                else = { }
+            }
+        }
+    }
+	Indochina_Struggle_Border_Conflict_Commie = {
+		icon = border_war		
+        state_target = yes
+        target_root_trigger = {
+            check_variable = {
+                global.Indochina_War_Active_Phase < 4
+            }
+            is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
+        }
+        target_array = global.indochina_cores
+        target_trigger = {
+            FROM = {
+                has_border_war = no
+                NOT = { 
+                    is_owned_by = ROOT
+                }
+                owner = {
+                    OR = {
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+                    }
+                }
+                any_neighbor_state = {
+                    is_owned_by = ROOT
+                }
+            }
+
+        }
+        on_map_mode = map_and_decisions_view
+        cost = 5
+        complete_effect = {
+            indochina_border_war_start_gui_prompt_display = yes
+            FROM = {
+                set_variable = { ROOT.defender_state = THIS.id }
+                owner = {
+                    set_variable = { ROOT.defender_tag = THIS.id }
+                }
+            }
+            random_state = {
+                limit = {
+                    is_fully_controlled_by = ROOT
+                    has_border_war = no
+                    has_ROOT_at_least_1_div_in_current_state_scope = yes
+                    any_neighbor_state = {
+                        state = var:ROOT.defender_state
+                    }
+                }
+                set_variable = { ROOT.attacker_state = THIS.id }
+                set_variable = { ROOT.attacker_tag = ROOT.id }
+                set_temp_variable = { attacker_state_temp = id }
+                if = {
+                    limit = {
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.20
+                            on_lose = Indochina_Border_War.21
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.22
+                            on_lose = Indochina_Border_War.23
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                }
+                else_if = {
+                    limit = {
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.24
+                            on_lose = Indochina_Border_War.25
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.22
+                            on_lose = Indochina_Border_War.23
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                }
+                else_if = {
+                    limit = {
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.38
+                            on_lose = Indochina_Border_War.39
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.22
+                            on_lose = Indochina_Border_War.23
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                    else_if = {
+                        limit = {
+                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+                        }
+                        start_border_war = {
+                            change_state_after_war = yes
+                            attacker = {
+                                state = var:ROOT.attacker_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.36
+                                on_lose = Indochina_Border_War.37
+                                on_cancel = Indochina_Border_War.100
+                            }
+                            
+                            defender = {
+                                state = var:ROOT.defender_state
+                                num_provinces = 4
+                                on_win = Indochina_Border_War.22
+                                on_lose = Indochina_Border_War.23
+                                on_cancel = Indochina_Border_War.100
+                            }
+                        }
+                    }
+                }
+                else = { }
+            }
+        }
+    }
+	Indochina_Struggle_Border_Conflict_Kuomintang = {
+		icon = border_war		
+        state_target = yes
+        target_root_trigger = {
+            check_variable = {
+                global.Indochina_War_Active_Phase < 4
+            }
+            is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+        }
+        target_array = global.indochina_cores
+        target_trigger = {
+            FROM = {
+                has_border_war = no
+                NOT = { 
+                    is_owned_by = ROOT
+                }
+                owner = {
+                    OR = {
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+                    }
+                }
+                any_neighbor_state = {
+                    is_owned_by = ROOT
+                }
+            }
+
+        }
+        on_map_mode = map_and_decisions_view
+        cost = 5
+        complete_effect = {
+            indochina_border_war_start_gui_prompt_display = yes
+            FROM = {
+                set_variable = { ROOT.defender_state = THIS.id }
+                owner = {
+                    set_variable = { ROOT.defender_tag = THIS.id }
+                }
+            }
+            random_state = {
+                limit = {
+                    is_fully_controlled_by = ROOT
+                    has_border_war = no
+                    has_ROOT_at_least_1_div_in_current_state_scope = yes
+                    any_neighbor_state = {
+                        state = var:ROOT.defender_state
+                    }
+                }
+                set_variable = { ROOT.attacker_state = THIS.id }
+                set_variable = { ROOT.attacker_tag = ROOT.id }
+                set_temp_variable = { attacker_state_temp = id }
+                if = {
+                    limit = {
+                        FROM = {
+                            OWNER = {
+                                is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                            }
+                        }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.26
+                            on_lose = Indochina_Border_War.27
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.34
+                            on_lose = Indochina_Border_War.35
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                }
+                else_if = { #Ethnic
+                    limit = {
+                        FROM = {
+                            OWNER = {
+                                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+                            }
+                        }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.28
+                            on_lose = Indochina_Border_War.29
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.34
+                            on_lose = Indochina_Border_War.35
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                }
+                else_if = { #Pro-French
+                    limit = {
+                        FROM = {
+                            OWNER = {
+                                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+                            }
+                        }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.30
+                            on_lose = Indochina_Border_War.31
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.34
+                            on_lose = Indochina_Border_War.35
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                }
+                else_if = { #Quoc-Gia
+                    limit = {
+                        FROM = {
+                            OWNER = {
+                                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+                            }
+                        }
+                    }
+                    start_border_war = {
+                        change_state_after_war = yes
+                        attacker = {
+                            state = var:ROOT.attacker_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.32
+                            on_lose = Indochina_Border_War.33
+                            on_cancel = Indochina_Border_War.100
+                        }
+                        
+                        defender = {
+                            state = var:ROOT.defender_state
+                            num_provinces = 4
+                            on_win = Indochina_Border_War.34
+                            on_lose = Indochina_Border_War.35
+                            on_cancel = Indochina_Border_War.100
+                        }
+                    }
+                }
+                else = { }
+            }
+        }
+    }
+}
