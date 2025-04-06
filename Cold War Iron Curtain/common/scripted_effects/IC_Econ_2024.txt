@@ -1366,6 +1366,22 @@ give_everyone_base_tax = {
 }
 
 #Expenses
+policy_testing_2025 = {
+	get_average_development = yes
+	get_total_infrastructure = yes
+
+	calc_education_expenditure = yes
+	calc_public_services_expenditure = yes
+	calc_welfare_expenditure = yes
+	calc_healthcare_expenditure = yes
+	calc_policing_expenditure = yes
+
+	calc_land_army_expenditure = yes
+	calc_air_army_expenditure = yes
+	calc_navy_army_expenditure = yes
+	calc_nuke_army_expenditure = yes
+	calc_space_expenditure = yes
+}
 get_average_development = {
 	set_variable = { average_development = 1 }
 	every_owned_state = {
@@ -1382,6 +1398,80 @@ get_total_infrastructure = {
 		add_to_variable = { PREV.total_infrastructure = building_level@water_infrastructure }		
 	}
 }
+calc_welfare_expenditure = {
+	set_variable = {
+		welfare_expenditure = 0
+	}
+	set_variable = {
+		lower_welfare_pop = labourer_sum
+	}
+	add_to_variable = {
+		lower_welfare_pop = substinents_sum
+	}
+	add_to_variable = {
+		lower_welfare_pop = unemployed_sum
+	}
+	add_to_variable = {
+		welfare_expenditure = lower_welfare_pop
+	}
+	set_variable = {
+		middle_welfare = farmer_sum
+	}
+	add_to_variable = {
+		middle_welfare = worker_sum
+	}
+	multiply_variable = {
+		middle_welfare = 0.5
+	}
+	add_to_variable = {
+		welfare_expenditure = middle_welfare
+	}
+	#reduce it more
+	divide_variable = { welfare_expenditure = 10000 }	
+	multiply_variable = { welfare_expenditure = average_development }
+
+	#now apply multiplier of idea
+	multiply_variable = { welfare_expenditure = 1 }
+}
+calc_healthcare_expenditure = {
+	#gives out expenditure at 50%
+	set_variable = { healthcare_expenditure = max_manpower_k }
+	multiply_variable = { healthcare_expenditure = 0.5 }	
+
+	#reduce it more
+	divide_variable = { healthcare_expenditure = 10000 }	
+	multiply_variable = { healthcare_expenditure = average_development }
+
+	#now apply multiplier of idea
+	multiply_variable = { healthcare_expenditure = 1 }
+}
+calc_policing_expenditure = {
+	#gives out expenditure at 50%
+	set_variable = { policing_expenditure = max_manpower_k }
+	multiply_variable = { policing_expenditure = 0.2 }	
+
+	#reduce it more
+	divide_variable = { policing_expenditure = 10000 }	
+	multiply_variable = { policing_expenditure = average_development }
+
+	#now apply multiplier of idea
+	multiply_variable = { policing_expenditure = 1 }
+	add_to_variable = {	#Note to Connect to Black Ops
+		policing_expenditure = black_ops_expedntiture
+	}
+}
+calc_education_expenditure = {
+	#gives out expenditure at 50%
+	set_variable = { education_expenditure = max_manpower_k }
+	multiply_variable = { education_expenditure = 0.3 }	
+
+	#reduce it more
+	divide_variable = { education_expenditure = 10000 }	
+	multiply_variable = { education_expenditure = average_development }
+
+	#now apply multiplier of idea
+	multiply_variable = { education_expenditure = 1 }
+}
 
 calc_public_services_expenditure = {
 	#gives out expenditure at 50%
@@ -1393,6 +1483,7 @@ calc_public_services_expenditure = {
 	divide_variable = { public_services_expenditure = 100000 }	
 
 	#now apply multiplier of idea
+	multiply_variable = { public_services_expenditure = 1 }
 }
 
 calc_land_army_expenditure = {
@@ -1406,6 +1497,8 @@ calc_land_army_expenditure = {
 
 	add_to_variable = { land_army_expenditure = land_army_deployment_expenditure}
 	divide_variable = { land_army_expenditure = 10000}
+
+	multiply_variable = { land_army_expenditure = modifier@army_spending_modifier }
 }
 
 calc_air_army_expenditure = {
@@ -1414,6 +1507,8 @@ calc_air_army_expenditure = {
 	multiply_variable = { air_army_expenditure = 4 }
 
 	divide_variable = { air_army_expenditure = 10000}
+
+	multiply_variable = { air_army_expenditure = modifier@air_spending_modifier }
 }
 
 calc_navy_army_expenditure = {
@@ -1422,6 +1517,8 @@ calc_navy_army_expenditure = {
 	multiply_variable = { navy_army_expenditure = 4 }
 
 	divide_variable = { navy_army_expenditure = 10000}
+
+	multiply_variable = { air_army_expenditure = modifier@navy_spending_modifier }
 }
 
 calc_nuke_army_expenditure = {
@@ -1451,8 +1548,14 @@ calc_nuke_army_expenditure = {
 	add_to_variable = { nuke_army_expenditure = nuke_expenditure }
 
 	divide_variable = { nuke_army_expenditure = 10000}
-}
 
+	multiply_variable = { air_army_expenditure = modifier@strategic_forces_spending_modifier }
+}
+calc_space_expenditure = {
+	#TO DO FOR MOB
+
+	multiply_variable = { space_expenditure = modifier@space_spending_modifier }
+}
 #SWF Stuff
 get_technology_building_bonuses = {
 	set_variable = {
