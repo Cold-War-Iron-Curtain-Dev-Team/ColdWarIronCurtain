@@ -567,7 +567,7 @@ check_other_state_relevant_information = {
 			}
 
 			#Food
-			multiply_temp_variable = { baseEmployment = 2.5 }
+			multiply_temp_variable = { baseEmployment = 3.5 }	#Originally 2.5
 			divide_temp_variable = { baseEmployment = THIS.state_development }
 			add_to_array = {
 				array = THIS.State_Employment
@@ -792,20 +792,25 @@ calculate_conversion_lwa_capitalist_and_bureaucrat = {
 			limit = { check_variable = { economic_x_axis_minus_1 < 0 } }
 			add_to_temp_variable = { economic_x_axis_minus_1 = 1 }
 		}
-
+		set_variable = { capitalist_office_park_adjustment = 1 }
+		set_variable = { capitalist_office_park_adjustment_modifier = building_level@office_park }
+		multiply_variable = { capitalist_office_park_adjustment_modifier = 0.33 }
+		add_to_variable = { capitalist_office_park_adjustment = capitalist_office_park_adjustment_modifier }
 		set_variable = { theoretical_capitalist_sum = 0 }	
 
 		set_temp_variable = { worker_to_capitalist_sum = theoretical_worker_sum }
 		multiply_temp_variable = { worker_to_capitalist_sum = 0.002 }		
-		multiply_temp_variable = { worker_to_capitalist_sum = 0.05 }		
+		multiply_temp_variable = { worker_to_capitalist_sum = 0.05 }	
+		multiply_temp_variable = { worker_to_capitalist_sum = capitalist_office_park_adjustment}	
 		multiply_temp_variable = { worker_to_capitalist_sum = economic_x_axis_minus_1 }		
 
 		subtract_from_variable = { theoretical_worker_sum = worker_to_capitalist_sum }
 		add_to_variable = { theoretical_capitalist_sum = worker_to_capitalist_sum }
 
 		set_temp_variable = { artisan_to_capitalist_sum = theoretical_artisan_sum }
-		multiply_temp_variable = { artisan_to_capitalist_sum = 0.002 }		
+		multiply_temp_variable = { artisan_to_capitalist_sum = 0.003 }		
 		multiply_temp_variable = { artisan_to_capitalist_sum = 0.05 }		
+		multiply_temp_variable = { worker_to_capitalist_sum = capitalist_office_park_adjustment}
 		multiply_temp_variable = { artisan_to_capitalist_sum = economic_x_axis_minus_1 }		
 
 		subtract_from_variable = { theoretical_artisan_sum = artisan_to_capitalist_sum }
@@ -813,19 +818,92 @@ calculate_conversion_lwa_capitalist_and_bureaucrat = {
 
 		set_temp_variable = { labourer_to_capitalist_sum = theoretical_labourer_sum }
 		multiply_temp_variable = { labourer_to_capitalist_sum = 0.001 }
-		multiply_temp_variable = { labourer_to_capitalist_sum = 0.05 }		
+		multiply_temp_variable = { labourer_to_capitalist_sum = 0.05 }	
+		multiply_temp_variable = { worker_to_capitalist_sum = capitalist_office_park_adjustment}	
 		multiply_temp_variable = { labourer_to_capitalist_sum = economic_x_axis_minus_1 }		
 
 		subtract_from_variable = { theoretical_labourer_sum = labourer_to_capitalist_sum }
 		add_to_variable = { theoretical_capitalist_sum = labourer_to_capitalist_sum }
 
 		#log = "[?theoretical_capitalist_sum] "
+
+	}
+	#Rentier Added
+	every_owned_state = {
+		set_temp_variable = { economic_x_axis_minus_1 = PREV.economic_x_axis }
+		add_to_temp_variable = { economic_x_axis_minus_1 = -1 }
+		if = {
+			limit = { check_variable = { economic_x_axis_minus_1 < 0 } }
+			add_to_temp_variable = { economic_x_axis_minus_1 = 1 }
+		}
+		set_variable = { rentier_office_park_adjustment = 1 }
+		set_variable = { rentier_office_park_adjustment_modifier = building_level@office_park }
+		multiply_variable = { rentier_office_park_adjustment_modifier = 0.75 }
+		add_to_variable = { rentier_office_park_adjustment = rentier_office_park_adjustment_modifier }
+
+		set_variable = { rentier_office_park_adjustment_modifier_two = building_level@agri_industrial_complex }
+		multiply_variable = { rentier_office_park_adjustment_modifier_two = 0.33 }
+		add_to_variable = { rentier_office_park_adjustment = rentier_office_park_adjustment_modifier }
+
+		set_variable = { rentier_office_park_adjustment_modifier_three = tourism_infrastructure }
+		multiply_variable = { rentier_office_park_adjustment_modifier_three = 0.33 }
+		add_to_variable = { rentier_office_park_adjustment = rentier_office_park_adjustment_modifier }
+
+		set_variable = { theoretical_rentier_sum = 0 }	
+
+		set_temp_variable = { worker_to_rentier_sum = theoretical_worker_sum }
+		multiply_temp_variable = { worker_to_rentier_sum = 0.003 }		
+		multiply_temp_variable = { worker_to_rentier_sum = 0.05 }	
+		multiply_temp_variable = { worker_to_rentier_sum = rentier_office_park_adjustment}	
+		multiply_temp_variable = { worker_to_rentier_sum = economic_x_axis_minus_1 }		
+
+		subtract_from_variable = { theoretical_worker_sum = worker_to_rentier_sum }
+		add_to_variable = { theoretical_rentier_sum = worker_to_rentier_sum }
+
+		set_temp_variable = { artisan_to_rentier_sum = theoretical_artisan_sum }
+		multiply_temp_variable = { artisan_to_rentier_sum = 0.005 }		
+		multiply_temp_variable = { artisan_to_rentier_sum = 0.05 }		
+		multiply_temp_variable = { worker_to_rentier_sum = rentier_office_park_adjustment}
+		multiply_temp_variable = { artisan_to_rentier_sum = economic_x_axis_minus_1 }		
+
+		subtract_from_variable = { theoretical_artisan_sum = artisan_to_rentier_sum }
+		add_to_variable = { theoretical_rentier_sum = artisan_to_rentier_sum }
+
+		set_temp_variable = { labourer_to_rentier_sum = theoretical_labourer_sum }
+		multiply_temp_variable = { labourer_to_rentier_sum = 0.001 }
+		multiply_temp_variable = { labourer_to_rentier_sum = 0.05 }	
+		multiply_temp_variable = { worker_to_rentier_sum = rentier_office_park_adjustment}	
+		multiply_temp_variable = { labourer_to_rentier_sum = economic_x_axis_minus_1 }		
+
+		subtract_from_variable = { theoretical_labourer_sum = labourer_to_rentier_sum }
+		add_to_variable = { theoretical_rentier_sum = labourer_to_rentier_sum }
+
+		#log = "[?theoretical_rentier_sum] "
+
 	}
 	every_owned_state = {
-		set_temp_variable = { bureaucrat_factor_reduction = 0.025 } 
+		set_temp_variable = { bureaucrat_factor_reduction = 0.02 } 
 		multiply_temp_variable = { bureaucrat_factor_reduction = PREV.economic_x_axis }
 		set_temp_variable = { bureaucrat_factor = 0.8 }
 		subtract_from_temp_variable = { bureaucrat_factor = bureaucrat_factor_reduction }
+
+		#For Management of Office Parks, Factories, Dockyards and MIC
+		set_variable = { bureaucrat_building_adjustment = building_level@office_park }
+		multiply_variable = { bureaucrat_building_adjustment_modifier = 0.67 }
+		add_to_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
+
+		set_variable = { bureaucrat_building_adjustment = building_level@industrial_complex }
+		multiply_variable = { bureaucrat_building_adjustment_modifier = 0.2 }
+		add_to_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
+
+		set_variable = { bureaucrat_building_adjustment = building_level@arms_factory }
+		multiply_variable = { bureaucrat_building_adjustment_modifier = 0.3 }
+		add_to_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
+
+		set_variable = { bureaucrat_building_adjustment = building_level@dockyard }
+		multiply_variable = { bureaucrat_building_adjustment_modifier = 0.3 }
+		add_to_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
+		#End
 
 		set_variable = { theoretical_bureaucrat_sum = 0 }	
 
@@ -869,6 +947,7 @@ list_worker_type = {
 	set_variable = { artisan_sum = 0 }
 	set_variable = { substinents_sum = 0 }
 	set_variable = { unemployed_sum = 0 }
+	set_variable = { rentier_sum = 0 }
 	set_variable = { capitalist_sum = 0 }	
 	set_variable = { bureaucrat_sum = 0}
 
@@ -883,10 +962,11 @@ list_worker_type = {
 		add_to_variable = { PREV.substinents_sum = theoretical_substinents_sum }
 		add_to_variable = { PREV.unemployed_sum = theoretical_unemployed }
 		add_to_variable = { PREV.capitalist_sum = theoretical_capitalist_sum }	
-		add_to_variable = { PREV.bureaucrat_sum = theoretical_bureaucrat_sum}		
+		add_to_variable = { PREV.bureaucrat_sum = theoretical_bureaucrat_sum}	
+		add_to_variable = { PREV.rentier_sum = theoretical_rentier_sum}	
 	}
-	log = "Workforce: L [?labourer_sum], W [?worker_sum], S [?soldier_sum], F [?farmer_sum]"
-	log = "Workforce: A [?artisan_sum], Sb [?substinents_sum], U [?unemployed_sum], C [?capitalist_sum], B [?bureaucrat_sum]"
+	#log = "Workforce: L [?labourer_sum], W [?worker_sum], S [?soldier_sum], F [?farmer_sum]"
+	#log = "Workforce: A [?artisan_sum], Sb [?substinents_sum], U [?unemployed_sum], C [?capitalist_sum], B [?bureaucrat_sum]"
 }
 
 reset_potential_problems = {
@@ -899,6 +979,7 @@ reset_potential_problems = {
 		set_variable = { theoretical_substinents_sum = 0 }
 		set_variable = { theoretical_unemployed = 0 }
 		set_variable = { theoretical_capitalist_sum = 0 }	
+		set_variable = { theoretical_rentier_sum = 0 }	
 		set_variable = { theoretical_bureaucrat_sum = 0}		
 	}
 }
@@ -1229,28 +1310,35 @@ calculate_net_poptype_earnings = {
 
 		subtract_from_variable = { net_factory_earnings = pop_middleclass_gross_wage }		
 
-		#Upper-Class Pop
-
 		set_temp_variable = { pop_bureaucrat_gross_wage = theoretical_bureaucrat_sum }
 		multiply_temp_variable = { pop_bureaucrat_gross_wage = 3.5 }
 		multiply_temp_variable = { pop_bureaucrat_gross_wage = productivity_factor }
 		divide_temp_variable = { pop_bureaucrat_gross_wage = 100 }		
 
-		set_variable = { pop_upperclass_gross_wage = pop_bureaucrat_gross_wage }
+		set_variable = { pop_middleclass_gross_wage = pop_bureaucrat_gross_wage }
+		#Upper-Class Pop
+
 
 		set_temp_variable = { pop_capitalist_gross_wage = theoretical_capitalist_sum }
 		if = {
 			limit = { check_variable = { PREV.economic_x_axis < 6 } }
 			multiply_temp_variable = { pop_capitalist_gross_wage = 2.5 }
+			multiply_temp_variable = { pop_rentier_gross_wage = 3 }
 		}
 		else = {
 			multiply_temp_variable = { pop_capitalist_gross_wage = 100 }
+			multiply_temp_variable = { pop_rentier_gross_wage = 100 }
 		}
 		multiply_temp_variable = { pop_capitalist_gross_wage = productivity_factor }
 		divide_temp_variable = { pop_capitalist_gross_wage = 100 }		
 
 		add_to_variable = { pop_upperclass_gross_wage = pop_capitalist_gross_wage }
 
+
+		multiply_temp_variable = { pop_rentier_gross_wage = productivity_factor }
+		divide_temp_variable = { pop_rentier_gross_wage = 100 }		
+
+		add_to_variable = { pop_upperclass_gross_wage = pop_rentier_gross_wage }
 
 		#log = "[?THIS.GetID.GetName]: [?net_factory_earnings] compared to [?gross_factory_earnings], [?pop_lowerclass_gross_wage], [?pop_middleclass_gross_wage]"
 		#log = "[?THIS.GetID.GetName]: Substinents Earning: [?pop_substinents_gross_wage], Artisan Earning: [?pop_artisan_gross_wage]^^"
@@ -1262,6 +1350,11 @@ testing = {
 	every_country = {
 		gdp_calculation_effect = yes
 	}
+}
+testing2 = {
+	set_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
+	#multiply_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
+	add_political_power = 50
 }
 
 gdp_calculation_effect = {
@@ -1300,6 +1393,10 @@ calculate_take_taxes_from_people = {
 		multiply_temp_variable = { pop_substinents_taken_wage = owner:pop_lowerclass_tax_rate }
 		add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_substinents_taken_wage}
 
+		set_temp_variable = { pop_soldier_taken_wage = pop_soldier_gross_wage }
+		multiply_temp_variable = { pop_soldier_taken_wage = owner:pop_lowerclass_tax_rate }
+		add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_soldier_taken_wage}
+		
 		add_to_variable = { PREV.IncomeTotal = pop_lowerclass_taken_wage }
 
 		set_variable = { pop_lowerclass_net_wage = pop_lowerclass_gross_wage }
@@ -2079,4 +2176,54 @@ get_technology_building_bonuses = {
 			office_park_total = office_park_penalty_rate
 		}
 	}
+}
+percentage_test_econ = {
+	every_country = {
+		set_variable = { total_employment_pop = 0 }
+
+		add_to_variable = { total_employment_pop = labourer_sum }
+		add_to_variable = { total_employment_pop = worker_sum }
+		add_to_variable = { total_employment_pop = soldier_sum }
+		add_to_variable = { total_employment_pop = farmer_sum }
+		add_to_variable = { total_employment_pop = artisan_sum }
+		add_to_variable = { total_employment_pop = substinents_sum }
+		add_to_variable = { total_employment_pop = unemployed_sum }
+		add_to_variable = { total_employment_pop = capitalist_sum }
+		add_to_variable = { total_employment_pop = rentier_sum }
+		add_to_variable = { total_employment_pop = bureaucrat_sum }
+
+		set_variable = { labourer_sum_calc = labourer_sum }
+		set_variable = { worker_sum_calc = worker_sum }
+		set_variable = { soldier_sum_calc = soldier_sum }
+		set_variable = { farmer_sum_calc = farmer_sum }
+		set_variable = { artisan_sum_calc = artisan_sum }
+		set_variable = { substinents_sum_calc = substinents_sum }
+		set_variable = { unemployed_sum_calc = unemployed_sum }
+		set_variable = { capitalist_sum_calc = capitalist_sum }
+		set_variable = { rentier_sum_calc = rentier_sum }
+		set_variable = { bureaucrat_sum_calc = bureaucrat_sum }
+
+		divide_variable = { labourer_sum_calc = total_employment_pop }
+		divide_variable = { worker_sum_calc = total_employment_pop }
+		divide_variable = { soldier_sum_calc = total_employment_pop }
+		divide_variable = { farmer_sum_calc = total_employment_pop }
+		divide_variable = { artisan_sum_calc = total_employment_pop }
+		divide_variable = { substinents_sum_calc = total_employment_pop }
+		divide_variable = { unemployed_sum_calc = total_employment_pop }
+		divide_variable = { capitalist_sum_calc = total_employment_pop }
+		divide_variable = { rentier_sum_calc = total_employment_pop }
+		divide_variable = { bureaucrat_sum_calc = total_employment_pop }
+
+		log = "[THIS.GetName]: Laborer Percentage [?.labourer_sum_calc|%]"
+		log = "[THIS.GetName]: Worker Percentage [?.worker_sum_calc|%]"
+		log = "[THIS.GetName]: Soldier Percentage [?.soldier_sum_calc|%]"
+		log = "[THIS.GetName]: Farmer Percentage [?.farmer_sum_calc|%]"
+		log = "[THIS.GetName]: Artisan Percentage [?.artisan_sum_calc|%]"
+		log = "[THIS.GetName]: Substinent Percentage [?.substinents_sum_calc|%]"
+		log = "[THIS.GetName]: Unemployed Percentage [?.unemployed_sum_calc|%]"
+		log = "[THIS.GetName]: Capitalist Percentage [?.capitalist_sum_calc|%]"
+		log = "[THIS.GetName]: Rentier Percentage [?.rentier_sum_calc|%]"
+		log = "[THIS.GetName]: Bureacrat Percentage [?.bureaucrat_sum_calc|%]"
+	}
+
 }
