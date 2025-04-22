@@ -1371,12 +1371,44 @@ on_actions = {
 					NOT = { tag = ENG }
 					NOT = { tag = FRA }
 				}
-				set_variable = { corporate_startup_rate = 5 }
-				set_variable = { upper_startup_rate = 4 }
-				set_variable = { lower_middle_startup_rate = 3 }
-				set_variable = { lower_startup_rate = 2 }
+				if = {
+					limit = {
+						check_variable = { economic_x_axis > 18 } 
+					}
+					#Pre Industrial/Rentier Default
+					set_variable = { corporate_startup_rate = 6 }
+					set_variable = { upper_startup_rate = 4 }
+					set_variable = { lower_middle_startup_rate = 3 }
+					set_variable = { lower_startup_rate = 2 }
+					if = {
+						limit = {	#if is a colony, reduce corporate and upper class tax rates to show accomadation to foriegn power
+							is_subject = yes
+						}
+						subtract_from_variable = { corporate_startup_rate = 3 }
+						subtract_from_variable = { upper_startup_rate = 1 }
+					}
+					startup_tax_loops = yes
+				}
+				else = {
+					set_variable = { economic_freedom_tax_adjustment = economic_x_axis }
+					subtract_from_variable = { economic_freedom_tax_adjustment = 18 }
+					multiply_variable = { economic_freedom_tax_adjustment = -1 }
+					divide_variable = { economic_freedom_tax_adjustment = 2 }
+					round_variable = economic_freedom_tax_adjustment
 
-				startup_tax_loops = yes
+					set_variable = { corporate_startup_rate = 8 }
+					add_to_variable = { corporate_startup_rate = economic_freedom_tax_adjustment }
+					set_variable = { upper_startup_rate = 6 }
+					add_to_variable = { upper_startup_rate = economic_freedom_tax_adjustment }
+
+					divide_variable = { economic_freedom_tax_adjustment = 2 }
+					round_variable = economic_freedom_tax_adjustment
+					set_variable = { lower_middle_startup_rate = 4 }
+					add_to_variable = { lower_middle_startup_rate = economic_freedom_tax_adjustment }
+					set_variable = { lower_startup_rate = 2 }
+					add_to_variable = { lower_startup_rate = economic_freedom_tax_adjustment }
+					startup_tax_loops = yes
+				}
 			}
 			#SOV = {
 			#	#Policy test
@@ -2816,6 +2848,7 @@ on_actions = {
 			clear_array = global.top_space_race_array_country
 			clear_array = global.top_space_race_array_num_decisions
 		    every_country = {
+				industrial_pulse = yes
 				#Econ 3.0 Start
 				set_variable = { national_total_lower_class_pop = 0 }
 				set_variable = { national_total_middle_class_pop = 0 }
