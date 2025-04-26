@@ -437,20 +437,6 @@ check_building_slots_size = {
 			set_variable = { THIS.building_slots_size_var = 375 }
 			divide_variable = { THIS.building_slots_size_var = slot_divisor }	
 		}
-		#else_if = {
-		#	limit = { 
-		#		OR = {
-   		#			has_state_category = pop6
-   		#			has_state_category = pop6dev1
-   		#			has_state_category = pop6dev2
-   		#			has_state_category = pop6dev3
-   		#			has_state_category = pop6dev4
-   		#			has_state_category = pop6dev5    	
-		#		}
-		#	}
-		#	set_variable = { THIS.building_slots_size_var = 450 }
-		#	divide_variable = { THIS.building_slots_size_var = slot_divisor }	
-		#}
 		else_if = {
 			limit = { 
 				OR = {
@@ -1396,11 +1382,7 @@ calculate_net_poptype_earnings = {
 	}
 }
 
-testing = {
-	every_country = {
-		gdp_calculation_effect = yes
-	}
-}
+
 testing2 = {
 	set_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
 	#multiply_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
@@ -1408,7 +1390,7 @@ testing2 = {
 }
 
 gdp_calculation_effect = {
-	get_average_development = yes
+	get_average_development = yes	#Required to be seperate at top
 	generate_tax_info = yes 				#Sets Laffer Curve and Updates GUI
 
 	employing_effect = yes
@@ -1417,6 +1399,7 @@ gdp_calculation_effect = {
 	calculate_net_poptype_earnings = yes
 	calculate_take_taxes_from_people = yes
 	calculate_sum_up_total = yes
+
 
 	calculate_gdp_per_capita = yes
 	GDP_Extra_Calcs = yes					#Extra Logging and GUI Effects
@@ -2123,9 +2106,14 @@ calc_nuke_army_expenditure = {
 	multiply_variable = { air_army_expenditure = modifier@strategic_forces_spending_modifier }
 }
 calc_space_expenditure = {
-	#TO DO FOR MOB
-
+	set_variable = {
+		space_expenditure = grossdomesticproduct
+	}
+	divide_variable = {
+		space_expenditure = 5
+	}
 	multiply_variable = { space_expenditure = modifier@space_spending_modifier }
+	add_to_variable = { space_budget = space_expenditure }
 }
 #SWF Stuff
 percentage_test_econ = {
@@ -2636,4 +2624,12 @@ calculate_gdp_per_capita = {
 	set_variable = { grossdomesticproductcapita = grossdomesticproduct }
 	multiply_variable = { grossdomesticproductcapita = 1000 }
 	divide_variable = { grossdomesticproductcapita = max_manpower_k }
+	if = {
+		limit = {
+			NOT = { has_country_flag = Expense_Policy_Setup_Check }
+		}
+		set_country_flag = Expense_Policy_Setup_Check
+		Policy_Startup_Script_2025 = yes
+	}
 }
+
