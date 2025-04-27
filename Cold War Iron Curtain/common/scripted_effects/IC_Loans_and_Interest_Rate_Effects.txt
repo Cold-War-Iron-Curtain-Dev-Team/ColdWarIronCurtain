@@ -1,0 +1,1947 @@
+interest_rate_calc = {
+	#process_credit_rating = yes
+	set_interest_rates = yes
+	set_international_commercial_rates = yes
+	set_reserve_rate = yes
+	set_variable = {
+		Interest_Rate_Display = Interest_Rate
+	}
+	divide_variable = {
+		Interest_Rate_Display = 100
+	}
+	set_variable = {
+		Domestic_Interest_Rate_Display = Interest_Rate
+	}
+	divide_variable = {
+		Domestic_Interest_Rate_Display = 100
+	}
+	multiply_variable = {
+		Domestic_Interest_Rate_Display = 0.75
+	}
+	set_variable = {
+		Domestic_Interest_Rate = Interest_Rate
+	}
+	multiply_variable = {
+		Domestic_Interest_Rate = 0.75
+	}
+	multiply_variable = {
+		Favorable_Interest_Rate = 0.65
+	}
+	set_variable = {
+		austerityCheck = grossdomesticproduct
+	}
+	multiply_variable = {
+		austerityCheck = austerity_multiplier
+	}
+	set_variable = {
+		defaultCheck = grossdomesticproduct
+	}
+	multiply_variable = {
+		defaultCheck = default_multiplier
+	}
+	set_variable = {
+		austerityCheck = grossdomesticproduct
+	}
+	multiply_variable = {
+		austerityCheck = austerity_multiplier
+	}
+	set_variable = {
+		defaultCheck = grossdomesticproduct
+	}
+	multiply_variable = {
+		defaultCheck = default_multiplier
+	}
+	
+}
+
+edict_expenditure = {
+	#CHANGES COSTS BY FACTOR#
+	set_variable = {
+		military_edict_debit_factor = 1
+	}
+	set_variable = {
+		healthcare_edict_debit_factor = 1
+	}
+	set_variable = {
+		education_edict_debit_factor = 1
+	}
+	set_variable = {
+		welfare_edict_debit_factor = 1
+	}
+	set_variable = {
+		cpi_edict_debit_factor = 1
+	}
+	set_variable = {
+		public_edict_debit_factor = 1
+	}
+	#CHANGES COSTS BY FLAT AMOUNT#
+	set_variable = {
+		military_edict_debit_gain = 0
+	}
+	set_variable = {
+		healthcare_edict_debit_gain = 0
+	}
+	set_variable = {
+		education_edict_debit_gain = 0
+	}
+	set_variable = {
+		welfare_edict_debit_gain = 0
+	}
+	set_variable = {
+		cpi_edict_debit_gain = 0
+	}
+	set_variable = {
+		public_edict_debit_gain = 0
+	}
+	#CHANGES INCOME BY FACTOR#
+	set_variable = {
+		trade_credit_factor = 1
+	}
+	set_variable = {
+		tax_credit_factor = 1
+	}
+	set_variable = {
+		commerce_credit_factor = 1
+	}
+	set_variable = {
+		refinery_credit_factor = 1
+	}
+	set_variable = {
+		agriculture_credit_factor = 1
+	}
+	set_variable = {
+		industry_credit_factor = 1
+	}
+	#EFFICIENCY CHECKS#
+	set_variable = {
+		efficiency_military_check = efficiency_military
+	}
+	set_variable = {
+		efficiency_healthcare_check = efficiency_healthcare
+	}
+	set_variable = {
+		efficiency_education_check = efficiency_education
+	}
+	set_variable = {
+		efficiency_welfare_check = efficiency_welfare
+	}
+	set_variable = {
+		efficiency_cpi_check = efficiency_cpi
+	}
+	set_variable = {
+		efficiency_public_check = efficiency_public
+	}
+	###IDEAS###
+	edict_ideas_calc = yes
+	#ADDITIVE CREDIT FACTORS#
+	set_variable = {
+		trade_credit_factor_difference = trade_credit_factor
+	}
+	set_variable = {
+		tax_credit_factor_difference = tax_credit_factor
+	}
+	set_variable = {
+		commerce_credit_factor_difference = commerce_credit_factor
+	}
+	set_variable = {
+		refinery_credit_factor_difference = refinery_credit_factor
+	}
+	set_variable = {
+		agriculture_credit_factor_difference = agriculture_credit_factor
+	}
+	set_variable = {
+		industry_credit_factor_difference = industry_credit_factor
+	}
+	subtract_from_variable = {
+		trade_credit_factor_difference = 1
+	}
+	subtract_from_variable = {
+		tax_credit_factor_difference = 1
+	}
+	subtract_from_variable = {
+		commerce_credit_factor_difference = 1
+	}
+	subtract_from_variable = {
+		refinery_credit_factor_difference = 1
+	}
+	subtract_from_variable = {
+		agriculture_credit_factor_difference = 1
+	}
+	subtract_from_variable = {
+		industry_credit_factor_difference = 1
+	}
+	#DIVIDER APPLICATION#
+	multiply_variable = {
+		military_edict_debit_gain = global.GlobalEdictDebit
+	}
+	multiply_variable = {
+		healthcare_edict_debit_gain = global.GlobalEdictDebit
+	}
+	multiply_variable = {
+		education_edict_debit_gain = global.GlobalEdictDebit
+	}
+	multiply_variable = {
+		welfare_edict_debit_gain = global.GlobalEdictDebit
+	}
+	multiply_variable = {
+		cpi_edict_debit_gain = global.GlobalEdictDebit
+	}
+	multiply_variable = {
+		public_edict_debit_gain = global.GlobalEdictDebit
+	}
+}
+
+domestic_bond_calc = {
+	if = {
+		limit = {
+			check_variable = {
+				available_liquidity < 1
+			}
+		}
+		set_variable = {
+			available_liquidity = 1
+		}
+	}	#Failsafe to prevent crash
+
+	multiply_variable = {
+		outcrowding_limit = 10
+	}	#Billions per office park
+	#MULTIPLY OUTCROWDING LIMIT PER OFFICE PARK BY TECH#
+	set_variable = {
+		office_park_tech = modifier@office_park_income_bonus
+	}
+    add_to_variable = {
+        office_park_tech = 1
+    }
+	multiply_variable = {
+		outcrowding_limit = office_park_tech
+	}
+	set_variable = {
+		outcrowding_temp_var = outcrowding_limit
+	}
+	#REPLENISHMENT RATES FOR OUTCROWDING LIMITS#
+	if = {
+		limit = {
+			check_variable = {
+				outcrowding_limit < 100
+			}
+		}
+		multiply_variable = {
+			outcrowding_temp_var = 0.065
+		}		#Percent to restore difference per month
+	}
+	if = {
+		limit = {
+			check_variable = {
+				outcrowding_limit < 500
+			}
+			check_variable = {
+				outcrowding_limit > 100
+			}
+		}
+		multiply_variable = {
+			outcrowding_temp_var = 0.05
+		}		#Percent to restore difference per month
+	}
+	if = {
+		limit = {
+			check_variable = {
+				outcrowding_limit > 500
+			}
+		}
+		multiply_variable = {
+			outcrowding_temp_var = 0.035
+		}		#Percent to restore difference per month
+	}
+	#REPLENISHMENT SCRIPT#
+	if = {
+		limit = {
+			check_variable = {
+				available_liquidity < outcrowding_limit
+			}
+		}		#Liquidity less than limit
+		add_to_variable = {
+			available_liquidity = outcrowding_temp_var
+		}		#Replenish available liquidity
+	}
+}
+
+credit_calculation_work = {
+	if = {
+		limit = {
+			UNS = {
+				NOT = {
+					has_country_flag = Startup_Credit_Rating_Assigned
+				}
+			}
+		}
+		set_country_flag = Startup_Credit_Rating_Assigned
+		USA = {
+			set_starting_credit_ratings = yes
+		}
+		UNS = {
+			set_starting_credit_ratings = yes
+		}
+		VTC = {
+			set_starting_credit_ratings = yes
+		}
+		ENG = {
+			set_starting_credit_ratings = yes
+		}
+		SOV = {
+			set_starting_credit_ratings = yes
+		}
+	}
+	#General
+	if = {
+		limit = {
+			NOT = {
+				has_country_flag = Startup_Credit_Rating_Assigned
+			}
+		}
+		
+		set_starting_credit_ratings = yes
+	}
+	get_decade_industrial_base_capita = yes
+}
+
+#Industrial Base Tiers Defines
+#6 	= Superior
+#5	= Above Average
+#4	= Average 
+#3	= Below Average
+#2	= Poor
+#1 	= Shithole
+#Credit Rating Defines
+#10		AAA
+#9		AA
+#8		A
+#7		BBB
+#6		BB
+#5		B
+#4		CCC
+#3		CC
+#2		SD
+#1		D
+process_credit_rating = {
+	if = {
+		limit = {
+			OR = {
+				tag = USA
+				tag = UNS
+				tag = VTC
+				tag = SOV
+				tag = ENG
+			}
+		}
+		set_variable = {
+			Credit_Rating = 10
+		}
+	}
+	else = {
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					industrial_base_tier = 6
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 9
+				}
+				check_variable = {
+					industrial_base_tier = 6
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 8
+				}
+				check_variable = {
+					industrial_base_tier = 6
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 7
+				}
+				check_variable = {
+					industrial_base_tier = 6
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 6
+				}
+				check_variable = {
+					industrial_base_tier = 6
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 5
+				}
+				check_variable = {
+					industrial_base_tier = 6
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 9
+				}
+				check_variable = {
+					industrial_base_tier = 5
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 6
+				}
+				check_variable = {
+					industrial_base_tier = 5
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 4
+				}
+				check_variable = {
+					industrial_base_tier = 5
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 4
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating > 7
+				}
+				check_variable = {
+					industrial_base_tier = 4
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 6
+				}
+				check_variable = {
+					industrial_base_tier = 4
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				has_idea = UN_Sanctions
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				has_idea = unrecognized_state
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating < 4
+				}
+				check_variable = {
+					industrial_base_tier = 4
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating > 5
+				}
+				check_variable = {
+					industrial_base_tier = 3
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = -2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				OR = {
+					check_variable = {
+						Credit_Rating = 2
+					}
+					check_variable = {
+						Credit_Rating = 3
+					}
+				}
+				check_variable = {
+					Credit_Rating > 5
+				}
+				check_variable = {
+					industrial_base_tier = 3
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating > 4
+				}
+				check_variable = {
+					industrial_base_tier = 2
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = -2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating > 3
+				}
+				check_variable = {
+					industrial_base_tier = 1
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = -2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating = 1
+				}
+			}
+			set_variable = {
+				Credit_Progress = 0
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating = 9
+				}
+			}
+			set_variable = {
+				Credit_Progress = 0
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating > 6
+				}
+				check_variable = {
+					industrial_base_tier < 5
+				}
+			}
+			set_variable = {
+				Credit_Progress = 0
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				has_border_war = yes
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				has_country_flag = active_insurgency
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				has_war = yes
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				surrender_progress > 0.25
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				surrender_progress > 0.5
+			}
+			add_to_variable = {
+				Credit_Progress = -2
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				surrender_progress > 0.75
+			}
+			add_to_variable = {
+				Credit_Progress = -3
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				has_capitulated = yes
+			}
+			add_to_variable = {
+				Credit_Progress = -4
+			}
+		}
+		set_variable = {
+			DebtRiskAversionBad = grossdomesticproduct
+		}
+		set_variable = {
+			DebtRiskAversionGood = grossdomesticproduct
+		}
+		if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 9
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 8
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 4
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 8
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 6
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 3
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 7
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 5
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 2.5
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 6
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 4
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 2
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 5
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 3
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 1.5
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 4
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 2
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 1
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 3
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 1
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 0.5
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 2
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 0.75
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 0.35
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					currentDebt > DebtRiskAversionBad
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = -1
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					currentDebt < DebtRiskAversionGood
+				}
+			}
+			add_to_variable = {
+				Credit_Progress = 1
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					Credit_Progress > 99
+				}
+				NOT = {
+					check_variable = {
+						Credit_Rating = 1
+					}
+				}
+				NOT = {
+					check_variable = {
+						Credit_Rating = 9
+					}
+				}
+			}
+			raise_credit_rating = yes
+		}
+		if = {
+			limit = {
+				check_variable = {
+					Credit_Progress < 0
+				}
+				NOT = {
+					check_variable = {
+						Credit_Rating < 4
+					}
+				}
+			}
+			lower_credit_rating = yes
+		}
+	}
+}
+
+raise_credit_rating = {
+	add_to_variable = {
+		Credit_Rating = 1
+	}
+}
+
+lower_credit_rating = {
+	add_to_variable = {
+		Credit_Rating = -1
+	}
+}
+
+set_starting_credit_ratings = {
+	#Change to GDP-Debt Ratio
+	set_country_flag = Startup_Credit_Rating_Assigned
+	if = {
+		limit = {
+			OR = {
+				tag = USA
+				tag = UNS
+				tag = VTC
+				tag = SOV
+				tag = ENG
+			}
+		}
+		set_variable = {
+			Credit_Rating = 10
+		}
+		set_country_flag = Credit_Rating_Locked
+	}
+	else_if = {
+		if = {
+			limit = {
+				check_variable = {
+					average_development > 3
+				}
+			}
+			set_variable = {
+				Credit_Rating = 9
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					average_development > 2.8
+				}
+			}
+			set_variable = {
+				Credit_Rating = 8
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					average_development > 2.5
+				}
+			}
+			set_variable = {
+				Credit_Rating = 7
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					average_development > 2.3
+				}
+			}
+			set_variable = {
+				Credit_Rating = 6
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					average_development > 2
+				}
+			}
+			set_variable = {
+				Credit_Rating = 5
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					average_development > 1.5
+				}
+			}
+			set_variable = {
+				Credit_Rating = 4
+			}
+		}
+		else = {
+			set_variable = {
+				Credit_Rating = 3
+			}
+		}
+	}
+	else = {
+		set_variable = {
+			Credit_Rating = 3
+		}
+	}
+}
+
+set_interest_rates = {
+	if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 10
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.01
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.25
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 9
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.015
+		}
+		set_variable = {
+			default_multiplier = 15
+		}
+		set_variable = {
+			austerity_multiplier = 8
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.2
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 8
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.02
+		}
+		set_variable = {
+			default_multiplier = 12
+		}
+		set_variable = {
+			austerity_multiplier = 6
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.18
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 7
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.05
+		}
+		set_variable = {
+			default_multiplier = 10
+		}
+		set_variable = {
+			austerity_multiplier = 5
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.16
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 6
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.1
+		}
+		set_variable = {
+			default_multiplier = 8
+		}
+		set_variable = {
+			austerity_multiplier = 4
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.14
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 5
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.15
+		}
+		set_variable = {
+			default_multiplier = 6
+		}
+		set_variable = {
+			austerity_multiplier = 3
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.12
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 4
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.2
+		}
+		set_variable = {
+			default_multiplier = 4
+		}
+		set_variable = {
+			austerity_multiplier = 2
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.1
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 3
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.25
+		}
+		set_variable = {
+			default_multiplier = 3
+		}
+		set_variable = {
+			austerity_multiplier = 1
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.1
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 2
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.4
+		}
+		set_variable = {
+			default_multiplier = 2
+		}
+		set_variable = {
+			austerity_multiplier = 0.75
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.1
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				Credit_Rating = 1
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.5
+		}
+		set_variable = {
+			default_multiplier = 1
+		}
+		set_variable = {
+			austerity_multiplier = 0.5
+		}
+		set_variable = {
+			max_borrowable_modifier = 0.1
+		}
+	}
+	else = {
+	}
+}
+
+set_international_commercial_rates = {
+	set_variable = {
+		ParisCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		ParisCurrentInterestRate = 1.25
+	}
+	set_variable = {
+		BarclaysCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		BarclaysCurrentInterestRate = 1.25
+	}
+	set_variable = {
+		MitsubishiCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		MitsubishiCurrentInterestRate = 1.3
+	}
+	set_variable = {
+		MorganCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		MorganCurrentInterestRate = 1.25
+	}
+	set_variable = {
+		SuisseCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		SuisseCurrentInterestRate = 2.25
+	}
+	set_variable = {
+		DeutscheCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		DeutscheCurrentInterestRate = 1.6
+	}
+	#International Max Borrowable
+	#10% of GDP at CCC/lower and increase by 2% per level above CCC
+	set_variable = {
+		OldParisMaxBorrowable = ParisMaxBorrowable
+	}
+	set_variable = {
+		ParisMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		ParisMaxBorrowable = max_borrowable_modifier
+	}
+	set_variable = {
+		OldBarclaysMaxBorrowable = BarclaysMaxBorrowable
+	}
+	set_variable = {
+		BarclaysMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		BarclaysMaxBorrowable = max_borrowable_modifier
+	}
+	set_variable = {
+		OldMitsubishiMaxBorrowable = MitsubishiMaxBorrowable
+	}
+	set_variable = {
+		MitsubishiMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		MitsubishiMaxBorrowable = max_borrowable_modifier
+	}
+	set_variable = {
+		OldSuisseMaxBorrowable = SuisseMaxBorrowable
+	}
+	set_variable = {
+		SuisseMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		SuisseMaxBorrowable = max_borrowable_modifier
+	}
+	set_variable = {
+		OldDeutscheMaxBorrowable = DeutscheMaxBorrowable
+	}
+	set_variable = {
+		DeutscheMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		DeutscheMaxBorrowable = max_borrowable_modifier
+	}
+	set_variable = {
+		OldMorganMaxBorrowable = MorganMaxBorrowable
+	}
+	set_variable = {
+		MorganMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		MorganMaxBorrowable = max_borrowable_modifier
+	}
+	#Transnational Borrowable Limits
+	set_variable = {
+		OldIMFMaxBorrowable = IMFMaxBorrowable
+	}
+	set_variable = {
+		IMFMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		IMFMaxBorrowable = 1.5
+	}
+	set_variable = {
+		OldWorldMaxBorrowable = WorldMaxBorrowable
+	}
+	set_variable = {
+		WorldMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		WorldMaxBorrowable = 0.33
+	}
+}
+
+set_reserve_rate = {
+	set_variable = {
+		ReserveCurrentInterestRate = Interest_Rate
+	}
+	multiply_variable = {
+		ReserveCurrentInterestRate = 0.8
+	}
+	set_variable = {
+		OldReserveMaxBorrowable = ReserveMaxBorrowable
+	}
+	set_variable = {
+		ReserveMaxBorrowable = grossdomesticproduct
+	}
+	multiply_variable = {
+		ReserveMaxBorrowable = 0.5
+	}
+}
+
+calculate_loan_details = {
+	set_variable = {
+		potential_loan_total = purchase_amount
+	}
+	set_variable = {
+		potential_loan_total_adj = purchase_amount
+	}
+	set_variable = {
+		potential_loan_interest = currentInterestRateCalc^current_index
+	}
+	divide_variable = {
+		potential_loan_interest = 100
+	}
+	multiply_variable = {
+		potential_loan_total_adj = potential_loan_interest
+	}
+	add_to_variable = {
+		potential_loan_total = potential_loan_total_adj
+	}
+	set_variable = {
+		potential_loan_monthly_length = purchase_length^current_index
+	}
+	multiply_variable = {
+		potential_loan_monthly_length = 12
+	}
+	set_variable = {
+		potential_loan_monthly_cost = potential_loan_total
+	}
+	divide_variable = {
+		potential_loan_monthly_cost = potential_loan_monthly_length
+	}
+}
+
+automatic_loan_setting = {
+	#Debt Calc
+	set_variable = {
+		potential_loan_total = pulse_deficit
+	}
+	set_variable = {
+		potential_loan_total_adj = pulse_deficit
+	}
+	set_variable = {
+		potential_loan_interest = currentInterestRateCalc^current_index
+	}
+	divide_variable = {
+		potential_loan_interest = 100
+	}
+	multiply_variable = {
+		potential_loan_total_adj = potential_loan_interest
+	}
+	add_to_variable = {
+		potential_loan_total = potential_loan_total_adj
+	}
+	set_variable = {
+		potential_loan_monthly_length = purchase_length^current_index
+	}
+	multiply_variable = {
+		potential_loan_monthly_length = 12
+	}
+	set_variable = {
+		potential_loan_monthly_cost = potential_loan_total
+	}
+	divide_variable = {
+		potential_loan_monthly_cost = potential_loan_monthly_length
+	}
+	#Actual Setting
+	set_variable = {
+		loan_amount = potential_loan_total
+	}
+	add_to_array = {
+		debtTotalsArray = loan_amount
+	}
+	add_to_array = {
+		debtOwnerArray = global_event_target:this_loan_country
+	}
+	add_to_array = {
+		debtOwnerDomesticStatusArray = bank_name_prompt
+	}
+	add_to_array = {
+		debtInterestArray = potential_loan_interest
+	}
+	set_variable = {
+		debtPayment = potential_loan_monthly_cost
+	}
+	add_to_array = {
+		debtPaymentArray = debtPayment
+	}
+	add_to_variable = {
+		currentDebtPayments = debtPayment
+	}
+	loan_set_assigning_borrowable = yes
+}
+
+loan_set_assigning_borrowable = {
+	if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 1
+			}
+		}
+		subtract_from_variable = {
+			CurrentReserveMaxBorrowable = loan_amount
+		}			#1
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 10
+			}
+		}
+		subtract_from_variable = {
+			CurrentWorldMaxBorrowable = loan_amount
+		}			#10
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 8
+			}
+		}
+		subtract_from_variable = {
+			CurrentMorganMaxBorrowable = loan_amount
+		}			#8
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 3
+			}
+		}
+		subtract_from_variable = {
+			CurrentParisMaxBorrowable = loan_amount
+		}			#3
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 4
+			}
+		}
+		subtract_from_variable = {
+			CurrentBarclaysMaxBorrowable = loan_amount
+		}			#4
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 5
+			}
+		}
+		subtract_from_variable = {
+			CurrentMitsubishiMaxBorrowable = loan_amount
+		}			#5
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 7
+			}
+		}
+		subtract_from_variable = {
+			CurrentDeutscheMaxBorrowable = loan_amount
+		}			#7
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 6
+			}
+		}
+		subtract_from_variable = {
+			CurrentSuisseMaxBorrowable = loan_amount
+		}			#6
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 9
+			}
+		}
+		subtract_from_variable = {
+			CurrentIMFMaxBorrowable = loan_amount
+		}			#9
+	}
+}
+
+monthly_borrowing_and_interest_pulse = {
+	#Should go in IC_Financial Pulse
+	set_international_commercial_rates = yes
+	set_reserve_rate = yes
+	#if = {
+	#	limit = {
+	#		NOT = {
+	#			has_country_flag = borrowing_setup_done
+	#		}
+	#	}
+	#	set_country_flag = borrowing_setup_done
+	#	set_variable = {
+	#		ReserveMaxBorrowable
+	#	}
+	#	WorldMaxBorrowable
+	#	MorganMaxBorrowable
+	#	ParisMaxBorrowable
+	#	BarclaysMaxBorrowable
+	#}	
+	subtract_from_variable = {
+		OldReserveMaxBorrowable = ReserveMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldWorldMaxBorrowable = WorldMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldMorganMaxBorrowable = MorganMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldParisMaxBorrowable = ParisMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldBarclaysMaxBorrowable = BarclaysMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldMitsubishiMaxBorrowable = MitsubishiMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldDeutscheMaxBorrowable = DeutscheMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldSuisseMaxBorrowable = SuisseMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldIMFMaxBorrowable = IMFMaxBorrowable
+	}
+	#New
+	multiply_variable = {
+		OldReserveMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldWorldMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldMorganMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldParisMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldBarclaysMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldMitsubishiMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldDeutscheMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldSuisseMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldIMFMaxBorrowable = -1
+	}
+	#
+	add_to_variable = {
+		CurrentReserveMaxBorrowable = OldReserveMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentWorldMaxBorrowable = OldWorldMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentMorganMaxBorrowable = OldMorganMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentParisMaxBorrowable = OldParisMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentBarclaysMaxBorrowable = OldBarclaysMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentMitsubishiMaxBorrowable = OldMitsubishiMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentDeutscheMaxBorrowable = OldDeutscheMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentSuisseMaxBorrowable = OldSuisseMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentIMFMaxBorrowable = OldIMFMaxBorrowable
+	}
+}
+
+loan_payoff_change_to_liquidity = {
+	if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 1
+			}
+		}
+		add_to_variable = {
+			CurrentReserveMaxBorrowable = debtPaymentArray^i
+		}			#1
+	}
+	else_if = {
+		#Uses Older System as Base
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 2
+			}
+		}
+		subtract_from_variable = {
+			domesticTotalDebt = debtPaymentArray^i
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 10
+			}
+		}
+		add_to_variable = {
+			CurrentWorldMaxBorrowable = debtPaymentArray^i
+		}			#10
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 8
+			}
+		}
+		add_to_variable = {
+			CurrentMorganMaxBorrowable = debtPaymentArray^i
+		}			#8
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 3
+			}
+		}
+		add_to_variable = {
+			CurrentParisMaxBorrowable = debtPaymentArray^i
+		}			#3
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 4
+			}
+		}
+		add_to_variable = {
+			CurrentBarclaysMaxBorrowable = debtPaymentArray^i
+		}			#4
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 4
+			}
+		}
+		add_to_variable = {
+			CurrentMitsubishiMaxBorrowable = debtPaymentArray^i
+		}			#5
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 4
+			}
+		}
+		add_to_variable = {
+			CurrentDeutscheMaxBorrowable = debtPaymentArray^i
+		}			#7
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 4
+			}
+		}
+		add_to_variable = {
+			CurrentSuisseMaxBorrowable = debtPaymentArray^i
+		}			#6
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				debtOwnerDomesticStatusArray^i = 4
+			}
+		}
+		add_to_variable = {
+			CurrentIMFMaxBorrowable = debtPaymentArray^i
+		}			#9
+	}
+}
+
+get_decade_industrial_base_capita = {
+	if = {
+		limit = {
+			date < 1960.1.1
+		}
+		set_variable = { current_decade = 1950 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 0.49 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 1970.1.1
+		}
+		set_variable = { current_decade = 1960 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3.5 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2.5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.75 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 0.99 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 1980.1.1
+		}
+		set_variable = { current_decade = 1970 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 7 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3.5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2.25 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.49 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 1990.1.1
+		}
+		set_variable = { current_decade = 1980 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 10 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 7 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.99 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 2000.1.1
+		}
+		set_variable = { current_decade = 1990 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 15 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 10 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 8 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2.99 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else = {
+		set_variable = { current_decade = 2000 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 20 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 15 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 10 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 8 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3.49 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+}
