@@ -1024,15 +1024,8 @@ calculate_national_productivity_factor = {
 	
 }
 
-get_total_factory = {
-	set_variable = { total_factory_amount = 0 }
-	every_owned_state = {
-		add_to_variable = { PREV.total_factory_amount = THIS.buildings^8 }
-	}
-}
 
 get_electricity_debuff = {
-	get_total_factory = yes
 	set_variable = { electricity_debuff_factor = 1}
 
 	set_temp_variable = { electricity_into_variable = resource@electricity}			
@@ -1104,7 +1097,7 @@ calculate_factory_gross_profits = {
 			}
 
 			#Mils
-			set_temp_variable = { baseValue = 0.5 }
+			set_temp_variable = { baseValue = 1 }
 			#multiply_temp_variable = { baseValue = arms_factory_tech }
 			multiply_temp_variable = { baseValue = productivity_factor }
 			multiply_temp_variable = { baseValue = PREV.mil_productivity_factor }			
@@ -1250,7 +1243,6 @@ calculate_gross_factory_earnings = {
 }
 
 calculate_net_poptype_earnings = {
-	every_owned_state = {
 		set_variable = { net_factory_earnings = gross_factory_earnings }
 
 		#Lower-Class non-building_pops
@@ -1334,8 +1326,6 @@ calculate_net_poptype_earnings = {
 
 		#log = "[?THIS.GetID.GetName]: [?net_factory_earnings] compared to [?gross_factory_earnings], [?pop_lowerclass_gross_wage], [?pop_middleclass_gross_wage]"
 		#log = "[?THIS.GetID.GetName]: Substinents Earning: [?pop_substinents_gross_wage], Artisan Earning: [?pop_artisan_gross_wage]^^"
-
-	}
 }
 
 
@@ -1346,11 +1336,11 @@ testing2 = {
 }
 
 gdp_calculation_effect = {
-	get_average_development = yes	#Required to be seperate at top
-	generate_tax_info = yes 				#Sets Laffer Curve and Updates GUI
+	get_average_development = yes	#Required to be seperate at top, also total factory, infrastructure and check_buildings calls
+	generate_tax_info = yes 		#Sets Laffer Curve and Updates GUI
 
 	employing_effect = yes
-	get_electricity_debuff = yes
+	get_electricity_debuff = yes	#Must be Below get_average_development
 	check_individual_factory_productivity = yes
 
 	set_variable = { civilian_sector = 0 }
@@ -1361,7 +1351,29 @@ gdp_calculation_effect = {
 	set_variable = { service_sector = 0 }
 	set_variable = { corporate_gross_income = 0 }
 
+	set_variable = { IncomeTotal = 0 }
+	set_variable = { IncomeCheck = 0 }	
+	laffer_curve_function = yes
+	set_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_middleclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_upperclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_corporateclass_tax_rate = effective_tax_rate }
+
+	multiply_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
+	multiply_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
+	multiply_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
+	multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
+
+	set_variable = { grossdomesticproduct = 0 }
+	set_variable = { national_net_factory_earnings = 0 }
+	set_variable = { national_pop_lowerclass_net_wage = 0 }
+	set_variable = { national_pop_middleclass_net_wage = 0 }
+	set_variable = { national_pop_substinents_gross_wage = 0 }
+	set_variable = { national_pop_artisan_gross_wage = 0 }
+	set_variable = { national_pop_upperclass_net_wage = 0 }
+
 	every_owned_state = {
+		income_effect_every_owned_scope = yes #Legacy
 		get_total_infrastructure = yes	#For Public Services Expenses
 
 		reset_potential_problems = yes
@@ -1382,13 +1394,24 @@ gdp_calculation_effect = {
 		calculate_factory_gross_profits = yes
 
 		calculate_gross_factory_earnings = yes
+		calculate_net_poptype_earnings = yes
+		calculate_take_taxes_from_people = yes
+
+		calculate_sum_up_total = yes
+
 	}
+	divide_variable = { IncomeTotal = 100 }
+	set_variable = {
+		tax_display = IncomeTotal
+	}
+
+	divide_variable = { grossdomesticproduct = 10 }
+
+	set_temp_variable = { finance_extra_gdp = grossdomesticproduct }
+	divide_temp_variable = { finance_extra_gdp = 12 }
+	add_to_variable = { IncomeCheck = finance_extra_gdp }
+	add_to_variable = { IncomeCheck = IncomeTotal }
 	
-	calculate_net_poptype_earnings = yes
-
-	calculate_take_taxes_from_people = yes
-
-	calculate_sum_up_total = yes
 
 
 	calculate_gdp_per_capita = yes
@@ -1401,20 +1424,8 @@ gdp_calculation_effect = {
 }
 
 calculate_take_taxes_from_people = {
-	set_variable = { IncomeTotal = 0 }
-	set_variable = { IncomeCheck = 0 }	
-	laffer_curve_function = yes
-	set_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
-	set_variable = { pop_middleclass_tax_rate = effective_tax_rate }
-	set_variable = { pop_upperclass_tax_rate = effective_tax_rate }
-	set_variable = { pop_corporateclass_tax_rate = effective_tax_rate }
 
-	multiply_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
-	multiply_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
-	multiply_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
-	multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
 
-	every_owned_state = {
 		set_temp_variable = { pop_lowerclass_taken_wage = pop_lowerclass_gross_wage }
 		multiply_temp_variable = { pop_lowerclass_taken_wage = owner:pop_lowerclass_tax_rate }
 
@@ -1461,24 +1472,13 @@ calculate_take_taxes_from_people = {
 			add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
 		}
 		#log = "[?owner:pop_middleclass_tax_rate]"
-	}	
-	divide_variable = { IncomeTotal = 100 }
-	set_variable = {
-		tax_display = IncomeTotal
-	}
+		
+
 	log = "[?IncomeTotal]"
 }
 
 calculate_sum_up_total = {
-	set_variable = { grossdomesticproduct = 0 }
-	set_variable = { national_net_factory_earnings = 0 }
-	set_variable = { national_pop_lowerclass_net_wage = 0 }
-	set_variable = { national_pop_middleclass_net_wage = 0 }
-	set_variable = { national_pop_substinents_gross_wage = 0 }
-	set_variable = { national_pop_artisan_gross_wage = 0 }
-	set_variable = { national_pop_upperclass_net_wage = 0 }
 
-	every_owned_state = {
 		add_to_variable = { PREV.grossdomesticproduct = net_factory_earnings}
 		add_to_variable = { PREV.grossdomesticproduct = pop_lowerclass_net_wage}
 		add_to_variable = { PREV.grossdomesticproduct = pop_middleclass_net_wage}
@@ -1492,13 +1492,6 @@ calculate_sum_up_total = {
 		add_to_variable = { PREV.national_pop_substinents_gross_wage = pop_substinents_gross_wage}
 		add_to_variable = { PREV.national_pop_artisan_gross_wage = pop_artisan_gross_wage}
 		add_to_variable = { PREV.national_pop_upperclass_net_wage = pop_upperclass_net_wage }
-	}
-	divide_variable = { grossdomesticproduct = 10 }
-
-	set_temp_variable = { finance_extra_gdp = grossdomesticproduct }
-	divide_temp_variable = { finance_extra_gdp = 12 }
-	add_to_variable = { IncomeCheck = finance_extra_gdp }
-	add_to_variable = { IncomeCheck = IncomeTotal }
 
 
 	#log = "[?grossdomesticproduct]"
@@ -1518,9 +1511,14 @@ give_everyone_base_tax = {
 #Expenses
 
 get_average_development = {
+	check_buildings = yes
+	set_variable = { total_factory_amount = 0 }
 	set_variable = { average_development = 1 }
+	set_variable = { Total_Nuclear_Reactors = 0 }
 	every_owned_state = {
 		add_to_variable = { PREV.average_development = THIS.state_development}
+		add_to_variable = { PREV.total_factory_amount = THIS.buildings^8 }
+		add_to_variable = { PREV.Total_Nuclear_Reactors = building_level@nuclear_reactor }
 	}
 	divide_variable = { average_development = num_owned_states }
 }
@@ -2051,9 +2049,8 @@ calc_navy_army_expenditure = {
 
 calc_nuke_army_expenditure = {
 	set_variable = { nuke_army_expenditure = average_development }
-	every_owned_state = {
-		add_to_variable = { PREV.nuke_army_expenditure = building_level@nuclear_reactor }
-	}
+	add_to_variable = { nuke_army_expenditure = Total_Nuclear_Reactors }
+
 
 	multiply_variable = { nuke_army_expenditure = 100 }
 
@@ -2347,6 +2344,9 @@ generate_class_pie_chart_gui = {
 	set_variable = { pie_chart_sector_srv = service_sector_calc }
 	multiply_variable = { pie_chart_sector_srv = 1000 }
 	add_to_variable = { pie_chart_sector_srv = pie_chart_sector_mic }
+
+	set_variable = { Rentier_Economic_Check = food_sector_calc }
+	add_to_variable = { Rentier_Economic_Check = rgo_sector_calc }
 
 	#GDP Contribution GUI
 	set_variable = { under_class_gdp_contribution = national_pop_substinents_gross_wage }
