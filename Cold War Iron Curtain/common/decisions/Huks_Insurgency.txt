@@ -127,7 +127,7 @@ Huks_Insurgency_Decisions = {
 					on_cancel = Indochina_War.4
 				}
 				attacker = {
-					state = var:attacker_state
+					state = var:ROOT.attacker_state
 					num_provinces = 1
 					on_win = HUK_insurgency.13
 					on_lose = HUK_insurgency.14
@@ -159,8 +159,8 @@ Huks_Insurgency_Decisions = {
 			factor = 1
 		}
 		complete_effect = {
-			activate_mission = huks_reestablish_communications_timer
 			set_variable = { huks_fixin_control = FROM.id }
+			activate_mission = huks_reestablish_communications_timer
 		}
 	}
 	huks_reestablish_communications_timer = {
@@ -174,14 +174,13 @@ Huks_Insurgency_Decisions = {
 		}
 		cancel_trigger = {
 			divisions_in_state = {
-				state = huks_fixin_control	
+				state = var:huks_fixin_control	
 				size < 2
 			}
 		}
 		is_good = yes
 		timeout_effect = {
-			every_state = {
-				limit = { state = huks_fixin_control }
+			var:huks_fixin_control = {
 				remove_dynamic_modifier = { modifier = HUK_disrupted_control_modifier }
 			}
 			clear_variable = huks_fixin_control
@@ -191,7 +190,7 @@ Huks_Insurgency_Decisions = {
 		icon = generic_civil_support
 		allowed = { tag = PHI }
 		visible = {
-			date > 1950.9.1	#replace with flags on pulse for performance
+			date > 1950.9.1
 		}
 		available = {
 
@@ -204,6 +203,103 @@ Huks_Insurgency_Decisions = {
 			set_country_flag = magsaysay_secnatdef
 			#add_ideas = magsaysay_secnatdef_1
 			HUK = { country_event = HUK_insurgency.8 }
+		}
+	}
+	huks_raid_communist_hq = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			has_idea = magsaysay_secnatdef_1
+		}
+		available = {
+			has_idea = magsaysay_secnatdef_1
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		#fire_only_once = yes
+		complete_effect = {
+		
+		}
+	}
+	huks_enroll_edcor = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			has_idea = magsaysay_secnatdef_1
+		}
+		available = {
+			has_idea = magsaysay_secnatdef_1
+			date > 1951.11.1
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		fire_only_once = yes
+		complete_effect = {
+		
+		}
+	}
+	huks_begin_bombing_campaigns = { #might work better as a custom raid
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			has_idea = magsaysay_secnatdef_1
+		}
+		available = {
+			has_idea = magsaysay_secnatdef_1
+			has_completed_focus = PHI_Philippine_Air_Force
+		}
+		ai_will_do = {
+			factor = 1
+		}
+		fire_only_once = yes
+		complete_effect = {
+			HUK = { add_ideas = huk_getting_bombed }
+		}
+	}
+	huks_contest_state_gov = {
+		icon = generic_civil_support
+		allowed = { tag = PHI }
+		visible = {
+			NOT = { has_idea = phi_hukraid_cooldown }
+		}
+		on_map_mode = map_and_decisions_view
+		state_target = yes
+		target_trigger = {
+			FROM = {
+				is_owned_by = HUK
+				any_neighbor_state = { is_owned_by = PHI }
+			}
+		}
+		available = { has_border_war = no }
+		ai_will_do = {
+			factor = 1
+		}
+		complete_effect = {
+			FROM = {
+				any_neighbor_state = {
+					limit = { is_owned_by = PHI }
+					set_variable = { ROOT.attacker_state = THIS.id }
+				}
+			}
+			start_border_war = {
+				change_state_after_war = yes
+				defender = {
+					state = FROM
+					num_provinces = 1
+					on_win = HUK_insurgency.11
+					on_lose = HUK_insurgency.12
+					on_cancel = Indochina_War.4
+				}
+				attacker = {
+					state = var:attacker_state
+					num_provinces = 1
+					on_win = HUK_insurgency.13
+					on_lose = HUK_insurgency.14
+					on_cancel = Indochina_War.4
+				}
+			}
 		}
 	}
 }
