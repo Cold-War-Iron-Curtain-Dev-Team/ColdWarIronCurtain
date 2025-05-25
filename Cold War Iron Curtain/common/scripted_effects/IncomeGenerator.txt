@@ -399,6 +399,17 @@ income_effect = {
 	calc_healthcare_expenditure = yes
 	calc_policing_expenditure = yes
 
+	set_variable = { public_expenditure_total = 0 }
+	add_to_variable = { public_expenditure_total = public_services_expenditure }
+	add_to_variable = { public_expenditure_total = welfare_expenditure }
+	add_to_variable = { public_expenditure_total = healthcare_expenditure }
+
+	set_variable = { totalexp = 0 }
+	add_to_variable = { totalexp = military_total_exp }
+	add_to_variable = { totalexp = public_expenditure_total }
+	#add_to_variable = { totalexp = policing_expenditure }
+	add_to_variable = { totalexp = education_expenditure }
+	
 
 
 	multiply_variable = {
@@ -426,6 +437,9 @@ income_effect = {
 	multiply_variable = {
 		tourism_infrastructure_total = stability
 	}	#Stability affects tourism
+	divide_variable = {
+		tourism_infrastructure_total = 12
+	}
 	add_to_variable = {
 		IncomeTotal = tourism_infrastructure_total
 	}
@@ -809,31 +823,31 @@ income_effect = {
 	}
 	#Policy Costs
 	subtract_from_variable = {
-		IncomeTotal = land_army_expenditure
+		IncomeTotal = military_total_exp
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / land_army_expenditure = [?land_army_expenditure]" }
 	subtract_from_variable = {
-		IncomeTotal = welfare_cost
+		IncomeTotal = welfare_expenditure
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / welfare_cost = [?welfare_cost]" }
 	subtract_from_variable = {
-		IncomeTotal = cpi_cost
+		IncomeTotal = policing_expenditure
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / cpi_cost = [?cpi_cost]" }
 	subtract_from_variable = {
-		IncomeTotal = edu_cost
+		IncomeTotal = education_expenditure
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / edu_cost = [?edu_cost]" }
 	subtract_from_variable = {
-		IncomeTotal = health_cost
+		IncomeTotal = healthcare_expenditure
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / health_cost = [?health_cost]" }
 	subtract_from_variable = {
-		IncomeTotal = pub_cost
+		IncomeTotal = public_services_expenditure
 	}
 	#Domestic Cost (already accounted in total, just for display)
 	set_variable = {
-		domestic_cost = cpi_cost
+		domestic_cost = policing_expenditure
 	}
 	add_to_variable = {
 		domestic_cost = total_insurgency_funding
@@ -1476,6 +1490,7 @@ income_effect = {
 		}
 		automatic_loan_setting = yes
 	}
+	create_pie_chart = yes
 	#Stuff for AI Building Priorities
 	set_variable = {
 		refinery_total = 0
@@ -1557,34 +1572,6 @@ military_expenditure = {
 		af_expend_display = air_army_expenditure
 	}
 	##
-	multiply_variable = {
-		mil_expend_display = military_edict_debit_factor
-	}
-	multiply_variable = {
-		navy_expend_display = military_edict_debit_factor
-	}
-	multiply_variable = {
-		af_expend_display = military_edict_debit_factor
-	}
-	##
-	add_to_variable = {
-		land_army_expenditure = military_edict_debit_gain
-	}
-	multiply_variable = {
-		land_army_expenditure = military_edict_debit_factor
-	}
-	add_to_variable = {
-		navy_army_expenditure = military_edict_debit_gain
-	}
-	multiply_variable = {
-		navy_army_expenditure = military_edict_debit_factor
-	}
-	add_to_variable = {
-		air_army_expenditure = military_edict_debit_gain
-	}
-	multiply_variable = {
-		air_army_expenditure = military_edict_debit_factor
-	}
 	##
 	multiply_variable = {
 		land_army_expenditure = global.GlobalDebit
@@ -1726,6 +1713,14 @@ military_expenditure = {
 	set_variable = {
 		af_gui_total = 0
 	}
+	set_variable = {
+		sf_gui_total = 0
+	}
+	#Make Monthly
+	divide_variable = { land_army_expenditure = 1.5 }
+	divide_variable = { navy_army_expenditure = 2.5 }
+	divide_variable = { air_army_expenditure = 2.25 }
+	divide_variable = { nuke_army_expenditure = 1 }
 	add_to_variable = {
 		mil_gui_total = land_army_expenditure
 	}
@@ -1735,21 +1730,20 @@ military_expenditure = {
 	add_to_variable = {
 		af_gui_total = air_army_expenditure
 	}
-	#addition
 	add_to_variable = {
-		land_army_expenditure = navy_army_expenditure
+		sf_gui_total = nuke_army_expenditure
 	}
 	add_to_variable = {
-		land_army_expenditure = air_army_expenditure
+		sf_gui_total = space_expenditure
 	}
-	add_to_variable = {
-		land_army_expenditure = strategic_forces_expend
-	}
-	add_to_variable = {
-		land_army_expenditure = space_expenditure
-	}
+	#Addition
+	set_variable = { military_total_exp = mil_gui_total }
+	add_to_variable = { military_total_exp = navy_gui_total }
+	add_to_variable = { military_total_exp = af_gui_total }
+	add_to_variable = { military_total_exp = sf_gui_total }
+
 	subtract_from_variable = {
-		IncomeCheck = land_army_expenditure
+		IncomeCheck = military_total_exp
 	}
 }
 
