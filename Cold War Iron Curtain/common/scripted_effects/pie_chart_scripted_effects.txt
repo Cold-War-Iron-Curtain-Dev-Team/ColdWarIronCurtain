@@ -3,25 +3,10 @@
 
 # this creates a pie chart of popularities - can be easily adapted to show anything that adds up to 100%
 create_pie_chart = {
-	set_temp_variable = { industrial_pop = IND_DISPLAY }
-	add_to_temp_variable = { industrial_pop = refinery_total }
-	add_to_temp_variable = { industrial_pop = DOCK_TOTAL }	
-	set_variable = { industry_gui_total = industrial_pop }	
-	
-	set_temp_variable = { agricultural_pop = FARM_DISPLAY }
-	
-	set_temp_variable = {tax_gui_total = tax_base }
-	
-	set_temp_variable = { services_pop = OP_Display }
-	add_to_temp_variable = { services_pop = tourism_infrastructure_total }
-	add_to_temp_variable = { services_pop = resource_income }
-	set_variable = { services_gui_total = services_pop }
-
-    set_variable = { income_display_gui_total = 0 }
-    add_to_variable = { income_display_gui_total = tax_base }
-    add_to_variable = { income_display_gui_total = services_gui_total }
-    add_to_variable = { income_display_gui_total = industry_gui_total }
-    add_to_variable = { income_display_gui_total = FARM_DISPLAY }
+	set_variable = { income_comparator = total_personal_income }
+	add_to_variable = { income_comparator = total_corporate_tax }
+	add_to_variable = { income_comparator = trade_income }
+	add_to_variable = { income_comparator = tourism_infrastructure_total }
 
     clear_array = 4pie_chart
 	resize_array = {
@@ -29,13 +14,13 @@ create_pie_chart = {
 		value = 1 # 1 is value for neutrality frame, so we don't have to make a loop for it
 		size = 100 # 100 pieces, each percent is one piece
 	}
-	set_temp_variable = { tax_pop = tax_base }
-	divide_temp_variable = {tax_pop = income_display_gui_total }
+	set_temp_variable = { tax_pop = total_personal_income }
+	divide_temp_variable = {tax_pop = income_comparator }
 	multiply_temp_variable = { tax_pop = 100 }
 	round_temp_variable = tax_pop`
 
-	set_temp_variable = { services_pop = services_gui_total }
-	divide_temp_variable = {services_pop = income_display_gui_total }
+	set_temp_variable = { services_pop = total_corporate_tax }
+	divide_temp_variable = {services_pop = income_comparator }
 	multiply_temp_variable = { services_pop = 100 }
 	round_temp_variable = services_pop 
 	set_variable = { ROOT.last_idx = tax_pop }
@@ -47,8 +32,8 @@ create_pie_chart = {
 		add_to_variable = { ROOT.last_idx = 1 }
 	}
 
-	set_temp_variable = { industry_pop = industry_gui_total }
-	divide_temp_variable = {industry_pop = income_display_gui_total }
+	set_temp_variable = { industry_pop = trade_income }
+	divide_temp_variable = {industry_pop = income_comparator }
 	multiply_temp_variable = { industry_pop = 100 }
 	round_temp_variable = industry_pop
 	add_to_temp_variable = { industry_pop = ROOT.last_idx }
@@ -59,8 +44,8 @@ create_pie_chart = {
 		add_to_variable = { ROOT.last_idx = 1 }
 	}
 
-	set_temp_variable = { farm_pop = FARM_DISPLAY }
-	divide_temp_variable = {farm_pop = income_display_gui_total }
+	set_temp_variable = { farm_pop = tourism_infrastructure_total }
+	divide_temp_variable = {farm_pop = income_comparator }
 	multiply_temp_variable = { farm_pop = 100 }
 	round_temp_variable = farm_pop 
 	add_to_temp_variable = { farm_pop = ROOT.last_idx }
@@ -75,7 +60,10 @@ create_pie_chart = {
 
 
 	##military chart
-
+	set_variable = { military_total_gui = mil_gui_total }
+	add_to_variable = { military_total_gui = navy_gui_total }
+	add_to_variable = { military_total_gui = af_gui_total }
+	add_to_variable = { military_total_gui = sf_gui_total }
 
 	clear_array = 2pie_chart
 	resize_array = {
@@ -84,12 +72,12 @@ create_pie_chart = {
 		size = 100 # 100 pieces, each percent is one piece
 	}
 	set_temp_variable = { army_pop = mil_gui_total }
-	divide_temp_variable = {army_pop = land_army_expenditure }
+	divide_temp_variable = {army_pop = military_total_gui }
 	multiply_temp_variable = { army_pop = 100 }
 	round_temp_variable = army_pop
 
-	set_temp_variable = { navy_pop = navy_army_expenditure }
-	divide_temp_variable = {navy_pop = land_army_expenditure }
+	set_temp_variable = { navy_pop = navy_gui_total }
+	divide_temp_variable = {navy_pop = military_total_gui }
 	multiply_temp_variable = { navy_pop = 100 }
 	round_temp_variable = navy_pop 
 	set_variable = { ROOT.last_idx = army_pop }
@@ -101,8 +89,8 @@ create_pie_chart = {
 		add_to_variable = { ROOT.last_idx = 1 }
 	}
 
-	set_temp_variable = { airforce_pop = air_army_expenditure }
-	divide_temp_variable = {airforce_pop = land_army_expenditure }
+	set_temp_variable = { airforce_pop = af_gui_total }
+	divide_temp_variable = {airforce_pop = military_total_gui }
 	multiply_temp_variable = { airforce_pop = 100 }
 	round_temp_variable = airforce_pop
 	add_to_temp_variable = { airforce_pop = ROOT.last_idx }
@@ -113,8 +101,8 @@ create_pie_chart = {
 		add_to_variable = { ROOT.last_idx = 1 }
 	}
 
-	set_temp_variable = { sf_pop = 0.0 }
-	divide_temp_variable = {sf_pop = land_army_expenditure }
+	set_temp_variable = { sf_pop = sf_gui_total }
+	divide_temp_variable = {sf_pop = military_total_gui }
 	multiply_temp_variable = { sf_pop = 100 }
 	round_temp_variable = sf_pop 
 	add_to_temp_variable = { sf_pop = ROOT.last_idx }
@@ -141,21 +129,20 @@ create_pie_chart = {
 	multiply_temp_variable = { military_expenditure = 100 }
 	round_temp_variable = military_expenditure
 
-	#set_temp_variable = { police_expenditure = cpi_cost }
-	set_temp_variable = { police_expenditure = domestic_cost }
-	divide_temp_variable = { police_expenditure = totalexp }
-	multiply_temp_variable = { police_expenditure = 100 }
-	round_temp_variable = police_expenditure 
+	set_temp_variable = { police_expenditure_gui = policing_expenditure }
+	divide_temp_variable = { police_expenditure_gui = totalexp }
+	multiply_temp_variable = { police_expenditure_gui = 100 }
+	round_temp_variable = police_expenditure_gui 
 	set_variable = { ROOT.last_idx = military_expenditure }
-	add_to_temp_variable = { police_expenditure = ROOT.last_idx }
+	add_to_temp_variable = { police_expenditure_gui = ROOT.last_idx }
 	for_loop_effect = {
 		start = ROOT.last_idx
-		end = police_expenditure
+		end = police_expenditure_gui
 		set_variable = { 3pie_chart^v = 2 }
 		add_to_variable = { ROOT.last_idx = 1 }
 	}
 
-	set_temp_variable = { edu_expenditure = edu_cost }
+	set_temp_variable = { edu_expenditure = education_expenditure }
 	divide_temp_variable = { edu_expenditure = totalexp }
 	multiply_temp_variable = { edu_expenditure = 100 }
 	round_temp_variable = edu_expenditure
@@ -167,7 +154,7 @@ create_pie_chart = {
 		add_to_variable = { ROOT.last_idx = 1 }
 	}
 
-	set_temp_variable = { public_expenditure = pub_cost }
+	set_temp_variable = { public_expenditure = public_expenditure_total }
 	add_to_temp_variable = { public_expenditure = welfare_cost }
 	add_to_temp_variable = { public_expenditure = health_cost }
 	set_variable = { public_gui_total = public_expenditure }

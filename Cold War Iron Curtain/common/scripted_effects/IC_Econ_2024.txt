@@ -1371,7 +1371,12 @@ gdp_calculation_effect = {
 	set_variable = { national_pop_substinents_gross_wage = 0 }
 	set_variable = { national_pop_artisan_gross_wage = 0 }
 	set_variable = { national_pop_upperclass_net_wage = 0 }
-
+	set_variable = {
+		total_corporate_tax = 0
+	}
+	set_variable = {
+		total_infrastructure = 0
+	}
 	every_owned_state = {
 		income_effect_every_owned_scope = yes #Legacy
 		get_total_infrastructure = yes	#For Public Services Expenses
@@ -1404,6 +1409,14 @@ gdp_calculation_effect = {
 	set_variable = {
 		tax_display = IncomeTotal
 	}
+	set_variable = { 
+		total_personal_income_tax = x 
+	}
+	divide_variable = { total_personal_income_tax = 100 }
+	divide_variable = { total_corporate_tax = 100 }
+
+	set_variable = { total_personal_income = tax_display }
+	subtract_from_variable = { total_personal_income = total_corporate_tax }
 
 	divide_variable = { grossdomesticproduct = 10 }
 
@@ -1469,6 +1482,7 @@ calculate_take_taxes_from_people = {
 			limit = { check_variable = { net_factory_earnings > 0 }}
 			set_temp_variable = { net_factory_taxed_earnings = net_factory_earnings }
 			multiply_temp_variable = { net_factory_taxed_earnings = owner:pop_corporateclass_tax_rate }
+			add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
 			add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
 		}
 		#log = "[?owner:pop_middleclass_tax_rate]"
@@ -1559,7 +1573,7 @@ calc_welfare_expenditure = {
 		welfare_expenditure = middle_welfare
 	}
 	#reduce it more
-	divide_variable = { welfare_expenditure = 10000 }	
+	divide_variable = { welfare_expenditure = 100000 }	
 	multiply_variable = { welfare_expenditure = average_development }
 
 	#now apply multiplier of idea
@@ -1578,19 +1592,19 @@ calc_welfare_expenditure = {
 calc_healthcare_expenditure = {
 	#gives out expenditure at 50%
 	set_variable = { healthcare_expenditure = max_manpower_k }
-	multiply_variable = { healthcare_expenditure = 0.5 }	
+	multiply_variable = { healthcare_expenditure = 0.1 }	
 
 	#reduce it more
 	divide_variable = { healthcare_expenditure = 10000 }	
 	multiply_variable = { healthcare_expenditure = average_development }
 
 	#now apply multiplier of idea
-	multiply_variable = { healthcare_expenditure = 1 }
+	multiply_variable = { healthcare_expenditure = modifier@healthcare_spending_modifier }
 }
 calc_policing_expenditure = {
 	#gives out expenditure at 50%
 	set_variable = { policing_expenditure = max_manpower_k }
-	multiply_variable = { policing_expenditure = 0.2 }	
+	multiply_variable = { policing_expenditure = 0.01 }	
 
 	#reduce it more
 	divide_variable = { policing_expenditure = 10000 }	
@@ -1605,7 +1619,7 @@ calc_policing_expenditure = {
 calc_education_expenditure = {
 	#gives out expenditure at 50%
 	set_variable = { education_expenditure = max_manpower_k }
-	multiply_variable = { education_expenditure = 0.3 }	
+	multiply_variable = { education_expenditure = 0.05 }	
 
 	#reduce it more
 	divide_variable = { education_expenditure = 10000 }	
@@ -1628,14 +1642,16 @@ calc_education_expenditure = {
 calc_public_services_expenditure = {
 	#gives out expenditure at 50%
 	set_variable = { public_services_expenditure = total_infrastructure }
-	multiply_variable = { public_services_expenditure = 0.01 }	
+	multiply_variable = { public_services_expenditure = 0.001 }	
 	multiply_variable = { public_services_expenditure = max_manpower_k }
 
 	#reduce it more
 	divide_variable = { public_services_expenditure = 100000 }	
 
 	#now apply multiplier of idea
-	multiply_variable = { public_services_expenditure = 1 }
+	multiply_variable = {
+		public_services_expenditure = modifier@public_services_spending_modifier 
+	}
 }
 
 calc_land_army_expenditure = {
@@ -1840,6 +1856,7 @@ calc_land_army_expenditure = {
 		mil_test = 0
 	}
 	multiply_variable = { land_army_expenditure = modifier@army_spending_modifier }
+	set_variable = { land_army_expenditure_actual_land = land_army_expenditure}
 	add_to_variable = {
 		mil_test = land_army_expenditure
 	}
@@ -1848,9 +1865,7 @@ calc_land_army_expenditure = {
 calc_air_army_expenditure = {
 	set_variable = { air_army_expenditure = average_development }
 	multiply_variable = { air_army_expenditure = deployed_airforce_manpower_k }
-	multiply_variable = { air_army_expenditure = 4 }
-
-	divide_variable = { air_army_expenditure = 10000}
+	multiply_variable = { air_army_expenditure = 0.05 }
 
 	##airforce costs---------
 	##airforce tier 1
@@ -1989,7 +2004,7 @@ calc_navy_army_expenditure = {
 		navy_tier_1 = num_ships_with_type@sub_hull_small_single
 	}
 	multiply_variable = {
-		navy_tier_1 = 0.2
+		navy_tier_1 = 0.05
 	}
 	##navy tier 2
 	set_variable = {
@@ -2005,7 +2020,7 @@ calc_navy_army_expenditure = {
 		navy_tier_2 = num_ships_with_type@carrier_hull_light
 	}
 	multiply_variable = {
-		navy_tier_2 = 0.3
+		navy_tier_2 = 0.1
 	}
 	##navy tier 3
 	set_variable = {
@@ -2018,7 +2033,7 @@ calc_navy_army_expenditure = {
 		navy_tier_3 = num_ships_with_type@carrier_hull
 	}
 	multiply_variable = {
-		navy_tier_3 = 0.5
+		navy_tier_3 = 0.15
 	}
 	##navy tier 4
 	set_variable = {
@@ -2028,7 +2043,7 @@ calc_navy_army_expenditure = {
 		navy_tier_4 = num_ships_with_type@carrier_hull_super
 	}
 	multiply_variable = {
-		navy_tier_4 = 0.75
+		navy_tier_4 = 0.25
 	}
 	##navy total
 	add_to_variable = {
@@ -2052,7 +2067,7 @@ calc_nuke_army_expenditure = {
 	add_to_variable = { nuke_army_expenditure = Total_Nuclear_Reactors }
 
 
-	multiply_variable = { nuke_army_expenditure = 100 }
+	multiply_variable = { nuke_army_expenditure = 750 }
 
 	set_temp_variable = { srbm_expenditure = num_equipment@srbm }
 	multiply_temp_variable = { srbm_expenditure = 5 }
@@ -2074,7 +2089,7 @@ calc_nuke_army_expenditure = {
 
 	divide_variable = { nuke_army_expenditure = 10000}
 
-	multiply_variable = { air_army_expenditure = modifier@strategic_forces_spending_modifier }
+	multiply_variable = { nuke_army_expenditure = modifier@strategic_forces_spending_modifier }
 }
 calc_space_expenditure = {
 	set_variable = {
@@ -2223,12 +2238,10 @@ calculate_employment_data_for_gui = {
 	set_variable = { total_middle_class_income_display = total_middle_class_income }
 	set_variable = { total_upper_class_income_display = total_upper_class_income }
 	set_variable = { total_lower_class_income_display = total_lower_class_income }
-	set_variable = { total_middle_class_income_display = total_middle_class_income }
 
 	divide_variable = { total_upper_class_income_display = 10 }
 	divide_variable = { total_lower_class_income_display = 10 }
 	divide_variable = { total_middle_class_income_display = 10 }
-
 
 
 	set_variable = { total_upper_class_income_calc = total_upper_class_income }
