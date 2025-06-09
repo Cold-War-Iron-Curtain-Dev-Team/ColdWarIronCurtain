@@ -1,0 +1,1358 @@
+types = {
+
+
+
+    tactical_bombing_croatia_infrastructure = {
+        days_to_prepare = 20
+
+        ai_will_do = {
+            base = 2
+        }
+
+        category = air_raids
+
+        command_power = 5
+
+        allowed = {
+            tag = USA
+        }
+
+        # Raid Type is visible
+        visible = {
+            has_global_flag = US_Yugoslavia_Anti_Croatian_Bombing 
+        }
+        # Specific Target is visible
+        show_target = {
+            var:target_state = {
+                is_controlled_by = CRO
+                is_core_of = YUG
+            }
+        }
+
+        # Can prepare
+        available = {
+        }
+        launchable = {
+        }
+
+        target_type = {
+            province = any
+
+        }
+        custom_map_icon = GFX_raid_type_icon_other_raid
+        target_icon = GFX_other_target_icon
+
+        arrow = {
+            type = air
+        }
+        unit_model = {
+            type = equipment
+        }
+
+        unit_requirements = {
+            equipment = {
+                type = { tactical_bomber }
+                amount = { min = 24 }
+            }
+        }
+        unit_requirements = {
+            equipment = {
+                type = { strategic_bomber }
+                amount = { min = 24 }
+            }
+        }
+        starting_point = {
+            types = { air_base }
+        }
+
+        success_factors = {
+            success = {
+                base = 0.65
+
+                # Raiding unit modifiers
+                experience = {
+                    weight = 0.2
+                    start_weight = -0.2
+                    reference = 1.0
+                }
+                air_agility = {
+                    reference = 100.0 # As air unit agility approaches 100 (as defined by the value above), increase chance by this value
+                    weight = 0.1 # At 0 agility, the modifier will have negative effect.
+                    start_weight = -0.1 # The modifier will scale linearly, meaning at 50 agility, the modifier will be 0.
+                }
+                reliability = {
+                    reference = 1
+                    weight = 0.05
+                    start_weight = -0.1
+                }
+                air_defence = {
+                    reference = 100
+                    weight = 0.05
+                    start_weight = -0.05
+                }
+                air_superiority = {
+                    reference = 1
+                    weight = 0.1
+                    start_weight = -0.1
+                }
+
+                ### Target Modifiers
+                anti_air = {
+                    reference = 5
+                    weight = -0.25
+                }
+                interception = {
+                    reference = 500 # More than 500 fighters won't really make any difference
+                    weight = -0.2
+                }
+                intel = {
+                    weight = 0.3
+                    #start_reference = 50
+                    reference = 100
+                }
+            }
+
+            critical = {
+                base = 0.15
+            }
+        }
+
+        success_levels = {
+            failure = {
+                victim_effects = {
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.4
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.05
+                }
+                visual_effect = {
+                    entity = "raid_failed_entity"
+                    animation = "attack"
+                    }
+            }
+            limited_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = infrastructure
+                        state = var:target_state
+                        damage = 0.5
+                    }
+                    damage_building = {
+                        type = state_infrastructure
+                        state = var:target_state
+                        damage = 0.5
+                    }                      
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.05
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.1
+                }
+                visual_effect = {
+                    entity = "air_raids_1_limited_success_entity"
+                    animation = "attack"
+                }
+            }
+            success = {
+                victim_effects = {
+                    damage_building = {
+                        type = infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = state_infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }                      
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.2
+                }
+                visual_effect = {
+                    entity = "air_raids_1_success_entity"
+                    animation = "attack"
+                }
+            }
+            critical_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = state_infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }
+                    random_list = {
+                        75 = {}
+                        25 = {
+                            damage_building = {
+                                type = fossil_fuel_powerplant
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }                      
+                    random_list = {
+                        75 = {}
+                        25 = {
+                            damage_building = {
+                                type = office_park
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }      
+                    random_list = {
+                        90 = {}
+                        10 = {
+                            damage_building = {
+                                type = arms_factory
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }      
+                    random_list = {
+                        75 = {}
+                        25 = {
+                            damage_building = {
+                                type = industrial_complex
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }  
+                    random_list = {
+                        65 = {}
+                        36 = {
+                            damage_building = {
+                                type = fuel_silo
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }  
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.35
+
+                }
+                visual_effect = {
+                    entity = "air_raids_1_critical_success_entity"
+                    animation = "attack"
+                }
+            }
+        }
+    }
+
+    tactical_bombing_croatia_SEAD = {
+        days_to_prepare = 20
+
+        ai_will_do = {
+            base = 2
+        }
+
+        category = air_raids
+
+        command_power = 5
+
+        allowed = {
+            tag = USA
+        }
+
+        # Raid Type is visible
+        visible = {
+            has_global_flag = US_Yugoslavia_Anti_Croatian_Bombing 
+        }
+        # Specific Target is visible
+        show_target = {
+            var:target_state = {
+                is_controlled_by = CRO
+                is_core_of = YUG
+            }
+        }
+
+        # Can prepare
+        available = {
+        }
+        launchable = {
+        }
+
+        target_type = {
+            province = any
+
+        }
+        custom_map_icon = GFX_raid_type_icon_other_raid
+        target_icon = GFX_other_target_icon
+
+        arrow = {
+            type = air
+        }
+        unit_model = {
+            type = equipment
+        }
+
+        unit_requirements = {
+            equipment = {
+                type = { tactical_bomber }
+                amount = { min = 24 }
+            }
+        }
+        unit_requirements = {
+            equipment = {
+                type = { strategic_bomber }
+                amount = { min = 24 }
+            }
+        }
+        starting_point = {
+            types = { air_base }
+        }
+
+        success_factors = {
+            success = {
+                base = 0.65
+
+                # Raiding unit modifiers
+                experience = {
+                    weight = 0.2
+                    start_weight = -0.2
+                    reference = 1.0
+                }
+                air_agility = {
+                    reference = 100.0 # As air unit agility approaches 100 (as defined by the value above), increase chance by this value
+                    weight = 0.1 # At 0 agility, the modifier will have negative effect.
+                    start_weight = -0.1 # The modifier will scale linearly, meaning at 50 agility, the modifier will be 0.
+                }
+                reliability = {
+                    reference = 1
+                    weight = 0.05
+                    start_weight = -0.1
+                }
+                air_defence = {
+                    reference = 100
+                    weight = 0.05
+                    start_weight = -0.05
+                }
+                air_superiority = {
+                    reference = 1
+                    weight = 0.1
+                    start_weight = -0.1
+                }
+
+                ### Target Modifiers
+                anti_air = {
+                    reference = 5
+                    weight = -0.25
+                }
+                interception = {
+                    reference = 500 # More than 500 fighters won't really make any difference
+                    weight = -0.2
+                }
+                intel = {
+                    weight = 0.3
+                    #start_reference = 50
+                    reference = 100
+                }
+            }
+
+            critical = {
+                base = 0.15
+            }
+        }
+
+        success_levels = {
+            failure = {
+                victim_effects = {
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.4
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.05
+                }
+                visual_effect = {
+                    entity = "raid_failed_entity"
+                    animation = "attack"
+                    }
+            }
+            limited_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = air_base
+                        state = var:target_state
+                        damage = 0.5
+                    }
+                    damage_building = {
+                        type = radar_station
+                        state = var:target_state
+                        damage = 0.5
+                    }                      
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.05
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.1
+                }
+                visual_effect = {
+                    entity = "air_raids_1_limited_success_entity"
+                    animation = "attack"
+                }
+            }
+            success = {
+                victim_effects = {
+                    damage_building = {
+                        type = radar_station
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = anti_air_building
+                        state = var:target_state
+                        damage = 1
+                    }                      
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.2
+                }
+                visual_effect = {
+                    entity = "air_raids_1_success_entity"
+                    animation = "attack"
+                }
+            }
+            critical_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = radar_station
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = anti_air_building
+                        state = var:target_state
+                        damage = 1
+                    }                      
+                    random_list = {
+                        33 = { }
+                        33 = {
+                            remove_building = {
+                                type = anti_air_building
+                                level = 1
+                            }
+                        }
+                        33 = {
+                            remove_building = {
+                                type = radar_station
+                                level = 1
+                            }
+                        }
+                    }
+    
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.35
+
+                }
+                visual_effect = {
+                    entity = "air_raids_1_critical_success_entity"
+                    animation = "attack"
+                }
+            }
+        }
+    }
+
+	tactical_bombing_croatia_land_forces = {
+		days_to_prepare = 20
+
+		ai_will_do = {
+			base = 2
+		}
+
+		category = air_raids
+
+		command_power = 5
+
+		allowed = {
+            tag = USA
+		}
+
+		# Raid Type is visible
+		visible = {
+			has_global_flag = US_Yugoslavia_Anti_Croatian_Bombing 
+		}
+		# Specific Target is visible
+        show_target = {
+            var:target_state = {
+                is_controlled_by = CRO
+                is_core_of = YUG
+            }
+        }
+
+		# Can prepare
+		available = {
+		}
+		launchable = {
+		}
+
+		target_type = {
+            province = any
+
+		}
+		custom_map_icon = GFX_raid_type_icon_other_raid
+		target_icon = GFX_other_target_icon
+
+		arrow = {
+		    type = air
+		}
+        unit_model = {
+            type = equipment
+        }
+
+		unit_requirements = {
+			equipment = {
+				type = { tactical_bomber }
+				amount = { min = 24 }
+			}
+		}
+		unit_requirements = {
+			equipment = {
+				type = { strategic_bomber }
+				amount = { min = 24 }
+			}
+		}
+		starting_point = {
+		    types = { air_base }
+		}
+
+		success_factors = {
+			success = {
+				base = 0.65
+
+				# Raiding unit modifiers
+				experience = {
+					weight = 0.2
+					start_weight = -0.2
+					reference = 1.0
+				}
+				air_agility = {
+					reference = 100.0 # As air unit agility approaches 100 (as defined by the value above), increase chance by this value
+					weight = 0.1 # At 0 agility, the modifier will have negative effect.
+					start_weight = -0.1 # The modifier will scale linearly, meaning at 50 agility, the modifier will be 0.
+				}
+				reliability = {
+					reference = 1
+					weight = 0.05
+					start_weight = -0.1
+				}
+				air_defence = {
+					reference = 100
+					weight = 0.05
+					start_weight = -0.05
+				}
+				air_superiority = {
+					reference = 1
+					weight = 0.1
+					start_weight = -0.1
+				}
+
+				### Target Modifiers
+				anti_air = {
+					reference = 5
+					weight = -0.25
+				}
+				interception = {
+					reference = 500 # More than 500 fighters won't really make any difference
+					weight = -0.2
+				}
+				intel = {
+					weight = 0.3
+					#start_reference = 50
+					reference = 100
+				}
+			}
+
+			critical = {
+				base = 0.15
+			}
+		}
+
+		success_levels = {
+			failure = {
+				victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.05
+                            org_damage = 0.05
+                            str_damage = 0.05
+                            ratio = yes
+                        }
+					}
+				}
+				actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.4
+                        ratio = yes
+                    }
+					raid_add_unit_experience = 0.05
+				}
+				visual_effect = {
+					entity = "raid_failed_entity"
+					animation = "attack"
+					}
+			}
+			limited_success = {
+			    victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.15
+                            org_damage = 0.15
+                            str_damage = 0.15
+                            ratio = yes
+                        }
+					}
+
+			    }
+				actor_effects = {
+					raid_damage_units = {
+						plane_loss = 0.05
+						ratio = yes
+					}
+					raid_add_unit_experience = 0.1
+				}
+				visual_effect = {
+					entity = "air_raids_1_limited_success_entity"
+					animation = "attack"
+				}
+			}
+			success = {
+				victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.33
+                            org_damage = 0.33
+                            str_damage = 0.33
+                            ratio = yes
+                        }
+					}
+				}
+				actor_effects = {
+					raid_add_unit_experience = 0.2
+				}
+				visual_effect = {
+					entity = "air_raids_1_success_entity"
+					animation = "attack"
+				}
+			}
+			critical_success = {
+			    victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.7
+                            org_damage = 0.7
+                            str_damage = 0.7
+                            ratio = yes
+                        }
+					}
+			    }
+				actor_effects = {
+					raid_add_unit_experience = 0.35
+
+				}
+				visual_effect = {
+					entity = "air_raids_1_critical_success_entity"
+					animation = "attack"
+				}
+			}
+		}
+	}
+    tactical_bombing_yugoslavia_infrastructure = {
+        days_to_prepare = 20
+
+        ai_will_do = {
+            base = 2
+        }
+
+        category = air_raids
+
+        command_power = 5
+
+        allowed = {
+            tag = USA
+        }
+
+        # Raid Type is visible
+        visible = {
+            has_global_flag = Yugo_Early_Intervention 
+        }
+        # Specific Target is visible
+        show_target = {
+            var:target_state = {
+                is_core_of = YUG
+            }
+        }
+
+        # Can prepare
+        available = {
+        }
+        launchable = {
+        }
+
+        target_type = {
+            province = any
+
+        }
+        custom_map_icon = GFX_raid_type_icon_other_raid
+        target_icon = GFX_other_target_icon
+
+        arrow = {
+            type = air
+        }
+        unit_model = {
+            type = equipment
+        }
+
+        unit_requirements = {
+            equipment = {
+                type = { tactical_bomber }
+                amount = { min = 24 }
+            }
+        }
+        unit_requirements = {
+            equipment = {
+                type = { strategic_bomber }
+                amount = { min = 24 }
+            }
+        }
+        starting_point = {
+            types = { air_base }
+        }
+
+        success_factors = {
+            success = {
+                base = 0.65
+
+                # Raiding unit modifiers
+                experience = {
+                    weight = 0.2
+                    start_weight = -0.2
+                    reference = 1.0
+                }
+                air_agility = {
+                    reference = 100.0 # As air unit agility approaches 100 (as defined by the value above), increase chance by this value
+                    weight = 0.1 # At 0 agility, the modifier will have negative effect.
+                    start_weight = -0.1 # The modifier will scale linearly, meaning at 50 agility, the modifier will be 0.
+                }
+                reliability = {
+                    reference = 1
+                    weight = 0.05
+                    start_weight = -0.1
+                }
+                air_defence = {
+                    reference = 100
+                    weight = 0.05
+                    start_weight = -0.05
+                }
+                air_superiority = {
+                    reference = 1
+                    weight = 0.1
+                    start_weight = -0.1
+                }
+
+                ### Target Modifiers
+                anti_air = {
+                    reference = 5
+                    weight = -0.25
+                }
+                interception = {
+                    reference = 500 # More than 500 fighters won't really make any difference
+                    weight = -0.2
+                }
+                intel = {
+                    weight = 0.3
+                    #start_reference = 50
+                    reference = 100
+                }
+            }
+
+            critical = {
+                base = 0.15
+            }
+        }
+
+        success_levels = {
+            failure = {
+                victim_effects = {
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.4
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.05
+                }
+                visual_effect = {
+                    entity = "raid_failed_entity"
+                    animation = "attack"
+                    }
+            }
+            limited_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = infrastructure
+                        state = var:target_state
+                        damage = 0.5
+                    }
+                    damage_building = {
+                        type = state_infrastructure
+                        state = var:target_state
+                        damage = 0.5
+                    }                      
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.05
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.1
+                }
+                visual_effect = {
+                    entity = "air_raids_1_limited_success_entity"
+                    animation = "attack"
+                }
+            }
+            success = {
+                victim_effects = {
+                    damage_building = {
+                        type = infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = state_infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }                      
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.2
+                }
+                visual_effect = {
+                    entity = "air_raids_1_success_entity"
+                    animation = "attack"
+                }
+            }
+            critical_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = state_infrastructure
+                        state = var:target_state
+                        damage = 1
+                    }
+                    random_list = {
+                        75 = {}
+                        25 = {
+                            damage_building = {
+                                type = fossil_fuel_powerplant
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }                      
+                    random_list = {
+                        75 = {}
+                        25 = {
+                            damage_building = {
+                                type = office_park
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }      
+                    random_list = {
+                        90 = {}
+                        10 = {
+                            damage_building = {
+                                type = arms_factory
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }      
+                    random_list = {
+                        75 = {}
+                        25 = {
+                            damage_building = {
+                                type = industrial_complex
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }  
+                    random_list = {
+                        65 = {}
+                        36 = {
+                            damage_building = {
+                                type = fuel_silo
+                                state = var:target_state
+                                damage = 1
+                            }                 
+                        }
+                    }  
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.35
+
+                }
+                visual_effect = {
+                    entity = "air_raids_1_critical_success_entity"
+                    animation = "attack"
+                }
+            }
+        }
+    }
+
+    tactical_bombing_yugoslavia_SEAD = {
+        days_to_prepare = 20
+
+        ai_will_do = {
+            base = 2
+        }
+
+        category = air_raids
+
+        command_power = 5
+
+        allowed = {
+            tag = USA
+        }
+
+        # Raid Type is visible
+        visible = {
+            has_global_flag = Yugo_Early_Intervention 
+        }
+        # Specific Target is visible
+        show_target = {
+            var:target_state = {
+                is_core_of = YUG
+            }
+        }
+
+        # Can prepare
+        available = {
+        }
+        launchable = {
+        }
+
+        target_type = {
+            province = any
+
+        }
+        custom_map_icon = GFX_raid_type_icon_other_raid
+        target_icon = GFX_other_target_icon
+
+        arrow = {
+            type = air
+        }
+        unit_model = {
+            type = equipment
+        }
+
+        unit_requirements = {
+            equipment = {
+                type = { tactical_bomber }
+                amount = { min = 24 }
+            }
+        }
+        unit_requirements = {
+            equipment = {
+                type = { strategic_bomber }
+                amount = { min = 24 }
+            }
+        }
+        starting_point = {
+            types = { air_base }
+        }
+
+        success_factors = {
+            success = {
+                base = 0.65
+
+                # Raiding unit modifiers
+                experience = {
+                    weight = 0.2
+                    start_weight = -0.2
+                    reference = 1.0
+                }
+                air_agility = {
+                    reference = 100.0 # As air unit agility approaches 100 (as defined by the value above), increase chance by this value
+                    weight = 0.1 # At 0 agility, the modifier will have negative effect.
+                    start_weight = -0.1 # The modifier will scale linearly, meaning at 50 agility, the modifier will be 0.
+                }
+                reliability = {
+                    reference = 1
+                    weight = 0.05
+                    start_weight = -0.1
+                }
+                air_defence = {
+                    reference = 100
+                    weight = 0.05
+                    start_weight = -0.05
+                }
+                air_superiority = {
+                    reference = 1
+                    weight = 0.1
+                    start_weight = -0.1
+                }
+
+                ### Target Modifiers
+                anti_air = {
+                    reference = 5
+                    weight = -0.25
+                }
+                interception = {
+                    reference = 500 # More than 500 fighters won't really make any difference
+                    weight = -0.2
+                }
+                intel = {
+                    weight = 0.3
+                    #start_reference = 50
+                    reference = 100
+                }
+            }
+
+            critical = {
+                base = 0.15
+            }
+        }
+
+        success_levels = {
+            failure = {
+                victim_effects = {
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.4
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.05
+                }
+                visual_effect = {
+                    entity = "raid_failed_entity"
+                    animation = "attack"
+                    }
+            }
+            limited_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = air_base
+                        state = var:target_state
+                        damage = 0.5
+                    }
+                    damage_building = {
+                        type = radar_station
+                        state = var:target_state
+                        damage = 0.5
+                    }                      
+                }
+                actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.05
+                        ratio = yes
+                    }
+                    raid_add_unit_experience = 0.1
+                }
+                visual_effect = {
+                    entity = "air_raids_1_limited_success_entity"
+                    animation = "attack"
+                }
+            }
+            success = {
+                victim_effects = {
+                    damage_building = {
+                        type = radar_station
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = anti_air_building
+                        state = var:target_state
+                        damage = 1
+                    }                      
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.2
+                }
+                visual_effect = {
+                    entity = "air_raids_1_success_entity"
+                    animation = "attack"
+                }
+            }
+            critical_success = {
+                victim_effects = {
+                    damage_building = {
+                        type = radar_station
+                        state = var:target_state
+                        damage = 1
+                    }
+                    damage_building = {
+                        type = anti_air_building
+                        state = var:target_state
+                        damage = 1
+                    }                      
+                    random_list = {
+                        33 = { }
+                        33 = {
+                            remove_building = {
+                                type = anti_air_building
+                                level = 1
+                            }
+                        }
+                        33 = {
+                            remove_building = {
+                                type = radar_station
+                                level = 1
+                            }
+                        }
+                    }
+    
+                }
+                actor_effects = {
+                    raid_add_unit_experience = 0.35
+
+                }
+                visual_effect = {
+                    entity = "air_raids_1_critical_success_entity"
+                    animation = "attack"
+                }
+            }
+        }
+    }
+
+	tactical_bombing_yugoslavia_land_forces = {
+		days_to_prepare = 20
+
+		ai_will_do = {
+			base = 2
+		}
+
+		category = air_raids
+
+		command_power = 5
+
+		allowed = {
+            tag = USA
+		}
+
+		# Raid Type is visible
+		visible = {
+			has_global_flag = Yugo_Early_Intervention 
+		}
+		# Specific Target is visible
+		show_target = {
+			var:target_state = {
+                is_core_of = YUG
+			}
+		}
+
+		# Can prepare
+		available = {
+		}
+		launchable = {
+		}
+
+		target_type = {
+            province = any
+
+		}
+		custom_map_icon = GFX_raid_type_icon_other_raid
+		target_icon = GFX_other_target_icon
+
+		arrow = {
+		    type = air
+		}
+        unit_model = {
+            type = equipment
+        }
+
+		unit_requirements = {
+			equipment = {
+				type = { tactical_bomber }
+				amount = { min = 24 }
+			}
+		}
+		unit_requirements = {
+			equipment = {
+				type = { strategic_bomber }
+				amount = { min = 24 }
+			}
+		}
+		starting_point = {
+		    types = { air_base }
+		}
+
+		success_factors = {
+			success = {
+				base = 0.65
+
+				# Raiding unit modifiers
+				experience = {
+					weight = 0.2
+					start_weight = -0.2
+					reference = 1.0
+				}
+				air_agility = {
+					reference = 100.0 # As air unit agility approaches 100 (as defined by the value above), increase chance by this value
+					weight = 0.1 # At 0 agility, the modifier will have negative effect.
+					start_weight = -0.1 # The modifier will scale linearly, meaning at 50 agility, the modifier will be 0.
+				}
+				reliability = {
+					reference = 1
+					weight = 0.05
+					start_weight = -0.1
+				}
+				air_defence = {
+					reference = 100
+					weight = 0.05
+					start_weight = -0.05
+				}
+				air_superiority = {
+					reference = 1
+					weight = 0.1
+					start_weight = -0.1
+				}
+
+				### Target Modifiers
+				anti_air = {
+					reference = 5
+					weight = -0.25
+				}
+				interception = {
+					reference = 500 # More than 500 fighters won't really make any difference
+					weight = -0.2
+				}
+				intel = {
+					weight = 0.3
+					#start_reference = 50
+					reference = 100
+				}
+			}
+
+			critical = {
+				base = 0.15
+			}
+		}
+
+		success_levels = {
+			failure = {
+				victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.05
+                            org_damage = 0.05
+                            str_damage = 0.05
+                            ratio = yes
+                        }
+					}
+				}
+				actor_effects = {
+                    raid_damage_units = {
+                        plane_loss = 0.4
+                        ratio = yes
+                    }
+					raid_add_unit_experience = 0.05
+				}
+				visual_effect = {
+					entity = "raid_failed_entity"
+					animation = "attack"
+					}
+			}
+			limited_success = {
+			    victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.15
+                            org_damage = 0.15
+                            str_damage = 0.15
+                            ratio = yes
+                        }
+					}
+
+			    }
+				actor_effects = {
+					raid_damage_units = {
+						plane_loss = 0.05
+						ratio = yes
+					}
+					raid_add_unit_experience = 0.1
+				}
+				visual_effect = {
+					entity = "air_raids_1_limited_success_entity"
+					animation = "attack"
+				}
+			}
+			success = {
+				victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.33
+                            org_damage = 0.33
+                            str_damage = 0.33
+                            ratio = yes
+                        }
+					}
+				}
+				actor_effects = {
+					raid_add_unit_experience = 0.2
+				}
+				visual_effect = {
+					entity = "air_raids_1_success_entity"
+					animation = "attack"
+				}
+			}
+			critical_success = {
+			    victim_effects = {
+					var:target_state = {
+                        damage_units = {
+                            state = var:ROOT.target_state
+                            damage = 0.7
+                            org_damage = 0.7
+                            str_damage = 0.7
+                            ratio = yes
+                        }
+					}
+			    }
+				actor_effects = {
+					raid_add_unit_experience = 0.35
+
+				}
+				visual_effect = {
+					entity = "air_raids_1_critical_success_entity"
+					animation = "attack"
+				}
+			}
+		}
+	}
+}
