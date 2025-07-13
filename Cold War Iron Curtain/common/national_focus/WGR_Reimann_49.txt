@@ -24,12 +24,62 @@ focus_tree = {
         completion_reward = {
             add_political_power = 50
             add_stability = -0.025
-            add_ideas = WGR_Party_Cooperation_8
-            add_ideas = KPD_State_Control_2
-            add_ideas = KPD_Approval_2
-            add_ideas = WGR_Wirtschaftswunder_1
-            add_ideas = WGR_Communist_Influence_5
-            add_ideas = WGR_Ex_Nazi_Influence_4
+			
+            add_dynamic_modifier = { modifier = WGR_Party_Cooperation }
+			set_variable = {
+                var = WGR_Party_Cooperation_Stability_factor_var
+                value = -0.1
+            }
+			set_variable = {
+                var = WGR_Party_Cooperation_factor_var
+                value = -0.2
+            }
+			
+            add_dynamic_modifier = { modifier = WGR_KPD_State_Control }
+			set_variable = {
+                var = WGR_KPD_Control_var
+                value = -0.1
+            }
+			
+            add_dynamic_modifier = { modifier = WGR_KPD_Approval }
+			set_variable = {
+                var = WGR_KPD_Approval_var
+                value = -0.15
+            }
+			
+            add_dynamic_modifier = { modifier = WGR_Wirtschaftswunder }
+			set_variable = {
+                var = WGR_Wirtschaftswunder_factor_var
+                value = 0.1
+            }
+			set_variable = {
+                var = WGR_Wirtschaftswunder_Consumer_Goods_factor_var
+                value = 0.1
+            }
+			set_variable = {
+                var = WGR_Wirtschaftswunder_factor_speed_var
+                value = 0.05
+            }
+			
+            add_dynamic_modifier = { modifier = WGR_Communist_Influence }
+			set_variable = {
+                var = WGR_Commie_factor_var
+                value = 0.05
+            }
+			set_variable = {
+                var = WGR_Commie_Drift_factor_var
+                value = 0.04
+            }
+			
+            add_dynamic_modifier = { modifier = WGR_Ex_Nazi_Influence }
+			set_variable = {
+                var = WGR_Ex_Nazi_factor_var
+                value = 0.07
+            }
+			set_variable = {
+                var = WGR_Ex_Nazi_Drift_factor_var
+                value = 0.06
+            }
 			set_popularities = {
 				Christian_Democratic = 24
 				Social_Democratic = 24
@@ -305,9 +355,7 @@ focus_tree = {
                     instant_build = yes
                 }
             }
-            WGR_Increase_Wirtschaftswunder = yes
             WGR_Increase_KPD_State_Control = yes
-            custom_effect_tooltip = WGR_Increase_Wirtschaftswunder_tt
             custom_effect_tooltip = WGR_Increase_KPD_State_Control_tt
         }
     }
@@ -460,9 +508,7 @@ focus_tree = {
         cost = 5
         x = 12
         y = 6
-		available = {
-			always = no
-		}	
+			
         prerequisite = {
             focus = WGR_Reimann_49_Denounce_the_Basic_Law
         }
@@ -513,6 +559,9 @@ focus_tree = {
         mutually_exclusive = {
 		focus = WGR_Reimann_49_Support_the_KPD
 	    }
+		available = {
+			always = no
+		}	
         cost = 5
         x = 14
         y = 7
@@ -803,11 +852,8 @@ focus_tree = {
             focus = WGR_Reimann_49_Soviet_Technical_Assistance
         }
         completion_reward = {
-            country_event = {
-                id = Reimann.11
-                days = 2
-            }
-			WGR = {
+            country_event = Reimann.11
+			SOV = {
 				country_event = {
 					id = Reimann.11
 					days = 2
@@ -1059,6 +1105,10 @@ focus_tree = {
                 id = Reimann.13
                 days = 2
             }
+			set_division_template_lock = {
+				division_template = "Bundesgrenzschutz"
+				is_locked = no
+			}
         }
     }
     focus = {
@@ -1077,6 +1127,15 @@ focus_tree = {
             focus = WGR_Reimann_49_Role_of_the_Military
         }
         completion_reward = {
+			add_dynamic_modifier = { modifier = WGR_BGS_Performance }
+			set_variable = {
+                var = WGR_BGS_Defence_Training_factor_var
+                value = 0.05
+            }
+			set_variable = {
+                var = WGR_BGS_factor_var
+                value = 0.1
+            }
             WGR_Increase_BGS_Performance = yes
             custom_effect_tooltip = WGR_Increase_BGS_Performance_tt
         }
@@ -1122,21 +1181,16 @@ focus_tree = {
             focus = WGR_Reimann_49_Socialist_Navy_and_Air_Force
         }
         completion_reward = {
-            custom_effect_tooltip = sov_minus_7_5_bil_tooltip
-			set_temp_variable = { money_to_gain = -7 }
-			add_money_with_tooltip_effect = yes
-		    custom_effect_tooltip = FRA_SOV_50s_Invest_in_Destroyers
-		    hidden_effect = {
-			    if = {
-				    limit = {
-					    has_dlc = "Man the Guns"
-				    }
-					load_oob = "WGR_Revamp_the_Kriegsmarinewerft_mtg"
-                }
-	
-				else = {
-					load_oob = "WGR_Revamp_the_Kriegsmarinewerft_legacy"
-				}
+            
+			#set_temp_variable = { money_to_gain = -7 }
+			#add_money_with_tooltip_effect = yes
+		    1631 = {
+					add_extra_state_shared_building_slots = 2
+					add_building_construction = {
+						type = dockyard
+						level = 2
+						instant_build = yes
+					}							
 			}
 		}
     }
@@ -1281,7 +1335,7 @@ focus_tree = {
             focus = WGR_Reimann_49_Soviet_T_54s
         }
         completion_reward = {
-            add_ideas = limited_conscription
+
             add_stability = 0.05
             WGR_Increase_BGS_Performance = yes
             WGR_Increase_Public_Approval = yes
@@ -1646,8 +1700,8 @@ focus_tree = {
         completion_reward = {
             add_political_power = 50
             add_stability = -0.05
-            set_temp_variable = { money_to_gain = 1 }
-			add_money_with_tooltip_effect = yes
+            #set_temp_variable = { money_to_gain = 1 }
+			#add_money_with_tooltip_effect = yes
             WGR_Increase_KPD_State_Control = yes
             WGR_Decrease_KPD_Approval = yes
             custom_effect_tooltip = WGR_Increase_KPD_State_Control_tt

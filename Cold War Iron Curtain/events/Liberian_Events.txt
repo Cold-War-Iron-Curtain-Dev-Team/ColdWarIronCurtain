@@ -3,20 +3,24 @@
 #####################
 add_namespace = liberia
 add_namespace = LIB_First_Civil_War
+add_namespace = LIB_First_Civil_War_Next_Phase
 add_namespace = LIB_Snap_Election
 add_namespace = LIB_Rig_Two
 add_namespace = LIB_Rig_One
+add_namespace = LIB_Rig_Three
 add_namespace = LIB_Tubman_Attempt
 add_namespace = LIB_Neighbor
 add_namespace = LIB_Net
-
+add_namespace = LIB_Free_Election_1959
+add_namespace = LIB_Renew_MTDP
+add_namespace = LIB_Inclusion
 
 country_event = {
     id = LIB_First_Civil_War.1
 immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_First_Civil_War.1"}
     title = "First Liberian Civil War Begins"
     picture = GFX_LIB_First_Civil_War.1
-    desc = LIB_First_Civil_War.1
+    desc = LIB_First_Civil_War.1.d
 
     is_triggered_only = yes
     fire_only_once = yes
@@ -32,19 +36,65 @@ immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_First_Civil_War.1"}
 				transfer_state = 1962
 				load_oob = NPF_1989				
 			}
-        }
-        declare_war_on = {
+			IPF = {
+				transfer_state = 298
+				load_oob = IPF_1989				
+			} 
+		declare_war_on = {
 			target = LIB
 			type = annex_everything
 		}
-    }
+        }
 
+}    
+}
+country_event = {
+    id = LIB_First_Civil_War_Next_Phase.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_First_Civil_War_Next_Phase.1"}
+    title = "First Liberian Civil War Next Phase"
+    picture = GFX_LIB_First_Civil_War_Next_Phase.1
+    desc = LIB_First_Civil_War_Next_Phase.1.d
+
+    is_triggered_only = yes
+    fire_only_once = yes
+
+    immediate = {
+set_country_flag = first_liberian_civil_war
+}
+    option = {
+        name = "I can't take any more factions"
+
+        hidden_effect = { 
+{
+NPF = {
+    declare_war_on = {
+        target = IPF 
+        type = annex_everything
+    }
+}
+ULM = {
+transfer_state = 1925
+load_oob = ULM_1991
 }
 
-
-
-
-
+            LIB = {
+                if = {
+                    limit = {
+                        has_dlc = "Together for Victory"
+                    }
+                    set_autonomy = {
+                        target = ULM
+                        autonomous_state = autonomy_dominion
+                        freedom_level = 0.1
+                    }
+                }
+                else = {
+                    puppet = ULM
+                }
+            }
+        }
+    }
+}
 country_event = {
 	id = liberia.1 
     immediate = {log = "[GetDateText]: [Root.GetTag]: id = liberia.1"}
@@ -85,6 +135,7 @@ country_event = {
             nationalist = 10
             neutrality = 84
         }
+		
         set_politics = {
             ruling_party = neutrality
             last_election = "1945.1.1"
@@ -101,6 +152,23 @@ country_event = {
 	}
 	option = {
 		name = liberia.2.a
+USA = {
+			diplomatic_relation = {
+				country = LIB
+				relation = guarantee
+				active = no
+			}
+			diplomatic_relation = {
+				country = LIB
+				relation = military_access
+				active = no
+			}
+			diplomatic_relation = {
+				country = LIB
+				relation = docking_rights
+				active = no
+			}
+		}
 	}
 }
 country_event = {
@@ -167,61 +235,7 @@ country_event = {
 		name = liberia.4.a
 	}
 }
-country_event = {
-    id = LIB_Snap_Election.1
-immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Snap_Election.1"}
-    title = "1955 Snap Election results"
-    picture = GFX_LIB_Snap_Election.1
-    desc = LIB_Snap_Election.1.d
 
-    trigger = {
-        original_tag = LIB
-    }
-    is_triggered_only = yes
-    fire_only_once = yes
-    
-    option = {
-        name = "William Richard Tolbert Jr."
-        hidden_effect = {
-            set_country_flag = wtb_wins
-            create_country_leader = {
-                name = "William Tolbert"
-                picture = "William_Tolbert_70s.dds"
-                #desc =   
-            }
-            set_politics = {
-                ruling_party = conservatism
-                elections_allowed = no
-            }
-            add_popularity = {
-                ideology = conservatism
-                popularity = 0.25
-            }
-     
-        complete_national_focus = Liberia_50s_William_Tolbert
-    }
-    }
-   option = {
-        name = "Ellen Mills Scarbrough"
-        hidden_effect = {
-            set_country_flag = ems_wins
-            create_country_leader = {
-                name = "Ellen Mills Scarbrough"
-                picture = "Ellen_Mills_Scarbrough_50s.dds"
-                #desc =   
-            }
-            set_politics = {
-                ruling_party = conservative_liberalism
-                elections_allowed = no
-            }
-            add_popularity = {
-                ideology = conservative_liberalism
-                popularity = 0.25
-            }   
-        complete_national_focus = Liberia_50s_Ellen_Mills_Scarbough
-    }
-    }
-}
 country_event = {
     id = LIB_Rig_Two.1
 immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Rig_1955.1"}
@@ -237,7 +251,7 @@ immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Rig_1955.1"}
  option = {
 name = "Tubman Wins By A Landslide Again!"
 add_popularity = {
-                ideology = conservatism
+                ideology = conservative
                 popularity = 0.10
             }
 }
@@ -255,13 +269,33 @@ add_popularity = {
         is_triggered_only = yes
         fire_only_once = yes
      option = {
-    name = "The Love Our President!"
+    name = "Everyone Loves Our President!"
 add_popularity = {
-                ideology = conservatism
+                ideology = conservative
                 popularity = 0.10
             }
     }
         }
+country_event = {
+        id = LIB_Rig_Three.1
+    immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Rig_Three.1"}
+        title = "1959 Liberian Elections"
+        picture = GFX_LIB_Rig_Three.1
+        desc = LIB_Rig_Three.1.d
+    
+        trigger = {
+            original_tag = LIB
+        }
+        is_triggered_only = yes
+        fire_only_once = yes
+     option = {
+    name = "Our Love For Tubman Is Eternal!"
+add_popularity = {
+                ideology = conservative
+                popularity = 0.10
+            }
+            }
+    }
     country_event = {
         id = LIB_Tubman_Attempt.1
     immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Tubman_Attempt.1"}
@@ -292,10 +326,11 @@ add_popularity = {
             create_country_leader = {
                 name = "Edwin Barclay"
                 picture = "Edwin_Barclay_50s.dds"
+				ideology = black_conservatism
                 #desc =   
             }
             set_politics = {
-                ruling_party = conservatism
+                ruling_party = conservative
                 elections_allowed = no
             }
         }
@@ -327,7 +362,7 @@ add_popularity = {
             immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Renew_MTDP.1"}
                 title = "USA-Liberian Mutual Defense Garauntees"
                 picture = GFX_LIB_Renew_MTDP.1
-                desc = LIB_Renew_MTDP.1d
+                desc = LIB_Renew_MTDP.1.d
             
                 trigger = {
                     original_tag = LIB
@@ -404,4 +439,193 @@ add_popularity = {
             
                 }
             }
-                
+               country_event = {
+    id = LIB_Free_Election_1959.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Free_Election_1959.1"}
+    title = "1959 Free Election Results"
+    picture = GFX_LIB_Free_Election_1959.1
+    desc = LIB_Free_Election_1959.1.d
+
+    trigger = {
+        original_tag = LIB
+        AND = {
+                date > 1959.4.15
+                date < 1959.5.30
+            }
+            OR = {
+				has_country_leader = {
+					name = "William Tolbert"
+					ruling_only = yes
+				}
+				has_country_leader = {
+					name = "Ellen Mills Scarbrough"
+					ruling_only = yes
+				}
+			}
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+    
+    option = {
+        name = "William Richard Tolbert Jr."
+        hidden_effect = {
+            set_country_flag = wtb_wins
+            create_country_leader = {
+                name = "William Tolbert"
+                picture = "William_Tolbert.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = conservative
+                elections_allowed = no
+            }
+            add_popularity = {
+                ideology = conservative
+                popularity = 0.25
+            }
+     complete_national_focus = LIB_50s_Free_Liberia_Elections_1959
+        complete_national_focus = LIB_50s_William_Tolbert_1959
+    }
+    }
+   option = {
+        name = "Ellen Mills Scarbrough"
+        hidden_effect = {
+            set_country_flag = ems_wins
+            create_country_leader = {
+                name = "Ellen Mills Scarbrough"
+                picture = "Ellen_Mills_Scarbrough.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = Liberal_Conservatism
+                elections_allowed = no
+            }
+            add_popularity = {
+                ideology = Liberal_Conservatism
+                popularity = 0.25
+            }   
+            complete_national_focus = LIB_50s_Free_Liberia_Elections_1959
+        complete_national_focus = LIB_50s_Ellen_Mills_Scarbough_1959
+    }
+}
+    option = {
+        name = "Didwho Welleh Twe"
+	trigger = {
+		tag = LIB
+		OR = {
+has_idea = liberian_inclusion_4
+has_idea = liberian_inclusion_5
+}
+}
+        hidden_effect = {
+            set_country_flag = rp_wins
+	remove_ideas = americo_liberian_minority_rule
+	clr_country_flag = americo_liberian_minority_rule
+            create_country_leader = {
+                name = "Didwho Welleh Twe"
+                picture = "Didwho_Welleh_Twe.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = Social_Democratic
+                elections_allowed = no
+            }
+            add_popularity = {
+                ideology = Social_Democratic
+                popularity = 0.25
+            }   
+	
+            complete_national_focus = LIB_50s_Free_Liberia_Elections_1959
+        complete_national_focus = LIB_50s_Didwho_Welleh_Twe_1959
+    }
+    }
+    option = {
+        name = "William O. Davies Bright"
+        hidden_effect = {
+            set_country_flag = int_wins
+            create_country_leader = {
+                name = "William Davies Bright"
+                picture = "William_Davies_Bright.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = conservative
+                elections_allowed = no
+            }
+            add_popularity = {
+                ideology = conservative
+                popularity = 0.25
+            }
+     complete_national_focus = LIB_50s_Free_Liberia_Elections_1959
+        complete_national_focus = LIB_50s_William_Davies_Bright_1959
+    }
+    }
+id = LIB_Snap_Election.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Snap_Election.1"}
+    title = "1955 Liberian Snap Election"
+    picture = GFX_LIB_Snap_Election.1
+    desc = LIB_Snap_Election.1.d
+
+    trigger = {
+        original_tag = LIB
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+    
+    option = {
+        name = "William Richard Tolbert Jr."
+        hidden_effect = {
+            set_country_flag = wtb_wins
+            create_country_leader = {
+                name = "William Tolbert"
+                picture = "William_Tolbert.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = conservative
+                elections_allowed = no
+            }
+            add_popularity = {
+                ideology = conservative
+                popularity = 0.25
+            }
+     complete_national_focus = LIB_50s_William_Tolbert
+    }
+    }
+   option = {
+        name = "Ellen Mills Scarbrough"
+        hidden_effect = {
+            set_country_flag = ems_wins
+            create_country_leader = {
+                name = "Ellen Mills Scarbrough"
+                picture = "Ellen_Mills_Scarbrough.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = Liberal_Conservatism
+                elections_allowed = no
+            }
+            add_popularity = {
+                ideology = Liberal_Conservatism
+                popularity = 0.25
+            }   
+            complete_national_focus = LIB_50s_Ellen_Mills_Scarbrough
+    }
+}
+} 
+country_event = {
+    id = LIB_Inclusion.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Inclusion.1"}
+    title = "Liberian New Native Voting Bloc"
+    picture = GFX_LIB_Inclusion.1
+    desc = LIB_Inclusion.1.d
+
+    trigger = {
+        original_tag = LIB
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+ option = {
+name = "A New Day for Native Rights!"
+}
+}

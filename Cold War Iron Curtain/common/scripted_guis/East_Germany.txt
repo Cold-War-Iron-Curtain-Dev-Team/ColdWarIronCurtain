@@ -1,16 +1,137 @@
 scripted_gui = {
-	East_Germany_Cardgame = { 
-		window_name = East_Germany_Cardgame
-		context_type = player_context
 
+
+	East_Germany_GUI = { 
+		window_name = East_Germany_GUI
+		context_type = player_context 
+
+		dynamic_lists = {
+			current_card_hand_listing_grid = {
+				array = CURRENT_GDR_CARD_DECK
+				change_scope = no
+				entry_container = current_card_hand_list_entry
+			}
+			current_faction_listing_grid = {
+				array = CURRENT_GDR_FACTION_LIST
+				change_scope = no
+				entry_container = current_faction_list_entry
+			}
+			
+
+		}
+		properties = {
+
+
+            Current_Card_Hand = {
+                image = "[GetGDRCardPicture]"
+            }
+		}
 		visible = {
-			check_variable = { show_gdr_cardgame = 1 }
+			check_variable = { show_gdr_gui = 1 }
 		}
 		
 		triggers = {
+			Current_Faction_Box_1_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^0 > 0 }
+			}
+			Current_Faction_Box_2_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^1 > 0 }
+			}
+			Current_Faction_Box_3_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^2 > 0 }
+			}
+			Current_Faction_Box_4_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^3 > 0 }
+			}
+			Current_Faction_Box_5_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^4 > 0 }
+			}
+			Current_Faction_Box_6_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^5 > 0 }
+			}
+			Current_Faction_Box_7_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^6 > 0 }
+			}
+			Current_Faction_Box_8_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^7 > 0 }
+			}
+			Current_Faction_Box_9_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^8 > 0 }
+			}
+			Current_Faction_Box_10_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^9 > 0 }
+			}
+			Current_Faction_Box_11_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^10 > 0 }
+			}
+			Current_Faction_Box_12_visible = {
+				check_variable = { CURRENT_GDR_FACTION_LIST^11 > 0 }
+			}
+			card_draw_click_enabled = {
+				OR = {
+					check_variable = { CURRENT_GDR_CARD_DECK^0 = -1 }
+					check_variable = { CURRENT_GDR_CARD_DECK^1 = -1 }
+					check_variable = { CURRENT_GDR_CARD_DECK^2 = -1 }
+					check_variable = { CURRENT_GDR_CARD_DECK^3 = -1 }
+					check_variable = { CURRENT_GDR_CARD_DECK^4 = -1 }
+				}
+			}
         }
         effects = {
-
+			close_button_click = {
+				set_variable = { show_gdr_gui = 0 }
+			}
+			card_draw_click = {
+				GDR_Draw_Card_Click_Effect = yes
+			}
+			  
+			Current_Card_Hand_click = {
+				set_variable = {
+					GDR_CURRENT_CARD_VALUE = CURRENT_GDR_CARD_DECK^i
+				}
+				if = {
+					limit = {
+						check_variable = { GDR_CURRENT_CARD_VALUE = -1 }
+					}
+					set_variable = { GDR_CURRENT_CARD_VALUE = 0 }
+				}
+				meta_effect = {
+					text = {
+						add_card_id_[CURRENT_CARD_ID]_decisions = yes
+					}
+					CURRENT_CARD_ID = "[?GDR_CURRENT_CARD_VALUE]"
+				}
+			}
         }
     }
+	ddr_card_decisions = {
+		context_type = player_context
+		window_name = "ddr_card_decisions_list_menu"
+		parent_scripted_gui = "East_Germany_GUI" 
+		visible = {}
+		
+		dynamic_lists = {
+			ddr_card_decisions_listing_grid = {
+				array = ddr_current_card_decisions
+				change_scope = no
+				entry_container = ddr_card_decisions_list_entry
+			}
+		}
+		effects = { 
+			DDR_decision_item_bg_click = {
+				gdr_card_state_pseudo_decision_effect = yes
+				clear_array = ddr_current_card_decisions
+				remove_from_array = { CURRENT_GDR_CARD_DECK = GDR_CURRENT_CARD_VALUE }
+				set_variable = {
+					GDR_CURRENT_CARD_VALUE = -1
+				}
+				add_to_array = { CURRENT_GDR_CARD_DECK = -1 }
+			}
+		}
+		triggers = {
+			DDR_decision_item_bg_click_enabled = {
+				gdr_card_decision_enabled = yes
+			}
+		}
+	}
 }

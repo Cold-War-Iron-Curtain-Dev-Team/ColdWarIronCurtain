@@ -686,7 +686,7 @@ special_project_facility = {
 		bonus = -0.5
 		ROOT = { has_country_leader_ideology = monarchism }  # ROOT/owner should allow us to scope to country building the facility
 	}
-
+  }
 }
 
 

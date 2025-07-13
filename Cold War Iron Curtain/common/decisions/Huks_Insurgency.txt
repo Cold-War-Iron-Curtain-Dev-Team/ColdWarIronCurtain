@@ -112,15 +112,16 @@ Huks_Insurgency_Decisions = {
 		}
 		complete_effect = {
 			FROM = {
-				any_neighbor_state = {
+				set_variable = { ROOT.defender_state = THIS.id }
+				random_neighbor_state = {
 					limit = { is_owned_by = HUK }
 					set_variable = { ROOT.attacker_state = THIS.id }
 				}
 			}
 			start_border_war = {
-				change_state_after_war = yes
+				change_state_after_war = no
 				defender = {
-					state = FROM
+					state = var:ROOT.defender_state
 					num_provinces = 1
 					on_win = HUK_insurgency.11
 					on_lose = HUK_insurgency.12
@@ -142,10 +143,13 @@ Huks_Insurgency_Decisions = {
 		visible = {
 			any_owned_state = { has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
 		}
-		on_map_mode = map_and_decisions_view
+		on_map_mode = map_only
 		state_target = any_owned_state
 		target_trigger = {
-			FROM = { has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+			FROM = {
+				has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier }
+				NOT = { has_state_flag = huk_re_control }
+			}
 		}
 		available = {
 			ROOT = {
@@ -161,27 +165,34 @@ Huks_Insurgency_Decisions = {
 		complete_effect = {
 			set_variable = { huks_fixin_control = FROM.id }
 			activate_mission = huks_reestablish_communications_timer
+			FROM = { set_state_flag = huk_re_control }
 		}
 	}
 	huks_reestablish_communications_timer = {
 		icon = generic_civil_support
 		available = {
-			always = no
-		}
-		days_mission_timeout = 15
-		activation = {
-			always = no
-		}
-		cancel_trigger = {
 			divisions_in_state = {
 				state = var:huks_fixin_control	
 				size < 2
 			}
 		}
+		days_mission_timeout = 15
+		activation = {
+			always = no
+		}
+		complete_effect = {
+			var:huks_fixin_control = {
+				clr_state_flag = huk_re_control
+			}
+		}
+		cancel_trigger = {
+
+		}
 		is_good = yes
 		timeout_effect = {
 			var:huks_fixin_control = {
 				remove_dynamic_modifier = { modifier = HUK_disrupted_control_modifier }
+				remove_state_flag = huk_re_control
 			}
 			clear_variable = huks_fixin_control
 		}
@@ -264,7 +275,7 @@ Huks_Insurgency_Decisions = {
 		visible = {
 			NOT = { has_idea = phi_hukraid_cooldown }
 		}
-		on_map_mode = map_and_decisions_view
+		on_map_mode = map_only
 		state_target = yes
 		target_trigger = {
 			FROM = {
@@ -278,13 +289,14 @@ Huks_Insurgency_Decisions = {
 		}
 		complete_effect = {
 			FROM = {
-				any_neighbor_state = {
+				set_variable = { ROOT.defender_state = THIS.id }
+				random_neighbor_state = {
 					limit = { is_owned_by = PHI }
 					set_variable = { ROOT.attacker_state = THIS.id }
 				}
 			}
 			start_border_war = {
-				change_state_after_war = yes
+				change_state_after_war = no
 				defender = {
 					state = FROM
 					num_provinces = 1
