@@ -1,106 +1,15 @@
 # coded by Harain
-calculate_space_launch = {
-				# -------- Thrust to weight ratio (TWR) --------
-				# TWR simplified as thrust / total_mass
-			    set_variable = { total_mass = modifier@space_mission_vessel_structural_mass }
-				add_to_variable = { total_mass = modifier@space_mission_payload_requirement }
-
-				set_variable = { twr = modifier@space_mission_engine_thrust }
-				divide_variable = { twr = total_mass }
-
-				# -------- Estimated delta-V --------
-				# Simple estimate: isp * burn_time / 10 (scaled)
-				set_variable = { estimated_delta_v = modifier@space_mission_engine_isp }
-				multiply_variable = { estimated_delta_v =  modifier@space_mission_engine_max_burn_time }
-				divide_variable = { estimated_delta_v = 10 }
-				
-				# -------- Duration calculation --------
-				set_variable = { base_duration = modifier@space_mission_engine_max_burn_time }
-				add_to_variable = { base_duration = modifier@space_mission_complexity_factor }
-				multiply_variable = { base_duration = 10 }
-				
-				# -------- Cost calculation --------
-				set_variable = { mission_cost = modifier@space_mission_vessel_cost }
-				add_to_variable = { mission_cost = modifier@space_mission_engine_cost }
-				add_to_variable = { mission_cost = modifier@space_mission_complexity_factor }
-				multiply_variable = { mission_cost = 0.1 } #deactivated for now might see for a better factor
-
-				# -------- Risk calculation --------
-				# risk = (1/twr)*30 + (payload/max_payload)*20 + (mission_complexity*10) + (engine_cost/10*5)
-				set_variable = { risk = 0 }
-
-				set_variable = { inv_twr = 1 }
-				divide_variable = { inv_twr = twr }
-				multiply_variable = { inv_twr = 30 }
-				add_to_variable = { risk = inv_twr }
-
-				set_variable = { payload_ratio = modifier@space_mission_payload_requirement }
-				divide_variable = { payload_ratio = modifier@space_mission_vessel_max_payload }
-				multiply_variable = { payload_ratio = 20 }
-				add_to_variable = { risk = payload_ratio }
-
-				set_variable = { mission_complexity_risk = modifier@space_mission_complexity_factor }
-				multiply_variable = { mission_complexity_risk = 10 }
-				add_to_variable = { risk = mission_complexity_risk }
-
-				set_variable = { engine_cost_risk = modifier@space_mission_engine_cost }
-				divide_variable = { engine_cost_risk = 10 }
-				multiply_variable = { engine_cost_risk = 5 }
-				add_to_variable = { risk = engine_cost_risk }
-}
 calculate_mission_timers = {
-    set_variable = { D = modifier@space_mission_required_delta_v }
-    set_variable = { P = modifier@space_mission_payload_requirement }
-    set_variable = { C = modifier@space_mission_complexity_factor }
-    set_variable = { M = modifier@space_mission_vessel_structural_mass }
-    set_variable = { B = modifier@space_mission_engine_max_burn_time }
-
-    # Calculate total mission time (days)
-    set_variable = { total_time = C }
-    multiply_variable = { total_time = 20 }
-    set_variable = { tmp = P }
-    divide_variable = { tmp = 1000 }
-    multiply_variable = { tmp = C }
-    add_to_variable = { total_time = tmp }
-    set_variable = { tmp = M }
-    divide_variable = { tmp = 10000 }
-    multiply_variable = { tmp = 15 }
-    add_to_variable = { total_time = tmp }
-    set_variable = { tmp = D }
-    divide_variable = { tmp = 1000 }
-    multiply_variable = { tmp = 10 }
-    add_to_variable = { total_time = tmp }
-    set_variable = { tmp = B }
-    divide_variable = { tmp = 600 }
-    multiply_variable = { tmp = 5 }
-    add_to_variable = { total_time = tmp }
-
-    # Timer 1: Build Phase
-    set_variable = { timer_build = total_time }
-    multiply_variable = { timer_build = 0.5 }
-    set_variable = { tmp = C }
-    multiply_variable = { tmp = 5 }
-    add_to_variable = { timer_build = tmp }
-    # minimum 1 day
-    if = { limit = { check_variable = { timer_build < 1 } } set_variable = { timer_build = 1 } }
-
-    # Timer 2: Launch Phase
-    set_variable = { timer_launch = total_time }
-    multiply_variable = { timer_launch = 0.3 }
-    set_variable = { tmp = D }
-    divide_variable = { tmp = 2000 }
-    add_to_variable = { timer_launch = tmp }
-    if = { limit = { check_variable = { timer_launch < 1 } } set_variable = { timer_launch = 1 } }
-
-    # Timer 3: Mission Operations Phase
-    set_variable = { timer_ops = total_time }
-    subtract_from_variable = { timer_ops = timer_build }
-    subtract_from_variable = { timer_ops = timer_launch }
-    if = { limit = { check_variable = { timer_ops < 1 } } set_variable = { timer_ops = 1 } }
-
 	# Invert Risk for random chances
-	set_variable = { inv_risk = 100 }
-	subtract_from_variable = { inv_risk = risk }
+	set_variable = { up_rel = 100 }
+	set_variable = { bo_rel = 100 }
+	set_variable = { pa_rel = 100 }
+	set_variable = { inv_up_rel = modifier@space_mission_upper_stage_reliability }
+	set_variable = { inv_bo_rel = modifier@space_mission_booster_reliability }
+	set_variable = { inv_pa_rel = modifier@space_mission_payload_reliability }
+	subtract_from_variable = { up_rel = modifier@space_mission_upper_stage_reliability }
+	subtract_from_variable = { bo_rel = modifier@space_mission_booster_reliability }
+	subtract_from_variable = { pa_rel = modifier@space_mission_payload_reliability }
 }
 space_race_get_top_5 = {
 	clear_array = global.top_space_race_array_country

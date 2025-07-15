@@ -811,73 +811,42 @@ space_race_decisions = {
 
 }
 space_missions = {
-	calculate_launch_parameters = {
-		icon = GFX_earth
-		available = {
-			NOT = { has_country_flag = ongoing_flight }
-			amount_taken_ideas = {
-				amount = 3 
-				slots = {
-					engine
-					vessel
-					mission
-				}
-			}
-		}
-		cost = 0
-		days_re_enable = 5
-		fire_only_once = no
-		visible = {
-			NOT = { has_country_flag = finished_unmanned_object_in_orbit }
-		}
-		complete_effect = {
-			calculate_space_launch = yes
-			set_country_flag = {
-				flag = calculated_paramaters
-				days = 5
-				value = 1
-			}
-		}
-		ai_will_do = {
-			base = 0
-		}
-	}
 	launch_mission = {
 		icon = GFX_earth
 		available = {
 			NOT = { has_country_flag = ongoing_flight }
-			has_country_flag = calculated_paramaters
-			check_variable = { 
-				modifier@space_mission_payload_requirement < modifier@space_mission_vessel_max_payload
-				
-				tooltip = payload_req_tt
-			}
-			check_variable = { 
-				twr > 1 
-				tooltip = twr_req_tt
-			}
-			check_variable = { 
-				estimated_delta_v > modifier@space_mission_required_delta_v
-				
-				tooltip = dV_req_tt
-			}
-			check_variable = { 
-				mission_cost < currentbudget
-				
-				tooltip = cost_req_tt
-			}
-			check_variable = { 
-				risk < 100
-				
-				tooltip = risk_req_tt
-			}
 			amount_taken_ideas = {
 				amount = 3 
 				slots = {
-					engine
-					vessel
 					mission
+					booster
+					upper_stages
 				}
+			}
+			check_variable = {
+				modifier@space_mission_weight = modifier@space_mission_lift_capacity
+				compare = less_than_or_equals
+				tooltip = payload_req_tt
+			}
+			check_variable = { 
+				modifier@space_mission_cost = currentbudget
+				compare = less_than_or_equals
+				tooltip = cost_req_tt
+			}
+			check_variable = { 
+				modifier@space_mission_booster_reliability < 100
+				
+				tooltip = risk_booster_req_tt
+			}
+			check_variable = { 
+				modifier@space_mission_upper_stage_reliability < 100
+				
+				tooltip = risk_upper_stage_req_tt
+			}
+			check_variable = { 
+				modifier@space_mission_payload_reliability < 100
+				
+				tooltip = risk_payload_req_tt
 			}
 		}
 		cost = 150
@@ -900,7 +869,7 @@ space_missions = {
 	SPACE_MISSION_part1 = {
 		priority = 10
 		icon = generic_ignite_civil_war
-        days_mission_timeout = timer_build
+        days_mission_timeout = modifier@space_mission_building_length
 		fire_only_once = no
 		activation = {
 			has_country_flag = space_mission_ongoing_part1
@@ -915,13 +884,12 @@ space_missions = {
 		is_good = yes
 		timeout_effect = {
 			random_list = {
-				inv_risk = {
+				inv_up_rel = {
 					activate_mission = SPACE_MISSION_part2
 					set_country_flag = space_mission_ongoing_part2
 				}
-				risk = {
+				up_rel = {
 					clr_country_flag = ongoing_flight
-					clr_country_flag = calculated_paramaters
 				}
 			}
 			clr_country_flag = space_mission_ongoing_part1
@@ -930,7 +898,7 @@ space_missions = {
 	SPACE_MISSION_part2 = {
 		priority = 10
 		icon = generic_ignite_civil_war
-        days_mission_timeout = timer_launch
+        days_mission_timeout = 30
 		fire_only_once = no
 		activation = {
 			has_country_flag = space_mission_ongoing_part2
@@ -944,13 +912,12 @@ space_missions = {
 		is_good = yes
 		timeout_effect = {
 			random_list = {
-				inv_risk = {
+				inv_bo_rel = {
 					activate_mission = SPACE_MISSION_part3
 					set_country_flag = space_mission_ongoing_part3
 				}
-				risk = {
+				bo_rel = {
 					clr_country_flag = ongoing_flight
-					clr_country_flag = calculated_paramaters
 				}
 			}
 			clr_country_flag = space_mission_ongoing_part2
@@ -959,7 +926,7 @@ space_missions = {
 	SPACE_MISSION_part3 = {
 		priority = 10
 		icon = generic_ignite_civil_war
-        days_mission_timeout = timer_ops
+        days_mission_timeout = modifier@space_mission_mission_length
 		fire_only_once = no
 		activation = {
 			has_country_flag = space_mission_ongoing_part3
@@ -973,16 +940,15 @@ space_missions = {
 		is_good = yes
 		timeout_effect = {
 			random_list = {
-				inv_risk = {
+				inv_pa_rel = {
 					add_stability = 0.5
 				}
-				risk = {
+				pa_rel = {
 					add_manpower = 10000
 				}
 			}
 			clr_country_flag = space_mission_ongoing_part3
 			clr_country_flag = ongoing_flight
-			clr_country_flag = calculated_paramaters
 		}
 	}
 }
