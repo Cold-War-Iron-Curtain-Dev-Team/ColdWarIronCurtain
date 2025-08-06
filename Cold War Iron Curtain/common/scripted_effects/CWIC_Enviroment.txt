@@ -1,0 +1,774 @@
+calc_state_pollution_effect = {
+    # ===========================
+    # STEP 1: Tech Factor
+    # ===========================
+    set_temp_variable = { tech_factor = 1 }
+
+    # Increases
+    if = { limit = { owner = { has_tech = ww_infra } } add_to_temp_variable = { tech_factor = 0.10 } }
+    if = { limit = { owner = { has_tech = ww_oil } } add_to_temp_variable = { tech_factor = 0.10 } }
+    if = { limit = { owner = { has_tech = gas_I } } add_to_temp_variable = { tech_factor = 0.10 } }
+    if = { limit = { owner = { has_tech = gas_II } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = gas_III } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = grid_I } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = grid_II } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = excavation_I } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = excavation_III } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = plastics_I } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = plastics_III } } add_to_temp_variable = { tech_factor = 0.075 } }
+
+    # Reductions
+    if = { limit = { owner = { has_tech = inframanagement_V } } add_to_temp_variable = { tech_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = inframanagement_VI } }  add_to_temp_variable = { tech_factor = -0.15 } }
+    if = { limit = { owner = { has_tech = inframanagement_VII } } add_to_temp_variable = { tech_factor = -0.20 } }
+    
+    if = { limit = { owner = { has_tech = renewables_V } } add_to_temp_variable = { tech_factor = -0.15 } }
+    if = { limit = { owner = { has_tech = renewables_I } } add_to_temp_variable = { tech_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = renewables_III } } add_to_temp_variable = { tech_factor = -0.15 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { tech_factor = -0.20 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { tech_factor = -0.25 } }
+    if = { limit = { owner = { has_tech = renewables_conversion } } add_to_temp_variable = { tech_factor = -0.25 } }
+    if = { limit = { owner = { has_tech = renewables_VI } } add_to_temp_variable = { tech_factor = -0.10 } }
+
+    #
+    clamp_variable = { var = tech_factor min = 0.5 max = 1.5 }
+
+    # ===========================
+    # STEP 2: Population Factor
+    # ===========================
+    set_temp_variable = { population_factor = 1 }
+    if = { limit = { pop_level_1_check = yes } set_temp_variable = { population_factor = 0.5 } }
+    else_if = { limit = { pop_level_2_check = yes } set_temp_variable = { population_factor = 1 } }
+    else_if = { limit = { pop_level_3_check = yes } set_temp_variable = { population_factor = 1.5 } }
+    else_if = { limit = { pop_level_5_check = yes } set_temp_variable = { population_factor = 2 } }
+    else_if = { limit = { pop_level_7_check = yes } set_temp_variable = { population_factor = 2.5 } }
+    else_if = { limit = { pop_level_10_check = yes } set_temp_variable = { population_factor = 3 } }
+    else_if = { limit = { pop_level_15_check = yes } set_temp_variable = { population_factor = 4 } }
+    else_if = { limit = { pop_level_20_check = yes } set_temp_variable = { population_factor = 5 } }
+    else = { }
+
+    # ===========================
+    # STEP 3: Development Factor
+    # ===========================
+    set_temp_variable = { development_factor = 1 }
+    if = { limit = { development_level_zero_check = yes } set_temp_variable = { development_factor = 0.2 } }
+    else_if = { limit = { development_level_one_check = yes } set_temp_variable = { development_factor = 0.4 } }
+    else_if = { limit = { development_level_two_check = yes } set_temp_variable = { development_factor = 0.8 } }
+    else_if = { limit = { development_level_three_check = yes } set_temp_variable = { development_factor = 1.2 } }
+    else_if = { limit = { development_level_four_check = yes } set_temp_variable = { development_factor = 1.5 } }
+    else_if = { limit = { development_level_five_check = yes } set_temp_variable = { development_factor = 1.8 } }
+    else = { }
+
+    # Agricultural scaling
+    set_temp_variable = { agri_dev_factor = 0.25 }
+    if = { limit = { development_level_one_check = yes } set_temp_variable = { agri_dev_factor = 0.5 } }
+    else_if = { limit = { development_level_two_check = yes } set_temp_variable = { agri_dev_factor = 1 } }
+    else_if = { limit = { development_level_three_check = yes } set_temp_variable = { agri_dev_factor = 1.5 } }
+    else_if = { limit = { development_level_four_check = yes } set_temp_variable = { agri_dev_factor = 2 } }
+    else_if = { limit = { development_level_five_check = yes } set_temp_variable = { agri_dev_factor = 3 } }
+    else = { }
+
+    # ===========================
+    # STEP 4: Land Pollution
+    # ===========================
+    set_temp_variable = { land_base = 0 }
+
+    set_temp_variable = { temp_val = building_level@arms_factory }            # 1.2 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@industrial_complex }      # 0.8 per level
+    multiply_temp_variable = { temp_val = 1.2 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@dockyard }                # 0.8 per level
+    multiply_temp_variable = { temp_val = 0.8 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@synthetic_refinery }      # 2.0 per level
+    multiply_temp_variable = { temp_val = 2.0 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@steel_factory }           # 1.5 per level
+    multiply_temp_variable = { temp_val = 4 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@tungsten_factory }        # 1.5 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@fossil_fuel_powerplant }  # 2.0 per level
+    multiply_temp_variable = { temp_val = 2.0 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@nuclear_reactor }         # 0.8 per level
+    multiply_temp_variable = { temp_val = 0.8 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@office_park }             # 0.5 per level
+    multiply_temp_variable = { temp_val = 0.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@agri_industrial_complex } # 0.6 per level
+    multiply_temp_variable = { temp_val = 0.6 }
+    subtract_from_temp_variable = { temp_val = agri_organic_factor }
+    multiply_temp_variable = { temp_val = agri_dev_factor }
+    clamp_temp_variable = { var = temp_val min = 0 max = 100 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@renewable_powerplant }    # -1.5 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    subtract_from_temp_variable = { land_base = temp_val }
+
+    set_variable = { land_base_log = land_base }
+
+    multiply_temp_variable = { land_base = population_factor }
+    multiply_temp_variable = { land_base = development_factor }
+    multiply_temp_variable = { land_base = tech_factor }
+
+    set_variable = { land_base_log_2 = land_base }
+
+    # ===========================
+    # RESOURCE EXTRACTION - LAND
+    # ===========================
+    set_temp_variable = { resource_pollution_land = 0 }
+
+    # Oil
+    set_temp_variable = { temp_res = resource@oil }
+    multiply_temp_variable = { temp_res = 0.03 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Aluminium
+    set_temp_variable = { temp_res = resource@aluminium }
+    multiply_temp_variable = { temp_res = 0.02 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Tungsten
+    set_temp_variable = { temp_res = resource@tungsten }
+    multiply_temp_variable = { temp_res = 0.02 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Steel
+    set_temp_variable = { temp_res = resource@steel }
+    multiply_temp_variable = { temp_res = 0.02 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Chromium (Uranium)
+    set_temp_variable = { temp_res = resource@chromium }
+    multiply_temp_variable = { temp_res = 0.05 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Add to total land pollution
+    add_to_temp_variable = { land_base = resource_pollution_land }
+
+    # Scale down pollution to match game timeframe
+    divide_variable = { var = land_base value = 10 }
+
+    add_to_variable = { var = statelandpollution value = land_base }
+    clamp_variable = { var = statelandpollution min = 0 max = 600 }
+
+    # ===========================
+    # STEP 5: Water Pollution
+    # ===========================
+    set_temp_variable = { water_base = 0 }
+
+    set_temp_variable = { temp_val = building_level@industrial_complex }                # 1 per level
+    multiply_temp_variable = { temp_val = 0.5 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@arms_factory }                # 1 per level
+    multiply_temp_variable = { temp_val = 0.35 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@dockyard }                # 1 per level
+    multiply_temp_variable = { temp_val = 1 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@agri_industrial_complex } # 2 per level * agri_dev_factor
+    multiply_temp_variable = { temp_val = 2 }
+    subtract_from_temp_variable = { temp_val = agri_organic_factor }
+    multiply_temp_variable = { temp_val = agri_dev_factor }
+    clamp_temp_variable = { var = temp_val min = 0 max = 100 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@water_infrastructure }    # 0.4 per level * agri_dev_factor
+    multiply_temp_variable = { temp_val = 0.4 }
+    multiply_temp_variable = { temp_val = agri_dev_factor }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@synthetic_refinery }      # 1.2 per level
+    multiply_temp_variable = { temp_val = 2 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@steel_factory }           # 0.8 per level
+    multiply_temp_variable = { temp_val = 4 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@tungsten_factory }        # 0.8 per level
+    multiply_temp_variable = { temp_val = 1 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@fossil_fuel_powerplant }  # 0.8 per level
+    multiply_temp_variable = { temp_val = 1.2 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@nuclear_reactor }         # 1.0 per level
+    multiply_temp_variable = { temp_val = 3 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    multiply_temp_variable = { water_base = population_factor }
+    multiply_temp_variable = { water_base = development_factor }
+    multiply_temp_variable = { water_base = tech_factor }
+
+    #Resource Extraction
+    # ===========================
+    # RESOURCE EXTRACTION - WATER
+    # ===========================
+    set_temp_variable = { resource_pollution_water = 0 }
+
+    # Oil
+    set_temp_variable = { temp_res = resource@oil }
+    multiply_temp_variable = { temp_res = 0.05 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Chromium (Uranium)
+    set_temp_variable = { temp_res = resource@chromium }
+    multiply_temp_variable = { temp_res = 0.1 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Steel (Uranium)
+    set_temp_variable = { temp_res = resource@steel }
+    multiply_temp_variable = { temp_res = 0.05 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Steel (Uranium)
+    set_temp_variable = { temp_res = resource@aluminium }
+    multiply_temp_variable = { temp_res = 0.05 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Add to total water pollution
+    add_to_temp_variable = { water_base = resource_pollution_water }
+
+    set_variable = { water_base_log_1 = water_base }
+
+    # Scale down pollution to match game timeframe
+    divide_variable = { var = water_base value = 10 }
+
+    set_variable = { water_base_log_2 = water_base }
+
+    add_to_variable = { var = statewaterpollution value = water_base }
+    clamp_variable = { var = statewaterpollution min = 0 max = 600 }
+    apply_pollution_recovery_effect = yes
+}
+
+# ===========================
+# NATURAL RECOVERY
+# ===========================
+apply_pollution_recovery_effect = {
+    # Base Recovery
+    set_temp_variable = { land_recovery = -1 }
+    set_temp_variable = { water_recovery = -2 }
+
+    # Environmental Recovery Campaigns
+    if = {
+        limit = { check_variable = { local_water_recovery_initiative > 0 } }
+        add_to_variable = { local_water_recovery_initiative = -1 }
+        set_temp_variable = { campaign_water = -8 }
+        # Scale by tech
+        if = { limit = { owner = { has_tech = inframanagement_VI } } add_to_temp_variable = { campaign_water = -2 } }
+        if = { limit = { owner = { has_tech = inframanagement_VII } } add_to_temp_variable = { campaign_water = -3 } }
+        if = { limit = { owner = { has_tech = renewables_V } } add_to_temp_variable = { campaign_water = -2 } }
+        if = { limit = { owner = { has_tech = renewables_conversion } } add_to_temp_variable = { campaign_water = -3 } }
+        # Scale by global policies
+        if = { limit = { has_country_flag = global_enviro_treaty } multiply_temp_variable = { campaign_water = 1.5 } }
+        if = { limit = { has_country_flag = green_funding_program } multiply_temp_variable = { campaign_water = 1.5 } }
+        add_to_temp_variable = { water_recovery = campaign_water }
+    }
+    if = {
+        limit = { check_variable = { local_land_recovery_initiative > 0 } }
+        add_to_variable = { local_land_recovery_initiative = -1 }
+        set_temp_variable = { campaign_land = -10 }
+        # Scale by tech
+        if = { limit = { owner = { has_tech = inframanagement_VI } } add_to_temp_variable = { campaign_land = -2 } }
+        if = { limit = { owner = { has_tech = inframanagement_VII } } add_to_temp_variable = { campaign_land = -3 } }
+        if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { campaign_land = -3 } }
+        if = { limit = { owner = { has_tech = renewables_conversion } } add_to_temp_variable = { campaign_land = -4 } }
+        # Scale by global policies
+        if = { limit = { has_country_flag = global_enviro_treaty } multiply_temp_variable = { campaign_land = 1.5 } }
+        if = { limit = { has_country_flag = green_funding_program } multiply_temp_variable = { campaign_land = 1.5 } }
+        add_to_temp_variable = { land_recovery = campaign_land }
+    }
+
+    # Building Factors
+    if = { limit = { check_variable = { building_level@renewable_powerplant > 0 } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { check_variable = { building_level@industrial_complex < 3 } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { check_variable = { building_level@arms_factory < 2 } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { check_variable = { building_level@water_infrastructure > 1 } } add_to_temp_variable = { water_recovery = -1 } }
+    if = { limit = { check_variable = { building_level@renewable_powerplant > 0 } } add_to_temp_variable = { water_recovery = -1 } }
+
+    # Tech Factors - Land
+    if = { limit = { owner = { has_tech = inframanagement_V } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = inframanagement_VI } } add_to_temp_variable = { land_recovery = -1 } }
+    if = { limit = { owner = { has_tech = inframanagement_VII } } add_to_temp_variable = { land_recovery = -1.5 } }
+    if = { limit = { owner = { has_tech = renewables_V } } add_to_temp_variable = { land_recovery = -1 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { land_recovery = -1 } }
+    if = { limit = { owner = { has_tech = renewables_conversion } } add_to_temp_variable = { land_recovery = -1 } }
+
+    # Tech Factors - Water
+    if = { limit = { owner = { has_tech = inframanagement_V } } add_to_temp_variable = { water_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = inframanagement_VI } } add_to_temp_variable = { water_recovery = -1 } }
+    if = { limit = { owner = { has_tech = inframanagement_VII } } add_to_temp_variable = { water_recovery = -1.5 } }
+    if = { limit = { owner = { has_tech = renewables_V } } add_to_temp_variable = { water_recovery = -1 } }
+    if = { limit = { owner = { has_tech = renewables_conversion } } add_to_temp_variable = { water_recovery = -1 } }
+
+    # Renewable Tech Boost (applies to both)
+    if = { limit = { owner = { has_tech = renewables_I } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = renewables_III } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { land_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = renewables_I } } add_to_temp_variable = { water_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = renewables_III } } add_to_temp_variable = { water_recovery = -0.5 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { water_recovery = -0.5 } }
+
+    # Apply Recovery
+    add_to_variable = { var = statelandpollution value = land_recovery }
+    add_to_variable = { var = statewaterpollution value = water_recovery }
+
+    clamp_variable = { var = statelandpollution min = 0 max = 600 }
+    clamp_variable = { var = statewaterpollution min = 0 max = 600 }
+
+    update_pollution_flags_effect = yes
+}
+
+
+update_pollution_flags_effect = {
+    # Clear existing flags
+    clr_state_flag = land_pollution_pristine
+    clr_state_flag = land_pollution_disturbed
+    clr_state_flag = land_pollution_degraded
+    clr_state_flag = land_pollution_severe
+    clr_state_flag = land_pollution_catastrophic
+    clr_state_flag = land_pollution_deadzone
+
+    clr_state_flag = water_pollution_pristine
+    clr_state_flag = water_pollution_disturbed
+    clr_state_flag = water_pollution_degraded
+    clr_state_flag = water_pollution_severe
+    clr_state_flag = water_pollution_catastrophic
+    clr_state_flag = water_pollution_deadzone
+
+    # LAND FLAGS
+    if = { limit = { land_pollution_pristine_trigger = yes } set_state_flag = land_pollution_pristine }
+    else_if = { limit = { land_pollution_disturbed_trigger = yes } set_state_flag = land_pollution_disturbed }
+    else_if = { limit = { land_pollution_degraded_trigger = yes } set_state_flag = land_pollution_degraded }
+    else_if = { limit = { land_pollution_severe_trigger = yes } set_state_flag = land_pollution_severe }
+    else_if = { limit = { land_pollution_catastrophic_trigger = yes } set_state_flag = land_pollution_catastrophic }
+    else_if = { limit = { land_pollution_deadzone_trigger = yes } set_state_flag = land_pollution_deadzone }
+    else = { }
+
+    # WATER FLAGS
+    if = { limit = { water_pollution_pristine_trigger = yes } set_state_flag = water_pollution_pristine }
+    else_if = { limit = { water_pollution_disturbed_trigger = yes } set_state_flag = water_pollution_disturbed }
+    else_if = { limit = { water_pollution_degraded_trigger = yes } set_state_flag = water_pollution_degraded }
+    else_if = { limit = { water_pollution_severe_trigger = yes } set_state_flag = water_pollution_severe }
+    else_if = { limit = { water_pollution_catastrophic_trigger = yes } set_state_flag = water_pollution_catastrophic }
+    else_if = { limit = { water_pollution_deadzone_trigger = yes } set_state_flag = water_pollution_deadzone }
+    else = { }
+}
+
+calc_state_pollution_effect_startup = {
+    # ===========================
+    # STEP 1: Tech Factor
+    # ===========================
+    set_temp_variable = { tech_factor = 1 }
+    #NOTE CHANGE TECH FACTOR TO TECHNOLOGY BONUS MODIFIER
+
+    # Increases
+    if = { limit = { owner = { has_tech = ww_infra } } add_to_temp_variable = { tech_factor = 0.10 } }
+    if = { limit = { owner = { has_tech = ww_oil } } add_to_temp_variable = { tech_factor = 0.10 } }
+    if = { limit = { owner = { has_tech = gas_I } } add_to_temp_variable = { tech_factor = 0.10 } }
+    if = { limit = { owner = { has_tech = gas_II } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = gas_III } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = grid_I } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = grid_II } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = excavation_I } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = excavation_III } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = plastics_I } } add_to_temp_variable = { tech_factor = 0.05 } }
+    if = { limit = { owner = { has_tech = plastics_III } } add_to_temp_variable = { tech_factor = 0.075 } }
+
+    # Reductions
+    if = { limit = { owner = { has_tech = inframanagement_V } } add_to_temp_variable = { tech_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = inframanagement_VI } }  add_to_temp_variable = { tech_factor = -0.15 } }
+    if = { limit = { owner = { has_tech = inframanagement_VII } } add_to_temp_variable = { tech_factor = -0.20 } }
+    if = { limit = { owner = { has_tech = renewables_V } } add_to_temp_variable = { tech_factor = -0.15 } }
+    if = { limit = { owner = { has_tech = renewables_I } } add_to_temp_variable = { tech_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = renewables_III } } add_to_temp_variable = { tech_factor = -0.15 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { tech_factor = -0.20 } }
+    if = { limit = { owner = { has_tech = renewables_IV } } add_to_temp_variable = { tech_factor = -0.25 } }
+    if = { limit = { owner = { has_tech = renewables_conversion } } add_to_temp_variable = { tech_factor = -0.25 } }
+    if = { limit = { owner = { has_tech = renewables_VI } } add_to_temp_variable = { tech_factor = -0.10 } }
+
+    clamp_variable = { var = tech_factor min = 0.5 max = 1.5 }
+
+    # ===========================
+    # STEP 2: Population Factor
+    # ===========================
+    set_temp_variable = { population_factor = 1 }
+    if = { limit = { pop_level_1_check = yes } set_temp_variable = { population_factor = 0.5 } }
+    else_if = { limit = { pop_level_2_check = yes } set_temp_variable = { population_factor = 1 } }
+    else_if = { limit = { pop_level_3_check = yes } set_temp_variable = { population_factor = 1.5 } }
+    else_if = { limit = { pop_level_5_check = yes } set_temp_variable = { population_factor = 2 } }
+    else_if = { limit = { pop_level_7_check = yes } set_temp_variable = { population_factor = 2.5 } }
+    else_if = { limit = { pop_level_10_check = yes } set_temp_variable = { population_factor = 3 } }
+    else_if = { limit = { pop_level_15_check = yes } set_temp_variable = { population_factor = 4 } }
+    else_if = { limit = { pop_level_20_check = yes } set_temp_variable = { population_factor = 5 } }
+    else = { }
+
+    # ===========================
+    # STEP 3: Development Factor
+    # ===========================
+    set_temp_variable = { development_factor = 1 }
+    if = { limit = { development_level_zero_check = yes } set_temp_variable = { development_factor = 0.2 } }
+    else_if = { limit = { development_level_one_check = yes } set_temp_variable = { development_factor = 0.4 } }
+    else_if = { limit = { development_level_two_check = yes } set_temp_variable = { development_factor = 0.8 } }
+    else_if = { limit = { development_level_three_check = yes } set_temp_variable = { development_factor = 1.2 } }
+    else_if = { limit = { development_level_four_check = yes } set_temp_variable = { development_factor = 1.5 } }
+    else_if = { limit = { development_level_five_check = yes } set_temp_variable = { development_factor = 1.8 } }
+    else = { }
+
+    # Agricultural scaling
+    set_temp_variable = { agri_dev_factor = 0.25 }
+    if = { limit = { development_level_one_check = yes } set_temp_variable = { agri_dev_factor = 0.5 } }
+    else_if = { limit = { development_level_two_check = yes } set_temp_variable = { agri_dev_factor = 1 } }
+    else_if = { limit = { development_level_three_check = yes } set_temp_variable = { agri_dev_factor = 1.5 } }
+    else_if = { limit = { development_level_four_check = yes } set_temp_variable = { agri_dev_factor = 2 } }
+    else_if = { limit = { development_level_five_check = yes } set_temp_variable = { agri_dev_factor = 3 } }
+    else = { }
+
+    set_temp_variable = { agri_organic_factor = 0 }
+    if = { limit = { owner = { has_tech = organic_I } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = organic_II } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = organic_III } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = organic_IV } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = organic_V } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = organic_VI } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+    if = { limit = { owner = { has_tech = organic_VII } } add_to_temp_variable = { agri_organic_factor = -0.10 } }
+
+    # ===========================
+    # STEP 4: Land Pollution
+    # ===========================
+    set_temp_variable = { land_base = 0 }       #Values Adjusted for Startup Rolling
+
+    set_temp_variable = { temp_val = building_level@arms_factory }            # 1.2 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@industrial_complex }      # 0.8 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@dockyard }                # 0.8 per level
+    multiply_temp_variable = { temp_val = 1 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@synthetic_refinery }      # 2.0 per level
+    multiply_temp_variable = { temp_val = 2.0 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@steel_factory }           # 1.5 per level
+    multiply_temp_variable = { temp_val = 4 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@tungsten_factory }        # 1.5 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@fossil_fuel_powerplant }  # 2.0 per level
+    multiply_temp_variable = { temp_val = 2.5 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@nuclear_reactor }         # 0.8 per level
+    multiply_temp_variable = { temp_val = 2 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@office_park }             # 0.5 per level
+    multiply_temp_variable = { temp_val = 0.1 }
+    add_to_temp_variable = { land_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@agri_industrial_complex } # 0.6 per level
+    multiply_temp_variable = { temp_val = 0.6 }
+    subtract_from_temp_variable = { temp_val = agri_organic_factor }
+    multiply_temp_variable = { temp_val = agri_dev_factor }
+    clamp_temp_variable = { var = temp_val min = 0 max = 100 }
+    add_to_temp_variable = { land_base = temp_val }
+
+
+    set_temp_variable = { temp_val = building_level@renewable_powerplant }    # -1.5 per level
+    multiply_temp_variable = { temp_val = 1.5 }
+    subtract_from_temp_variable = { land_base = temp_val }
+
+    multiply_temp_variable = { land_base = population_factor }
+    multiply_temp_variable = { land_base = development_factor }
+    multiply_temp_variable = { land_base = tech_factor }
+
+    # ===========================
+    # RESOURCE EXTRACTION - LAND
+    # ===========================
+    set_temp_variable = { resource_pollution_land = 0 }
+
+    # Oil
+    set_temp_variable = { temp_res = resource@oil }
+    multiply_temp_variable = { temp_res = 0.1 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Aluminium
+    set_temp_variable = { temp_res = resource@aluminium }
+    multiply_temp_variable = { temp_res = 0.08 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Tungsten
+    set_temp_variable = { temp_res = resource@tungsten }
+    multiply_temp_variable = { temp_res = 0.08 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Steel
+    set_temp_variable = { temp_res = resource@steel }
+    multiply_temp_variable = { temp_res = 0.08 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Chromium (Uranium)
+    set_temp_variable = { temp_res = resource@chromium }
+    multiply_temp_variable = { temp_res = 0.01 }
+    add_to_temp_variable = { resource_pollution_land = temp_res }
+
+    # Add to total land pollution
+    add_to_temp_variable = { land_base = resource_pollution_land }
+
+    multiply_temp_variable = { land_base = 10 }
+
+    add_to_variable = { var = statelandpollution value = land_base }
+    clamp_variable = { var = statelandpollution min = 0 max = 600 }
+
+    # ===========================
+    # STEP 5: Water Pollution
+    # ===========================
+    set_temp_variable = { water_base = 0 }
+
+    set_temp_variable = { temp_val = building_level@industrial_complex }                # 1 per level
+    multiply_temp_variable = { temp_val = 0.5 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@arms_factory }                # 1 per level
+    multiply_temp_variable = { temp_val = 0.35 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@dockyard }                # 1 per level
+    multiply_temp_variable = { temp_val = 1 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@agri_industrial_complex } # 2 per level * agri_dev_factor
+    multiply_temp_variable = { temp_val = 2 }
+    subtract_from_temp_variable = { temp_val = agri_organic_factor }
+    multiply_temp_variable = { temp_val = agri_dev_factor }
+    clamp_temp_variable = { var = temp_val min = 0 max = 100 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@water_infrastructure }    # 0.4 per level * agri_dev_factor
+    multiply_temp_variable = { temp_val = 0.4 }
+    multiply_temp_variable = { temp_val = agri_dev_factor }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@synthetic_refinery }      # 1.2 per level
+    multiply_temp_variable = { temp_val = 2 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@steel_factory }           # 0.8 per level
+    multiply_temp_variable = { temp_val = 4 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@tungsten_factory }        # 0.8 per level
+    multiply_temp_variable = { temp_val = 1 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@fossil_fuel_powerplant }  # 0.8 per level
+    multiply_temp_variable = { temp_val = 1.2 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    set_temp_variable = { temp_val = building_level@nuclear_reactor }         # 1.0 per level
+    multiply_temp_variable = { temp_val = 3 }
+    add_to_temp_variable = { water_base = temp_val }
+
+    multiply_temp_variable = { water_base = population_factor }
+    multiply_temp_variable = { water_base = development_factor }
+    multiply_temp_variable = { water_base = tech_factor }
+
+    #Resource Extraction
+    # ===========================
+    # RESOURCE EXTRACTION - WATER
+    # ===========================
+    set_temp_variable = { resource_pollution_water = 0 }
+
+    # Oil
+    set_temp_variable = { temp_res = resource@oil }
+    multiply_temp_variable = { temp_res = 0.05 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Chromium (Uranium)    Reduced for Startup due to Less Mining History
+    set_temp_variable = { temp_res = resource@chromium }
+    multiply_temp_variable = { temp_res = 0.01 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Steel 
+    set_temp_variable = { temp_res = resource@steel }
+    multiply_temp_variable = { temp_res = 0.1 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Aluminum
+    set_temp_variable = { temp_res = resource@aluminium }
+    multiply_temp_variable = { temp_res = 0.1 }
+    add_to_temp_variable = { resource_pollution_water = temp_res }
+
+    # Add to total water pollution
+    add_to_temp_variable = { water_base = resource_pollution_water }
+
+    # Scale down pollution to match game timeframe
+    multiply_temp_variable = { water_base = 10 }
+
+
+    add_to_variable = { var = statewaterpollution value = water_base }
+    clamp_variable = { var = statewaterpollution min = 0 max = 600 }
+
+    update_pollution_flags_effect = yes
+}
+
+enviro_token_test = {
+    set_variable = {
+        technology_1 = token:logistics_X
+    }
+}
+
+start_local_land_pollution_campaign = {
+	# Determine pollution level and set campaign effects
+	if = {
+		limit = { has_state_flag = land_pollution_disturbed }
+		add_to_variable = { currentMoney = -0.3 }
+		add_political_power = -15
+		add_to_variable = { local_land_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = land_pollution_degraded }
+		add_to_variable = { currentMoney = -0.7 }
+		add_political_power = -30
+		set_variable = { local_land_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = land_pollution_severe }
+		add_to_variable = { currentMoney = -1.5 }
+		add_political_power = -50
+		set_variable = { local_land_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = land_pollution_catastrophic }
+		add_to_variable = { currentMoney = -3.0 }
+		add_political_power = -75
+		set_variable = { local_land_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = land_pollution_deadzone }
+		add_to_variable = { currentMoney = -5.0 }
+		add_political_power = -100
+		set_variable = { local_land_recovery_initiative = 12 }
+	}
+}
+start_local_water_pollution_campaign = {
+	if = {
+		limit = { has_state_flag = water_pollution_disturbed }
+		add_to_variable = { currentMoney = -0.2 }
+		add_political_power = -10
+		add_to_variable = { local_water_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = water_pollution_degraded }
+		add_to_variable = { currentMoney = -0.6 }
+		add_political_power = -25
+		add_to_variable = { local_water_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = water_pollution_severe }
+		add_to_variable = { currentMoney = -1.2 }
+		add_political_power = -45
+		add_to_variable = { local_water_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = water_pollution_catastrophic }
+		add_to_variable = { currentMoney = -2.5 }
+		add_political_power = -70
+		add_to_variable = { local_water_recovery_initiative = 12 }
+	}
+	else_if = {
+		limit = { has_state_flag = water_pollution_deadzone }
+		add_to_variable = { currentMoney = -4.5 }
+		add_political_power = -90
+		add_to_variable = { local_water_recovery_initiative = 12 }
+	}
+}
+
+religion_prosyletization_cost = {
+    if = {
+        limit = { check_variable = { State_HDI < 0.301 } }
+        add_political_power = -5
+        subtract_from_variable = { currentMoney = 0.1 }
+    }
+    else_if = {
+        limit = {
+            check_variable = { State_HDI > 0.300 }
+            check_variable = { State_HDI < 0.450 }
+        }
+        add_political_power = -10
+        subtract_from_variable = { currentMoney = 0.2 }
+    }
+    else_if = {
+        limit = {
+            check_variable = { State_HDI > 0.449 }
+            check_variable = { State_HDI < 0.600 }
+        }
+        add_political_power = -15
+        subtract_from_variable = { currentMoney = 0.3 }
+    }
+    else_if = {
+        limit = {
+            check_variable = { State_HDI > 0.599 }
+            check_variable = { State_HDI < 0.700 }
+        }
+        add_political_power = -20
+        subtract_from_variable = { currentMoney = 0.5 }
+    }
+    else_if = {
+        limit = {
+            check_variable = { State_HDI > 0.699 }
+            check_variable = { State_HDI < 0.800 }
+        }
+        add_political_power = -25
+        subtract_from_variable = { currentMoney = 0.7 }
+    }
+    else_if = {
+        limit = {
+            check_variable = { State_HDI > 0.799 }
+            check_variable = { State_HDI < 0.900 }
+        }
+        add_political_power = -30
+        subtract_from_variable = { currentMoney = 1.0 }
+    }
+    else_if = {
+        limit = {
+            check_variable = { State_HDI > 0.899 }
+            check_variable = { State_HDI < 0.970 }
+        }
+        add_political_power = -40
+        subtract_from_variable = { currentMoney = 1.5 }
+    }
+    else_if = {
+        limit = { check_variable = { State_HDI > 0.969 } }
+        add_political_power = -50
+        subtract_from_variable = { currentMoney = 2.0 }
+    }
+}

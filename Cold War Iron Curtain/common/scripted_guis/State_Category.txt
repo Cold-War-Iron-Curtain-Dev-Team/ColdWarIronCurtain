@@ -1,4 +1,43 @@
 scripted_gui = {
+	religion_list_selection = { 
+		context_type = player_context
+		window_name = "religion_list_selection_menu"
+		ai_enabled = {
+			always = no
+		}
+		visible = {
+			check_variable = { religion_conversion_open = 1 }
+		}
+		dynamic_lists = {
+			religion_target_menu_selection_grid = {
+				array = current_missionary_options
+				change_scope = no
+				entry_container = Religion_Prosyletize_Entry
+			}
+		}
+		triggers = {
+			religion_button_confirm_click_enabled = {
+				check_variable = { current_missionary_options_selected > 0 }
+				has_political_power > var:prosy_cost_pp 
+				check_variable = { currentMoney > prosy_cost_money }
+			}
+		}
+		effects = {
+			religion_button_confirm_click = {
+				finalize_religion_campaign_effect = yes
+				set_variable = { current_missionary_options_selected = 0 }
+				set_variable = { religion_conversion_state = 0 } 
+				set_variable = { religion_conversion_open = 0 }
+			}
+			exit_button_click = {
+				set_variable = { religion_conversion_open = 0 }
+			}
+			religion_button_click = { 
+				add_political_power = 100
+				set_variable = { current_missionary_options_selected = current_missionary_options^i }
+			}
+		}
+	}
 	sd_window_access = {
 		context_type = selected_state_context
 		
@@ -9,12 +48,50 @@ scripted_gui = {
 			always = no
 		}
 		visible = {
-			always = yes
 		}
-		
 		effects = {
-			sd_open_click = {
+			Religion_Prosyletizea_click = {
+				#State Atheism policy_religion_temp_0a
+				religion_proselytization_cost = yes    
+				hidden_effect = {  
+					ROOT = {
+						add_all_missionary_options = yes
+						set_variable = { religion_conversion_open = 1 }
+						set_variable = { religion_conversion_state = PREV }
+					}
+				}
+			}
+			Religion_Prosyletizeb_click = {
+				religion_proselytization_cost = yes    
+				hidden_effect = {  
+					ROOT = {
+						add_state_atheist_missionary_options = yes
+						set_variable = { religion_conversion_open = 1 }
+						set_variable = { religion_conversion_state = PREV }
+					}
+				}
+			}
+			Religion_Prosyletize_click = {
+				#State Atheism policy_religion_temp_0a
+				religion_proselytization_cost = yes    
+				hidden_effect = {  
+					ROOT = {
+						add_all_missionary_options = yes
+						set_variable = { religion_conversion_open = 1 }
+						set_variable = { religion_conversion_state = PREV }
+					}
+				}
+			}
+			land_pollution_campaign_click = {
+				start_local_land_pollution_campaign = yes
+			}
+			water_pollution_campaign_click = {
+				start_local_water_pollution_campaign = yes
+				hidden_effect = {
 
+				}
+			}
+			sd_open_click = {
 				if = {
 					limit = {
 						OR = {
@@ -81,7 +158,227 @@ scripted_gui = {
 				}
 			}
 		}
+        properties = {
+			State_Development_Slot = {
+                image = "[DEVELOPMENT_PIC]"
+            }
+			Land_Quality_Slot = {
+                image = "[AGRIBIOME_PIC]"
+            }
+			Water_Quality_Slot = {
+                image = "[WATERLEVEL_PIC]"
+            }
+			Culture_Slot_Majority = {
+                image = "[GetMajorityCulturalPic]"
+            }
+			Religion_Slot_Majority = {
+                image = "[GetMajorityReligionPic]"
+            }
+        }
+
 		triggers = {
+			Religion_Prosyletizeb_visible = {
+				ROOT = {
+					has_idea = policy_religion_temp_0a
+				}
+			}
+			Religion_Prosyletizea_visible = {
+				ROOT = {
+					has_idea = policy_religion_temp_3
+				}
+			}
+			Religion_Prosyletizeb_click_enabled = {
+				#State Atheism policy_religion_temp_0a
+				ROOT = { NOT = { tag = ISR } }  
+				OR = {
+					AND = {
+						NOT = { ROOT = { has_idea = policy_religion_temp_3 } }
+						is_owned_by = ROOT
+						is_controlled_by = ROOT
+					}
+					controller = {
+						PREV = {
+							NOT = {
+								is_owned_by = ROOT
+								is_controlled_by = ROOT
+							}
+						}
+
+						OR = {
+							AND = {	#State Atheists can only in State Atheists
+								ROOT = { has_idea = policy_religion_temp_0a }
+								has_idea = policy_religion_temp_0a
+							}
+							NOT = { has_idea = policy_religion_temp_0a }	#Not if State Atheist Unless Exception
+							NOT = { has_idea = policy_religion_temp_1 }		#Not if Have State Religion
+						}
+						
+						check_variable = {
+							Sphere_Leader = ROOT.id
+						}
+						PREV = {
+							is_owned_by = PREV
+						}
+					}
+				}
+			}
+			Religion_Prosyletizea_click_enabled = {
+				#State Atheism policy_religion_temp_0a
+				ROOT = { NOT = { tag = ISR } }  
+				OR = {
+					AND = {
+						NOT = { ROOT = { has_idea = policy_religion_temp_3 } }
+						is_owned_by = ROOT
+						is_controlled_by = ROOT
+					}
+					controller = {
+						PREV = {
+							NOT = {
+								is_owned_by = ROOT
+								is_controlled_by = ROOT
+							}
+						}
+
+						OR = {
+							AND = {	#State Atheists can only in State Atheists
+								ROOT = { has_idea = policy_religion_temp_0a }
+								has_idea = policy_religion_temp_0a
+							}
+							NOT = { has_idea = policy_religion_temp_0a }	#Not if State Atheist Unless Exception
+							NOT = { has_idea = policy_religion_temp_1 }		#Not if Have State Religion
+						}
+						
+						check_variable = {
+							Sphere_Leader = ROOT.id
+						}
+						PREV = {
+							is_owned_by = PREV
+						}
+					}
+				}
+			}
+			Religion_Prosyletize_click_enabled = {
+				#State Atheism policy_religion_temp_0a
+				ROOT = { NOT = { tag = ISR } }  
+				OR = {
+					AND = {
+						NOT = { ROOT = { has_idea = policy_religion_temp_3 } }
+						is_owned_by = ROOT
+						is_controlled_by = ROOT
+					}
+					controller = {
+						PREV = {
+							NOT = {
+								is_owned_by = ROOT
+								is_controlled_by = ROOT
+							}
+						}
+
+						OR = {
+							AND = {	#State Atheists can only in State Atheists
+								ROOT = { has_idea = policy_religion_temp_0a }
+								has_idea = policy_religion_temp_0a
+							}
+							NOT = { has_idea = policy_religion_temp_0a }	#Not if State Atheist Unless Exception
+							NOT = { has_idea = policy_religion_temp_1 }		#Not if Have State Religion
+						}
+						
+						check_variable = {
+							Sphere_Leader = ROOT.id
+						}
+						PREV = {
+							is_owned_by = PREV
+						}
+					}
+				}
+			}
+			land_pollution_campaign_visible = {
+				is_owned_by = ROOT
+				is_controlled_by = ROOT
+			}
+			water_pollution_campaign_visible = {
+				is_owned_by = ROOT
+				is_controlled_by = ROOT
+			}
+			land_pollution_campaign_click_enabled = {
+				check_variable = { local_land_recovery_initiative < 2}
+				OR = {
+					AND = {
+						has_state_flag = land_pollution_disturbed
+						ROOT = { has_political_power > 15 }
+						check_variable = { ROOT.currentMoney > 0.3 }
+					}
+					AND = {
+						has_state_flag = land_pollution_degraded
+						ROOT = { has_political_power > 30 }
+						check_variable = { ROOT.currentMoney > 0.7 }
+					}
+					AND = {
+						has_state_flag = land_pollution_severe
+						ROOT = { has_political_power > 50 }
+						check_variable = { ROOT.currentMoney > 1.5 }
+					}
+					AND = {
+						has_state_flag = land_pollution_catastrophic
+						ROOT = { has_political_power > 75 }
+						check_variable = { ROOT.currentMoney > 3 }
+					}
+					AND = {
+						has_state_flag = land_pollution_deadzone
+						ROOT = { has_political_power > 100 }
+						check_variable = { ROOT.currentMoney > 5 }
+					}
+				}
+			}
+			water_pollution_campaign_click_enabled = {
+				check_variable = { local_water_recovery_initiative < 2 }
+				OR = {
+					AND = {
+						has_state_flag = water_pollution_disturbed
+						ROOT = { has_political_power > 10 }
+						check_variable = { ROOT.currentMoney > 0.2 }
+					}
+					AND = {
+						has_state_flag = water_pollution_degraded
+						ROOT = { has_political_power > 25 }
+						check_variable = { ROOT.currentMoney > 0.6 }
+					}
+					AND = {
+						has_state_flag = water_pollution_severe
+						ROOT = { has_political_power > 45 }
+						check_variable = { ROOT.currentMoney > 1.2 }
+					}
+					AND = {
+						has_state_flag = water_pollution_catastrophic
+						ROOT = { has_political_power > 70 }
+						check_variable = { ROOT.currentMoney > 2.5 }
+					}
+					AND = {
+						has_state_flag = water_pollution_deadzone
+						ROOT = { has_political_power > 90 }
+						check_variable = { ROOT.currentMoney > 4.5 }
+					}
+				}
+			}
+			Culture_Slot_Minority_1_Disabled_visible = { NOT = { has_variable = culture^1 } }
+			Culture_Slot_Minority_2_Disabled_visible = { NOT = { has_variable = culture^2 } }
+			Culture_Slot_Minority_3_Disabled_visible = { NOT = { has_variable = culture^3 } }
+
+			Culture_Slot_Minority_1_visible = { check_variable = { culture^1 > 0 } }
+			Culture_Slot_Minority_2_visible = { check_variable = { culture^2 > 0 } }
+			Culture_Slot_Minority_3_visible = { check_variable = { culture^3 > 0 } }
+
+			Religion_Slot_Minority_1_Disabled_visible = { has_state_flag = Religion_Minority_1_Null }
+			Religion_Slot_Minority_2_Disabled_visible = { has_state_flag = Religion_Minority_2_Null }
+			Religion_Slot_Minority_3_Disabled_visible = { has_state_flag = Religion_Minority_3_Null }
+			Religion_Slot_Minority_4_Disabled_visible = { has_state_flag = Religion_Minority_4_Null }
+
+			Religion_Slot_Minority_1_visible = { NOT = { has_state_flag = Religion_Minority_1_Null } }
+			Religion_Slot_Minority_2_visible = { NOT = { has_state_flag = Religion_Minority_2_Null } }
+			Religion_Slot_Minority_3_visible = { NOT = { has_state_flag = Religion_Minority_3_Null } }
+			Religion_Slot_Minority_4_visible = { NOT = { has_state_flag = Religion_Minority_4_Null } }
+
+			#Older
 			sd_open_visible = {
 				is_owned_by = ROOT
 				is_controlled_by = ROOT
@@ -110,18 +407,6 @@ scripted_gui = {
 							has_state_category = pop15dev1
 							has_state_category = pop20dev1
 						}
-						AND = {
-							ROOT = {
-								has_tech = logistics_I
-								has_tech = production_efficiency_I
-								has_tech = management_I
-								has_tech = materials_I
-								has_tech = chemistry_I
-								has_tech = grid_I
-								has_tech = inframanagement_I
-								has_tech = consumer_electronics_I
-							}
-						}
 					}
 					AND = {
 						OR = {
@@ -134,24 +419,6 @@ scripted_gui = {
 							has_state_category = pop10dev2
 							has_state_category = pop15dev2
 							has_state_category = pop20dev2
-						}
-						AND = {
-							ROOT = {
-								has_tech = logistics_VI
-								has_tech = production_efficiency_I
-								has_tech = industrial_robots_I
-								OR = {
-									has_tech = management_V_A
-									has_tech = management_V_B
-								}
-								has_tech = materials_III
-								has_tech = chemistry_III
-								has_tech = plastics_II
-								has_tech = water_III
-								has_tech = grid_III
-								has_tech = inframanagement_III
-								has_tech = consumer_electronics_III
-							}
 						}
 					}
 					AND = {
@@ -166,48 +433,37 @@ scripted_gui = {
 							has_state_category = pop15dev3
 							has_state_category = pop20dev3
 						}
-						AND = {
-							ROOT = {
-								has_tech = logistics_X
-								has_tech = production_efficiency_X
-								has_tech = industrial_robots_V
-								has_tech = management_VIII
-								has_tech = materials_V
-								has_tech = chemistry_V
-								has_tech = plastics_IV
-								has_tech = water_V
-								has_tech = grid_V
-								has_tech = inframanagement_V
-								has_tech = consumer_electronics_V
-							}
-						}
 					}
 				}
 			}
-			upgrade_cost_display_visible = {
-				AND = { 
-					NOT = { has_state_flag = upgrade_underway }
-					is_owned_by = ROOT
-					is_controlled_by = ROOT
-				} 
-			}
+
 			sd_open_click_enabled = {
 				is_owned_by = ROOT
 				is_controlled_by = ROOT
 				NOT = { has_state_flag = upgrade_underway }
 				OR = {
-					OR = {
-						has_state_category = pop1
-						has_state_category = pop2
-						has_state_category = pop3
-						has_state_category = pop4
-						has_state_category = pop5
-						has_state_category = pop7
-						has_state_category = pop10
-						has_state_category = pop15
-						has_state_category = pop20
+					AND = { 
+						check_variable = { State_HDI > 0.299 }
+						ROOT = {
+							has_tech = ww_infra
+							has_tech = ww_production
+							has_tech = ww_construction
+						}
+						OR = {
+							has_state_category = pop1
+							has_state_category = pop2
+							has_state_category = pop3
+							has_state_category = pop4
+							has_state_category = pop5
+							has_state_category = pop7
+							has_state_category = pop10
+							has_state_category = pop15
+							has_state_category = pop20
+						}
 					}
+
 					AND = {
+						check_variable = { State_HDI > 0.499 }
 						OR = {
 							has_state_category = pop1dev1
 							has_state_category = pop2dev1
@@ -233,6 +489,7 @@ scripted_gui = {
 						}
 					}
 					AND = {
+						check_variable = { State_HDI > 0.699 }
 						OR = {
 							has_state_category = pop1dev2
 							has_state_category = pop2dev2
@@ -249,7 +506,7 @@ scripted_gui = {
 								has_tech = logistics_VI
 								has_tech = production_efficiency_I
 								has_tech = industrial_robots_I
-								OR = {
+								OR = { 
 									has_tech = management_V_A
 									has_tech = management_V_B
 								}
@@ -264,6 +521,7 @@ scripted_gui = {
 						}
 					}
 					AND = {
+						check_variable = { State_HDI > 0.799 }
 						OR = {
 							has_state_category = pop1dev3
 							has_state_category = pop2dev3
@@ -276,7 +534,7 @@ scripted_gui = {
 							has_state_category = pop20dev3
 						}
 						AND = {
-							ROOT = {
+							ROOT = { 
 								has_tech = logistics_X
 								has_tech = production_efficiency_X
 								has_tech = industrial_robots_V
@@ -291,220 +549,8 @@ scripted_gui = {
 							}
 						}
 					}
+					check_variable = { State_HDI > 0.899 }
 				}
-			}
-			sd_open_unavailable_visible = {
-				AND = { 
-					NOT = { has_state_flag = upgrade_underway }
-					is_owned_by = ROOT
-					is_controlled_by = ROOT
-				} 
-				OR = {
-					AND = {
-						OR = {
-							has_state_category = pop1dev1
-							has_state_category = pop2dev1
-							has_state_category = pop3dev1
-							has_state_category = pop4dev1
-							has_state_category = pop5dev1
-							has_state_category = pop7dev1
-							has_state_category = pop10dev1
-							has_state_category = pop15dev1
-							has_state_category = pop20dev1
-						}
-						ROOT = {
-							OR = {
-								NOT = { has_tech = logistics_I }
-								NOT = { has_tech = production_efficiency_I }
-								NOT = { has_tech = management_I }
-								NOT = { has_tech = materials_I }
-								NOT = { has_tech = chemistry_I }
-								NOT = { has_tech = grid_I }
-								NOT = { has_tech = inframanagement_I }
-								NOT = { has_tech = consumer_electronics_I }
-							}
-						}
-					}
-					AND = {
-						OR = {
-							has_state_category = pop1dev2
-							has_state_category = pop2dev2
-							has_state_category = pop3dev2
-							has_state_category = pop4dev2
-							has_state_category = pop5dev2
-							has_state_category = pop7dev2
-							has_state_category = pop10dev2
-							has_state_category = pop15dev2
-							has_state_category = pop20dev2
-						}
-						AND = {
-							ROOT = {
-								OR = {
-									NOT = { has_tech = logistics_VI }
-									NOT = { has_tech = production_efficiency_I }
-									NOT = { has_tech = industrial_robots_I }
-									AND = {
-										NOT = { has_tech = management_V_A }
-										NOT = { has_tech = management_V_B }
-									}
-									NOT = { has_tech = materials_III }
-									NOT = { has_tech = chemistry_III }
-									NOT = { has_tech = plastics_II }
-									NOT = { has_tech = water_III }
-									NOT = { has_tech = grid_III }
-									NOT = { has_tech = inframanagement_III }
-									NOT = { has_tech = consumer_electronics_III }
-								}
-							}
-						}
-					}
-					AND = {
-						OR = {
-							has_state_category = pop1dev3
-							has_state_category = pop2dev3
-							has_state_category = pop3dev3
-							has_state_category = pop4dev3
-							has_state_category = pop5dev3
-							has_state_category = pop7dev3
-							has_state_category = pop10dev3
-							has_state_category = pop15dev3
-							has_state_category = pop20dev3
-						}
-						AND = {
-							ROOT = {
-								OR = {
-									NOT = { has_tech = logistics_X }
-									NOT = { has_tech = production_efficiency_X }
-									NOT = { has_tech = industrial_robots_V }
-									NOT = { has_tech = management_VIII }
-									NOT = { has_tech = materials_V }
-									NOT = { has_tech = chemistry_V }
-									NOT = { has_tech = plastics_IV }
-									NOT = { has_tech = water_V }
-									NOT = { has_tech = grid_V }
-									NOT = { has_tech = inframanagement_V }
-									NOT = { has_tech = consumer_electronics_V }
-								}
-							}
-						}
-					}
-				}
-			}
-			Tech_Not_Met_visible = {
-				AND = { 
-					NOT = { has_state_flag = upgrade_underway }
-					is_owned_by = ROOT
-					is_controlled_by = ROOT
-				} 
-				OR = {
-					AND = {
-						OR = {
-							has_state_category = pop1dev1
-							has_state_category = pop2dev1
-							has_state_category = pop3dev1
-							has_state_category = pop4dev1
-							has_state_category = pop5dev1
-							has_state_category = pop7dev1
-							has_state_category = pop10dev1
-							has_state_category = pop15dev1
-							has_state_category = pop20dev1
-						}
-						ROOT = {
-							OR = {
-								NOT = { has_tech = logistics_I }
-								NOT = { has_tech = production_efficiency_I }
-								NOT = { has_tech = management_I }
-								NOT = { has_tech = materials_I }
-								NOT = { has_tech = chemistry_I }
-								NOT = { has_tech = grid_I }
-								NOT = { has_tech = inframanagement_I }
-								NOT = { has_tech = consumer_electronics_I }
-							}
-						}
-					}
-					AND = {
-						OR = {
-							has_state_category = pop1dev2
-							has_state_category = pop2dev2
-							has_state_category = pop3dev2
-							has_state_category = pop4dev2
-							has_state_category = pop5dev2
-							has_state_category = pop7dev2
-							has_state_category = pop10dev2
-							has_state_category = pop15dev2
-							has_state_category = pop20dev2
-						}
-						AND = {
-							ROOT = {
-								OR = {
-									NOT = { has_tech = logistics_VI }
-									NOT = { has_tech = production_efficiency_I }
-									NOT = { has_tech = industrial_robots_I }
-									AND = {
-										NOT = { has_tech = management_V_A }
-										NOT = { has_tech = management_V_B }
-									}
-									NOT = { has_tech = materials_III }
-									NOT = { has_tech = chemistry_III }
-									NOT = { has_tech = plastics_II }
-									NOT = { has_tech = water_III }
-									NOT = { has_tech = grid_III }
-									NOT = { has_tech = inframanagement_III }
-									NOT = { has_tech = consumer_electronics_III }
-								}
-							}
-						}
-					}
-					AND = {
-						OR = {
-							has_state_category = pop1dev3
-							has_state_category = pop2dev3
-							has_state_category = pop3dev3
-							has_state_category = pop4dev3
-							has_state_category = pop5dev3
-							has_state_category = pop7dev3
-							has_state_category = pop10dev3
-							has_state_category = pop15dev3
-							has_state_category = pop20dev3
-						}
-						AND = {
-							ROOT = {
-								OR = {
-									NOT = { has_tech = logistics_X }
-									NOT = { has_tech = production_efficiency_X }
-									NOT = { has_tech = industrial_robots_V }
-									NOT = { has_tech = management_VIII }
-									NOT = { has_tech = materials_V }
-									NOT = { has_tech = chemistry_V }
-									NOT = { has_tech = plastics_IV }
-									NOT = { has_tech = water_V }
-									NOT = { has_tech = grid_V }
-									NOT = { has_tech = inframanagement_V }
-									NOT = { has_tech = consumer_electronics_V }
-								}
-							}
-						}
-					}
-				}
-			}
-			Development_Progress_visible = {
-				check_variable = { upgrade_progress > 0 }
-			}
-			Grid_Upgrading_visible = {
-				#check_variable = { grid_upgrade_progress > 0 }
-				always = no
-			}
-			Telecoms_Upgrading_visible = {
-				#check_variable = { telecoms_upgrade_progress > 0 }
-				always = no
-			}
-			Grid_Tier_visible = {
-				#check_variable = { grid_upgrade_progress < 1 }
-				always = no
-			}
-			Telecoms_Tier_visible = {
-				#check_variable = { telecoms_upgrade_progress < 1 }
-				always = no
 			}
 		}
 	}

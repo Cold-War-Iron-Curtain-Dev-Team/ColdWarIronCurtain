@@ -184,107 +184,95 @@ industrial_pulse = {
 		#	add_to_variable = { PREV.foodCheck = resource@rubber }
 		#Farm Production
 		set_variable = { farm_output = 1 }
-		#if = {
-		#	limit = {
-		#		controller = { has_idea =  }
-		#	}
-		#	add_to_variable = { farm_output = -0.1 }
-		#}
-		#End
-		if = { limit = { controller = { has_dynamic_modifier = { modifier = federation_european_union } } }
-			add_to_variable = { farm_output = global.federation_european_union_food}
-		}
-		if = { limit = { has_state_flag = mountainshot } 
-			add_to_variable = { farm_output = -0.5 }
-		}
-		if = { limit = { has_state_flag = cold  }
-			add_to_variable = { farm_output = 0 }
-		}
-		if = { limit = { has_state_flag = desert }
-			add_to_variable = { farm_output = 0 }
-		}
-		if = { limit = { has_state_flag = desertlush }
-			add_to_variable = { farm_output = 1 }
-		}
-		if = { limit = { has_state_flag = mountains }
-			add_to_variable = { farm_output = 1 }
-		}
-		if = { limit = { has_state_flag = boreal }
-			add_to_variable = { farm_output = 2 }
-		}
-		if = { limit = { has_state_flag = temperate }
-			add_to_variable = { farm_output = 3 }
-		}
-		if = { limit = { has_state_flag = tropical }
-			add_to_variable = { farm_output = 3 }
-		}
-		#Water
-		if = { limit = { has_state_flag = basic }
-			multiply_variable = { farm_output = 0.75 }
-		}
-		if = { limit = { has_state_flag = lakes }
-			multiply_variable = { farm_output = 1.25 }
-		}
-		if = { limit = { has_state_flag = river }
-			multiply_variable = { farm_output = 1.5 }
-		}
-		if = { limit = { has_state_flag = riverlarge }
-			multiply_variable = { farm_output = 1.75 }
-		}
-		if = { limit = { has_state_flag = freshwatersea }
-			multiply_variable = { farm_output = 2 }
-		}
-		################
-		set_variable = { farm_tech_local = PREV.farm_tech }
-		
-		
-		
-		#Water Infra Modifiers
-		if = { limit = { water_infrastructure < 1 }
-			multiply_variable = { farm_output = 0.5 }
-		}
-		if = {
-			limit = {
-				water_infrastructure < 3
-				water_infrastructure > 1
-			}
-			add_to_variable = { farm_tech_local = 0.25 }
-		}
-		if = {
-			limit = {
-				water_infrastructure < 4
-				water_infrastructure > 2
-			}
-			add_to_variable = { farm_tech_local = 0.5 } 
-		}
-		if = { limit = { water_infrastructure > 3 }
-			add_to_variable = { farm_tech_local = 0.75 }
-		}
-		
-		##########
-		
 
+		# Biome-Based Modifiers
+		if = { limit = { has_state_flag = desert } add_to_variable = { farm_output = -0.5 } }
+		else_if = { limit = { has_state_flag = desertlush } add_to_variable = { farm_output = 1.0 } }
+		else_if = { limit = { has_state_flag = tundra } add_to_variable = { farm_output = -0.5 } }
+		else_if = { limit = { has_state_flag = mountains } add_to_variable = { farm_output = -0.25 } }
+		else_if = { limit = { has_state_flag = arid_mountains } add_to_variable = { farm_output = -0.75 } }
+		else_if = { limit = { has_state_flag = boreal } add_to_variable = { farm_output = 1.5 } }
+		else_if = { limit = { has_state_flag = temperate } add_to_variable = { farm_output = 2.5 } }
+		else_if = { limit = { has_state_flag = tropical } add_to_variable = { farm_output = 3.0 } }
 		
+		else_if = { limit = { has_state_flag = savanna } add_to_variable = { farm_output = 2.0 } }
+		else_if = { limit = { has_state_flag = subtropical_monsoon } add_to_variable = { farm_output = 2.5 } }
+		else_if = { limit = { has_state_flag = delta } add_to_variable = { farm_output = 3.5 } }
+		else_if = { limit = { has_state_flag = wetlands } add_to_variable = { farm_output = 2.5 } }
+		else_if = { limit = { has_state_flag = mediterranean } add_to_variable = { farm_output = 2.0 } }
+		else_if = { limit = { has_state_flag = steppe } multiply_variable = { farm_output = 1.05 } # Slight productivity bonus }
+		else = { }
+
+		# Water Availability Bonuses
+		if = { limit = { has_state_flag = basic } multiply_variable = { farm_output = 0.75 } }
+		else_if = { limit = { has_state_flag = lakes } multiply_variable = { farm_output = 1.25 } }
+		else_if = { limit = { has_state_flag = river } multiply_variable = { farm_output = 1.5 } }
+		else_if = { limit = { has_state_flag = riverlarge } multiply_variable = { farm_output = 1.75 } }
+		else_if = { limit = { has_state_flag = freshwatersea } multiply_variable = { farm_output = 2.0 } }
+		else = { }
+
+		# Farm Tech & Infrastructure
+		set_variable = { farm_tech_local = PREV.farm_tech }
+		if = { limit = { water_infrastructure < 1 } multiply_variable = { farm_output = 0.5 } }
+		else_if = { limit = { water_infrastructure > 1 water_infrastructure < 3 } add_to_variable = { farm_tech_local = 0.25 } }
+		else_if = { limit = { water_infrastructure > 2 water_infrastructure < 4 } add_to_variable = { farm_tech_local = 0.5 } }
+		else_if = { limit = { water_infrastructure > 3 } add_to_variable = { farm_tech_local = 0.75 } }
+		else = { }
 
 		multiply_variable = { farm_output = farm_tech_local }
 		multiply_variable = { farm_output = PREV.farm_output_modif }
 		add_to_variable = { farm_output = global.eco_output_rate }
-		#multiply_variable = { farm_output = farmBonusTotal }
+
+		# Building and Efficiency Modifiers
 		multiply_variable = { farm_output = non_damaged_building_level@agri_industrial_complex }
 		set_variable = { farm_output_efficiency = farm_output }
 		multiply_variable = { farm_output_efficiency = resourceEfficiencyInfra }
 		add_to_variable = { farm_output = farm_output_efficiency }
-		set_variable = {
-			agri_prod_modifier = PREV.modifier@agricultural_complex_production_bonus
-		}
-		add_to_variable = {
-			agri_prod_modifier = 1
-		}
-		multiply_variable = {
-			farm_output = agri_prod_modifier
-		}
-		
+
+		# Modifier Hook
+		set_variable = { agri_prod_modifier = PREV.modifier@agricultural_complex_production_bonus }
+		add_to_variable = { agri_prod_modifier = 1 }
+		multiply_variable = { farm_output = agri_prod_modifier }
+
+		# Pollution Penalty (scaled linearly from 0–600)
+		# Land pollution reduces productivity more harshly than water
+
+		# Clamp pollution to 0–600 before calculation
+		clamp_variable = { var = statelandpollution min = 0 max = 600 }
+		clamp_variable = { var = statewaterpollution min = 0 max = 600 }
+
+		set_temp_variable = { land_pollution_penalty = statelandpollution }
+		set_temp_variable = { water_pollution_penalty = statewaterpollution }
+
+		# Scale penalties
+		divide_variable = { land_pollution_penalty = 600 }
+		divide_variable = { water_pollution_penalty = 600 }
+
+		# Max 40% land penalty, 20% water penalty
+		multiply_variable = { land_pollution_penalty = 0.4 }
+		multiply_variable = { water_pollution_penalty = 0.2 }
+
+		# --- Pollution Penalty ---
+		# total_pollution_penalty = land_penalty + water_penalty
+
+		set_temp_variable = { total_pollution_penalty = land_pollution_penalty }
+		add_to_temp_variable = { total_pollution_penalty = water_pollution_penalty }
+
+		# Convert penalty to multiplier: (1 - penalty)
+		set_temp_variable = { pollution_multiplier = 1 }
+		subtract_from_variable = { pollution_multiplier = total_pollution_penalty }
+
+		# Apply to farm_output
+		multiply_variable = { farm_output = pollution_multiplier }
+
+		# Apply total penalty
+		set_temp_variable = { total_pollution_penalty = land_pollution_penalty }
+		add_to_variable = { total_pollution_penalty = water_pollution_penalty }
+		multiply_variable = { farm_output = total_pollution_penalty factor = -1 add = 1 }
+
+		# Final Application
 		add_to_variable = { PREV.food_bonus = farm_output }
+
 		
 		
 		#Food Consumption
@@ -457,82 +445,83 @@ industrial_pulse = {
 	}
 	#Food Consumption End
 
+
 	#Tech stuff
-	if = { limit = { has_tech = chemistry_II }
+	if = { limit = { ROOT = { has_tech = chemistry_II } }
 		add_to_variable = { synthetic_refinery_electricity_consumption = 1 } 
 	}
-	if = { limit = { has_tech = chemistry_IV }
+	if = { limit = { ROOT = { has_tech = chemistry_IV } }
 		add_to_variable = { synthetic_refinery_electricity_consumption = 1 } 
 	}
-	if = { limit = { has_tech = chemistry_VI }
+	if = { limit = { ROOT = { has_tech = chemistry_VI } }
 		add_to_variable = { synthetic_refinery_electricity_consumption = 1 } 
 	}
-	if = { limit = { has_tech = chemistry_IV }
+	if = { limit = { ROOT = { has_tech = chemistry_IV } }
 		add_to_variable = { tungsten_factory_electricity_consumption = 1 } 
 	}
-	if = { limit = { has_tech = chemistry_VII }
+	if = { limit = { ROOT = { has_tech = chemistry_VII } }
 		add_to_variable = { tungsten_factory_electricity_consumption = -0.5 }
 		add_to_variable = { synthetic_refinery_electricity_consumption = -0.5 }  
 	}
-	if = { limit = { has_tech = materials_II }
+	if = { limit = { ROOT = { has_tech = materials_II } }
 		add_to_variable = { steel_factory_electricity_consumption = 1 } 
 	}
-	if = { limit = { has_tech = materials_III }
+	if = { limit = { ROOT = { has_tech = materials_III } }
 		add_to_variable = { steel_factory_electricity_consumption = -0.1 } 
 	}
-	if = { limit = { has_tech = materials_IV }
+	if = { limit = { ROOT = { has_tech = materials_IV } }
 		add_to_variable = { steel_factory_electricity_consumption = 1 } 
 		add_to_variable = { steel_factory_oil_consumption = -0.1 } 
 	}
-	if = { limit = { has_tech = materials_VI }
+	if = { limit = { ROOT = { has_tech = materials_VI } }
 		add_to_variable = { steel_factory_electricity_consumption = 1 } 
 	}
-	if = { limit = { has_tech = materials_VII }
+	if = { limit = { ROOT = { has_tech = materials_VII } }
 		add_to_variable = { steel_factory_electricity_consumption = 2 } 
 		add_to_variable = { steel_factory_oil_consumption = -0.5 } 
 	}
-	if = { limit = { tag = DDR }
+	if = { limit = { ROOT = { tag = DDR } }
 		add_to_variable = { steel_factory_electricity_consumption = antiquated_industry_elec } 
 		add_to_variable = { steel_factory_oil_consumption = antiquated_industry_oil } 
 	}
 	#Dockyard Specific
-	if = { limit = { has_tech = ecoenergy_III }
+	if = { limit = { ROOT = { has_tech = ecoenergy_III } }
 		add_to_variable = { dockyard_consumption = -0.1 }
 	}
-	if = { limit = { has_tech = ecoenergy_V }
+	if = { limit = { ROOT = { has_tech = ecoenergy_V } }
 		add_to_variable = { dockyard_consumption = -0.1 }
 	}
-	if = { limit = { has_tech = ecoenergy_VI }
+	if = { limit = { ROOT = { has_tech = ecoenergy_VI } }
 		add_to_variable = { dockyard_consumption = -0.1 }
 	}
 	#End Dockyard Specific
 
-	if = { limit = { has_tech = management_IX }
+	if = { limit = { ROOT = { has_tech = management_IX } }
 		add_to_variable = { steel_consumption = -0.1 } 
 	}
-	if = { limit = { has_tech = plastics_III }
+	if = { limit = { ROOT = { has_tech = plastics_III } }
 		add_to_variable = { steel_consumption = -0.1 } 
 	}
-	if = { limit = { has_tech = plastics_VI }
+	if = { limit = { ROOT = { has_tech = plastics_VI } }
 		add_to_variable = { oil_consumption = -0.1 } 
 	}
-	if = { limit = { has_tech = electriccars }
+	if = { limit = { ROOT = { has_tech = electriccars } }
 		add_to_variable = { oil_consumption = -0.25 } 
 		add_to_variable = { electricity_consumption = 0.5 }
 	}
-	if = { limit = { has_tech = ecoenergy_I }
+	if = { limit = { ROOT = { has_tech = ecoenergy_I } }
 		add_to_variable = { electricity_consumption = -0.1 }
 	}
-	if = { limit = { has_tech = ecoenergy_II }
+	if = { limit = { ROOT = { has_tech = ecoenergy_II } }
 		add_to_variable = { electricity_consumption = -0.1 }
 	}
-	if = { limit = { has_tech = ecoenergy_V }
+	if = { limit = { ROOT = { has_tech = ecoenergy_V } }
 		add_to_variable = { electricity_consumption = -0.1 }
 	}
-	if = { limit = { has_tech = ecoenergy_VII }
+	if = { limit = { ROOT = { has_tech = ecoenergy_VII } }
 		add_to_variable = { electricity_consumption = -0.1 }
 	}
-	if = { limit = { tag = DDR }
+	if = { limit = { ROOT = { tag = DDR } }
 		add_to_variable = { electricity_consumption = antiquated_industry_elec } 
 		add_to_variable = { oil_consumption = antiquated_industry_oil } 
 	}		
@@ -750,4 +739,5 @@ industrial_pulse = {
 	}
 
 	country_event = { id = food_pulse.1 days = 1 } # call recalc in 1 day (because of added capital bonus which only reflects after daily tick)
+
 }
