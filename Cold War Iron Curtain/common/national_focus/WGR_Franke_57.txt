@@ -78,7 +78,12 @@ focus_tree = {
         x = 18
         y = 3
 		
-		available = { has_country_flag = WGR_1957_Franke_SPD_United}
+		available = { 
+			AND = {
+				has_country_flag = WGR_1957_Franke_SPD_United
+				has_country_flag = WGR_1957_Franke_Zentrum_Joins_Coalition
+			}	
+		}
 		
         prerequisite = {
             focus = WGR_Franke_57_Increase_Portions_Bundestag_Cafeteria
@@ -110,7 +115,12 @@ focus_tree = {
             IC_FILTER
         }
 		
-		available = { has_country_flag = WGR_1957_Franke_CDU_Right_SPD_Coalition}
+		available = { 
+				AND = {
+					has_country_flag = WGR_1957_Franke_CDU_Right_SPD_Coalition
+					has_country_flag = WGR_1957_Franke_Zentrum_Joins_Coalition
+				}
+		}
 		
         cost = 7
         x = 22
@@ -303,14 +313,15 @@ focus_tree = {
         search_filters = {
             IC_FILTER
         }
-        cost = 7
+        cost = 1
         x = 16
         y = 6
         prerequisite = {
             focus = WGR_Franke_57_Announce_New_Military_Economic_Programs
         }
         completion_reward = {
-            army_experience = 25
+            army_experience = 50
+			add_command_power = 50
         }
     }
 
@@ -632,32 +643,20 @@ focus_tree = {
             focus = WGR_Franke_57_Continue_Wirtschaftswunder
         }
         completion_reward = {
-            51 = {
-                add_building_construction = {
-                    type = fossil_fuel_powerplant
-                    level = 1
-                    instant_build = no
-                }
-            }
-            1629 = {
-                add_building_construction = {
-                    type = fossil_fuel_powerplant
-                    level = 1
-                    instant_build = no
-                }
-            }
             42 = {
+				add_extra_state_shared_building_slots = 1
                 add_building_construction = {
                     type = fossil_fuel_powerplant
                     level = 1
-                    instant_build = no
+                    instant_build = yes
                 }
             }
             1628 = {
+				add_extra_state_shared_building_slots = 1
                 add_building_construction = {
                     type = fossil_fuel_powerplant
                     level = 1
-                    instant_build = no
+                    instant_build = yes
                 }
             }
         }
@@ -784,6 +783,8 @@ focus_tree = {
             IC_FILTER
         }
 		
+		
+		
 		available = {
 			OR = {
 				has_completed_focus = WGR_Franke_57_Form_United_Bloc_CDU
@@ -799,6 +800,10 @@ focus_tree = {
         }
         completion_reward = {
             add_dynamic_modifier = { modifier = WGR_Nuclear_Program_Development }
+			swap_ideas = {
+				remove_idea = Scientific_Collapse
+				add_idea = Scientific_Collapse_lessened
+			}
 			
         }
     }
@@ -1055,6 +1060,8 @@ focus_tree = {
         search_filters = {
             IC_FILTER
         }
+		
+		
         cost = 7
         x = 30
         y = 2
@@ -1132,9 +1139,20 @@ focus_tree = {
             focus = WGR_Franke_57_Limited_Membership
         }
         completion_reward = {
-            USA = {
-                add_to_faction = WGR
-            }
+			if = {
+				limit = {
+					USA = {has_idea = nato_member}
+				}
+				USA = {
+					add_to_faction = WGR
+				}
+			}	
+			else = {
+				ENG = {
+					add_to_faction = WGR
+				}
+			}
+				
             
 			WGR_Increase_Party_Cooperation = yes
 			WGR_Decrease_Kanalarbeiter_Cooperation = yes
@@ -1214,8 +1232,17 @@ focus_tree = {
             focus = WGR_Franke_57_Allow_Full_Membership
         }
         completion_reward = {
-            add_command_power = 50
-			add_ideas = nato_member
+			if = {
+				limit = {
+					NOT = {
+						WGR = {
+							has_idea = nato_member
+						}
+					}
+				}	
+				add_ideas = nato_member
+			}
+			add_command_power = 50			
             custom_effect_tooltip = WGR_Please_Allies_tt
         }
     }
