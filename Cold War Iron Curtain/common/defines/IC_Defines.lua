@@ -176,7 +176,7 @@ NDefines.NMilitary.LAND_COMBAT_COLLATERAL_INFRA_FACTOR = 0.0022	-- Factor to sca
 NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 1.5
 NDefines.NCountry.BASE_MAX_COMMAND_POWER = 200
 
-NPolitics = {
+NDefines.NPolitics = {
 	BASE_LEADER_TRAITS = 3,				-- Base amount of leader traits.
 	MAX_RANDOM_LEADERS = 1,				-- Maximum amount random leader to have per party.
 	BASE_POLITICAL_POWER_INCREASE = 2,	-- Weekly increase of PP.
