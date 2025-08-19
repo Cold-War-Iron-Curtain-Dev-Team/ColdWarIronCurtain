@@ -1,5 +1,5 @@
 name="Cold War Iron Curtain Dev Build"
-picture="thumbnail.png"
+picture="preview.jpg"
 tags={
 	"Gameplay"
 	"Military"
@@ -29,4 +29,3 @@ replace_path="history/countries"
 replace_path="common/ai_focuses"
 replace_path="common/ai_strategy_plans"
 path="mod/ColdWarIronCurtain/Cold War Iron Curtain"
-picture="preview.jpg"
