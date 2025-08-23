@@ -176,13 +176,11 @@ NDefines.NMilitary.LAND_COMBAT_COLLATERAL_INFRA_FACTOR = 0.0022	-- Factor to sca
 NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 1.5
 NDefines.NCountry.BASE_MAX_COMMAND_POWER = 200
 
-NDefines.NPolitics = {
-	BASE_LEADER_TRAITS = 3,				-- Base amount of leader traits.
-	MAX_RANDOM_LEADERS = 1,				-- Maximum amount random leader to have per party.
-	BASE_POLITICAL_POWER_INCREASE = 2,	-- Weekly increase of PP.
-	ARMY_LEADER_COST = 200,					-- command power cost for recruiting new leaders, 'this value' * number_of_existing_leaders_of_type
-	NAVY_LEADER_COST = 200,					-- command power cost for recruiting new leaders, 'this value' * number_of_existing_leaders_of_type
-	ARMY_LEADER_MAX_COST = 80,				-- max cost BEFORE modifiers
-	NAVY_LEADER_MAX_COST = 80,				-- max cost BEFORE modifiers
-	LEADER_TRAITS_XP_SHOW = 0.05,			-- Amount of XP a trait needs to be shown in tooltips of a leader.
-}
+NDefines.NPolitics.BASE_LEADER_TRAITS = 3				-- Base amount of leader traits.
+NDefines.NPolitics.MAX_RANDOM_LEADERS = 1				-- Maximum amount random leader to have per party.
+NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 2	-- Weekly increase of PP.
+NDefines.NPolitics.ARMY_LEADER_COST = 200					-- command power cost for recruiting new leaders, 'this value' * number_of_existing_leaders_of_type
+NDefines.NPolitics.NAVY_LEADER_COST = 200					-- command power cost for recruiting new leaders, 'this value' * number_of_existing_leaders_of_type
+NDefines.NPolitics.ARMY_LEADER_MAX_COST = 80				-- max cost BEFORE modifiers
+NDefines.NPolitics.NAVY_LEADER_MAX_COST = 80				-- max cost BEFORE modifiers
+NDefines.NPolitics.LEADER_TRAITS_XP_SHOW = 0.05			-- Amount of XP a trait needs to be shown in tooltips of a leader.
