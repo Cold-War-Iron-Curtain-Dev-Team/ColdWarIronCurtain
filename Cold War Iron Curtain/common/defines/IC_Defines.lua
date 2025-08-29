@@ -51,7 +51,8 @@ NDefines.NBuildings.SUPPLY_PORT_LEVEL_THROUGHPUT = 5 -- Supply throughput per le
 NDefines.NBuildings.SUPPLY_ROUTE_RESOURCE_BONUS = 0.0
 
 NDefines.NCountry.EVENT_PROCESS_OFFSET = 20 -- Events are checked every X day per country or state (1 is ideal, but CPU heavy)
-NDefines.NCountry.POLITICAL_POWER_CAP = 2000000.0
+NDefines.NCountry.BASE_STABILITY_PARTY_POPULARITY_FACTOR = 0.00 -- Default stability rulling party popularity factor
+NDefines.NCountry.MAJOR_MIN_FACTORIES = 200 -- need at least these many factories to become a major	
 NDefines.NCountry.ARMY_SCORE_MULTIPLIER = 2.0 -- Based on number of armies.
 NDefines.NCountry.NAVY_SCORE_MULTIPLIER = 25.0 -- Based on number of navies.
 NDefines.NCountry.AIR_SCORE_MULTIPLIER = 0.01 -- Based on number of planes (which is typically a lot).
