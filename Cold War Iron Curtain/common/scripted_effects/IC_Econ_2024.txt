@@ -1139,16 +1139,104 @@ calculate_factory_gross_profits = {
 				value = baseValue
 			}
 
-			#Food
+			# === Agricultural Income (Food + Cash Crops) ===
+
+			# Base Food Income
 			set_temp_variable = { baseValue = 0.4 }
-			#multiply_temp_variable = { baseValue = farm_tech }
+
+			# Start Cash Crop Value at 0
+			set_temp_variable = { cropBoost = 0 }
+
+			# Delta – Rice, Sugar, Jute
+			if = {
+				limit = { has_state_flag = delta }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
+			}
+
+			# Tropical – Coffee, Cocoa, Bananas, Sugar
+			else_if = {
+				limit = { has_state_flag = tropical }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Coffee }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
+			}
+
+			# Subtropical Monsoon – Rice, Spices
+			else_if = {
+				limit = { has_state_flag = subtropical_monsoon }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Spice }
+			}
+
+			# Savanna – Cotton, Groundnuts, Millet
+			else_if = {
+				limit = { has_state_flag = savanna }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
+			}
+			# Lush Desert
+			else_if = {
+				limit = { has_state_flag = desertlush }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
+			}
+			# Mediterranean – Olives, Citrus, Grapes
+			else_if = {
+				limit = { has_state_flag = mediterranean }
+				add_to_temp_variable = { cropBoost = global.CashCrop_CitrusGrape }
+			}
+
+			else_if = {
+				limit = {
+					has_state_flag = steppe
+				}
+				add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
+				multiply_temp_variable = { baseValue = 1.05 } # slight boost to simulate grain/mechanized output
+			}
+
+			# Wetlands – Water-Intensive Rice
+			else_if = {
+				limit = { has_state_flag = wetlands }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
+				add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
+			}
+			else = { }
+			if = {  #Colonial or Rentier Adjustment to Food v Cash Crop
+				limit = { 
+					OR = {
+						check_variable = { economic_x_axis = 26 } 
+						check_variable = { economic_x_axis = 24 } 
+					}
+				} 
+				multiply_temp_variable = { cropBoost = 1.5 }
+			}
+			add_to_temp_variable = { baseValue = cropBoost }
+
 			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.fod_productivity_factor }			
+			multiply_temp_variable = { baseValue = PREV.fod_productivity_factor }
+
+			# === Pollution Penalties ===
+			# Land Pollution
+			if = { limit = { has_state_flag = land_pollution_disturbed } multiply_variable = { baseValue = 0.95 } }
+			else_if = { limit = { has_state_flag = land_pollution_degraded } multiply_variable = { baseValue = 0.90 } }
+			else_if = { limit = { has_state_flag = land_pollution_severe } multiply_variable = { baseValue = 0.80 } }
+			else_if = { limit = { has_state_flag = land_pollution_catastrophic } multiply_variable = { baseValue = 0.65 } }
+			else_if = { limit = { has_state_flag = land_pollution_deadzone } multiply_variable = { baseValue = 0.40 } }
+			else = { }
+
+			# Water Pollution (apply if irrigated area)
+			if = { limit = { has_state_flag = water_pollution_disturbed } multiply_variable = { baseValue = 0.95 } }
+			else_if = { limit = { has_state_flag = water_pollution_degraded } multiply_variable = { baseValue = 0.90 } }
+			else_if = { limit = { has_state_flag = water_pollution_severe } multiply_variable = { baseValue = 0.80 } }
+			else_if = { limit = { has_state_flag = water_pollution_catastrophic } multiply_variable = { baseValue = 0.60 } }
+			else_if = { limit = { has_state_flag = water_pollution_deadzone } multiply_variable = { baseValue = 0.30 } }
+			else = { }
+
+			# Final Agricultural Income
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 5
 				value = baseValue
-			}	
+			}
+
 
 			#Other resources
 			set_temp_variable = { baseValue = 0.5 }
@@ -1223,7 +1311,7 @@ calculate_gross_factory_earnings = {
 
 		#Resources
 
-		set_temp_variable = { resou_gross_factory_earnings = THIS.Building_Profits^5 }
+		set_temp_variable = { resou_gross_factory_earnings = THIS.Building_Profits^6 }
 		multiply_temp_variable = { resou_gross_factory_earnings = THIS.resources^2 }			
 		add_to_variable = { gross_factory_earnings = resou_gross_factory_earnings }
 
@@ -1231,7 +1319,7 @@ calculate_gross_factory_earnings = {
 
 		#Food
 
-		set_temp_variable = { food_gross_factory_earnings = THIS.Building_Profits^6 }
+		set_temp_variable = { food_gross_factory_earnings = THIS.Building_Profits^5 }
 		multiply_temp_variable = { food_gross_factory_earnings = THIS.resources^7 }			
 		add_to_variable = { gross_factory_earnings = food_gross_factory_earnings }
 
@@ -1336,6 +1424,8 @@ testing2 = {
 }
 
 gdp_calculation_effect = {
+	set_variable = { National_HDI = 0 }
+	gni_ln_lookup_table_global_value = yes
 	get_average_development = yes	#Required to be seperate at top, also total factory, infrastructure and check_buildings calls
 	generate_tax_info = yes 		#Sets Laffer Curve and Updates GUI
 
@@ -1434,6 +1524,8 @@ gdp_calculation_effect = {
 	set_interest_rates = yes				
 
 	calculate_employment_data_for_gui = yes
+
+	divide_variable = { National_HDI = 1000 }
 }
 
 calculate_take_taxes_from_people = {
@@ -1478,6 +1570,9 @@ calculate_take_taxes_from_people = {
 		multiply_variable = { pop_upperclass_taken_wage = 0.5 }		
 		subtract_from_variable = { pop_upperclass_net_wage = pop_upperclass_taken_wage} 
 
+		calculate_state_hdi = yes
+
+
 		if = {
 			limit = { check_variable = { net_factory_earnings > 0 }}
 			set_temp_variable = { net_factory_taxed_earnings = net_factory_earnings }
@@ -1506,6 +1601,8 @@ calculate_sum_up_total = {
 		add_to_variable = { PREV.national_pop_substinents_gross_wage = pop_substinents_gross_wage}
 		add_to_variable = { PREV.national_pop_artisan_gross_wage = pop_artisan_gross_wage}
 		add_to_variable = { PREV.national_pop_upperclass_net_wage = pop_upperclass_net_wage }
+
+		add_to_variable = { PREV.gni_total = state_gni_total }
 
 
 	#log = "[?grossdomesticproduct]"
@@ -1588,6 +1685,7 @@ calc_welfare_expenditure = {
 	add_to_variable = {
 		welfare_expenditure = welfare_cost_adjustment_policy
 	}
+	multiply_variable = { welfare_expenditure = 0.1 }
 }
 calc_healthcare_expenditure = {
 	#gives out expenditure at 50%
@@ -1600,6 +1698,7 @@ calc_healthcare_expenditure = {
 
 	#now apply multiplier of idea
 	multiply_variable = { healthcare_expenditure = modifier@healthcare_spending_modifier }
+	multiply_variable = { healthcare_expenditure = 0.1 }
 }
 calc_policing_expenditure = {
 	#gives out expenditure at 50%
@@ -1615,6 +1714,7 @@ calc_policing_expenditure = {
 	add_to_variable = {	#Note to Connect to Black Ops
 		policing_expenditure = black_ops_expedntiture
 	}
+	multiply_variable = { policing_expenditure = 0.1 }
 }
 calc_education_expenditure = {
 	#gives out expenditure at 50%
@@ -1637,6 +1737,7 @@ calc_education_expenditure = {
 	add_to_variable = {
 		education_expenditure = edu_cost_adjustment_policy
 	}
+	multiply_variable = { education_expenditure = 0.1 }
 }
 
 calc_public_services_expenditure = {
@@ -1652,6 +1753,7 @@ calc_public_services_expenditure = {
 	multiply_variable = {
 		public_services_expenditure = modifier@public_services_spending_modifier 
 	}
+	multiply_variable = { public_services_expenditure = 0.1 }
 }
 
 calc_land_army_expenditure = {
@@ -1855,6 +1957,7 @@ calc_land_army_expenditure = {
 	set_variable = {
 		mil_test = 0
 	}
+	multiply_variable = { land_army_expenditure = 0.5 }
 	multiply_variable = { land_army_expenditure = modifier@army_spending_modifier }
 	set_variable = { land_army_expenditure_actual_land = land_army_expenditure}
 	add_to_variable = {
@@ -1982,7 +2085,7 @@ calc_air_army_expenditure = {
 	multiply_variable = {
 		total_planes = 0.01
 	}
-
+	multiply_variable = { air_army_expenditure = 0.5 }
 	multiply_variable = { air_army_expenditure = modifier@air_spending_modifier }
 }
 
@@ -2058,7 +2161,7 @@ calc_navy_army_expenditure = {
 	add_to_variable = {
 		navy_army_expenditure = navy_tier_4
 	}
-
+	multiply_variable = { navy_army_expenditure = 0.5 }
 	multiply_variable = { navy_army_expenditure = modifier@navy_spending_modifier }
 }
 
@@ -2088,7 +2191,7 @@ calc_nuke_army_expenditure = {
 	add_to_variable = { nuke_army_expenditure = nuke_expenditure }
 
 	divide_variable = { nuke_army_expenditure = 10000}
-
+	
 	multiply_variable = { nuke_army_expenditure = modifier@strategic_forces_spending_modifier }
 }
 calc_space_expenditure = {
@@ -2484,3 +2587,294 @@ decrease_global_oil_insecurity = {
 increase_global_oil_insecurity = {
 	
 }
+
+calculate_state_hdi = {
+	#Life Expectancy
+    if = {
+        limit = {
+            development_level_zero_check = yes
+        }
+        set_variable = { state_life_expectancy = 35 }
+    }
+    else_if = {
+        limit = {
+            development_level_one_check = yes
+        }
+        set_variable = { state_life_expectancy = 50 }
+    }
+    else_if = {
+        limit = {
+            development_level_two_check = yes
+        }
+        set_variable = { state_life_expectancy = 65 }
+    }
+    else_if = {
+        limit = {
+            development_level_three_check = yes
+        }
+        set_variable = { state_life_expectancy = 70 }
+    }
+    else_if = {
+        limit = {
+            development_level_four_check = yes
+        }
+        set_variable = { state_life_expectancy = 75 }
+    }
+    else_if = {
+        limit = {
+            development_level_five_check = yes
+        }
+        set_variable = { state_life_expectancy = 80 }
+    }
+    else = { }
+	set_variable = { state_life_expectancy_test_1 = state_life_expectancy }
+    #x Healthcare Spending Weight = Life Expectancy
+    set_variable = {
+        healthcare_life_expectnacy_adj = ROOT.modifier@healthcare_spending_modifier
+    }
+    subtract_from_variable = {
+        healthcare_life_expectnacy_adj = 0.5
+    }
+    multiply_variable = {
+        healthcare_life_expectnacy_adj = 5
+    }
+	#Educated Bonus
+	set_variable = { College_Edu_LEI_Bonus = college_educated }
+	multiply_variable = { College_Edu_LEI_Bonus = 0.01 }
+	multiply_variable = { College_Edu_LEI_Bonus = 10 }
+	add_to_variable = { state_life_expectancy = College_Edu_LEI_Bonus }
+
+	set_variable = { Secondary_Edu_LEI_Bonus = high_school_educated }
+	set_variable = { Secondary_Edu_LEI_Bonus = college_educated }
+	multiply_variable = { Secondary_Edu_LEI_Bonus = 0.01 }
+	multiply_variable = { Secondary_Edu_LEI_Bonus = 5 }
+	add_to_variable = { state_life_expectancy = Secondary_Edu_LEI_Bonus }
+	biome_life_expectancy_adjustment = yes
+
+    add_to_variable = { state_life_expectancy = healthcare_life_expectnacy_adj }
+    set_variable = { HDI_LEI = state_life_expectancy }
+	subtract_from_variable = { HDI_LEI = 20 }
+	divide_variable = { HDI_LEI = 65 }
+
+	#Education
+	education_hdi_calc = yes
+
+	#Income
+	set_variable = { state_gni_total = pop_lowerclass_gross_wage }
+	add_to_variable = { state_gni_total = pop_upperclass_gross_wage }
+	add_to_variable = { state_gni_total = pop_middleclass_gross_wage }
+	add_to_variable = { state_gni_total = pop_substinents_gross_wage }
+	add_to_variable = { state_gni_total = pop_soldier_gross_wage }
+	add_to_variable = { state_gni_total = pop_artisan_gross_wage }
+	add_to_variable = { state_gni_total = net_factory_earnings }
+
+	multiply_variable = { state_gni_total = 100 }
+
+	set_variable = { state_gni_total_backup = state_gni_total }
+
+	set_variable = { total_hdi_pop = total_upper_class_pop }
+	add_to_variable = { total_hdi_pop = total_middle_class_pop }
+	add_to_variable = { total_hdi_pop = total_lower_class_pop }
+	add_to_variable = { total_hdi_pop = total_under_class_pop }
+
+	divide_variable = { state_gni_total = total_hdi_pop }
+
+	state_gni_ln_lookup_table = yes
+	gni_ln_lookup_table_global_value = yes
+
+	set_variable = { state_gni_total_ln_backup = state_gni_total_ln }
+
+	subtract_from_variable = { state_gni_total_ln = ln_100 }
+
+	set_variable = { state_gni_total_ln_backup_2 = state_gni_total_ln }
+
+	if = { limit = { check_variable = { state_gni_total_ln < 0.001 } } set_variable = { state_gni_total_ln = 0.001 } }	#Fallback
+
+	divide_variable = { state_gni_total_ln = gni_hdi_divisor }
+	set_variable = { HDI_II = state_gni_total_ln }
+
+	#Arithmetic Mean
+	set_variable = { State_HDI = HDI_II }
+	add_to_variable = { State_HDI = HDI_LEI }
+	add_to_variable = { State_HDI = HDI_EDU }
+	divide_variable = { State_HDI = 3 }
+
+	set_variable = { state_pop_percentage = state_population_k }
+	divide_variable = { state_pop_percentage = ROOT.max_manpower_k }
+
+	set_variable = { State_HDI_1000 = State_HDI }
+	multiply_variable = { State_HDI_1000 = 1000 }
+	multiply_variable = { State_HDI_1000 = state_pop_percentage }
+	add_to_variable = { ROOT.National_HDI = State_HDI_1000 }
+
+}
+education_hdi_calc = {
+	set_variable = { state_college = college_educated }
+	set_variable = { state_secondary = high_school_educated }
+	set_variable = { state_primary = primary_educated }
+	set_variable = { state_literate = literate_educated }
+
+	set_variable = { Years_of_Education_16 = state_college }
+	set_variable = { Years_of_Education_12 = state_secondary }
+	set_variable = { Years_of_Education_6 = state_primary }
+	set_variable = { Years_of_Education_2 = state_literate }
+
+	subtract_from_variable = { Years_of_Education_12 = state_college }
+
+	subtract_from_variable = { Years_of_Education_6 = Years_of_Education_12 }
+
+	subtract_from_variable = { Years_of_Education_2 = Years_of_Education_12 }
+	subtract_from_variable = { Years_of_Education_2 = Years_of_Education_6 }
+
+	set_variable = { Years_of_Education_0 = 100 }
+	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_16 }
+	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_12 } 
+	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_6 }
+	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_2 }
+
+
+	#MYS CALC
+    # avg_edu = (16 * P16 + 12 * P12 + 6 * P6 + 2 * P2 + 0 * P0) / 100 
+    set_variable = { avg_edu = Years_of_Education_16 }
+    multiply_variable = { avg_edu = 16 }                # 16 * P16
+
+    set_variable = { temp = Years_of_Education_12 }
+    multiply_variable = { temp = 12 }
+    add_to_variable = { avg_edu = temp }                # + 12 * P12
+
+    set_variable = { temp = Years_of_Education_6 }
+    multiply_variable = { temp = 6 }
+    add_to_variable = { avg_edu = temp }                # + 6 * P6
+
+    set_variable = { temp = Years_of_Education_2 }
+    multiply_variable = { temp = 2 }
+    add_to_variable = { avg_edu = temp }                # + 2 * P2
+
+    # Step 2: Divide by 100 to account for percentage
+    divide_variable = { avg_edu = 100 }
+
+	set_variable = { HDI_MYS = avg_edu }
+	divide_variable = { HDI_MYS = 12 }
+
+	#EYS Calc
+	set_variable = { HDI_EYS = 0 }
+	set_variable = { HDI_EYS_MODIFIER = ROOT.modifier@education_gain_rate }
+
+	set_variable = { Years_of_Education_16_EYS_gain = Years_of_Education_16 }
+	set_variable = { Years_of_Education_12_EYS_gain = Years_of_Education_12 }
+	set_variable = { Years_of_Education_6_EYS_gain = Years_of_Education_6  }
+	set_variable = { Years_of_Education_2_EYS_gain = Years_of_Education_2  }
+
+
+	set_variable = { Years_of_Education_16_EYS = Years_of_Education_16 }
+	set_variable = { Years_of_Education_12_EYS = Years_of_Education_12 }
+	set_variable = { Years_of_Education_6_EYS = Years_of_Education_6  }
+	set_variable = { Years_of_Education_2_EYS = Years_of_Education_2  }
+
+
+	multiply_variable = { Years_of_Education_16_EYS_gain = HDI_EYS_MODIFIER }
+	multiply_variable = { Years_of_Education_12_EYS_gain = HDI_EYS_MODIFIER }
+	multiply_variable = { Years_of_Education_6_EYS_gain = HDI_EYS_MODIFIER }
+	multiply_variable = { Years_of_Education_2_EYS_gain = HDI_EYS_MODIFIER }
+
+	add_to_variable = { Years_of_Education_16_EYS = Years_of_Education_16_EYS_gain }
+
+	subtract_from_variable = { Years_of_Education_12_EYS = Years_of_Education_16_EYS_gain }
+	add_to_variable = { Years_of_Education_12_EYS = Years_of_Education_12_EYS_gain }
+
+	subtract_from_variable = { Years_of_Education_6_EYS = Years_of_Education_12_EYS_gain }
+	add_to_variable = { Years_of_Education_6_EYS = Years_of_Education_6_EYS_gain }
+
+	subtract_from_variable = { Years_of_Education_2_EYS = Years_of_Education_6_EYS_gain }
+	add_to_variable = { Years_of_Education_2_EYS = Years_of_Education_2_EYS_gain }
+
+	set_variable = { Years_of_Education_0_EYS = 100 }
+	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_16_EYS }
+	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_12_EYS }
+	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_6_EYS }
+	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_2_EYS }
+
+    # Step 1: Weighted sum 
+	#MYS CALC
+    # avg_edu_eys = (16 * P16 + 12 * P12 + 6 * P6 + 2 * P2 + 0 * P0) / 100
+    set_variable = { avg_edu_eys = Years_of_Education_16_EYS }
+    multiply_variable = { avg_edu_eys = 16 }                # 16 * P16
+
+    set_variable = { temp = Years_of_Education_12_EYS }
+    multiply_variable = { temp = 12 }
+    add_to_variable = { avg_edu_eys = temp }                # + 12 * P12
+
+    set_variable = { temp = Years_of_Education_6_EYS }
+    multiply_variable = { temp = 6 }
+    add_to_variable = { avg_edu_eys = temp }                # + 6 * P6
+
+    set_variable = { temp = Years_of_Education_2_EYS }
+    multiply_variable = { temp = 2 }
+    add_to_variable = { avg_edu_eys = temp }                # + 2 * P2
+
+    # Step 2: Divide by 100 to account for percentage
+    divide_variable = { avg_edu_eys = 100 }
+	set_variable = { HDI_EYS = avg_edu_eys } 
+	divide_variable = { HDI_EYS = 12 }
+
+	#Final HDI_EDU CALC
+	set_variable = { HDI_EDU = HDI_EYS }
+	add_to_variable = { HDI_EDU = HDI_MYS }
+	divide_variable = { HDI_EDU = 2 }
+}
+
+biome_life_expectancy_adjustment = {
+	# Reset temporary modifier
+	set_temp_variable = { life_expectancy_biome_pollution_mod = 0 }
+
+	### — Biome Effects —
+	if = { limit = { has_state_flag = temperate }                   add_to_temp_variable = { life_expectancy_biome_pollution_mod = 0 } }
+	else_if = { limit = { has_state_flag = tropical }                   add_to_temp_variable = { life_expectancy_biome_pollution_mod = -1.0 } }
+	else_if = { limit = { has_state_flag = savanna }                    add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.5 } }
+	else_if = { limit = { has_state_flag = subtropical_monsoon }        add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.2 } }
+	else_if = { limit = { has_state_flag = mediterranean }              add_to_temp_variable = { life_expectancy_biome_pollution_mod = 0.5 } }
+	else_if = { limit = { has_state_flag = wetlands }                   add_to_temp_variable = { life_expectancy_biome_pollution_mod = -1.5 } }
+	else_if = { limit = { has_state_flag = delta }                      add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.8 } }
+	else_if = { limit = { has_state_flag = steppe }                     add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.3 } }
+	else_if = { limit = { has_state_flag = desert }               add_to_temp_variable = { life_expectancy_biome_pollution_mod = -1.5 } }
+	else_if = { limit = { has_state_flag = desertlush }           add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.5 } }
+	else_if = { limit = { has_state_flag = mountainshot }         add_to_temp_variable = { life_expectancy_biome_pollution_mod = -1 } }
+	else_if = { limit = { has_state_flag = mountains }            add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.5 } }
+	else_if = { limit = { has_state_flag = cold }                 add_to_temp_variable = { life_expectancy_biome_pollution_mod = -2 } }
+	else_if = { limit = { has_state_flag = boreal }               add_to_temp_variable = { life_expectancy_biome_pollution_mod = 0 } }
+
+	else = { }
+
+	### — Water Pollution Effects —
+	if = { limit = { has_state_flag = water_pollution_disturbed }     add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.3 } }
+	else_if = { limit = { has_state_flag = water_pollution_degraded }      add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.7 } }
+	else_if = { limit = { has_state_flag = water_pollution_severe }        add_to_temp_variable = { life_expectancy_biome_pollution_mod = -1.5 } }
+	else_if = { limit = { has_state_flag = water_pollution_catastrophic }  add_to_temp_variable = { life_expectancy_biome_pollution_mod = -3.0 } }
+	else_if = { limit = { has_state_flag = water_pollution_deadzone }      add_to_temp_variable = { life_expectancy_biome_pollution_mod = -5.0 } }
+	else = { }
+	### — Land Pollution Effects —
+	if = { limit = { has_state_flag = land_pollution_disturbed }      add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.2 } }
+	else_if = { limit = { has_state_flag = land_pollution_degraded }       add_to_temp_variable = { life_expectancy_biome_pollution_mod = -0.5 } }
+	else_if = { limit = { has_state_flag = land_pollution_severe }         add_to_temp_variable = { life_expectancy_biome_pollution_mod = -1.0 } }
+	else_if = { limit = { has_state_flag = land_pollution_catastrophic }   add_to_temp_variable = { life_expectancy_biome_pollution_mod = -2.0 } }
+	else_if = { limit = { has_state_flag = land_pollution_deadzone }       add_to_temp_variable = { life_expectancy_biome_pollution_mod = -3.0 } }
+	else = { }
+	set_variable = { life_expectancy_biome_pollution_mod_stored = life_expectancy_biome_pollution_mod }
+	# Final application
+	add_to_variable = { state_life_expectancy = life_expectancy_biome_pollution_mod }
+
+}
+
+
+#	(EYS/12 + MYS/12) / 2
+#
+#	MYS/12
+#    
+#    Education Years 
+#    Literacy = 2
+#    Primary Educated = 6
+#    Secondary = 12
+#    College = 16
+#    
+#    Expected would be current weights x education spending x development
+

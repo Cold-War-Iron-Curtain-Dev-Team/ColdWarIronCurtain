@@ -19,6 +19,7 @@
 	add_namespace = VIE_Huu
 	add_namespace = VIE_Tam
 	add_namespace = VIE_Vinh
+	add_namespace = VIE_Quang
 	add_namespace = VIE_Historical
 
 	add_namespace = Initial_CuongDe
@@ -161,12 +162,11 @@ country_event = {
 		add_to_variable = {
 			currentMoney = -0.10
 		}
-		custom_effect_tooltip = VIE_minus_100_mil_tt
+		set_temp_variable = { money_to_gain = -0.1 }
+		add_money_with_tooltip_effect = yes
 		CCC = {
-			add_to_variable = {
-				currentMoney = 0.10
-			}
-			custom_effect_tooltip = VIE_add_100_mil_tt
+			set_temp_variable = { money_to_gain = 0.1 }
+			add_money_with_tooltip_effect = yes
 		}
 		add_opinion_modifier = {
 			target = CCC
@@ -193,15 +193,11 @@ country_event = {
 		hidden_effect = { country_event = { id = CCC_Unification_Choices.2 days = 6 } }
 		add_political_power = -25
 		add_stability = 0.02
-		add_to_variable = {
-			currentMoney = -0.05
-		}
-		custom_effect_tooltip = VIE_minus_50_mil_tt
+		set_temp_variable = { money_to_gain = -0.05 }
+			add_money_with_tooltip_effect = yes
 		CCC = {
-			add_to_variable = {
-				currentMoney = 0.05
-			}
-			custom_effect_tooltip = VIE_add_50_mil_tt
+			set_temp_variable = { money_to_gain = 0.05 }
+			add_money_with_tooltip_effect = yes
 		}
 		add_opinion_modifier = {
 			target = CCC
@@ -449,17 +445,13 @@ country_event = {
 			}
 			modifier = {
 				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Initial_Refusal }
-				factor = 0
-			}
-			modifier = {
-				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Mixed_Bad }
-				factor = 0
-			}
-			modifier = {
-				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Total_Refusal }
+				VIE = {
+					OR = {
+						has_country_flag = CCC_VIE_Initial_Refusal
+						has_country_flag = CCC_VIE_Mixed_Bad
+						has_country_flag = CCC_VIE_Total_Refusal
+					}
+				}
 				factor = 0
 			}
 		}
@@ -483,17 +475,13 @@ country_event = {
 			}
 			modifier = {
 				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Initial_Refusal }
-				factor = 100
-			}
-			modifier = {
-				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Mixed_Bad }
-				factor = 100
-			}
-			modifier = {
-				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Total_Refusal }
+				VIE = {
+					OR = {
+						has_country_flag = CCC_VIE_Initial_Refusal
+						has_country_flag = CCC_VIE_Mixed_Bad
+						has_country_flag = CCC_VIE_Total_Refusal
+					}
+				}
 				factor = 100
 			}
 		}
@@ -587,12 +575,12 @@ country_event = {
 			base = 50
 			modifier = {
 				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Mixed }
-				factor = 100
-			}
-			modifier = {
-				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Initial_Refusal }
+				VIE = {
+					OR = {
+						has_country_flag = CCC_VIE_Mixed
+						has_country_flag = CCC_VIE_Initial_Refusal
+					}
+				}
 				factor = 100
 			}
 			modifier = {
@@ -619,12 +607,12 @@ country_event = {
 			base = 50
 			modifier = {
 				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Mixed }
-				factor = 0
-			}
-			modifier = {
-				original_tag = CCC
-				VIE = { has_country_flag = CCC_VIE_Initial_Refusal }
+				VIE = {
+					OR = {
+						has_country_flag = CCC_VIE_Mixed
+						has_country_flag = CCC_VIE_Initial_Refusal
+					}
+				}
 				factor = 0
 			}
 			modifier = {
@@ -657,6 +645,16 @@ country_event = {
 		clr_country_flag = CCC_VIE_Accepted_Ultimatum
 		set_country_flag = VIE_CCC_Unification
 		custom_effect_tooltip = CCC_Development_Scheme_tt
+
+		hidden_effect = {
+			set_autonomy = {
+				target = CCC
+				autonomous_state = autonomy_free
+				end_wars = no
+				end_civil_wars = no
+			}
+			remove_from_faction = CCC
+		}
 		if = {
 			limit = { 
 				original_tag = VIE
@@ -687,17 +685,20 @@ country_event = {
 
 		clr_country_flag = CCC_VIE_Refused_Ultimatum
 		set_country_flag = VIE_CCC_Failure
-		effect_tooltip = {
-			VIE = { declare_war_on = { target = CCC } }
-			drop_cosmetic_tag = yes
-			FRA = {
+		hidden_effect = {
+			VIE = {
 				set_autonomy = {
 					target = CCC
 					autonomy_state = autonomy_free
 					end_wars = no
 					end_civil_wars = no
 				}
+				remove_from_faction = CCC
+				declare_war_on = { target = CCC }
 			}
+		}
+		effect_tooltip = {
+			drop_cosmetic_tag = yes
 		}
 		custom_effect_tooltip = VIE_CCC_Failure_tt
 		hidden_effect = { vietnam_cochinchina_unification_war = yes }
@@ -734,7 +735,7 @@ country_event = {
 
 		set_autonomy = {
 			target = FUL
-			autonomous_state = autonomy_integrated_puppet
+			autonomy_state = autonomy_integrated_puppet
 			end_wars = no
 			end_civil_wars = no
 		}
@@ -762,8 +763,7 @@ country_event = {
 		1757 = {
 			transfer_state_to = VIE
 			hidden_effect = {
-				set_compliance = 10
-				set_resistance = 45
+				set_compliance = 40
 			}
 		}
 	}
@@ -785,12 +785,14 @@ country_event = {
 		FRA = {
 			set_autonomy = {
 				target = FUL
-				autonomous_state = autonomy_indon_union
+				autonomy_state = autonomy_indon_union
 				end_wars = yes
 				end_civil_wars = no
 			}
 		}
 		FUL = {
+			set_country_flag = FUL_FRA_flag
+			leave_faction = yes
 			drop_cosmetic_tag = yes
 			set_cosmetic_tag = FUL_FRA
 			set_politics = {
@@ -928,7 +930,7 @@ country_event = {
 		add_stability = 0.05
 		set_autonomy = {
 			target = FUL
-			autonomous_state = autonomy_integrated_puppet
+			autonomy_state = autonomy_integrated_puppet
 			end_wars = no
 			end_civil_wars = no
 		}
@@ -1005,50 +1007,9 @@ country_event = {
 		set_country_flag = NUN_Hist_Trigger
 		set_cosmetic_tag = NUN_VIE
 		VIE = {
-			set_autonomy = {
-				target = NUN
-				autonomous_state = autonomy_integrated_puppet
-				end_wars = no
-				end_civil_wars = no
-			}
+			country_event = { id = NUN_Unification.2 hours = 12 }
+			event_option_tooltip = NUN_Unification.2.a
 		}
-		hidden_effect = {
-			set_politics = {
-				ruling_party = nationalist
-				elections_allowed = no
-			}
-			set_popularities = { 
-				democratic = 0
-				communism = 0
-				fascism = 0
-				nationalist = 65
-				monarchism = 0
-				neutrality = 35
-				islamism = 0
-				radical_shiaism = 0
-				Social_Democratic = 0
-				Social_Liberalism = 0
-				Salafism = 0
-				Liberal_Conservatism = 0
-				conservative = 0
-				Christian_Democratic = 0
-				socialist = 0
-				centrist = 0
-				liberal = 0
-				trotskyism = 0
-				maoism = 0
-			}
-			NUN_Vong_A_Sang = {
-				set_character_name = "Vong-A-Sang"
-				add_country_leader_role = {
-					promote_leader = yes
-					country_leader = {
-						ideology = authoritarian_democracy
-					}
-				}
-			}
-		}
-		VIE = { country_event = { id = NUN_Unification.2 hours = 12 } }
 	}
 
 	option = {
@@ -1057,7 +1018,88 @@ country_event = {
 		add_stability = 0.05
 		set_country_flag = NUN_Alt_Trigger
 		custom_effect_tooltip = NUN_Alt_Trigger_tt
-		VIE = { country_event = { id = NUN_Unification.3 hours = 12 } }
+		VIE = {
+			country_event = { id = NUN_Unification.3 hours = 12 }
+			event_option_tooltip = NUN_Unification.3.a
+		}
+	}
+}
+
+country_event = {
+	id = NUN_Unification.2
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = NUN_Unification.2" }
+	title = NUN_Unification.2.t
+	desc = NUN_Unification.2.d
+	picture = GFX_NUN_Unification.2
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = NUN_Unification.2.a
+		
+		add_political_power = 150
+		set_autonomy = {
+			target = NUN
+			autonomy_state = autonomy_integrated_puppet
+			end_wars = no
+			end_civil_wars = no
+		}
+		NUN = {
+			hidden_effect = {
+				set_politics = {
+					ruling_party = nationalist
+					elections_allowed = no
+				}
+				set_popularities = { 
+					democratic = 0
+					communism = 0
+					fascism = 0
+					nationalist = 65
+					monarchism = 0
+					neutrality = 35
+					islamism = 0
+					radical_shiaism = 0
+					Social_Democratic = 0
+					Social_Liberalism = 0
+					Salafism = 0
+					Liberal_Conservatism = 0
+					conservative = 0
+					Christian_Democratic = 0
+					socialist = 0
+					centrist = 0
+					liberal = 0
+					trotskyism = 0
+					maoism = 0
+				}
+				NUN_Vong_A_Sang = {
+					set_character_name = "Vong-A-Sang"
+					add_country_leader_role = {
+						promote_leader = yes
+						country_leader = {
+							ideology = authoritarian_democracy
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = NUN_Unification.3
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = NUN_Unification.3" }
+	title = NUN_Unification.3.t
+	desc = NUN_Unification.3.d
+	picture = GFX_NUN_Unification.3
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = NUN_Unification.3.a
+		
+		add_political_power = -150
 	}
 }
 
@@ -1243,10 +1285,8 @@ country_event = {
 			type = motorized_equipment_1
 			amount = -1
 		}
-		add_to_variable = {
-			currentMoney = 0.05
-		}
-		custom_effect_tooltip = VIE_add_50_mil_tt
+		set_temp_variable = { money_to_gain = 0.05 }
+		add_money_with_tooltip_effect = yes
 		capital_scope = {
 			add_extra_state_shared_building_slots = 1
 			add_building_construction = {
@@ -1255,10 +1295,9 @@ country_event = {
 				instant_build = yes
 			}
 		}
-		add_to_variable = {
-			Binh_Xuyen_Loyalty = -15
-		}
-		custom_effect_tooltip = increase_binh_xuyen_loyalty_larger_TT
+
+		set_temp_variable = { binh_xuyen_loyalty_change = -15 }
+		binh_xuyen_loyalty_change_tt = yes
 	}
 }
 
@@ -1728,7 +1767,7 @@ country_event = {
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = NgoDinh_Brothers.4" }
 	title = NgoDinh_Brothers.4.t
 	desc = NgoDinh_Brothers.4.d
-	picture = NgoDinh_Brothers_4
+	picture = GFX_NgoDinh_Brothers_4
 	is_triggered_only = yes
 	fire_only_once = yes
 	trigger = {
@@ -1738,14 +1777,14 @@ country_event = {
 		date > 1952.1.1
 	}
 	option = {
-	name = NgoDinh_Brothers.4.a
+		name = NgoDinh_Brothers.4.a
 
-	add_stability = -0.05
-	add_manpower = -1000
-	add_popularity = {
-		ideology = trotskyism
-		popularity = 0.01
-	}
+		add_stability = -0.05
+		add_manpower = -1000
+		add_popularity = {
+			ideology = trotskyism
+			popularity = 0.01
+		}
 	}
 }
 country_event = {
@@ -2077,13 +2116,13 @@ country_event = {
 	option = {
 		name = VIE_Huu.1.a
 		
-		VIE = { country_event = { id = VIE.Huu.2 days = 1 } }
+		VIE = { country_event = { id = VIE_Huu.2 days = 1 } }
 	}
 	
 	option = {
 		name = VIE_Huu.1.b
 		
-		VIE = { country_event = { id = VIE.Huu.3 days = 1 } }
+		VIE = { country_event = { id = VIE_Huu.3 days = 1 } }
 	}
 }
 
@@ -2099,10 +2138,8 @@ country_event = {
 	option = {
 		name = VIE_Huu.2.a
 		
-		add_to_variable = {
-			currentMoney = 0.10
-		}
-		custom_effect_tooltip = VIE_add_100_mil_tt
+		set_temp_variable = { money_to_gain = 0.1 }
+		add_money_with_tooltip_effect = yes
 		add_opinion_modifier = {
 			target = JAP
 			modifier = small_decrease
@@ -2177,10 +2214,8 @@ country_event = {
 		name = VIE_Huu.5.a
 		
 		add_political_power = -25
-		add_to_variable = {
-			currentMoney = -1
-		}
-		custom_effect_tooltip = VIE_minus_1_bil_tt
+		set_temp_variable = { money_to_gain = -1 }
+		add_money_with_tooltip_effect = yes
 		effect_tooltip = {
 			add_opinion_modifier = {
 				target = VIE
@@ -2220,10 +2255,8 @@ country_event = {
 		
 		add_political_power = 25
 		add_stability = 0.05
-		add_to_variable = {
-			currentMoney = 0.5
-		}
-		custom_effect_tooltip = VIE_add_500_mil_tt
+		set_temp_variable = { money_to_gain = 0.5 }
+		add_money_with_tooltip_effect = yes
 		capital_scope = {
 			add_building_construction = {
 				type = office_park
@@ -2404,10 +2437,8 @@ country_event = {
 		name = VIE_Huu.12.a
 		
 		add_political_power = -10
-		add_to_variable = {
-			currentMoney = 0.25
-		}
-		custom_effect_tooltip = VIE_add_250_mil_tt
+		set_temp_variable = { money_to_gain = 0.25 }
+		add_money_with_tooltip_effect = yes
 		capital_scope = {
 			add_building_construction = {
 				type = infrastructure
@@ -2440,10 +2471,8 @@ country_event = {
 		name = VIE_Huu.13.a
 		
 		add_political_power = 10
-		add_to_variable = {
-			currentMoney = 0.5
-		}
-		custom_effect_tooltip = VIE_add_500_mil_tt
+		set_temp_variable = { money_to_gain = 0.5 }
+		add_money_with_tooltip_effect = yes
 		capital_scope = {
 			add_building_construction = {
 				type = office_park
@@ -2900,7 +2929,59 @@ country_event = {
 	}
 }
 
-##VIE Historical Events
+country_event = {
+	id = VIE_Quang.1
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_Quang.1" }
+	title = VIE_Quang.1.t
+	desc = VIE_Quang.1.d
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIE_Quang.1.a
+
+		add_popularity = {
+			ideology = trotskyism
+			popularity = 0.01
+		}
+		add_political_power = 25
+	}
+}
+
+country_event = {
+	id = VIE_Quang.2
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_Quang.2" }
+	title = VIE_Quang.2.t
+	desc = VIE_Quang.2.d
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIE_Quang.2.a
+
+		increase_service_policy = yes
+		add_political_power = 25
+	}
+}
+
+country_event = {
+	id = VIE_Quang.3
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_Quang.3" }
+	title = VIE_Quang.3.t
+	desc = VIE_Quang.3.d
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIE_Quang.3.a
+	}
+}
+
+##VIE Historical Events - These events fire automatically no matter what
+
 country_event = {
 	id = VIE_Historical.1
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_Historical.1"}
@@ -2913,6 +2994,7 @@ country_event = {
 	trigger = {
 		date > 1949.6.1
 	}
+
 	option = {
 		name = VIE_Historical.1.a
 		add_popularity = {
@@ -2930,6 +3012,7 @@ country_event = {
 	picture = GFX_VIE_Historical_2
 	is_triggered_only = yes
 	fire_only_once = yes
+
 	option = {
 		name = VIE_Historical.2.a
 		
@@ -2945,6 +3028,7 @@ country_event = {
 	picture = GFX_VIE_Historical_3
 	is_triggered_only = yes
 	fire_only_once = yes
+
 	option = {
 		name = VIE_Historical.3.a
 		
@@ -2961,6 +3045,7 @@ country_event = {
 			value = -5
 		}
 	}
+
 	option = {
 		name = VIE_Historical.3.b
 		
@@ -2978,6 +3063,7 @@ country_event = {
 		}
 	}
 }
+
 country_event = {
 	id = VIE_Historical.4
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_Historical.4"}
@@ -3078,7 +3164,8 @@ country_event = {
 	trigger = { 
 	    date > 1949.9.1
 	    date < 1949.9.31
-	} 
+	}
+
 	option = { 
 	    name = VIE_Historical.9.a
 		
@@ -3243,7 +3330,12 @@ country_event = {
 			popularity = 0.02
 		}
 		FRE = {
-			retire_character = FRE_Charles_Chanson
+			if = {
+				limit = {
+					has_character = FRE_Charles_Chanson
+				}
+				retire_character = FRE_Charles_Chanson
+			}
 		}
 		trigger = {
 			AND = {
@@ -3306,11 +3398,8 @@ country_event = {
 			ideology = democratic
 			popularity = 0.05
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = -0.05
-			tooltip = VIE_minus_50_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.05 }
+		add_money_with_tooltip_effect = yes
 		VIE_Hoang_Nam_Hung = {
 			set_portraits = { army = { large = "gfx/leaders/VIE/GENERALS/Hoang_Nam_Hung_BD.dds" } }
 			add_corps_commander_role = {
@@ -3675,11 +3764,8 @@ country_event = {
 			type = industrial_complex
 			level = 1
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = -0.1
-			tooltip = VIE_minus_100_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.1 }
+		add_money_with_tooltip_effect = yes
 		add_opinion_modifier = {
 			target = JAP
 			modifier = small_increase
@@ -4229,7 +4315,7 @@ country_event = {
 			add_building_construction = {
 				type = agri_industrial_complex
 				level = 3
-				instant = yes
+				instant_build = yes
 			}
 		}
 	}
@@ -4246,10 +4332,10 @@ country_event = {
 		name = CuongDe_NgoDinh.5.a
 
 		add_stability = -0.05
+		add_manpower = 1000
 		add_popularity = {
 			ideology = trotskyism
-			amount = 0.01
-			add_manpower = 1000
+			popularity = 0.01
 		}
 	}
 }
@@ -5073,11 +5159,8 @@ country_event = {
 			state = 1758
 			remember_old_capital = no
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = -0.5
-			tooltip = VIE_minus_500_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.5 }
+		add_money_with_tooltip_effect = yes
 	}
 }
 
@@ -5093,11 +5176,8 @@ country_event = {
 	option = {
 		name = CD_Nhiep.5.a
 
-		add_to_variable = {
-			var = currentMoney
-			value = -5
-			tooltip = VIE_minus_5_bil_tt
-		}
+		set_temp_variable = { money_to_gain = -5 }
+		add_money_with_tooltip_effect = yes
 		country_event = { id = CD_Nhiep.6 days = 1 }
 	}
 
@@ -5128,11 +5208,8 @@ country_event = {
 	option = {
 		name = CD_Nhiep.6.a
 
-		add_to_variable = {
-			var = currentMoney
-			value = -5
-			tooltip = VIE_minus_5_bil_tt
-		}
+		set_temp_variable = { money_to_gain = -5 }
+		add_money_with_tooltip_effect = yes
 		hidden_effect = { country_event = { id = CD_Nhiep.7 days = 730 } }
 		custom_effect_tooltip = Build_PhuXuan_Metro_tt
 	}
@@ -5202,11 +5279,8 @@ country_event = {
 	option = {
 		name = CD_Nhiep.9.a
 
-		add_to_variable = {
-			var = currentMoney
-			value = -0.2
-			tooltip = VIE_minus_200_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.2 }
+		add_money_with_tooltip_effect = yes
 		hidden_effect = { country_event = { id = CD_Nhiep.10 days = 730 } }
 		custom_effect_tooltip = Build_Namhung_Mausoleum_tt
 	}
@@ -5407,6 +5481,9 @@ country_event = {
 				value = 5000
 			}
 		}
+		set_variable = {
+			Volunteer_Allowance^KOR = 1
+		}
 		set_rule = {
 			desc = VIE_Korean_War_Send_Volunteers_tt
 			can_send_volunteers = yes
@@ -5420,6 +5497,13 @@ country_event = {
 
 		trigger = {
 			KOR = { has_war_with = KPA }
+		}
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
 		}
 	}
 	
@@ -5452,6 +5536,13 @@ country_event = {
 		trigger = {
 			KOR = { has_war_with = KPA }
 		}
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
 	}
 
 	option = {
@@ -5461,6 +5552,13 @@ country_event = {
 		add_political_power = 15
 		Decrease_Domestic_Influence_5 = yes
 		complete_national_focus = VIE_Recognize_SK_Sovereignty
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 10
+				is_historical_focus_on = yes
+			}
+		}
 	}
 }
 
@@ -5494,6 +5592,15 @@ country_event = {
 
 		complete_national_focus = VIE_Accept_Rhee_Proposal
 		KOR = { country_event = { id = VIE_KOR.4 days = 1 } }
+		event_option_tooltip = VIE_KOR.4.a
+
+		ai_chance = {
+			base = 85
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
 	}
 	
 	option = {
@@ -5501,6 +5608,15 @@ country_event = {
 
 		complete_national_focus = VIE_Ignore_Rhee_Proposal
 		KOR = { country_event = { id = VIE_KOR.5 days = 1 } }
+		event_option_tooltip = VIE_KOR.5.a
+
+		ai_chance = {
+			base = 15
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
 	}
 }
 
@@ -5617,11 +5733,8 @@ country_event = {
 	option = {
 		name = VIE_JAP.4.a
 
-		add_to_variable = {
-			var = currentMoney
-			value = -0.1
-			tooltip = VIE_minus_100_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.1 }
+		add_money_with_tooltip_effect = yes
 		VIE = { country_event = { id = VIE_JAP.5 days = 1 } }
 	}
 	
@@ -5800,10 +5913,8 @@ country_event = {
 	option = {
 		name = Brevert_Lines.2.a
 
-		add_to_variable = {
-			currentMoney = 0.5
-		}
-		custom_effect_tooltip = VIE_add_500_mil_tt
+		set_temp_variable = { money_to_gain = 0.5 }
+		add_money_with_tooltip_effect = yes
 		add_opinion_modifier = {
 			target = CAM
 			modifier = VIE_Accepted_Brevert_Lines
@@ -5913,12 +6024,28 @@ country_event = {
 		name = Crown_Domains.1.a
 
 		VIE = { country_event = { id = Crown_Domains.2 days = 1 } }
+
+		ai_chance = {
+			base = 75
+			modifier = {
+				is_historical_focus_on = yes
+				factor = 100
+			}
+		}
 	}
 	
 	option = {
 		name = Crown_Domains.1.b
 
 		VIE = { country_event = { id = Crown_Domains.3 days = 1 } }
+
+		ai_chance = {
+			base = 25
+			modifier = {
+				is_historical_focus_on = yes
+				factor = 0
+			}
+		}
 	}
 }
 
@@ -5942,7 +6069,7 @@ country_event = {
 			modifier = VIE_Crown_Domains_Accepted
 		}
 		reverse_add_opinion_modifier = {
-			target = VIE
+			target = FRA
 			modifier = VIE_Crown_Domains_Accepted
 		}
 		set_country_flag = VIE_Crown_Domains_Annexed
@@ -5966,7 +6093,7 @@ country_event = {
 			modifier = VIE_Crown_Domains_Declined
 		}
 		reverse_add_opinion_modifier = {
-			target = VIE
+			target = FRA
 			modifier = VIE_Crown_Domains_Declined
 		}
 		add_political_power = -75
@@ -6022,7 +6149,7 @@ country_event = {
 			modifier = VIE_Crown_Domains_Accepted2
 		}
 		reverse_add_opinion_modifier = {
-			target = VIE
+			target = FRA
 			modifier = VIE_Crown_Domains_Accepted2
 		}
 	}
@@ -6046,7 +6173,7 @@ country_event = {
 			modifier = VIE_Crown_Domains_Declined2
 		}
 		reverse_add_opinion_modifier = {
-			target = VIE
+			target = FRA
 			modifier = VIE_Crown_Domains_Declined2
 		}
 	}
@@ -6083,6 +6210,10 @@ country_event = {
 		retire_character = VIE_Phan_Van_Giao
 		retire_character = VIE_Tran_Van_Ly
 		VIE_Le_Van_Ty = { promote_leader = yes }
+
+		trigger = {
+			NOT = { has_completed_focus = VIE_Huu_Officer_Corp_Vietnamization }	 
+		}
 	}
 	
 	option = {
@@ -6113,11 +6244,18 @@ country_event = {
 				set_portraits = { army = { large = "gfx/leaders/VIE/GENERALS/Jean_Leroy.dds" } }
 			}
 		}
+		set_temp_variable = { umdc_loyalty_change = -35 }
+		umdc_loyalty_change_tt = yes
 		#Effect leading to more leroy stuff
 	}
 	
 	option = {
 		name = VIE_Leroy.1.b
+
+		set_temp_variable = { umdc_loyalty_change = 35 }
+		umdc_loyalty_change_tt = yes
+		set_temp_variable = { umdc_annihilation_change = -15 }
+		umdc_annihilation_change_tt = yes
 		#Shut down leroy
 	}
 }
@@ -6489,11 +6627,8 @@ country_event = {
 				instant_build = yes
 			}
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = 0.15
-			tooltip = VIE_minus_150_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.15 }
+		add_money_with_tooltip_effect = yes
 		country_event = { id = MayDay_Parade.2 days = 60 }
 	}
 }
@@ -6696,7 +6831,7 @@ news_event = {
 	}
 }
 
-country_event = {
+news_event = {
 	id = VNA.0
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VNA.0" }
 	title = VNA.0.t
@@ -6705,17 +6840,114 @@ country_event = {
 	fire_only_once = yes
 	is_triggered_only = yes
 	major = yes
-	 trigger = {
-		NOT = { 
-			has_country_flag = CuongDe_Victory1
-		}
-	}
 
 	option = {
 		name = VNA.0.a
 	}
 }
 
+country_event = {
+	id = VNA.3
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VNA.3" }
+	title = VNA.3.t
+	desc = {
+		text = VNA.3.da
+		trigger = {
+			OR = {
+				NOT = { has_character = VIE_Nguyen_Van_Hinh }
+				AND = {
+					has_character = VIE_Nguyen_Van_Hinh
+					has_character = VIE_Phan_Van_Giao
+				}
+			}
+		}
+	}
+	desc = {
+		text = VNA.3.db
+		trigger = {
+			NOT = { has_character = VIE_Phan_Van_Giao }
+		}
+	}
+	picture = GFX_VNA_3
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = VNA.3.a
+	}
+}
+
+country_event = {
+	id = VNA.4
+	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.4" }
+	title = VNA.4.t
+	desc = VNA.4.d
+	picture = GFX_VNA_4
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = VNA.4.a
+	}
+}
+country_event = {
+	id = VNA.5
+	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.5" }
+	title = VNA.5.t
+	desc = {
+		text = VNA.5.da
+		trigger = {
+			OR = {
+				NOT = { has_character = VIE_Nguyen_Van_Hinh }
+				AND = {
+					has_character = VIE_Nguyen_Van_Hinh
+					has_character = VIE_Phan_Van_Giao
+				}
+			}
+		}
+	}
+	desc = {
+		text = VNA.5.db
+		trigger = {
+			NOT = { has_character = VIE_Phan_Van_Giao }
+		}
+	}
+	picture = GFX_VNA_5
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = VNA.5.a
+	}
+}
+
+#Cuong-de military events
+country_event = {
+	id = VNA.6
+	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.6" }
+	title = VNA.6.t
+	desc = VNA.6.d
+	picture = GFX_VNA_6
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VNA.6.a
+	}
+}
+country_event = {
+	id = VNA.7
+	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.7" }
+	title = VNA.7.t
+	desc = VNA.7.d
+	picture = GFX_VNA_7
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = VNA.7.a
+	}
+}
 news_event = {
 	id = VNA.1
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VNA.0" }
@@ -6730,86 +6962,8 @@ news_event = {
 		name = VNA.1.a
 	}
 }
-country_event = {
-	id = VNA.3
-	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VNA.3" }
-	title = VNA.3.t
-	desc = VNA.3.d
-	picture = GFX_VNA_3
-	is_triggered_only = yes
-	fire_only_once = yes
-	trigger = {
-		has_country_flag = CuongDe_Victory1	
-	}
-	option = {
-		name = VNA.3.a
-	}
-}
 
-country_event = {
-	id = VNA.4
-	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.4" }
-	title = VNA.4.t
-	desc = VNA.4.d
-	picture = GFX_VNA_4
-	is_triggered_only = yes
-	fire_only_once = yes
-	trigger = {
-		NOT = {
-			has_country_flag = CuongDe_Victory1
-		}
-	}
-	option = {
-		name = VNA.4.a
-	}
-}
-country_event = {
-	id = VNA.5
-	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.5" }
-	title = VNA.5.t
-	desc = VNA.5.d
-	picture = GFX_VNA_5
-	is_triggered_only = yes
-	fire_only_once = yes
-	trigger = {
-		NOT = {
-			has_country_flag = CuongDe_Victory1
-		}
-	}
-	option = {
-		name = VNA.5.a
-	}
-}
-#Cuong-de military events
-country_event = {
-	id = VNA.6
-	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.6" }
-	title = VNA.6.t
-	desc = VNA.6.d
-	picture = GFX_VNA_6
-	is_triggered_only = yes
-	fire_only_once = yes
-	option = {
-		name = VNA.6.a
-	}
-}
-country_event = {
-	id = VNA.7
-	immediate = {  log = "[GetDateText]: [Root.GetTag]: id = VNA.7" }
-	title = VNA.7.t
-	desc = VNA.7.d
-	picture = GFX_VNA_7
-	is_triggered_only = yes
-	fire_only_once = yes
-	trigger = {
-		has_country_flag = CuongDe_Victory1
-	}
-	option = {
-		name = VNA.7.a
-	}
-}
-
-country_event = {
+news_event = {
 	id = VNG.0
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VNG.0" }
 	title = VNG.0.t
@@ -6936,11 +7090,8 @@ country_event = {
 		name = FireWater_Kings.1.a
 
 		add_stability = 0.05
-		add_to_variable = {
-			var = currentMoney
-			value = -0.05
-			tooltip = VIE_minus_50_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.05 }
+		add_money_with_tooltip_effect = yes
 		FUL_Siu_An_Y_Ot = {
 			add_corps_commander_role = {
 				traits = { irregular_officer self_taught }
@@ -7221,11 +7372,8 @@ country_event = {
 			ideology = democratic
 			popularity = 0.05
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = 0.2
-			tooltip = VIE_add_200_mil_tt
-		}
+		set_temp_variable = { money_to_gain = 0.2 }
+		add_money_with_tooltip_effect = yes
 
 		trigger = {
 			original_tag = FUL
@@ -7240,11 +7388,8 @@ country_event = {
 			ideology = democratic
 			popularity = 0.05
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = 0.2
-			tooltip = VIE_add_200_mil_tt
-		}
+		set_temp_variable = { money_to_gain = 0.2 }
+		add_money_with_tooltip_effect = yes
 
 		trigger = {
 			original_tag = VIE
@@ -7362,11 +7507,8 @@ country_event = {
 		name = French_Econ_Aid.1.a
 
 		add_political_power = -15
-		add_to_variable = {
-			var = currentMoney
-			value = -0.25
-			tooltip = VIE_minus_250_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.25 }
+		add_money_with_tooltip_effect = yes
 		FUL = { country_event = { id = French_Econ_Aid.2 hours = 12 } }
 	}
 
@@ -7391,11 +7533,8 @@ country_event = {
 	option = {
 		name = French_Econ_Aid.2.a
 
-		add_to_variable = {
-			var = currentMoney
-			value = 0.25
-			tooltip = VIE_add_250_mil_tt
-		}
+		set_temp_variable = { money_to_gain = 0.25 }
+		add_money_with_tooltip_effect = yes
 		add_offsite_building = {
 			type = industrial_complex
 			level = 1
@@ -7442,11 +7581,8 @@ country_event = {
 		name = Central_Highland_Railway.1.a
 
 		custom_effect_tooltip = Central_Highland_Railway_Construction_tt
-		add_to_variable = {
-			var = currentMoney
-			value = -15
-			tooltip = VIE_minus_15_bil_tt
-		}
+		set_temp_variable = { money_to_gain = -15 }
+		add_money_with_tooltip_effect = yes
 		country_event = { id = Central_Highland_Railway.4 days = 1800 }
 		FUL = { country_event = { id = Central_Highland_Railway.2 hours = 12 } }
 	}
@@ -7689,11 +7825,8 @@ country_event = {
 				original_tag = FUL
 			}
 			add_stability = 0.05
-			add_to_variable = {
-				var = currentMoney
-				value = -0.7
-				tooltip = VIE_minus_700_mil_tt
-			}
+			set_temp_variable = { money_to_gain = -0.7 }
+			add_money_with_tooltip_effect = yes
 		}
 	}
 }
@@ -7791,11 +7924,8 @@ country_event = {
 			amount = 10
 			producer = USA
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = 0.45
-			tooltip = VIE_add_450_mil_tt
-		}
+		set_temp_variable = { money_to_gain = 0.45 }
+		add_money_with_tooltip_effect = yes
 		FUL = { country_event = { id = DaLat_Question.7 hours = 12 } }
 
 		ai_chance = {
@@ -7849,11 +7979,8 @@ country_event = {
 			amount = 50
 			producer = FRA
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = 0.45
-			tooltip = VIE_add_450_mil_tt
-		}
+		set_temp_variable = { money_to_gain = 0.45 }
+		add_money_with_tooltip_effect = yes
 	}
 }
 
@@ -8046,10 +8173,8 @@ country_event = {
 				trait = CuongDe_Comrade
 			}
 			remove_country_leader_role = {
-					country_leader = {
-						ideology = colonial_regime
-					}
-				}
+				ideology = colonial_regime
+			}
 		}
 	}
 }
@@ -8085,7 +8210,6 @@ country_event = {
 	option = {
 		name = VIE_CD_Recruit.7.a
 		hidden_effect = {
-		`	
 			random_list = {
 				70 = {
 					country_event = VIE_CD_Recruit.8 
@@ -8443,7 +8567,7 @@ country_event = {
 	}
 	
 	option = {
-		name = "We shouldn’t anger the French! Vietnam remains within their sphere of influence."
+		name = "We shouldn't anger the French! Vietnam remains within their sphere of influence."
 		add_opinion_modifier = {
 			target = FRA
 			modifier = USA_FRA_No_Interference
@@ -8515,7 +8639,7 @@ country_event = {
 	}
 
 	option = {
-		name = "We accepted the aids and support from the progressive American’s goverment."
+		name = "We accepted the aids and support from the progressive American's goverment."
 		set_politics = {
 			ruling_party = social_democratic
 			elections_allowed = no
@@ -8536,7 +8660,7 @@ country_event = {
 	is_triggered_only = yes
 
 	option = {
-		name = "A setback—but we must remain vigilant against communist expansion."
+		name = "A setback — But we must remain vigilant against communist expansion."
 	}
 }
 country_event = {
@@ -8548,7 +8672,7 @@ country_event = {
 	is_triggered_only = yes
 
 	option = {
-		name = "A hopeful new chapter—Vietnam’s future may yet be democratic and free."
+		name = "A hopeful new chapter — Vietnam's future may yet be democratic and free."
 		news_event = {
 			id = USA_VIE.9
 		}
@@ -8563,7 +8687,7 @@ country_event = {
 news_event = {
 	id = USA_VIE.9
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = USA_VIE.9" }
-	title = "[GetNewspaperHeader]Historic U.S.–Vietnam Alliance Announced"
+	title = "[GetNewspaperHeader]Historic U.S. — Vietnam Alliance Announced"
 	desc = USA_VIE.9.d
 
 	is_triggered_only = yes

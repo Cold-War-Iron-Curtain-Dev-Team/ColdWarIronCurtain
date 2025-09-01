@@ -176,17 +176,22 @@ shared_focus = {
 			type = industrial_complex
 			level = 1
 		}
-		capital_scope = {
+		random_owned_state = {
+			limit = {
+				is_coastal = yes
+			}
 			add_building_construction = {
 				type = naval_base
 				level = 1
 				instant_build = yes
+				province = {
+					limit_to_coastal = yes
+					limit_to_victory_point = yes
+				}
 			}
 		}
-		add_to_variable = {
-			currentMoney = 15
-		}
-		custom_effect_tooltip = VIE_add_15_bil_tt
+		set_temp_variable = { money_to_gain = 15 }
+		add_money_with_tooltip_effect = yes
 		Increase_Domestic_Influence_5 = yes
 	}
 }
@@ -204,17 +209,26 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = VIE_Attract_US_Support
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 10
+			is_historical_focus_on = yes
+		}
+	}
 	x = -1
 	y = 1
+	available = { date > 1950.07.01 }
 	completion_reward = {
 		hidden_effect = {
-			keep_current_politics = yes
 			set_temp_variable = { percent_change = 5 }
 			set_temp_variable = { tag_index = FRA.id }
 			set_temp_variable = { influence_target = THIS.id }
 			change_influence_percentage = yes
-		}
-		hidden_effect = {
+			swap_ideas = {
+				remove_idea = indo_protectorate_status
+    			add_idea = indo_associated_state
+			}
 			FUL = {
 				if = {
 					limit = {
@@ -222,26 +236,6 @@ shared_focus = {
 					}
 					set_country_flag = FUL_Is_Subject
 				}
-			}
-			NUN = {
-				if = {
-					limit = {
-						is_subject_of = VIE
-					}
-					set_country_flag = NUN_Is_Subject
-				}
-			}
-		}
-		FRA = {
-			set_autonomy = {
-				target = VIE
-				autonomy_state = autonomy_associated_state
-				end_wars = no
-				end_civil_wars = no
-			}
-		}
-		hidden_effect = {
-			FUL = {
 				if = {
 					limit = {
 						has_country_flag = FUL_Is_Subject
@@ -251,7 +245,7 @@ shared_focus = {
 					VIE = {
 						set_autonomy = {
 							target = FUL
-							autonomous_state = autonomy_integrated_puppet
+							autonomy_state = autonomy_integrated_puppet
 							end_wars = no
 							end_civil_wars = no
 						}
@@ -261,6 +255,12 @@ shared_focus = {
 			NUN = {
 				if = {
 					limit = {
+						is_subject_of = VIE
+					}
+					set_country_flag = NUN_Is_Subject
+				}
+				if = {
+					limit = {
 						has_country_flag = NUN_Is_Subject
 					}
 					clr_country_flag = NUN_Is_Subject
@@ -268,11 +268,21 @@ shared_focus = {
 					VIE = {
 						set_autonomy = {
 							target = NUN
-							autonomous_state = autonomy_integrated_puppet
+							autonomy_state = autonomy_integrated_puppet
 							end_wars = no
 							end_civil_wars = no
 						}
 					}
+				}
+			}
+		}
+		effect_tooltip = {
+			FRA = {
+				set_autonomy = {
+					target = VIE
+					autonomy_state = autonomy_associated_state
+					end_wars = no
+					end_civil_wars = no
 				}
 			}
 		}
@@ -295,11 +305,8 @@ shared_focus = {
 	x = 0
 	y = 1
 	completion_reward = {
-		add_to_variable = {
-			var = currentMoney
-			value = 0.5
-			tooltip = VIE_add_500_mil_tt
-		}
+		set_temp_variable = { money_to_gain = 0.5 }
+		add_money_with_tooltip_effect = yes
 	}
 }
 shared_focus = {
@@ -328,13 +335,16 @@ shared_focus = {
 			set_temp_variable = { influence_target = THIS.id }
 			change_influence_percentage = yes
 			FUL = { set_cosmetic_tag = FUL_VIE }
+			remove_ideas = indo_associated_state
 		}
-		FRA = {
-			set_autonomy = {
-				target = VIE
-				autonomy_state = autonomy_free
-				end_wars = no
-				end_civil_wars = no
+		effect_tooltip = {
+			FRA = {
+				set_autonomy = {
+					target = VIE
+					autonomy_state = autonomy_free
+					end_wars = no
+					end_civil_wars = no
+				}
 			}
 		}
 		if = {
@@ -371,6 +381,13 @@ shared_focus = {
 	}
 	mutually_exclusive = {
 		focus = VIE_Pau_Treaty
+	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
 	}
 	x = 1
 	y = 1
@@ -411,11 +428,9 @@ shared_focus = {
 		}
 	}
 	completion_reward = {
-		USA = {
-			add_to_war = {
-				targeted_alliance = VIE
-				enemy = NLF
-			}
+		add_to_war = {
+			targeted_alliance = USA
+			enemy = NLF
 		}
 	}
 }
@@ -487,6 +502,16 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = VIE_Ignore_China
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 0
+			OR = {
+				is_historical_focus_on = yes
+				NOT = { has_global_flag = ROC_victory }
+			}
+		}
+	}
 	x = -2
 	y = 1
 	completion_reward = {
@@ -534,6 +559,13 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = VIE_Criticize_Mao_Success
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 5
+			is_historical_focus_on = yes
+		}
+	}
 	x = 0
 	y = 1
 	completion_reward = {
@@ -570,6 +602,13 @@ shared_focus = {
 	}
 	mutually_exclusive = {
 		focus = VIE_Ignore_China
+	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 5
+			is_historical_focus_on = yes
+		}
 	}
 	x = 2
 	y = 1
@@ -955,6 +994,13 @@ shared_focus = {
 	prerequisite = {
 		focus = VIE_Asian_Desk
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 10
+			is_historical_focus_on = yes
+		}
+	}
 	x = 5
 	y = 1
 	available = {
@@ -963,10 +1009,23 @@ shared_focus = {
 			has_global_flag = korean_war_begun
 		}
 	}
+	bypass = {
+		custom_trigger_tooltip = {
+			tooltip = VIE_Korean_War_Ended_tt
+			OR = {
+				has_global_flag = korean_war_north_victory
+				has_global_flag = KOREA_CEASEFIRE_UN
+				has_global_flag = korean_war_south_victory
+			}
+		}
+	}
 	completion_reward = {
 		army_experience = 5
 		add_political_power = 50
 		country_event = VIE_KOR.1
+	}
+	bypass_effect = {
+		complete_national_focus = VIE_Recognize_SK_Sovereignty
 	}
 }
 shared_focus = {
@@ -986,12 +1045,19 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = VIE_Recognize_SK_Sovereignty
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 10
+			is_historical_focus_on = yes
+		}
+	}
 	x = -2
 	y = 1
 	available = {
 		custom_trigger_tooltip = {
 			tooltip = VIE_Korean_War_Ongoing_tt
-			always = no
+			KOR = { has_war_with = KPA }
 		}
 	}
 	completion_reward = {
@@ -1067,6 +1133,13 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = VIE_Recognize_SK_Sovereignty
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
+	}
 	x = 2
 	y = 1
 	available = {
@@ -1102,6 +1175,13 @@ shared_focus = {
 		focus = VIE_Recognize_SK_Sovereignty
 		focus = VIE_Korean_Send_DaiHan_Expedition_Force
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 15
+			is_historical_focus_on = yes
+		}
+	}
 	x = 0
 	y = 1
 	offset = {
@@ -1111,9 +1191,10 @@ shared_focus = {
 		}
 	}
 	available = {
-		if = {
-			limit = {
+		AND = {
+			OR = {
 				has_global_flag = korean_war_south_victory
+				has_global_flag = KOREA_CEASEFIRE_UN
 			}
 			has_completed_focus = VIE_Congratulate_SK_Reunification
 		}
@@ -1123,7 +1204,6 @@ shared_focus = {
 			has_global_flag = KOREA_CEASEFIRE_UN
 			has_global_flag = korean_war_south_victory
 		}
-		NOT = { has_global_flag = korean_war_north_victory }
 	}
 	completion_reward = {
 		KOR = { country_event = { id = VIE_KOR.2 hours = 12 } }
@@ -1163,6 +1243,8 @@ shared_focus = {
 	}
 	completion_reward = {
 		custom_effect_tooltip = autocompleted_by_event
+		custom_effect_tooltip = if_they_accept
+		event_option_tooltip = VIE_KOR.3.a
 	}
 }
 shared_focus = {
@@ -1186,6 +1268,8 @@ shared_focus = {
 	}
 	completion_reward = {
 		custom_effect_tooltip = autocompleted_by_event
+		custom_effect_tooltip = if_they_accept
+		event_option_tooltip = VIE_KOR.3.b
 	}
 }
 shared_focus = {
@@ -1272,7 +1356,15 @@ shared_focus = {
 		has_global_flag = SK_Jeju
 	}
 	completion_reward = {
-		
+		add_political_power = 25
+		add_opinion_modifier = {
+			target = KOR
+			modifier = large_increase
+		}
+		reverse_add_opinion_modifier = {
+			target = KOR
+			modifier = large_increase
+		}
 	}
 }
 shared_focus = {
@@ -1292,7 +1384,15 @@ shared_focus = {
 		has_global_flag = SK_Samoa
 	}
 	completion_reward = {
-		
+		add_political_power = 25
+		add_opinion_modifier = {
+			target = KOR
+			modifier = large_increase
+		}
+		reverse_add_opinion_modifier = {
+			target = KOR
+			modifier = large_increase
+		}
 	}
 }
 shared_focus = {
@@ -1435,13 +1535,14 @@ shared_focus = {
 				type = naval_base
 				level = 1
 				instant_build = yes
+				province = {
+					limit_to_coastal = yes
+					limit_to_victory_point = yes
+				}
 			}
 		}
-		add_to_variable = {
-			var = currentMoney
-			value = -0.1
-			tooltip = VIE_minus_100_mil_tt
-		}
+		set_temp_variable = { money_to_gain = -0.1 }
+		add_money_with_tooltip_effect = yes
 		every_country = {
 			limit = {
 				OR = {
@@ -1449,11 +1550,8 @@ shared_focus = {
 					original_tag = LOS
 				}
 			}
-			add_to_variable = {
-				var = currentMoney
-				value = 0.25
-				tooltip = VIE_add_250_mil_tt
-			}
+			set_temp_variable = { money_to_gain = 0.25 }
+			add_money_with_tooltip_effect = yes
 			add_offsite_building = {
 				type = industrial_complex
 				level = 1
@@ -1476,10 +1574,8 @@ shared_focus = {
 	x = 2
 	y = 1
 	completion_reward = {
-		add_to_variable = {
-			currentMoney = 15
-		}
-		custom_effect_tooltip = VIE_add_15_bil_tt
+		set_temp_variable = { money_to_gain = 15 }
+		add_money_with_tooltip_effect = yes
 		add_offsite_building = {
 			type = industrial_complex
 			level = 1
@@ -1494,48 +1590,7 @@ shared_focus = {
 		}
 	}
 }
-# shared_focus = {
-# 	id = VIE_Announce_Victory_over_Communism
-# 	completion_reward = {
-# 		log = "[GetDateText]: [Root.GetTag]: id = VIE_Announce_Victory_over_Communism"
-# 	}
-# 	icon = GFX_VIE_Announce_Victory_over_Communism
-# 	cost = 2.8
-# 	relative_position_id = VIE_Second_Elysee_Accords
-# 	x = -1
-# 	y = 10
-# 	available = {
-# 		custom_trigger_tooltip = {
-# 			tooltip = VIE_Military_Southern_Victory
-# 			NOT = {
-# 				AND = {
-# 					country_exists = VIN
-# 					country_exists = NLF
-# 				}
-# 			}
-# 		}
-# 	}
-# 	completion_reward = {
-# 		news_event = { id = VIE_Total_Victory.0 hours = 3 random_hours = 6 }
-# 	}
-# }
-# shared_focus = {
-# 	id = VIE_Accept_Geneva_Treaty
-# 	completion_reward = {
-# 		log = "[GetDateText]: [Root.GetTag]: id = VIE_Accept_Geneva_Treaty"
-# 	}
-# 	icon = GFX_VIE_Accept_Geneva_Treaty
-# 	cost = 2.8
-# 	relative_position_id = VIE_Second_Elysee_Accords
-# 	x = 1
-# 	y = 10
-# 	available = {
-# 		has_global_flag = Geneva_Conference
-# 	}
-# 	completion_reward = {
-		
-# 	}
-# }
+
 shared_focus = {
 	id = VIE_Indochina_Desk
 	completion_reward = {
@@ -1567,8 +1622,32 @@ shared_focus = {
 	icon = GFX_VIE_Demand_PhuQuoc_Ownership
 	cost = 2.8
 	relative_position_id = VIE_Indochina_Desk
+	will_lead_to_war_with = PQC
 	prerequisite = {
 		focus = VIE_Indochina_Desk
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 0
+			has_built = {
+				type = dockyard
+				value < 1
+			}
+			has_navy_size = {
+				size < 1
+			}
+		}
+		modifier = {
+			factor = 100
+			has_built = {
+				type = dockyard
+				value > 0
+			}
+			has_navy_size = {
+				size > 0
+			}
+		}
 	}
 	x = -2
 	y = 1
@@ -1620,6 +1699,13 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = VIE_Focus_on_Other_Matters
 	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 10
+			is_historical_focus_on = yes
+		}
+	}
 	x = -1
 	y = 1
 	available = {
@@ -1651,6 +1737,13 @@ shared_focus = {
 	relative_position_id = VIE_Demand_PhuQuoc_Ownership
 	prerequisite = {
 		focus = VIE_Demand_PhuQuoc_Ownership
+	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 5
+			is_historical_focus_on = yes
+		}
 	}
 	x = 0
 	y = 2
@@ -1792,6 +1885,7 @@ shared_focus = {
 	prerequisite = {
 		focus = VIE_Indochina_Desk
 	}
+	available = { date > 1953.11.17 }
 	x = 3
 	y = 1
 	completion_reward = {
@@ -1901,7 +1995,7 @@ shared_focus = {
 	completion_reward = {
 		log = "[GetDateText]: [Root.GetTag]: id = VIE_Claim_TranNinh"
 	}
-	icon = VIE_Claim_TranNinh
+	icon = GFX_VIE_Claim_TranNinh
 	cost = 2.8
 	relative_position_id = VIE_Regarding_French_Drawn_Borders
 	prerequisite = {
