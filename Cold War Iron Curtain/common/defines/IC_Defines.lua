@@ -175,11 +175,11 @@ NDefines.NMilitary.LAND_COMBAT_COLLATERAL_FORT_FACTOR = 0.005	-- Factor to scale
 NDefines.NMilitary.LAND_COMBAT_COLLATERAL_INFRA_FACTOR = 0.0022	-- Factor to scale collateral damage to infra with.
 
 NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 1.5
-NDefines.NCountry.BASE_MAX_COMMAND_POWER = 200
+NDefines.NCountry.BASE_MAX_COMMAND_POWER = 190
 
 NDefines.NPolitics.BASE_LEADER_TRAITS = 3				-- Base amount of leader traits.
 NDefines.NPolitics.MAX_RANDOM_LEADERS = 1				-- Maximum amount random leader to have per party.
-NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 2	-- Weekly increase of PP.
+NDefines.NPolitics.BASE_POLITICAL_POWER_INCREASE = 1.5	-- Weekly increase of PP.
 NDefines.NPolitics.ARMY_LEADER_COST = 220					-- command power cost for recruiting new leaders, 'this value' * number_of_existing_leaders_of_type
 NDefines.NPolitics.NAVY_LEADER_COST = 220					-- command power cost for recruiting new leaders, 'this value' * number_of_existing_leaders_of_type
 NDefines.NPolitics.ARMY_LEADER_MAX_COST = 220				-- max cost BEFORE modifiers
