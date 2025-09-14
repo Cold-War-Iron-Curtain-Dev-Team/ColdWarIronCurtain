@@ -14,6 +14,14 @@ add_namespace = LIB_Net
 add_namespace = LIB_Free_Election_1959
 add_namespace = LIB_Renew_MTDP
 add_namespace = LIB_Inclusion
+add_namespace = LIB_Doe_Civil_War
+add_namespace = LIB_Election_1985
+add_namespace = LIB_Thomas_Coup
+add_namespace = LIB_Samuel_Coup
+add_namespace = LIB_Doe_Propaganda
+add_namespace = LIB_NCC_Draft
+
+
 
 country_event = {
     id = LIB_First_Civil_War.1
@@ -125,59 +133,7 @@ country_event = {
 		name = liberia.1.a
 	}
 }
-country_event = {
-	id = liberia.2 
- immediate = {log = "[GetDateText]: [Root.GetTag]: id = liberia.2"}
-	title = liberia.2.t
-	desc = liberia.2.d
 
-	is_triggered_only = yes
-	fire_only_once = yes
-
-	immediate = {
-        clr_country_flag = americo_liberian_minority_rule
-
-        set_popularities = {
-            communism = 6
-            nationalist = 10
-            neutrality = 84
-        }
-		
-        set_politics = {
-            ruling_party = neutrality
-            last_election = "1945.1.1"
-            election_frequency = 48
-            elections_allowed = no
-        }
-
-        create_country_leader = {
-            name = "Samuel Doe"
-            picture = "Samuel_Doe_80s.dds"
-            ideology = military_junta
-        }
-        news_event = news.1602
-	}
-	option = {
-		name = liberia.2.a
-USA = {
-			diplomatic_relation = {
-				country = LIB
-				relation = guarantee
-				active = no
-			}
-			diplomatic_relation = {
-				country = LIB
-				relation = military_access
-				active = no
-			}
-			diplomatic_relation = {
-				country = LIB
-				relation = docking_rights
-				active = no
-			}
-		}
-	}
-}
 country_event = {
 	id = liberia.3 
     immediate = {log = "[GetDateText]: [Root.GetTag]: id = liberia.3"}
@@ -635,5 +591,238 @@ immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Inclusion.1"}
     fire_only_once = yes
  option = {
 name = "A New Day for Native Rights!"
+}
+}
+country_event = {
+    id = LIB_Doe_Civil_War.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Doe_Civil_War.1"}
+    title = "Samuel Doe Stays In Power."
+    picture = GFX_LIB_Doe_Civil_War.1
+    desc = LIB_Doe_Civil_War.1.d
+
+    is_triggered_only = yes
+    fire_only_once = yes
+
+    immediate = {
+		set_country_flag = doe_liberian_civil_war
+	}
+    option = {
+        name = "Over our dead bodies!"
+        hidden_effect = {   
+			NDP = {
+				transfer_state = 298
+				load_oob = NDP_1985				
+			} 
+		NDP = {
+    declare_war_on = {
+        target = LIB 
+        type = annex_everything
+    }
+		}
+}    
+}
+}
+
+country_event = {
+    id = LIB_Election_1985.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Election_1985.1"}
+    title = "1985 Liberian Election Results"
+    picture = GFX_LIB_Election_1985.1
+    desc = LIB_Election_1985.1.d
+
+    trigger = {
+        original_tag = LIB
+        AND = {
+                date > 1985.10.01
+                date < 1985.10.31
+            }
+			}
+    
+    is_triggered_only = yes
+    fire_only_once = yes
+    
+    option = {
+        name = "Samuel Doe Wins"
+        custom_effect_tooltip = historical
+        hidden_effect = {
+            set_country_flag = sd_wins
+            add_popularity = {
+                ideology = neutrality
+                popularity = 0.15
+            }
+     complete_national_focus = LIB_Elections_1985
+        complete_national_focus = LIB_National_Democratic_Party_Samuel_Doe
+    }
+    }
+   option = {
+        name = "Jackson Doe Wins but Samuel won't peacably transition power"
+        
+        country_event = LIB_Doe_Civil_War.1
+        hidden_effect = {
+            set_country_flag = jd_wins
+            create_country_leader = {
+                name = "Jackson Doe"
+                picture = "Jackson_Doe.dds"  
+            }
+            set_politics = {
+                ruling_party = centrist
+                elections_allowed = yes
+            }
+            add_popularity = {
+                ideology = centrist
+                popularity = 0.25
+            }   
+            complete_national_focus = LIB_Elections_1985
+        complete_national_focus = LIB_Liberian_Action_Party_Jackson_Doe
+    }
+}
+}
+
+country_event = {
+id = LIB_Thomas_Coup.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Thomas_Coup.1"}
+    title = "1985 Thomas Quiwonkpa Coup Attempt."
+    picture = GFX_LIB_Thomas_Coup.1
+    desc = LIB_Thomas_Coup.1.d
+
+    trigger = {
+        original_tag = LIB
+        AND = {
+            has_country_leader = {
+					name = "Samuel Doe"
+					ruling_only = yes
+				}
+            }
+            AND = {
+                date > 1985.11.12
+                date < 1985.12.31
+            }
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+
+     option = {
+        name = "Samuel Doe Executes Thomas Quiwonkpa."
+        hidden_effect = {
+            complete_national_focus = LIB_General_Thomas_Coup_1985
+            complete_national_focus = LIB_Failed_Coup_1985
+    }
+}
+    option = {
+        name = "General Thomas Quiwonkpa takes over AFL & Liberia."
+        hidden_effect = {
+            set_country_flag = tq_coup
+            create_country_leader = {
+                name = "Thomas Quiwonkpa"
+                picture = "Thomas_Quiwonkpa.dds"
+                #desc =   
+            }
+            set_politics = {
+                ruling_party = neutrality
+                elections_allowed = no
+            }
+            
+     complete_national_focus = LIB_General_Thomas_Coup_1985
+     complete_national_focus = LIB_Assume_Head_of_AFL
+    }
+    }
+} 
+
+country_event = {
+id = LIB_Samuel_Coup.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Samuel_Coup.1"}
+    title = "1985 Liberian Coup Attempt"
+    picture = GFX_LIB_Samuel_Coup.1
+    desc = LIB_Samuel_Coup.1.d
+
+    trigger = {
+        original_tag = LIB
+        AND = {
+                date > 1980.4.01
+                date < 1980.5.01
+            }
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+	immediate = {
+        clr_country_flag = americo_liberian_minority_rule
+        set_politics = {
+            ruling_party = neutrality
+            last_election = "1945.1.1"
+            election_frequency = 48
+            elections_allowed = no
+        }
+
+        create_country_leader = {
+            name = "Samuel Doe"
+            picture = "Samuel_Doe_80s.dds"
+            ideology = military_junta
+        }
+recruit_character = LIB_samuel_doe
+recruit_character = LIB_hezekiah_bowen
+
+	}
+     option = {
+        name = "Samuel Doe Is the new hope"
+        USA = {
+			diplomatic_relation = {
+				country = LIB
+				relation = guarantee
+				active = no
+			}
+			diplomatic_relation = {
+				country = LIB
+				relation = military_access
+				active = no
+			}
+			diplomatic_relation = {
+				country = LIB
+				relation = docking_rights
+				active = no
+			}
+		}
+        hidden_effect = {
+            complete_national_focus = LIB_AFL_Coup_1980
+    }
+}
+}
+country_event = {
+    id = LIB_Doe_Propaganda.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_Doe_Propaganda.1"}
+    title = "Liberian New Native Voting Bloc"
+    picture = GFX_LIB_Doe_Propaganda.1
+    desc = LIB_Doe_Propaganda.1.d
+
+    trigger = {
+        original_tag = LIB
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+ option = {
+name = "All Liberians Trust Doe"
+add_popularity = {
+				ideology = neutrality
+				popularity = 0.10
+			}
+}
+}
+country_event = {
+    id = LIB_NCC_Draft.1
+immediate = {log = "[GetDateText]: [Root.GetTag]: id = LIB_NCC_Draft.1"}
+    title = "NCC Constitution"
+    picture = GFX_LIB_NCC_Draft.1
+    desc = LIB_NCC_Draft.1.d
+
+    trigger = {
+        original_tag = LIB
+    }
+    is_triggered_only = yes
+    fire_only_once = yes
+ option = {
+name = "A new day for Liberia!"
+add_popularity = {
+				ideology = neutrality
+				popularity = 0.10
+			}
 }
 }
