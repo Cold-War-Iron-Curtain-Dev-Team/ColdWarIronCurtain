@@ -3,7 +3,7 @@ focus_tree = {
 	country = {
 		factor = 0
 		modifier = {
-			add = 0
+			add = 10
 			tag = SOV
 		}
 	}
@@ -143,6 +143,7 @@ focus_tree = {
 		completion_reward = {
 			set_temp_variable = { money_to_gain = -10 }
             add_money_with_tooltip_effect = yes
+			
 		}
 		x = 0
 		y = 3
@@ -303,22 +304,30 @@ focus_tree = {
 		}
 		x = 5
 		y = 3
-		completion_reward = {
-		SOV = { add_to_faction = KPA }
-		give_guarantee = KPA
-		KPA = {
-        set_temp_variable = { 
-            New_sphere_leader = SOV
-        }
-        add_to_sphere = yes
-        }
-		  modify_timed_idea = {
-          idea = great_liberation_war
-          days = 360
-           }
-		}
 		relative_position_id = SOVw_A_Wartime_Diplomacy
-
+		completion_reward = {
+		    SOV = {
+				modify_timed_idea = {
+                    idea = great_liberation_war
+                    days = 360
+                }
+				give_guarantee = KPA
+			}
+		    KPA = {
+                set_temp_variable = { 
+                    New_sphere_leader = SOV
+                }
+                add_to_sphere = yes
+				add_timed_idea = {
+					idea = great_liberation_war
+                    days = 760
+				}
+				declare_war_on = {
+                    target = KOR
+                    type = annex_everything
+                }
+            }
+		}
 	}
 	focus = {
 		id = SOVw_Cut_Japanese_Relations
@@ -545,19 +554,7 @@ focus_tree = {
 		completion_reward = {
 			set_temp_variable = { exhaustion_change = -0.05 }
             WW3_1950_war_exhaustion_change = yes
-			release_puppet_on_controlled = LUX
-			release_puppet_on_controlled = NOR
-			release_puppet_on_controlled = FRA
-			release_puppet_on_controlled = BEL
-			release_puppet_on_controlled = HOL
-			release_puppet_on_controlled = POR
-			release_puppet_on_controlled = SPR
-			release_puppet_on_controlled = SWE
-			release_puppet_on_controlled = FIN
-			release_puppet_on_controlled = ITA
-			release_puppet_on_controlled = DEN
-			release_puppet_on_controlled = TUR
-			release_puppet_on_controlled = GRE
+			country_event = SOVw_Third_World_War.7
 		}
 		x = -5
 		y = 6
@@ -651,14 +648,17 @@ focus_tree = {
 			focus = SOVw_Enact_Secretive_Talks_with_the_Peoples_Republic_of_China
 		}
 		completion_reward = {
-			SOV = { add_to_faction = PRC }
+			SOV = {
+				set_temp_variable = { exhaustion_change = -0.05 }
+				WW3_1950_war_exhaustion_change = yes
+			}
 			give_guarantee = PRC
 			PRC = {
-        set_temp_variable = { 
-            New_sphere_leader = SOV
-        }
-        add_to_sphere = yes
-        }
+                set_temp_variable = { 
+                    New_sphere_leader = SOV
+                }
+                add_to_sphere = yes
+            }
 		}
 		x = -5
 		y = 3
@@ -680,8 +680,8 @@ focus_tree = {
 		}
 		completion_reward = {
 			add_to_variable = {
-            bonus_fpp_modifier = 0.10
-            tooltip = bonus_fpp_modifier_tt 
+                bonus_fpp_modifier = 0.10
+                tooltip = bonus_fpp_modifier_tt 
             }
 			country_event = SOVw_Third_World_War.5
 		}
@@ -698,11 +698,9 @@ focus_tree = {
 			focus = SOVw_Reinforce_North_China_Defenses
 		}
 		completion_reward = {
-			add_to_war = {
-            targeted_alliance = PREV
-            enemy = CHI
-            hostility_reason = asked_to_join
-            }
+			CHI = {
+				country_event = SOVw_Third_World_War.8
+			}
 		}
 		x = -5
 		y = 4
@@ -712,23 +710,41 @@ focus_tree = {
 	focus = {
 		id = SOVw_Sign_the_Mutual_Non_Interference_Agreement_with_Beijing
 		icon = GFX_PRC_warsaw_pact
-		cost = 10.00
+		cost = 5.00
+		available = {
+			has_country_flag = PRC_JOIN_WAR
+		}
 		prerequisite = {
 			focus = SOVw_Enact_Secretive_Talks_with_the_Peoples_Republic_of_China
 		}
+		bypass = {
+			has_country_flag = PRC_REFUSED
+		}
 		completion_reward = {
-			custom_effect_tooltip = USSR_China
-			set_temp_variable = { money_to_gain = -50 }
-            add_money_with_tooltip_effect = yes
-			set_temp_variable = { exhaustion_change = -0.20 }
-            WW3_1950_war_exhaustion_change = yes
-			give_guarantee = PRC
-			PRC = {
-        set_temp_variable = { 
-            New_sphere_leader = SOV
-        }
-        add_to_sphere = yes
-        }
+			custom_effect_tooltip = WW3_SOV_PRC_TT
+			if = {
+				limit = {
+					PRC = {
+						has_country_flag = PRC_JOIN_WAR
+					}
+					SOV = {
+						has_country_flag = PRC_JOIN_WAR
+					}
+				}
+				custom_effect_tooltip = USSR_China
+			    set_temp_variable = { money_to_gain = -50 }
+                add_money_with_tooltip_effect = yes
+			    set_temp_variable = { exhaustion_change = -0.20 }
+                WW3_1950_war_exhaustion_change = yes
+			    give_guarantee = PRC
+			    PRC = {
+                    set_temp_variable = { 
+                        New_sphere_leader = SOV
+                    }
+                    add_to_sphere = yes
+					create_faction = PRC_WW3_FACTION
+                }
+			}
 		}
 		x = -1
 		y = 4
