@@ -212,7 +212,7 @@ Huks_Insurgency_Decisions = {
 		fire_only_once = yes
 		complete_effect = {
 			set_country_flag = magsaysay_secnatdef
-			#add_ideas = magsaysay_secnatdef_1
+			add_ideas = phi_magsaysay_secnatdef_1
 			HUK = { country_event = HUK_insurgency.8 }
 		}
 	}
@@ -220,47 +220,80 @@ Huks_Insurgency_Decisions = {
 		icon = generic_civil_support
 		allowed = { tag = PHI }
 		visible = {
-			has_idea = magsaysay_secnatdef_1
+			has_idea = phi_magsaysay_secnatdef_1
 		}
-		available = {
-			has_idea = magsaysay_secnatdef_1
+		on_map_mode = map_only
+		state_target = yes
+		target_trigger = {
+			FROM = {
+				is_owned_by = HUK
+				any_neighbor_state = { is_owned_by = PHI }
+				is_capital = no
+			}
 		}
+		available = { has_border_war = no }
 		ai_will_do = {
 			factor = 1
 		}
 		#fire_only_once = yes
 		complete_effect = {
-		
+			FROM = {
+				set_variable = { ROOT.defender_state = THIS.id }
+				random_neighbor_state = {
+					limit = { is_owned_by = PHI }
+					set_variable = { ROOT.attacker_state = THIS.id }
+				}
+			}
+			start_border_war = {
+				change_state_after_war = no
+				defender = {
+					state = FROM
+					num_provinces = 1
+					on_win = HUK_insurgency.11
+					on_lose = HUK_insurgency.12
+					on_cancel = Indochina_War.4
+				}
+				attacker = {
+					state = var:attacker_state
+					num_provinces = 1
+					on_win = HUK_insurgency.13
+					on_lose = HUK_insurgency.14
+					on_cancel = Indochina_War.4
+				}
+			}
 		}
 	}
 	huks_enroll_edcor = {
 		icon = generic_civil_support
 		allowed = { tag = PHI }
 		visible = {
-			has_idea = magsaysay_secnatdef_1
+			has_idea = phi_magsaysay_secnatdef_1
 		}
 		available = {
-			has_idea = magsaysay_secnatdef_1
+			has_idea = phi_magsaysay_secnatdef_1
 			date > 1951.11.1
+			stability > 0.5
 		}
+		cost = 100
 		ai_will_do = {
 			factor = 1
 		}
 		fire_only_once = yes
 		complete_effect = {
-		
+			HUK = { add_ideas = huk_get_edcord }
 		}
 	}
 	huks_begin_bombing_campaigns = { #might work better as a custom raid
 		icon = generic_civil_support
 		allowed = { tag = PHI }
 		visible = {
-			has_idea = magsaysay_secnatdef_1
+			has_idea = phi_magsaysay_secnatdef_1
 		}
 		available = {
-			has_idea = magsaysay_secnatdef_1
+			has_idea = phi_magsaysay_secnatdef_1
 			has_completed_focus = PHI_Philippine_Air_Force
 		}
+		cost = 75
 		ai_will_do = {
 			factor = 1
 		}
