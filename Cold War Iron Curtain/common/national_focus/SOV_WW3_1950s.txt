@@ -3,7 +3,7 @@ focus_tree = {
 	country = {
 		factor = 0
 		modifier = {
-			add = 10
+			add = 5
 			tag = SOV
 		}
 	}
@@ -19,12 +19,12 @@ focus_tree = {
 		    every_subject_country = { 
 			    add_timed_idea = {
                     idea = great_liberation_war
-	                days = 1000
+	                days = 500
                 }
 		    }
 			add_timed_idea = {
                 idea = great_liberation_war
-	            days = 1000
+	            days = 500
             }
 			remove_ideas = {
                 victor_of_the_great_patriotic_war
@@ -48,16 +48,16 @@ focus_tree = {
             }
 			set_temp_variable = { money_to_gain = -5 }
             add_money_with_tooltip_effect = yes
-            if = {
-				limit = {
-					ROOT = {
+            every_country = {
+			    limit = {
+					FROM = {
 						is_ally_with = SOV
 					}
 				}
 				send_equipment = {
                     equipment = infantry_equipment
                     amount = 5000
-                    target = ROOT
+                    target = FROM
                 }
 			}
         }
@@ -74,8 +74,8 @@ focus_tree = {
 		completion_reward = {
 		set_temp_variable = { exhaustion_change = 0.05 }
         WW3_1950_war_exhaustion_change = yes
-        add_manpower = 100000
-		set_temp_variable = { money_to_gain = -10 }
+        add_manpower = 50000
+		set_temp_variable = { money_to_gain = -5 }
         add_money_with_tooltip_effect = yes
 		}
 		relative_position_id = SOVw_The_Great_Liberation_War
@@ -111,7 +111,7 @@ focus_tree = {
 			focus = SOVw_Rally_the_Workers_of_the_Unions
 		}
 		completion_reward = {
-			set_temp_variable = { money_to_gain = -10 }
+			set_temp_variable = { money_to_gain = -5 }
             add_money_with_tooltip_effect = yes
 			
 		}
@@ -123,7 +123,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Set_Up_the_LEADER_Line
 		icon = GFX_FortificationEffort
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Restart_Tankograd_Production_Capability
 		}
@@ -163,7 +163,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Order_the_Mobilization_of_All_Able_Bodied_Man
 		icon = GFX_SOVw_Order_the_Mobilization_of_All_Able_Bodied_Man
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Restart_Tankograd_Production_Capability
 		}
@@ -186,7 +186,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Ration_Food_for_Soldiers
 		icon = GFX_SOVw_Ration_Food_for_Soldiers
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Set_Up_the_LEADER_Line
 			focus = SOVw_Order_the_Mobilization_of_All_Able_Bodied_Man
@@ -203,12 +203,12 @@ focus_tree = {
 	focus = {
 		id = SOVw_Extend_Conscription_Law_for_Women
 		icon = GFX_SOVw_Extend_Conscription_Law_for_Women
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Ration_Food_for_Soldiers
 		}
 		completion_reward = {
-			set_temp_variable = { exhaustion_change = 0.10 }
+			set_temp_variable = { exhaustion_change = 0.5 }
             WW3_1950_war_exhaustion_change = yes
 		}
 		x = 0
@@ -220,12 +220,18 @@ focus_tree = {
 		id = SOVw_Suppress_Anti_War_Misinformation
 		icon = GFX_WGR_Surveillance
 		cost = 5.00
+		available = {
+			has_completed_focus = SOVw_Establish_the_Ministry_of_War_Information
+		}
 		prerequisite = {
 			focus = SOVw_A_Wartime_Diplomacy
 		}
 		x = 3
 		y = 1
 		relative_position_id = SOVw_A_Wartime_Diplomacy
+		completion_reward = {
+			add_ideas = SOV_ANTI_MISINFORMATION
+		}
 
 	}
 	focus = {
@@ -273,9 +279,12 @@ focus_tree = {
 		x = 3
 		y = 2
 		completion_reward = {
-		set_temp_variable = { money_to_gain = 15 }
-        add_money_with_tooltip_effect = yes
-        add_research_slot = 1
+			add_stability = -0.20
+		    set_temp_variable = { money_to_gain = 15 }
+            add_money_with_tooltip_effect = yes
+			set_temp_variable = { exhaustion_change = -0.25 }
+            WW3_1950_war_exhaustion_change = yes
+            add_research_slot = 1
 		}
 		relative_position_id = SOVw_A_Wartime_Diplomacy
 
@@ -283,7 +292,14 @@ focus_tree = {
 	focus = {
 		id = SOVw_Launch_the_Korean_Offensive
 		icon = GFX_KPA_50s_the_fatherland_liberation_war
-		cost = 10.00
+		cost = 2.00
+		available = {
+			has_country_flag = DPRK_Letter
+			OR = {
+				has_completed_focus = SOVw_Reinforce_North_China_Defenses
+				has_completed_focus = SOVw_Enact_Secretive_Talks_with_the_Peoples_Republic_of_China
+			}
+		}
 		prerequisite = {
 			focus = SOVw_Encourage_Warbond_Purchases
 		}
@@ -292,44 +308,82 @@ focus_tree = {
 		relative_position_id = SOVw_A_Wartime_Diplomacy
 		completion_reward = {
 		    SOV = {
-				modify_timed_idea = {
-                    idea = great_liberation_war
-                    days = 360
-                }
 				give_guarantee = KPA
 			}
-		    KPA = {
-                set_temp_variable = { 
-                    New_sphere_leader = SOV
-                }
-                add_to_sphere = yes
-				add_timed_idea = {
-					idea = great_liberation_war
-                    days = 760
+		    if = {
+				limit = {
+					country_exist = KOR
 				}
-				declare_war_on = {
-                    target = KOR
-                    type = annex_everything
+				KPA = {
+                    set_temp_variable = { 
+                        New_sphere_leader = SOV
+                    }
+                    add_to_sphere = yes
+				    declare_war_on = {
+                        target = KOR
+                        type = annex_everything
+                    }
+				    if = {
+					    limit = {
+						    PRC = {
+							    is_in_faction = yes
+						    }
+					    }
+					    PRC = {
+						    add_to_faction = KPA
+					    }
+				    }
                 }
-            }
+			}
 		}
 	}
 	focus = {
 		id = SOVw_Cut_Japanese_Relations
 		icon = GFX_goal_unknown
-		cost = 10.00
+		cost = 2.00
+		available = {
+			NOT = {
+				JAP = {
+					OR = {
+						has_cosmetic_tag = JAP_SOV
+						has_cosmetic_tag = JAP_SOV_2
+					}
+				}
+			}
+		}
+		bypass = {
+			JAP = {
+				OR {
+					has_cosmetic_tag = JAP_SOV
+					has_cosmetic_tag = JAP_SOV_2
+				}
+			}
+		}
 		prerequisite = {
 			focus = SOVw_Encourage_Warbond_Purchases
 		}
 		x = 1
 		y = 3
 		relative_position_id = SOVw_A_Wartime_Diplomacy
+		completion_reward = {
+			send_embargo = JAP
+			add_opinion_modifier = {
+				tag = JAP 
+				modifier = closed_embassies
+			}
+			JAP = {
+				add_opinion_modifier = {
+					tag = SOV 
+					modifier = closed_embassies
+				}
+			}
+		}
 
 	}
 	focus = {
 		id = SOVw_Increase_North_Pacific_Submarine_Deployments
 		icon = GFX_PRC_50s_Expand_The_Submarine_Fleet
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Cut_Japanese_Relations
 		}
@@ -341,7 +395,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_The_American_Mainland_Problem
 		icon = GFX_ALB_United_States_Backing
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Launch_the_Korean_Offensive
 		}
@@ -356,7 +410,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Negotiate_Terms
 		icon = GFX_SOVw_Negotiate_Terms
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_The_American_Mainland_Problem
 		}
@@ -374,7 +428,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Put_Nuclear_Forces_in_High_Alert
 		icon = GFX_SOVw_Put_Nuclear_Forces_in_High_Alert
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Reinstill_Militarism_for_the_Peoples
 		}
@@ -386,7 +440,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Expand_the_Power_of_the_Security_Services
 		icon = GFX_SOV_Expand_the_Power_of_the_Security_Services
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Put_Nuclear_Forces_in_High_Alert
 		}
@@ -398,7 +452,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Boycott_the_United_Nations
 		icon = GFX_SOV_Expand_the_Power_of_the_Security_Services
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Expand_the_Power_of_the_Security_Services
 		}
@@ -467,7 +521,18 @@ focus_tree = {
 	focus = {
 		id = SOVw_Force_Western_Communist_Parties_to_Revolt
 		icon = GFX_SOVw_Force_Western_Communist_Parties_to_Revolt
-		cost = 10.00
+		cost = 5.00
+		available = {
+			HOL = {
+				is_in_faction_with = SOV
+			}
+			BEL = {
+				is_in_faction_with = SOV
+			}
+			LUX = {
+				is_in_faction_with = SOV
+			}
+		}
 		prerequisite = {
 			focus = SOVw_Reinforce_the_German_Fronts
 		}
@@ -478,35 +543,35 @@ focus_tree = {
 			if = {
 				limit = {
 					HOL = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 					BEL = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 					LUX = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 				}
-				country_event = SOVw_Third_World_War.10
+				country_event = SOVw_Third_World_War.5
 				set_temp_variable = { exhaustion_change = -0.05 }
                 WW3_1950_war_exhaustion_change = yes
 			}
 			else_if = {
 				limit = {
 					HOL = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 					BEL = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 					LUX = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 					FRA = {
-						has_capitulated = yes
+						is_in_faction_with = SOV
 					}
 				}
-				country_event = SOVw_Third_World_War.10
+				country_event = SOVw_Third_World_War.5
 				FRA = {
 					country_event = SOVw_Third_World_War.9
 				}
@@ -518,7 +583,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Crush_Partisans_in_Benelux_and_Northern_France
 		icon = GFX_PurgeKulaks
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Force_Western_Communist_Parties_to_Revolt
 		}
@@ -530,7 +595,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Establish_Communist_Governments_in_Liberated_Territory
 		icon = GFX_SOVw_Establish_Communist_Governments_in_Liberated_Territory
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Crush_Partisans_in_Benelux_and_Northern_France
 		}
@@ -547,7 +612,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_The_Union_Marches_West
 		icon = GFX_promise_return_of_indigenization_policy
-		cost = 10.00
+		cost = 5.00
 		available = {
 			FRA = {
 				has_capitulated = yes
@@ -592,16 +657,24 @@ focus_tree = {
 		x = -3
 		y = 1
 		relative_position_id = SOVw_A_Wartime_Diplomacy
+		completion_reward = {
+
+		}
 
 	}
 	focus = {
 		id = SOVw_Strengthen_Government_Control_on_Information
 		icon = GFX_SOVw_Strengthen_Government_Control_on_Information
 		cost = 5.00
+		available = {
+			has_completed_focus = SOVw_Suppress_Anti_War_Misinformation
+		}
 		prerequisite = {
 			focus = SOVw_Establish_the_Ministry_of_War_Information
 		}
 		completion_reward = {
+			set_temp_variable = { exhaustion_change = -0.10 }
+            WW3_1950_war_exhaustion_change = yes
 			set_temp_variable = { money_to_gain = -3 }
             add_money_with_tooltip_effect = yes
 		}
@@ -613,7 +686,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Operation_Red_Dawn
 		icon = GFX_PRC_50s_Prepare_Ships_for_Landing
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_The_American_Mainland_Problem
 		}
@@ -636,7 +709,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Reinforce_North_China_Defenses
 		icon = GFX_PRC_50s_Rebuild_The_Leadership_of_CPK_in_Manchuria
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Strengthen_Government_Control_on_Information
 		}
@@ -652,12 +725,7 @@ focus_tree = {
 				WW3_1950_war_exhaustion_change = yes
 			}
 			give_guarantee = PRC
-			PRC = {
-                set_temp_variable = { 
-                    New_sphere_leader = SOV
-                }
-                add_to_sphere = yes
-            }
+			country_event = SOVw_Third_World_War.8
 		}
 		x = -5
 		y = 3
@@ -667,7 +735,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Enact_Secretive_Talks_with_the_Peoples_Republic_of_China
 		icon = GFX_PRC_50s_Reconcile_Labour_Conflicts
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Strengthen_Government_Control_on_Information
 		}
@@ -692,14 +760,25 @@ focus_tree = {
 	focus = {
 		id = SOVw_Operation_Fallen_Sun
 		icon = GFX_PRC_50s_Reinforcement_for_The_Sino-India_Border
-		cost = 10.00
+		cost = 0.00
+		available = {
+			has_country_flag = PRC_JOIN_WAR
+		}
 		prerequisite = {
 			focus = SOVw_Reinforce_North_China_Defenses
 		}
 		completion_reward = {
-			CHI = {
-				country_event = SOVw_Third_World_War.8
-			}
+			PRC = {
+                set_temp_variable = { 
+                    New_sphere_leader = SOV
+                }
+                add_to_sphere = yes
+				create_faction = PRC_FACTION_WW3
+				declare_war_on = {
+					tag = CHI
+					type = annex_everything
+				}
+            }
 		}
 		x = -5
 		y = 4
@@ -709,7 +788,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Sign_the_Mutual_Non_Interference_Agreement_with_Beijing
 		icon = GFX_PRC_warsaw_pact
-		cost = 5.00
+		cost = 0.00
 		available = {
 			has_country_flag = PRC_JOIN_WAR
 		}
@@ -724,9 +803,6 @@ focus_tree = {
 			if = {
 				limit = {
 					PRC = {
-						has_country_flag = PRC_JOIN_WAR
-					}
-					SOV = {
 						has_country_flag = PRC_JOIN_WAR
 					}
 				}
@@ -753,7 +829,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_Ramp_Up_Support_for_Communist_and_Socialists_in_Indochina_and_Southeast_Asia
 		icon = GFX_PRC_50s_Promote_Relations_with_Indochina
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Sign_the_Mutual_Non_Interference_Agreement_with_Beijing
 			focus = SOVw_Operation_Fallen_Sun
@@ -772,7 +848,7 @@ focus_tree = {
 	focus = {
 		id = SOVw_A_Revolution_Realized
 		icon = GFX_SOVw_A_Revolution_Realized
-		cost = 10.00
+		cost = 5.00
 		prerequisite = {
 			focus = SOVw_Negotiate_Terms
 			focus = SOVw_Operation_Red_Dawn
