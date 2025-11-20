@@ -1,0 +1,974 @@
+########################################
+
+ ##   ##  #  # #  # ### ###  ### ###  ##     
+#  # #  # #  # ## #  #  #  #  #  #   #       
+#    #  # #  # # ##  #  ###   #  ##   #      
+#  # #  # #  # #  #  #  #  #  #  #     #     
+ ##   ##   ##  #  #  #  #  # ### ### ## 
+
+########################################     
+
+world_at_peace_countries = {
+	input = game:all_countries
+	operators = {
+		limit = {
+			has_war = no 
+		}
+	}
+	name = COLLECTION_COUNTRIES_AT_PEACE
+}
+
+democratic_faction_members = {
+	input = game:scope
+	operators = {
+		faction_members
+		limit = {
+			has_government = democratic
+		}
+	}
+	name = COLLECTION_DEMOCRATIC_FACTION_MEMBERS
+}
+
+uncapitulated_democratic_faction_members = {
+	input = game:scope
+	operators = {
+		faction_members
+		limit = {
+			has_government = democratic
+			has_capitulated = no
+		}
+	}
+	name = COLLECTION_UNCAPITULATED_DEMOCRATIC_FACTION_MEMBERS
+}
+
+world_democratic_countries = {
+	input = game:all_countries
+	name = COLLECTION_WORLD_DEMOCRATIC_COUNTRIES
+	operators = {
+		limit = {
+			has_government = democratic
+		}
+	}
+}
+
+###
+world_uncapitulated_democratic_countries_and_dominions = {
+	input = game:all_countries
+	name = COLLECTION_UNCAPITULATED_DEMOCRATIC_COUNTRIES_AND_DOMINIONS
+	operators = {
+		limit = {
+			has_government = democratic
+			has_capitulated = no
+			OR = {
+				is_subject = no
+				has_autonomy_state = autonomy_dominion
+			}
+		}
+	}
+}
+###
+world_uncapitulated_democratic_countries = {
+	input = collection:world_democratic_countries
+	name = COLLECTION_UNCAPITULATED_DEMOCRATIC_COUNTRIES
+	operators = {
+		limit = {
+			has_capitulated = no
+		}
+	}	
+}
+
+world_non_communist_countries = {
+	input = game:all_countries
+	name = COLLECTION_NON_COMMUNIST_COUNTRIES
+	operators = {
+		limit = {
+			NOT = { has_government = communism }
+		}
+	}
+}
+
+world_non_communist_states = {
+	input = game:all_states
+	name = COLLECTION_NON_COMMUNIST_STATES
+	operators = {
+		limit = {
+			NOT = { controller = { has_government = communism } }
+		}
+	}
+}
+
+world_communist_countries = {
+	input = game:all_countries
+	name = COLLECTION_WORLD_COMMUNIST_COUNTRIES
+	operators = {
+		limit = {
+			has_government = communism
+		}
+	}
+}
+
+europe_non_aligned_countries = {
+	input = game:all_countries
+	name = COLLECTION_COUNTRIES_EUROPE_NON_ALIGNED
+	operators = {
+		limit = {
+			capital_scope = { is_on_continent = europe }
+			has_government = neutrality 
+		}
+	}
+}	
+
+
+countries_china = {
+	input = game:all_countries
+	name = COLLECTION_COUNTRIES_CHINA
+	operators = {
+		limit = {
+			WTT_is_chinese_country = yes 
+		}
+	}
+}
+
+
+# New Order in Asia etc
+
+countries_asia = {
+	input = game:all_countries
+	name = COLLECTION_COUNTRIES_ASIA
+	operators = {
+		limit = {
+			capital_scope = { is_on_continent = asia }
+		}
+	}
+}
+
+
+communist_countries_asia = {
+	input = game:all_countries
+	name = COLLECTION_COUNTRIES_ASIA_COMMUNIST
+	operators = {
+		limit = {
+			capital_scope = { is_on_continent = asia }
+			has_government = communism
+		}
+	}
+}
+
+non_communist_or_capitulated_countries_asia = {
+	input = game:all_countries
+	name = COLLECTION_COUNTRIES_ASIA_NON_COMMUNIST
+	operators = {
+		limit = {
+			capital_scope = { is_on_continent = asia }
+			OR = {
+				NOT = { has_government = communism }
+				AND = {
+					has_capitulated = yes 
+					has_government = communism
+				}
+			}
+		}
+	}
+}
+
+#########################
+
+ ## ###  ##  ### ###  ## 
+#    #  #  #  #  #   #   
+ #   #  ####  #  ##   #  
+  #  #  #  #  #  #     # 
+##   #  #  #  #  ### ##  
+
+########################
+
+
+faction_owned_core_states = {
+	input = game:scope
+	operators = {
+		faction_members
+		owned_states
+		limit = {
+			is_core_of = PREV 
+		}
+	}
+	name = COLLECTION_FACTION_OWNED_CORE_STATES
+}
+
+world_non_fascist_controlled_states = {
+	input = game:all_states
+	operators = {
+		limit = {
+			controller = { NOT = { has_government = fascism } }
+		}
+	}
+}
+
+faction_controlled_non_core_states = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			NOT = { is_core_of = PREV }
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_NON_CORE_STATES
+}
+
+
+country_and_all_subjects_controlled_non_core_states = {
+	input = game:scope
+	operators = {
+		country_and_all_subjects
+		controlled_states
+		limit = {
+			NOT = { is_core_of = PREV }
+		}
+	}
+	name = COLLECTION_COUNTRY_AND_SUBJECTS_CONTROLLED_NON_CORE_STATES
+}
+
+
+POL_between_the_seas_states = {
+	input = game:all_states
+	name = COLLECTION_POL_BETWEEN_THE_SEAS_STATES
+	operators = {
+		limit = {
+			OR = {
+				region = 37 # baltics
+				region = 38 # Western Poland
+				region = 39 # Eastern Poland
+				region = 27 # Northern Balkans
+				region = 26 # Eastern Balkans
+				region = 131 # Belarus
+				region = 130 # Ukraine
+			}
+		}
+	}
+}
+
+faction_controlled_between_the_seas_states = {
+	input = collection:POL_between_the_seas_states
+	name = COLLECTION_FACTION_BETWEEN_THE_SEAS_STATES
+	operators = {
+		limit = {
+			is_controlled_by_ROOT_or_ally = yes
+		}
+	}
+}
+
+
+china_potential_core_states = {
+	input = game:all_states
+	operators = {
+		limit = {
+			OR = {
+				is_core_of = CHI
+				is_core_of = PRC
+			}
+		}
+	}
+}
+
+china_potential_core_mainland_states = {
+	input = collection:china_potential_core_states
+	operators = {
+		limit = {
+			NOT = { state = 524 } # Taiwan does not qualify for is_one_state_island
+			is_one_state_island = no 
+		}
+	}
+}
+
+china_core_states_controlled_by_faction_leader_ideology = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			OR = {
+				is_core_of = CHI
+				is_core_of = PRC
+			}
+			controller = {
+				faction_leader = {
+					has_government = PREV
+				}
+			}
+		}
+	}
+	name = COLLECTION_CHINA_CORE_STATES_CONTROLLED_BY_FACTION_LEADER_IDEOLOGY
+}
+
+states_in_africa = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_continent = africa
+		}
+	}
+	name = COLLECTION_STATES_IN_AFRICA
+}
+
+faction_states_in_africa = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			is_on_continent = africa
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_AFRICA
+}
+
+states_in_americas = {
+	input = game:all_states
+	operators = {
+		limit = {
+			OR = {
+				is_on_continent = north_america
+				is_on_continent = south_america
+			}
+		}
+	}
+	name = COLLECTION_STATES_IN_AMERICAS
+}
+
+faction_states_in_americas = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			OR = {
+				is_on_continent = north_america
+				is_on_continent = south_america
+			}
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_AMERICAS
+}
+
+states_in_the_baltics = {
+	input = game:all_states
+	operators = {
+		limit = {
+			OR = {
+				region = 37
+				state = 763 
+				state = 784  
+				state = 208  
+				state = 209   
+			}
+		}
+	}
+	name = COLLECTION_STATES_IN_BALTICS
+}
+
+faction_states_in_the_baltics = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			OR = {
+				region = 37
+				state = 763 
+				state = 784  
+				state = 208  
+				state = 209   
+			}
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_BALTICS
+}
+
+states_in_the_nordics = {
+	input = game:all_states
+	operators = {
+		limit = {
+			OR = {
+				region = 275 
+				region = 10
+				region = 11
+				region = 192
+				region = 276
+				region = 191
+				region = 277
+				region = 278
+				region = 13
+				region = 161
+				region = 36 
+				region = 45 
+			}
+		}
+	}
+	name = COLLECTION_STATES_IN_NORDICS
+}
+
+faction_states_in_the_nordics = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			OR = {
+				region = 275 
+				region = 10
+				region = 11
+				region = 192
+				region = 276
+				region = 191
+				region = 277
+				region = 278
+				region = 13
+				region = 161
+				region = 36 
+				region = 45 
+			}
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_NORDICS
+}
+
+states_in_europe = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_continent = europe			
+		}
+	}
+	name = COLLECTION_STATES_IN_EUROPE
+}
+
+faction_states_in_europe = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			is_on_continent = europe			
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_EUROPE
+}
+
+states_in_asia = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_continent = asia
+		}
+	}
+	name = COLLECTION_STATES_IN_ASIA
+}
+
+faction_states_in_asia = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			is_on_continent = asia			
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_ASIA
+}
+
+states_in_middle_east = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_continent = middle_east
+		}
+	}
+	name = COLLECTION_STATES_IN_MIDDLE_EAST
+}
+
+faction_states_in_middle_east = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			is_on_continent = middle_east			
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_STATES_IN_MIDDLE_EAST
+}
+
+states_in_oceania = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_continent = australia
+		}
+	}
+	name = COLLECTION_STATES_IN_OCEANIA
+}
+
+states_in_asia_and_oceania = {
+	input = game:all_states
+	operators = {
+		limit = {
+			OR = {
+				is_on_continent = asia
+				is_on_continent = australia
+			}
+		}
+	}
+	name = COLLECTION_STATES_IN_ASIA_AND_IN_OCEANIA
+}
+faction_states_on_my_continent = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+			is_controlled_by_ROOT_or_ally = yes 
+		}
+	}
+	name = COLLECTION_FACTION_STATES_MY_CONTINENT
+}
+states_on_my_continent = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+		}
+	}
+	name = COLLECTION_STATES_MY_CONTINENT
+}
+non_fascist_controlled_states_on_my_continent = {
+	input = collection:states_on_my_continent
+	operators = {
+		limit = {
+			controller = { NOT = { has_government = fascism } }
+		}
+	}
+	name = COLLECTION_NON_FASCIST_STATES_MY_CONTINENT
+}
+non_communist_controlled_states_on_my_continent = {
+	input = collection:states_on_my_continent
+	operators = {
+		limit = {
+			controller = { NOT = { has_government = communism } }
+		}
+	}
+	name = COLLECTION_NON_COMMUNIST_STATES_MY_CONTINENT
+}
+non_democratic_controlled_states_on_my_continent = {
+	input = collection:states_on_my_continent
+	operators = {
+		limit = {
+			controller = { NOT = { has_government = democratic } }
+		}
+	}
+	name = COLLECTION_NON_DEMOCRATIC_STATES_MY_CONTINENT
+}
+
+states_controlled_by_faction_member_and_core_holder = {
+	input = game:scope
+	operators = {
+		faction_members
+		controlled_states
+		limit = {
+			is_core_of = controller
+		}
+	}
+	name = COLLECTION_STATES_CONTROLLED_BY_FACTION_MEMBER_AND_CORE_HOLDER
+}
+
+the_northern_mandate_states = {
+	input = game:all_states
+	operators = {
+		limit = {
+			CHI_northern_mandate_states = yes
+		}
+	}
+	name = COLLECTION_STATES_IN_ASIA_AND_IN_OCEANIA
+}
+
+the_southern_mandate_states = {
+	input = game:all_states
+	operators = {
+		limit = {
+			CHI_southern_mandate_states = yes
+		}
+	}
+	name = COLLECTION_STATES_IN_ASIA_AND_IN_OCEANIA
+}
+
+the_greater_game_states = {
+	input = game:all_states
+	operators = {
+		limit = {
+			CHI_greater_game_states = yes
+		}
+	}
+	name = COLLECTION_STATES_IN_ASIA_AND_IN_OCEANIA
+}
+
+# New Order in east Asia
+communist_controlled_states_my_continent = {
+	input = game:all_states
+	name = COLLECTION_AMOUNT_OF_COMMUNIST_CONTROLLED_STATES_SAME_CONTINENT
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+			controller = {
+				has_government = communism
+			}
+		}
+	}
+}
+
+countries_my_continent = {
+	input = game:all_countries
+	name = COLLECTION_ALL_SAME_CONTINENT_COUNTRIES
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+		}
+	}
+}
+
+communist_or_capitulated_countries_my_continent = {
+	input = game:all_countries
+	name = COLLECTION_ALL_COMMUNIST_OR_DEFEATED_SAME_CONTINENT_COUNTRIES
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+			OR = {
+				has_government = communism 
+				has_capitulated = yes
+			}
+		}
+	}
+}
+
+
+fascist_controlled_states_my_continent = {
+	input = game:all_states
+	name = COLLECTION_AMOUNT_OF_FASCIST_CONTROLLED_STATES_SAME_CONTINENT
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+			controller = {
+				has_government = fascism
+			}
+		}
+	}
+}
+
+
+anti_communist_controlled_states_my_continent = {
+	input = game:all_states
+	name = COLLECTION_STATES_MY_CONTINENT_CONTROLLED_DEMOCRATIC_FASCIST
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+			controller = {
+				OR = {
+					has_government = fascism
+					has_government = democratic
+				}
+			}
+		}
+	}
+}
+
+anti_fascist_controlled_states_my_continent = {
+	input = game:all_states
+	name = COLLECTION_STATES_MY_CONTINENT_CONTROLLED_DEMOCRATIC_COMMUNIST
+	operators = {
+		limit = {
+			is_on_same_continent_as = ROOT
+			controller = {
+				OR = {
+					has_government = communism
+					has_government = democratic
+				}
+			}
+		}
+	}
+}
+
+
+
+
+# Balkans Factions
+
+controllable_balkan_states = {
+	input = constant:state_groups.balkans
+	name = COLLECTION_FACTION_BALKAN_STATES
+}
+
+faction_controlled_balkan_states = {
+	input = constant:state_groups.balkans
+	operators = {
+		limit = {
+			is_controlled_by_ROOT_or_ally = yes 
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_BALKAN_STATES
+}
+
+# Little Entente
+controllable_central_powers_border_states = {
+	input = constant:state_groups.central_powers_border_states
+	name = COLLECTION_CENTRAL_POWERS_BORDER_STATES
+}
+central_powers_controlled_central_powers_border_states = {
+	input = constant:state_groups.central_powers_border_states
+	operators = {
+		limit = {
+			controller = {
+				NOT = {
+					OR = {
+						original_tag = GER
+						original_tag = AUS
+						original_tag = HUN
+						original_tag = BUL
+					}
+				}
+			}
+		}
+	}
+	name = COLLECTION_CONTROLLED_CENTRAL_POWERS_BORDER_STATES
+
+}
+
+# African Union 
+african_states = {
+	input = game:all_states
+	operators = {
+		limit = {
+			is_on_continent = africa 
+		}
+	}
+}
+
+non_colonial_power_controlled_african_states = {
+	input = collection:african_states 
+	operators = {
+		limit = {
+			controller = {
+				AND = {
+					capital_scope = {
+						is_on_continent = africa 
+					}
+					NOT = {
+						any_country = {
+							has_subject = PREV
+							capital_scope = {
+								NOT = {
+									is_on_continent = africa
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	name = COLLECTION_NON_COLONIAL_CONTROLLED_AFRICAN_STATES
+}
+
+# Habsburgs 
+
+potential_habsburg_countries_total = {
+	input = game:all_countries
+	operators = {
+		limit = {
+			OR = {
+				AND = {
+					exists = yes
+					original_tag = POL
+				}
+				AND = {
+					exists = yes
+					original_tag = HUN
+				}
+				AND = {
+					exists = yes
+					original_tag = AUS
+				}
+				AND = {
+					exists = yes
+					original_tag = CZE
+				}
+				AND = {
+					exists = yes
+					original_tag = UKR
+				}
+				AND = {
+					exists = yes
+					original_tag = SPR
+				}
+				AND = {
+					exists = yes
+					original_tag = MEX
+				}
+				AND = {
+					exists = yes
+					original_tag = TOS
+				}
+				AND = {
+					exists = yes
+					original_tag = LBV
+				}
+				AND = {
+					exists = yes
+					original_tag = CRO
+				}
+			}
+		}
+	}
+}
+
+habsburg_countries_in_our_faction = {
+	input = collection:potential_habsburg_countries_total
+	operators = {
+		limit = {
+			is_in_faction_with = ROOT
+			OR = {
+				has_country_leader = {
+					ruling_only = yes
+					character = HUN_joseph_august_von_habsburg
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = HUN_otto_von_habsburg
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = POL_karl_albrecht
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = CZE_albrecht_franz
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = HUN_vasyl_vyshyvanyi
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = SPA_karl_pius_von_habsburg
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = MEX_maria_de_iturbide
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = TOS_joseph_ferdinand_von_habsburg
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = LBV_robert_von_habsburg
+				}
+				has_country_leader = {
+					ruling_only = yes 
+					character = CRO_joseph_francis
+				}
+			}
+		}
+	}
+}
+
+# Islamic World 
+
+all_islamic_countries = {
+	input = constant:country_groups.islamic_world
+	name = COLLECTION_FACTION_ISLAMIC_COUNTRIES
+}
+
+islamic_faction_members = {
+	input = constant:country_groups.islamic_world
+	operators = {
+		#faction_members
+		limit = {
+			OR = {
+				tag = ROOT
+				is_in_faction_with = ROOT
+			}
+		}
+	}
+	name = COLLECTION_ISLAMIC_FACTION_MEMBERS
+}
+
+# Italian Factions
+
+controllable_mare_nostrum_states = {
+	input = constant:state_groups.mare_nostrum_states
+	name = COLLECTION_FACTION_MARE_NOSTRUM_STATES
+}
+
+faction_controlled_mare_nostrum_states = {
+	input = constant:state_groups.mare_nostrum_states
+	operators = {
+		limit = {
+			is_controlled_by_ROOT_or_ally = yes 
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_MARE_NOSTRUM_STATES
+}
+
+controllable_pax_romana_states = {
+	input = constant:state_groups.pax_romana_states
+	name = COLLECTION_FACTION_PAX_ROMANA_STATES
+}
+
+faction_controlled_pax_romana_states = {
+	input = constant:state_groups.pax_romana_states
+	operators = {
+		limit = {
+			is_controlled_by_ROOT_or_ally = yes 
+		}
+	}
+	name = COLLECTION_FACTION_CONTROLLED_PAX_ROMANA_STATES
+}
+
+
+# Soviet Union related
+comintern_controllable_border_states = {
+	input = constant:state_groups.comintern_starting_border
+	name = COLLECTION_COMINTERN_BORDER_STATES
+
+}
+
+comintern_controlled_border_states = {
+	input = collection:comintern_controllable_border_states
+	name = COLLECTION_CONTROLLED_COMINTERN_BORDER_STATES
+	operators = {
+		limit = {
+			is_controlled_by_ROOT_or_ally = yes 
+		}
+	}
+}
+
+neighboring_states_to_leader = {
+	input = game:all_states
+	name = COLLECTION_NEIGHBORING_STATES
+	operators = {
+		limit = {
+			any_neighbor_state = {
+				is_owned_by = ROOT 
+			}	
+		}
+	}
+}
+
+puppet_controlled_border_states = {
+	input = collection:neighboring_states_to_leader
+	name = COLLECTION_CONTROLLED_PUPPET_BORDER_STATES
+	operators = {
+		limit = {
+			controller = {
+				is_subject_of = ROOT
+			}
+		}
+	}
+}
