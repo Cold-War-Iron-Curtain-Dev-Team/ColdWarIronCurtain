@@ -163,6 +163,7 @@ ConstantBuffer( 3, 32 ) # For arrow shader
 	float fCullingOffset;
 	float vShadowFactor;
 	float vNormalMapFactor;
+	float SeethroughOpacity;
 };
 
 ConstantBuffer( 4, 32 ) # For symbol shader
@@ -443,6 +444,9 @@ PixelShader =
 			vColor.rgb *= GetShadowScaled( vShadowFactor * SHADOW_WEIGHT_TERRAIN, Input.vScreenCoord, ShadowMap );
 			vColor.rgb = ApplyDistanceFog( vColor.rgb, Input.prepos );
 			vColor.rgb = DayNightWithBlend( vColor.rgb, CalcGlobeNormal( Input.prepos.xz ), 0.2f );
+			#ifdef SEETHROUGH
+				vMaskValue *= SeethroughOpacity;
+			#endif
 			return float4( vColor.rgb, vColor.a * vMaskValue );
 		}
 		
@@ -504,8 +508,25 @@ DepthStencilState DepthStencilState
 	StencilEnable = yes
 	FrontStencilFailOp = "stencil_op_keep"
 	FrontStencilDepthFailOp = "stencil_op_keep"
-	FrontStencilPassOp = "stencil_op_incr"
+	FrontStencilPassOp = "stencil_op_replace"
+	FrontStencilFunc = "comparison_not_equal"
+	StencilRef = 1
+	StencilReadMask = 1
+	StencilWriteMask = 1
+}
+
+DepthStencilState DepthStencilStateSeethrough
+{
+	DepthEnable = yes
+	DepthWriteMask = "depth_write_zero"
+	DepthFunction = "comparison_greater"
+	StencilEnable = yes
+	FrontStencilFailOp = "stencil_op_keep"
+	FrontStencilDepthFailOp = "stencil_op_keep"
+	FrontStencilPassOp = "stencil_op_keep"
 	FrontStencilFunc = "comparison_equal"
+	StencilRef = 8
+	StencilReadMask = 8
 }
 
 DepthStencilState NoDepthStencilState
@@ -522,6 +543,36 @@ DepthStencilState DefaultDepthNoStencil
 	StencilEnable = no
 }
 
+DepthStencilState DefaultDepthNoStencilSeethrough
+{
+	DepthEnable = yes
+	DepthWriteMask = "depth_write_zero"
+	DepthFunction = "comparison_greater"
+	StencilEnable = yes
+	FrontStencilFailOp = "stencil_op_keep"
+	FrontStencilDepthFailOp = "stencil_op_keep"
+	FrontStencilPassOp = "stencil_op_keep"
+	FrontStencilFunc = "comparison_equal"
+	StencilRef = 8
+	StencilReadMask = 8
+}
+
+DepthStencilState DefaultDepthStencilNoDepthWrite
+{
+	DepthEnable = yes
+	DepthWriteMask = "depth_write_zero"
+	DepthFunction = "comparison_less_equal"
+
+	StencilEnable = yes
+	FrontStencilFailOp = "stencil_op_keep"
+	FrontStencilDepthFailOp = "stencil_op_keep"
+	FrontStencilPassOp = "stencil_op_replace"
+	FrontStencilFunc = "comparison_not_equal"
+	StencilRef = 1
+	StencilReadMask = 1
+	StencilWriteMask = 1
+}
+
 Effect MapArrowDefault
 {
 	VertexShader = "ArrowVertexShader"
@@ -536,6 +587,13 @@ Effect MapArrowDefaultWithDepth
 	DepthStencilState = "DefaultDepthNoStencil"
 }
 
+Effect MapArrowDefaultWithDepthTestOnly
+{
+	VertexShader = "ArrowVertexShader"
+	PixelShader = "ArrowPixelShader"
+	DepthStencilState = "DefaultDepthStencilNoDepthWrite"
+}
+
 Effect MapArrowNoHeadWidthDepth
 {
 	VertexShader = "ArrowVertexShader"
@@ -544,12 +602,30 @@ Effect MapArrowNoHeadWidthDepth
 	Defines = { "ANIM_TEXTURE" }
 }
 
+Effect MapArrowNoHeadWidthDepthSeethrough
+{
+	VertexShader = "ArrowVertexShader"
+	PixelShader = "ArrowPixelShaderNoHead"
+	DepthStencilState = "DefaultDepthNoStencilSeethrough"
+	BlendState = "BlendState"
+	Defines = { "ANIM_TEXTURE" "SEETHROUGH" }
+}
+
 Effect MapArrowNoHead
 {
 	VertexShader = "ArrowVertexShader"
 	PixelShader = "ArrowPixelShaderNoHead"
 	DepthStencilState = "DepthStencilState"
 	Defines = { "ANIM_TEXTURE" }
+}
+
+Effect MapArrowNoHeadSeethrough
+{
+	VertexShader = "ArrowVertexShader"
+	PixelShader = "ArrowPixelShaderNoHead"
+	DepthStencilState = "DepthStencilStateSeethrough"
+	BlendState = "BlendState"
+	Defines = { "ANIM_TEXTURE" "SEETHROUGH" }
 }
 
 Effect MapSymbolDefault
