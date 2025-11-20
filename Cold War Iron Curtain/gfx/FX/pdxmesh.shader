@@ -216,6 +216,8 @@ VertexStruct VS_OUTPUT_DEBUGNORMAL
 ConstantBuffer( 1, 28 )
 {
 	float4x4 WorldMatrix;
+
+	#// CMeshUserData
 	float4 AtlasCoordinate;
 	float vUVAnimSpeed;
 };
@@ -718,16 +720,42 @@ BlendState BlendStateAlphaTestTrain
 	WriteMask = "RED|GREEN|BLUE"
 }
 
+DepthStencilState DepthStencilStateDisableTransparencyPassthrough
+{
+	DepthEnable = yes
+	StencilEnable = yes
+	FrontStencilFailOp = "stencil_op_keep"
+	FrontStencilDepthFailOp = "stencil_op_keep"
+	FrontStencilPassOp = "stencil_op_replace"
+	FrontStencilFunc = "comparison_always"
+	StencilRef = 4
+	StencilWriteMask = 4
+}
+
+DepthStencilState DepthStencilStateTransparencyPassthrough
+{
+	DepthEnable = yes
+	StencilEnable = yes
+	FrontStencilFailOp = "stencil_op_keep"
+	FrontStencilDepthFailOp = "stencil_op_keep"
+	FrontStencilPassOp = "stencil_op_replace"
+	FrontStencilFunc = "comparison_always"
+	StencilRef = 8
+	StencilWriteMask = 8
+}
+
 Effect PdxMeshStandard
 {
 	VertexShader = "VertexPdxMeshStandard"
 	PixelShader = "PixelPdxMeshStandard"
+	DepthStencilState = "DepthStencilStateDisableTransparencyPassthrough"
 }
 
 Effect PdxMeshStandardSkinned
 {
 	VertexShader = "VertexPdxMeshStandardSkinned"
 	PixelShader = "PixelPdxMeshStandard"
+	DepthStencilState = "DepthStencilStateDisableTransparencyPassthrough"
 }
 
 Effect PdxMeshStandardShadow
@@ -747,7 +775,6 @@ Effect PdxMeshStandardSnow
 {
 	VertexShader = "VertexPdxMeshStandard"
 	PixelShader = "PixelPdxMeshStandard"
-	Defines = { "PDX_GRADIENT_BORDERS" }
 }
 
 Effect PdxMeshStandardSnowShadow
@@ -761,6 +788,7 @@ Effect PdxMeshAdvanced
 {
 	VertexShader = "VertexPdxMeshStandard"
 	PixelShader = "PixelPdxMeshStandard"
+	DepthStencilState = "DepthStencilStateDisableTransparencyPassthrough"
 	Defines = { "EMISSIVE" "PDX_IMPROVED_BLINN_PHONG" "RIM_LIGHT" }
 }
 
@@ -768,6 +796,7 @@ Effect PdxMeshAdvancedSkinned
 {
 	VertexShader = "VertexPdxMeshStandardSkinned"
 	PixelShader = "PixelPdxMeshStandard"
+	DepthStencilState = "DepthStencilStateDisableTransparencyPassthrough"
 	Defines = { "EMISSIVE" "PDX_IMPROVED_BLINN_PHONG" "ATLAS" "RIM_LIGHT"  }
 }
 
@@ -788,7 +817,8 @@ Effect PdxMeshAdvancedSnow
 {
 	VertexShader = "VertexPdxMeshStandard"
 	PixelShader = "PixelPdxMeshStandard"
-	Defines = { "EMISSIVE" "PDX_IMPROVED_BLINN_PHONG" "RIM_LIGHT" "PDX_SNOW" "PDX_GRADIENT_BORDERS" }
+	DepthStencilState = "DepthStencilStateTransparencyPassthrough"
+	Defines = { "EMISSIVE" "PDX_IMPROVED_BLINN_PHONG" "RIM_LIGHT" "PDX_SNOW" }
 }
 
 Effect PdxMeshAdvancedSnowSkinned
@@ -871,7 +901,7 @@ Effect PdxMeshSnow
 {
 	VertexShader = "VertexPdxMeshStandard"
 	PixelShader = "PixelPdxMeshStandard"
-	Defines = { "PDX_SNOW" "PDX_IMPROVED_BLINN_PHONG" "EMISSIVE" "RIM_LIGHT" "PDX_GRADIENT_BORDERS" }
+	Defines = { "PDX_SNOW" "PDX_IMPROVED_BLINN_PHONG" "EMISSIVE" "RIM_LIGHT" }
 }
 
 Effect PdxMeshSnowSkinned
