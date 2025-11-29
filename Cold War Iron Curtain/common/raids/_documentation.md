@@ -1,4 +1,4 @@
-# Raid Categories (outdated)
+# Raid Categories
 ```
 raid_category_id = {
     intel_source = air # The intel type used to detect this raid. air, naval, army or civilian
@@ -8,11 +8,12 @@ raid_category_id = {
     available = {
         # Whether the category should be available (active) or not (country scope)
     }
+    free_targeting = yes # If set, the UI will let you use this category to target any province (as for nuclear raids)
+    # note that raid types still need province = any as the target type
 }
 ```
 
 # Raids
-TODO Raids: Clean up the documentation before release
 ```
 raid_type_id = {
 
@@ -20,6 +21,7 @@ raid_type_id = {
 
 	custom_map_icon = GFX_ref [Optional] - override for the automatic icon lookup (if this is not set, will look for "GFX_raid_type_icon_{raid_name} )" 
     custom_terrain_icon = GFX_ref [Optional] - override for the automatic background based on target province terrain
+	target_loc_key = LOC_KEY #[Optional] - Custom loc key for overriding the target name. Use $LOCATION$ inside the loc key if you want to include the location name (state or VP).
 
 	unit_icon = GFX_ref
 	target_icon = GFX_ref
@@ -29,12 +31,24 @@ raid_type_id = {
 	command_power = 20 # command power allocation cost
 
 	arrow = {
-		type = line # arrow type: line, ballistic, air or naval
+		type = line # arrow type: line, ballistic, air, naval or land
 	}
 
 	unit_model = {
-	    # equipment, transport or convoy
-	    type = equipment # (will use the majority equipment type of the airwing)
+
+		# Entities to use as raid unit models, the game will try to find suitable entity in the following order:
+		#	1. First, a country-specific override, for example: GER_entity_name
+		#	2. Second, a culture-specific override, for example: westerngfx_entity_name
+		#	3. Then, the basic entity: entity_name
+		#	4. If still not found, the game will try to find the default_entity_name
+		entity = entity_name
+		default_entity = default_entity_name
+		
+		# Tells the game to use specific equipment's model as raid unit
+		# NOTE - only air equipment is currently supported!
+		equipment = air_transport
+
+	    start_offset = 15 # offsets the starting position of a unit by an amount, mostly needed so that convoy entities start in the sea and not on the shore
 	    scale = 0.5 # scale of the entity, is also multiplied by the global RAID_UNIT_ENTITY_BASE_SCALE define
 	}
 
@@ -81,8 +95,17 @@ raid_type_id = {
 		# var:target_state and var:target_province can also be used when applicable
 	}
 
-	# Available represents being able to start a raid
+	# Launchable represents being able to start a raid
 	launchable = {
+		# Use FROM to refer to the target country, e.g. to require being at war
+		# var:target_state and var:target_province can also be used when applicable
+	}
+	
+	# Optional launchable trigger
+	# The scope is the country controlling the starting point used for raid, for example:
+	#  - the country that controls the territory where the starting base is located
+	#  - OR the country owning the fleet that is used to start the raid
+	launchable_from = {
 		# Use FROM to refer to the target country, e.g. to require being at war
 		# var:target_state and var:target_province can also be used when applicable
 	}
@@ -96,21 +119,18 @@ raid_type_id = {
 				is_coastal = yes # Optional
 			}
 			state = { <triggers> }
-			
-	target_loc_key = LOC_KEY [Optional] - Custom loc key for overriding the target name. Use $LOCATION$ if you want to include the location name (state or VP).
 	
     # Conditions on the starting point:
     starting_point = {
         types = { air_base, naval_base, rocket_site, carrier, submarine }
+		building_types = { supply_node } # list of building ids or tags
+		allow_faction_buildings = yes # whether buildings on allied territories can be used
     }
 
 	show_target = {  }
 
 	preparation_time = INT # number of days
 	cost = INT # Command Power Allocation
-
-	target_requirements = {  } # air_superiority = percentage / naval_supremacy = percentage (in air region over target / adjacent sea zone) Defaults to NONE
-	target_requirement_time = INT # Number of days
 
 	unit_requirements = {
 		# Battalions...
@@ -135,7 +155,7 @@ raid_type_id = {
         # will be collected after a raid is created
 		transport_plane_equipment = 5
 
-		nukes = 1					# number of nukes (if using nukes)
+		nukes = 1					# number of nukes (if using nukes). See: nuke_type
     }
 
 	additional_equipment = {
@@ -145,7 +165,7 @@ raid_type_id = {
 		# Note: ships (ship hulls) can also be used, and will be primarily be collected from existing fleets
 		ship_hull_light = 5
 
-		nukes = 1					# number of nukes (if using nukes)
+		nukes = 1					# number of nukes (if using nukes). See: nuke_type
 	}
 
 	nuke_type = nuclear_bomb		# type of nuke to use: nuclear_bomb or thermonuclear_bomb
@@ -197,7 +217,7 @@ Map icons can be assigned in the following ways:
 2. A custom scripted icon set through "custom_map_icon = [name]"
 
 In both of the above cases, the system will also try to find a customized icon for the target building type, by appending the building template to the end of the string:
-[1. or 2. from above] + "_" + [building_template_name]
+`[1. or 2. from above] + "_" + [building_template_name]`
 
 # Raid Outcomes
 
@@ -206,9 +226,6 @@ These are defined in the *success_levels* part of the RaidType.
 There are four levels: *failure*, *limited_success*, *success*, and *critical_success*.
 
 The following effects are supported, taking *failure* as an example:
-
-Note that *actor_effects* and *victim_effects* both use the same scope, but separating them allows for
-easily separating them for UI purposes (showing separate lists of how the actor and victim country were affected by the outcome)
 
 ```
 failure = {
@@ -262,6 +279,12 @@ failure = {
 
 ```
 
+Note that *actor_effects* and *victim_effects* both use the same scope, but separating them allows for
+easily separating them for UI purposes (showing separate lists of how the actor and victim country were affected by the outcome)
+
+As another note on the terminology of these outcomes, unfortunately there were some changes to the naming during development which were not properly consolidated in time. 
+**Failure**, **Critical Failure** and **Disaster** all refer to the same thing (the worst outcome).
+
 # Success Chance Formulas & Modifiers
 
 "Success Chance Formulas" are essentially lists of different **modifiers** which can affect the probability of a certain
@@ -284,7 +307,7 @@ scripted in the same way through this formula construct.
 
 - *success* defines the probability of a raid being a success
 - *critical* defines the probability of a successful raid being a critical success (conditional probability)
-- *disaster* defines the probability of a raid being a disaster/critical failure (not conditional)
+- *disaster* defines the probability of a raid being a critical failure (not conditional)
 
 ### List of modifiers:
 - *prep_time*: The preparation progress. Reference values from 0.0 (no preparation) to 1.0 (full preparation).
@@ -293,7 +316,7 @@ scripted in the same way through this formula construct.
 - *resistance*: The amount of resistance in the target state. Reference values from 0 to 100
 - *enemy_units*: The number of enemy divisions in the target province. For province-target missions ONLY.
 - *air_superiority*: The air superiority score (fraction) of the actor country in the target region. Reference values from 0.0 to 1.0
-- *naval_supremacy*: The naval supremacy score (fraction) of the actor country in the target sea zone. Reference values from 0.0 to 1.0
+
 - *interception*: The number of enemy planes executing interception missions in the target region.
 - *intel*: The amount of intel the actor country has on the target. Reference values depend on defines.
 
