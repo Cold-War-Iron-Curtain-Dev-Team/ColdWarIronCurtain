@@ -5,6 +5,6 @@ tags={
 }
 supported_version="1.17.2.0"
 dependencies={
-	#"Cold War Iron Curtain: A World Divided"
-	#"Cold War Iron Curtain Dev Build"
+	"Cold War Iron Curtain: A World Divided"
+	"Cold War Iron Curtain Dev Build"
 }
