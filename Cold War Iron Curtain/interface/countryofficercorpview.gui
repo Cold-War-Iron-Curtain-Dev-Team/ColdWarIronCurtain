@@ -303,6 +303,31 @@ guiTypes = {
 			frame = 1
 		}
 	}
+	
+	containerWindowType = {
+		name = "track_progress_item"
+		
+		iconType = {
+			name = "full_mastery_icon"
+			spriteType = "GFX_neutral_experience"
+			position = { x = 2 y = 0 }
+			alwaystransparent = yes
+			#scale = 1
+		}
+
+		instantTextBoxType = {
+			name = "status_text"
+			position = { x=5 y=-1 }
+			font = "hoi_16mbs"
+			text = "0"
+			#format = center
+			maxWidth = 20
+			maxHeight = 24
+			fixedsize = yes
+			alwaystransparent = yes
+		}
+	}
+					
 
     #### OFFICER CORP MAIN VIEW ####
 
@@ -550,30 +575,40 @@ guiTypes = {
 			position = { x=390 y=80 }
 		}
 	}
-	
-    containerWindowType = {
-        name = "officer_core_view"
-        position = { x = 0 y = 139 }
-        size = { width = 100% height = 100%% }
-        verticalScrollbar = "right_vertical_slider"
-        margin = { top = 13 left = 13 bottom = 10 right = 13 }
+
+	# Note: this UI has a partially dynamic layout, see spirit_row_offset
+	# Note: doctrine buttons for custom doctrine folders can also be added: see the format of e.g. land_doctrine_button
+	# Any containerWindowType inside "officer_core_view" with the name "X_doctrine_button" will automatically be linked to doctrine folder "X"
+	containerWindowType = {
+		name = "officer_core_view"
+		position = { x = 0 y = 139 }
+		size = { width = 100% height = 100%% }
+		verticalScrollbar = "right_vertical_slider"
+		margin = { top = 13 left = 13 bottom = 10 right = 13 }
 		scroll_wheel_factor = 40
 		smooth_scrolling = yes
 
-        background = {
-           name = "Background"
-		   spriteType ="GFX_tiled_window2_1b_border"
-        }
+		background = {
+			name = "Background"
+			spriteType ="GFX_tiled_window2_1b_border"
+		}
 
 		background = {
 			name = "Background"		
 			quadTextureSprite ="GFX_tiled_generic_overlay_bg1"
-		}		
+		}
+
+		positionType = {
+		    # If you have the DLC that enables spirits, each of the sections (army, navy, air) will need to be larger in height
+		    # This defines the extra height added to each section, and thus also the offset added to the start of the next section
+		    name = "spirit_row_offset"
+		    position = { x = 0 y = 56 }
+		}
 		
 		containerWindowType = {
 			name = "army_header"
 			position = { x = 0 y = 5 }
-			size = { width = 98% height = 246 }
+			size = { width = 98% height = 200 }
 			margin = { top = 0 left = 0 bottom = 0 right = 0}
 			
 			background = {
@@ -583,7 +618,8 @@ guiTypes = {
 
 			gridBoxType = {
 				name = "modifiers_grid"
-				position = { x = 4 y = 174 }
+				position = { x = 4 y = -68 }
+				orientation = lower_left
 				size = { width = 500 height = 35 }
 				slotsize = { width = 72 height = 33 }
 				max_slots_horizontal = 7
@@ -620,7 +656,7 @@ guiTypes = {
 
 			containerWindowType = {
 				name = "army_chief"
-				position = { x=90 y=-30 }
+				position = { x=90 y=-26 }
 				size = { width=100%% height=100%% }
 				clipping = no
 
@@ -636,52 +672,50 @@ guiTypes = {
 			}
 
 			containerWindowType = {
-				name = "army_doctrine_button"
-				position = { x=274 y=-14 }
+				name = "land_doctrine_button" # A container window of the format X_doctrine_button will automatically be linked to doctrine folder "X"
+				position = { x=260 y=-11 }
 				size = {width=20 height=20}
 				clipping = no
 
 				buttonType = {
+					#Subdoctrine background
 					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=34 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
+					quadTextureSprite = "GFX_doctrines_officer_corps_button_land"
+					position = { x=28 y=45 }
 				}
 
 				iconType = {
+					#Subdoctrine motive. Also can control what's displayed before subdoctrine is chosen. 
 					name = "icon"
-					position = { x=58 y=72 }
+					position = { x=61 y=69 }
 					Orientation = CENTER
-					spriteType = "GFX_placeholder_bordered"
+					spriteType = "GFX_land_doctrine_medium" # Default icon when no grand doctrine is active
 					alwaystransparent = yes
 					centerposition = yes
 				}
 
 				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=36 y=97 }
+					name = "number_container"
+					position = { x=62 y=95 }
+					Orientation = CENTER
+					spriteType = "GFX_bronze_number_container"
 					alwaystransparent = yes
-					frame = 1
+					centerposition = yes
 				}
 
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=34 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
+				gridBoxType = {
+					#Container for numbers
+					name = track_status_grid
+					position = { x=48 y=98 }
+					slotsize = { width = 16 height = 16 }
+					max_slots_vertical = 1
 				}
 			}
 			
 			buttonType = {
 				name = "commander_roster_army"
 				quadTextureSprite = "GFX_diplo_filter_entry"
-				position = { x=382 y=32 }
+				position = { x=382 y=36 }
 				buttonText = "Placeholder"
 				font = "hoi_16mbs"
 				frame = 2
@@ -692,7 +726,7 @@ guiTypes = {
 			buttonType = {
 				name = "commander_roster_division"
 				quadTextureSprite = "GFX_diplo_filter_entry"
-				position = { x=382 y=66 }
+				position = { x=382 y=70 }
 				buttonText = "Placeholder"
 				font = "hoi_16mbs"
 				frame = 2
@@ -704,8 +738,8 @@ guiTypes = {
 
 		containerWindowType = {
 			name = "navy_header"
-			position = { x = 0 y = 255 }
-			size = { width = 98% height = 213 }
+			position = { x = 0 y = 209 }
+			size = { width = 98% height = 200 }
 			margin = { top = 0 left = 0 bottom = 0 right = 0}
 
 			background = {
@@ -742,7 +776,7 @@ guiTypes = {
 
 			containerWindowType = {
 				name = "navy_chief"
-				position = { x=92 y=26 }
+				position = { x=92 y=30 }
 				size = { width=100%% height=100%% }
 				clipping = no
 
@@ -759,7 +793,8 @@ guiTypes = {
 
 			gridBoxType = {
 				name = "modifiers_grid"
-				position = { x = 7 y = 174 }
+				position = { x = 7 y = -68 }
+				orientation = lower_left
 				size = { width = 500 height = 35 }
 				slotsize = { width = 71 height = 33 }
 				max_slots_horizontal = 7
@@ -768,52 +803,50 @@ guiTypes = {
 			}
 
 			containerWindowType = {
-				name = "navy_doctrine_button"
-				position = { x=240 y=-14 }
+				name = "naval_doctrine_button" # A container window of the format X_doctrine_button will automatically be linked to doctrine folder "X"
+				position = { x=260 y=-10 }
 				size = {width=20 height=20}
 				clipping = no
-
+				
 				buttonType = {
+					#Subdoctrine background
 					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=68 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
+					quadTextureSprite = "GFX_doctrines_officer_corps_button_naval"
+					position = { x=28 y=45 }
 				}
 
 				iconType = {
+					#Subdoctrine motive. Also can control what's displayed before subdoctrine is chosen. 
 					name = "icon"
-					position = { x=92 y=70 }
-					spriteType = "GFX_placeholder_bordered"
+					position = { x=61 y=68 }
+					spriteType = "GFX_naval_doctrine_medium" # Default icon when no grand doctrine is active
 					Orientation = CENTER
 					alwaystransparent = yes
 					centerposition = yes
 				}
 
 				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=71 y=97 }
+					name = "number_container"
+					position = { x=62 y=95 }
+					Orientation = CENTER
+					spriteType = "GFX_bronze_number_container"
 					alwaystransparent = yes
-					frame = 1
+					centerposition = yes
 				}
 
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=69 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
+				gridBoxType = {
+					#Container for numbers
+					name = track_status_grid
+					position = { x=48 y=98 }
+					slotsize = { width = 16 height = 16 }
+					max_slots_vertical = 1
 				}
 			}
 			
 			buttonType = {
 				name = "commander_roster_navy"
 				quadTextureSprite = "GFX_diplo_filter_entry"
-				position = { x=382 y=54 }
+				position = { x=382 y=36 }
 				buttonText = "Placeholder"
 				font = "hoi_16mbs"
 				frame = 2
@@ -821,12 +854,23 @@ guiTypes = {
 				pdx_tooltip_delayed = "COMMANDER_ROSTER_NAVY_TOOLTIP_DELAYED"
 			}
 			
+			buttonType = {
+				name = "naval_headquarter_roster"
+				quadTextureSprite = "GFX_diplo_filter_entry"
+				position = { x=382 y=70 }
+				buttonText = "NAVAL_HEADQUARTER_ROSTER"
+				font = "hoi_16mbs"
+				frame = 2
+				pdx_tooltip = "NAVAL_HEADQUARTER_ROSTER_COLORED"
+				pdx_tooltip_delayed = "NAVAL_HEADQUARTER_ROSTER_DELAYED"
+			}
+			
 		}
 
 		containerWindowType = {
 			name = "air_header"
-			position = { x = 0 y = 472 }
-			size = { width = 98% height = 252 }
+			position = { x = 0 y = 414 }
+			size = { width = 98% height = 200 }
 			margin = { top = 0 left = 0 bottom = 0 right = 0}
 
 			background = {
@@ -855,7 +899,7 @@ guiTypes = {
 				Orientation = "UPPER_LEFT"
 				font = "hoi_20bs"
 				borderSize = {x = 0 y = 0}
-				text = "Space Mission Planner"
+				text = "OFFICER_CORP_AIR_DOCTRINE"
 				maxWidth = 240
 				maxHeight = 20
 				format = left
@@ -863,7 +907,7 @@ guiTypes = {
 
 			containerWindowType = {
 				name = "air_chief"
-				position = { x=94 y=-30 }
+				position = { x=94 y=-26 }
 				size = { width=100%% height=100%% }
 				clipping = no
 
@@ -880,7 +924,8 @@ guiTypes = {
 
 			gridBoxType = {
 				name = "modifiers_grid"
-				position = { x = 6 y = 180 }
+				position = { x = 7 y = -68 }
+				orientation = lower_left
 				size = { width = 500 height = 35 }
 				slotsize = { width = 71 height = 33 }
 				max_slots_horizontal = 7
@@ -889,53 +934,51 @@ guiTypes = {
 			}
 
 			containerWindowType = {
-				name = "air_doctrine_button"
-				position = { x=274 y=-14 }
+				name = "air_doctrine_button" # A container window of the format X_doctrine_button will automatically be linked to doctrine folder "X"
+				position = { x=260 y=-10 }
 				size = {width=20 height=20}
 				clipping = no
 
 				buttonType = {
+					#Subdoctrine background
 					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=34 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
+					quadTextureSprite = "GFX_doctrines_officer_corps_button_air"
+					position = { x=28 y=45 }
 				}
 
 				iconType = {
+					#Subdoctrine motive. Also can control what's displayed before subdoctrine is chosen. 
 					name = "icon"
-					position = { x=59 y=71 }
-					spriteType = "GFX_placeholder_bordered"
+					position = { x=61 y=68 }
+					spriteType = "GFX_air_doctrine_medium" # Default icon when no grand doctrine is active
 					Orientation = CENTER
 					alwaystransparent = yes
 					centerposition = yes
 				}
 
 				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=36 y=97 }
+					name = "number_container"
+					position = { x=62 y=95 }
+					Orientation = CENTER
+					spriteType = "GFX_bronze_number_container"
 					alwaystransparent = yes
-					frame = 1
+					centerposition = yes
 				}
 
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=34 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
+				gridBoxType = {
+					#Container for numbers
+					name = track_status_grid
+					position = { x=48 y=98 }
+					slotsize = { width = 16 height = 16 }
+					max_slots_vertical = 1
 				}
 			}
 		}
 		
 		containerWindowType = {
 			name = "special_forces_header"
-			position = { x = 0 y = 727 }
-			size = { width = 98% height = 127 }
+			position = { x = 0 y = 619 }
+			size = { width = 98% height = 145 }
 			margin = { top = 0 left = 0 bottom = 0 right = 0}
 			
 			background = {
@@ -945,10 +988,10 @@ guiTypes = {
 
 			gridBoxType = {
 				name = "modifiers_grid"
-				position = { x = 4 y = 54 }
+				position = { x = 12 y = 66 }
 				size = { width = 340 height = 35 }
 				slotsize = { width = 72 height = 33 }
-				max_slots_horizontal = 4
+				max_slots_horizontal = 5
 				max_slots_vertical = 3
 				format = "UPPER_LEFT"
 			}
@@ -982,7 +1025,7 @@ guiTypes = {
 
 			containerWindowType = {
 				name = "special_forces_doctrine_button"
-				position = { x=274 y=-12 }
+				position = { x=360 y=0 }
 				size = {width=20 height=20}
 				clipping = no
 
@@ -1027,7 +1070,7 @@ guiTypes = {
 		
 		containerWindowType = {
 			name = "army_spirits_view"
-			position = { x = 18 y = 126 }
+			position = { x = 18 y = 138 }
 			size = {width=95% height=30%}
 			clipping = no
 			
@@ -1045,7 +1088,7 @@ guiTypes = {
 
 		containerWindowType = {
 			name = "navy_spirits_view"
-			position = { x = 18 y = 363 }
+			position = { x = 18 y = 386 }
 			size = { width=95% height=22% }
 			clipping = no
 			scale = 0.9
@@ -1062,7 +1105,7 @@ guiTypes = {
 
 		containerWindowType = {
 			name = "air_spirits_view"
-			position = { x= 18 y=629 }
+			position = { x= 18 y=688 }
 			size = { width=95% height=22% }
 			clipping = no
 			scale = 0.9
@@ -1084,482 +1127,6 @@ guiTypes = {
 			clipping = no
 		}
 	}
-	
-    containerWindowType = {
-        name = "officer_core_view_no_spirit"
-        position = { x = 0 y = 158 }
-        size = { width = 100% height = 100%% }
-        verticalScrollbar = "right_vertical_slider"
-        margin = { top = 13 left = 13 bottom = 10 right = 13 }
-
-        background = {
-           name = "Background"
-            quadTextureSprite ="GFX_tiled_window_1b_border"
-        }
-		
-		containerWindowType = {
-			name = "army_header"
-			position = { x = 0 y = 5 }
-			size = { width = 98% height = 200 }
-			margin = { top = 0 left = 0 bottom = 0 right = 0}
-			
-			background = {
-				name = "Background"
-				quadTextureSprite ="GFX_army_tiled_marble_bg"
-			}
-
-			gridBoxType = {
-				name = "modifiers_grid"
-				position = { x = 4 y = 124 }
-				size = { width = 500 height = 35 }
-				slotsize = { width = 72 height = 33 }
-				max_slots_horizontal = 7
-				max_slots_vertical = 2
-				format = "UPPER_LEFT"
-			}
-
-            iconType ={
-                name ="icon_banner"
-                spriteType = "GFX_officer_corp_bg_banner_army"
-                position = { x=0 y=-12 }
-                Orientation = "UPPER_LEFT"
-				alwaystransparent = yes
-            }
-
-            iconType ={
-                name ="icon_army"
-                spriteType = "GFX_officer_corp_chief_army_icon"
-                position = { x=-4 y=-7 }
-                Orientation = "UPPER_LEFT"
-            }
-
-			instantTextboxType = {
-				name = "text"
-				position = { x=110 y=6 }
-				Orientation = "UPPER_LEFT"
-				font = "hoi_20bs"
-				borderSize = {x = 0 y = 0}
-				text = "OFFICER_CORP_ARMY_DOCTRINE"
-				maxWidth = 240
-				maxHeight = 20
-				format = left
-			}			
-
-			containerWindowType = {
-				name = "army_chief"
-				position = { x=90 y=-30 }
-				size = { width=100%% height=100%% }
-				clipping = no
-
-				gridBoxType = {
-					name = "army_chief_advisors"
-					position = { x = 0 y = 0 }
-					size = { width = 100% height = 100% }
-					slotsize = { width = 70 height = 150 }
-					max_slots_horizontal = 5
-					max_slots_vertical = 1
-					format = "UPPER_LEFT"
-				}
-			}
-
-			containerWindowType = {
-				name = "army_doctrine_button"
-				position = { x=274 y=-8 }
-				size = {width=20 height=20}
-				clipping = no
-
-				buttonType = {
-					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=34 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
-				}
-
-				iconType = {
-					name = "icon"
-					position = { x=58 y=72 }
-					Orientation = CENTER
-					spriteType = "GFX_placeholder_bordered"
-					alwaystransparent = yes
-					centerposition = yes
-				}
-
-				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=36 y=97 }
-					alwaystransparent = yes
-					frame = 1
-				}
-
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=34 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
-				}
-			}
-			
-			buttonType = {
-				name = "commander_roster_army"
-				quadTextureSprite = "GFX_diplo_filter_entry"
-				position = { x=382 y=36 }
-				buttonText = "Placeholder"
-				font = "hoi_16mbs"
-				frame = 2
-				pdx_tooltip = "COMMANDER_ROSTER_ARMY_TOOLTIP"
-				pdx_tooltip_delayed = "COMMANDER_ROSTER_ARMY_TOOLTIP_DELAYED"
-			}
-			
-			buttonType = {
-				name = "commander_roster_division"
-				quadTextureSprite = "GFX_diplo_filter_entry"
-				position = { x=382 y=79				}
-				buttonText = "Placeholder"
-				font = "hoi_16mbs"
-				frame = 2
-				pdx_tooltip = "COMMANDER_ROSTER_DIVISION_TOOLTIP"
-				pdx_tooltip_delayed = "COMMANDER_ROSTER_DIVISION_TOOLTIP_DELAYED"
-			}
-			
-		}
-		
-		containerWindowType = {
-			name = "navy_header"
-			position = { x = 0 y = 215 }
-			size = { width = 98% height = 167 }
-			margin = { top = 0 left = 0 bottom = 0 right = 0}
-
-			background = {
-				name = "Background"
-				quadTextureSprite ="GFX_navy_tiled_marble_bg"
-			}
-
-			iconType ={
-                name ="icon_banner"
-                spriteType = "GFX_officer_corp_bg_banner_navy"
-                position = { x=0 y=-12 }
-                Orientation = "UPPER_LEFT"
-				alwaystransparent = yes
-            }
-
-            iconType ={
-                name ="icon_navy"
-                spriteType = "GFX_officer_corp_chief_naval_icon"
-                position = { x=-4 y=-7 }
-                Orientation = "UPPER_LEFT"
-            }
-
-			instantTextboxType = {
-				name = "text"
-				position = { x=110 y=6 }
-				Orientation = "UPPER_LEFT"
-				font = "hoi_20bs"
-				borderSize = {x = 0 y = 0}
-				text = "OFFICER_CORP_NAVY_DOCTRINE"
-				maxWidth = 240
-				maxHeight = 20
-				format = left
-			}			
-
-			containerWindowType = {
-				name = "navy_chief"
-				position = { x=92 y=28 }
-				size = { width=100%% height=100%% }
-				clipping = no
-
-				gridBoxType = {
-					name = "navy_chief_advisors"
-					position = { x = 0 y = 0 }
-					size = { width = 100% height = 100% }
-					slotsize = { width = 70 height = 150 }
-					max_slots_horizontal = 5
-					max_slots_vertical = 1
-					format = "UPPER_LEFT"
-				}
-			}
-
-			gridBoxType = {
-				name = "modifiers_grid"
-				position = { x = 7 y = 124 }
-				size = { width = 500 height = 35 }
-				slotsize = { width = 71 height = 33 }
-				max_slots_horizontal = 7
-				max_slots_vertical = 2
-				format = "UPPER_LEFT"
-			}
-
-			containerWindowType = {
-				name = "navy_doctrine_button"
-				position = { x=240 y=-8 }
-				size = {width=20 height=20}
-				clipping = no
-
-				buttonType = {
-					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=68 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
-				}
-
-				iconType = {
-					name = "icon"
-					position = { x=92 y=70 }
-					spriteType = "GFX_placeholder_bordered"
-					Orientation = CENTER
-					alwaystransparent = yes
-					centerposition = yes
-				}
-
-				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=71 y=97 }
-					alwaystransparent = yes
-					frame = 1
-				}
-
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=69 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
-				}
-			}
-			
-			buttonType = {
-				name = "commander_roster_navy"
-				quadTextureSprite = "GFX_diplo_filter_entry"
-				position = { x=396 y=476 }
-				buttonText = "Placeholder"
-				font = "hoi_16mbs"
-				frame = 2
-				pdx_tooltip = "COMMANDER_ROSTER_NAVY_TOOLTIP"
-				pdx_tooltip_delayed = "COMMANDER_ROSTER_NAVY_TOOLTIP_DELAYED"
-			}
-			
-		}
-		
-		containerWindowType = {
-			name = "air_header"
-			position = { x = 0 y = 393 }
-			size = { width = 98% height = 207 }
-			margin = { top = 0 left = 0 bottom = 0 right = 0}
-
-			background = {
-				name = "Background"
-				quadTextureSprite ="GFX_air_tiled_marble_bg"
-			}
-
-			iconType ={
-                name ="icon_banner"
-                spriteType = "GFX_officer_corp_bg_banner_air"
-                position = { x=0 y=-12 }
-                Orientation = "UPPER_LEFT"
-				alwaystransparent = yes
-            }
-
-            iconType ={
-                name ="icon_air"
-                spriteType = "GFX_officer_corp_chief_air_icon"
-                position = { x=0 y=-6 }
-                Orientation = "UPPER_LEFT"
-            }
-
-			instantTextboxType = {
-				name = "text"
-				position = { x= 110 y=6 }
-				Orientation = "UPPER_LEFT"
-				font = "hoi_20bs"
-				borderSize = {x = 0 y = 0}
-				text = "OFFICER_CORP_AIR_DOCTRINE"
-				maxWidth = 240
-				maxHeight = 20
-				format = left
-			}			
-
-			containerWindowType = {
-				name = "air_chief"
-				position = { x=94 y=-28 }
-				size = { width=100%% height=100%% }
-				clipping = no
-
-				gridBoxType = {
-					name = "air_chief_advisors"
-					position = { x = 0 y = 0 }
-					size = { width = 100% height = 100% }
-					slotsize = { width = 70 height = 150 }
-					max_slots_horizontal = 5
-					max_slots_vertical = 1
-					format = "UPPER_LEFT"
-				}
-			}
-
-			gridBoxType = {
-				name = "modifiers_grid"
-				position = { x = 6 y = 130 }
-				size = { width = 500 height = 35 }
-				slotsize = { width = 71 height = 33 }
-				max_slots_horizontal = 7
-				max_slots_vertical = 2
-				format = "UPPER_LEFT"
-			}
-
-			containerWindowType = {
-				name = "air_doctrine_button"
-				position = { x=274 y=-12 }
-				size = {width=20 height=20}
-				clipping = no
-
-				buttonType = {
-					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=34 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
-				}
-
-				iconType = {
-					name = "icon"
-					position = { x=59 y=71 }
-					spriteType = "GFX_placeholder_bordered"
-					Orientation = CENTER
-					alwaystransparent = yes
-					centerposition = yes
-				}
-
-				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=36 y=97 }
-					alwaystransparent = yes
-					frame = 1
-				}
-
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=34 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
-				}
-			}
-		}
-		
-		containerWindowType = {
-			name = "special_forces_header"
-			position = { x = 0 y = 611 }
-			size = { width = 98% height = 127 }
-			margin = { top = 0 left = 0 bottom = 0 right = 0}
-			
-			background = {
-				name = "Background"
-				quadTextureSprite ="GFX_army_tiled_marble_bg"
-			}
-
-			gridBoxType = {
-				name = "modifiers_grid"
-				position = { x = 4 y = 54 }
-				size = { width = 340 height = 35 }
-				slotsize = { width = 72 height = 33 }
-				max_slots_horizontal = 4
-				max_slots_vertical = 3
-				format = "UPPER_LEFT"
-			}
-
-            iconType ={
-                name ="icon_banner"
-                spriteType = "GFX_officer_corp_bg_banner_army"
-                position = { x=0 y=-12 }
-                Orientation = "UPPER_LEFT"
-				alwaystransparent = yes
-            }
-
-            iconType ={
-                name ="icon_army"
-                spriteType = "GFX_officer_corp_special_forces_icon"
-                position = { x=-4 y=-4 }
-                Orientation = "UPPER_LEFT"
-            }
-
-			instantTextboxType = {
-				name = "text"
-				position = { x=110 y=6 }
-				Orientation = "UPPER_LEFT"
-				font = "hoi_20bs"
-				borderSize = {x = 0 y = 0}
-				text = "OFFICER_CORP_SPECIAL_FORCES_DOCTRINE"
-				maxWidth = 240
-				maxHeight = 20
-				format = left
-			}			
-
-			containerWindowType = {
-				name = "special_forces_doctrine_button"
-				position = { x=274 y=-12 }
-				size = {width=20 height=20}
-				clipping = no
-
-				buttonType = {
-					name = "button"
-					quadTextureSprite = "GFX_technology_land_doctrine_folder_available_item_bg"
-					position = { x=34 y=47 }
-					#buttonText = "Doctrines"
-					font = "hoi_24header"
-				}
-
-				iconType = {
-					name = "icon"
-					position = { x=58 y=72 }
-					Orientation = CENTER
-					spriteType = "GFX_placeholder_bordered"
-					alwaystransparent = yes
-					centerposition = yes
-				}
-
-				iconType = {
-					name = "nb_doctrine_unlocked_bg"
-					spriteType = "GFX_topbar_alert_bg"
-					position = { x=36 y=97 }
-					alwaystransparent = yes
-					frame = 1
-				}
-
-				instantTextBoxType = {
-					name ="nb_doctrine_unlocked"
-					position = { x=34 y=97 }
-					font = "hoi_16mbs"
-					text = "0"
-					format = center
-					maxWidth = 20
-					maxHeight = 24
-					fixedsize = yes
-				}
-			}
-			
-		}
-
-		containerWindowType = {
-			name = "prefered_tactics"
-			position = { x=2% y=400 }
-			size = {width=95% height=20%}
-			clipping = no
-		}
-	}
-	
 	} # END OF countryofficercorpview
 
     #### SPIRITS ####
@@ -1818,7 +1385,7 @@ guiTypes = {
 
 	containerWindowType = {
 		name = "air_force_command_spirit_entry"
-		position = { x = 60 y = -102 }
+		position = { x = 151 y = -88 }
 		size = { width = 150 height = 66 }
 		clipping = no
 
@@ -1860,7 +1427,7 @@ guiTypes = {
 
 	containerWindowType = {
 		name = "air_force_spirit_entry"
-		position = { x = 60 y = -102 }
+		position = { x = 133 y = -88 }
 		size = { width = 150 height = 66 }
 		clipping = no
 
@@ -1902,7 +1469,7 @@ guiTypes = {
 
 	containerWindowType = {
 		name = "air_force_academy_spirit_entry"
-		position = { x = 62 y = -102 }
+		position = { x = 62 y = -42 }
 		size = { width = 150 height = 66 }
 		clipping = no
 
@@ -1917,13 +1484,6 @@ guiTypes = {
 			centerposition = yes
 		}
 
-		iconType = {
-			name = "air_force_academy_spirit_glow"
-			position = { x = 94 y = 45 }
-			spriteType = "GFX_spirit_glow"
-			centerposition = yes
-			alwaystransparent = yes
-		}
 		iconType = {
 			name = "icon_background"
 			position = { x = 96 y = 33 }
@@ -1945,11 +1505,11 @@ guiTypes = {
 
 	containerWindowType = {
 		name = "spirit_window"
-		size = { width=500 height=593 }
+		size = { width=500 height=658 }
 		show_sound = open_sub_window
 		moveable = yes
 		#orientation = left
-		position = { x = 790 y = 377 }
+		position = { x = 790 y = 409 }
 		origo = center
 
 		background = {
@@ -1959,7 +1519,7 @@ guiTypes = {
 		
 		buttonType = {
 			name = "icon_background_army"
-			position = { x = -270 y = 64 }
+			position = { x = -270 y = 50 }
 			size = { x = 520 y = 66 }
 			quadTextureSprite = "GFX_spirit_banner_decoration_army"
 			format = center
@@ -1969,7 +1529,7 @@ guiTypes = {
 		
 		buttonType = {
 			name = "icon_background_navy"
-			position = { x = -265 y = 64 }
+			position = { x = -265 y = 50 }
 			size = { x = 508 y = 66 }
 			quadTextureSprite = "GFX_spirit_banner_decoration_navy"
 			format = center
@@ -1979,17 +1539,27 @@ guiTypes = {
 
 		buttonType = {
 			name = "icon_background_air"
-			position = { x = -260 y = 68 }
+			position = { x = -260 y = 50 }
 			size = { x = 500 y = 66 }
 			quadTextureSprite = "GFX_spirit_banner_decoration_air"
 			format = center
 			orientation = "center_up"
 			alwaystransparent = yes
 		}
-
+		
+		buttonType = {
+			name = "icon_inherited_spirit_bg"
+			position = { x = -49 y = 32 }
+			spriteType = "GFX_officer_corp_spirit_icon_strip"
+			scale = 0.75
+			format = center
+			orientation = "center_up"
+			alwaystransparent = yes
+		}
+		
 		instantTextboxType = {
 			name = "title"
-			position = { x = -308 y = 5 }
+			position = { x = -308 y = 2 }
 			font = "hoi_24header"
 			text = "ARMY_ARMY_LABEL"
 			maxWidth = 600
@@ -2000,7 +1570,7 @@ guiTypes = {
 
 		instantTextboxType = {
 			name = "switch"
-			position = { x = -308 y = 32 }
+			position = { x = -308 y = 24 }
 			font = "hoi_18b"
 			text = "Switch out Henschel"
 			maxWidth = 600
@@ -2011,7 +1581,7 @@ guiTypes = {
 
 		containerWindowType = {
 			name = "ideas"
-			position = { x = 0 y = 114 }
+			position = { x = 0 y = 98 }
 			size = { width=100% height=100%% }
 
 			containerWindowType = {
@@ -2044,16 +1614,6 @@ guiTypes = {
 					format = "UPPER_LEFT"
 				}
 			}
-		}
-		
-		buttonType = {
-			name = "icon_inherited_spirit_bg"
-			position = { x = -49 y = 46 }
-			spriteType = "GFX_officer_corp_spirit_icon_strip"
-			scale = 0.75
-			format = center
-			orientation = "center_up"
-			alwaystransparent = yes
 		}
 		
 		buttonType = {
@@ -2774,6 +2334,94 @@ guiTypes = {
 			}
 		}
 
+		instantTextboxType = {
+			name = "cost"
+			position = { x = 80 y = 47 }
+			font = "hoi_16mbs"
+			text = ""
+			maxWidth = 142
+			maxHeight = 10
+			format = right
+			alwaystransparent = yes
+		}
+
+		instantTextboxType = {
+			name = "stats"
+			position = { x = 300 y = 32 }
+			font = "hoi_16mbs"
+			text = ""
+			maxWidth = 142
+			maxHeight = 10
+			format = center
+			alwaystransparent = yes
+		}
+	}
+
+	containerWindowType = {
+		name = "faction_intel_agency_char_view_item"
+		size = { width = 231 height = 74 }
+		clipping = no
+			
+		background = {
+			name = "Background"
+			quadTextureSprite ="GFX_tiled_window2_1b_border"
+		}
+
+		buttonType = {
+			name = "button"
+			position = { x = 0 y = 0 }
+			spriteType = "GFX_idea_entry_bg_2"
+			clicksound = click_default
+		}
+			
+		iconType = {
+			name = "icon"
+			position = { x = 42 y = 38 }
+			spriteType = "GFX_placeholder_bordered"
+			centerposition = yes
+			alwaystransparent = yes
+		}
+
+		iconType = {
+			name = "idea_traits"
+			position = { x = 53 y = 51 }
+			spriteType = "GFX_idea_traits_strip"
+			centerposition = yes
+			alwaystransparent = yes
+			frame = 1
+		}
+
+		containerWindowType = {
+		    name = "traits_container"
+		    position = { x = 76 y = 0 }	
+		    show_position = { x = 0 y = 0 }
+			size = { width=170 height=100%% }
+			
+			instantTextboxType = {
+				name = "name"
+				position = { x = 0 y = 10 }
+				font = "hoi_18mbs"
+				fixedsize = yes			
+				text = ""
+				maxWidth = 150
+				maxHeight = 13
+				format = left
+				alwaystransparent = yes			
+			}
+
+			instantTextboxType = {
+				name = "traits"
+				position = { x = 0 y = 28 }
+				font = "hoi_16mbs"
+				fixedsize = yes			
+				text = ""
+				maxWidth = 140
+				maxHeight = 100%%
+				format = left
+				alwaystransparent = yes			
+			}
+		}
+		
 		instantTextboxType = {
 			name = "cost"
 			position = { x = 80 y = 47 }
