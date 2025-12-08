@@ -99,12 +99,12 @@ NDefines.NGame.START_DATE = "1945.5.23.12"
 
 NDefines.NMilitary.MAX_DIVISION_SUPPORT_WIDTH = 2 -- Max width of support in division designer.
 NDefines.NMilitary.MAX_DIVISION_SUPPORT_HEIGHT = 5 -- Max width of support in division designer.
-NDefines.NMilitary.MAX_ARMY_EXPERIENCE = 5000;
-NDefines.NMilitary.MAX_NAVY_EXPERIENCE = 5000;
-NDefines.NMilitary.MAX_AIR_EXPERIENCE = 5000;
+NDefines.NMilitary.MAX_ARMY_EXPERIENCE = 1000;
+NDefines.NMilitary.MAX_NAVY_EXPERIENCE = 1000;
+NDefines.NMilitary.MAX_AIR_EXPERIENCE = 1000;
 NDefines.NMilitary.CORPS_COMMANDER_ARMIES_CAP = -1
-NDefines.NMilitary.CORPS_COMMANDER_DIVISIONS_CAP = 17
-NDefines.NMilitary.FIELD_MARSHAL_DIVISIONS_CAP = 20
+NDefines.NMilitary.CORPS_COMMANDER_DIVISIONS_CAP = 15
+NDefines.NMilitary.FIELD_MARSHAL_DIVISIONS_CAP = 30
 NDefines.NMilitary.BASE_CAPTURE_EQUIPMENT_RATIO = 0.05
 NDefines.NMilitary.BASE_DIVISION_BRIGADE_GROUP_COST = 3 	--Base cost to unlock a regiment slot,
 NDefines.NMilitary.BASE_DIVISION_BRIGADE_CHANGE_COST = 3	--Base cost to change a regiment column.
@@ -130,7 +130,7 @@ NDefines.NTechnology.BASE_TECH_COST = 100 -- Multiplied by tech cost, then years
 NDefines.NTrade.RELATION_TRADE_FACTOR = 5 -- Trade factor is modified by Opinion value times this
 
 NDefines.NFocus.FOCUS_POINT_DAYS = 5 -- Each point takes a week
-NDefines.NFocus.MAX_SAVED_FOCUS_PROGRESS = 15 -- This much progress can be saved while not having a focus selected
+NDefines.NFocus.MAX_SAVED_FOCUS_PROGRESS = 10 -- This much progress can be saved while not having a focus selected
 
 NDefines.NGame.LAG_DAYS_FOR_LOWER_SPEED = 30
 NDefines.NGame.LAG_DAYS_FOR_PAUSE = 50
