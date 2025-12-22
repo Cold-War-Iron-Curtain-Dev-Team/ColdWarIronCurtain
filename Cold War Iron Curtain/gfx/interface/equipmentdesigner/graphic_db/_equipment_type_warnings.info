@@ -1,0 +1,50 @@
+# Equipment Graphic Database Warnings - "Unknown equipment type" Errors
+
+## Issue Description
+The game logs warnings about "Unknown equipment type" for equipment types with numeric suffixes such as:
+- `cv_small_plane_airframe`, `cv_small_plane_airframe_0` through `cv_small_plane_airframe_4`
+- `small_plane_airframe_0` through `small_plane_airframe_4`
+- `medium_plane_airframe_0` through `medium_plane_airframe_4`
+- `large_plane_airframe_0` through `large_plane_airframe_4`
+- `light_tank_chassis_0` through `light_tank_chassis_3`
+- `medium_tank_chassis_0` through `medium_tank_chassis_3`
+- `heavy_tank_chassis_0` through `heavy_tank_chassis_3`
+- `super_heavy_tank_chassis`
+- `modern_tank_chassis`
+- And various other chassis and airframe variants
+
+## Root Cause
+1. **Static vs Dynamic Equipment Types**: 
+   - Base archetypes like `small_plane_airframe`, `light_tank_chassis`, etc. exist as static definitions in equipment files
+   - Variants with numeric suffixes (e.g., `small_plane_airframe_0`, `light_tank_chassis_2`) are **dynamically generated** when players design equipment using the plane/tank designer
+
+2. **MIO Equipment Groups Reference**:
+   - The file `common/equipment_groups/mio_equipment_groups.txt` references these numeric-suffixed types for Military Industrial Organization categorization
+   - These references are valid for runtime gameplay but the types don't exist as static definitions
+
+3. **Graphic Database Lookup**:
+   - The equipment graphic database system tries to look up graphics for all referenced equipment types during game initialization
+   - Since these dynamically-generated types don't exist yet, the system logs "Unknown equipment type" warnings
+   - The mod's graphic database files are empty, so the base game's graphic database is used, which also references these types
+
+## Resolution
+**These warnings are safe to ignore.** They occur because:
+- The equipment types will be created dynamically when players design equipment
+- The graphic database will handle these types at runtime through archetype inheritance
+- The warnings don't affect gameplay functionality
+
+## Technical Details
+- Equipment types are defined in: `common/units/equipment/`
+- MIO equipment groups are in: `common/equipment_groups/mio_equipment_groups.txt`
+- Graphic database files are in: `gfx/interface/equipmentdesigner/graphic_db/`
+- Documentation: See `gfx/interface/equipmentdesigner/graphic_db/_documentation.info`
+
+## Note
+If these warnings become problematic in the future, potential solutions would be:
+1. Remove numeric-suffixed references from MIO equipment groups (may affect MIO functionality)
+2. Create static definitions for all variants (massive undertaking, not recommended)
+3. Suppress warnings in game code (requires engine modification, not moddable)
+
+For now, these warnings are expected behavior and can be safely ignored.
+
+
