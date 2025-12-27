@@ -248,8 +248,12 @@ indochina_struggle_economic_idea_display = {
 }
 indochina_struggle_ending_cleanup = {
     every_country = {
-        remove_from_array = {
-            country_politics_list^i = 27
+        # Remove value 27 from country_politics_list if it exists
+        if = {
+            limit = {
+                is_in_array = { array = country_politics_list value = 27 }
+            }
+            remove_from_array = { array = country_politics_list value = 27 }
         }
         remove_ideas = STRUGGLE_INDO_ECON_LEVEL_8
         remove_ideas = STRUGGLE_INDO_ECON_LEVEL_7
@@ -311,9 +315,38 @@ indochina_struggle_kuomintang_victory = {
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.7
 }
+# Centralized Geneva Conference Unlock Effect
+# This unlocks/bypasses focuses and decisions when Geneva Conference becomes available
+# This does NOT trigger the ending - that happens when player clicks ending in GUI
+# All focus trees and decisions should check geneva_conference_available_trigger to unlock/bypass
+indochina_struggle_unlock_geneva_conference = {
+	# Set the global flag that all systems check for availability
+	set_global_flag = Geneva_Conference
+	
+	# Note: Phase is NOT changed here - that happens when ending is triggered via GUI
+	# Note: Focuses/decisions should use geneva_conference_available_trigger to unlock/bypass
+	# Note: The actual ending effect (indochina_struggle_run_geneva_ending_effect) is called from GUI
+}
+
 indochina_struggle_run_geneva_ending_effect = {
+	# This is called when player clicks Geneva ending in GUI
+	# First unlock Geneva Conference (makes focuses/decisions available)
+	indochina_struggle_unlock_geneva_conference = yes
+	
+	# Set phase to Geneva Conference phase (11)
+	set_variable = { global.Indochina_War_Active_Phase = 11 }
+	
+	# Run cleanup and fire ending event
     indochina_struggle_ending_cleanup = yes
-    news_event = Indochina_Struggle_Ending.8
+    if = {
+		limit = {
+			country_exists = PQC
+		}
+		news_event = Indochina_Struggle_Ending.11
+	}
+	else = {
+		news_event = Indochina_Struggle_Ending.8
+	}
 }
 indochina_struggle_run_geneva_ending_alternate_effect = {
     indochina_struggle_ending_cleanup = yes

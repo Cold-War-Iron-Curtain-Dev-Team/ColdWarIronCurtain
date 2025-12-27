@@ -85,8 +85,32 @@ indochina_struggle_ending_kuomintang_victory_trigger = {
 		}
 	}
 }
+# Centralized Geneva Conference Trigger
+# This is the single source of truth for when Geneva Conference should be available
 indochina_struggle_ending_geneva_trigger = {
-	always = no
+	# Geneva Conference can be triggered when:
+	# 1. Phase reaches Low Tension (8) - de-escalation path
+	# 2. OR date is after 1954.7.1 (historical trigger)
+	# 3. AND struggle hasn't ended yet
+	NOT = { has_global_flag = Indochina_War_Over }
+	OR = {
+		check_variable = { global.Indochina_War_Active_Phase = 8 }
+		AND = {
+			date > 1954.7.1
+			check_variable = { global.Indochina_War_Active_Phase < 9 }
+		}
+	}
+}
+
+# Centralized trigger to check if Geneva Conference has been triggered
+geneva_conference_available_trigger = {
+	has_global_flag = Geneva_Conference
+}
+
+# Centralized trigger to check if Geneva Conference should be available (before it's triggered)
+geneva_conference_should_be_available_trigger = {
+	indochina_struggle_ending_geneva_trigger = yes
+	NOT = { has_global_flag = Geneva_Conference }
 }
 indochina_struggle_ending_never_ending_trigger = {
 	always = no
