@@ -1148,10 +1148,106 @@ INO_Approval_Decrease_Rating = {
     }
 }
 
-INO_PM_TEST = {
-    INO = {
-        add_dynamic_modifier = {
-			modifier = INO_Approval_Rate_dynamic
-		}
+#Documentation for the dumbfuck
+#INO_Army_TNI - Army approval
+#INO_Navy_TNI - Navy approval
+#INO_Air_TNI - Air Force approval
+#INO_Police_TNI - Police approval
+#INO_TNI_Approval - Overall Approval
+#Workers and Peasants (Idk how you want this to be made)
+#INO_Max_Change_TNI - Max Change for all factions (set this between 0-1) (If you want this to be variable for each faction code it yourself yuri)
+###WEIGHTS
+#INO_Army_TNI_Weight - Army weight
+#INO_Navy_TNI_Weight - Navy weight
+#INO_Air_TNI_Weight - Air Force weight
+#INO_Police_TNI_Weight - Police weight
+##THE WEIGHTS SHOULD ALL ADD UP TO 1 OR IT WILL BREAK (Or not, we can talk about and recode this later)
+###TEMP
+#INO_Army_TNI_Temp - Army approval change
+#INO_Navy_TNI_Temp - Navy approval change
+#INO_Air_TNI_Temp - Air Force approval change
+#INO_Police_TNI_Temp - Police approval change
+#INO_Army_TNI_Weighted_Temp - weighted Army approval change
+#INO_Navy_TNI_Weighted_Temp - weighted Navy approval change
+#INO_Air_TNI_Weighted_Temp - weighted Air Force approval change
+#INO_Police_TNI_Weighted_Temp - weighted Police approval change
+#INO_Max_Change_TNI_temp - temp value for max change since paradox is fucking stupid
+#INO_TNI_Approval_temp - How much overall approval can be changed
+INO_Armed_Forces_Change = {
+	custom_effect_tooltip = INO_TNI_Approval_TT #Just use the temp values omg
+	
+	set_temp_variable = { INO_Max_Change_TNI_temp = INO_Max_Change_TNI }
+	multiply_temp_variable = { INO_Max_Change_TNI_temp = 10 }
+	
+	set_variable_to_random = {
+		var = INO_Army_TNI_Temp
+		max = INO_Max_Change_TNI_temp
+	}
+	set_variable_to_random = {
+		var = INO_Navy_TNI_Temp
+		max = INO_Max_Change_TNI_temp
+	}
+	set_variable_to_random = {
+		var = INO_Air_TNI_Temp
+		max = INO_Max_Change_TNI_temp
+	}
+	set_variable_to_random = {
+		var = INO_Police_TNI_Temp
+		max = INO_Max_Change_TNI_temp
+	}
+	
+	divide_temp_variable = { INO_Army_TNI_Temp = 10 }
+	divide_temp_variable = { INO_Navy_TNI_Temp = 10 }
+	divide_temp_variable = { INO_Air_TNI_Temp = 10 }
+	divide_temp_variable = { INO_Police_TNI_Temp = 10 }
+	
+    add_to_variable = {
+        INO_Army_TNI = INO_Army_TNI_Temp
     }
+    add_to_variable = {
+        INO_Air_TNI = INO_Air_TNI_Temp
+    }
+    add_to_variable = {
+        INO_Navy_TNI = INO_Navy_TNI_Temp
+    }
+	add_to_variable = {
+        INO_Police_TNI = INO_Police_TNI_Temp
+    }
+	##Calculate the Weighted Average for tooltip
+	set_temp_variable = { INO_Army_TNI_Weighted_Temp = INO_Army_TNI_Temp }
+	set_temp_variable = { INO_Navy_TNI_Weighted_Temp = INO_Navy_TNI_Temp }
+	set_temp_variable = { INO_Air_TNI_Weighted_Temp = INO_Air_TNI_Temp }
+	set_temp_variable = { INO_Police_TNI_Weighted_Temp = INO_Police_TNI_Temp }
+	
+	multiply_temp_variable = { INO_Army_TNI_Weighted_Temp = INO_Army_TNI_Weight }
+	multiply_temp_variable = { INO_Navy_TNI_Weighted_Temp = INO_Navy_TNI_Weight }
+	multiply_temp_variable = { INO_Air_TNI_Weighted_Temp = INO_Air_TNI_Weight }
+	multiply_temp_variable = { INO_Police_TNI_Weighted_Temp = INO_Police_TNI_Weight }
+	
+	set_temp_variable = { INO_TNI_Approval_temp = 0 }
+	add_to_temp_variable = { INO_TNI_Approval_temp = INO_Army_TNI_Weighted_Temp }
+	add_to_temp_variable = { INO_TNI_Approval_temp = INO_Navy_TNI_Weighted_Temp }
+	add_to_temp_variable = { INO_TNI_Approval_temp = INO_Air_TNI_Weighted_Temp }
+	add_to_temp_variable = { INO_TNI_Approval_temp = INO_Police_TNI_Weighted_Temp }
+	
+	#Recalculate actual approval (or not if you want to optimize, again its 4am and i havent slept in 16 hours)
+	INO_Armed_Forces_Recalculate_Approval = yes
+}
+
+INO_Armed_Forces_Recalculate_Approval = {
+    set_temp_variable = { INO_Army_TNI_Weighted_Temp = INO_Army_TNI }
+	set_temp_variable = { INO_Navy_TNI_Weighted_Temp = INO_Navy_TNI }
+	set_temp_variable = { INO_Air_TNI_Weighted_Temp = INO_Air_TNI }
+	set_temp_variable = { INO_Police_TNI_Weighted_Temp = INO_Police_TNI }
+	
+	add_to_temp_variable = { INO_Army_TNI_Weighted_Temp = INO_Army_TNI_Weight }
+	add_to_temp_variable = { INO_Navy_TNI_Weighted_Temp = INO_Navy_TNI_Weight }
+	add_to_temp_variable = { INO_Air_TNI_Weighted_Temp = INO_Air_TNI_Weight }
+	add_to_temp_variable = { INO_Police_TNI_Weighted_Temp = INO_Police_TNI_Weight }
+	
+	set_variable = { INO_TNI_Approval = 0 }
+	add_to_variable = { INO_TNI_Approval = INO_Army_TNI_Weighted_Temp }
+	add_to_variable = { INO_TNI_Approval = INO_Navy_TNI_Weighted_Temp }
+	add_to_variable = { INO_TNI_Approval = INO_Air_TNI_Weighted_Temp }
+	add_to_variable = { INO_TNI_Approval = INO_Police_TNI_Weighted_Temp }
 }
