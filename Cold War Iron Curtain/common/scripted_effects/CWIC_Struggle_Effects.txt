@@ -14,6 +14,94 @@ indochina_struggle_starting_idea_setup = {
     }
 }
 
+indochina_struggle_invite_countries_to_geneva = {
+    if = {
+        limit = { country_exists = FRA }
+        FRA = {
+            country_event = { id = Geneva_Conference_Invitation.1 days = 1 }
+        }
+    }
+    if = {
+        limit = { country_exists = VIN }
+        VIN = {
+            country_event = { id = Geneva_Conference_Invitation.2 days = 1 }
+        }
+    }
+    if = {
+        limit = { country_exists = USA }
+        USA = {
+            country_event = { id = Geneva_Conference_Invitation.3 days = 1 }
+        }
+    }
+    if = {
+        limit = { country_exists = VIE }
+        VIE = {
+            country_event = { id = Geneva_Conference_Invitation.4 days = 1 }
+        }
+    }
+}
+
+indochina_struggle_check_geneva_negotiations_complete = {
+    set_temp_variable = { negotiations_complete_count = 0 }
+    
+    if = {
+        limit = {
+            OR = {
+                AND = {
+                    country_exists = FRA
+                    FRA = { has_country_flag = FRA_Geneva_Negotiations_Complete }
+                }
+                NOT = { country_exists = FRA }
+            }
+        }
+        add_to_temp_variable = { negotiations_complete_count = 1 }
+    }
+    if = {
+        limit = {
+            OR = {
+                AND = {
+                    country_exists = VIN
+                    VIN = { has_country_flag = VIN_Geneva_Negotiations_Complete }
+                }
+                NOT = { country_exists = VIN }
+            }
+        }
+        add_to_temp_variable = { negotiations_complete_count = 1 }
+    }
+    if = {
+        limit = {
+            OR = {
+                AND = {
+                    country_exists = USA
+                    USA = { has_country_flag = USA_Geneva_Negotiations_Complete }
+                }
+                NOT = { country_exists = USA }
+            }
+        }
+        add_to_temp_variable = { negotiations_complete_count = 1 }
+    }
+    if = {
+        limit = {
+            OR = {
+                AND = {
+                    country_exists = VIE
+                    VIE = { has_country_flag = VIE_Geneva_Negotiations_Complete }
+                }
+                NOT = { country_exists = VIE }
+            }
+        }
+        add_to_temp_variable = { negotiations_complete_count = 1 }
+    }
+    
+    if = {
+        limit = {
+            check_variable = { temp.negotiations_complete_count = 4 }
+            has_global_flag = Geneva_Conference_Preparations
+        }
+        set_global_flag = Geneva_Conference_Negotiations_Complete
+    }
+}
+
 indochina_struggle_recalculate_total_anti_communist_score = {
     FRA = {
         set_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProFranceScore }
@@ -381,11 +469,126 @@ indochina_struggle_unlock_geneva_conference = {
 indochina_struggle_run_geneva_ending_effect = {
 	indochina_struggle_unlock_geneva_conference = yes
 	set_variable = { global.Indochina_War_Active_Phase = 11 }
-    indochina_struggle_ending_cleanup = yes
-    if = {
-		limit = {
-			country_exists = PQC
+	set_variable = { View_Indochina_Struggle = 0 }
+	set_variable = { View_Indochina_Struggle_Startup = 0 }
+	
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			every_controlled_state = {
+				limit = { is_core_of = LAO }
+				remove_core_of = LOS
+				transfer_state_to = LAO
+			}
 		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			every_controlled_state = {
+				limit = { is_core_of = LAO }
+				remove_core_of = LOS
+				transfer_state_to = LAO
+			}
+		}
+	}
+	
+	if = { limit = { country_exists = VIN } white_peace = VIN }
+	if = { limit = { country_exists = NLF } white_peace = NLF }
+	if = { limit = { country_exists = LAO } white_peace = LAO }
+	
+	if = { limit = { country_exists = CAM } set_autonomy = { target = CAM autonomy_state = autonomy_free } }
+	if = { limit = { country_exists = VIE } set_autonomy = { target = VIE autonomy_state = autonomy_free } }
+	if = { limit = { country_exists = LOS } set_autonomy = { target = LOS autonomy_state = autonomy_free } }
+	
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			if = { limit = { country_exists = VIN } white_peace = VIN }
+			if = { limit = { country_exists = LAO } white_peace = LAO }
+			if = { limit = { country_exists = NLF } white_peace = NLF }
+			if = { limit = { country_exists = NLF } annex_country = { target = NLF } }
+			if = { limit = { country_exists = CCC } annex_country = { target = CCC } }
+			if = { limit = { country_exists = FUL } annex_country = { target = FUL } }
+			transfer_state = 757
+			transfer_state = 982
+			transfer_state = 286
+			transfer_state = 1287
+			transfer_state = 983
+			leave_faction = yes
+		}
+	}
+	
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			drop_cosmetic_tag = yes
+			if = { limit = { country_exists = VIN } white_peace = VIN }
+			if = { limit = { country_exists = LAO } white_peace = LAO }
+			if = { limit = { country_exists = NLF } white_peace = NLF }
+			leave_faction = yes
+		}
+	}
+	
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			drop_cosmetic_tag = yes
+			if = { limit = { country_exists = VIN } white_peace = VIN }
+			if = { limit = { country_exists = LAO } white_peace = LAO }
+			if = { limit = { country_exists = NLF } white_peace = NLF }
+			leave_faction = yes
+		}
+	}
+	
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			transfer_state = 838
+			transfer_state = 786
+			transfer_state = 671
+			transfer_state = 881
+			transfer_state = 1280
+			transfer_state = 1281
+			transfer_state = 1760
+			transfer_state = 1761
+			transfer_state = 1766
+			set_capital = { state = 1760 }
+			dismantle_faction = yes
+			drop_cosmetic_tag = yes
+		}
+	}
+	
+	if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }
+	
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			unlock_national_focus = FRA_Geneva_Peace_Conference
+		}
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			unlock_national_focus = VIN_The_Geneva_Peace_Conference
+		}
+	}
+	if = {
+		limit = { country_exists = USA }
+		USA = {
+			unlock_national_focus = USA_50s_The_Geneva_Conferece
+		}
+	}
+	
+	every_state = {
+		limit = { is_core_of = VIN }
+		clr_state_flag = VIN_unplanned_offensive_flag
+		remove_dynamic_modifier = { modifier = unplanned_offensive }
+	}
+	
+	indochina_struggle_ending_cleanup = yes
+	if = {
+		limit = { country_exists = PQC }
 		news_event = Indochina_Struggle_Ending.11
 	}
 	else = {
