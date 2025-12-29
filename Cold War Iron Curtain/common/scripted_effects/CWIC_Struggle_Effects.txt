@@ -14,6 +14,67 @@ indochina_struggle_starting_idea_setup = {
     }
 }
 
+indochina_struggle_recalculate_total_anti_communist_score = {
+    FRA = {
+        set_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProFranceScore }
+        add_to_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProIndependenceScore }
+        add_to_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProEthnicScore }
+    }
+}
+
+indochina_struggle_update_phase_transitions = {
+    if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 3 } }
+        if = {
+            limit = {
+                check_variable = { global.Indochina_War_Next_Phase_A_Points > 499 }
+                NOT = { has_global_flag = Indochina_War_Over }
+                NOT = { has_global_flag = Geneva_Conference }
+            }
+            set_variable = { global.Indochina_War_Next_Phase_A = 9 }
+        }
+        else = {
+            set_variable = { global.Indochina_War_Next_Phase_A = 3 }
+        }
+        set_variable = { global.Indochina_War_Next_Phase_B = 4 }
+    }
+    else_if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 4 } }
+        set_variable = { global.Indochina_War_Next_Phase_A = 3 }
+        set_variable = { global.Indochina_War_Next_Phase_B = 5 }
+    }
+    else_if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 5 } }
+        set_variable = { global.Indochina_War_Next_Phase_A = 4 }
+        set_variable = { global.Indochina_War_Next_Phase_B = 6 }
+    }
+    else_if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 6 } }
+        set_variable = { global.Indochina_War_Next_Phase_A = 5 }
+        set_variable = { global.Indochina_War_Next_Phase_B = 7 }
+    }
+    else_if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 7 } }
+        set_variable = { global.Indochina_War_Next_Phase_A = 6 }
+        set_variable = { global.Indochina_War_Next_Phase_B = 8 }
+    }
+    else_if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 8 } }
+        set_variable = { global.Indochina_War_Next_Phase_A = 7 }
+        if = {
+            limit = {
+                check_variable = { global.Indochina_War_Next_Phase_B_Points > 499 }
+                NOT = { has_global_flag = Indochina_War_Over }
+                NOT = { has_global_flag = Geneva_Conference }
+            }
+            set_variable = { global.Indochina_War_Next_Phase_B = 11 }
+        }
+        else = {
+            set_variable = { global.Indochina_War_Next_Phase_B = 8 }
+        }
+    }
+}
+
 indochina_struggle_starting_idea_phase_change = {
     meta_effect = {
         text = {
@@ -248,7 +309,6 @@ indochina_struggle_economic_idea_display = {
 }
 indochina_struggle_ending_cleanup = {
     every_country = {
-        # Remove value 27 from country_politics_list if it exists
         if = {
             limit = {
                 is_in_array = { array = country_politics_list value = 27 }
@@ -284,9 +344,8 @@ indochina_struggle_ending_cleanup = {
 
     set_global_flag = Indochina_War_Over
     set_variable = { global.Indochina_War_Active_Phase = 100 }
-    
 }
-#Struggle Ending Effects
+
 indochina_struggle_communist_victory = {
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.1
@@ -315,28 +374,13 @@ indochina_struggle_kuomintang_victory = {
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.7
 }
-# Centralized Geneva Conference Unlock Effect
-# This unlocks/bypasses focuses and decisions when Geneva Conference becomes available
-# This does NOT trigger the ending - that happens when player clicks ending in GUI
-# All focus trees and decisions should check geneva_conference_available_trigger to unlock/bypass
 indochina_struggle_unlock_geneva_conference = {
-	# Set the global flag that all systems check for availability
 	set_global_flag = Geneva_Conference
-	
-	# Note: Phase is NOT changed here - that happens when ending is triggered via GUI
-	# Note: Focuses/decisions should use geneva_conference_available_trigger to unlock/bypass
-	# Note: The actual ending effect (indochina_struggle_run_geneva_ending_effect) is called from GUI
 }
 
 indochina_struggle_run_geneva_ending_effect = {
-	# This is called when player clicks Geneva ending in GUI
-	# First unlock Geneva Conference (makes focuses/decisions available)
 	indochina_struggle_unlock_geneva_conference = yes
-	
-	# Set phase to Geneva Conference phase (11)
 	set_variable = { global.Indochina_War_Active_Phase = 11 }
-	
-	# Run cleanup and fire ending event
     indochina_struggle_ending_cleanup = yes
     if = {
 		limit = {
@@ -353,10 +397,13 @@ indochina_struggle_run_geneva_ending_alternate_effect = {
     news_event = Indochina_Struggle_Ending.11
 }
 indochina_struggle_run_never_ending_conflict_ending_effect = {
+	set_variable = { global.Indochina_War_Active_Phase = 9 }
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.9
 }
+
 indochina_struggle_run_failed_state_ending_effect = {
+	set_variable = { global.Indochina_War_Active_Phase = 10 }
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.10
 }

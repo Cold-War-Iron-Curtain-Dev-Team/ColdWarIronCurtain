@@ -12,11 +12,11 @@ Example: `e test_indochina_reset`
 
 ## Test Effect Categories
 
-### 🔄 Setup & Reset
+### Setup & Reset
 - `test_indochina_reset` - Reset everything to initial state
 - `test_indochina_setup_initial` - Setup with balanced initial scores
 
-### 📊 Phase Manipulation
+### Phase Manipulation
 - `test_indochina_set_phase_high_intensity` - Set to Phase 3
 - `test_indochina_set_phase_medium_intensity` - Set to Phase 4
 - `test_indochina_set_phase_low_intensity` - Set to Phase 5 (starting)
@@ -26,12 +26,12 @@ Example: `e test_indochina_reset`
 - `test_indochina_set_phase_never_ending` - Set to Phase 9
 - `test_indochina_set_phase_failed_state` - Set to Phase 10
 - `test_indochina_set_phase_geneva` - Set to Phase 11 (Geneva active)
-- `test_indochina_force_escalation` - Add 500 escalation points (⚠️ triggers on daily tick)
-- `test_indochina_force_deescalation` - Add 500 de-escalation points (⚠️ triggers on daily tick)
+- `test_indochina_force_escalation` - Add 500 escalation points (triggers on daily tick)
+- `test_indochina_force_deescalation` - Add 500 de-escalation points (triggers on daily tick)
 - `test_indochina_manual_escalate` - Manually escalate phase (no daily tick needed)
 - `test_indochina_manual_deescalate` - Manually de-escalate phase (no daily tick needed)
 
-### 🎯 Score Manipulation
+### Score Manipulation
 - `test_indochina_set_communist_high` - Set Communist score to 2000
 - `test_indochina_set_communist_low` - Set Communist score to 100
 - `test_indochina_set_profrance_high` - Set Pro-France score to 2000
@@ -44,18 +44,39 @@ Example: `e test_indochina_reset`
 - `test_indochina_add_proethnic_points` - Add 100 to Pro-Ethnic score
 - `test_indochina_recalculate_anti_communist` - Recalculate total anti-communist score
 
-### 🏁 Ending Tests
+### Ending Tests
 - `test_indochina_trigger_communist_victory` - Test Communist Victory ending
 - `test_indochina_trigger_southern_victory` - Test Southern Victory ending
-- `test_indochina_trigger_federal_vietnam` - Test Federal Vietnam ending
-- `test_indochina_trigger_balkanized_vietnam` - Test Balkanized Vietnam ending
-- `test_indochina_trigger_kuomintang_victory` - Test Kuomintang Victory ending
-- `test_indochina_trigger_geneva` - Test Geneva Conference ending (checks conditions)
-- `test_indochina_force_geneva` - Force trigger Geneva Conference (bypasses conditions)
-- `test_indochina_trigger_never_ending` - Test Never Ending Conflict ending
-- `test_indochina_trigger_failed_state` - Test Failed State ending
+- `test_indochina_unlock_southern_victory` - Test Southern Victory ending availability (checks conditions)
+- `test_indochina_setup_southern_victory` - Setup Southern Victory conditions (scores and relations)
+- `test_indochina_trigger_southern_victory` - Directly trigger Southern Victory ending (for testing effect)
+- `test_indochina_unlock_federal_vietnam` - Test Federal Vietnam ending availability (checks conditions)
+- `test_indochina_setup_federal_vietnam` - Setup Federal Vietnam conditions (scores)
+- `test_indochina_trigger_federal_vietnam` - Directly trigger Federal Vietnam ending (for testing effect)
+- `test_indochina_unlock_balkanized_vietnam` - Test Balkanized Vietnam ending availability (checks conditions)
+- `test_indochina_setup_balkanized_vietnam` - Setup Balkanized Vietnam conditions (scores)
+- `test_indochina_trigger_balkanized_vietnam` - Directly trigger Balkanized Vietnam ending (for testing effect)
+- `test_indochina_unlock_kuomintang_victory` - Test Kuomintang Victory ending availability (checks conditions)
+- `test_indochina_setup_kuomintang_victory` - Setup Kuomintang Victory conditions (scores)
+- `test_indochina_trigger_kuomintang_victory` - Directly trigger Kuomintang Victory ending (for testing effect)
+- `test_indochina_unlock_geneva` - Test Geneva Conference ending availability (checks conditions)
+- `test_indochina_force_unlock_geneva` - Force unlock Geneva Conference (bypasses conditions)
+- `test_indochina_unlock_never_ending` - Test Never Ending Conflict ending availability (checks conditions)
+- `test_indochina_unlock_never_ending_phase` - Test Never Ending Conflict via Phase 9
+- `test_indochina_force_unlock_never_ending` - Force unlock Never Ending Conflict (bypasses conditions)
+- `test_indochina_trigger_never_ending` - Directly trigger Never Ending Conflict ending (for testing effect)
+- `test_indochina_unlock_failed_state` - Test Failed State ending availability (checks conditions)
+- `test_indochina_unlock_failed_state_phase` - Test Failed State via Phase 10
+- `test_indochina_force_unlock_failed_state` - Force unlock Failed State (bypasses conditions)
+- `test_indochina_trigger_failed_state` - Directly trigger Failed State ending (for testing effect)
+- `test_indochina_unlock_dan_quoc_peace` - Test Dan Quoc Peace ending availability (checks conditions)
+- `test_indochina_setup_dan_quoc_peace` - Setup Dan Quoc Peace conditions (scores and flag)
+- `test_indochina_trigger_dan_quoc_peace` - Directly trigger Dan Quoc Peace ending (for testing effect)
+- `test_indochina_unlock_american_north_vietnam` - Test American-North Vietnam ending availability (checks conditions)
+- `test_indochina_setup_american_north_vietnam` - Setup American-North Vietnam conditions (focus and scores)
+- `test_indochina_trigger_american_north_vietnam` - Directly trigger American-North Vietnam ending (for testing effect)
 
-### 🖥️ GUI Tests
+### GUI Tests
 - `test_indochina_show_gui` - Show main struggle GUI
 - `test_indochina_hide_gui` - Hide main struggle GUI
 - `test_indochina_show_intro` - Show introduction popup
@@ -63,16 +84,27 @@ Example: `e test_indochina_reset`
 - `test_indochina_show_ending_popup` - Show ending popup
 - `test_indochina_show_phase_list` - Show phase list GUI
 
-### 🎬 Comprehensive Scenarios
+### Comprehensive Scenarios
 - `test_indochina_scenario_communist_win` - Full Communist victory scenario
 - `test_indochina_scenario_geneva` - Geneva Conference scenario
+- `test_indochina_scenario_never_ending_date` - Never Ending Conflict via date condition
+- `test_indochina_scenario_never_ending_phase` - Never Ending Conflict via Phase 9
+- `test_indochina_scenario_failed_state_phase` - Failed State via Phase 10
+- `test_indochina_scenario_failed_state_collapse` - Failed State via score collapse
+- `test_indochina_scenario_dan_quoc_peace` - Dan Quoc Peace (Diem-Ho Reunification)
+- `test_indochina_scenario_american_north_vietnam` - American-North Vietnam Diplomatic (A Gift From Truman)
+- `test_indochina_scenario_southern_victory` - Southern Victory (A Quoc-gia Vietnam)
+- `test_indochina_scenario_federal_vietnam` - Federal Vietnam
+- `test_indochina_scenario_balkanized_vietnam` - Balkanized Vietnam (An Overgrown Garden)
+- `test_indochina_scenario_kuomintang_victory` - Kuomintang Victory (White Star Over Vietnam)
+- `test_indochina_scenario_failed_state_collapse` - Failed State via score collapse
 - `test_indochina_scenario_escalation` - Escalation path scenario (manual, no loop)
 - `test_indochina_scenario_deescalation` - De-escalation path scenario (manual, no loop)
 - `test_indochina_scenario_escalation_with_points` - Escalation with points (triggers on daily tick)
 - `test_indochina_scenario_deescalation_with_points` - De-escalation with points (triggers on daily tick)
 - `test_indochina_scenario_all_endings` - All endings available (GUI testing)
 
-### 🔍 Debug/Info
+### Debug/Info
 - `test_indochina_debug_state` - Display current struggle state in log
 - `test_indochina_debug_all_triggers` - Test all ending triggers and log results
 
@@ -106,17 +138,207 @@ e test_indochina_trigger_communist_victory
 ### Test Geneva Conference
 ```
 # Unlock Geneva (makes focuses/decisions available)
+# NOTE: Geneva becomes available when at Phase 8 (Low Tension) AND de-escalation points > 500
+# This represents trying to de-escalate from Phase 8 but can't go further, so Geneva becomes an option
+# Phase stays at 8 (Low Tension) - Phase 11 is only set when the ending is triggered via GUI
 e test_indochina_reset
 e test_indochina_set_phase_low_tension
 e test_indochina_unlock_geneva
 e test_indochina_debug_state
 # Then check GUI - Geneva ending should be available to click
+# When you click it, phase will change to 11
 
 # Or force unlock (bypasses conditions)
 e test_indochina_reset
 e test_indochina_force_unlock_geneva
 e test_indochina_debug_state
 # Then check GUI - Geneva ending should be available to click
+
+# Directly trigger the ending (for testing the effect itself)
+# This will set phase to 11 and fire the ending event
+# NOTE: This bypasses the GUI - use for testing ending effects only
+e test_indochina_reset
+e test_indochina_trigger_geneva
+```
+
+### Test Never Ending Conflict
+```
+# Test via date condition (requires date > 1957.1.1)
+e test_indochina_reset
+e test_indochina_set_phase_medium_intensity
+e test_indochina_unlock_never_ending
+e test_indochina_debug_state
+# Then check GUI - Never Ending Conflict ending should be available to click
+
+# Test via Phase 9 (direct)
+e test_indochina_reset
+e test_indochina_unlock_never_ending_phase
+e test_indochina_debug_state
+# Then check GUI - Never Ending Conflict ending should be available to click
+
+# Or force unlock (bypasses conditions)
+e test_indochina_reset
+e test_indochina_force_unlock_never_ending
+e test_indochina_debug_state
+# Then check GUI - Never Ending Conflict ending should be available to click
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_never_ending
+```
+
+### Test Failed State
+```
+# Test via score collapse condition (requires date > 1955.1.1 and all scores < 500)
+e test_indochina_reset
+e test_indochina_set_phase_medium_intensity
+e test_indochina_unlock_failed_state
+e test_indochina_debug_state
+# Then check GUI - Failed State ending should be available to click
+
+# Test via Phase 10 (direct)
+e test_indochina_reset
+e test_indochina_unlock_failed_state_phase
+e test_indochina_debug_state
+# Then check GUI - Failed State ending should be available to click
+
+# Or force unlock (bypasses conditions)
+e test_indochina_reset
+e test_indochina_force_unlock_failed_state
+e test_indochina_debug_state
+# Then check GUI - Failed State ending should be available to click
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_failed_state
+```
+
+### Test Dan Quoc Peace
+```
+# Test Dan Quoc Peace ending availability
+e test_indochina_reset
+e test_indochina_unlock_dan_quoc_peace
+e test_indochina_debug_state
+# Note: Requires Ngo Dinh Diem in power in VIE and Ho Chi Minh in power in VIN
+# Note: Requires dan_quoc_peace flag to be set (normally via focus/event) *Currently not available, set via set_global_flag in console
+# Then check GUI - Dan Quoc Peace ending should be available to click
+
+# Setup conditions (scores and flag)
+e test_indochina_reset
+e test_indochina_setup_dan_quoc_peace
+e test_indochina_debug_state
+# Note: Still need to ensure leaders are in power
+# Note: If White Star Over Vietnam shows as active, ensure you're playing as VIE or VIN (not PQC)
+# Note: The test setup now explicitly sets Kuomintang score to 0 to prevent accidental triggers
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_dan_quoc_peace
+```
+
+### Test American-North Vietnam Diplomatic
+```
+# Test American-North Vietnam ending availability
+e test_indochina_reset
+e test_indochina_unlock_american_north_vietnam
+e test_indochina_debug_state
+# Note: Requires USA to complete USA_50s_Reestablish_Deer_Team focus
+# Note: Requires Ho Chi Minh in power in VIN
+# Note: Requires Communist > 2x TotalAntiCommunist
+# Then check GUI - American-North Vietnam ending should be available to click
+
+# Setup conditions (focus and scores)
+e test_indochina_reset
+e test_indochina_setup_american_north_vietnam
+e test_indochina_debug_state
+# Note: Still need to ensure Ho Chi Minh is in power and VIN/USA are not at war
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_american_north_vietnam
+```
+
+### Test Southern Victory
+```
+# Test Southern Victory ending availability
+e test_indochina_reset
+e test_indochina_unlock_southern_victory
+e test_indochina_debug_state
+# Note: Requires VIE with anti-communist government
+# Note: Requires high tension between VIE and VIN (war or opinions < -50)
+# Note: Requires phase 3, 4, 6, or 7 (high tension/intensity)
+# Then check GUI - Southern Victory ending should be available to click
+
+# Setup conditions (scores and relations)
+e test_indochina_reset
+e test_indochina_setup_southern_victory
+e test_indochina_debug_state
+# Note: Still need to ensure VIE has anti-communist government
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_southern_victory
+```
+
+### Test Federal Vietnam
+```
+# Test Federal Vietnam ending availability
+e test_indochina_reset
+e test_indochina_unlock_federal_vietnam
+e test_indochina_debug_state
+# Note: Requires playing as FRA
+# Then check GUI - Federal Vietnam ending should be available to click
+
+# Setup conditions (scores)
+e test_indochina_reset
+e test_indochina_setup_federal_vietnam
+e test_indochina_debug_state
+# Note: Still need to ensure you're playing as FRA
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_federal_vietnam
+```
+
+### Test Balkanized Vietnam
+```
+# Test Balkanized Vietnam ending availability
+e test_indochina_reset
+e test_indochina_unlock_balkanized_vietnam
+e test_indochina_debug_state
+# Note: Requires playing as FUL, FRA, or CCC
+# Then check GUI - Balkanized Vietnam ending should be available to click
+
+# Setup conditions (scores)
+e test_indochina_reset
+e test_indochina_setup_balkanized_vietnam
+e test_indochina_debug_state
+# Note: Still need to ensure you're playing as FUL, FRA, or CCC
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_balkanized_vietnam
+```
+
+### Test Kuomintang Victory
+```
+# Test Kuomintang Victory ending availability
+e test_indochina_reset
+e test_indochina_unlock_kuomintang_victory
+e test_indochina_debug_state
+# Note: Requires playing as PQC
+# Note: Requires PQC to own Saigon (286) and/or Hanoi (1760)
+# Then check GUI - Kuomintang Victory ending should be available to click
+
+# Setup conditions (scores)
+e test_indochina_reset
+e test_indochina_setup_kuomintang_victory
+e test_indochina_debug_state
+# Note: Still need to ensure you're playing as PQC and PQC owns the states
+
+# Direct trigger (for testing ending effect)
+e test_indochina_reset
+e test_indochina_trigger_kuomintang_victory
 ```
 
 ### Test GUI Elements
