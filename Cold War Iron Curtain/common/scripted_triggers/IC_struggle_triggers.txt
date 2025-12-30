@@ -1,10 +1,28 @@
 indochina_struggle_ending_communist_victory_trigger = {
 	NOT = { has_global_flag = Indochina_War_Over }
 	tag = VIN
-	set_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
-	multiply_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = 2 }
-	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest }
-	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 1000 }
+	OR = {
+		# Standard conditions: Score-based victory
+		AND = {
+			set_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
+			multiply_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = 2 }
+			check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest }
+			check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 1000 }
+		}
+		# Bypass condition: Full war + VIN captures Saigon (286) OR annexes VIE
+		AND = {
+			has_war_with = VIE
+			OR = {
+				owns_state = 286
+				VIE = {
+					OR = {
+						has_capitulated = yes
+						exists = no
+					}
+				}
+			}
+		}
+	}
 }
 
 indochina_struggle_ending_southern_victory_trigger = {
@@ -138,6 +156,59 @@ geneva_conference_available_trigger = {
 		OR = {
 			has_global_flag = Geneva_Conference
 			check_variable = { global.Indochina_War_Active_Phase = 11 }
+		}
+	}
+}
+
+# Bypass triggers for focus tree ending focuses
+indochina_struggle_ending_communist_victory_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_communist_victory_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_communist_victory_trigger = yes
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_southern_victory_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_southern_victory_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_southern_victory_trigger = yes
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_federal_vietnam_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_federal_vietnam_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_federal_vietnam_trigger = yes
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_failed_state_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_failed_state_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_failed_state_trigger = yes
+			check_variable = { global.Indochina_War_Active_Phase = 10 }
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_never_ending_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_never_ending_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_never_ending_trigger = yes
+			check_variable = { global.Indochina_War_Active_Phase = 9 }
+			has_global_flag = Indochina_War_Over
 		}
 	}
 }

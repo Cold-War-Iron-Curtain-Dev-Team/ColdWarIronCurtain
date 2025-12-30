@@ -357,6 +357,432 @@ Priority 3: Polish & Edge Cases
 - Raids: `common/raids/Indochina_Raids.txt`
 - Scripted Localization: `common/scripted_localisation/IC_Struggle_Scripted_Loc.txt`
 
+## Complete Implementation Details
+
+### Initialization (on_startup)
+
+**Location:** `common/on_actions/CWIC_Struggle_on_actions.txt`
+
+On game start:
+- Sets initial phase to 5 (Low Intensity - Starting Phase)
+- Initializes phase point variables to 0
+- Populates phase arrays (3-11) and ending arrays (1-10)
+- Initializes all score variables to 0 on FRA
+- Sets up faction arrays:
+  - Communist: VIN, NLF, MEO
+  - Pro-France: FRA, CAM, LOS, RCG, SEN, TOG, CMR, TUN, MOR, FRE, AND, SAR
+  - Pro-Independence: VIE, CCC
+  - Pro-Ethnic: NUN, FUL, TAI, TAM, THO
+  - Interlopers: USA, SOV, PRC, CHI, SIA, KOR, KPA, HUM
+- Adds struggle ideas to all involved nations
+- Sets up Indochina core states array
+- Sets up victory point array (47 VPs total)
+- Sets `View_Indochina_Struggle_Startup = 1` to show intro GUI
+
+### Daily Processing (on_daily_FRA)
+
+**Location:** `common/on_actions/CWIC_Struggle_on_actions.txt`
+
+Daily checks:
+1. **Phase Transitions:**
+   - If escalation points > 499 AND phase < 8: Transition to escalation phase
+   - If de-escalation points > 499 AND phase < 8: Transition to de-escalation phase
+   - Resets phase points after transition
+   - Updates phase transition variables
+   - Updates struggle ideas for all involved nations
+   - Sets `global.indochina_phase_check = 1` to show phase change notification
+
+2. **Ending Availability:**
+   - Checks for Never Ending Conflict conditions, sets `Never_Ending_Conflict_Available` flag
+   - Checks for Failed State conditions, sets `Failed_State_Available` flag
+
+3. **Score Recalculation:**
+   - Recalculates Total Anti-Communist score daily
+   - Updates phase transition paths
+
+### GUI System
+
+**Location:** `common/scripted_guis/CWIC_Struggle.txt`
+
+**Main GUI Windows:**
+1. **Struggle_Intro_Indochina** - Introduction screen shown on startup
+   - Visible when `View_Indochina_Struggle_Startup = 1`
+   - Shows faction-specific introduction image
+   - Clickable icons for Army, Economy, Government, Diplomacy (show tooltips)
+
+2. **Struggle_GUI_Indochina** - Main struggle interface
+   - Visible when `View_Indochina_Struggle = 1`
+   - Displays current phase, next phases, and available endings
+   - Dynamic list of endings from `global.Indochina_War_Endings` array
+   - Ending buttons show active/inactive based on trigger conditions
+   - Clicking ending opens popup
+
+3. **CWIC_Indochina_Struggle_Ending_Popup** - Ending confirmation popup
+   - Visible when `show_indochina_end_gui = 1`
+   - Shows ending image and description
+   - Confirmation button enabled when `show_indochina_end_gui_active = 1`
+   - Executes corresponding ending effect on confirmation
+
+4. **CWIC_Indochina_Struggle_Phase_List** - Phase list viewer
+   - Visible when `show_indochina_phase_gui = 1`
+   - Shows all phases in dynamic list
+
+5. **Indochina_Phase_Prompt** - Phase change notification
+   - Visible when `global.indochina_phase_check != 0`
+
+6. **Indochina_Conflict_Prompt** - Border war notification
+   - Visible when `global.indochina_border_war_check != 0`
+
+### Border War System
+
+**Location:** `common/decisions/Indochina_War.txt`
+
+Three border war decisions:
+1. **Indochina_Struggle_Border_Conflict_Anti_Commie** - For anti-communist factions
+2. **Indochina_Struggle_Border_Conflict_Commie** - For communist factions
+3. **Indochina_Struggle_Border_Conflict_Kuomintang** - For KMT faction
+
+**Mechanics:**
+- Only available when phase < 4
+- State-targeted decisions on Indochina core states
+- Requires border with enemy faction
+- Costs 5 PP
+- Starts border war with 4 provinces per side
+- Different events based on attacker/defender faction combinations
+- Awards phase points and struggle scores based on outcome
+
+**Border War Events:**
+- Location: `events/Indochina_War_Rework.txt`
+- Events 1-39: Various win/lose outcomes for different faction matchups
+- Events 3, 4, 9, 10, 22, 23, 34, 35: Defense outcomes
+- Event 100: Cancel event (cleanup)
+
+**Score Awards (per border war):**
+- Win: +50 to faction score, +50 phase points
+- Loss: +50 to enemy faction score, +50 phase points (opposite direction)
+- Some outcomes can reduce enemy scores (e.g., -50)
+
+### Geneva Conference System
+
+**Decision:** `Commence_Preparations_for_Geneva_Conference`
+- Location: `common/decisions/FRA.txt`
+- Available when: Phase 8 + de-escalation points > 500
+- Effects:
+  - Sets `Geneva_Conference_Preparations` flag
+  - Adds 150 de-escalation points
+  - Adds 100 Pro-France score
+  - Invites countries to Geneva (FRA, VIN, USA, VIE)
+
+**Invitation Events:**
+- Location: `events/Geneva_Conference_Invitations.txt`
+- Events 1-4: Invitations to FRA, VIN, USA, VIE
+- Each country can accept/decline attendance
+
+**Negotiation Events:**
+- Events 5-8: Negotiation events for each country
+- Countries choose ceasefire acceptance/rejection
+- Countries choose reunification acceptance/rejection
+- USA has special option to tamper with VIE negotiations
+
+**Completion Check:**
+- Scripted effect: `indochina_struggle_check_geneva_negotiations_complete`
+- Checks if all 4 countries have completed negotiations (or don't exist)
+- Sets `Geneva_Conference_Negotiations_Complete` flag when all done
+- This flag is required for Geneva ending trigger
+
+**Geneva Ending:**
+- Two variants:
+  - `indochina_struggle_run_geneva_ending_effect` - Standard (no PQC)
+  - `indochina_struggle_run_geneva_ending_alternate_effect` - With PQC present
+- Handles all state transfers, peace treaties, autonomy changes
+- Unlocks focus trees for FRA, VIN, USA
+- Clears state flags and modifiers
+
+### Scripted Effects
+
+**Location:** `common/scripted_effects/CWIC_Struggle_Effects.txt`
+
+**Key Effects:**
+1. `indochina_struggle_starting_idea_setup` - Initial idea setup
+2. `indochina_struggle_invite_countries_to_geneva` - Sends Geneva invitations
+3. `indochina_struggle_check_geneva_negotiations_complete` - Checks negotiation completion
+4. `indochina_struggle_recalculate_total_anti_communist_score` - Recalculates total
+5. `indochina_struggle_update_phase_transitions` - Updates phase transition paths
+6. `indochina_struggle_starting_idea_phase_change` - Updates ideas on phase change
+7. `indochina_border_war_start_gui_prompt_display` - Shows border war GUI
+8. `indochina_struggle_ending_cleanup` - Cleanup when struggle ends
+9. `indochina_struggle_communist_victory` - Communist victory ending
+10. `indochina_struggle_southern_victory` - Southern victory ending
+11. `indochina_struggle_federal_vietnam` - Federal Vietnam ending (includes state transfers)
+12. `indochina_struggle_balkanized_vietnam` - Balkanized Vietnam ending
+13. `indochina_struggle_dan_quoc_peace` - Dan Quoc peace ending
+14. `indochina_struggle_american_north_vietnam` - American-North Vietnam diplomatic ending
+15. `indochina_struggle_kuomintang_victory` - KMT victory ending
+16. `indochina_struggle_unlock_geneva_conference` - Sets Geneva Conference flag
+17. `indochina_struggle_run_geneva_ending_effect` - Geneva ending (standard)
+18. `indochina_struggle_run_geneva_ending_alternate_effect` - Geneva ending (with PQC)
+19. `indochina_struggle_run_never_ending_conflict_ending_effect` - Never ending conflict
+20. `indochina_struggle_run_failed_state_ending_effect` - Failed state ending
+
+### Scripted Triggers
+
+**Location:** `common/scripted_triggers/IC_struggle_triggers.txt`
+
+**Ending Triggers:**
+1. `indochina_struggle_ending_communist_victory_trigger`
+2. `indochina_struggle_ending_southern_victory_trigger`
+3. `indochina_struggle_ending_federal_vietnam_trigger`
+4. `indochina_struggle_ending_balkanized_vietnam_trigger`
+5. `indochina_struggle_ending_dan_quoc_peace_trigger`
+6. `indochina_struggle_ending_american_north_vietnam_diplomatic_trigger`
+7. `indochina_struggle_ending_kuomintang_victory_trigger`
+8. `indochina_struggle_ending_geneva_trigger`
+9. `indochina_struggle_ending_never_ending_trigger`
+10. `indochina_struggle_ending_failed_state_trigger`
+
+**Helper Triggers:**
+- `geneva_conference_available_trigger` - Checks if Geneva already happened
+- `geneva_conference_preparations_trigger` - Checks if preparations started
+- `geneva_conference_should_be_available_trigger` - Checks if Geneva should be available
+
+**Component Triggers:**
+- Multiple helper triggers for individual condition checks (e.g., `indochina_comm_victory_cond_is_vietnam`, `indochina_comm_victory_cond_ratio`, etc.)
+
+### Ending Effects Details
+
+**Federal Vietnam Ending:**
+- Transfers states 838, 786, 671, 881, 1280, 1281 from VIN to VIE
+- Annexes VIN and NLF into VIE
+- Handles Laos (LOS annexes LAO if both exist)
+- Auto-completes USA focus `USA_50s_The_Fall_of_the_Viet_Minh`
+- Fires VIN events
+- Clears state flags and modifiers
+
+**Geneva Ending:**
+- Transfers Laos states to LAO
+- White peace with VIN, NLF, LAO
+- Sets autonomy for CAM, VIE, LOS
+- VIE annexes NLF, CCC, FUL
+- VIE transfers states 757, 982, 286, 1287, 983
+- VIE leaves faction
+- VIN transfers states 838, 786, 671, 881, 1280, 1281, 1760, 1761, 1766
+- VIN sets capital to 1760 (Hanoi)
+- VIN dismantles faction, drops cosmetic tag
+- NLF drops cosmetic tag
+- Unlocks focus trees for FRA, VIN, USA
+- Clears state flags and modifiers
+
+### Struggle Ideas System
+
+**Location:** `common/ideas/Indochina.txt` (file exists but appears empty - ideas may be defined elsewhere)
+
+**Idea Categories:**
+- `STRUGGLE_INDO_ARMY_LEVEL_[3-8]` - Army ideas per phase
+- `STRUGGLE_INDO_ECON_LEVEL_[3-8]` - Economic ideas per phase
+- `STRUGGLE_INDO_GOVT_LEVEL_[3-8]` - Government ideas per phase
+- `STRUGGLE_INDO_DIPL_LEVEL_[3-8]` - Diplomacy ideas per phase
+
+**Phase-Based Ideas:**
+- Phase 3: High Intensity ideas
+- Phase 4: Medium Intensity ideas
+- Phase 5: Low Intensity ideas (starting)
+- Phase 6: High Tension ideas
+- Phase 7: Medium Tension ideas
+- Phase 8: Low Tension ideas
+
+### Scripted Localization
+
+**Location:** `common/scripted_localisation/IC_Struggle_Scripted_Loc.txt`
+
+**Key Localization Functions:**
+- `GetIndochinaStruggleIntroductionPicture` - Faction-specific intro images
+- `GetIndochinaStruggleIntroductionDesc` - Faction-specific descriptions
+- `IndochinaStruggleEndImage` - Ending images
+- `IndochinaStruggleEndImageInactive` - Inactive ending images
+- `IndochinaStruggleCurrentPhase` - Current phase display
+- `IndochinaStruggleNextPhaseA` - Next escalation phase
+- `IndochinaStruggleNextPhaseB` - Next de-escalation phase
+- `IndochinaStruggleEndPicturePrompt` - Ending popup image
+- `GetIndochinaPhaseIcon` - Phase list icons
+- Ending title and description functions for all 10 endings
+
+### Events
+
+**Location:** `events/Indochina_War_Rework.txt`
+
+**Border War Events:**
+- 39 border war outcome events (win/lose for various faction combinations)
+- Event 100: Border war cancellation cleanup
+
+**Ending News Events:**
+- `Indochina_Struggle_Ending.1` through `.11` - Major news events for each ending
+- All marked as `major = yes` and `fire_only_once = yes`
+
+### Decisions
+
+**Location:** `common/decisions/Indochina_War.txt`
+
+1. **Indochina_Wrapup_Timer** - Hidden decision for timeout logic
+   - Not selectable by player
+   - 60 day timeout
+   - Triggers appropriate ending based on phase state
+
+2. **Debug_Test_Indochina** - Debug decision (empty implementation)
+
+3. **Border War Decisions** - Three decisions for different factions
+
+**Location:** `common/decisions/FRA.txt`
+
+1. **Commence_Preparations_for_Geneva_Conference** - Geneva preparation decision
+   - Follows GUI-centric design pattern correctly
+
+### Focus Tree Integration
+
+**Focuses that reference Geneva Conference:**
+- `VIE_Accept_Geneva_Conference` (VIE_50s_Bao_Dai.txt)
+- `VIN_The_Geneva_Peace_Conference` (VIN_50s.txt)
+- `UK50_Participate_Geneva_Conference` (UK_50.txt)
+- `PRC_Participate_in_the_Geneva_Conference` (OUTDATED_PRC_50s.txt)
+- `CAM_The_Geneva_Conference` (CAM_50s.txt)
+- `USA_50s_The_Geneva_Conferece` (USA_FP_50s.txt)
+- `FRA_Geneva_Peace_Conference` (likely in FRA_1950s.txt)
+
+**Note:** These focuses may need review to ensure they follow GUI-centric design (unlock GUI options rather than directly triggering endings).
+
+### Test System
+
+**Location:** `common/scripted_effects/IC_Struggle_Test_Effects.txt`
+
+Test effects for debugging and development (not for production use).
+
+## Implementation Status
+
+### ✅ Completed
+
+1. **Core System:**
+   - Phase system fully implemented (3-8 active, 9-11 ending phases)
+   - Phase transition logic working
+   - Score system implemented (5 faction scores + total anti-communist)
+   - Daily processing system active
+
+2. **GUI System:**
+   - Main struggle GUI implemented
+   - Ending popup system working
+   - Phase list viewer implemented
+   - Introduction screen implemented
+   - Phase change notifications working
+   - Border war notifications working
+
+3. **Ending System:**
+   - All 10 ending triggers implemented
+   - All ending effects implemented
+   - Ending cleanup system working
+   - Ending news events created
+
+4. **Border War System:**
+   - Three border war decisions implemented
+   - 39 border war events created
+   - Score and phase point awards working
+   - GUI notifications working
+
+5. **Geneva Conference System:**
+   - Preparation decision implemented (follows GUI-centric design)
+   - Invitation events created (4 countries)
+   - Negotiation events created
+   - Completion check system working
+   - Two ending variants implemented (with/without PQC)
+
+6. **Scripted Effects:**
+   - All major effects implemented
+   - Phase transition updates working
+   - Score recalculation working
+   - Idea system working
+
+7. **Scripted Triggers:**
+   - All ending triggers implemented
+   - Helper triggers implemented
+   - Component triggers for detailed checks
+
+8. **Localization:**
+   - Scripted localization functions implemented
+   - Ending descriptions and titles set up
+
+### ⚠️ Needs Review/Verification
+
+1. **Focus Tree Integration:**
+   - Verify all Geneva-related focuses follow GUI-centric design
+   - Check if focuses award struggle scores appropriately
+   - Ensure focuses unlock GUI options rather than directly triggering endings
+   - Files to check:
+     - `common/national_focus/FRA_1950s.txt`
+     - `common/national_focus/VIN_50s.txt`
+     - `common/national_focus/USA_FP_50s.txt`
+     - `common/national_focus/VIE_50s_Bao_Dai.txt`
+     - `common/national_focus/CAM_50s.txt`
+
+2. **Event Integration:**
+   - Verify other Indochina events award struggle scores where appropriate
+   - Check events in:
+     - `events/Indochina_War.txt`
+     - `events/Indochina_Flavor_Events.txt`
+     - `events/American_Indochina.txt`
+
+3. **Decision Integration:**
+   - `Indochina_Wrapup_Timer` decision logic needs verification
+   - Check if any other decisions need to interact with struggle system
+
+4. **Score Awards:**
+   - Verify score awards from focuses and events are balanced
+   - Check for any missing score awards
+
+5. **Phase Transition Edge Cases:**
+   - Phase 3 escalation: Currently transitions to phase 9 (Never Ending Conflict) - verified
+   - Phase 8 de-escalation: Currently transitions to phase 11 (Geneva) - verified
+   - These are correct as designed
+
+6. **Geneva Conference Flow:**
+   - Verify invitation → negotiation → completion flow works correctly
+   - Check if all countries properly complete negotiations
+   - Verify ending triggers correctly after negotiations complete
+
+### 🔧 Known Issues/Todos
+
+1. **Trigger Name Consistency:**
+   - `indochina_struggle_ending_american_north_vietnam_diplomatic_trigger` - name is correct, verify all references use this exact name
+
+2. **Score Validation:**
+   - Border war events can reduce scores (negative values possible)
+   - Consider adding minimum score checks or handling negative scores
+
+3. **GUI State Management:**
+   - Verify GUI shows/hides correctly based on struggle state
+   - Check ending popup triggers when conditions met
+   - Verify phase change notifications work
+
+4. **Federal Vietnam Ending:**
+   - Currently implements state transfers directly in ending effect
+   - This is correct per GUI-centric design (endings handle state changes)
+   - Verify all state IDs are correct
+
+5. **Geneva Ending State Transfers:**
+   - Complex state transfer logic - verify all state IDs
+   - Verify autonomy changes work correctly
+   - Check focus tree unlocks
+
+6. **PQC (Kuomintang) Integration:**
+   - PQC added dynamically to Kuomintang array
+   - Verify PQC creation/joining works correctly
+   - Check KMT victory ending handles PQC correctly
+
+7. **Idea System:**
+   - Ideas file appears empty - verify ideas are defined elsewhere
+   - Check idea effects are properly applied
+   - Verify phase-based idea changes work
+
+8. **Test System:**
+   - Test effects file exists - ensure it's not used in production
+   - Create test guide if needed
+
 ## Notes
 
 - All score variables stored on FRA with `FRA.` prefix
@@ -364,3 +790,8 @@ Priority 3: Polish & Edge Cases
 - Ending conditions checked daily in `on_daily_FRA`
 - Endings triggered via GUI, not automatically
 - Total Anti-Communist score recalculated daily
+- Border wars only available when phase < 4
+- Geneva Conference requires Phase 8 + de-escalation points > 500
+- All major state transfers happen in ending effects (GUI-centric design)
+- Struggle ideas applied to all involved nations on startup
+- Phase change notifications shown to all involved nations
