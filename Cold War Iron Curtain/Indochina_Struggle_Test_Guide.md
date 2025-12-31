@@ -108,6 +108,11 @@ Example: `e test_indochina_reset`
 - `test_indochina_debug_state` - Display current struggle state in log
 - `test_indochina_debug_all_triggers` - Test all ending triggers and log results
 
+### Southern Victory Focus Chain Testing
+- `test_indochina_test_southern_victory_chain` - Full chain: setup → bypass focus → revolt event
+- `test_indochina_setup_southern_victory_full_chain` - Setup conditions for full chain testing
+- `test_indochina_bypass_liberator_focus` - Bypass VIE_BaoDai_Liberator_of_Vietnam and fire revolt event
+
 ## Common Test Workflows
 
 ### Test Phase Transitions
@@ -280,6 +285,23 @@ e test_indochina_reset
 e test_indochina_trigger_southern_victory
 ```
 
+### Test Southern Victory Focus Chain (Hoang Lien Son Revolt)
+```
+# Full chain test: Focus bypass → Revolt event → Focus unlock → Crackdown
+e test_indochina_reset
+e test_indochina_test_southern_victory_chain
+# This sets up conditions, bypasses VIE_BaoDai_Liberator_of_Vietnam, and fires revolt event
+# VIE_Why_Revolting focus should now be unlocked
+# Complete the focus to trigger crackdown event (BaoDai.14)
+
+# Test focus bypass (simulates ending becoming available)
+e test_indochina_reset
+e test_indochina_setup_southern_victory_full_chain
+e test_indochina_bypass_liberator_focus
+# Bypasses VIE_BaoDai_Liberator_of_Vietnam and fires revolt event immediately
+# In normal gameplay, revolt event fires 14 days after bypass
+```
+
 ### Test Federal Vietnam
 ```
 # Test Federal Vietnam ending availability
@@ -364,6 +386,8 @@ e test_indochina_debug_all_triggers
 5. **Check logs**: Open the game log to see detailed output from debug effects
 6. **Avoid phase loops**: Use `test_indochina_manual_escalate`/`deescalate` instead of `force_escalation`/`deescalation` to avoid daily tick loops
 7. **Geneva testing**: If `test_indochina_trigger_geneva` doesn't work, use `test_indochina_force_geneva` to bypass conditions
+8. **Southern Victory chain**: Use `test_indochina_test_southern_victory_chain` for quick testing of the full focus bypass → revolt → crackdown chain
+10. **State ownership**: Ensure VIE owns state 1761 (Hoang Lien Son) before testing revolt events - the setup effects handle this automatically
 
 ## Phase Reference
 

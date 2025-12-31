@@ -1,10 +1,27 @@
 indochina_struggle_ending_communist_victory_trigger = {
 	NOT = { has_global_flag = Indochina_War_Over }
 	tag = VIN
-	set_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
-	multiply_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = 2 }
-	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest }
-	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 1000 }
+	OR = {
+		# Standard conditions: Score-based victory
+		AND = {
+			set_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
+			multiply_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = 2 }
+			check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest }
+			check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 1000 }
+		}
+		AND = {
+			has_war_with = VIE
+			OR = {
+				owns_state = 286
+				VIE = {
+					OR = {
+						has_capitulated = yes
+						exists = no
+					}
+				}
+			}
+		}
+	}
 }
 
 indochina_struggle_ending_southern_victory_trigger = {
@@ -104,6 +121,17 @@ indochina_struggle_ending_kuomintang_victory_trigger = {
 	NOT = { has_global_flag = Geneva_Conference }
 	tag = PQC
 	country_exists = PQC
+	# Requires that VIE declared war on PQC (or tried to invade)
+	OR = {
+		AND = {
+			country_exists = VIE
+			VIE = { has_country_flag = VIE_PQC_War }
+		}
+		AND = {
+			country_exists = VIE
+			VIE = { has_war_with = PQC }
+		}
+	}
 	PQC = {
 		OR = {
 			AND = {
@@ -138,6 +166,58 @@ geneva_conference_available_trigger = {
 		OR = {
 			has_global_flag = Geneva_Conference
 			check_variable = { global.Indochina_War_Active_Phase = 11 }
+		}
+	}
+}
+
+indochina_struggle_ending_communist_victory_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_communist_victory_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_communist_victory_trigger = yes
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_southern_victory_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_southern_victory_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_southern_victory_trigger = yes
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_federal_vietnam_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_federal_vietnam_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_federal_vietnam_trigger = yes
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_failed_state_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_failed_state_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_failed_state_trigger = yes
+			check_variable = { global.Indochina_War_Active_Phase = 10 }
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+indochina_struggle_ending_never_ending_available_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = indochina_struggle_ending_never_ending_available_trigger_TT
+		OR = {
+			indochina_struggle_ending_never_ending_trigger = yes
+			check_variable = { global.Indochina_War_Active_Phase = 9 }
+			has_global_flag = Indochina_War_Over
 		}
 	}
 }
