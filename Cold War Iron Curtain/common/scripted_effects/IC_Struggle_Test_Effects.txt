@@ -1356,3 +1356,62 @@ test_indochina_debug_all_triggers = {
     log = "================================"
     log = "TIP: Use 'test_indochina_debug_all_triggers' to check ending conditions"
 }
+
+test_indochina_setup_southern_victory_full_chain = {
+    test_indochina_reset = yes
+    test_indochina_set_phase_high_intensity = yes
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 500 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 2000 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 700 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore = 600 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 3300 }
+    VIE = {
+        add_opinion_modifier = {
+            target = VIN
+            modifier = protest_action_strong
+        }
+        if = {
+            limit = { NOT = { owns_state = 1761 } }
+            if = {
+                limit = {
+                    country_exists = VIN
+                    VIN = { owns_state = 1761 }
+                }
+                VIN = { transfer_state = 1761 }
+            }
+        }
+    }
+    VIN = {
+        add_opinion_modifier = {
+            target = VIE
+            modifier = protest_action_strong
+        }
+    }
+    log = "Setup: Southern Victory Full Chain - Ready to test focus bypass → revolt → crackdown"
+    log = "Next: Use 'test_indochina_bypass_liberator_focus' to trigger the chain"
+}
+
+test_indochina_bypass_liberator_focus = {
+    if = {
+        limit = {
+            country_exists = VIE
+            has_focus_tree = VIE_50s_Bao_Dai
+        }
+        VIE = {
+            complete_national_focus = VIE_BaoDai_Liberator_of_Vietnam
+            set_country_flag = VIE_Can_Integrate_VIN
+            country_event = BaoDai.13
+            log = "VIE_BaoDai_Liberator_of_Vietnam focus bypassed and revolt event fired"
+        }
+    }
+    else = {
+        log = "Cannot bypass focus: VIE does not exist or does not have VIE_50s_Bao_Dai focus tree"
+    }
+}
+
+test_indochina_test_southern_victory_chain = {
+    test_indochina_setup_southern_victory_full_chain = yes
+    test_indochina_bypass_liberator_focus = yes
+    log = "Full chain initiated: Focus bypassed → Revolt event fired → VIE_Why_Revolting unlocked"
+    log = "Next: Complete VIE_Why_Revolting focus to trigger crackdown event"
+}
