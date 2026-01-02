@@ -48,7 +48,39 @@ indochina_struggle_starting_idea_setup = {
     }
 }
 
+indochina_struggle_bypass_geneva_conference_focuses = {
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			if = {
+				limit = { has_focus_tree = FRA_1950s }
+				unlock_national_focus = FRA_Geneva_Peace_Conference
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			if = {
+				limit = { has_focus_tree = VIN_50s }
+				unlock_national_focus = VIN_The_Geneva_Peace_Conference
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = USA }
+		USA = {
+			if = {
+				limit = { has_focus_tree = USA_50s }
+				unlock_national_focus = USA_50s_The_Geneva_Conferece
+			}
+		}
+	}
+}
+
 indochina_struggle_invite_countries_to_geneva = {
+	indochina_struggle_bypass_geneva_conference_focuses = yes
+	
     if = {
         limit = { country_exists = FRA }
         FRA = {
@@ -1037,130 +1069,133 @@ indochina_struggle_unlock_geneva_conference = {
 }
 
 indochina_struggle_run_geneva_ending_effect = {
-	indochina_struggle_unlock_geneva_conference = yes
-	set_variable = { global.Indochina_War_Active_Phase = 11 }
-	
 	if = {
-		limit = { country_exists = VIN }
-		VIN = {
-			every_controlled_state = {
-				limit = { is_core_of = LAO }
-				remove_core_of = LOS
-				transfer_state_to = LAO
-			}
-		}
-	}
-	if = {
-		limit = { country_exists = LOS }
-		LOS = {
-			every_controlled_state = {
-				limit = { is_core_of = LAO }
-				remove_core_of = LOS
-				transfer_state_to = LAO
-			}
-		}
-	}
-	
-	if = { limit = { country_exists = VIN } white_peace = VIN }
-	if = { limit = { country_exists = NLF } white_peace = NLF }
-	if = { limit = { country_exists = LAO } white_peace = LAO }
-	
-	if = { limit = { country_exists = CAM } set_autonomy = { target = CAM autonomy_state = autonomy_free } }
-	if = { limit = { country_exists = VIE } set_autonomy = { target = VIE autonomy_state = autonomy_free } }
-	if = { limit = { country_exists = LOS } set_autonomy = { target = LOS autonomy_state = autonomy_free } }
-	
-	if = {
-		limit = { country_exists = VIE }
-		VIE = {
-			if = { limit = { country_exists = VIN } white_peace = VIN }
-			if = { limit = { country_exists = LAO } white_peace = LAO }
-			if = { limit = { country_exists = NLF } white_peace = NLF }
-			if = { limit = { country_exists = NLF } annex_country = { target = NLF } }
-			if = { limit = { country_exists = CCC } annex_country = { target = CCC } }
-			if = { limit = { country_exists = FUL } annex_country = { target = FUL } }
-			transfer_state = 757
-			transfer_state = 982
-			transfer_state = 286
-			transfer_state = 1287
-			transfer_state = 983
-			leave_faction = yes
-		}
-	}
-	
-	if = {
-		limit = { country_exists = CAM }
-		CAM = {
-			drop_cosmetic_tag = yes
-			if = { limit = { country_exists = VIN } white_peace = VIN }
-			if = { limit = { country_exists = LAO } white_peace = LAO }
-			if = { limit = { country_exists = NLF } white_peace = NLF }
-			leave_faction = yes
-		}
-	}
-	
-	if = {
-		limit = { country_exists = LOS }
-		LOS = {
-			drop_cosmetic_tag = yes
-			if = { limit = { country_exists = VIN } white_peace = VIN }
-			if = { limit = { country_exists = LAO } white_peace = LAO }
-			if = { limit = { country_exists = NLF } white_peace = NLF }
-			leave_faction = yes
-		}
-	}
-	
-	if = {
-		limit = { country_exists = VIN }
-		VIN = {
-			transfer_state = 838
-			transfer_state = 786
-			transfer_state = 671
-			transfer_state = 881
-			transfer_state = 1280
-			transfer_state = 1281
-			transfer_state = 1760
-			transfer_state = 1761
-			transfer_state = 1766
-			set_capital = { state = 1760 }
-			dismantle_faction = yes
-			drop_cosmetic_tag = yes
-		}
-	}
-	
-	if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }
-	
-	if = {
-		limit = { country_exists = FRA }
-		FRA = {
-			unlock_national_focus = FRA_Geneva_Peace_Conference
-		}
-	}
-	if = {
-		limit = { country_exists = VIN }
-		VIN = {
-			unlock_national_focus = VIN_The_Geneva_Peace_Conference
-		}
-	}
-	if = {
-		limit = { country_exists = USA }
-		USA = {
-			unlock_national_focus = USA_50s_The_Geneva_Conferece
-		}
-	}
-	
-	every_state = {
-		limit = { is_core_of = VIN }
-		clr_state_flag = VIN_unplanned_offensive_flag
-		remove_dynamic_modifier = { modifier = unplanned_offensive }
-	}
-	
-	indochina_struggle_ending_cleanup = yes
-	if = {
-		limit = { country_exists = PQC }
-		news_event = Indochina_Struggle_Ending.11
+		limit = { geneva_conference_complete_failure_trigger = yes }
+		news_event = Geneva_Conference_Outcome.3
+		# indochina_struggle_run_failed_state_ending_effect = yes # Commenting this out so both events dont trigger @ same time
+		set_variable = { global.Indochina_War_Active_Phase = 10 }
+		indochina_struggle_ending_cleanup = yes
+		news_event = { id = Indochina_Struggle_Ending.10 days = 3 }
 	}
 	else = {
-		news_event = Indochina_Struggle_Ending.8
+		indochina_struggle_unlock_geneva_conference = yes
+		set_variable = { global.Indochina_War_Active_Phase = 11 }
+	
+		if = {
+			limit = { country_exists = VIN }
+			VIN = {
+				every_controlled_state = {
+					limit = { is_core_of = LAO }
+					remove_core_of = LOS
+					transfer_state_to = LAO
+				}
+			}
+		}
+		if = {
+			limit = { country_exists = LOS }
+			LOS = {
+				every_controlled_state = {
+					limit = { is_core_of = LAO }
+					remove_core_of = LOS
+					transfer_state_to = LAO
+				}
+			}
+		}
+		
+		if = { limit = { country_exists = VIN } white_peace = VIN }
+		if = { limit = { country_exists = NLF } white_peace = NLF }
+		if = { limit = { country_exists = LAO } white_peace = LAO }
+		
+		if = { limit = { country_exists = CAM } set_autonomy = { target = CAM autonomy_state = autonomy_free } }
+		if = { limit = { country_exists = VIE } set_autonomy = { target = VIE autonomy_state = autonomy_free } }
+		if = { limit = { country_exists = LOS } set_autonomy = { target = LOS autonomy_state = autonomy_free } }
+		
+		if = {
+			limit = { country_exists = VIE }
+			VIE = {
+				if = { limit = { country_exists = VIN } white_peace = VIN }
+				if = { limit = { country_exists = LAO } white_peace = LAO }
+				if = { limit = { country_exists = NLF } white_peace = NLF }
+				if = { limit = { country_exists = NLF } annex_country = { target = NLF } }
+				if = { limit = { country_exists = CCC } annex_country = { target = CCC } }
+				if = { limit = { country_exists = FUL } annex_country = { target = FUL } }
+				transfer_state = 757
+				transfer_state = 982
+				transfer_state = 286
+				transfer_state = 1287
+				transfer_state = 983
+				leave_faction = yes
+			}
+		}
+		
+		if = {
+			limit = { country_exists = CAM }
+			CAM = {
+				drop_cosmetic_tag = yes
+				if = { limit = { country_exists = VIN } white_peace = VIN }
+				if = { limit = { country_exists = LAO } white_peace = LAO }
+				if = { limit = { country_exists = NLF } white_peace = NLF }
+				leave_faction = yes
+			}
+		}
+		
+		if = {
+			limit = { country_exists = LOS }
+			LOS = {
+				drop_cosmetic_tag = yes
+				if = { limit = { country_exists = VIN } white_peace = VIN }
+				if = { limit = { country_exists = LAO } white_peace = LAO }
+				if = { limit = { country_exists = NLF } white_peace = NLF }
+				leave_faction = yes
+			}
+		}
+		
+		if = {
+			limit = { country_exists = VIN }
+			VIN = {
+				transfer_state = 838
+				transfer_state = 786
+				transfer_state = 671
+				transfer_state = 881
+				transfer_state = 1280
+				transfer_state = 1281
+				transfer_state = 1760
+				transfer_state = 1761
+				transfer_state = 1766
+				set_capital = { state = 1760 }
+				dismantle_faction = yes
+				drop_cosmetic_tag = yes
+			}
+		}
+		
+		if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }
+		
+		
+		every_state = {
+			limit = { is_core_of = VIN }
+			clr_state_flag = VIN_unplanned_offensive_flag
+			remove_dynamic_modifier = { modifier = unplanned_offensive }
+		}
+		
+		indochina_struggle_ending_cleanup = yes
+		
+		if = {
+			limit = { geneva_conference_complete_success_trigger = yes }
+			news_event = Geneva_Conference_Outcome.1
+		}
+		else_if = {
+			limit = { geneva_conference_otl_success_trigger = yes }
+			news_event = Indochina_Struggle_Ending.8
+		}
+		else = {
+			if = {
+				limit = { country_exists = PQC }
+				news_event = Indochina_Struggle_Ending.11
+			}
+			else = {
+				news_event = Indochina_Struggle_Ending.8
+			}
+		}
 	}
 }
 indochina_struggle_run_geneva_ending_alternate_effect = {
