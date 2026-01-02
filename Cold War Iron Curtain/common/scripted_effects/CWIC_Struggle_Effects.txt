@@ -48,7 +48,51 @@ indochina_struggle_starting_idea_setup = {
     }
 }
 
+indochina_struggle_bypass_geneva_conference_focuses = {
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			if = {
+				limit = { has_focus_tree = FRA_1950s }
+				unlock_national_focus = FRA_Geneva_Peace_Conference
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			if = {
+				limit = { has_focus_tree = VIN_50s }
+				unlock_national_focus = VIN_The_Geneva_Peace_Conference
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = USA }
+		USA = {
+			if = {
+				limit = { has_focus_tree = USA_50s }
+				unlock_national_focus = USA_50s_The_Geneva_Conferece
+			}
+		}
+	}
+}
+
+indochina_struggle_bypass_usa_reunification_focuses = {
+	if = {
+		limit = { country_exists = USA }
+		USA = {
+			if = {
+				limit = { has_focus_tree = USA_50s }
+				unlock_national_focus = USA_50s_Reunification_Election
+			}
+		}
+	}
+}
+
 indochina_struggle_invite_countries_to_geneva = {
+	indochina_struggle_bypass_geneva_conference_focuses = yes
+	
     if = {
         limit = { country_exists = FRA }
         FRA = {
@@ -1037,8 +1081,14 @@ indochina_struggle_unlock_geneva_conference = {
 }
 
 indochina_struggle_run_geneva_ending_effect = {
-	indochina_struggle_unlock_geneva_conference = yes
-	set_variable = { global.Indochina_War_Active_Phase = 11 }
+	if = {
+		limit = { geneva_conference_complete_failure_trigger = yes }
+		news_event = Geneva_Conference_Outcome.3
+		indochina_struggle_run_failed_state_ending_effect = yes
+	}
+	else = {
+		indochina_struggle_unlock_geneva_conference = yes
+		set_variable = { global.Indochina_War_Active_Phase = 11 }
 	
 	if = {
 		limit = { country_exists = VIN }
@@ -1129,24 +1179,6 @@ indochina_struggle_run_geneva_ending_effect = {
 	
 	if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }
 	
-	if = {
-		limit = { country_exists = FRA }
-		FRA = {
-			unlock_national_focus = FRA_Geneva_Peace_Conference
-		}
-	}
-	if = {
-		limit = { country_exists = VIN }
-		VIN = {
-			unlock_national_focus = VIN_The_Geneva_Peace_Conference
-		}
-	}
-	if = {
-		limit = { country_exists = USA }
-		USA = {
-			unlock_national_focus = USA_50s_The_Geneva_Conferece
-		}
-	}
 	
 	every_state = {
 		limit = { is_core_of = VIN }
@@ -1154,13 +1186,25 @@ indochina_struggle_run_geneva_ending_effect = {
 		remove_dynamic_modifier = { modifier = unplanned_offensive }
 	}
 	
-	indochina_struggle_ending_cleanup = yes
-	if = {
-		limit = { country_exists = PQC }
-		news_event = Indochina_Struggle_Ending.11
-	}
-	else = {
-		news_event = Indochina_Struggle_Ending.8
+		indochina_struggle_ending_cleanup = yes
+		
+		if = {
+			limit = { geneva_conference_complete_success_trigger = yes }
+			news_event = Geneva_Conference_Outcome.1
+		}
+		else_if = {
+			limit = { geneva_conference_otl_success_trigger = yes }
+			news_event = Geneva_Conference_Outcome.2
+		}
+		else = {
+			if = {
+				limit = { country_exists = PQC }
+				news_event = Indochina_Struggle_Ending.11
+			}
+			else = {
+				news_event = Indochina_Struggle_Ending.8
+			}
+		}
 	}
 }
 indochina_struggle_run_geneva_ending_alternate_effect = {
