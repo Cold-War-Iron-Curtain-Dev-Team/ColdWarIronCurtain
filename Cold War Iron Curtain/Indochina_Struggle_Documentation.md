@@ -17,6 +17,14 @@ The Indochina Struggle GUI is the core mechanic for the First Indochina War. It 
 - Events: Award scores, modify phase points, provide narrative
 - GUI Endings: Handle all state changes, peace treaties, annexations
 
+## To Do
+- Have SV mix of defending and doing raids instead of letting NLF walk over everything
+- Include points in VIE Mil branch
+- Have VIE do Diplo tree focuses when they unlock
+- Maybe start off on medium intensity then have huge boost to high/medium tension when/if they annex NLF
+- Have the Geneva Conference be triggered like we have it already/OR have it triggered when FRA and USA realize costs too high and dip
+- This way other endings are triggered also depending on FRA/USA choices
+
 ## Core Components
 
 ### Faction Arrays (Stored on FRA)
