@@ -849,6 +849,202 @@ test_indochina_scenario_american_north_vietnam = {
     log = "Note: Ensure Ho Chi Minh is in power in VIN and VIN/USA are not at war"
 }
 
+# Comprehensive test for USA-North Vietnam ending with full event chain
+test_indochina_full_american_north_vietnam_setup = {
+    test_indochina_reset = yes
+    test_indochina_set_phase_medium_intensity = yes
+    
+    # Complete USA focus
+    USA = {
+        complete_national_focus = USA_50s_Sponser_CuongDe_Coup
+        complete_national_focus = USA_50s_Reestablish_Deer_Team
+    }
+    
+    # Set up scores - Communist must be > 2x Total Anti-Communist and > 500
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 2500 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 400 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 300 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore = 300 }
+    set_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 1000 }
+    test_indochina_recalculate_anti_communist = yes
+    
+    # Ensure Ho Chi Minh is in power in VIN
+    if = {
+        limit = {
+            country_exists = VIN
+            VIN = {
+                NOT = {
+                    has_country_leader = {
+                        character = VIN_Ho_Chi_Minh
+                        ruling_only = yes
+                    }
+                }
+            }
+        }
+        VIN = {
+            VIN_Ho_Chi_Minh = {
+                add_country_leader_role = {
+                    promote_leader = yes
+                    country_leader = {
+                        ideology = ho_chi_minh_thought
+                    }
+                }
+            }
+        }
+    }
+    
+    # Ensure USA and VIN are not at war
+    if = {
+        limit = {
+            country_exists = USA
+            country_exists = VIN
+            VIN = { has_war_with = USA }
+        }
+        VIN = { white_peace = USA }
+    }
+    
+    # Set positive opinions between USA and VIN
+    USA = {
+        add_opinion_modifier = {
+            target = VIN
+            modifier = medium_increase
+        }
+    }
+    VIN = {
+        add_opinion_modifier = {
+            target = USA
+            modifier = medium_increase
+        }
+    }
+    
+    # Ensure VIN favors USA over SOV (if SOV exists)
+    if = {
+        limit = {
+            country_exists = SOV
+            country_exists = VIN
+        }
+        VIN = {
+            add_opinion_modifier = {
+                target = USA
+                modifier = large_increase
+            }
+            SOV = {
+                add_opinion_modifier = {
+                    target = VIN
+                    modifier = medium_decrease
+                }
+            }
+        }
+    }
+    
+    log = "Full setup complete for USA-North Vietnam ending"
+    log = "All conditions met: USA focus completed, Ho Chi Minh in power, positive opinions, scores set"
+    log = "The reunification event chain should trigger automatically via on_daily_FRA"
+}
+
+# Test to manually trigger the first reunification event
+test_indochina_trigger_reunification_chain = {
+    if = {
+        limit = {
+            country_exists = USA
+            indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+            NOT = { has_global_flag = Indochina_War_Over }
+            NOT = { USA = { has_country_flag = USA_VIN_Reunification_Started } }
+        }
+        USA = {
+            country_event = { id = USA_VIN_Reunification.1 days = 1 }
+        }
+        log = "Reunification event chain triggered! Check USA for event USA_VIN_Reunification.1"
+    }
+    else = {
+        log = "Cannot trigger reunification chain - conditions not met"
+        if = {
+            limit = { NOT = { indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes } }
+            log = "Reason: Diplomatic trigger conditions not met"
+        }
+        if = {
+            limit = { has_global_flag = Indochina_War_Over }
+            log = "Reason: Indochina War already over"
+        }
+        if = {
+            limit = { USA = { has_country_flag = USA_VIN_Reunification_Started } }
+            log = "Reason: Reunification chain already started"
+        }
+    }
+}
+
+# Test to advance through the event chain manually
+test_indochina_advance_reunification_chain = {
+    if = {
+        limit = {
+            country_exists = USA
+            USA = { has_country_flag = USA_VIN_Reunification_Started }
+            NOT = { has_global_flag = USA_VIN_Reunification_Complete }
+        }
+        log = "Reunification chain in progress - events will fire automatically"
+        log = "Check for events: USA_VIN_Reunification.2 (VIN), USA_VIN_Reunification.3 (USA), USA_VIN_Reunification.4 (VIE)"
+    }
+    else = {
+        if = {
+            limit = { NOT = { USA = { has_country_flag = USA_VIN_Reunification_Started } } }
+            log = "Reunification chain not started - use test_indochina_trigger_reunification_chain first"
+        }
+        if = {
+            limit = { has_global_flag = USA_VIN_Reunification_Complete }
+            log = "Reunification chain already complete! Ending should be available in GUI"
+        }
+    }
+}
+
+# Test to verify ending is available after reunification
+test_indochina_verify_ending_available = {
+    if = {
+        limit = {
+            has_global_flag = USA_VIN_Reunification_Complete
+            indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+            NOT = { has_global_flag = Indochina_War_Over }
+        }
+        log = "SUCCESS: USA-North Vietnam ending is now available in GUI!"
+        log = "All conditions met: Reunification complete + Diplomatic trigger passed"
+        set_variable = { show_indochina_end_gui = 1 }
+        set_variable = { struggle_ending_display_value = 6 }
+    }
+    else = {
+        log = "Ending not yet available"
+        if = {
+            limit = { NOT = { has_global_flag = USA_VIN_Reunification_Complete } }
+            log = "Reason: Reunification chain not complete"
+        }
+        if = {
+            limit = { NOT = { indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes } }
+            log = "Reason: Diplomatic trigger conditions not met"
+        }
+        if = {
+            limit = { has_global_flag = Indochina_War_Over }
+            log = "Reason: Indochina War already over"
+        }
+    }
+}
+
+# Complete end-to-end test
+test_indochina_full_american_north_vietnam_ending = {
+    test_indochina_full_american_north_vietnam_setup = yes
+    
+    # Wait a moment then check if chain started
+    if = {
+        limit = {
+            country_exists = USA
+            indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+        }
+        log = "Setup complete! The reunification event chain should trigger automatically."
+        log = "If it doesn't trigger within a day, use: test_indochina_trigger_reunification_chain"
+        log = "After all events complete, use: test_indochina_verify_ending_available"
+    }
+    else = {
+        log = "Setup failed - conditions not met for diplomatic trigger"
+    }
+}
+
 test_indochina_unlock_southern_victory = {
     test_indochina_reset = yes
     test_indochina_set_phase_high_intensity = yes
