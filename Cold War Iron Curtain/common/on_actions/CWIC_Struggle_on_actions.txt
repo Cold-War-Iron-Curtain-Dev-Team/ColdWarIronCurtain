@@ -164,6 +164,20 @@ on_actions = {
             # Checks if VIN meets victory conditions and awards scores to unlock ending in GUI
             indochina_struggle_auto_trigger_communist_victory_preparation = yes
             
+            # Automatic trigger for USA-North Vietnam reunification event chain
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    country_exists = USA
+                    country_exists = VIN
+                    NOT = { USA = { has_country_flag = USA_VIN_Reunification_Started } }
+                    indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+                }
+                USA = {
+                    country_event = { id = USA_VIN_Reunification.1 days = 1 }
+                }
+            }
+            
             # Time-based bonuses to encourage Geneva Conference in 1954
             # Starting in 1953, add gradual de-escalation points to push toward Phase 8
             if = {
@@ -203,7 +217,18 @@ on_actions = {
             set_variable = { global.Indochina_War_Active_Phase = 5 }
             set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
             set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
-            indochina_struggle_update_phase_transitions = yes
+            every_country = {
+                limit = {
+                    OR = {
+                        is_in_array = { StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+                    }
+                }
+                indochina_struggle_update_phase_transitions = yes
+            }
 
             add_to_array = { global.Indochina_War_Phases = 3 }
             add_to_array = { global.Indochina_War_Phases = 4 }

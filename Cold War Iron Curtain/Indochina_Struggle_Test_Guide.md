@@ -74,7 +74,12 @@ Example: `e test_indochina_reset`
 - `test_indochina_trigger_dan_quoc_peace` - Directly trigger Dan Quoc Peace ending (for testing effect)
 - `test_indochina_unlock_american_north_vietnam` - Test American-North Vietnam ending availability (checks conditions)
 - `test_indochina_setup_american_north_vietnam` - Setup American-North Vietnam conditions (focus and scores)
-- `test_indochina_trigger_american_north_vietnam` - Directly trigger American-North Vietnam ending (for testing effect)
+- `test_indochina_trigger_american_north_vietnam` - Directly trigger American-North Vietnam ending (bypasses event chain, for testing effect only)
+- `test_indochina_full_american_north_vietnam_setup` - Complete setup with all conditions (Ho Chi Minh, opinions, scores, focus)
+- `test_indochina_full_american_north_vietnam_ending` - End-to-end test (setup + auto-trigger)
+- `test_indochina_trigger_reunification_chain` - Manually trigger first reunification event
+- `test_indochina_advance_reunification_chain` - Check status of reunification event chain
+- `test_indochina_verify_ending_available` - Verify ending is available after reunification completes
 
 ### GUI Tests
 - `test_indochina_show_gui` - Show main struggle GUI
@@ -241,26 +246,56 @@ e test_indochina_reset
 e test_indochina_trigger_dan_quoc_peace
 ```
 
-### Test American-North Vietnam Diplomatic
+### Test American-North Vietnam Diplomatic (Full Event Chain)
 ```
-# Test American-North Vietnam ending availability
+# COMPLETE END-TO-END TEST (Recommended)
+# This sets up all conditions and triggers the full reunification event chain
+e test_indochina_reset
+e test_indochina_full_american_north_vietnam_ending
+# This will:
+# - Complete USA focus USA_50s_Reestablish_Deer_Team
+# - Set up all required scores (Communist > 2x Anti-Communist, > 500)
+# - Ensure Ho Chi Minh is in power in VIN
+# - Set positive opinions between USA and VIN
+# - Ensure VIN favors USA over SOV
+# - Ensure USA and VIN are not at war
+# The reunification event chain should trigger automatically via on_daily_FRA
+# After all events complete, the ending will be available in GUI
+
+# STEP-BY-STEP TESTING
+# Step 1: Full setup (sets up all conditions)
+e test_indochina_reset
+e test_indochina_full_american_north_vietnam_setup
+e test_indochina_debug_state
+# Wait for daily tick - event chain should trigger automatically
+# If it doesn't, proceed to Step 2
+
+# Step 2: Manually trigger first reunification event (if needed)
+e test_indochina_trigger_reunification_chain
+# This fires USA_VIN_Reunification.1 for USA
+# Events will chain: .2 (VIN) → .3 (USA) → .4 (VIE) → .5/.6 (VIN) → .7 (USA) → .8 (VIN)
+
+# Step 3: Check chain progress
+e test_indochina_advance_reunification_chain
+# Shows status of the event chain
+
+# Step 4: Verify ending is available after reunification completes
+e test_indochina_verify_ending_available
+# Opens GUI and verifies ending is available
+# Ending should be clickable in GUI after USA_VIN_Reunification.8 completes
+
+# QUICK AVAILABILITY TEST (Old method - doesn't test event chain)
 e test_indochina_reset
 e test_indochina_unlock_american_north_vietnam
 e test_indochina_debug_state
-# Note: Requires USA to complete USA_50s_Reestablish_Deer_Team focus
-# Note: Requires Ho Chi Minh in power in VIN
-# Note: Requires Communist > 2x TotalAntiCommunist
-# Then check GUI - American-North Vietnam ending should be available to click
+# Note: This only checks if conditions are met, doesn't set up full chain
+# Note: Ending will be LOCKED until reunification event chain completes
 
-# Setup conditions (focus and scores)
-e test_indochina_reset
-e test_indochina_setup_american_north_vietnam
-e test_indochina_debug_state
-# Note: Still need to ensure Ho Chi Minh is in power and VIN/USA are not at war
-
-# Direct trigger (for testing ending effect)
+# DIRECT TRIGGER (Bypasses event chain - for testing ending effect only)
 e test_indochina_reset
 e test_indochina_trigger_american_north_vietnam
+# WARNING: This bypasses the event chain and directly triggers the ending
+# Use only to test the ending effect itself, not the full process
 ```
 
 ### Test Southern Victory
