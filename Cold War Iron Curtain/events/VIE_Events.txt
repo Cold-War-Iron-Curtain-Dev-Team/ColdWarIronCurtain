@@ -14,6 +14,7 @@
 	add_namespace = BaoDai
 	add_namespace = HoangLienRevolt
 	add_namespace = French_Coup
+	add_namespace = VIE_French_Hinh
 	add_namespace = VIE_CD_Recruit
 	add_namespace = NgoDinh_Brothers
 	add_namespace = VIE_PMs
@@ -1198,12 +1199,55 @@ country_event = {
 	option = {
 		name = Etat_du_Vietnam.3.a
 
-		#+American influence/relations? money? foreign aid?
+		if = {
+			limit = { country_exists = USA }
+			USA = {
+				add_opinion_modifier = {
+					target = VIE
+					modifier = small_increase
+				}
+				reverse_add_opinion_modifier = {
+					target = VIE
+					modifier = small_increase
+				}
+			}
+			set_temp_variable = { percent_change = 10 }
+			set_temp_variable = { tag_index = USA.id }
+			set_temp_variable = { influence_target = VIE.id }
+			change_influence_percentage = yes
+			set_temp_variable = { money_to_gain = 1.0 }
+			add_money_with_tooltip_effect = yes
+		}
 	}
 	option = {
 		name = Etat_du_Vietnam.3.b
 
-		#-Relations? better relations with North?
+		if = {
+			limit = { country_exists = USA }
+			USA = {
+				add_opinion_modifier = {
+					target = VIE
+					modifier = small_decrease
+				}
+				reverse_add_opinion_modifier = {
+					target = VIE
+					modifier = small_decrease
+				}
+			}
+		}
+		if = {
+			limit = { country_exists = VIN }
+			VIN = {
+				add_opinion_modifier = {
+					target = VIE
+					modifier = small_increase
+				}
+				reverse_add_opinion_modifier = {
+					target = VIE
+					modifier = small_increase
+				}
+			}
+		}
 	}
 }
 
@@ -1431,7 +1475,6 @@ country_event = {
 	option = {
 		name = BaoDai.5.a
 		
-		#Heavily debuff SV as punishment
 		VIE = {
 			remove_ideas = VIE_Looming_Diem
 			complete_national_focus = VIE_Exile_Diem_Political_Opponents
@@ -1803,6 +1846,26 @@ country_event = {
 			}
 		}
 		load_focus_tree = VIE_French_Hinh
+	}
+}
+
+country_event = {
+	id = VIE_French_Hinh.1
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_French_Hinh.1" }
+	title = VIE_French_Hinh.1.t
+	desc = VIE_French_Hinh.1.d
+	picture = GFX_French_Coup.2
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIE_French_Hinh.1.a
+		add_stability = 0.05
+		set_temp_variable = { percent_change = 50 }
+		set_temp_variable = { tag_index = FRA.id }
+		set_temp_variable = { influence_target = VIE.id }
+		change_influence_percentage = yes
 	}
 }
 
@@ -3221,7 +3284,7 @@ country_event = {
 	immediate = { log = "[GetDateText]: [Root.GetTag]: id = VIE_Historical.8"}
 	title = VIE_Historical.8.t
 	desc = VIE_Historical.8.daily_unrest
-	picture = VIE_Historical_8
+	picture = GFX_VIE_Historical_8
 	is_triggered_only = yes
 	fire_only_once = yes
 	trigger = {
@@ -6265,7 +6328,127 @@ country_event = {
 			target = CAM
 			modifier = VIE_Denouced_Brevert_Lines
 		}
-		#Options to have border wars
+		if = {
+			limit = {
+				country_exists = CAM
+				owns_state = 1753
+			}
+			CAM = {
+				start_border_war = {
+					change_state_after_war = yes
+					attacker = {
+						state = 1753
+						num_provinces = 1
+						on_win = Brevert_Lines.5
+						on_lose = Brevert_Lines.4
+						on_cancel = Brevert_Lines.6
+					}
+					defender = {
+						state = 1753
+						num_provinces = 1
+						on_win = Brevert_Lines.4
+						on_lose = Brevert_Lines.5
+						on_cancel = Brevert_Lines.6
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = Brevert_Lines.4
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = Brevert_Lines.4" }
+	title = Brevert_Lines.4.t
+	desc = Brevert_Lines.4.d
+	picture = GFX_Brevert_Lines.3
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Brevert_Lines.4.a
+
+		if = {
+			if = {
+				limit = { NOT = { is_core_of = 1753 } }
+				add_state_core = 1753
+			}
+		}
+	}
+}
+
+country_event = {
+	id = Brevert_Lines.5
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = Brevert_Lines.5" }
+	title = Brevert_Lines.5.t
+	desc = Brevert_Lines.5.d
+	picture = GFX_Brevert_Lines.3
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Brevert_Lines.5.a
+
+		add_political_power = -200
+		add_stability = -0.20
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				add_opinion_modifier = {
+					target = VIE
+					modifier = large_decrease
+				}
+				reverse_add_opinion_modifier = {
+					target = VIE
+					modifier = large_decrease
+				}
+			}
+		}
+		every_country = {
+			limit = {
+				OR = {
+					original_tag = CAM
+					original_tag = LAO
+					original_tag = LOS
+					original_tag = VIN
+				}
+			}
+			add_opinion_modifier = {
+				target = VIE
+				modifier = medium_decrease
+			}
+			reverse_add_opinion_modifier = {
+				target = VIE
+				modifier = medium_decrease
+			}
+		}
+		if = {
+			limit = {
+				is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+			}
+			FRA = {
+				add_to_variable = {
+					StruggleInvolvedNationsIndochinaProIndependenceScore = -200
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = Brevert_Lines.6
+	immediate = { log = "[GetDateText]: [Root.GetTag]: id = Brevert_Lines.6" }
+	title = Brevert_Lines.6.t
+	desc = Brevert_Lines.6.d
+	picture = GFX_Brevert_Lines.3
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Brevert_Lines.6.a
 	}
 }
 
@@ -7386,7 +7569,7 @@ country_event = {
 		1757 = {
 			add_manpower = 2000
 		}
-		every_owned_state = { ####
+		every_owned_state = {
 			add_to_variable = {
 				ReligionCultistSafe = 2
 			}
@@ -7605,7 +7788,8 @@ country_event = {
 
 	option = {
 		name = Autonomous_FUL_Republic.3.a
-		#effect TBD
+
+		add_stability = -0.05
 	}
 }
 
@@ -9304,7 +9488,6 @@ country_event = {
 	option = {
 		name = USA_VIN_Reunification.5.a
 		
-		# Begin reunification process - North annexes South
 		if = {
 			limit = { country_exists = VIE }
 			transfer_state = 757
@@ -9342,7 +9525,6 @@ country_event = {
 	option = {
 		name = USA_VIN_Reunification.6.a
 		
-		# Force reunification despite resistance
 		if = {
 			limit = { country_exists = VIE }
 			transfer_state = 757
@@ -9381,7 +9563,6 @@ country_event = {
 	option = {
 		name = USA_VIN_Reunification.7.a
 		
-		# USA recognizes the reunified Vietnam
 		VIN = {
 			add_opinion_modifier = {
 				target = USA
@@ -9408,9 +9589,7 @@ country_event = {
 	option = {
 		name = USA_VIN_Reunification.8.a
 		
-		# Mark reunification as complete
 		set_global_flag = USA_VIN_Reunification_Complete
-		# Complete the reunification and trigger ending
 		drop_cosmetic_tag = yes
 		dismantle_faction = yes
 		add_popularity = { ideology = Social_Democratic popularity = 0.40 }
@@ -9433,7 +9612,6 @@ country_event = {
 				relation = non_aggression_pact
 			}
 		}
-		# Trigger the ending
 		indochina_struggle_american_north_vietnam = yes
 	}
 }
