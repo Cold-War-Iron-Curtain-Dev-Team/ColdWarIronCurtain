@@ -533,6 +533,9 @@ indochina_struggle_communist_victory = {
 		VIN = {
 			if = {
 				limit = { country_exists = VIE }
+				VIE = {
+					remove_ideas = State_of_Vietnam_Faction
+				}
 				transfer_state = 757
 				transfer_state = 982
 				transfer_state = 286
@@ -587,12 +590,12 @@ indochina_struggle_communist_victory = {
 		}
 	}
 	
-	if = { limit = { country_exists = FRA } FRA = { white_peace = VIN } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = LAO } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = NLF } }
-	if = { limit = { country_exists = VIN } VIN = { white_peace = FRA } }
-	if = { limit = { country_exists = VIN } VIN = { white_peace = LAO } }
-	if = { limit = { country_exists = VIN } VIN = { white_peace = NLF } }
+	if = { limit = { country_exists = FRA country_exists = VIN } FRA = { if = { limit = { has_war_with = VIN } white_peace = VIN } } }
+	if = { limit = { country_exists = FRA country_exists = LAO } FRA = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = FRA country_exists = NLF } FRA = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIN country_exists = FRA } VIN = { if = { limit = { has_war_with = FRA } white_peace = FRA } } }
+	if = { limit = { country_exists = VIN country_exists = LAO } VIN = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = VIN country_exists = NLF } VIN = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
 	
 	every_state = {
 		limit = {
@@ -603,6 +606,26 @@ indochina_struggle_communist_victory = {
 		}
 		clr_state_flag = VIN_unplanned_offensive_flag
 		remove_dynamic_modifier = { modifier = unplanned_offensive }
+	}
+	
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			remove_ideas = Viet_Minh_Faction
+		}
+	}
+	
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
 	}
 	
     indochina_struggle_ending_cleanup = yes
@@ -679,13 +702,35 @@ indochina_struggle_southern_victory = {
 		}
 	}
 	
-	if = { limit = { country_exists = FRA } FRA = { white_peace = VIE } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = VIN } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = LAO } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = NLF } }
-	if = { limit = { country_exists = VIE } VIE = { white_peace = FRA } }
-	if = { limit = { country_exists = VIE } VIE = { white_peace = LAO } }
-	if = { limit = { country_exists = VIE } VIE = { white_peace = NLF } }
+	if = {
+		limit = {
+			country_exists = VIE
+			country_exists = MEO
+		}
+		VIE = {
+			set_autonomy = { target = MEO autonomy_state = autonomy_integrated_puppet }
+		}
+		MEO = {
+			remove_ideas = Viet_Minh_Faction
+			set_politics = {
+				ruling_party = neutrality
+				elections_allowed = no
+				long_name = "Local Government Under Vietnamese Supervision"
+				name = "Local Government Under Vietnamese Supervision"
+			}
+			set_popularities = {
+				neutrality = 100
+			}
+		}
+	}
+	
+	if = { limit = { country_exists = FRA country_exists = VIE } FRA = { if = { limit = { has_war_with = VIE } white_peace = VIE } } }
+	if = { limit = { country_exists = FRA country_exists = VIN } FRA = { if = { limit = { has_war_with = VIN } white_peace = VIN } } }
+	if = { limit = { country_exists = FRA country_exists = LAO } FRA = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = FRA country_exists = NLF } FRA = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIE country_exists = FRA } VIE = { if = { limit = { has_war_with = FRA } white_peace = FRA } } }
+	if = { limit = { country_exists = VIE country_exists = LAO } VIE = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = VIE country_exists = NLF } VIE = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
 	
 	every_state = {
 		limit = {
@@ -699,6 +744,19 @@ indochina_struggle_southern_victory = {
 	}
 	
 	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	
+	if = {
 		limit = { country_exists = VIE }
 		VIE = {
 			if = {
@@ -707,6 +765,8 @@ indochina_struggle_southern_victory = {
 			}
 			set_country_flag = VIE_Can_Integrate_VIN
 			country_event = BaoDai.10
+			remove_ideas = State_of_Vietnam_Faction
+			remove_ideas = Viet_Minh_Faction
 		}
 	}
 	
@@ -724,15 +784,11 @@ indochina_struggle_southern_victory = {
     news_event = Indochina_Struggle_Ending.2
 }
 indochina_struggle_federal_vietnam = {
-	# Set phase
 	set_variable = { global.Indochina_War_Active_Phase = 100 }
 	
-	# Federal Vietnam ending: France maintains control through a federal structure
-	# Handle state transfers to VIE (South Vietnam)
 	if = {
 		limit = { country_exists = VIE }
 		VIE = {
-			# Transfer states from VIN if it exists
 			if = {
 				limit = { country_exists = VIN }
 				transfer_state = 838
@@ -743,7 +799,6 @@ indochina_struggle_federal_vietnam = {
 				transfer_state = 1281
 				annex_country = { target = VIN }
 			}
-			# Annex NLF if it exists
 			if = {
 				limit = { country_exists = NLF }
 				annex_country = { target = NLF }
@@ -751,7 +806,6 @@ indochina_struggle_federal_vietnam = {
 		}
 	}
 	
-	# Handle Laos
 	if = {
 		limit = {
 			country_exists = LAO
@@ -762,7 +816,6 @@ indochina_struggle_federal_vietnam = {
 		}
 	}
 	
-	# Auto-complete USA focus if available
 	if = {
 		limit = { country_exists = USA }
 		USA = {
@@ -781,7 +834,6 @@ indochina_struggle_federal_vietnam = {
         }
     }
 	
-	# Clear state flags and modifiers
 	every_state = {
 		limit = {
 			is_core_of = VIN
@@ -790,26 +842,322 @@ indochina_struggle_federal_vietnam = {
 		remove_dynamic_modifier = { modifier = unplanned_offensive }
 	}
 	
-	# Cleanup and fire event
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.3
 }
 indochina_struggle_balkanized_vietnam = {
+	if = {
+		limit = { country_exists = FRA }
+			FRA = {
+			if = {
+				limit = { country_exists = TAI }
+				annex_country = { target = TAI }
+			}
+			if = {
+				limit = { country_exists = NUN }
+				annex_country = { target = NUN }
+			}
+			if = {
+				limit = { country_exists = MEO }
+				annex_country = { target = MEO }
+			}
+			if = {
+				limit = { country_exists = THO }
+				annex_country = { target = THO }
+			}
+			if = {
+				limit = { country_exists = TAM }
+				annex_country = { target = TAM }
+			}
+			if = {
+				limit = { country_exists = FUL }
+				annex_country = { target = FUL }
+			}
+			if = {
+				limit = { country_exists = CCC }
+				annex_country = { target = CCC }
+			}
+			if = {
+				limit = { country_exists = VIE }
+				annex_country = { target = VIE }
+			}
+			if = {
+				limit = { country_exists = VIN }
+				annex_country = { target = VIN }
+			}
+			if = {
+				limit = { country_exists = FRE }
+				annex_country = { target = FRE }
+			}
+			if = {
+				limit = { country_exists = NLF }
+				annex_country = { target = NLF }
+				1287 = { transfer_state_to = VIE add_core_of = VIE }
+				1752 = { transfer_state_to = CCC add_core_of = CCC }
+			}
+			release_autonomy = {
+				target = TAI
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = NUN
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = MEO
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = THO
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = TAM
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = FUL
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = CCC
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = VIE
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			release_autonomy = {
+				target = VIN
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			every_country = {
+				limit = {
+					OR = {
+						tag = TAI
+						tag = NUN
+						tag = MEO
+						tag = THO
+						tag = TAM
+						tag = FUL
+						tag = CCC
+						tag = VIE
+						tag = VIN
+					}
+				}
+				set_politics = {
+					ruling_party = neutrality
+					elections_allowed = no
+					election_frequency = 48
+					long_name = "Local Government Under French Supervision"
+					name = "Local Government Under French Supervision"
+				}
+				set_popularities = {
+					neutrality = 100
+				}
+			}
+			if = {
+				limit = { country_exists = VIE }
+				VIE = {
+					remove_ideas = State_of_Vietnam_Faction
+				}
+			}
+			if = {
+				limit = { country_exists = VIN }
+				VIN = {
+					remove_ideas = Viet_Minh_Faction
+				}
+			}
+			if = {
+				limit = { country_exists = CAM }
+				CAM = {
+					remove_ideas = State_of_Vietnam_Faction
+				}
+			}
+			if = {
+				limit = { country_exists = LOS }
+				LOS = {
+					remove_ideas = State_of_Vietnam_Faction
+				}
+			}
+		}
+	}
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.4
 }
 indochina_struggle_dan_quoc_peace = {
+	if = {
+		limit = {
+			has_global_flag = diem_ho_chi_minh_reunified
+			country_exists = VIE
+		}
+		if = {
+			limit = {
+				VIE = {
+					NOT = { country_exists = VIN }
+				}
+			}
+			VIE = {
+				remove_ideas = State_of_Vietnam_Faction
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					country_exists = VIE
+					country_exists = VIN
+				}
+				VIE = {
+					transfer_state = 838
+					transfer_state = 786
+					transfer_state = 671
+					transfer_state = 881
+					transfer_state = 1280
+					transfer_state = 1281
+					transfer_state = 1760
+					transfer_state = 1761
+					transfer_state = 1766
+					annex_country = { target = VIN transfer_troops = yes }
+					if = {
+						limit = {
+							NOT = {
+								has_country_leader = {
+									character = VIE_Ngo_Dinh_Diem
+									ruling_only = yes
+								}
+							}
+						}
+						add_country_leader_role = {
+							character = VIE_Ngo_Dinh_Diem
+							promote_leader = yes
+							country_leader = {
+								ideology = oriental_personalism
+							}
+						}
+					}
+					remove_ideas = State_of_Vietnam_Faction
+				}
+				set_global_flag = diem_ho_chi_minh_reunified
+			}
+		}
+	}
+	else = {
+		if = {
+			limit = { country_exists = VIE }
+			VIE = {
+				remove_ideas = State_of_Vietnam_Faction
+			}
+		}
+		log = "WARNING: Dan-Quoc Peace ending triggered before event chain completed. Failsafe activated."
+	}
+	if = {
+		limit = {
+			country_exists = VIE
+			country_exists = LOS
+		}
+		VIE = {
+			every_controlled_state = {
+				limit = { is_core_of = LOS }
+				remove_core_of = LAO
+				transfer_state_to = LOS
+			}
+		}
+	}
+	if = {
+		limit = {
+			country_exists = LOS
+			country_exists = LAO
+		}
+		LOS = {
+			every_controlled_state = {
+				limit = { is_core_of = LOS }
+				remove_core_of = LAO
+				transfer_state_to = LOS
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = CAM }
+		FRA = {
+			set_autonomy = { target = CAM autonomy_state = autonomy_free }
+		}
+	}
+	if = { limit = { country_exists = FRA country_exists = VIE } FRA = { if = { limit = { has_war_with = VIE } white_peace = VIE } } }
+	if = { limit = { country_exists = FRA country_exists = VIN } FRA = { if = { limit = { has_war_with = VIN } white_peace = VIN } } }
+	if = { limit = { country_exists = FRA country_exists = LAO } FRA = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = FRA country_exists = NLF } FRA = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIE country_exists = FRA } VIE = { if = { limit = { has_war_with = FRA } white_peace = FRA } } }
+	if = { limit = { country_exists = VIE country_exists = LAO } VIE = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = VIE country_exists = NLF } VIE = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIN country_exists = FRA } VIN = { if = { limit = { has_war_with = FRA } white_peace = FRA } } }
+	if = { limit = { country_exists = VIN country_exists = LAO } VIN = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = VIN country_exists = NLF } VIN = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	every_state = {
+		limit = {
+			OR = {
+				is_core_of = VIE
+				is_core_of = VIN
+			}
+		}
+		clr_state_flag = VIN_unplanned_offensive_flag
+		remove_dynamic_modifier = { modifier = unplanned_offensive }
+	}
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.5
 }
 indochina_struggle_american_north_vietnam = {
 	set_variable = { global.Indochina_War_Active_Phase = 100 }
-	
 	if = {
 		limit = { country_exists = VIN }
 		VIN = {
 			if = {
 				limit = { country_exists = VIE }
+				VIE = {
+					remove_ideas = State_of_Vietnam_Faction
+					remove_ideas = Viet_Minh_Faction
+				}
 				transfer_state = 757
 				transfer_state = 982
 				transfer_state = 286
@@ -817,10 +1165,9 @@ indochina_struggle_american_north_vietnam = {
 				transfer_state = 983
 				annex_country = { target = VIE }
 			}
-			if = {
-				limit = { country_exists = NLF }
-				annex_country = { target = NLF }
-			}
+			if = { limit = { country_exists = NLF } annex_country = { target = NLF } }
+			if = { limit = { country_exists = CCC } annex_country = { target = CCC } }
+			if = { limit = { country_exists = FUL } annex_country = { target = FUL } }
 			if = {
 				limit = { 1760 = { is_capital = no } }
 				set_capital = { state = 1760 }
@@ -830,6 +1177,7 @@ indochina_struggle_american_north_vietnam = {
 			add_popularity = { ideology = Social_Democratic popularity = 0.40 }
 			add_popularity = { ideology = communism popularity = -0.20 }
 			set_politics = { ruling_party = Social_Democratic elections_allowed = yes }
+			remove_ideas = Viet_Minh_Faction
 			if = {
 				limit = { country_exists = USA }
 				USA = {
@@ -854,8 +1202,6 @@ indochina_struggle_american_north_vietnam = {
 			}
 		}
 	}
-	
-	# Handle Laos - transfer to LAO if it exists
 	if = {
 		limit = {
 			country_exists = VIN
@@ -882,27 +1228,21 @@ indochina_struggle_american_north_vietnam = {
 			}
 		}
 	}
-	
-	# Handle Cambodia - set autonomy if CAM exists
 	if = {
 		limit = { country_exists = CAM }
 		FRA = {
 			set_autonomy = { target = CAM autonomy_state = autonomy_free }
 		}
 	}
-	
-	# Peace treaties with all parties
-	if = { limit = { country_exists = FRA } FRA = { white_peace = VIN } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = LAO } }
-	if = { limit = { country_exists = FRA } FRA = { white_peace = NLF } }
-	if = { limit = { country_exists = VIN } VIN = { white_peace = FRA } }
-	if = { limit = { country_exists = VIN } VIN = { white_peace = LAO } }
-	if = { limit = { country_exists = VIN } VIN = { white_peace = NLF } }
-	if = { limit = { country_exists = VIE } VIE = { white_peace = VIN } }
-	if = { limit = { country_exists = VIE } VIE = { white_peace = FRA } }
-	if = { limit = { country_exists = VIE } VIE = { white_peace = LAO } }
-	
-	# Clear state flags and modifiers
+	if = { limit = { country_exists = FRA country_exists = VIN } FRA = { if = { limit = { has_war_with = VIN } white_peace = VIN } } }
+	if = { limit = { country_exists = FRA country_exists = LAO } FRA = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = FRA country_exists = NLF } FRA = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIN country_exists = FRA } VIN = { if = { limit = { has_war_with = FRA } white_peace = FRA } } }
+	if = { limit = { country_exists = VIN country_exists = LAO } VIN = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
+	if = { limit = { country_exists = VIN country_exists = NLF } VIN = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIE country_exists = VIN } VIE = { if = { limit = { has_war_with = VIN } white_peace = VIN } } }
+	if = { limit = { country_exists = VIE country_exists = FRA } VIE = { if = { limit = { has_war_with = FRA } white_peace = FRA } } }
+	if = { limit = { country_exists = VIE country_exists = LAO } VIE = { if = { limit = { has_war_with = LAO } white_peace = LAO } } }
 	every_state = {
 		limit = {
 			OR = {
@@ -913,49 +1253,46 @@ indochina_struggle_american_north_vietnam = {
 		clr_state_flag = VIN_unplanned_offensive_flag
 		remove_dynamic_modifier = { modifier = unplanned_offensive }
 	}
-	
-	# Auto-complete relevant focus trees if available
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
 	if = {
 		limit = { country_exists = USA }
 		USA = {
 			if = {
 				limit = { has_focus_tree = USA_50s }
-				# Focus already completed as part of trigger, but ensure it's marked
 			}
 		}
 	}
-	
-	# Fire events
 	if = {
 		limit = { country_exists = VIN }
 		VIN = {
-			# country_event = VIN_American_Backing.1
 		}
 	}
 	if = {
 		limit = { country_exists = USA }
 		USA = {
-			# country_event = USA_Backing_North_Vietnam.1
 		}
 	}
-	
-	# Cleanup and fire ending event
 	indochina_struggle_ending_cleanup = yes
 	news_event = Indochina_Struggle_Ending.6
 }
 indochina_struggle_kuomintang_victory = {
-	# Set phase
 	set_variable = { global.Indochina_War_Active_Phase = 100 }
-	
-	# Kuomintang/Viet Quoc Victory ending: PQC successfully invades and takes over Vietnam
-	# This is a difficult/challenge route - PQC had to land on the mainland and capture key cities
 	if = {
 		limit = { country_exists = PQC }
 		PQC = {
-			# Annex all Vietnamese states and countries
 			if = {
 				limit = { country_exists = VIN }
-				# Transfer all Vietnam states from VIN
 				transfer_state = 757
 				transfer_state = 982
 				transfer_state = 286
@@ -970,26 +1307,21 @@ indochina_struggle_kuomintang_victory = {
 				transfer_state = 1760
 				transfer_state = 1761
 				transfer_state = 1766
-				# Annex VIN
 				annex_country = { target = VIN transfer_troops = no }
 			}
 			if = {
 				limit = { country_exists = VIE }
-				# Transfer any remaining states from VIE
 				transfer_state = 757
 				transfer_state = 982
 				transfer_state = 286
 				transfer_state = 1287
 				transfer_state = 983
-				# Annex VIE
 				annex_country = { target = VIE transfer_troops = no }
 			}
 			if = {
 				limit = { country_exists = NLF }
-				# Annex NLF
 				annex_country = { target = NLF transfer_troops = no }
 			}
-			# Set capital to Saigon (286) - the main city, or Hanoi (1760) if Saigon not available
 			if = {
 				limit = { owns_state = 286 }
 				set_capital = { state = 286 }
@@ -1000,17 +1332,24 @@ indochina_struggle_kuomintang_victory = {
 					set_capital = { state = 1760 }
 				}
 			}
-			# Drop cosmetic tag if needed
 			drop_cosmetic_tag = yes
-			# Dismantle faction if in one
 			dismantle_faction = yes
-			# Maintain nationalist/KMT ideology (already set, but ensure stability)
 			add_stability = 0.10
 			add_war_support = 0.10
+			if = {
+				limit = { country_exists = VIE }
+				VIE = {
+					remove_ideas = State_of_Vietnam_Faction
+				}
+			}
+			if = {
+				limit = { country_exists = VIN }
+				VIN = {
+					remove_ideas = Viet_Minh_Faction
+				}
+			}
 		}
 	}
-	
-	# Handle Laos - transfer to LAO if it exists
 	if = {
 		limit = {
 			country_exists = PQC
@@ -1037,16 +1376,12 @@ indochina_struggle_kuomintang_victory = {
 			}
 		}
 	}
-	
-	# Handle Cambodia - set autonomy if CAM exists
 	if = {
 		limit = { country_exists = CAM }
 		FRA = {
 			set_autonomy = { target = CAM autonomy_state = autonomy_free }
 		}
 	}
-	
-	# Peace treaties with all parties
 	if = { limit = { country_exists = FRA } FRA = { white_peace = PQC } }
 	if = { limit = { country_exists = FRA } FRA = { white_peace = LAO } }
 	if = { limit = { country_exists = FRA } FRA = { white_peace = NLF } }
@@ -1054,8 +1389,6 @@ indochina_struggle_kuomintang_victory = {
 	if = { limit = { country_exists = PQC } PQC = { white_peace = LAO } }
 	if = { limit = { country_exists = VIN } VIN = { white_peace = PQC } }
 	if = { limit = { country_exists = VIE } VIE = { white_peace = PQC } }
-	
-	# Clear state flags and modifiers
 	every_state = {
 		limit = {
 			OR = {
@@ -1067,28 +1400,32 @@ indochina_struggle_kuomintang_victory = {
 		clr_state_flag = VIN_unplanned_offensive_flag
 		remove_dynamic_modifier = { modifier = unplanned_offensive }
 	}
-	
-	# Auto-complete relevant focus trees if available
-	# PQC focus tree should reflect the successful invasion
 	if = {
 		limit = { country_exists = PQC }
 		PQC = {
 			if = {
 				limit = { has_focus_tree = PQC_1950s }
-				# Focus completion could be added here if needed
 			}
 		}
 	}
-	
-	# Fire events
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
 	if = {
 		limit = { country_exists = PQC }
 		PQC = {
 			# country_event = PQC_Victory_Over_Vietnam.1
 		}
 	}
-	
-	# Cleanup and fire ending event
 	indochina_struggle_ending_cleanup = yes
 	news_event = Indochina_Struggle_Ending.7
 }
@@ -1100,44 +1437,19 @@ indochina_struggle_run_geneva_ending_effect = {
 	if = {
 		limit = { geneva_conference_complete_failure_trigger = yes }
 		news_event = Geneva_Conference_Outcome.3
-		# indochina_struggle_run_failed_state_ending_effect = yes # Commenting this out so both events dont trigger @ same time
 		set_variable = { global.Indochina_War_Active_Phase = 10 }
 		indochina_struggle_ending_cleanup = yes
 		news_event = { id = Indochina_Struggle_Ending.10 days = 3 }
 	}
 	else = {
 		indochina_struggle_unlock_geneva_conference = yes
-		set_variable = { global.Indochina_War_Active_Phase = 11 }
-	
-		# if = {
-		# 	limit = { country_exists = VIN }
-		# 	VIN = {
-		# 		every_controlled_state = {
-		# 			limit = { is_core_of = LAO }
-		# 			remove_core_of = LOS
-		# 			transfer_state_to = LAO
-		# 		}
-		# 	}
-		# }
-		# if = {
-		# 	limit = { country_exists = LOS }
-		# 	LOS = {
-		# 		every_controlled_state = {
-		# 			limit = { is_core_of = LAO }
-		# 			remove_core_of = LOS
-		# 			transfer_state_to = LAO
-		# 		}
-		# 	}
-		# }
-		
+		set_variable = { global.Indochina_War_Active_Phase = 11 }	
 		if = { limit = { country_exists = VIN } white_peace = VIN }
 		if = { limit = { country_exists = NLF } white_peace = NLF }
 		if = { limit = { country_exists = LAO } white_peace = LAO }
-		
 		if = { limit = { country_exists = CAM } set_autonomy = { target = CAM autonomy_state = autonomy_free } }
 		if = { limit = { country_exists = VIE } set_autonomy = { target = VIE autonomy_state = autonomy_free } }
 		if = { limit = { country_exists = LOS } set_autonomy = { target = LOS autonomy_state = autonomy_free } }
-		
 		if = {
 			limit = { country_exists = VIE }
 			VIE = {
@@ -1155,7 +1467,6 @@ indochina_struggle_run_geneva_ending_effect = {
 				leave_faction = yes
 			}
 		}
-		
 		if = {
 			limit = { country_exists = CAM }
 			CAM = {
@@ -1166,7 +1477,6 @@ indochina_struggle_run_geneva_ending_effect = {
 				leave_faction = yes
 			}
 		}
-		
 		if = {
 			limit = { country_exists = LOS }
 			LOS = {
@@ -1178,7 +1488,6 @@ indochina_struggle_run_geneva_ending_effect = {
 				annex_country = { target = LOS }
 			}
 		}
-
 		if = {
 			limit = { country_exists = VIN }
 			LAO = {
@@ -1194,7 +1503,6 @@ indochina_struggle_run_geneva_ending_effect = {
 				}
 			}
 		}
-		
 		if = {
 			limit = { country_exists = VIN }
 			VIN = {
@@ -1212,17 +1520,43 @@ indochina_struggle_run_geneva_ending_effect = {
 				drop_cosmetic_tag = yes
 			}
 		}
-		
-		if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }
-		
+		if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }	
+		if = {
+			limit = { country_exists = VIE }
+			VIE = {
+				if = {
+					limit = { is_subject_of = FRA }
+					remove_ideas = State_of_Vietnam_Faction
+				}
+			}
+		}
+		if = {
+			limit = { country_exists = VIN }
+			VIN = {
+				if = {
+					limit = { is_subject_of = FRA }
+					remove_ideas = Viet_Minh_Faction
+				}
+			}
+		}
 		every_state = {
 			limit = { is_core_of = VIN }
 			clr_state_flag = VIN_unplanned_offensive_flag
 			remove_dynamic_modifier = { modifier = unplanned_offensive }
 		}
-		
+		if = {
+			limit = { country_exists = CAM }
+			CAM = {
+				remove_ideas = State_of_Vietnam_Faction
+			}
+		}
+		if = {
+			limit = { country_exists = LOS }
+			LOS = {
+				remove_ideas = State_of_Vietnam_Faction
+			}
+		}
 		indochina_struggle_ending_cleanup = yes
-		
 		if = {
 			limit = { geneva_conference_complete_success_trigger = yes }
 			news_event = Geneva_Conference_Outcome.1
@@ -1253,12 +1587,37 @@ indochina_struggle_run_never_ending_conflict_ending_effect = {
 }
 
 indochina_struggle_run_failed_state_ending_effect = {
-	set_variable = { global.Indochina_War_Active_Phase = 10 }
+	set_variable = { global.Indochina_War_Active_Phase = 10 }	
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			remove_ideas = Viet_Minh_Faction
+		}
+	}
+	
+	if = {
+		limit = { country_exists = CAM }
+		CAM = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			remove_ideas = State_of_Vietnam_Faction
+		}
+	}
+	
     indochina_struggle_ending_cleanup = yes
     news_event = Indochina_Struggle_Ending.10
 }
 
-# Helper effects for focus/event integration
 indochina_struggle_add_communist_military_points = {
 	if = {
 		limit = {
