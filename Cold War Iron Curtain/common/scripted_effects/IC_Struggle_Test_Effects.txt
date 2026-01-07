@@ -1,3 +1,31 @@
+# Console command: ic_reset
+# Resets all Indochina Struggle variables and flags to default state
+d_ic_reset = {
+    FROM = {
+        set_global_flag = Indochina_Struggle_Test_Mode
+        clr_global_flag = Indochina_War_Over
+        clr_global_flag = Geneva_Conference
+        clr_global_flag = dan_quoc_peace
+        clr_global_flag = diem_ho_chi_minh_reunified
+        clr_global_flag = USA_VIN_Reunification_Complete
+        set_variable = { global.Indochina_War_Active_Phase = 5 }
+        set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
+        set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+        indochina_struggle_update_phase_transitions = yes
+        set_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 0 }
+        set_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 0 }
+        set_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 0 }
+        set_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore = 0 }
+        set_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore = 0 }
+        set_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 0 }
+        set_variable = { global.indochina_phase_check = 0 }
+        set_variable = { global.indochina_border_war_check = 0 }
+        set_variable = { show_indochina_end_gui = 0 }
+        set_variable = { show_indochina_phase_gui = 0 }
+        log = "Indochina Struggle reset complete"
+    }
+}
+
 test_indochina_reset = {
     set_global_flag = Indochina_Struggle_Test_Mode
     clr_global_flag = Indochina_War_Over
@@ -1608,4 +1636,188 @@ test_indochina_test_southern_victory_chain = {
     test_indochina_bypass_liberator_focus = yes
     log = "Full chain initiated: Focus bypassed → Revolt event fired → VIE_Why_Revolting unlocked"
     log = "Next: Complete VIE_Why_Revolting focus to trigger crackdown event"
+}
+
+# ============================================
+# CONSOLE COMMANDS (d_ prefix)
+# ============================================
+# Usage: In console, type command without "d_" prefix
+# Example: "ic_reset" calls d_ic_reset
+# FROM = country running command, ROOT = selected country/state/character
+
+# Console command: ic_trigger_ending [ending_name]
+# Directly triggers an ending by name
+# Valid endings: communist, southern, federal, balkanized, dan_quoc, american_north, kuomintang, geneva, never_ending, failed_state
+d_ic_trigger_ending = {
+    FROM = {
+        if = {
+            limit = { check_variable = { args.0 = "communist" } }
+            test_indochina_trigger_communist_victory = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "southern" } }
+            test_indochina_trigger_southern_victory = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "federal" } }
+            test_indochina_trigger_federal_vietnam = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "balkanized" } }
+            test_indochina_trigger_balkanized_vietnam = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "dan_quoc" } }
+            test_indochina_trigger_dan_quoc_peace = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "american_north" } }
+            test_indochina_trigger_american_north_vietnam = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "kuomintang" } }
+            test_indochina_trigger_kuomintang_victory = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "geneva" } }
+            test_indochina_trigger_geneva = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "never_ending" } }
+            test_indochina_trigger_never_ending = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "failed_state" } }
+            test_indochina_trigger_failed_state = yes
+        }
+        else = {
+            log = "Invalid ending name. Valid: communist, southern, federal, balkanized, dan_quoc, american_north, kuomintang, geneva, never_ending, failed_state"
+        }
+    }
+}
+
+# Console command: ic_setup_ending [ending_name]
+# Sets up conditions for an ending without triggering it
+d_ic_setup_ending = {
+    FROM = {
+        if = {
+            limit = { check_variable = { args.0 = "communist" } }
+            test_indochina_set_communist_high = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "southern" } }
+            test_indochina_setup_southern_victory = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "federal" } }
+            test_indochina_setup_federal_vietnam = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "balkanized" } }
+            test_indochina_setup_balkanized_vietnam = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "dan_quoc" } }
+            test_indochina_setup_dan_quoc_peace = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "american_north" } }
+            test_indochina_setup_american_north_vietnam = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = "kuomintang" } }
+            test_indochina_setup_kuomintang_victory = yes
+        }
+        else = {
+            log = "Invalid ending name. Valid: communist, southern, federal, balkanized, dan_quoc, american_north, kuomintang"
+        }
+    }
+}
+
+# Console command: ic_set_phase [phase_number]
+# Sets the Indochina Struggle phase (3-11)
+d_ic_set_phase = {
+    FROM = {
+        if = {
+            limit = { check_variable = { args.0 = 3 } }
+            test_indochina_set_phase_high_intensity = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 4 } }
+            test_indochina_set_phase_medium_intensity = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 5 } }
+            test_indochina_set_phase_low_intensity = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 6 } }
+            test_indochina_set_phase_high_tension = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 7 } }
+            test_indochina_set_phase_medium_tension = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 8 } }
+            test_indochina_set_phase_low_tension = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 9 } }
+            test_indochina_set_phase_never_ending = yes
+        }
+        else_if = {
+            limit = { check_variable = { args.0 = 10 } }
+            test_indochina_set_phase_failed_state = yes
+        }
+        else = {
+            log = "Invalid phase. Valid: 3-11 (3=High Intensity, 4=Medium Intensity, 5=Low Intensity, 6=High Tension, 7=Medium Tension, 8=Low Tension, 9=Never Ending, 10=Failed State, 11=Geneva)"
+        }
+    }
+}
+
+# Console command: ic_debug
+# Shows current struggle state and all variable values
+d_ic_debug = {
+    FROM = {
+        test_indochina_debug_state = yes
+    }
+}
+
+# Console command: ic_debug_triggers
+# Shows status of all ending triggers
+d_ic_debug_triggers = {
+    FROM = {
+        test_indochina_debug_all_triggers = yes
+    }
+}
+
+# Console command: ic_show_gui
+# Shows the Indochina Struggle GUI
+d_ic_show_gui = {
+    FROM = {
+        test_indochina_show_gui = yes
+    }
+}
+
+# Console command: ic_trigger_reunification
+# Triggers the USA-VIN reunification event chain
+d_ic_trigger_reunification = {
+    FROM = {
+        test_indochina_trigger_reunification_chain = yes
+    }
+}
+
+# Console command: ic_verify_ending [ending_name]
+# Verifies if an ending is available and shows why/why not
+d_ic_verify_ending = {
+    FROM = {
+        if = {
+            limit = { check_variable = { args.0 = "american_north" } }
+            test_indochina_verify_ending_available = yes
+        }
+        else = {
+            log = "Verification available for: american_north. Other endings: use ic_unlock_[ending] to check availability"
+        }
+    }
 }
