@@ -785,6 +785,19 @@ indochina_struggle_southern_victory = {
 }
 indochina_struggle_federal_vietnam = {
 	set_variable = { global.Indochina_War_Active_Phase = 100 }
+
+	if = {
+		limit = {
+			country_exists = VIE
+			country_exists = FRA
+		}
+		FRA = {
+			set_autonomy = {
+				target = VIE
+				autonomy_state = autonomy_associated_state
+			}
+		}
+	}
 	
 	if = {
 		limit = { country_exists = VIE }
@@ -803,6 +816,128 @@ indochina_struggle_federal_vietnam = {
 				limit = { country_exists = NLF }
 				annex_country = { target = NLF }
 			}
+			if = {
+				limit = { country_exists = FRE }
+				annex_country = { target = FRE }
+			}
+			if = {
+				limit = { country_exists = CCC }
+				annex_country = { target = CCC }
+			}
+			if = {
+				limit = { country_exists = FUL }
+				annex_country = { target = FUL }
+			}
+			if = {
+				limit = { country_exists = TAM }
+				annex_country = { target = TAM }
+			}
+			if = {
+				limit = { country_exists = THO }
+				annex_country = { target = THO }
+			}
+			if = {
+				limit = { country_exists = MEO }
+				annex_country = { target = MEO }
+			}
+			if = {
+				limit = { country_exists = NUN }
+				annex_country = { target = NUN }
+			}
+			if = {
+				limit = { country_exists = TAI }
+				annex_country = { target = TAI }
+			}
+			
+			if = {
+				limit = { owns_state = 1760 } # FRE capital: 1760 (Hanoi)
+				1760 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 286 } # CCC capital: 286 (Saigon)
+				286 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 1757 } # FUL capital: 1757
+				1757 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 1766 } # TAM capital: 1766
+				1766 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 1280 } # THO capital: 1280
+				1280 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 1767 } # MEO capital: 1767
+				1767 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 1281 } # NUN capital: 1281
+				1281 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			if = {
+				limit = { owns_state = 671 } # TAI capital: 671
+				671 = {
+					set_demilitarized_zone = yes
+				}
+			}
+			set_cosmetic_tag = VIE_FRA_FED
+			retire_country_leader = yes
+			add_country_leader_role = {
+				character = VIE_Federal_Vietnam_Government
+				promote_leader = yes
+				country_leader = {
+					ideology = interim_government
+				}
+			}
+			set_politics = {
+				ruling_party = neutrality
+				elections_allowed = no
+				long_name = "Coalition Government of Federal Vietnam"
+				name = "Coalition Government of Federal Vietnam"
+			}
+			set_popularities = {
+				neutrality = 64
+				nationalist = 12
+				democratic = 12
+				communism = 12
+			}
+			set_party_name = {
+				ideology = nationalist
+				long_name = "Coalition Government of Federal Vietnam"
+				name = "Coalition Government of Federal Vietnam"
+			}
+			set_party_name = {
+				ideology = democratic
+				long_name = "Coalition Government of Federal Vietnam"
+				name = "Coalition Government of Federal Vietnam"
+			}
+			set_party_name = {
+				ideology = communism
+				long_name = "Coalition Government of Federal Vietnam"
+				name = "Coalition Government of Federal Vietnam"
+			}
+			every_controlled_state = {
+				add_core_of = VIE
+			}
+			remove_ideas = State_of_Vietnam_Faction
+			dismantle_faction = yes
 		}
 	}
 	
@@ -840,13 +975,6 @@ indochina_struggle_federal_vietnam = {
 		}
 		clr_state_flag = VIN_unplanned_offensive_flag
 		remove_dynamic_modifier = { modifier = unplanned_offensive }
-	}
-	
-	if = {
-		limit = { country_exists = VIE }
-		VIE = {
-			remove_ideas = State_of_Vietnam_Faction
-		}
 	}
 	
 	if = {
@@ -1727,5 +1855,308 @@ indochina_struggle_add_pro_france_diplomatic_points = {
 			}
 			indochina_struggle_recalculate_total_anti_communist_score = yes
 		}
+	}
+}
+
+indochina_struggle_check_vp_captures = {
+	if = {
+		limit = {
+			NOT = { has_global_flag = Indochina_War_Over }
+			country_exists = VIE
+			country_exists = NLF
+		}
+		# Check each VP in the Indochina_VP array
+		every_province = {
+			limit = {
+				is_in_array = { global.Indochina_VP = THIS.id }
+				OR = {
+					# VIE-owned provinces that NLF might capture
+					AND = {
+						owner = { tag = VIE }
+						controller = { tag = NLF }
+						NOT = { has_province_flag = indochina_vp_nlf_controlled }
+					}
+					# NLF-owned provinces that VIE might capture/recapture
+					AND = {
+						owner = { tag = NLF }
+						controller = { tag = VIE }
+						NOT = { has_province_flag = indochina_vp_vie_controlled }
+					}
+					# VIE recapturing their own VPs from NLF
+					AND = {
+						owner = { tag = VIE }
+						controller = { tag = VIE }
+						has_province_flag = indochina_vp_nlf_controlled
+					}
+				}
+			}
+			# Determine VP value and award appropriate scores
+			if = {
+				limit = {
+					# Saigon (4401) - Auto-lose for VIE if captured by NLF
+					province = 4401
+					controller = { tag = NLF }
+					owner = { tag = VIE }
+				}
+				# Massive communist score boost
+				add_to_variable = {
+					FRA.StruggleInvolvedNationsIndochinaCommunistScore = 750
+					tooltip = Saigon_Captured_Communist_Score_TT
+				}
+				add_to_variable = {
+					global.Indochina_War_Next_Phase_A_Points = 200
+					tooltip = Add_to_Escalation_Phase_TT
+				}
+				# Trigger auto-lose for VIE
+				if = {
+					limit = {
+						country_exists = VIE
+						NOT = { VIE = { has_country_flag = VIE_Saigon_Lost } }
+					}
+					VIE = {
+						set_country_flag = VIE_Saigon_Lost
+						country_event = { id = VIE_Saigon_Captured.1 days = 1 }
+					}
+				}
+				set_province_flag = indochina_vp_nlf_controlled
+			}
+			else_if = {
+				limit = {
+					# VIE recaptures Saigon
+					province = 4401
+					controller = { tag = VIE }
+					owner = { tag = VIE }
+					has_province_flag = indochina_vp_nlf_controlled
+				}
+				# Large anti-communist score boost
+				add_to_variable = {
+					FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 300
+				}
+				add_to_variable = {
+					FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 300
+					tooltip = Add_to_Independent_Victory_Points_TT
+				}
+				add_to_variable = {
+					global.Indochina_War_Next_Phase_B_Points = 150
+					tooltip = Add_to_De_Escalation_Phase_TT
+				}
+				clr_province_flag = indochina_vp_nlf_controlled
+				set_province_flag = indochina_vp_vie_controlled
+			}
+			else_if = {
+				limit = {
+					# Big VPs (value 20-50) - Major cities - Check known important provinces
+					OR = {
+						# Check if province is in a state with high VP values by checking known important provinces
+						# Or check if it's a capital or major city
+						province = 13709  # Other Saigon VP
+						# Add other known big VP province IDs here if needed
+					}
+					OR = {
+						AND = {
+							owner = { tag = VIE }
+							controller = { tag = NLF }
+						}
+						AND = {
+							owner = { tag = NLF }
+							controller = { tag = VIE }
+						}
+					}
+				}
+				if = {
+					limit = {
+						owner = { tag = VIE }
+						controller = { tag = NLF }
+					}
+					# NLF captures big VIE VP
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaCommunistScore = 50
+						tooltip = Big_VP_Captured_Communist_Score_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 30
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+					set_province_flag = indochina_vp_nlf_controlled
+				}
+				else_if = {
+					limit = {
+						owner = { tag = NLF }
+						controller = { tag = VIE }
+					}
+					# VIE captures big NLF VP
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 50
+					}
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 50
+						tooltip = Add_to_Independent_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_B_Points = 20
+						tooltip = Add_to_De_Escalation_Phase_TT
+					}
+					set_province_flag = indochina_vp_vie_controlled
+				}
+				else_if = {
+					limit = {
+						owner = { tag = VIE }
+						controller = { tag = VIE }
+						has_province_flag = indochina_vp_nlf_controlled
+					}
+					# VIE recaptures big VP from NLF
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 40
+					}
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 40
+						tooltip = Add_to_Independent_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_B_Points = 15
+						tooltip = Add_to_De_Escalation_Phase_TT
+					}
+					clr_province_flag = indochina_vp_nlf_controlled
+					set_province_flag = indochina_vp_vie_controlled
+				}
+			}
+			else_if = {
+				limit = {
+					# Moderate VPs (value 5-19) - Named cities
+					# Check if province is not Saigon and not a known big VP
+					# For now, we'll treat most VPs as moderate unless they're specifically small
+					NOT = { province = 4401 }
+					NOT = { province = 13709 }
+					# Check if it's likely a moderate VP (not a 0-1 value VP)
+					# We'll use a simple heuristic: if it's in the VP array and not Saigon/big VP, treat as moderate
+					OR = {
+						AND = {
+							owner = { tag = VIE }
+							controller = { tag = NLF }
+						}
+						AND = {
+							owner = { tag = NLF }
+							controller = { tag = VIE }
+						}
+					}
+				}
+				if = {
+					limit = {
+						owner = { tag = VIE }
+						controller = { tag = NLF }
+					}
+					# NLF captures moderate VIE VP
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaCommunistScore = 15
+						tooltip = Moderate_VP_Captured_Communist_Score_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 10
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+					set_province_flag = indochina_vp_nlf_controlled
+				}
+				else_if = {
+					limit = {
+						owner = { tag = NLF }
+						controller = { tag = VIE }
+					}
+					# VIE captures moderate NLF VP
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 15
+					}
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 15
+						tooltip = Add_to_Independent_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_B_Points = 8
+						tooltip = Add_to_De_Escalation_Phase_TT
+					}
+					set_province_flag = indochina_vp_vie_controlled
+				}
+				else_if = {
+					limit = {
+						owner = { tag = VIE }
+						controller = { tag = VIE }
+						has_province_flag = indochina_vp_nlf_controlled
+					}
+					# VIE recaptures moderate VP from NLF
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 12
+					}
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 12
+						tooltip = Add_to_Independent_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_B_Points = 6
+						tooltip = Add_to_De_Escalation_Phase_TT
+					}
+					clr_province_flag = indochina_vp_nlf_controlled
+					set_province_flag = indochina_vp_vie_controlled
+				}
+			}
+			else = {
+				# Small VPs (value 1-4) - Random/no-name provinces
+				if = {
+					limit = {
+						owner = { tag = VIE }
+						controller = { tag = NLF }
+					}
+					# NLF captures small VIE VP
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaCommunistScore = 3
+						tooltip = Small_VP_Captured_Communist_Score_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 2
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+					set_province_flag = indochina_vp_nlf_controlled
+				}
+				else_if = {
+					limit = {
+						owner = { tag = NLF }
+						controller = { tag = VIE }
+					}
+					# VIE captures small NLF VP
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 3
+					}
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 3
+						tooltip = Add_to_Independent_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_B_Points = 2
+						tooltip = Add_to_De_Escalation_Phase_TT
+					}
+					set_province_flag = indochina_vp_vie_controlled
+				}
+				else_if = {
+					limit = {
+						owner = { tag = VIE }
+						controller = { tag = VIE }
+						has_province_flag = indochina_vp_nlf_controlled
+					}
+					# VIE recaptures small VP from NLF
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 2
+					}
+					add_to_variable = {
+						FRA.StruggleInvolvedNationsIndochinaProIndependenceScore = 2
+						tooltip = Add_to_Independent_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_B_Points = 1
+						tooltip = Add_to_De_Escalation_Phase_TT
+					}
+					clr_province_flag = indochina_vp_nlf_controlled
+					set_province_flag = indochina_vp_vie_controlled
+				}
+			}
+		}
+		indochina_struggle_recalculate_total_anti_communist_score = yes
 	}
 }
