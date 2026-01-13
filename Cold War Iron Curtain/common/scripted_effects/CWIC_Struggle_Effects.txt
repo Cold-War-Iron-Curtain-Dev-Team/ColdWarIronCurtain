@@ -165,11 +165,41 @@ indochina_struggle_check_geneva_negotiations_complete = {
     }
 }
 
+indochina_struggle_clamp_scores = {
+    FRA = {
+        if = {
+            limit = { check_variable = { StruggleInvolvedNationsIndochinaCommunistScore < 0 } }
+            set_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 0 }
+        }
+        if = {
+            limit = { check_variable = { StruggleInvolvedNationsIndochinaProFranceScore < 0 } }
+            set_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 0 }
+        }
+        if = {
+            limit = { check_variable = { StruggleInvolvedNationsIndochinaProIndependenceScore < 0 } }
+            set_variable = { StruggleInvolvedNationsIndochinaProIndependenceScore = 0 }
+        }
+        if = {
+            limit = { check_variable = { StruggleInvolvedNationsIndochinaProEthnicScore < 0 } }
+            set_variable = { StruggleInvolvedNationsIndochinaProEthnicScore = 0 }
+        }
+        if = {
+            limit = { check_variable = { StruggleInvolvedNationsIndochinaKuomintangScore < 0 } }
+            set_variable = { StruggleInvolvedNationsIndochinaKuomintangScore = 0 }
+        }
+        if = {
+            limit = { check_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore < 0 } }
+            set_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 0 }
+        }
+    }
+}
+
 indochina_struggle_recalculate_total_anti_communist_score = {
     FRA = {
         set_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProFranceScore }
         add_to_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProIndependenceScore }
         add_to_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = StruggleInvolvedNationsIndochinaProEthnicScore }
+        indochina_struggle_clamp_scores = yes
     }
 }
 
@@ -1318,14 +1348,9 @@ indochina_struggle_american_north_vietnam = {
 					target = USA
 					modifier = VIN_American_Backed_Democracy
 				}
-				if = {
-					limit = {
-						NOT = { has_diplomatic_relation = { country = USA relation = non_aggression_pact } }
-					}
-					diplomatic_relation = {
-						country = USA
-						relation = non_aggression_pact
-					}
+				diplomatic_relation = {
+					country = USA
+					relation = non_aggression_pact
 				}
 			}
 		}
@@ -1866,7 +1891,16 @@ indochina_struggle_check_vp_captures = {
 			country_exists = NLF
 		}
 		# Check each VP in the Indochina_VP array
-		every_province = {
+		# TODO: every_province doesn't exist - needs restructuring to use every_state or for_each_scope_loop
+		# Temporarily commented out - needs proper province iteration method
+		# every_province = {
+		if = {
+			limit = {
+				always = no  # Disabled until proper province iteration is implemented
+			}
+		}
+		# Original code below - needs restructuring:
+		# every_province = {
 			limit = {
 				is_in_array = { global.Indochina_VP = THIS.id }
 				OR = {
