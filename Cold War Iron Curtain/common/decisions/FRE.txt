@@ -1,0 +1,1061 @@
+FRE_CEFEO_Missions_category = {
+	# Resource Trading Decisions
+	FRE_Trade_PP_For_Equipment = {
+		icon = generic_industry
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			check_variable = { political_power > 50 }
+		}
+		
+		cost = 50
+		
+		fire_only_once = no
+		days_re_enable = 30
+		
+		complete_effect = {
+			add_political_power = -50
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = 5000
+				producer = ROOT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	FRE_Trade_PP_For_Support_Equipment = {
+		icon = generic_industry
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			check_variable = { political_power > 50 }
+		}
+		
+		cost = 50
+		
+		fire_only_once = no
+		days_re_enable = 30
+		
+		complete_effect = {
+			add_political_power = -50
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = 1000
+				producer = ROOT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	FRE_Trade_Stability_For_War_Support = {
+		icon = generic_political_discourse
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			has_stability > 0.15
+		}
+		
+		cost = 0
+		
+		fire_only_once = no
+		days_re_enable = 60
+		
+		complete_effect = {
+			add_stability = -0.05
+			add_war_support = 0.08
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	FRE_Trade_War_Support_For_Stability = {
+		icon = generic_political_discourse
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			has_war_support > 0.15
+		}
+		
+		cost = 0
+		
+		fire_only_once = no
+		days_re_enable = 60
+		
+		complete_effect = {
+			add_war_support = -0.05
+			add_stability = 0.08
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	FRE_Trade_Equipment_For_PP = {
+		icon = generic_industry
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			has_equipment = { infantry_equipment_1 > 10000 }
+		}
+		
+		cost = 0
+		
+		fire_only_once = no
+		days_re_enable = 30
+		
+		complete_effect = {
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = -10000
+			}
+			add_political_power = 40
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	FRE_Shady_Political_Work = {
+		icon = generic_political_discourse
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			has_war_support > 0.10
+		}
+		
+		cost = 0
+		
+		fire_only_once = no
+		days_re_enable = 90
+		
+		complete_effect = {
+			add_war_support = -0.03
+			add_political_power = 25
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	FRE_Expedited_Equipment_Procurement = {
+		icon = generic_industry
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		available = {
+			check_variable = { political_power > 100 }
+			has_stability > 0.25
+		}
+		
+		cost = 100
+		
+		fire_only_once = no
+		days_re_enable = 45
+		
+		complete_effect = {
+			add_political_power = -100
+			add_stability = -0.03
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = 12000
+				producer = ROOT
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment
+				amount = 2000
+				producer = ROOT
+			}
+		}
+		
+		ai_will_do = {
+			factor = 0
+		}
+	}
+	
+	
+	# Mission 1: Assess Route Coloniale 4
+	FRE_Mission_Assess_RC4 = {
+		icon = generic_intelligence_agency
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Assess_RC4_Activated
+			NOT = { has_country_flag = FRE_Mission_Assess_RC4_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_RC4_Assessment_Complete
+			NOT = { has_country_flag = FRE_Mission_Assess_RC4_Completed }
+			NOT = { has_country_flag = FRE_Mission_Assess_RC4_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Assess_RC4_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 30
+		
+		cost = 50
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			fre_mission_calculate_rc4_success = yes
+			# Calculate failure chance (100 - success chance)
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			
+			random_list = {
+				# Dynamic success chance based on temp variable
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.7 days = 1 }
+				}
+				# Failure chance is remainder
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.8 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			# Timeout = failure
+			country_event = { id = FRE_Events.8 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission 2: Address Revers Report Fallout
+	FRE_Mission_Address_Revers_Report = {
+		icon = generic_political_discourse
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Address_Revers_Report_Activated
+			NOT = { has_country_flag = FRE_Mission_Address_Revers_Report_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Revers_Report_Addressed
+			NOT = { has_country_flag = FRE_Mission_Address_Revers_Report_Completed }
+			NOT = { has_country_flag = FRE_Mission_Address_Revers_Report_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Address_Revers_Report_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 45
+		
+		cost = 75
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			fre_mission_calculate_revers_report_success = yes
+			# Calculate failure chance (100 - success chance)
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.9 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.10 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.10 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission 3: Ensure de Lattre's Successful Arrival
+	FRE_Mission_De_Lattre_Arrival = {
+		icon = generic_prepare_civil_war
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_De_Lattre_Arrival_Activated
+			NOT = { has_country_flag = FRE_Mission_De_Lattre_Arrival_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_De_Lattre_In_Command
+			NOT = { has_country_flag = FRE_Mission_De_Lattre_Arrival_Completed }
+			NOT = { has_country_flag = FRE_Mission_De_Lattre_Arrival_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_De_Lattre_Arrival_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 60
+		
+		cost = 100
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			fre_mission_calculate_de_lattre_success = yes
+			# Calculate failure chance (100 - success chance)
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.11 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.12 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.12 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission 4: Prepare Na San Position
+	FRE_Mission_Prepare_Na_San = {
+		icon = generic_prepare_civil_war
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Prepare_Na_San_Activated
+			NOT = { has_country_flag = FRE_Mission_Prepare_Na_San_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Na_San_Prepared
+			NOT = { has_country_flag = FRE_Mission_Prepare_Na_San_Completed }
+			NOT = { has_country_flag = FRE_Mission_Prepare_Na_San_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Prepare_Na_San_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 60
+		
+		cost = 100
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			fre_mission_calculate_battle_prep_success = yes
+			# Calculate failure chance (100 - success chance)
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.13 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.14 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.14 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission 5: Prepare Vinh Yen Offensive
+	FRE_Mission_Prepare_Vinh_Yen = {
+		icon = generic_prepare_civil_war
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Activated
+			NOT = { has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Vinh_Yen_Prepared
+			NOT = { has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Completed }
+			NOT = { has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Prepare_Vinh_Yen_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 60
+		
+		cost = 100
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			fre_mission_calculate_battle_prep_success = yes
+			# Calculate failure chance (100 - success chance)
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.15 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.16 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.16 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission 6: Prepare Mao Khe Position
+	FRE_Mission_Prepare_Mao_Khe = {
+		icon = generic_prepare_civil_war
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Prepare_Mao_Khe_Activated
+			NOT = { has_country_flag = FRE_Mission_Prepare_Mao_Khe_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Mao_Khe_Prepared
+			NOT = { has_country_flag = FRE_Mission_Prepare_Mao_Khe_Completed }
+			NOT = { has_country_flag = FRE_Mission_Prepare_Mao_Khe_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Prepare_Mao_Khe_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 60
+		
+		cost = 100
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			fre_mission_calculate_battle_prep_success = yes
+			# Calculate failure chance (100 - success chance)
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.17 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.18 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.18 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission: Operation Lorraine
+	FRE_Mission_Operation_Lorraine = {
+		icon = generic_offensive_operations
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Operation_Lorraine_Activated
+			NOT = { has_country_flag = FRE_Mission_Operation_Lorraine_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Operation_Lorraine_Launched
+			country_exists = VIN
+			NOT = { has_country_flag = FRE_Mission_Operation_Lorraine_Completed }
+			NOT = { has_country_flag = FRE_Mission_Operation_Lorraine_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Operation_Lorraine_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 90
+		
+		cost = 150
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			# Start border war with VIN for Operation Lorraine
+			# Find a state that FRE owns (border wars use state owner, not controller)
+			# If FRE doesn't own states, fall back to random chance system
+			if = {
+				limit = {
+					country_exists = VIN
+					any_owned_state = {
+						OR = {
+							state = 1280
+							state = 1281
+							state = 1760
+							state = 1761
+						}
+						any_neighbor_state = {
+							is_owned_by = VIN
+						}
+					}
+				}
+				# Find a FRE-owned state for attacker
+				random_owned_state = {
+					limit = {
+						OR = {
+							state = 1280
+							state = 1281
+							state = 1760
+							state = 1761
+						}
+						any_neighbor_state = {
+							is_owned_by = VIN
+						}
+					}
+					set_temp_variable = { attacker_state = THIS.id }
+					# Find a VIN-owned neighbor state for defender
+					random_neighbor_state = {
+						limit = {
+							is_owned_by = VIN
+						}
+						set_temp_variable = { defender_state = THIS.id }
+					}
+				}
+				start_border_war = {
+					change_state_after_war = no
+					combat_width = 80
+					minimum_duration_in_days = 21
+					attacker = {
+						state = var:attacker_state
+						num_provinces = 6
+						on_win = FRE_Events.24
+						on_lose = FRE_Events.25
+						on_cancel = FRE_Events.25
+						modifier = 0.3
+					}
+					defender = {
+						state = var:defender_state
+						num_provinces = 6
+						on_win = FRE_Events.25
+						on_lose = FRE_Events.24
+						on_cancel = FRE_Events.25
+					}
+				}
+			}
+			else = {
+				# If border war can't start, use random chance based on metrics
+				fre_mission_calculate_battle_prep_success = yes
+				set_temp_variable = { mission_failure_chance = 100 }
+				subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+				random_list = {
+					temp_var:mission_success_chance = {
+						country_event = { id = FRE_Events.24 days = 1 }
+					}
+					temp_var:mission_failure_chance = {
+						country_event = { id = FRE_Events.25 days = 1 }
+					}
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.25 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission: Operation Hirondelle
+	FRE_Mission_Operation_Hirondelle = {
+		icon = generic_air_operations
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Operation_Hirondelle_Activated
+			NOT = { has_country_flag = FRE_Mission_Operation_Hirondelle_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Operation_Hirondelle_Launched
+			NOT = { has_country_flag = FRE_Mission_Operation_Hirondelle_Completed }
+			NOT = { has_country_flag = FRE_Mission_Operation_Hirondelle_Failed }
+			has_equipment = { transport_plane_equipment > 10 }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Operation_Hirondelle_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 60
+		
+		cost = 100
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			# Success based on air superiority, transport planes, and paratrooper units
+			set_temp_variable = { mission_success_chance = 50 }
+			# Air experience helps
+			if = {
+				limit = { check_variable = { air_experience > 100 } }
+				add_to_temp_variable = { mission_success_chance = 15 }
+			}
+			# Transport planes help
+			if = {
+				limit = { has_equipment = { transport_plane_equipment > 20 } }
+				add_to_temp_variable = { mission_success_chance = 20 }
+			}
+			# Political power helps
+			if = {
+				limit = { check_variable = { political_power > 100 } }
+				add_to_temp_variable = { mission_success_chance = 15 }
+			}
+			# Clamp
+			if = {
+				limit = { check_variable = { temp.mission_success_chance > 100 } }
+				set_temp_variable = { mission_success_chance = 100 }
+			}
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.26 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.27 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.27 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission: Operation Mouette
+	FRE_Mission_Operation_Mouette = {
+		icon = generic_naval_operations
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Operation_Mouette_Activated
+			NOT = { has_country_flag = FRE_Mission_Operation_Mouette_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Operation_Mouette_Launched
+			NOT = { has_country_flag = FRE_Mission_Operation_Mouette_Completed }
+			NOT = { has_country_flag = FRE_Mission_Operation_Mouette_Failed }
+			has_navy_size = { size > 10 }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Operation_Mouette_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 75
+		
+		cost = 125
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			# Naval-based mission success
+			set_temp_variable = { mission_success_chance = 45 }
+			# Naval experience helps
+			if = {
+				limit = { check_variable = { naval_experience > 50 } }
+				add_to_temp_variable = { mission_success_chance = 20 }
+			}
+			# Navy size helps
+			if = {
+				limit = { has_navy_size = { size > 20 } }
+				add_to_temp_variable = { mission_success_chance = 15 }
+			}
+			# Political power helps
+			if = {
+				limit = { check_variable = { political_power > 100 } }
+				add_to_temp_variable = { mission_success_chance = 20 }
+			}
+			# Clamp
+			if = {
+				limit = { check_variable = { temp.mission_success_chance > 100 } }
+				set_temp_variable = { mission_success_chance = 100 }
+			}
+			set_temp_variable = { mission_failure_chance = 100 }
+			subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+			random_list = {
+				temp_var:mission_success_chance = {
+					country_event = { id = FRE_Events.28 days = 1 }
+				}
+				temp_var:mission_failure_chance = {
+					country_event = { id = FRE_Events.29 days = 1 }
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.29 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission: Operation Brochet
+	FRE_Mission_Operation_Brochet = {
+		icon = generic_offensive_operations
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Operation_Brochet_Activated
+			NOT = { has_country_flag = FRE_Mission_Operation_Brochet_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Operation_Brochet_Launched
+			country_exists = VIN
+			NOT = { has_country_flag = FRE_Mission_Operation_Brochet_Completed }
+			NOT = { has_country_flag = FRE_Mission_Operation_Brochet_Failed }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Operation_Brochet_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 90
+		
+		cost = 125
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			# Start border war with VIN for Operation Brochet
+			# Find a state that FRE owns for the battle
+			if = {
+				limit = {
+					country_exists = VIN
+					any_owned_state = {
+						OR = {
+							state = 1280
+							state = 1281
+							state = 1760
+							state = 1761
+						}
+						any_neighbor_state = {
+							is_owned_by = VIN
+						}
+					}
+				}
+				# Find a FRE-owned state for attacker
+				random_owned_state = {
+					limit = {
+						OR = {
+							state = 1280
+							state = 1281
+							state = 1760
+							state = 1761
+						}
+						any_neighbor_state = {
+							is_owned_by = VIN
+						}
+					}
+					set_temp_variable = { attacker_state = THIS.id }
+					# Find a VIN-owned neighbor state for defender
+					random_neighbor_state = {
+						limit = {
+							is_owned_by = VIN
+						}
+						set_temp_variable = { defender_state = THIS.id }
+					}
+				}
+				start_border_war = {
+					change_state_after_war = no
+					combat_width = 80
+					minimum_duration_in_days = 21
+					attacker = {
+						state = var:attacker_state
+						num_provinces = 5
+						on_win = FRE_Events.30
+						on_lose = FRE_Events.31
+						on_cancel = FRE_Events.31
+						modifier = 0.25
+					}
+					defender = {
+						state = var:defender_state
+						num_provinces = 5
+						on_win = FRE_Events.31
+						on_lose = FRE_Events.30
+						on_cancel = FRE_Events.31
+					}
+				}
+			}
+			else = {
+				# Fallback to random chance
+				fre_mission_calculate_battle_prep_success = yes
+				set_temp_variable = { mission_failure_chance = 100 }
+				subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+				random_list = {
+					temp_var:mission_success_chance = {
+						country_event = { id = FRE_Events.30 days = 1 }
+					}
+					temp_var:mission_failure_chance = {
+						country_event = { id = FRE_Events.31 days = 1 }
+					}
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.31 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+	
+	# Mission: Operation Castor
+	FRE_Mission_Operation_Castor = {
+		icon = generic_air_operations
+		
+		allowed = {
+			tag = FRE
+		}
+		
+		activation = {
+			has_country_flag = FRE_Mission_Operation_Castor_Activated
+			NOT = { has_country_flag = FRE_Mission_Operation_Castor_Completed }
+		}
+		
+		available = {
+			has_country_flag = FRE_Operation_Castor_Launched
+			country_exists = VIN
+			NOT = { has_country_flag = FRE_Mission_Operation_Castor_Completed }
+			NOT = { has_country_flag = FRE_Mission_Operation_Castor_Failed }
+			has_equipment = { transport_plane_equipment > 15 }
+			custom_trigger_tooltip = {
+				tooltip = FRE_Mission_Operation_Castor_Available_tt
+				always = yes
+			}
+		}
+		
+		selectable_mission = yes
+		days_mission_timeout = 90
+		
+		cost = 200
+		
+		fire_only_once = yes
+		
+		complete_effect = {
+			# Start border war for Dien Bien Phu (Operation Castor)
+			# Find a state that FRE owns for the critical battle
+			if = {
+				limit = {
+					country_exists = VIN
+					any_owned_state = {
+						OR = {
+							state = 1280
+							state = 1281
+							state = 1760
+							state = 1761
+						}
+						any_neighbor_state = {
+							is_owned_by = VIN
+						}
+					}
+				}
+				# Find a FRE-owned state for attacker (prefer 1760 for Dien Bien Phu)
+				random_owned_state = {
+					prioritize = { 1760 }
+					limit = {
+						OR = {
+							state = 1280
+							state = 1281
+							state = 1760
+							state = 1761
+						}
+						any_neighbor_state = {
+							is_owned_by = VIN
+						}
+					}
+					set_temp_variable = { attacker_state = THIS.id }
+					# Find a VIN-owned neighbor state for defender
+					random_neighbor_state = {
+						limit = {
+							is_owned_by = VIN
+						}
+						set_temp_variable = { defender_state = THIS.id }
+					}
+				}
+				start_border_war = {
+					change_state_after_war = no
+					combat_width = 80
+					minimum_duration_in_days = 28
+					attacker = {
+						state = var:attacker_state
+						num_provinces = 4
+						on_win = FRE_Events.32
+						on_lose = FRE_Events.33
+						on_cancel = FRE_Events.33
+						modifier = 0.2
+					}
+					defender = {
+						state = var:defender_state
+						num_provinces = 4
+						on_win = FRE_Events.33
+						on_lose = FRE_Events.32
+						on_cancel = FRE_Events.33
+					}
+				}
+			}
+			else = {
+				# Fallback - Castor is critical, so lower base chance
+				set_temp_variable = { mission_success_chance = 35 }
+				if = {
+					limit = { check_variable = { air_experience > 100 } }
+					add_to_temp_variable = { mission_success_chance = 20 }
+				}
+				if = {
+					limit = { has_equipment = { transport_plane_equipment > 25 } }
+					add_to_temp_variable = { mission_success_chance = 25 }
+				}
+				if = {
+					limit = { check_variable = { political_power > 150 } }
+					add_to_temp_variable = { mission_success_chance = 20 }
+				}
+				if = {
+					limit = { check_variable = { temp.mission_success_chance > 100 } }
+					set_temp_variable = { mission_success_chance = 100 }
+				}
+				set_temp_variable = { mission_failure_chance = 100 }
+				subtract_from_temp_variable = { mission_failure_chance = mission_success_chance }
+				random_list = {
+					temp_var:mission_success_chance = {
+						country_event = { id = FRE_Events.32 days = 1 }
+					}
+					temp_var:mission_failure_chance = {
+						country_event = { id = FRE_Events.33 days = 1 }
+					}
+				}
+			}
+		}
+		
+		timeout_effect = {
+			country_event = { id = FRE_Events.33 days = 1 }
+		}
+		
+		ai_will_do = {
+			factor = 100
+		}
+	}
+}
+
