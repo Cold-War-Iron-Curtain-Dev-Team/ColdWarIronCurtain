@@ -1122,7 +1122,18 @@ indonesia_electoral_setup = {
     }
 }
 
-INO_Approval_Increase_Rating = {
+Add_INO_Approval_factor_var = {
+    custom_effect_tooltip = INO_SET_APPROVAL_TT
+    add_to_variable = { INO_Approval_factor_var = INO_Approval_factor_var_temp }
+	clamp_variable = {
+		var = INO_Approval_factor_var
+		min = 0
+		max = 1
+	}
+    INO_Approval_Rating = yes
+}
+
+INO_Approval_Rating = {
     if = {
         limit = {
             check_variable = { INO_Approval_factor_var > 0.35 } # If approval factor is over 35%
@@ -1136,6 +1147,35 @@ INO_Approval_Increase_Rating = {
         add_to_variable = { INO_Approval_Consumer_Goods_factor = 0.015 }                            # Adds 1.5% to consumer goods
         add_to_variable = { INO_Approval_Consumer_Goods_factor = INO_Approval_factor_var_add }     # Adds calc% to consumer goods
         multiply_variable = { var = INO_Approval_Consumer_Goods_factor value = -1 }                 # Multiply -1 to consumer goods
+    }
+    else_if = {
+        limit = {
+            AND = {
+                check_variable = { INO_Approval_factor_var < 0.35 }
+                check_variable = { INO_Approval_factor_var_temp > 0 }
+            }
+        }
+        set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var }
+        subtract_from_variable = { var = INO_Approval_factor_var_add value = 0.35 }
+        multiply_variable = { var = INO_Approval_factor_var_add value = 100 }
+        multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }
+        add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }
+        add_to_variable = { INO_Approval_Consumer_Goods_factor = INO_Approval_factor_var_add }
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor value = -1 }
+    }
+    else_if = {
+        limit = {
+            AND = {
+                check_variable = { INO_Approval_factor_var < 0.35 }
+                check_variable = { INO_Approval_factor_var_temp < 0 }
+            }
+        }
+        set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var_temp }
+        multiply_variable = { var = INO_Approval_factor_var_add value = 100 }
+        multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }
+        add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }
+        add_to_variable = { INO_Approval_Consumer_Goods_factor = INO_Approval_factor_var_add }
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor value = -1 }
     }
 }
 ### NOTE from Taiga ###################
