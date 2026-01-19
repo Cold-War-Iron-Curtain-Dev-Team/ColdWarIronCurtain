@@ -101,9 +101,7 @@ focus_tree = {
 		x = 0
 		y = 1
 		completion_reward = {
-			add_stability = 0.05
-			add_political_power = 100
-			#Event ?
+			country_event = { id = BaoDai.15 days = 1 }
 		}
 	}
 	focus = {
@@ -903,11 +901,18 @@ focus_tree = {
 		}
 		x = -3
 		y = 1
+		bypass = {
+			geneva_conference_available_trigger = yes
+		}
 		available = {
-			has_global_flag = Geneva_Conference
+			always = no
 		}
 		completion_reward = {
-			add_stability = -0.20
+			custom_effect_tooltip = autocompleted_by_event
+			effect_tooltip = {
+				news_event = { id = Indochina_Struggle_Ending.8 }
+			}
+			add_stability = 0.05
 		}
 	}
 	focus = {
@@ -996,6 +1001,9 @@ focus_tree = {
 		}
 		x = 0
 		y = 2
+		available = { 
+			date > 1955.09.18
+		}
 		completion_reward = {
 			country_event = BaoDai.9
 		}
@@ -1051,11 +1059,18 @@ focus_tree = {
 				}
 			}
 		}
+		bypass = {
+			indochina_struggle_ending_southern_victory_available_trigger = yes
+		}
 		completion_reward = {
 			add_stability = 0.20
 			Increase_Domestic_Influence_10 = yes
 			set_country_flag = VIE_Can_Integrate_VIN
 			custom_effect_tooltip = VIE_Can_Integrate_VIN_tt
+			effect_tooltip = {
+				news_event = { id = Indochina_Struggle_Ending.2 }
+			}
+			country_event = { id = HoangLienRevolt.1 days = 14 }
 		}
 	}
 	focus = {
@@ -1064,21 +1079,18 @@ focus_tree = {
 			log = "[GetDateText]: [Root.GetTag]: id = VIE_Why_Revolting"
 		}
 		icon = GFX_VIE_Why_Revolting
-		cost = 1.4
+		cost = 5
 		relative_position_id = VIE_BaoDai_Liberator_of_Vietnam
-		mutually_exclusive = {
-			focus = VIE_Stabilize_Urban_Areas
-		}
 		prerequisite = {
 			focus = VIE_BaoDai_Liberator_of_Vietnam
 		}
 		x = -1
 		y = 2
 		available = {
-			#has_country_flag = VIE_Northern_Revolt
+			has_country_flag = VIE_Northern_Revolt
 		}
 		completion_reward = {
-			#North revolts in Hoang-Son
+			country_event = BaoDai.14
 		}
 	}
 	focus = {
@@ -1089,22 +1101,15 @@ focus_tree = {
 		icon = GFX_VIE_Stabilize_Urban_Areas
 		cost = 10
 		relative_position_id = VIE_BaoDai_Liberator_of_Vietnam
-		mutually_exclusive = {
-			focus = VIE_Why_Revolting
-		}
 		prerequisite = {
 			focus = VIE_BaoDai_Liberator_of_Vietnam
 		}
 		x = 1
 		y = 2
-		available = {
-			#has_country_flag = VIE_Pacified_North
-		}
 		completion_reward = {
 			1760 = {
 				add_core_of = VIE
 			}
-			#Gains core on Hanoi
 			country_event = BaoDai.10
 		}
 	}
@@ -1131,6 +1136,18 @@ focus_tree = {
 		}
 		x = 3
 		y = 1
+		available = {
+			if = { 
+				limit = {
+					has_completed_focus = VIE_BaoDai_Liberator_of_Vietnam
+				}
+				has_completed_focus = VIE_Stabilize_Urban_Areas
+				has_completed_focus = VIE_Why_Revolting
+			}
+			else = {
+				NOT = { has_completed_focus = VIE_BaoDai_Liberator_of_Vietnam }
+			}
+		}
 		completion_reward = {
 			country_event = BaoDai.11
 		}
@@ -1769,15 +1786,16 @@ focus_tree = {
 						instant_build = yes
 					}
 				}
-				add_opinion_modifier = {
-					target = FRA
-					modifier = medium_increase
-				}
-				reverse_add_opinion_modifier = {
-					target = FRA
-					modifier = medium_increase
-				}
 			}
+			if = {
+				limit = {
+					NOT = { check_variable = { VIE_Influence > 0 } }
+					NOT = { check_variable = { FRA_Influence > 0 } }
+				}
+				set_variable = { VIE_Influence = 25 }
+				set_variable = { FRA_Influence = 75 }
+			}
+			activate_mission = Huu_PM_Countdown
 		}
 	}
 	focus = {
@@ -1790,12 +1808,20 @@ focus_tree = {
 		relative_position_id = VIE_Huu_Request_More_French_Financial_Aid
 		prerequisite = {
 			focus = VIE_Huu_Request_More_French_Financial_Aid
+			focus = VIE_Huu_Accept_USA_Financial_Aid
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Huu_Accepts_French_Disinterest_tt
+				has_country_flag = Huu_Accepts_French_Disinterest
+			}
 		}
 		ai_will_do = {
 			base = 1
 			modifier = {
 				factor = 100
 				is_historical_focus_on = yes
+				has_country_flag = Huu_Accepts_French_Disinterest
 			}
 		}
 		x = 0
@@ -1865,6 +1891,15 @@ focus_tree = {
 			Increase_Domestic_Influence_5 = yes
 			Increase_Main_Favoritism_5 = yes
 			Decrease_Alt_Favoritism_10 = yes
+			if = {
+				limit = {
+					NOT = { check_variable = { VIE_Influence > 0 } }
+					NOT = { check_variable = { FRA_Influence > 0 } }
+				}
+				set_variable = { VIE_Influence = 60 }
+				set_variable = { FRA_Influence = 40 }
+			}
+			activate_mission = Huu_PM_Countdown
 		}
 	}
 	focus = {
@@ -1876,13 +1911,21 @@ focus_tree = {
 		cost = 1.4
 		relative_position_id = VIE_Huu_Accept_USA_Financial_Aid
 		prerequisite = {
+			focus = VIE_Huu_Request_More_French_Financial_Aid
 			focus = VIE_Huu_Accept_USA_Financial_Aid
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Huu_Wins_Over_French_tt
+				has_country_flag = Huu_Wins_Over_French
+			}
 		}
 		ai_will_do = {
 			base = 1
 			modifier = {
 				factor = 100
 				is_historical_focus_on = yes
+				has_country_flag = Huu_Wins_Over_French
 			}
 		}
 		x = 0
@@ -2046,6 +2089,9 @@ focus_tree = {
 		}
 		x = 0
 		y = 1
+		available = {
+			date > 1953.12.26
+		}
 		completion_reward = {
 			add_stability = -0.05
 			add_popularity = {
@@ -2100,7 +2146,7 @@ focus_tree = {
 			always = no
 		}
 		completion_reward = {
-
+			country_event = { id = BaoDai.13 hours = 13 random_hours = 8 }
 		}
 	}
 	focus = {
@@ -2149,6 +2195,15 @@ focus_tree = {
 		}
 		x = -1
 		y = 1
+		available = {
+			geneva_conference_available_trigger = yes
+		}
+		bypass = {
+			AND = {
+				NOT = { country_exists = VIN }
+				has_global_flag = Indochina_War_Over
+			}
+		}
 		completion_reward = {
 			add_stability = -0.20
 			add_political_power = -200
@@ -2180,6 +2235,15 @@ focus_tree = {
 		}
 		x = 1
 		y = 1
+		available = {
+			geneva_conference_available_trigger = yes
+		}
+		bypass = {
+			AND = {
+				NOT = { country_exists = VIN }
+				has_global_flag = Indochina_War_Over
+			}
+		}
 		completion_reward = {
 			add_stability = 0.20
 			add_political_power = 200
@@ -2372,7 +2436,7 @@ focus_tree = {
 		x = 0
 		y = 2
 		completion_reward = {
-			country_event = { id = VIE_Vinh.1 hours = 12 } #Needs Work
+			country_event = { id = VIE_Vinh.1 hours = 12 }
 		}
 	}
 	focus = {

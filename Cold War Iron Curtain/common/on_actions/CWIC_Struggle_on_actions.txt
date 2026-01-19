@@ -1,25 +1,18 @@
 on_actions = {
 	on_daily_FRA = {
 		effect = {
+			indochina_struggle_clamp_scores = yes
+			indochina_struggle_check_vp_captures = yes			
 			if = {
                 limit = {
-                    check_variable = {
-                        global.Indochina_War_Active_Phase < 8
-                    }
-                    check_variable = {
-                        global.Indochina_War_Next_Phase_A_Points > 499
-                    }
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.Indochina_War_Active_Phase < 8 }
+                    check_variable = { global.Indochina_War_Next_Phase_A_Points > 499 }
                 }
                 set_variable = { global.Indochina_War_Active_Phase = global.Indochina_War_Next_Phase_A }
-
-                set_variable = { global.Indochina_War_Next_Phase_A = global.Indochina_War_Next_Phase_A }
-                add_to_variable = { global.Indochina_War_Next_Phase_A = 1 }
-
-                set_variable = { global.Indochina_War_Next_Phase_B = global.Indochina_War_Next_Phase_B }
-                add_to_variable = { global.Indochina_War_Next_Phase_B = -1 }
-
                 set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
                 set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+                indochina_struggle_update_phase_transitions = yes
                 every_country = {
                     limit = {
                         OR = {
@@ -31,30 +24,19 @@ on_actions = {
                         }
                     }
                     indochina_struggle_starting_idea_phase_change = yes
-                    set_variable = {
-                        global.indochina_phase_check = 1
-                    }
+                    set_variable = { global.indochina_phase_check = 1 }
                 }
             }
             else_if = {
                 limit = {
-                    check_variable = {
-                        global.Indochina_War_Active_Phase < 8
-                    }
-                    check_variable = {
-                        global.Indochina_War_Next_Phase_B_Points > 499
-                    }
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.Indochina_War_Active_Phase < 8 }
+                    check_variable = { global.Indochina_War_Next_Phase_B_Points > 499 }
                 }
                 set_variable = { global.Indochina_War_Active_Phase = global.Indochina_War_Next_Phase_B }
-
-                set_variable = { global.Indochina_War_Next_Phase_A = global.Indochina_War_Next_Phase_A }
-                add_to_variable = { global.Indochina_War_Next_Phase_A = 1 }
-
-                set_variable = { global.Indochina_War_Next_Phase_B = global.Indochina_War_Next_Phase_B }
-                add_to_variable = { global.Indochina_War_Next_Phase_B = -1 }
-                
                 set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
                 set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+                indochina_struggle_update_phase_transitions = yes
                 every_country = {
                     limit = {
                         OR = {
@@ -66,45 +48,210 @@ on_actions = {
                         }
                     }
                     indochina_struggle_starting_idea_phase_change = yes
-                    set_variable = {
-                        global.indochina_phase_check = 1
-                    }
+                    set_variable = { global.indochina_phase_check = 1 }
                 }
             }
-            #Add Section for Phase Endings when Endings Coded
+            
+            if = {
+                limit = {
+                    indochina_struggle_ending_never_ending_trigger = yes
+                    NOT = { has_global_flag = Never_Ending_Conflict_Available }
+                }
+                set_global_flag = Never_Ending_Conflict_Available
+            }
+            
+            if = {
+                limit = {
+                    indochina_struggle_ending_failed_state_trigger = yes
+                    NOT = { has_global_flag = Failed_State_Available }
+                }
+                set_global_flag = Failed_State_Available
+            }
+            
+            # Check for ending availability and show popup
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_communist_victory_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 1 }
+            }
+            # Check for ending availability and show popup
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_communist_victory_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 1 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_southern_victory_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 2 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_federal_vietnam_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 3 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_balkanized_vietnam_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 4 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_dan_quoc_peace_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 5 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 6 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_kuomintang_victory_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 7 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_geneva_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 8 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_never_ending_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 9 }
+            }
+            else_if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.indochina_ending_available_check = 0 }
+                    indochina_struggle_ending_failed_state_trigger = yes
+                }
+                set_variable = { global.indochina_ending_available_check = 10 }
+            }
+            
+            indochina_struggle_recalculate_total_anti_communist_score = yes
+            indochina_struggle_update_phase_transitions = yes
+            
+            # Automatic trigger for Communist Victory preparation
+            # Checks if VIN meets victory conditions and awards scores to unlock ending in GUI
+            indochina_struggle_auto_trigger_communist_victory_preparation = yes
+            
+            # Automatic trigger for USA-North Vietnam reunification event chain
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    country_exists = USA
+                    country_exists = VIN
+                    NOT = { USA = { has_country_flag = USA_VIN_Reunification_Started } }
+                    indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = yes
+                }
+                USA = {
+                    country_event = { id = USA_VIN_Reunification.1 days = 1 }
+                }
+            }
+            
+            # Time-based bonuses to encourage Geneva Conference in 1954
+            # Starting in 1953, add gradual de-escalation points to push toward Phase 8
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.Indochina_War_Active_Phase < 8 }
+                    date > 1953.1.1
+                    date < 1954.1.1
+                }
+                # 1953: Small monthly bonus (approximately daily: ~0.3 points per day = ~9 per month)
+                add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 0.3 }
+            }
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.Indochina_War_Active_Phase < 8 }
+                    date > 1954.1.1
+                    date < 1955.1.1
+                }
+                # 1954: Increased bonus to push toward Geneva (approximately daily: ~0.5 points per day = ~15 per month)
+                add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 0.5 }
+            }
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.Indochina_War_Active_Phase < 8 }
+                    date > 1955.1.1
+                    date < 1956.1.1
+                }
+                # 1955: Continue bonus if still not resolved (approximately daily: ~0.4 points per day = ~12 per month)
+                add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 0.4 }
+            }
 		}
 	}
 	on_startup = {
 		effect = {
-            set_variable = { global.Indochina_War_Active_Phase = 5 }   #Low Intensity
-            set_variable = { global.Indochina_War_Next_Phase_A = 4 }   #Increase to Medium Intensity
-            set_variable = { global.Indochina_War_Next_Phase_B = 6 }   #Decrease to High Tension
-
+            set_variable = { global.Indochina_War_Active_Phase = 5 }
             set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
             set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+            every_country = {
+                limit = {
+                    OR = {
+                        is_in_array = { StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+                        is_in_array = { StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+                    }
+                }
+                indochina_struggle_update_phase_transitions = yes
+            }
 
-            add_to_array = { global.Indochina_War_Phases = 3 }  #High Intensity
-            add_to_array = { global.Indochina_War_Phases = 4 }  #Medium Intensity
-            add_to_array = { global.Indochina_War_Phases = 5 }  #Low Intensity
-            add_to_array = { global.Indochina_War_Phases = 6 }  #High Tension
-            add_to_array = { global.Indochina_War_Phases = 7 }  #Medium Tension
-            add_to_array = { global.Indochina_War_Phases = 8 }  #Low Tension
-            add_to_array = { global.Indochina_War_Phases = 9 }  #Never Ending Conflict (Phase Ending)
-            add_to_array = { global.Indochina_War_Phases = 10 } #Failed State (Phase Ending)
-            add_to_array = { global.Indochina_War_Phases = 11 } #Conference in Geneva (Phase Ending)
+            add_to_array = { global.Indochina_War_Phases = 3 }
+            add_to_array = { global.Indochina_War_Phases = 4 }
+            add_to_array = { global.Indochina_War_Phases = 5 }
+            add_to_array = { global.Indochina_War_Phases = 6 }
+            add_to_array = { global.Indochina_War_Phases = 7 }
+            add_to_array = { global.Indochina_War_Phases = 8 }
+            add_to_array = { global.Indochina_War_Phases = 9 }
+            add_to_array = { global.Indochina_War_Phases = 10 }
+            add_to_array = { global.Indochina_War_Phases = 11 }
 
-            add_to_array = { global.Indochina_War_Endings = 1  } #3 Lands, 3 People, 1 Red Banner
-            add_to_array = { global.Indochina_War_Endings = 2  } #A Quoc-gia Vietnam
-            add_to_array = { global.Indochina_War_Endings = 3  } #Federal Vietnam
-            add_to_array = { global.Indochina_War_Endings = 4  } #An Overgrown Garden
-            add_to_array = { global.Indochina_War_Endings = 5  } #Dan-quoc Peace
-            add_to_array = { global.Indochina_War_Endings = 6  } #A Gift From Truman
-            add_to_array = { global.Indochina_War_Endings = 7  } #White Star Over The Southern Brother
-            add_to_array = { global.Indochina_War_Endings = 8  } #Conference in Geneva (Phase Ending)
-            add_to_array = { global.Indochina_War_Endings = 9  } #Never Ending Conflict (Phase Ending)
-            add_to_array = { global.Indochina_War_Endings = 10 } #Failed State (Phase Ending)
-
-            #Indochina Communist Start
+            add_to_array = { global.Indochina_War_Endings = 1 }
+            add_to_array = { global.Indochina_War_Endings = 2 }
+            add_to_array = { global.Indochina_War_Endings = 3 }
+            add_to_array = { global.Indochina_War_Endings = 4 }
+            add_to_array = { global.Indochina_War_Endings = 5 }
+            add_to_array = { global.Indochina_War_Endings = 6 }
+            add_to_array = { global.Indochina_War_Endings = 7 }
+            add_to_array = { global.Indochina_War_Endings = 8 }
+            add_to_array = { global.Indochina_War_Endings = 9 }
+            add_to_array = { global.Indochina_War_Endings = 10 }
             set_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 0 }
 
             set_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 0 }
@@ -249,7 +396,6 @@ on_actions = {
                 add_to_array = { global.Indochina_VP = 13702 }
                 add_to_array = { global.Indochina_VP = 12133 }
                 indochina_struggle_starting_idea_setup = yes
-                #Communist
                 add_to_array = {
                     StruggleInvolvedNationsIndochinaCommunist = VIN
                 }
@@ -259,8 +405,6 @@ on_actions = {
                 add_to_array = {
                     StruggleInvolvedNationsIndochinaCommunist = MEO
                 }
-
-                #Anti-Communist
                 add_to_array = { StruggleInvolvedNationsIndochinaProFrance = FRA }
                 add_to_array = { StruggleInvolvedNationsIndochinaProFrance = CAM }
                 add_to_array = { StruggleInvolvedNationsIndochinaProFrance = LOS }
@@ -283,10 +427,6 @@ on_actions = {
                 add_to_array = { StruggleInvolvedNationsIndochinaProEthnic = TAM }
                 add_to_array = { StruggleInvolvedNationsIndochinaProEthnic = THO }
 
-                #Kuomintang None At Start
-                #add_to_array = { StruggleInvolvedNationsIndochinaKuomintang = PQC }
-
-                #Interlopers
                 add_to_array = { StruggleInvolvedNationsIndochinaInterloper = USA }
                 add_to_array = { StruggleInvolvedNationsIndochinaInterloper = SOV }
                 add_to_array = { StruggleInvolvedNationsIndochinaInterloper = PRC }

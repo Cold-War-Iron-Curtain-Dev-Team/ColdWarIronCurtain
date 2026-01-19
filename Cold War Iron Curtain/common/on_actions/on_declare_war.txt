@@ -28,6 +28,39 @@ on_actions = {
                     }
                 }
             }
+            # Force highest intensity phase (Phase 3) when VIE and VIN declare war on each other
+            if = {
+                limit = {
+                    NOT = { has_global_flag = Indochina_War_Over }
+                    check_variable = { global.Indochina_War_Active_Phase < 3 }
+                    OR = {
+                        AND = {
+                            FROM = { original_tag = VIE }
+                            ROOT = { original_tag = VIN }
+                        }
+                        AND = {
+                            FROM = { original_tag = VIN }
+                            ROOT = { original_tag = VIE }
+                        }
+                    }
+                }
+                set_variable = { global.Indochina_War_Active_Phase = 3 }
+                set_variable = { global.Indochina_War_Next_Phase_A_Points = 450 }
+                set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+                indochina_struggle_update_phase_transitions = yes
+                every_country = {
+                    limit = {
+                        OR = {
+                            is_in_array = { StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+                            is_in_array = { StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+                            is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+                            is_in_array = { StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+                            is_in_array = { StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+                        }
+                    }
+                    indochina_struggle_starting_idea_phase_change = yes
+                }
+            }
         }
     }
 }
