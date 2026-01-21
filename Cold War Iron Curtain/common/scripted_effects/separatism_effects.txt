@@ -1,0 +1,159 @@
+calculate_separatism = {
+
+    # =========================
+    # CONSTANTS / TUNING
+    # =========================
+    set_temp_variable = { kHDI = 0.05 }          # HDI coefficient (HDI is scaled by 100 below)
+    set_temp_variable = { kRes = 0.01 }          # resistance multiplier strength
+    set_temp_variable = { DriftMonths = 12 }     # speed of baseline drift convergence
+    set_temp_variable = { Dpop = 1 }             # fallback (will be overwritten)
+    set_temp_variable = { Kpop_MP = 3 }          # divisor applied to country manpower to build Dpop
+    set_temp_variable = { kpop = 0.5 }           # pop scale strength
+    set_temp_variable = { Pmin = 0.75 }          # pop_scale clamp min
+    set_temp_variable = { Pmax = 1.5 }           # pop_scale clamp max
+
+    #log = "[?THIS.GetID.GetName] START calculate_separatism | baseline_floor=[?baseline_floor] kHDI=[?kHDI] DriftMonths=[?DriftMonths] Dpop=[?Dpop] Kpop_MP=[?Kpop_MP] kpop=[?kpop] Pmin=[?Pmin] Pmax=[?Pmax] kRes=[?kRes]"
+
+	# Baseline from state_development (0..6)
+	set_temp_variable = { baseline_floor = 5 } # default fallback
+
+	if = { limit = { check_variable = { state_development = 0 } } set_temp_variable = { baseline_floor = 90 } }
+	else_if = { limit = { check_variable = { state_development = 1 } } set_temp_variable = { baseline_floor = 80 } }
+	else_if = { limit = { check_variable = { state_development = 2 } } set_temp_variable = { baseline_floor = 40 } }
+	else_if = { limit = { check_variable = { state_development = 3 } } set_temp_variable = { baseline_floor = 20 } }
+	else_if = { limit = { check_variable = { state_development = 4 } } set_temp_variable = { baseline_floor = 10 } }
+	else_if = { limit = { check_variable = { state_development = 5 } } set_temp_variable = { baseline_floor = 5 } }
+	else_if = { limit = { check_variable = { state_development = 6 } } set_temp_variable = { baseline_floor = 2 } }
+
+	#log = "[?THIS.GetID.GetName] state_development=[?state_development] baseline_floor from dev=[?baseline_floor]"
+
+
+    # =========================
+    # DESIGNER MULTIPLIER (X FACTOR)
+    # =========================
+    # persistent variable on the state, defaults to 1
+    if = {
+        limit = { NOT = { has_variable = custom_factor } }
+        set_variable = { custom_factor = 1 }
+        #log = "[?THIS.GetID.GetName] custom_factor was missing, set to 1"
+    }
+    #log = "[?THIS.GetID.GetName] custom_factor=[?custom_factor]"
+
+    # =========================
+    # MEDIA + CORRUPTION TERM
+    # =========================
+    # Mmedia = (1 - drift_defence_factor) - CorruptionLevel
+    # drift_defence_factor usually > 1 means stronger "defence", so 1 - factor becomes negative
+    # subtracting CorruptionLevel makes Mmedia more negative (stronger downward pressure)
+    set_temp_variable = { Mmedia = 0 }
+    #log = "[?THIS.GetID.GetName] Mmedia default=[?Mmedia]"
+
+    set_temp_variable = { Mmedia = FROM.modifier@drift_defence_factor }
+    multiply_temp_variable = { Mmedia = -1 }
+    add_to_temp_variable = { Mmedia = 1 }
+    subtract_from_temp_variable = { Mmedia = CorruptionLevel }
+
+    #log = "[?THIS.GetID.GetName] CorruptionLevel=[?CorruptionLevel] drift_defence_factor=[?FROM.modifier@drift_defence_factor] Mmedia=[?Mmedia]"
+
+    # OPTIONAL: helps catch scope issues for the modifier read
+    # #log = "[?THIS.GetID.GetName] DEBUG scope check drift_defence_factor raw=[?FROM.modifier@drift_defence_factor]"
+
+    # =========================
+    # CURRENT VALUE
+    # =========================
+    set_temp_variable = { S = separatism }
+    #log = "[?THIS.GetID.GetName] Current separatism S=[?S]"
+
+    # =========================
+    # BASELINE DRIFT TERM
+    # =========================
+    # drift_delta = (baseline_floor - S) / DriftMonths
+    set_temp_variable = { drift_delta = baseline_floor }
+    #log = "[?THIS.GetID.GetName] drift_delta init=[?drift_delta]"
+    subtract_from_temp_variable = { drift_delta = S }
+    #log = "[?THIS.GetID.GetName] drift_delta after subtract S=[?drift_delta]"
+    divide_temp_variable = { drift_delta = DriftMonths }
+    #log = "[?THIS.GetID.GetName] drift_delta after divide DriftMonths=[?drift_delta]"
+
+    # =========================
+    # HDI GAP TERM
+    # =========================
+    # hdi_delta = (National_HDI - State_HDI) * 100 * kHDI
+    set_temp_variable = { hdi_n = FROM.National_HDI }
+    set_temp_variable = { hdi_s = State_HDI }
+    #log = "[?THIS.GetID.GetName] HDI inputs National=[?hdi_n] State=[?hdi_s]"
+
+    set_temp_variable = { hdi_delta = hdi_n }
+    subtract_from_temp_variable = { hdi_delta = hdi_s }
+    #log = "[?THIS.GetID.GetName] hdi_gap (N-S)=[?hdi_delta]"
+    multiply_temp_variable = { hdi_delta = kHDI }
+    #log = "[?THIS.GetID.GetName] hdi_delta after scale*coeff=[?hdi_delta]"
+
+    # =========================
+    # CORE MONTHLY DELTA (before multipliers)
+    # =========================
+    # delta_core = drift_delta + hdi_delta + Mmedia
+    set_temp_variable = { delta_core = 0 }
+    add_to_temp_variable = { delta_core = drift_delta }
+    #log = "[?THIS.GetID.GetName] delta_core after drift=[?delta_core]"
+    add_to_temp_variable = { delta_core = hdi_delta }
+    #log = "[?THIS.GetID.GetName] delta_core after HDI=[?delta_core]"
+    add_to_temp_variable = { delta_core = Mmedia }
+    #log = "[?THIS.GetID.GetName] delta_core after media=[?delta_core]"
+
+    # OPTIONAL: one-line snapshot
+    # #log = "[?THIS.GetID.GetName] SNAP drift=[?drift_delta] hdi=[?hdi_delta] media=[?Mmedia] delta_pre_mult=[?delta_core]"
+	# res_term = resistance * kRes_add
+	set_temp_variable = { kRes_add = 0.01 }
+	set_temp_variable = { res_term = resistance }
+	multiply_temp_variable = { res_term = kRes_add }
+	add_to_temp_variable = { delta_core = res_term }
+
+	#log = "[?THIS.GetID.GetName] res_term=[?res_term] delta_core after res add=[?delta_core]"
+
+    # =========================
+    # POPULATION SCALE MULTIPLIER
+    # =========================
+    # Dpop = country_max_manpower / Kpop_MP
+    # pop_scale = clamp(1 + (state_population / Dpop) * kpop, Pmin, Pmax)
+    set_temp_variable = { Dpop = FROM.max_manpower }
+    divide_temp_variable = { Dpop = Kpop_MP }
+    #log = "[?THIS.GetID.GetName] country_max_manpower=[?FROM.max_manpower] computed Dpop=[?Dpop] Kpop_MP=[?Kpop_MP]"
+
+    set_temp_variable = { pop_raw = state_population }
+    #log = "[?THIS.GetID.GetName] pop_raw=[?pop_raw]"
+
+    set_temp_variable = { pop_scale = pop_raw }
+    divide_temp_variable = { pop_scale = Dpop }
+    #log = "[?THIS.GetID.GetName] pop_scale after /Dpop=[?pop_scale]"
+    multiply_temp_variable = { pop_scale = kpop }
+    #log = "[?THIS.GetID.GetName] pop_scale after *kpop=[?pop_scale]"
+    add_to_temp_variable = { pop_scale = 1 }
+    #log = "[?THIS.GetID.GetName] pop_scale after +1=[?pop_scale]"
+
+    clamp_temp_variable = { var = pop_scale min = Pmin max = Pmax }
+    #log = "[?THIS.GetID.GetName] pop_scale after clamp=[?pop_scale]"
+
+
+    # =========================
+    # APPLY MULTIPLIERS TO DELTA ONLY
+    # =========================
+    multiply_temp_variable = { delta_core = pop_scale }
+    #log = "[?THIS.GetID.GetName] delta_core after *pop_scale=[?delta_core]"
+
+    multiply_temp_variable = { delta_core = custom_factor }
+    #log = "[?THIS.GetID.GetName] delta_core after *custom_factor=[?delta_core]"
+
+    # =========================
+    # UPDATE STATE VARIABLE
+    # =========================
+    # S_new = S + delta_core
+    add_to_temp_variable = { S = delta_core }
+    #log = "[?THIS.GetID.GetName] S_new=[?S]"
+
+    set_variable = { separatism = S }
+    #log = "[?THIS.GetID.GetName] separatism written back pre-clamp=[?separatism]"
+
+    clamp_variable = { var = separatism min = 0 max = 100 }
+    #log = "[?THIS.GetID.GetName] END calculate_separatism | separatism post-clamp=[?separatism]"
+}
