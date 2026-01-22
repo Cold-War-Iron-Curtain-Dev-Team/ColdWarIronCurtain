@@ -1,62 +1,95 @@
 scripted_map_modes = {
     influence_map_mode = {
 
-        top = {
-            type = country
-            color = {
-                if = { limit = { check_variable = { FROM.influence_array^0 = ROOT.id } }
-                    set_temp_variable = { red = 255 }
-                    set_temp_variable = { green = 0 }
-                    set_temp_variable = { blue = 255 }
-                }
-                else_if = {
-                    limit = {
-                        OR = {
-                            check_variable = { FROM.influence_array^1 = ROOT.id }
-                            check_variable = { FROM.influence_array^2 = ROOT.id }
-                        }
-                    }
-                    set_temp_variable = { red = 0 }
-                    set_temp_variable = { blue = 255 }
-                    set_temp_variable = { green = 0 }
-                }
-                else_if = {
-                    limit = {
-                        OR = {
-                            check_variable = { FROM.influence_array^3 = ROOT.id }
-                            check_variable = { FROM.influence_array^4 = ROOT.id }
-                            check_variable = { FROM.influence_array^5 = ROOT.id }
-                            check_variable = { FROM.influence_array^6 = ROOT.id }
-                        }
-                    }
-                    set_temp_variable = { red = 128 }
-                    set_temp_variable = { green = 0 }
-                    set_temp_variable = { blue = 128 }
-                }
-                else_if = {
-                    limit = { tag = FROM }
-                    set_temp_variable = { red = 74 }
-                    set_temp_variable = { blue = 45 }
-                    set_temp_variable = { green = 201 }
-                }
+	   top = {
+		color = {
 
-                divide_temp_variable = { red = 255 }
-                divide_temp_variable = { blue = 255 }
-                divide_temp_variable = { green = 255 }
-                set_temp_variable = { alpha = 1.00 }
-            }
-			thickness = yes
-        }
-        bottom = {
-            type = none
+			# Default: no influence -> grey
+			set_temp_variable = { red = 140 }
+			set_temp_variable = { green = 140 }
+			set_temp_variable = { blue = 140 }
+			set_temp_variable = { alpha = 0.20 }
 
-        }
+			# p = influence strength (0..100 or 0..1 depending on your data)
+			set_temp_variable = { p = 0 }
 
-        far_text = country
-        near_text = none
+			# 1) Own country: use domestic influence if it exists
+			if = {
+				limit = { tag = FROM }
 
-        update_daily = no
-    }
+				# Try domestic_influence_amount if present, else just treat as full control
+				if = {
+					limit = { has_variable = domestic_influence_amount }
+					set_temp_variable = { p = domestic_influence_amount }
+				}
+				else = {
+					set_temp_variable = { p = 100 }
+				}
+			}
+
+			# 2) Foreign country: pull our influence percent from the slot that matches ROOT.id
+			else = {
+
+				if = { limit = { check_variable = { FROM.influence_array^0 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^0 } }
+				else_if = { limit = { check_variable = { FROM.influence_array^1 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^1 } }
+				else_if = { limit = { check_variable = { FROM.influence_array^2 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^2 } }
+				else_if = { limit = { check_variable = { FROM.influence_array^3 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^3 } }
+				else_if = { limit = { check_variable = { FROM.influence_array^4 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^4 } }
+				else_if = { limit = { check_variable = { FROM.influence_array^5 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^5 } }
+				else_if = { limit = { check_variable = { FROM.influence_array^6 = ROOT.id } } set_temp_variable = { p = FROM.influence_array_val^6 } }
+			}
+
+			# 3) If p > 0, color it by strength (red -> yellow -> green)
+			if = {
+				limit = { check_variable = { var = p value = 0.01 compare = greater_than } }
+
+				# convert 0..100 -> 0..1
+				divide_temp_variable = { p = 100 }
+
+				# clamp
+				if = { limit = { check_variable = { var = p value = 0 compare = less_than } } set_temp_variable = { p = 0 } }
+				if = { limit = { check_variable = { var = p value = 1 compare = greater_than } } set_temp_variable = { p = 1 } }
+
+				# alpha scales with strength (0.25..0.90)
+				set_temp_variable = { alpha = 0.25 }
+				set_temp_variable = { a_add = p }
+				multiply_temp_variable = { a_add = 0.65 }
+				add_to_temp_variable = { alpha = a_add }
+
+				# gradient
+				if = {
+					limit = { check_variable = { var = p value = 0.5 compare = less_than } }
+
+					set_temp_variable = { red = 255 }
+					set_temp_variable = { blue = 0 }
+
+					set_temp_variable = { green = p }
+					multiply_temp_variable = { green = 2 }
+					multiply_temp_variable = { green = 255 }
+				}
+				else = {
+					set_temp_variable = { green = 255 }
+					set_temp_variable = { blue = 0 }
+
+					set_temp_variable = { red = 1 }
+					subtract_from_temp_variable = { red = p }   # red = 1 - p
+					multiply_temp_variable = { red = 2 }
+					multiply_temp_variable = { red = 255 }
+				}
+			}
+
+			divide_temp_variable = { red = 255 }
+			divide_temp_variable = { green = 255 }
+			divide_temp_variable = { blue = 255 }
+		}
+
+
+		}
+		bottom = { type = none }
+		far_text = country
+		near_text = none
+		update_daily = no
+	}
     influence_sphere_map_mode = {
 
         top = {
