@@ -992,20 +992,20 @@ calculate_national_productivity_factor = {
 		set_temp_variable = { high_school_factor = high_school_educated }
 		multiply_temp_variable = { high_school_factor = 1.75 }
 
-		add_to_variable = { productivity_factor = high_school_educated}
+		add_to_variable = { productivity_factor = high_school_factor}
 
 		set_temp_variable = { college_factor = college_educated }
 		multiply_temp_variable = { college_factor = 3.5 }		
 
-		add_to_variable = { productivity_factor = college_educated}
+		add_to_variable = { productivity_factor = college_factor}
 
 		divide_variable = { productivity_factor = 100 }
 		multiply_variable = { productivity_factor = state_development }
 
-		set_variable = { national_productivity_factor = owner:modifier@production_factory_max_efficiency_factor }
-		add_to_variable = { national_productivity_factor = 0.5 }
+		# set_variable = { national_productivity_factor = owner:modifier@production_factory_max_efficiency_factor }
+		# add_to_variable = { national_productivity_factor = 0.5 }
 
-		multiply_variable = { productivity_factor = national_productivity_factor }
+		# multiply_variable = { productivity_factor = national_productivity_factor }
 
 		multiply_variable = { productivity_factor = overemployment_factor }
 
@@ -1018,8 +1018,7 @@ calculate_national_productivity_factor = {
 		multiply_variable = { productivity_factor = modifier_infra_factor }
 
 		multiply_variable = { productivity_factor = PREV.electricity_debuff_factor }		
-
-		#log = "[?THIS.productivity_factor] at [THIS.GetId.GetName]"
+		# log = "[?THIS.productivity_factor] at [THIS.GetId.GetName]"
 
 	
 }
@@ -1479,16 +1478,27 @@ gdp_calculation_effect = {
 
 	set_variable = { IncomeTotal = 0 }
 	set_variable = { IncomeCheck = 0 }	
-	laffer_curve_function = yes
-	set_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
-	set_variable = { pop_middleclass_tax_rate = effective_tax_rate }
-	set_variable = { pop_upperclass_tax_rate = effective_tax_rate }
-	set_variable = { pop_corporateclass_tax_rate = effective_tax_rate }
+	# set_variable = { pop_lowerclass_tax_rate = actual_tax_rate_adjusted }
+	# set_variable = { pop_middleclass_tax_rate = actual_tax_rate_adjusted }
+	# set_variable = { pop_upperclass_tax_rate = actual_tax_rate_adjusted }
+	# set_variable = { pop_corporateclass_tax_rate = actual_tax_rate_adjusted }
 
-	multiply_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
-	multiply_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
-	multiply_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
-	multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
+	# multiply_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
+	# multiply_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
+	# multiply_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
+	# multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
+	# after generate_tax_info
+	set_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
+	multiply_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
+
+	set_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
+	multiply_variable = { pop_middleclass_tax_rate = effective_tax_rate }
+
+	set_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
+	multiply_variable = { pop_upperclass_tax_rate = effective_tax_rate }
+
+	set_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
+	multiply_variable = { pop_corporateclass_tax_rate = effective_tax_rate }
 
 	set_variable = { grossdomesticproduct = 0 }
 	set_variable = { national_net_factory_earnings = 0 }
@@ -1503,6 +1513,8 @@ gdp_calculation_effect = {
 	set_variable = {
 		total_infrastructure = 0
 	}
+	set_variable = { total_personal_income_tax = 0 }
+
 	every_owned_state = {
 		income_effect_every_owned_scope = yes #Legacy
 		get_total_infrastructure = yes	#For Public Services Expenses
@@ -1530,16 +1542,21 @@ gdp_calculation_effect = {
 
 		calculate_sum_up_total = yes
 
-		calculate_separatism = yes
 	}
+	set_variable = { ui_income_tax = total_personal_income_tax }
+	set_variable = { ui_corporate_tax = total_corporate_tax }
+	set_variable = { ui_wage_mass = total_employed_pay_national }
+	set_variable = { ui_profit_mass = national_net_factory_earnings }
+
 	divide_variable = { IncomeTotal = 100 }
 	set_variable = {
 		tax_display = IncomeTotal
 	}
-	set_variable = { 
-		total_personal_income_tax = x 
-	}
-	divide_variable = { total_personal_income_tax = 100 }
+	# set_variable = { 
+		# total_personal_income_tax = IncomeTotal 
+	# }
+	# log = "tpi [?total_personal_income_tax]"
+	# divide_variable = { total_personal_income_tax = 100 }
 	divide_variable = { total_corporate_tax = 100 }
 
 	set_variable = { total_personal_income = tax_display }
@@ -1563,65 +1580,146 @@ gdp_calculation_effect = {
 	calculate_employment_data_for_gui = yes
 
 	divide_variable = { National_HDI = 1000 }
+	log = "SOV base wage mass total_employed_pay (country?): [?total_employed_pay_national]"
+	log = "SOV national_net_factory_earnings: [?national_net_factory_earnings]"
+	log = "SOV actual_tax_rate_adjusted: [?actual_tax_rate_adjusted]"
+	log = "SOV pop_lowerclass_tax_rate: [?pop_lowerclass_tax_rate]"
+	log = "SOV pop_corporateclass_tax_rate: [?pop_corporateclass_tax_rate]"
+	log = "SOV total_personal_income_tax: [?total_personal_income_tax]"
+	log = "SOV total_corporate_tax: [?total_corporate_tax]"
+		
+	log = "RAW personal tax: [?total_personal_income_tax]"
+	log = "RAW corporate tax: [?total_corporate_tax]"
+	log = "RAW wage mass: [?total_employed_pay_national]"
+	log = "RAW profit: [?national_net_factory_earnings]"
+
+	log = "UI income tax: [?ui_income_tax]"
+	log = "UI corporate tax: [?ui_corporate_tax]"
+
+
 }
 
 calculate_take_taxes_from_people = {
 
+	# -------------------------------------------------------
+	# Personal income tax (mass-based, per class)
+	# -------------------------------------------------------
+	set_variable = { state_personal_income_tax = 0 }
 
-		set_temp_variable = { pop_lowerclass_taken_wage = pop_lowerclass_gross_wage }
-		multiply_temp_variable = { pop_lowerclass_taken_wage = owner:pop_lowerclass_tax_rate }
+	# Lower class
+	set_temp_variable = { lower_tax = total_lower_class_pay }
+	multiply_temp_variable = { lower_tax = owner:pop_lowerclass_tax_rate }
+	divide_temp_variable = { lower_tax = 12 }
+	add_to_variable = { state_personal_income_tax = lower_tax }
 
-		set_temp_variable = { pop_substinents_taken_wage = pop_substinents_gross_wage }
-		multiply_temp_variable = { pop_substinents_taken_wage = owner:pop_lowerclass_tax_rate }
-		add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_substinents_taken_wage}
+	# Middle class
+	set_temp_variable = { middle_tax = total_middle_class_pay }
+	multiply_temp_variable = { middle_tax = owner:pop_middleclass_tax_rate }
+	divide_temp_variable = { middle_tax = 12 }
+	add_to_variable = { state_personal_income_tax = middle_tax }
 
-		set_temp_variable = { pop_soldier_taken_wage = pop_soldier_gross_wage }
-		multiply_temp_variable = { pop_soldier_taken_wage = owner:pop_lowerclass_tax_rate }
-		add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_soldier_taken_wage}
-		
-		add_to_variable = { PREV.IncomeTotal = pop_lowerclass_taken_wage }
+	# Upper-middle class (bureaucrats + professionals): tax them like upper class by default
+	set_temp_variable = { upper_middle_tax = total_upper_middle_class_pay }
+	multiply_temp_variable = { upper_middle_tax = owner:pop_upperclass_tax_rate }
+	divide_temp_variable = { upper_middle_tax = 12 }
+	add_to_variable = { state_personal_income_tax = upper_middle_tax }
 
-		set_variable = { pop_lowerclass_net_wage = pop_lowerclass_gross_wage }
-		multiply_variable = { pop_lowerclass_taken_wage = 0.5 }
-		subtract_from_variable = { pop_lowerclass_net_wage = pop_lowerclass_taken_wage} 
+	# Upper class (elites)
+	set_temp_variable = { upper_tax = total_upper_class_pay }
+	multiply_temp_variable = { upper_tax = owner:pop_upperclass_tax_rate }
+	divide_temp_variable = { upper_tax = 12 }
+	add_to_variable = { state_personal_income_tax = upper_tax }
 
-		set_temp_variable = { pop_middleclass_taken_wage = pop_middleclass_gross_wage }
-		multiply_temp_variable = { pop_middleclass_taken_wage = owner:pop_middleclass_tax_rate }
+	# Add to national totals (country scope = PREV in your every_owned_state loop)
+	add_to_variable = { PREV.IncomeTotal = state_personal_income_tax }
+	add_to_variable = { PREV.total_personal_income_tax = state_personal_income_tax }
+	divide_variable = { PREV.total_personal_income_tax = 10 }
 
-		set_temp_variable = { pop_artisan_taken_wage = pop_artisan_gross_wage }
-		multiply_temp_variable = { pop_artisan_taken_wage = owner:pop_middleclass_tax_rate }
-		add_to_temp_variable = { pop_middleclass_taken_wage = pop_artisans_taken_wage }
+	# -------------------------------------------------------
+	# Net pay (optional, for GUI/national income contribution)
+	# -------------------------------------------------------
+	set_variable = { total_lower_class_pay_net = total_lower_class_pay }
+	subtract_from_variable = { total_lower_class_pay_net = lower_tax }
 
-		add_to_variable = { PREV.IncomeTotal = pop_middleclass_taken_wage }
+	set_variable = { total_middle_class_pay_net = total_middle_class_pay }
+	subtract_from_variable = { total_middle_class_pay_net = middle_tax }
 
-		set_variable = { pop_middleclass_net_wage = pop_middleclass_gross_wage }
-		multiply_variable = { pop_middleclass_taken_wage = 0.5 }		
-		subtract_from_variable = { pop_middleclass_net_wage = pop_middleclass_taken_wage} 
+	set_variable = { total_upper_middle_class_pay_net = total_upper_middle_class_pay }
+	subtract_from_variable = { total_upper_middle_class_pay_net = upper_middle_tax }
 
-		set_temp_variable = { pop_upperclass_taken_wage = pop_upperclass_gross_wage }
-		multiply_temp_variable = { pop_upperclass_taken_wage = owner:pop_upperclass_tax_rate }
+	set_variable = { total_upper_class_pay_net = total_upper_class_pay }
+	subtract_from_variable = { total_upper_class_pay_net = upper_tax }
 
-        add_to_variable = { PREV.IncomeTotal = pop_upperclass_taken_wage }
-
-		set_variable = { pop_upperclass_net_wage = pop_upperclass_gross_wage }
-		multiply_variable = { pop_upperclass_taken_wage = 0.5 }		
-		subtract_from_variable = { pop_upperclass_net_wage = pop_upperclass_taken_wage} 
-
-		calculate_state_hdi = yes
+	calculate_state_hdi = yes
 
 
-		if = {
-			limit = { check_variable = { net_factory_earnings > 0 }}
-			set_temp_variable = { net_factory_taxed_earnings = net_factory_earnings }
-			multiply_temp_variable = { net_factory_taxed_earnings = owner:pop_corporateclass_tax_rate }
-			add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
-			add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
-		}
-		#log = "[?owner:pop_middleclass_tax_rate]"
-		
-
-	log = "[?IncomeTotal]"
+	if = {
+		limit = { check_variable = { net_factory_earnings > 0 }}
+		set_temp_variable = { net_factory_taxed_earnings = net_factory_earnings }
+		multiply_temp_variable = { net_factory_taxed_earnings = owner:pop_corporateclass_tax_rate }
+		add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
+		add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
+	}
+	# log = "[?owner:pop_middleclass_tax_rate]"
 }
+
+
+# calculate_take_taxes_from_people = {
+
+
+		# set_temp_variable = { pop_lowerclass_taken_wage = pop_lowerclass_gross_wage }
+		# multiply_temp_variable = { pop_lowerclass_taken_wage = owner:pop_lowerclass_tax_rate }
+
+		# set_temp_variable = { pop_substinents_taken_wage = pop_substinents_gross_wage }
+		# multiply_temp_variable = { pop_substinents_taken_wage = owner:pop_lowerclass_tax_rate }
+		# add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_substinents_taken_wage}
+
+		# set_temp_variable = { pop_soldier_taken_wage = pop_soldier_gross_wage }
+		# multiply_temp_variable = { pop_soldier_taken_wage = owner:pop_lowerclass_tax_rate }
+		# add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_soldier_taken_wage}
+		
+		# add_to_variable = { PREV.IncomeTotal = pop_lowerclass_taken_wage }
+
+		# set_variable = { pop_lowerclass_net_wage = pop_lowerclass_gross_wage }
+		# multiply_variable = { pop_lowerclass_taken_wage = 0.5 }
+		# subtract_from_variable = { pop_lowerclass_net_wage = pop_lowerclass_taken_wage} 
+
+		# set_temp_variable = { pop_middleclass_taken_wage = pop_middleclass_gross_wage }
+		# multiply_temp_variable = { pop_middleclass_taken_wage = owner:pop_middleclass_tax_rate }
+
+		# set_temp_variable = { pop_artisan_taken_wage = pop_artisan_gross_wage }
+		# multiply_temp_variable = { pop_artisan_taken_wage = owner:pop_middleclass_tax_rate }
+		# add_to_temp_variable = { pop_middleclass_taken_wage = pop_artisan_taken_wage }
+
+		# add_to_variable = { PREV.IncomeTotal = pop_middleclass_taken_wage }
+
+		# set_variable = { pop_middleclass_net_wage = pop_middleclass_gross_wage }
+		# multiply_variable = { pop_middleclass_taken_wage = 0.5 }		
+		# subtract_from_variable = { pop_middleclass_net_wage = pop_middleclass_taken_wage} 
+
+		# set_temp_variable = { pop_upperclass_taken_wage = pop_upperclass_gross_wage }
+		# multiply_temp_variable = { pop_upperclass_taken_wage = owner:pop_upperclass_tax_rate }
+
+        # add_to_variable = { PREV.IncomeTotal = pop_upperclass_taken_wage }
+
+		# set_variable = { pop_upperclass_net_wage = pop_upperclass_gross_wage }
+		# multiply_variable = { pop_upperclass_taken_wage = 0.5 }		
+		# subtract_from_variable = { pop_upperclass_net_wage = pop_upperclass_taken_wage} 
+
+		# calculate_state_hdi = yes
+
+
+		# if = {
+			# limit = { check_variable = { net_factory_earnings > 0 }}
+			# set_temp_variable = { net_factory_taxed_earnings = net_factory_earnings }
+			# multiply_temp_variable = { net_factory_taxed_earnings = owner:pop_corporateclass_tax_rate }
+			# add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
+			# add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
+		# }
+		# log = "[?owner:pop_middleclass_tax_rate]"
+		
+	# log = "[?IncomeTotal]"
+# }
 
 calculate_sum_up_total = {
 
@@ -1669,6 +1767,7 @@ get_average_development = {
 		add_to_variable = { PREV.Total_Nuclear_Reactors = building_level@nuclear_reactor }
 	}
 	divide_variable = { average_development = num_owned_states }
+	log = "Average Development : [?average_development]"
 }
 
 get_total_infrastructure = {
@@ -1739,9 +1838,8 @@ calc_healthcare_expenditure = {
 }
 calc_policing_expenditure = {
 	#gives out expenditure at 50%
-	set_variable = { policing_expenditure = max_manpower_k }
-	multiply_variable = { policing_expenditure = 0.01 }	
-
+	set_variable = { policing_expenditure = max_manpower }
+	multiply_variable = { policing_expenditure = 0.001 }	
 	#reduce it more
 	divide_variable = { policing_expenditure = 10000 }	
 	multiply_variable = { policing_expenditure = average_development }
@@ -1752,18 +1850,22 @@ calc_policing_expenditure = {
 		policing_expenditure = black_ops_expedntiture
 	}
 	multiply_variable = { policing_expenditure = 0.1 }
+	log = "Expanditures[?policing_expenditure]"
+
 }
 calc_education_expenditure = {
 	#gives out expenditure at 50%
-	set_variable = { education_expenditure = max_manpower_k }
+	set_variable = { education_expenditure = manpower }
 	multiply_variable = { education_expenditure = 0.05 }	
 
-	#reduce it more
+	log = "Expanditures[?education_expenditure]"
+	
+	# reduce it more
 	divide_variable = { education_expenditure = 10000 }	
 	multiply_variable = { education_expenditure = average_development }
 
-	#now apply multiplier of idea
-	multiply_variable = { education_expenditure = 1 }
+	# now apply multiplier of idea
+	# multiply_variable = { education_expenditure = 1 }
 
 	set_variable = {
 		edu_cost_adjustment_policy = education_expenditure
@@ -1775,6 +1877,7 @@ calc_education_expenditure = {
 		education_expenditure = edu_cost_adjustment_policy
 	}
 	multiply_variable = { education_expenditure = 0.1 }
+	log = "Expanditures[?education_expenditure]"
 }
 
 calc_public_services_expenditure = {
@@ -1782,15 +1885,17 @@ calc_public_services_expenditure = {
 	set_variable = { public_services_expenditure = total_infrastructure }
 	multiply_variable = { public_services_expenditure = 0.001 }	
 	multiply_variable = { public_services_expenditure = max_manpower_k }
+	log = "Expanditures[?public_services_expenditure]"
 
 	#reduce it more
-	divide_variable = { public_services_expenditure = 100000 }	
+	divide_variable = { public_services_expenditure = 1000 }	
 
 	#now apply multiplier of idea
 	multiply_variable = {
 		public_services_expenditure = modifier@public_services_spending_modifier 
 	}
 	multiply_variable = { public_services_expenditure = 0.1 }
+	log = "Expanditures[?public_services_expenditure]"
 }
 
 calc_land_army_expenditure = {

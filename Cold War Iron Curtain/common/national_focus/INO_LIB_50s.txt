@@ -12,14 +12,16 @@ focus_tree = {
 	shared_focus = INO_The_Fall_of_Malaya
 	focus = {
 		id = INO_Picking_New_Cabinet
-		icon = GFX_goal_unknown
+		icon = GFX_INO_Formation_of_New_Cabinet
 		cost = 1.00
 		x = 5
 		y = 0
 		completion_reward = {
             if = {
 				limit = {
-
+					check_variable = {
+						INO_Approval_factor_var > 0.60
+					}
 				}
 			}
 		}
@@ -34,6 +36,10 @@ focus_tree = {
 		x = 4
 		y = 1
         completion_reward = {
+			add_popularity = {
+				ideology = Liberal_Conservatism
+				popularity = -0.02
+			}
             every_owned_state = {
                 add_to_variable = { INO_Party_SUPPORT_LOCAL^4 = 5 }
             }
@@ -50,6 +56,18 @@ focus_tree = {
 		x = 6
 		y = 1
 		completion_reward = {
+			add_popularity = {
+				ideology = Social_Democratic
+				popularity = 0.05
+			}
+			add_popularity = {
+				ideology = socialist
+				popularity = 0.05
+			}
+			add_popularity = {
+				ideology = communism 
+				popularity = -0.02
+			}
             every_owned_state = {
                 add_to_variable = { INO_Party_SUPPORT_LOCAL^6 = 5 }
             }
@@ -121,7 +139,7 @@ focus_tree = {
 	}
 	focus = {
 		id = INO_Call_From_Washington
-		icon = GFX_goal_unknown
+		icon = GFX_INO_Closer_to_America
 		cost = 5.00
 		prerequisite = {
 			focus = INO_Rowing_Between_Two_Rocks
@@ -141,6 +159,7 @@ focus_tree = {
 			focus = INO_Rowing_Between_Two_Rocks
 		}
 		available = {
+			has_idea = un_member
 			KOR = {
 				has_war_with = KPA
 			}
@@ -151,15 +170,20 @@ focus_tree = {
 		x = 2
 		y = 4
 		completion_reward = {
-			country_event = indonesia_war.1
+			country_event = ino_war.1
 			send_equipment = {
                 equipment = infantry_equipment
                 amount = 1000
                 target = KOR
             }
 			can_send_volunteers = yes
+			set_variable = {
+                Volunteer_Allowance^KOR = 5
+            }
+			set_variable = {
+                Volunteer_Allowance^KPA = 5
+            }
 		}
-
 	}
 	focus = {
 		id = INO_Darul_Islam_Issue
@@ -179,6 +203,9 @@ focus_tree = {
                     category_light_infantry = {
                         soft_attack = 0.05
                     }
+				}
+				DAR = {
+					add_legitimacy = -0.20
 				}
 			}
 			else = {
@@ -217,7 +244,7 @@ focus_tree = {
 	}
 	focus = {
 		id = INO_Maluku_Issue
-		icon = GFX_goal_unknown
+		icon = GFX_INO_South_Maluku_Issue
 		cost = 5.00
 		prerequisite = {
 			focus = INO_The_Hatta_Premiership_Take_Two
@@ -227,12 +254,24 @@ focus_tree = {
 		completion_reward = {
             if = {
 				limit = {
-					country_exists = SMK
+					has_war_with = SMK
 				}
-				country_event = smk.9
+				country_event = smk.10
+			}
+			else_if = {
+				limit = {
+					has_war_with = SMK
+					casualties_k > 10
+				}
+				country_event = smk.10
+				set_temp_variable = {
+                    var = INO_Approval_factor_var
+                    value = -0.20
+                }
+		        INO_Approval_Increase_Rating = yes 
 			}
 			else = {
-				country_event = indonesia.29
+				country_event = smk.10
 			}
 		}
 	}
@@ -258,7 +297,7 @@ focus_tree = {
 	}
 	focus = {
 		id = INO_Promote_Cooperatives
-		icon = GFX_goal_unknown
+		icon = GFX_INO_Start_Light_Industry
 		cost = 5.00
 		prerequisite = {
 			focus = INO_The_Hatta_Premiership_Take_Two
@@ -268,7 +307,6 @@ focus_tree = {
 		completion_reward = {
 
 		}
-
 	}
 	focus = {
 		id = INO_Train_Native_Business
@@ -280,7 +318,25 @@ focus_tree = {
 		x = 8
 		y = 4
 		completion_reward = {
-
+			set_temp_variable = {
+	            Credit_Progress_Adjuster = 5
+            }
+			Increase_credit_rating_progress = yes
+			set_temp_variable = { money_to_gain = -5 }
+            add_money_with_tooltip_effect = yes
+			842 = {
+				add_extra_state_shared_building_slots = 4
+			}
+			add_tech_bonus = {
+                bonus = 0.5
+                uses = 3
+                category = industry
+            }
+			set_temp_variable = {
+                var = INO_Approval_factor_var
+                value = 0.05
+            }
+			INO_Approval_Increase_Rating = yes 
 		}
 
 	}
@@ -311,7 +367,10 @@ focus_tree = {
 		x = 10
 		y = 4
 		completion_reward = {
-
+			set_temp_variable = {
+	            Credit_Progress_Adjuster = 5
+            }
+			Increase_credit_rating_progress = yes
 		}
 
 	}
@@ -333,7 +392,6 @@ focus_tree = {
 		completion_reward = {
 
 		}
-
 	}
 	focus = {
 		id = INO_Start_Limited_Agricultural_Automization
@@ -411,7 +469,19 @@ focus_tree = {
 		x = 9
 		y = 6
 		completion_reward = {
-
+			844 = {
+				add_extra_state_shared_building_slots = 4
+				add_building_construction = {
+                    type = industrial_complex
+                    level = 2
+                    instant_build = yes
+                }
+				add_building_construction = {
+                    type = office_park
+                    level = 2
+                    instant_build = yes
+                }
+			}
 		}
 
 	}
@@ -433,8 +503,23 @@ focus_tree = {
 
 	}
 	focus = {
+		id = INO_San_Francisco_Treaty
+		icon = GFX_The_Treaty_of_San_Francisco_and_Mutual_Security_Treaty
+		cost = 5.00
+		prerequisite = {
+			focus = INO_Subsidize_Farmers
+			focus = INO_Buruh_Tani_Indonesia
+		}
+		x = 7
+		y = 9
+		completion_reward = {
+
+		}
+
+	}
+	focus = {
 		id = INO_Fund_Light_Industry
-		icon = GFX_goal_unknown
+		icon = GFX_PRC_50s_Allow_Secret_Criticism_within_The_Party
 		cost = 5.00
 		prerequisite = {
 			focus = INO_The_Dutch_Companies
@@ -445,7 +530,28 @@ focus_tree = {
 		x = 10
 		y = 7
 		completion_reward = {
-
+			set_temp_variable = { money_to_gain = 5 }
+            add_money_with_tooltip_effect = yes
+			set_temp_variable = {
+	            Credit_Progress_Adjuster = 5
+            }
+			Increase_credit_rating_progress = yes
+			842 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+                    type = office_park
+                    level = 2
+                    instant_build = yes
+                }
+			}
+			845 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+                    type = office_park
+                    level = 2
+                    instant_build = yes
+                }
+			}
 		}
 
 	}
@@ -459,19 +565,26 @@ focus_tree = {
 		x = 11
 		y = 6
 		completion_reward = {
-
+			set_temp_variable = {
+	            Credit_Progress_Adjuster = 5
+            }
+			Increase_credit_rating_progress = yes
+			add_timed_idea = {
+                idea = INO_Sumitro_Plan_Spirit
+                days = 200
+            }
 		}
 
 	}
 	focus = {
-		id = INO_Establish_opinion_With_China
-		icon = GFX_INO_Establish_opinion_with_the_Peoples_Republic_of_China
+		id = INO_Establish_Relation_With_China
+		icon = GFX_INO_Establish_Relation_with_the_Peoples_Republic_of_China
 		cost = 5.00
 		prerequisite = {
 			focus = INO_Call_From_Washington
 		}
 		mutually_exclusive = {
-			focus = INO_Maintain_Cordial_opinion_With_ROC
+			focus = INO_Maintain_Cordial_Relation_With_ROC
 		}
 		x = 0
 		y = 5
@@ -481,8 +594,8 @@ focus_tree = {
 
 	}
 	focus = {
-		id = INO_Maintain_Cordial_opinion_With_ROC
-		icon = GFX_INO_Maintain_Cordial_opinion_With_the_Republic_of_China
+		id = INO_Maintain_Cordial_Relation_With_ROC
+		icon = GFX_INO_Maintain_Cordial_Relation_With_the_Republic_of_China
 		cost = 5.00
 		prerequisite = {
 			focus = INO_The_Korean_War
@@ -491,7 +604,7 @@ focus_tree = {
 			focus = INO_Call_From_Washington
 		}
 		mutually_exclusive = {
-			focus = INO_Establish_opinion_With_China
+			focus = INO_Establish_Relation_With_China
 		}
 		x = 2
 		y = 5
@@ -505,8 +618,8 @@ focus_tree = {
 		icon = GFX_INO_Hatta_Goes_to_Washington
 		cost = 5.00
 		prerequisite = {
-			focus = INO_Establish_opinion_With_China
-			focus = INO_Maintain_Cordial_opinion_With_ROC
+			focus = INO_Establish_Relation_With_China
+			focus = INO_Maintain_Cordial_Relation_With_ROC
 		}
 		x = 1
 		y = 6
@@ -531,11 +644,10 @@ focus_tree = {
 		completion_reward = {
 
 		}
-
 	}
 	focus = {
 		id = INO_Expand_Towards_Heavy_Industry
-		icon = GFX_goal_unknown
+		icon = GFX_PRC_50s_Construct_Thermal_Power_Plants
 		cost = 5.00
 		prerequisite = {
 			focus = INO_Sumitro_Plan
@@ -546,13 +658,38 @@ focus_tree = {
 		x = 12
 		y = 7
 		completion_reward = {
-
+			set_temp_variable = { money_to_gain = -7 }
+            add_money_with_tooltip_effect = yes
+			845 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+                    type = industrial_complex
+                    level = 2
+                    instant_build = yes
+                }
+			}
+			846 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+                    type = industrial_complex
+                    level = 2
+                    instant_build = yes
+                }
+			}
+			1982 = {
+				add_extra_state_shared_building_slots = 2
+				add_building_construction = {
+                    type = industrial_complex
+                    level = 2
+                    instant_build = yes
+                }
+			}
 		}
 
 	}
 	focus = {
 		id = INO_Educate_Natives_on_Big_Business
-		icon = GFX_goal_unknown
+		icon = GFX_PRC_50s_Bust_Technical_Myths
 		cost = 5.00
 		prerequisite = {
 			focus = INO_Expand_Towards_Heavy_Industry
@@ -584,7 +721,21 @@ focus_tree = {
 		x = 9
 		y = 9
 		completion_reward = {
-
+			custom_effect_tooltip = INO_Economic_Change_TT
+			set_temp_variable = { money_to_gain = 20 }
+            add_money_with_tooltip_effect = yes
+			if = {
+				limit = {
+					has_idea = INO_Sumitro_Plan_Spirit
+				}
+				modify_timed_idea = {
+                    idea = INO_Sumitro_Plan_Spirit
+                    days = 60
+                }
+			}
+			hidden_effect = {
+				conversion_to_normal_axis = yes
+			}
 		}
 
 	}
@@ -674,13 +825,23 @@ focus_tree = {
 		x = 6
 		y = 7
 		completion_reward = {
-
+			every_owned_state = {
+				set_temp_variable = { primary_change = 10 }
+                nep_ed_decrease_primary = yes
+				set_temp_variable = { secondary_change = 10 }
+				nep_ed_increase_secondary = yes
+			}
+			set_temp_variable = {
+                var = INO_Approval_factor_var
+                value = 0.10
+            }
+			INO_Approval_Increase_Rating = yes 
 		}
 
 	}
 	focus = {
 		id = INO_Visit_Soviet_Union
-		icon = GFX_goal_unknown
+		icon = GFX_PRC_50s_Dispatch_of_Labour_to_USSR
 		cost = 5.00
 		prerequisite = {
 			focus = INO_Hatta_Goes_to_Washington
@@ -748,7 +909,7 @@ focus_tree = {
 	}
 	focus = {
 		id = INO_Talk_With_Masyumi
-		icon = GFX_goal_unknown
+		icon = GFX_INO_Continuing_Natsir_Election_Bid
 		cost = 5.00
 		prerequisite = {
 			focus = INO_Depoliticize_The_Army
@@ -782,7 +943,7 @@ focus_tree = {
 
 	}
 	focus = {
-		id = INO_Deepen_opinion_With_India
+		id = INO_Deepen_Relation_With_India
 		icon = GFX_goal_unknown
 		cost = 5.00
 		prerequisite = {
@@ -800,7 +961,7 @@ focus_tree = {
 		icon = GFX_goal_unknown
 		cost = 5.00
 		prerequisite = {
-			focus = INO_Deepen_opinion_With_India
+			focus = INO_Deepen_Relation_With_India
 		}
 		prerequisite = {
 			focus = INO_Support_Anti_Colonial_Struggle
