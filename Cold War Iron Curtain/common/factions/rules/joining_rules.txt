@@ -7,19 +7,85 @@
 ### ###  ###  ##  ###  ##   ##    #       ###  #  # ##  ### ###      #  #  ##  ### ### ## 
 
 ########################################################################################## 
+
+joining_rule_non_fascist = {
+	type = joining_rules
+	visible = {
+		always = no
+	}
+	ai_will_do = {
+		base = 0
+	}
+	trigger = {
+		IF = {
+			limit = { NOT = { has_rule = can_join_opposite_factions } }
+			has_government = FROM
+		}
+	}
+}
+
+joining_rule_non_democratic = {
+	type = joining_rules
+	visible = {
+		always = no
+	}
+	ai_will_do = {
+		base = 0
+	}
+	trigger = {
+		IF = {
+			limit = { NOT = { has_rule = can_join_opposite_factions } }
+			has_government = FROM
+		}
+	}
+}
+
+joining_rule_non_communist = {
+	type = joining_rules
+	visible = {
+		always = no
+	}
+	ai_will_do = {
+		base = 0
+	}
+	available = {
+		always = no
+	}
+	can_remove = {
+	}
+	trigger = {
+		IF = {
+			limit = { NOT = { has_rule = can_join_opposite_factions } }
+			has_government = FROM
+		}
+	}
+}
+
+joining_rule_fascist_only = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	available = {
+		always = no
+	}
+	trigger = {
+		IF = {
+			limit = { NOT = { has_rule = can_join_opposite_factions } }
+			has_government = FROM
+		}
+	}
+}
+
 joining_rule_democratic_non_aligned = {
 	type = joining_rules
 	ai_will_do = {
 		base = 0
 	}
 	available = {
-		has_government = democratic
+		always = no
 	}
 	trigger = {
-		OR = {
-			has_government = democratic
-			has_government = neutrality
-		}
 		IF = {
 			limit = { NOT = { has_rule = can_join_opposite_factions } }
 			has_government = FROM
@@ -43,15 +109,10 @@ joining_rule_communist_only = {
 		base = 0
 	}
 	available = {
-		OR = {
-			has_government = communism
-		    has_government = maoism 
-		    has_government = trotskyism
-		}
+		always = no
 	}
 	trigger = {
-		has_government = communism
-		if = {
+		IF = {
 			limit = { NOT = { has_rule = can_join_opposite_factions } }
 			has_government = FROM
 		}
@@ -71,10 +132,30 @@ joining_rule_support_percentage = {
 			value > 0.3
 			leader = FROM
 		}
-		if = {
+		IF = {
 			limit = { NOT = { has_rule = can_join_opposite_factions } }
 			has_government = FROM
 		}
+	}
+}
+
+joining_rule_puppets_only = {
+	type = joining_rules
+	can_remove = {
+		faction_manifest_fulfillment > 0.95
+	}
+	ai_will_do = {
+		base = 0
+	}
+	trigger = {
+		ROOT = { is_subject_of = FROM }
+		IF = {
+			limit = { NOT = { has_rule = can_join_opposite_factions } }
+			has_government = FROM
+		}
+	}
+	modifier= {
+		subjects_autonomy_gain = -0.05
 	}
 }
 
@@ -87,3 +168,200 @@ joining_rule_support_percentage = {
  # #  #  # #  #     #  # ### ### #  #  #  ###  ##  #  #
 
  ######################################################     
+
+
+joining_rule_has_no_war = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	trigger = {
+		has_war = no
+	}
+	modifier = {
+		improve_relations_maintain_cost_factor = -0.1
+	}
+}
+
+joining_rule_has_no_offensive_war = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	trigger = {
+		has_offensive_war = no
+	}
+	modifier = {
+		defensive_war_stability_factor = 0.15
+	}
+}
+
+########################################################
+
+ ##  ###  ##   ##  ###   ##  ###  #  # ###  ##   ##  #   
+#    #   #  # #    #  # #  # #  # #  #  #  #  # #  # #   
+# ## ##  #  # # ## ###  #### ###  ####  #  #    #### #   
+#  # #   #  # #  # #  # #  # #    #  #  #  #  # #  # #   
+ ##  ###  ##   ##  #  # #  # #    #  # ###  ##  #  # ###
+
+######################################################## 
+
+joining_rule_neighbors_only = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	
+	trigger = {
+		any_neighbor_country = {
+			is_in_faction_with = FROM
+		}
+	}
+	modifier = {
+		enemy_justify_war_goal_time = 0.2
+	}
+}
+
+joining_rule_same_continent_only = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	can_remove = {
+		faction_manifest_fulfillment > 0.75
+	}
+	trigger = {
+		ROOT = { is_on_same_continent_as = FROM }
+	}
+	modifier = {
+		enemy_justify_war_goal_time = 0.1
+	}
+}
+
+joining_rule_africa_only = {
+	type = joining_rules
+	visible = {
+		capital_scope = {
+			is_on_continent = africa
+		}
+	}
+	can_remove = {
+		faction_manifest_fulfillment > 0.95
+	}
+	ai_will_do = {
+		base = 0
+		modifier = {
+			add = 1
+			is_faction_leader = yes 
+			capital_scope = { is_on_continent = africa }
+		}
+	}
+
+	trigger = {
+		capital_scope = {
+			is_on_continent = africa
+		}
+	}
+	modifier = {
+		enemy_justify_war_goal_time = 0.1
+	}
+}
+
+joining_rule_americas_only = {
+	type = joining_rules
+	visible = {
+		capital_scope = {
+			OR = {
+				is_on_continent = north_america
+				is_on_continent = south_america
+			}
+		}
+	}
+	can_remove = {
+		faction_manifest_fulfillment > 0.95
+	}
+	ai_will_do = {
+		base = 0
+	}
+
+	trigger = {
+		capital_scope = {
+			OR = {
+				is_on_continent = north_america
+				is_on_continent = south_america
+			}
+		}
+	}
+	modifier = {
+		enemy_justify_war_goal_time = 0.1
+	}
+}
+
+joining_rule_china_only = {
+	type = joining_rules
+	visible = {
+		capital_scope = {
+			OR = {
+				is_core_of = CHI
+				is_core_of = PRC
+			}
+		}
+	}
+	can_remove = {
+		faction_manifest_fulfillment > 0.95
+	}
+	ai_will_do = {
+		base = 0
+	}
+
+	modifier = {
+		army_core_defence_factor = 0.05
+	}
+
+	trigger = {
+		custom_trigger_tooltip = {
+			tooltip = has_chinese_capital_state_tt
+			capital_scope = {
+				OR = {
+					is_core_of = CHI
+					is_core_of = PRC
+				}
+			}
+		}
+	}
+}
+
+joining_rule_asia_pacific_ocenania_only = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	visible = {
+		OR = {
+			capital_scope = { is_on_continent = asia }
+			capital_scope = { is_on_continent = australia }
+		}
+	}
+	
+	trigger = {
+		OR = {
+			capital_scope = { is_on_continent = asia }
+			capital_scope = { is_on_continent = australia }
+		}
+	}
+}
+
+joining_rule_asia_only = {
+	type = joining_rules
+	ai_will_do = {
+		base = 0
+	}
+	visible = {
+		capital_scope = { is_on_continent = asia }
+			
+	}
+	
+	trigger = {
+		capital_scope = { is_on_continent = asia }
+	}
+}
