@@ -1123,8 +1123,8 @@ indonesia_electoral_setup = {
 }
 
 Add_INO_Approval_factor_var = {
-    custom_effect_tooltip = INO_SET_APPROVAL_TT
     add_to_variable = { INO_Approval_factor_var = INO_Approval_factor_var_temp }
+    custom_effect_tooltip =	INO_PM_APPROVAL_TT
 	clamp_variable = {
 		var = INO_Approval_factor_var
 		min = 0
@@ -1134,20 +1134,45 @@ Add_INO_Approval_factor_var = {
 }
 
 INO_Approval_Increase_Rating = {
-    custom_effect_tooltip =	INO_PM_APPROVAL_TT
     if = {
         limit = {
-            check_variable = { INO_Approval_factor_var > 0.35 } # If approval factor is over 35%
+            check_variable = { INO_Approval_factor_var > 0.60 } # If approval factor is over 35%
         }
         set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var }                   # Set approval factor (for calculation) = approval factor
-        subtract_from_variable = { var = INO_Approval_factor_var_add value = 0.35 }                # Calc - 0.35
-        multiply_variable = { var = INO_Approval_factor_var_add value = 100 }                      # Calc X 100
+        subtract_from_variable = { var = INO_Approval_factor_var_add value = 0.60 }                # Calc - 0.60
         multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }                    # Calc X 0.284 (0.284 is a value for 1%)
         add_to_variable = { INO_Approval_factor_speed_var = 0.015 }                                 # Adds 1.5% to speed
         add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }          # Adds calc% to speed
-        add_to_variable = { INO_Approval_Consumer_Goods_factor = 0.015 }                            # Adds 1.5% to consumer goods
-        add_to_variable = { INO_Approval_Consumer_Goods_factor = INO_Approval_factor_var_add }     # Adds calc% to consumer goods
-        multiply_variable = { var = INO_Approval_Consumer_Goods_factor value = -1 }                 # Multiply -1 to consumer goods
+        add_to_variable = { INO_Approval_Consumer_Goods_factor_var = 0.015 }                            # Adds 1.5% to consumer goods
+        add_to_variable = { INO_Approval_Consumer_Goods_factor_var = INO_Approval_factor_var_add }     # Adds calc% to consumer goods
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor_var value = -1 }                 # Multiply -1 to consumer goods
+    }
+    else_if = {
+        limit = {
+            AND = {
+                check_variable = { INO_Approval_factor_var < 0.60 }
+                check_variable = { INO_Approval_factor_var_temp > 0 }
+            }
+        }
+        set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var }
+        subtract_from_variable = { var = INO_Approval_factor_var_add value = 0.60 }
+        multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }
+        add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }
+        add_to_variable = { INO_Approval_Consumer_Goods_factor_var = INO_Approval_factor_var_add }
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor_var value = -1 }
+    }
+    else_if = {
+        limit = {
+            AND = {
+                check_variable = { INO_Approval_factor_var < 0.60 }
+                check_variable = { INO_Approval_factor_var_temp < 0 }
+            }
+        }
+        set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var_temp }
+        multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }
+        add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }
+        add_to_variable = { INO_Approval_Consumer_Goods_factor_var = INO_Approval_factor_var_add }
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor_var value = -1 }
     }
     else_if = {
         limit = {
@@ -1157,12 +1182,11 @@ INO_Approval_Increase_Rating = {
             }
         }
         set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var }
-        subtract_from_variable = { var = INO_Approval_factor_var_add value = 0.35 }
-        multiply_variable = { var = INO_Approval_factor_var_add value = 100 }
+        subtract_from_variable = { var = INO_Approval_factor_var_add value = 0.60 }
         multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }
         add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }
-        add_to_variable = { INO_Approval_Consumer_Goods_factor = INO_Approval_factor_var_add }
-        multiply_variable = { var = INO_Approval_Consumer_Goods_factor value = -1 }
+        add_to_variable = { INO_Approval_Consumer_Goods_factor_var = INO_Approval_factor_var_add }
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor_var value = -1 }
     }
     else_if = {
         limit = {
@@ -1172,18 +1196,12 @@ INO_Approval_Increase_Rating = {
             }
         }
         set_variable = { INO_Approval_factor_var_add = INO_Approval_factor_var_temp }
-        multiply_variable = { var = INO_Approval_factor_var_add value = 100 }
         multiply_variable = { var = INO_Approval_factor_var_add value = 0.284 }
         add_to_variable = { INO_Approval_factor_speed_var = INO_Approval_factor_var_add }
-        add_to_variable = { INO_Approval_Consumer_Goods_factor = INO_Approval_factor_var_add }
-        multiply_variable = { var = INO_Approval_Consumer_Goods_factor value = -1 }
+        add_to_variable = { INO_Approval_Consumer_Goods_factor_var = INO_Approval_factor_var_add }
+        multiply_variable = { var = INO_Approval_Consumer_Goods_factor_var value = -1 }
     }
 }
-### NOTE from Taiga ###################
-#   What is Approval_speed_var?       #
-#                                     #
-#                                     #
-#######################################
 
 
 INO_PM_Approval_Rating = {
@@ -1193,6 +1211,10 @@ INO_PM_Approval_Rating = {
 	add_to_variable = {
 		var = INO_Approval_factor_speed_var
 		value = INO_Approval_factor_var
+	}
+    set_temp_variable = {
+		var = INO_Approval_factor_var
+		value = INO_Approval_factor_speed_var
 	}
 }
 
