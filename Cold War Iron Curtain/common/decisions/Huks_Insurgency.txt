@@ -105,11 +105,14 @@ Huks_Insurgency_Decisions = {
 	huks_attack_hacienda_luisita_owned = {
 		icon = generic_civil_support
 		allowed = { tag = HUK }
-		visible = { has_country_flag = time_to_end_plantations }
+		visible = { 
+			has_country_flag = time_to_end_plantations
+			NOT = { has_active_mission = huks_attack_hacienda_luisita_owned_mission }
+		}
 		available = {
 			owns_state = 1949
 			has_army_manpower = {
-				size > 9999
+				size > 14999
 			}
 			divisions_in_state = {
 				size > 0
@@ -123,16 +126,40 @@ Huks_Insurgency_Decisions = {
 		ai_will_do = {
 			factor = 0
 		}
-		fire_only_once = yes
-		days_remove = 15
+		fire_only_once = no
 		complete_effect = {
 			add_command_power = -15
+			activate_mission = huks_attack_hacienda_luisita_owned_mission
 		}
-		remove_effect = {
+	}
+	huks_attack_hacienda_luisita_owned_mission = {
+		icon = generic_civil_support
+		allowed = { tag = HUK }
+		available = {
+			always = no
+		}
+		days_mission_timeout = 15
+		activation = {
+			always = no
+		}
+		complete_effect = {
+			
+		}
+		cancel_trigger = {
+			divisions_in_state = {
+				size < 1
+				state = 1949
+			}
+		}
+		is_good = yes
+		timeout_effect = {
 			1947 = { set_state_flag = huk_can_raid }
 			1948 = { set_state_flag = huk_can_raid }
 			1953 = { set_state_flag = huk_can_raid }
 			custom_effect_tooltip = insurgency_raid_HUK_hacienda_luisita_effect_tt
+			1948 = { add_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+			1949 = { add_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+			1953 = { add_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
 			clr_country_flag = time_to_end_plantations
 			add_equipment_to_stockpile = {
 				type = infantry_equipment
@@ -274,6 +301,7 @@ Huks_Insurgency_Decisions = {
 					size > 1
 				}
 			}
+			NOT = { has_active_mission = huks_reestablish_communications_timer }
 		}
 		ai_will_do = {
 			factor = 1
