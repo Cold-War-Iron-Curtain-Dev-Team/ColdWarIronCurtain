@@ -1,0 +1,3204 @@
+# scripted_effects/cwic_consumer_goods_startup_init.txt
+######Consumer Goods Rework
+cwic_apply_consumer_goods_pressure_master = {
+
+	# ============================================================
+	# Reset output variables (dynamic modifier inputs)
+	# ============================================================
+	set_variable = { CWIC_DM_CG_STABILITY_FACTOR = 0 }
+	set_variable = { CWIC_DM_CG_POLITICAL_POWER_GAIN = 0 }
+
+	set_variable = { CWIC_DM_CG_WORKFORCE_RATIO = 0 }
+	set_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = 0 }
+
+	set_variable = { CWIC_DM_CG_WELFARE_SPENDING_MOD = 0 }
+	set_variable = { CWIC_DM_CG_POLICING_SPENDING_MOD = 0 }
+	set_variable = { CWIC_DM_CG_PUBLIC_SERVICES_SPENDING_MOD = 0 }
+
+	set_variable = { CWIC_DM_CG_CONSTRUCTION_SPEED_FACTOR = 0 }
+	set_variable = { CWIC_DM_CG_OTHER_RESOURCES_INCOME_BONUS = 0 }
+
+	set_variable = { CWIC_DM_CG_INDUSTRIAL_PARK_INCOME_BONUS = 0 }
+	set_variable = { CWIC_DM_CG_OFFICE_PARK_INCOME_BONUS = 0 }
+
+	set_variable = { CWIC_DM_CG_EDUCATION_GAIN_RATE = 0 }
+
+
+	# ============================================================
+	# Clear temps
+	# ============================================================
+	clr_temp_variable = cg_shortage
+	clr_temp_variable = cg_reliance
+	clr_temp_variable = cg_gap
+	clr_temp_variable = cg_outdated
+	clr_temp_variable = cg_severity
+
+	clr_temp_variable = sev_basic
+	clr_temp_variable = sev_durable
+	clr_temp_variable = sev_vehicles
+	clr_temp_variable = sev_electronics
+
+	clr_temp_variable = master_scalar
+	clr_temp_variable = cg_tmp
+
+
+	# ============================================================
+	# BASIC GOODS severity (outdated weight 0.50)
+	# ============================================================
+	set_temp_variable = { cg_shortage = 1 }
+	subtract_from_temp_variable = { cg_shortage = ROOT.cg_basic_coverage }
+	if = { limit = { check_variable = { cg_shortage < 0 } } set_temp_variable = { cg_shortage = 0 } }
+	if = { limit = { check_variable = { cg_shortage > 1 } } set_temp_variable = { cg_shortage = 1 } }
+
+	set_temp_variable = { cg_reliance = ROOT.cg_basic_coverage }
+	if = { limit = { check_variable = { cg_reliance < 0 } } set_temp_variable = { cg_reliance = 0 } }
+	if = { limit = { check_variable = { cg_reliance > 1 } } set_temp_variable = { cg_reliance = 1 } }
+
+	set_temp_variable = { cg_gap = ROOT.cg_basic_expected_tier }
+	subtract_from_temp_variable = { cg_gap = ROOT.cg_basic_supplied_tier }
+	if = { limit = { check_variable = { cg_gap < 0 } } set_temp_variable = { cg_gap = 0 } }
+	if = { limit = { check_variable = { cg_gap > 5 } } set_temp_variable = { cg_gap = 5 } }
+
+	set_temp_variable = { cg_outdated = cg_gap }
+	divide_temp_variable = { cg_outdated = 5 }
+
+	set_temp_variable = { cg_severity = cg_outdated }
+	multiply_temp_variable = { cg_severity = cg_reliance }
+	multiply_temp_variable = { cg_severity = 0.50 }
+	add_to_temp_variable = { cg_severity = cg_shortage }
+	if = { limit = { check_variable = { cg_severity > 1 } } set_temp_variable = { cg_severity = 1 } }
+
+	set_temp_variable = { sev_basic = cg_severity }
+
+
+	# ============================================================
+	# DURABLE GOODS severity (outdated weight 0.80)
+	# ============================================================
+	set_temp_variable = { cg_shortage = 1 }
+	subtract_from_temp_variable = { cg_shortage = ROOT.cg_durable_coverage }
+	if = { limit = { check_variable = { cg_shortage < 0 } } set_temp_variable = { cg_shortage = 0 } }
+	if = { limit = { check_variable = { cg_shortage > 1 } } set_temp_variable = { cg_shortage = 1 } }
+
+	set_temp_variable = { cg_reliance = ROOT.cg_durable_coverage }
+	if = { limit = { check_variable = { cg_reliance < 0 } } set_temp_variable = { cg_reliance = 0 } }
+	if = { limit = { check_variable = { cg_reliance > 1 } } set_temp_variable = { cg_reliance = 1 } }
+
+	set_temp_variable = { cg_gap = ROOT.cg_durable_expected_tier }
+	subtract_from_temp_variable = { cg_gap = ROOT.cg_durable_supplied_tier }
+	if = { limit = { check_variable = { cg_gap < 0 } } set_temp_variable = { cg_gap = 0 } }
+	if = { limit = { check_variable = { cg_gap > 5 } } set_temp_variable = { cg_gap = 5 } }
+
+	set_temp_variable = { cg_outdated = cg_gap }
+	divide_temp_variable = { cg_outdated = 5 }
+
+	set_temp_variable = { cg_severity = cg_outdated }
+	multiply_temp_variable = { cg_severity = cg_reliance }
+	multiply_temp_variable = { cg_severity = 0.80 }
+	add_to_temp_variable = { cg_severity = cg_shortage }
+	if = { limit = { check_variable = { cg_severity > 1 } } set_temp_variable = { cg_severity = 1 } }
+
+	set_temp_variable = { sev_durable = cg_severity }
+
+
+	# ============================================================
+	# VEHICLES severity (outdated weight 0.70)
+	# ============================================================
+	set_temp_variable = { cg_shortage = 1 }
+	subtract_from_temp_variable = { cg_shortage = ROOT.cg_vehicles_coverage }
+	if = { limit = { check_variable = { cg_shortage < 0 } } set_temp_variable = { cg_shortage = 0 } }
+	if = { limit = { check_variable = { cg_shortage > 1 } } set_temp_variable = { cg_shortage = 1 } }
+
+	set_temp_variable = { cg_reliance = ROOT.cg_vehicles_coverage }
+	if = { limit = { check_variable = { cg_reliance < 0 } } set_temp_variable = { cg_reliance = 0 } }
+	if = { limit = { check_variable = { cg_reliance > 1 } } set_temp_variable = { cg_reliance = 1 } }
+
+	set_temp_variable = { cg_gap = ROOT.cg_vehicles_expected_tier }
+	subtract_from_temp_variable = { cg_gap = ROOT.cg_vehicles_supplied_tier }
+	if = { limit = { check_variable = { cg_gap < 0 } } set_temp_variable = { cg_gap = 0 } }
+	if = { limit = { check_variable = { cg_gap > 5 } } set_temp_variable = { cg_gap = 5 } }
+
+	set_temp_variable = { cg_outdated = cg_gap }
+	divide_temp_variable = { cg_outdated = 5 }
+
+	set_temp_variable = { cg_severity = cg_outdated }
+	multiply_temp_variable = { cg_severity = cg_reliance }
+	multiply_temp_variable = { cg_severity = 0.70 }
+	add_to_temp_variable = { cg_severity = cg_shortage }
+	if = { limit = { check_variable = { cg_severity > 1 } } set_temp_variable = { cg_severity = 1 } }
+
+	set_temp_variable = { sev_vehicles = cg_severity }
+
+
+	# ============================================================
+	# CONSUMER ELECTRONICS severity (outdated weight 1.20)
+	# ============================================================
+	set_temp_variable = { cg_shortage = 1 }
+	subtract_from_temp_variable = { cg_shortage = ROOT.cg_consumer_electronics_coverage }
+	if = { limit = { check_variable = { cg_shortage < 0 } } set_temp_variable = { cg_shortage = 0 } }
+	if = { limit = { check_variable = { cg_shortage > 1 } } set_temp_variable = { cg_shortage = 1 } }
+
+	set_temp_variable = { cg_reliance = ROOT.cg_consumer_electronics_coverage }
+	if = { limit = { check_variable = { cg_reliance < 0 } } set_temp_variable = { cg_reliance = 0 } }
+	if = { limit = { check_variable = { cg_reliance > 1 } } set_temp_variable = { cg_reliance = 1 } }
+
+	set_temp_variable = { cg_gap = ROOT.cg_consumer_electronics_expected_tier }
+	subtract_from_temp_variable = { cg_gap = ROOT.cg_consumer_electronics_supplied_tier }
+	if = { limit = { check_variable = { cg_gap < 0 } } set_temp_variable = { cg_gap = 0 } }
+	if = { limit = { check_variable = { cg_gap > 5 } } set_temp_variable = { cg_gap = 5 } }
+
+	set_temp_variable = { cg_outdated = cg_gap }
+	divide_temp_variable = { cg_outdated = 5 }
+
+	set_temp_variable = { cg_severity = cg_outdated }
+	multiply_temp_variable = { cg_severity = cg_reliance }
+	multiply_temp_variable = { cg_severity = 1.20 }
+	add_to_temp_variable = { cg_severity = cg_shortage }
+	if = { limit = { check_variable = { cg_severity > 1 } } set_temp_variable = { cg_severity = 1 } }
+
+	set_temp_variable = { sev_electronics = cg_severity }
+
+
+	# ============================================================
+	# MASTER scalar (overall legitimacy pressure)
+	# ============================================================
+	set_temp_variable = { master_scalar = 0 }
+
+	set_temp_variable = { cg_tmp = sev_basic }
+	multiply_temp_variable = { cg_tmp = 0.35 }
+	add_to_temp_variable = { master_scalar = cg_tmp }
+
+	set_temp_variable = { cg_tmp = sev_durable }
+	multiply_temp_variable = { cg_tmp = 0.20 }
+	add_to_temp_variable = { master_scalar = cg_tmp }
+
+	set_temp_variable = { cg_tmp = sev_vehicles }
+	multiply_temp_variable = { cg_tmp = 0.25 }
+	add_to_temp_variable = { master_scalar = cg_tmp }
+
+	set_temp_variable = { cg_tmp = sev_electronics }
+	multiply_temp_variable = { cg_tmp = 0.20 }
+	add_to_temp_variable = { master_scalar = cg_tmp }
+
+	if = { limit = { check_variable = { master_scalar > 1 } } set_temp_variable = { master_scalar = 1 } }
+
+
+	# ============================================================
+	# Write dynamic modifier variables
+	# ============================================================
+
+	# Politics
+	set_variable = { CWIC_DM_CG_STABILITY_FACTOR = master_scalar }
+	multiply_variable = { CWIC_DM_CG_STABILITY_FACTOR = -0.18 }
+
+	set_variable = { CWIC_DM_CG_POLITICAL_POWER_GAIN = master_scalar }
+	multiply_variable = { CWIC_DM_CG_POLITICAL_POWER_GAIN = -0.20 }
+
+	# Workforce / welfare (Basic)
+	set_variable = { CWIC_DM_CG_WORKFORCE_RATIO = sev_basic }
+	multiply_variable = { CWIC_DM_CG_WORKFORCE_RATIO = -0.15 }
+
+	set_variable = { CWIC_DM_CG_WELFARE_SPENDING_MOD = sev_basic }
+	multiply_variable = { CWIC_DM_CG_WELFARE_SPENDING_MOD = 0.18 }
+
+	# Vehicles / state reach
+	set_variable = { CWIC_DM_CG_CONSTRUCTION_SPEED_FACTOR = sev_vehicles }
+	multiply_variable = { CWIC_DM_CG_CONSTRUCTION_SPEED_FACTOR = -0.18 }
+
+	set_variable = { CWIC_DM_CG_POLICING_SPENDING_MOD = sev_vehicles }
+	multiply_variable = { CWIC_DM_CG_POLICING_SPENDING_MOD = 0.15 }
+
+	set_variable = { CWIC_DM_CG_PUBLIC_SERVICES_SPENDING_MOD = sev_vehicles }
+	multiply_variable = { CWIC_DM_CG_PUBLIC_SERVICES_SPENDING_MOD = 0.10 }
+
+	set_variable = { CWIC_DM_CG_OTHER_RESOURCES_INCOME_BONUS = sev_vehicles }
+	multiply_variable = { CWIC_DM_CG_OTHER_RESOURCES_INCOME_BONUS = -0.08 }
+
+	# Durables / capital base
+	set_variable = { CWIC_DM_CG_INDUSTRIAL_PARK_INCOME_BONUS = sev_durable }
+	multiply_variable = { CWIC_DM_CG_INDUSTRIAL_PARK_INCOME_BONUS = -0.085 }
+
+	# Electronics / services
+	set_variable = { CWIC_DM_CG_OFFICE_PARK_INCOME_BONUS = sev_electronics }
+	multiply_variable = { CWIC_DM_CG_OFFICE_PARK_INCOME_BONUS = -0.15 }
+
+	set_variable = { CWIC_DM_CG_EDUCATION_GAIN_RATE = sev_electronics }
+	multiply_variable = { CWIC_DM_CG_EDUCATION_GAIN_RATE = -0.0024 }
+
+	# Productivity (blended)
+	set_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = 0 }
+
+	set_temp_variable = { cg_tmp = sev_basic }
+	multiply_temp_variable = { cg_tmp = 0.40 }
+	add_to_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = cg_tmp }
+
+	set_temp_variable = { cg_tmp = sev_durable }
+	multiply_temp_variable = { cg_tmp = 0.30 }
+	add_to_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = cg_tmp }
+
+	set_temp_variable = { cg_tmp = sev_vehicles }
+	multiply_temp_variable = { cg_tmp = 0.20 }
+	add_to_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = cg_tmp }
+
+	set_temp_variable = { cg_tmp = sev_electronics }
+	multiply_temp_variable = { cg_tmp = 0.10 }
+	add_to_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = cg_tmp }
+
+	if = { limit = { check_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR > 1 } } set_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = 1 } }
+	multiply_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = -0.16 }
+
+
+	# ============================================================
+	# Apply dynamic modifier
+	# ============================================================
+	remove_dynamic_modifier = cwic_dm_consumer_goods_pressure_master
+	add_dynamic_modifier = {
+		modifier = cwic_dm_consumer_goods_pressure_master
+		value = 1
+	}
+}
+
+calculate_civilian_factory_production_total_factories = {
+
+    # Start with factories the player can use for construction
+    set_variable = {
+        Actual_Civilian_Factories = num_of_available_civilian_factories
+    }
+
+    # Compute factories locked to consumer goods
+    set_temp_variable = { cg_locked = num_of_civilian_factories }
+    multiply_temp_variable = { cg_locked = modifier@consumer_goods_factor }
+    round_temp_variable = cg_locked
+
+    # Add locked consumer goods factories back in
+    add_to_variable = {
+        Actual_Civilian_Factories = cg_locked
+    }
+
+    # Safety clamp (rounding can occasionally overshoot by 1)
+    if = {
+        limit = { check_variable = { Actual_Civilian_Factories > num_of_civilian_factories } }
+        set_variable = { Actual_Civilian_Factories = num_of_civilian_factories }
+    }
+
+    clr_temp_variable = cg_locked
+}
+
+
+cwic_calculate_consumer_goods_monthly_demand = {
+
+	# ============================================================
+	# Inputs expected on ROOT:
+	# - National_HDI (0.0..1.0)
+	# - employable_population_sum (in thousands)
+	# - current_year (int, e.g. 1952)
+	# Outputs:
+	# - cg_*_demand (float)
+	# - cg_*_expected_tier (int 0..5; electronics 1..5)
+	# ============================================================
+
+	# ----------------------------
+	# Clamp HDI defensively
+	# ----------------------------
+	set_temp_variable = { cg_hdi = ROOT.National_HDI }
+	if = { limit = { check_variable = { cg_hdi < 0 } } set_temp_variable = { cg_hdi = 0 } }
+	if = { limit = { check_variable = { cg_hdi > 1 } } set_temp_variable = { cg_hdi = 1 } }
+
+	# Workforce (thousands)
+	set_temp_variable = { cg_pop_k = ROOT.employable_population_sum }
+	if = { limit = { check_variable = { cg_pop_k < 0 } } set_temp_variable = { cg_pop_k = 0 } }
+
+	# ============================================================
+	# 1) Base decade tier from year
+	# Tier mapping:
+	# 0 = Prewar
+	# 1 = 1950s
+	# 2 = 1960s
+	# 3 = 1970s
+	# 4 = 1980s
+	# 5 = 1990s+
+	# ============================================================
+	set_temp_variable = { cg_decade_tier = 1 } # default 1950s baseline
+
+	if = {
+		limit = { check_variable = { ROOT.current_year < 1945 } }
+		set_temp_variable = { cg_decade_tier = 0 }
+	}
+	else_if = {
+		limit = { check_variable = { ROOT.current_year < 1960 } }
+		set_temp_variable = { cg_decade_tier = 1 }
+	}
+	else_if = {
+		limit = { check_variable = { ROOT.current_year < 1970 } }
+		set_temp_variable = { cg_decade_tier = 2 }
+	}
+	else_if = {
+		limit = { check_variable = { ROOT.current_year < 1980 } }
+		set_temp_variable = { cg_decade_tier = 3 }
+	}
+	else_if = {
+		limit = { check_variable = { ROOT.current_year < 1990 } }
+		set_temp_variable = { cg_decade_tier = 4 }
+	}
+	else = {
+		set_temp_variable = { cg_decade_tier = 5 }
+	}
+
+	# ============================================================
+	# 2) HDI adjustment to expected tier (soft push)
+	# Low HDI tends to accept older standards, high HDI expects newer.
+	# - HDI < 0.35 : -1 tier
+	# - HDI > 0.80 : +1 tier
+	# ============================================================
+	set_temp_variable = { cg_hdi_tier_adj = 0 }
+
+	if = {
+		limit = { check_variable = { cg_hdi < 0.35 } }
+		set_temp_variable = { cg_hdi_tier_adj = -1 }
+	}
+	else_if = {
+		limit = { check_variable = { cg_hdi > 0.80 } }
+		set_temp_variable = { cg_hdi_tier_adj = 1 }
+	}
+
+	# ============================================================
+	# 3) Expected tiers by good type
+	# Basics/durables/vehicles can be tier 0..5.
+	# Consumer electronics starts at tier 1 (no tier 0 expectations).
+	# ============================================================
+	set_variable = { cg_basic_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_basic_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_basic_expected_tier < 0 } } set_variable = { cg_basic_expected_tier = 0 } }
+	if = { limit = { check_variable = { cg_basic_expected_tier > 5 } } set_variable = { cg_basic_expected_tier = 5 } }
+
+	set_variable = { cg_durable_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_durable_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_durable_expected_tier < 0 } } set_variable = { cg_durable_expected_tier = 0 } }
+	if = { limit = { check_variable = { cg_durable_expected_tier > 5 } } set_variable = { cg_durable_expected_tier = 5 } }
+
+	set_variable = { cg_vehicles_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_vehicles_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_vehicles_expected_tier < 0 } } set_variable = { cg_vehicles_expected_tier = 0 } }
+	if = { limit = { check_variable = { cg_vehicles_expected_tier > 5 } } set_variable = { cg_vehicles_expected_tier = 5 } }
+
+	set_variable = { cg_consumer_electronics_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_consumer_electronics_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_consumer_electronics_expected_tier < 1 } } set_variable = { cg_consumer_electronics_expected_tier = 1 } }
+	if = { limit = { check_variable = { cg_consumer_electronics_expected_tier > 5 } } set_variable = { cg_consumer_electronics_expected_tier = 5 } }
+
+
+	# ============================================================
+	# 4) Demand calculation framework
+	# Demand = pop_k * base_rate * hdi_scale * tier_multiplier
+	#
+	# Notes:
+	# - base_rate is "units per thousand employable people per month"
+	# - hdi_scale is linear here for performance and tuning simplicity
+	# - tier_multiplier increases expectations over time (and modern categories rise faster)
+	# ============================================================
+
+	# Shared HDI scaling:
+	# hdi_scale = 0.60 + (0.80 * HDI)  => 0.60..1.40
+	set_temp_variable = { cg_hdi_scale = cg_hdi }
+	multiply_temp_variable = { cg_hdi_scale = 0.80 }
+	add_to_temp_variable = { cg_hdi_scale = 0.60 }
+
+
+	# ----------------------------
+	# BASIC GOODS demand
+	# base_rate_basic = 0.12
+	# tier multipliers: 0.80, 1.00, 1.05, 1.10, 1.15, 1.20
+	# ----------------------------
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_basic_expected_tier = 0 } } set_temp_variable = { cg_mult = 0.80 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 1 } } set_temp_variable = { cg_mult = 1.00 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 2 } } set_temp_variable = { cg_mult = 1.05 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.10 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.15 } }
+	else = { set_temp_variable = { cg_mult = 1.20 } }
+
+	set_variable = { cg_basic_demand = cg_pop_k }
+	multiply_variable = { cg_basic_demand = 0.12 }
+	multiply_variable = { cg_basic_demand = cg_hdi_scale }
+	multiply_variable = { cg_basic_demand = cg_mult }
+
+    multiply_variable = { cg_basic_demand = 0.01 }
+    if = { limit = { check_variable = { cg_basic_demand < 1 } } set_variable = { cg_basic_demand = 1 } }
+
+
+	# ----------------------------
+	# DURABLE GOODS demand
+	# base_rate_durable = 0.05
+	# tier multipliers: 0.50, 0.80, 1.00, 1.15, 1.30, 1.45
+	# ----------------------------
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_durable_expected_tier = 0 } } set_temp_variable = { cg_mult = 0.50 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 1 } } set_temp_variable = { cg_mult = 0.80 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 2 } } set_temp_variable = { cg_mult = 1.00 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.15 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.30 } }
+	else = { set_temp_variable = { cg_mult = 1.45 } }
+
+	set_variable = { cg_durable_demand = cg_pop_k }
+	multiply_variable = { cg_durable_demand = 0.05 }
+	multiply_variable = { cg_durable_demand = cg_hdi_scale }
+	multiply_variable = { cg_durable_demand = cg_mult }
+
+    multiply_variable = { cg_durable_demand = 0.01 }
+
+
+	# ----------------------------
+	# VEHICLES demand
+	# base_rate_vehicles = 0.02
+	# tier multipliers: 0.40, 0.70, 0.90, 1.05, 1.20, 1.35
+	# ----------------------------
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_vehicles_expected_tier = 0 } } set_temp_variable = { cg_mult = 0.40 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 1 } } set_temp_variable = { cg_mult = 0.70 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 2 } } set_temp_variable = { cg_mult = 0.90 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.05 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.20 } }
+	else = { set_temp_variable = { cg_mult = 1.35 } }
+
+	set_variable = { cg_vehicles_demand = cg_pop_k }
+	multiply_variable = { cg_vehicles_demand = 0.02 }
+	multiply_variable = { cg_vehicles_demand = cg_hdi_scale }
+	multiply_variable = { cg_vehicles_demand = cg_mult }
+
+    multiply_variable = { cg_vehicles_demand = 0.01 }
+
+	# ----------------------------
+	# CONSUMER ELECTRONICS demand
+	# base_rate_electronics = 0.015
+	# tier multipliers: (tier1..5): 0.60, 0.90, 1.15, 1.40, 1.70
+	# Electronics demand is much more HDI-sensitive, so we apply an extra HDI lift:
+	# electronics_hdi_scale = 0.30 + (1.20 * HDI) => 0.30..1.50
+	# ----------------------------
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 1 } } set_temp_variable = { cg_mult = 0.60 } }
+	else_if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 2 } } set_temp_variable = { cg_mult = 0.90 } }
+	else_if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.15 } }
+	else_if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.40 } }
+	else = { set_temp_variable = { cg_mult = 1.70 } }
+
+	set_temp_variable = { cg_elec_hdi_scale = cg_hdi }
+	multiply_temp_variable = { cg_elec_hdi_scale = 1.20 }
+	add_to_temp_variable = { cg_elec_hdi_scale = 0.30 }
+
+	set_variable = { cg_consumer_electronics_demand = cg_pop_k }
+	multiply_variable = { cg_consumer_electronics_demand = 0.015 }
+	multiply_variable = { cg_consumer_electronics_demand = cg_elec_hdi_scale }
+	multiply_variable = { cg_consumer_electronics_demand = cg_mult }
+
+    multiply_variable = { cg_consumer_electronics_demand = 0.01 }
+
+
+	# ============================================================
+	# Optional: round demands if you prefer discrete unit accounting
+	# (Leave commented until you decide how stockpile math works.)
+	# ============================================================
+	# round_variable = cg_basic_demand
+	# round_variable = cg_durable_demand
+	# round_variable = cg_vehicles_demand
+	# round_variable = cg_consumer_electronics_demand
+
+	# Cleanup temps
+	clr_temp_variable = cg_hdi
+	clr_temp_variable = cg_pop_k
+	clr_temp_variable = cg_decade_tier
+	clr_temp_variable = cg_hdi_tier_adj
+	clr_temp_variable = cg_hdi_scale
+	clr_temp_variable = cg_elec_hdi_scale
+	clr_temp_variable = cg_mult
+}
+cwic_calculate_consumer_goods_monthly_demand = {
+
+	# Inputs expected on ROOT:
+	# - National_HDI (0.0..1.0)
+	# - employable_population_sum (in thousands)
+	# Outputs:
+	# - cg_*_demand (float)
+	# - cg_*_expected_tier (int 0..5; electronics 1..5)
+
+	# ----------------------------
+	# Clamp HDI defensively
+	# ----------------------------
+	set_temp_variable = { cg_hdi = ROOT.National_HDI }
+	if = { limit = { check_variable = { cg_hdi < 0 } } set_temp_variable = { cg_hdi = 0 } }
+	if = { limit = { check_variable = { cg_hdi > 1 } } set_temp_variable = { cg_hdi = 1 } }
+
+	# Workforce (thousands)
+	set_temp_variable = { cg_pop_k = ROOT.employable_population_sum }
+	if = { limit = { check_variable = { cg_pop_k < 0 } } set_temp_variable = { cg_pop_k = 0 } }
+
+
+	# ============================================================
+	# 1) Base decade tier from date
+	# Tier mapping:
+	# 0 = Prewar (< 1950)
+	# 1 = 1950s
+	# 2 = 1960s
+	# 3 = 1970s
+	# 4 = 1980s
+	# 5 = 1990s+
+	# ============================================================
+	set_temp_variable = { cg_decade_tier = 1 }
+
+	if = {
+		limit = { date < 1950.01.01 }
+		set_temp_variable = { cg_decade_tier = 0 }
+	}
+	else_if = {
+		limit = { date < 1960.01.01 }
+		set_temp_variable = { cg_decade_tier = 1 }
+	}
+	else_if = {
+		limit = { date < 1970.01.01 }
+		set_temp_variable = { cg_decade_tier = 2 }
+	}
+	else_if = {
+		limit = { date < 1980.01.01 }
+		set_temp_variable = { cg_decade_tier = 3 }
+	}
+	else_if = {
+		limit = { date < 1990.01.01 }
+		set_temp_variable = { cg_decade_tier = 4 }
+	}
+	else = {
+		set_temp_variable = { cg_decade_tier = 5 }
+	}
+
+
+	# ============================================================
+	# 2) HDI adjustment to expected tier (soft push)
+	# ============================================================
+	set_temp_variable = { cg_hdi_tier_adj = 0 }
+
+	if = {
+		limit = { check_variable = { cg_hdi < 0.35 } }
+		set_temp_variable = { cg_hdi_tier_adj = -1 }
+	}
+	else_if = {
+		limit = { check_variable = { cg_hdi > 0.80 } }
+		set_temp_variable = { cg_hdi_tier_adj = 1 }
+	}
+
+
+	# ============================================================
+	# 3) Expected tiers by good type
+	# ============================================================
+	set_variable = { cg_basic_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_basic_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_basic_expected_tier < 0 } } set_variable = { cg_basic_expected_tier = 0 } }
+	if = { limit = { check_variable = { cg_basic_expected_tier > 5 } } set_variable = { cg_basic_expected_tier = 5 } }
+
+	set_variable = { cg_durable_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_durable_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_durable_expected_tier < 0 } } set_variable = { cg_durable_expected_tier = 0 } }
+	if = { limit = { check_variable = { cg_durable_expected_tier > 5 } } set_variable = { cg_durable_expected_tier = 5 } }
+
+	set_variable = { cg_vehicles_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_vehicles_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_vehicles_expected_tier < 0 } } set_variable = { cg_vehicles_expected_tier = 0 } }
+	if = { limit = { check_variable = { cg_vehicles_expected_tier > 5 } } set_variable = { cg_vehicles_expected_tier = 5 } }
+
+	set_variable = { cg_consumer_electronics_expected_tier = cg_decade_tier }
+	add_to_variable = { cg_consumer_electronics_expected_tier = cg_hdi_tier_adj }
+	if = { limit = { check_variable = { cg_consumer_electronics_expected_tier < 1 } } set_variable = { cg_consumer_electronics_expected_tier = 1 } }
+	if = { limit = { check_variable = { cg_consumer_electronics_expected_tier > 5 } } set_variable = { cg_consumer_electronics_expected_tier = 5 } }
+
+
+	# ============================================================
+	# 4) Demand calculation framework
+	# Demand = pop_k * base_rate * hdi_scale * tier_multiplier
+	# ============================================================
+
+	# Shared HDI scaling: 0.60..1.40
+	set_temp_variable = { cg_hdi_scale = cg_hdi }
+	multiply_temp_variable = { cg_hdi_scale = 0.80 }
+	add_to_temp_variable = { cg_hdi_scale = 0.60 }
+
+
+	# BASIC
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_basic_expected_tier = 0 } } set_temp_variable = { cg_mult = 0.80 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 1 } } set_temp_variable = { cg_mult = 1.00 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 2 } } set_temp_variable = { cg_mult = 1.05 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.10 } }
+	else_if = { limit = { check_variable = { cg_basic_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.15 } }
+	else = { set_temp_variable = { cg_mult = 1.20 } }
+
+	set_variable = { cg_basic_demand = cg_pop_k }
+	multiply_variable = { cg_basic_demand = 0.12 }
+	multiply_variable = { cg_basic_demand = cg_hdi_scale }
+	multiply_variable = { cg_basic_demand = cg_mult }
+
+
+	# DURABLE
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_durable_expected_tier = 0 } } set_temp_variable = { cg_mult = 0.50 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 1 } } set_temp_variable = { cg_mult = 0.80 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 2 } } set_temp_variable = { cg_mult = 1.00 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.15 } }
+	else_if = { limit = { check_variable = { cg_durable_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.30 } }
+	else = { set_temp_variable = { cg_mult = 1.45 } }
+
+	set_variable = { cg_durable_demand = cg_pop_k }
+	multiply_variable = { cg_durable_demand = 0.05 }
+	multiply_variable = { cg_durable_demand = cg_hdi_scale }
+	multiply_variable = { cg_durable_demand = cg_mult }
+
+
+	# VEHICLES
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_vehicles_expected_tier = 0 } } set_temp_variable = { cg_mult = 0.40 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 1 } } set_temp_variable = { cg_mult = 0.70 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 2 } } set_temp_variable = { cg_mult = 0.90 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.05 } }
+	else_if = { limit = { check_variable = { cg_vehicles_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.20 } }
+	else = { set_temp_variable = { cg_mult = 1.35 } }
+
+	set_variable = { cg_vehicles_demand = cg_pop_k }
+	multiply_variable = { cg_vehicles_demand = 0.02 }
+	multiply_variable = { cg_vehicles_demand = cg_hdi_scale }
+	multiply_variable = { cg_vehicles_demand = cg_mult }
+
+
+	# CONSUMER ELECTRONICS
+	set_temp_variable = { cg_mult = 1.00 }
+	if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 1 } } set_temp_variable = { cg_mult = 0.60 } }
+	else_if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 2 } } set_temp_variable = { cg_mult = 0.90 } }
+	else_if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 3 } } set_temp_variable = { cg_mult = 1.15 } }
+	else_if = { limit = { check_variable = { cg_consumer_electronics_expected_tier = 4 } } set_temp_variable = { cg_mult = 1.40 } }
+	else = { set_temp_variable = { cg_mult = 1.70 } }
+
+	set_temp_variable = { cg_elec_hdi_scale = cg_hdi }
+	multiply_temp_variable = { cg_elec_hdi_scale = 1.20 }
+	add_to_temp_variable = { cg_elec_hdi_scale = 0.30 }
+
+	set_variable = { cg_consumer_electronics_demand = cg_pop_k }
+	multiply_variable = { cg_consumer_electronics_demand = 0.015 }
+	multiply_variable = { cg_consumer_electronics_demand = cg_elec_hdi_scale }
+	multiply_variable = { cg_consumer_electronics_demand = cg_mult }
+
+
+	# Cleanup temps
+	clr_temp_variable = cg_hdi
+	clr_temp_variable = cg_pop_k
+	clr_temp_variable = cg_decade_tier
+	clr_temp_variable = cg_hdi_tier_adj
+	clr_temp_variable = cg_hdi_scale
+	clr_temp_variable = cg_elec_hdi_scale
+	clr_temp_variable = cg_mult
+}
+cwic_calculate_consumer_goods_coverage_and_consume = {
+
+	# ============================================================
+	# Helper mini-block pattern (inline, repeated):
+	# - cg_need: remaining demand
+	# - cg_take: amount pulled from a tier stockpile
+	# - cg_stock: the tier stockpile value
+	# ============================================================
+
+
+	# ============================================================
+	# BASIC GOODS
+	# ============================================================
+	set_variable = { cg_basic_provided = 0 }
+	set_variable = { cg_basic_supplied_tier = 0 }
+	set_variable = { cg_basic_coverage = 1 }
+
+	set_temp_variable = { cg_need = ROOT.cg_basic_demand }
+	if = { limit = { check_variable = { cg_need < 0 } } set_temp_variable = { cg_need = 0 } }
+
+	set_temp_variable = { cg_weighted_sum = 0 }
+
+	# If no demand, keep coverage = 1 and tier = expected
+	if = {
+		limit = { check_variable = { cg_need < 0.01 } }
+		set_variable = { cg_basic_supplied_tier = ROOT.cg_basic_expected_tier }
+	}
+	else = {
+
+		# Tier 5
+		set_temp_variable = { cg_stock = ROOT.cg_basic_stock_t5 }
+		if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+		set_temp_variable = { cg_take = cg_stock }
+		if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+		subtract_from_variable = { cg_basic_stock_t5 = cg_take }
+		subtract_from_temp_variable = { cg_need = cg_take }
+		add_to_variable = { cg_basic_provided = cg_take }
+		set_temp_variable = { cg_tmp = cg_take }
+		multiply_temp_variable = { cg_tmp = 5 }
+		add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+
+		# Tier 4
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_basic_stock_t4 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_basic_stock_t4 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_basic_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 4 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 3
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_basic_stock_t3 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_basic_stock_t3 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_basic_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 3 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 2
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_basic_stock_t2 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_basic_stock_t2 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_basic_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 2 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 1
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_basic_stock_t1 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_basic_stock_t1 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_basic_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 1 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 0
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_basic_stock_t0 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_basic_stock_t0 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_basic_provided = cg_take }
+			# tier 0 adds nothing to weighted sum
+		}
+
+		# coverage = provided / demand
+		set_variable = { cg_basic_coverage = cg_basic_provided }
+		divide_variable = { cg_basic_coverage = ROOT.cg_basic_demand }
+		if = { limit = { check_variable = { cg_basic_coverage < 0 } } set_variable = { cg_basic_coverage = 0 } }
+		if = { limit = { check_variable = { cg_basic_coverage > 2 } } set_variable = { cg_basic_coverage = 2 } }
+
+		# supplied tier = weighted_sum / provided
+		if = {
+			limit = { check_variable = { ROOT.cg_basic_provided > 0 } }
+			set_variable = { cg_basic_supplied_tier = cg_weighted_sum }
+			divide_variable = { cg_basic_supplied_tier = ROOT.cg_basic_provided }
+			round_variable = cg_basic_supplied_tier
+			if = { limit = { check_variable = { cg_basic_supplied_tier < 0 } } set_variable = { cg_basic_supplied_tier = 0 } }
+			if = { limit = { check_variable = { cg_basic_supplied_tier > 5 } } set_variable = { cg_basic_supplied_tier = 5 } }
+		}
+		else = {
+			set_variable = { cg_basic_supplied_tier = 0 }
+			set_variable = { cg_basic_coverage = 0 }
+		}
+	}
+
+	# ============================================================
+	# DURABLE GOODS
+	# ============================================================
+	set_variable = { cg_durable_provided = 0 }
+	set_variable = { cg_durable_supplied_tier = 0 }
+	set_variable = { cg_durable_coverage = 1 }
+
+	set_temp_variable = { cg_need = ROOT.cg_durable_demand }
+	if = { limit = { check_variable = { cg_need < 0 } } set_temp_variable = { cg_need = 0 } }
+
+	set_temp_variable = { cg_weighted_sum = 0 }
+
+	if = {
+		limit = { check_variable = { cg_need < 0.01 } }
+		set_variable = { cg_durable_supplied_tier = ROOT.cg_durable_expected_tier }
+	}
+	else = {
+
+		# Tier 5
+		set_temp_variable = { cg_stock = ROOT.cg_durable_stock_t5 }
+		if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+		set_temp_variable = { cg_take = cg_stock }
+		if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+		subtract_from_variable = { cg_durable_stock_t5 = cg_take }
+		subtract_from_temp_variable = { cg_need = cg_take }
+		add_to_variable = { cg_durable_provided = cg_take }
+		set_temp_variable = { cg_tmp = cg_take }
+		multiply_temp_variable = { cg_tmp = 5 }
+		add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+
+		# Tier 4
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_durable_stock_t4 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_durable_stock_t4 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_durable_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 4 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 3
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_durable_stock_t3 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_durable_stock_t3 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_durable_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 3 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 2
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_durable_stock_t2 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_durable_stock_t2 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_durable_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 2 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 1
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_durable_stock_t1 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_durable_stock_t1 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_durable_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 1 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 0
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_durable_stock_t0 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_durable_stock_t0 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_durable_provided = cg_take }
+		}
+
+		set_variable = { cg_durable_coverage = cg_durable_provided }
+		divide_variable = { cg_durable_coverage = ROOT.cg_durable_demand }
+		if = { limit = { check_variable = { cg_durable_coverage < 0 } } set_variable = { cg_durable_coverage = 0 } }
+		if = { limit = { check_variable = { cg_durable_coverage > 2 } } set_variable = { cg_durable_coverage = 2 } }
+
+		if = {
+			limit = { check_variable = { ROOT.cg_durable_provided > 0 } }
+			set_variable = { cg_durable_supplied_tier = cg_weighted_sum }
+			divide_variable = { cg_durable_supplied_tier = ROOT.cg_durable_provided }
+			round_variable = cg_durable_supplied_tier
+			if = { limit = { check_variable = { cg_durable_supplied_tier < 0 } } set_variable = { cg_durable_supplied_tier = 0 } }
+			if = { limit = { check_variable = { cg_durable_supplied_tier > 5 } } set_variable = { cg_durable_supplied_tier = 5 } }
+		}
+		else = {
+			set_variable = { cg_durable_supplied_tier = 0 }
+			set_variable = { cg_durable_coverage = 0 }
+		}
+	}
+
+	# ============================================================
+	# VEHICLES
+	# ============================================================
+	set_variable = { cg_vehicles_provided = 0 }
+	set_variable = { cg_vehicles_supplied_tier = 0 }
+	set_variable = { cg_vehicles_coverage = 1 }
+
+	set_temp_variable = { cg_need = ROOT.cg_vehicles_demand }
+	if = { limit = { check_variable = { cg_need < 0 } } set_temp_variable = { cg_need = 0 } }
+
+	set_temp_variable = { cg_weighted_sum = 0 }
+
+	if = {
+		limit = { check_variable = { cg_need < 0.01 } }
+		set_variable = { cg_vehicles_supplied_tier = ROOT.cg_vehicles_expected_tier }
+	}
+	else = {
+
+		# Tier 5
+		set_temp_variable = { cg_stock = ROOT.cg_vehicles_stock_t5 }
+		if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+		set_temp_variable = { cg_take = cg_stock }
+		if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+		subtract_from_variable = { cg_vehicles_stock_t5 = cg_take }
+		subtract_from_temp_variable = { cg_need = cg_take }
+		add_to_variable = { cg_vehicles_provided = cg_take }
+		set_temp_variable = { cg_tmp = cg_take }
+		multiply_temp_variable = { cg_tmp = 5 }
+		add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+
+		# Tier 4
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_vehicles_stock_t4 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_vehicles_stock_t4 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_vehicles_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 4 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 3
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_vehicles_stock_t3 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_vehicles_stock_t3 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_vehicles_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 3 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 2
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_vehicles_stock_t2 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_vehicles_stock_t2 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_vehicles_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 2 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 1
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_vehicles_stock_t1 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_vehicles_stock_t1 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_vehicles_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 1 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 0
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_vehicles_stock_t0 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_vehicles_stock_t0 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_vehicles_provided = cg_take }
+		}
+
+		set_variable = { cg_vehicles_coverage = cg_vehicles_provided }
+		divide_variable = { cg_vehicles_coverage = ROOT.cg_vehicles_demand }
+		if = { limit = { check_variable = { cg_vehicles_coverage < 0 } } set_variable = { cg_vehicles_coverage = 0 } }
+		if = { limit = { check_variable = { cg_vehicles_coverage > 2 } } set_variable = { cg_vehicles_coverage = 2 } }
+
+		if = {
+			limit = { check_variable = { ROOT.cg_vehicles_provided > 0 } }
+			set_variable = { cg_vehicles_supplied_tier = cg_weighted_sum }
+			divide_variable = { cg_vehicles_supplied_tier = ROOT.cg_vehicles_provided }
+			round_variable = cg_vehicles_supplied_tier
+			if = { limit = { check_variable = { cg_vehicles_supplied_tier < 0 } } set_variable = { cg_vehicles_supplied_tier = 0 } }
+			if = { limit = { check_variable = { cg_vehicles_supplied_tier > 5 } } set_variable = { cg_vehicles_supplied_tier = 5 } }
+		}
+		else = {
+			set_variable = { cg_vehicles_supplied_tier = 0 }
+			set_variable = { cg_vehicles_coverage = 0 }
+		}
+	}
+
+	# ============================================================
+	# CONSUMER ELECTRONICS (tiers 5..1)
+	# ============================================================
+	set_variable = { cg_consumer_electronics_provided = 0 }
+	set_variable = { cg_consumer_electronics_supplied_tier = 1 }
+	set_variable = { cg_consumer_electronics_coverage = 1 }
+
+	set_temp_variable = { cg_need = ROOT.cg_consumer_electronics_demand }
+	if = { limit = { check_variable = { cg_need < 0 } } set_temp_variable = { cg_need = 0 } }
+
+	set_temp_variable = { cg_weighted_sum = 0 }
+
+	if = {
+		limit = { check_variable = { cg_need < 0.01 } }
+		set_variable = { cg_consumer_electronics_supplied_tier = ROOT.cg_consumer_electronics_expected_tier }
+	}
+	else = {
+
+		# Tier 5
+		set_temp_variable = { cg_stock = ROOT.cg_consumer_electronics_stock_t5 }
+		if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+		set_temp_variable = { cg_take = cg_stock }
+		if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+		subtract_from_variable = { cg_consumer_electronics_stock_t5 = cg_take }
+		subtract_from_temp_variable = { cg_need = cg_take }
+		add_to_variable = { cg_consumer_electronics_provided = cg_take }
+		set_temp_variable = { cg_tmp = cg_take }
+		multiply_temp_variable = { cg_tmp = 5 }
+		add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+
+		# Tier 4
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_consumer_electronics_stock_t4 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_consumer_electronics_stock_t4 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_consumer_electronics_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 4 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 3
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_consumer_electronics_stock_t3 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_consumer_electronics_stock_t3 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_consumer_electronics_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 3 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 2
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_consumer_electronics_stock_t2 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_consumer_electronics_stock_t2 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_consumer_electronics_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 2 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		# Tier 1
+		if = { limit = { check_variable = { cg_need > 0 } }
+			set_temp_variable = { cg_stock = ROOT.cg_consumer_electronics_stock_t1 }
+			if = { limit = { check_variable = { cg_stock < 0 } } set_temp_variable = { cg_stock = 0 } }
+			set_temp_variable = { cg_take = cg_stock }
+			if = { limit = { check_variable = { cg_take > cg_need } } set_temp_variable = { cg_take = cg_need } }
+			subtract_from_variable = { cg_consumer_electronics_stock_t1 = cg_take }
+			subtract_from_temp_variable = { cg_need = cg_take }
+			add_to_variable = { cg_consumer_electronics_provided = cg_take }
+			set_temp_variable = { cg_tmp = cg_take }
+			multiply_temp_variable = { cg_tmp = 1 }
+			add_to_temp_variable = { cg_weighted_sum = cg_tmp }
+		}
+
+		set_variable = { cg_consumer_electronics_coverage = cg_consumer_electronics_provided }
+		divide_variable = { cg_consumer_electronics_coverage = ROOT.cg_consumer_electronics_demand }
+		if = { limit = { check_variable = { cg_consumer_electronics_coverage < 0 } } set_variable = { cg_consumer_electronics_coverage = 0 } }
+		if = { limit = { check_variable = { cg_consumer_electronics_coverage > 2 } } set_variable = { cg_consumer_electronics_coverage = 2 } }
+
+		if = {
+			limit = { check_variable = { ROOT.cg_consumer_electronics_provided > 0 } }
+			set_variable = { cg_consumer_electronics_supplied_tier = cg_weighted_sum }
+			divide_variable = { cg_consumer_electronics_supplied_tier = ROOT.cg_consumer_electronics_provided }
+			round_variable = cg_consumer_electronics_supplied_tier
+			if = { limit = { check_variable = { cg_consumer_electronics_supplied_tier < 1 } } set_variable = { cg_consumer_electronics_supplied_tier = 1 } }
+			if = { limit = { check_variable = { cg_consumer_electronics_supplied_tier > 5 } } set_variable = { cg_consumer_electronics_supplied_tier = 5 } }
+		}
+		else = {
+			set_variable = { cg_consumer_electronics_supplied_tier = 1 }
+			set_variable = { cg_consumer_electronics_coverage = 0 }
+		}
+	}
+
+
+	# ============================================================
+	# Cleanup temps used across blocks
+	# ============================================================
+	clr_temp_variable = cg_need
+	clr_temp_variable = cg_stock
+	clr_temp_variable = cg_take
+	clr_temp_variable = cg_weighted_sum
+	clr_temp_variable = cg_tmp
+}
+cwic_cg_monthly_production_and_allotment = {
+
+    cwic_cg_sync_resource_pools_from_vanilla = yes
+
+
+	# ============================================================
+	# 0) Get "Actual_Civilian_Factories" (consumer goods + available civs)
+	# ============================================================
+	calculate_civilian_factory_production_total_factories = yes
+	if = { limit = { check_variable = { ROOT.Actual_Civilian_Factories < 0 } } set_variable = { Actual_Civilian_Factories = 0 } }
+
+	# ============================================================
+	# 1) Clamp HDI (0..1)
+	# ============================================================
+	set_temp_variable = { cg_hdi = ROOT.National_HDI }
+	if = { limit = { check_variable = { cg_hdi < 0 } } set_temp_variable = { cg_hdi = 0 } }
+	if = { limit = { check_variable = { cg_hdi > 1 } } set_temp_variable = { cg_hdi = 1 } }
+
+
+	# ============================================================
+	# 2) Resolve producible tier (best tier available)
+	# ============================================================
+
+	# BASIC
+	set_variable = { cg_basic_producible_tier = 0 }
+	if = { limit = { cwic_can_produce_cg_basic_tier_5 = yes } set_variable = { cg_basic_producible_tier = 5 } }
+	else_if = { limit = { cwic_can_produce_cg_basic_tier_4 = yes } set_variable = { cg_basic_producible_tier = 4 } }
+	else_if = { limit = { cwic_can_produce_cg_basic_tier_3 = yes } set_variable = { cg_basic_producible_tier = 3 } }
+	else_if = { limit = { cwic_can_produce_cg_basic_tier_2 = yes } set_variable = { cg_basic_producible_tier = 2 } }
+	else_if = { limit = { cwic_can_produce_cg_basic_tier_1 = yes } set_variable = { cg_basic_producible_tier = 1 } }
+
+	# DURABLE
+	set_variable = { cg_durable_producible_tier = 0 }
+	if = { limit = { cwic_can_produce_cg_durable_tier_5 = yes } set_variable = { cg_durable_producible_tier = 5 } }
+	else_if = { limit = { cwic_can_produce_cg_durable_tier_4 = yes } set_variable = { cg_durable_producible_tier = 4 } }
+	else_if = { limit = { cwic_can_produce_cg_durable_tier_3 = yes } set_variable = { cg_durable_producible_tier = 3 } }
+	else_if = { limit = { cwic_can_produce_cg_durable_tier_2 = yes } set_variable = { cg_durable_producible_tier = 2 } }
+	else_if = { limit = { cwic_can_produce_cg_durable_tier_1 = yes } set_variable = { cg_durable_producible_tier = 1 } }
+
+	# VEHICLES
+	set_variable = { cg_vehicles_producible_tier = 0 }
+	if = { limit = { cwic_can_produce_cg_vehicles_tier_5 = yes } set_variable = { cg_vehicles_producible_tier = 5 } }
+	else_if = { limit = { cwic_can_produce_cg_vehicles_tier_4 = yes } set_variable = { cg_vehicles_producible_tier = 4 } }
+	else_if = { limit = { cwic_can_produce_cg_vehicles_tier_3 = yes } set_variable = { cg_vehicles_producible_tier = 3 } }
+	else_if = { limit = { cwic_can_produce_cg_vehicles_tier_2 = yes } set_variable = { cg_vehicles_producible_tier = 2 } }
+	else_if = { limit = { cwic_can_produce_cg_vehicles_tier_1 = yes } set_variable = { cg_vehicles_producible_tier = 1 } }
+
+	# CONSUMER ELECTRONICS (no tier 0)
+	set_variable = { cg_consumer_electronics_producible_tier = 1 }
+	if = { limit = { cwic_can_produce_cg_consumer_electronics_tier_5 = yes } set_variable = { cg_consumer_electronics_producible_tier = 5 } }
+	else_if = { limit = { cwic_can_produce_cg_consumer_electronics_tier_4 = yes } set_variable = { cg_consumer_electronics_producible_tier = 4 } }
+	else_if = { limit = { cwic_can_produce_cg_consumer_electronics_tier_3 = yes } set_variable = { cg_consumer_electronics_producible_tier = 3 } }
+	else_if = { limit = { cwic_can_produce_cg_consumer_electronics_tier_2 = yes } set_variable = { cg_consumer_electronics_producible_tier = 2 } }
+
+
+	# ============================================================
+	# 2B) Hard gates (disable category until tech prereqs)
+	# ============================================================
+	set_temp_variable = { allow_vehicles = 0 }
+	if = { limit = { cwic_can_produce_cg_vehicles_tier_1 = yes } set_temp_variable = { allow_vehicles = 1 } }
+
+	set_temp_variable = { allow_elec = 0 }
+	if = { limit = { cwic_can_produce_cg_consumer_electronics_tier_1 = yes } set_temp_variable = { allow_elec = 1 } }
+
+
+	# ============================================================
+	# 2C) Office Park gating (uses ROOT.total_office_parks)
+	# - Electronics: >= 2 parks, full at 10
+	# - Vehicles:    >= 1 park, full at 6
+	# ============================================================
+	set_temp_variable = { office_parks = ROOT.total_office_parks }
+	if = { limit = { check_variable = { office_parks < 0 } } set_temp_variable = { office_parks = 0 } }
+
+	# Electronics office gate threshold (>= 2)
+	set_temp_variable = { elec_office_gate = 0 }
+	if = {
+		limit = {
+			OR = {
+				check_variable = { office_parks = 2 }
+				check_variable = { office_parks > 2 }
+			}
+		}
+		set_temp_variable = { elec_office_gate = office_parks }
+		subtract_from_temp_variable = { elec_office_gate = 2 }      # 0 at 2
+		divide_temp_variable = { elec_office_gate = 8 }             # 1.0 at 10
+		if = { limit = { check_variable = { elec_office_gate < 0 } } set_temp_variable = { elec_office_gate = 0 } }
+		if = { limit = { check_variable = { elec_office_gate > 1 } } set_temp_variable = { elec_office_gate = 1 } }
+	}
+
+	# Vehicles office gate threshold (>= 1)
+	set_temp_variable = { veh_office_gate = 0 }
+	if = {
+		limit = {
+			OR = {
+				check_variable = { office_parks = 1 }
+				check_variable = { office_parks > 1 }
+			}
+		}
+		set_temp_variable = { veh_office_gate = office_parks }
+		subtract_from_temp_variable = { veh_office_gate = 1 }       # 0 at 1
+		divide_temp_variable = { veh_office_gate = 5 }              # 1.0 at 6
+		if = { limit = { check_variable = { veh_office_gate < 0 } } set_temp_variable = { veh_office_gate = 0 } }
+		if = { limit = { check_variable = { veh_office_gate > 1 } } set_temp_variable = { veh_office_gate = 1 } }
+	}
+
+	# Apply office gates to allow flags (if gate is effectively 0, block category)
+	if = { limit = { check_variable = { elec_office_gate < 0.01 } } set_temp_variable = { allow_elec = 0 } }
+	if = { limit = { check_variable = { veh_office_gate < 0.01 } } set_temp_variable = { allow_vehicles = 0 } }
+
+
+	# ============================================================
+	# 2D) Rare Earth gate for Consumer Electronics (resource@tungsten is INTEGER)
+	# - hard minimum: >= 1 (implemented as = OR >)
+	# - scaling: 16 reaches full gate (1.0)
+	# ============================================================
+	set_temp_variable = { elec_rare_gate = 0 }
+	if = {
+		limit = {
+			OR = {
+				check_variable = { resource@tungsten = 1 }
+				check_variable = { resource@tungsten > 1 }
+			}
+		}
+		set_temp_variable = { elec_rare_gate = resource@tungsten }
+		subtract_from_temp_variable = { elec_rare_gate = 1 }        # 0 at 1
+		divide_temp_variable = { elec_rare_gate = 15 }              # 1.0 at 16
+		if = { limit = { check_variable = { elec_rare_gate < 0 } } set_temp_variable = { elec_rare_gate = 0 } }
+		if = { limit = { check_variable = { elec_rare_gate > 1 } } set_temp_variable = { elec_rare_gate = 1 } }
+	}
+	if = { limit = { check_variable = { elec_rare_gate < 0.01 } } set_temp_variable = { allow_elec = 0 } }
+
+
+	# ============================================================
+	# 3) Compute stock totals (on hand) per category
+	# ============================================================
+	set_temp_variable = { stock_basic = ROOT.cg_basic_stock_t0 }
+	add_to_temp_variable = { stock_basic = ROOT.cg_basic_stock_t1 }
+	add_to_temp_variable = { stock_basic = ROOT.cg_basic_stock_t2 }
+	add_to_temp_variable = { stock_basic = ROOT.cg_basic_stock_t3 }
+	add_to_temp_variable = { stock_basic = ROOT.cg_basic_stock_t4 }
+	add_to_temp_variable = { stock_basic = ROOT.cg_basic_stock_t5 }
+	if = { limit = { check_variable = { stock_basic < 0 } } set_temp_variable = { stock_basic = 0 } }
+
+	set_temp_variable = { stock_durable = ROOT.cg_durable_stock_t0 }
+	add_to_temp_variable = { stock_durable = ROOT.cg_durable_stock_t1 }
+	add_to_temp_variable = { stock_durable = ROOT.cg_durable_stock_t2 }
+	add_to_temp_variable = { stock_durable = ROOT.cg_durable_stock_t3 }
+	add_to_temp_variable = { stock_durable = ROOT.cg_durable_stock_t4 }
+	add_to_temp_variable = { stock_durable = ROOT.cg_durable_stock_t5 }
+	if = { limit = { check_variable = { stock_durable < 0 } } set_temp_variable = { stock_durable = 0 } }
+
+	set_temp_variable = { stock_vehicles = ROOT.cg_vehicles_stock_t0 }
+	add_to_temp_variable = { stock_vehicles = ROOT.cg_vehicles_stock_t1 }
+	add_to_temp_variable = { stock_vehicles = ROOT.cg_vehicles_stock_t2 }
+	add_to_temp_variable = { stock_vehicles = ROOT.cg_vehicles_stock_t3 }
+	add_to_temp_variable = { stock_vehicles = ROOT.cg_vehicles_stock_t4 }
+	add_to_temp_variable = { stock_vehicles = ROOT.cg_vehicles_stock_t5 }
+	if = { limit = { check_variable = { stock_vehicles < 0 } } set_temp_variable = { stock_vehicles = 0 } }
+
+	set_temp_variable = { stock_elec = ROOT.cg_consumer_electronics_stock_t1 }
+	add_to_temp_variable = { stock_elec = ROOT.cg_consumer_electronics_stock_t2 }
+	add_to_temp_variable = { stock_elec = ROOT.cg_consumer_electronics_stock_t3 }
+	add_to_temp_variable = { stock_elec = ROOT.cg_consumer_electronics_stock_t4 }
+	add_to_temp_variable = { stock_elec = ROOT.cg_consumer_electronics_stock_t5 }
+	if = { limit = { check_variable = { stock_elec < 0 } } set_temp_variable = { stock_elec = 0 } }
+
+
+	# ============================================================
+	# 4) Shortage pressure per category (0..1)
+	# shortage = clamp((demand - stock) / demand, 0..1)
+	# ============================================================
+	set_temp_variable = { sh_basic = 0 }
+	if = {
+		limit = { check_variable = { ROOT.cg_basic_demand > 0.01 } }
+		set_temp_variable = { sh_basic = ROOT.cg_basic_demand }
+		subtract_from_temp_variable = { sh_basic = stock_basic }
+		divide_temp_variable = { sh_basic = ROOT.cg_basic_demand }
+		if = { limit = { check_variable = { sh_basic < 0 } } set_temp_variable = { sh_basic = 0 } }
+		if = { limit = { check_variable = { sh_basic > 1 } } set_temp_variable = { sh_basic = 1 } }
+	}
+
+	set_temp_variable = { sh_durable = 0 }
+	if = {
+		limit = { check_variable = { ROOT.cg_durable_demand > 0.01 } }
+		set_temp_variable = { sh_durable = ROOT.cg_durable_demand }
+		subtract_from_temp_variable = { sh_durable = stock_durable }
+		divide_temp_variable = { sh_durable = ROOT.cg_durable_demand }
+		if = { limit = { check_variable = { sh_durable < 0 } } set_temp_variable = { sh_durable = 0 } }
+		if = { limit = { check_variable = { sh_durable > 1 } } set_temp_variable = { sh_durable = 1 } }
+	}
+
+	set_temp_variable = { sh_vehicles = 0 }
+	if = {
+		limit = { check_variable = { ROOT.cg_vehicles_demand > 0.01 } }
+		set_temp_variable = { sh_vehicles = ROOT.cg_vehicles_demand }
+		subtract_from_temp_variable = { sh_vehicles = stock_vehicles }
+		divide_temp_variable = { sh_vehicles = ROOT.cg_vehicles_demand }
+		if = { limit = { check_variable = { sh_vehicles < 0 } } set_temp_variable = { sh_vehicles = 0 } }
+		if = { limit = { check_variable = { sh_vehicles > 1 } } set_temp_variable = { sh_vehicles = 1 } }
+	}
+
+	set_temp_variable = { sh_elec = 0 }
+	if = {
+		limit = { check_variable = { ROOT.cg_consumer_electronics_demand > 0.01 } }
+		set_temp_variable = { sh_elec = ROOT.cg_consumer_electronics_demand }
+		subtract_from_temp_variable = { sh_elec = stock_elec }
+		divide_temp_variable = { sh_elec = ROOT.cg_consumer_electronics_demand }
+		if = { limit = { check_variable = { sh_elec < 0 } } set_temp_variable = { sh_elec = 0 } }
+		if = { limit = { check_variable = { sh_elec > 1 } } set_temp_variable = { sh_elec = 1 } }
+	}
+
+
+	# ============================================================
+	# 5) Allotment weights (shortage + HDI preference)
+	# ============================================================
+	set_temp_variable = { hdi_low = 1 }
+	subtract_from_temp_variable = { hdi_low = cg_hdi }
+
+	set_temp_variable = { w_basic = 0.50 }
+	add_to_temp_variable = { w_basic = sh_basic }
+	add_to_temp_variable = { w_basic = hdi_low }
+
+	set_temp_variable = { w_durable = 0.20 }
+	add_to_temp_variable = { w_durable = sh_durable }
+	set_temp_variable = { cg_tmp = cg_hdi }
+	multiply_temp_variable = { cg_tmp = 0.25 }
+	add_to_temp_variable = { w_durable = cg_tmp }
+
+	set_temp_variable = { w_vehicles = 0.20 }
+	add_to_temp_variable = { w_vehicles = sh_vehicles }
+	set_temp_variable = { cg_tmp = cg_hdi }
+	multiply_temp_variable = { cg_tmp = 0.35 }
+	add_to_temp_variable = { w_vehicles = cg_tmp }
+
+	set_temp_variable = { w_elec = 0.10 }
+	add_to_temp_variable = { w_elec = sh_elec }
+	set_temp_variable = { cg_tmp = cg_hdi }
+	multiply_temp_variable = { cg_tmp = 0.80 }
+	add_to_temp_variable = { w_elec = cg_tmp }
+
+
+	# ============================================================
+	# 5B) Apply hard gates + soft office/rare scaling
+	# ============================================================
+	# Vehicles
+	if = { limit = { check_variable = { allow_vehicles = 0 } } set_temp_variable = { w_vehicles = 0 } }
+	else = { multiply_temp_variable = { w_vehicles = veh_office_gate } }
+
+	# Electronics
+	if = { limit = { check_variable = { allow_elec = 0 } } set_temp_variable = { w_elec = 0 } }
+	else = {
+		multiply_temp_variable = { w_elec = elec_office_gate }
+		multiply_temp_variable = { w_elec = elec_rare_gate }
+	}
+
+
+	# Normalize weights
+	set_temp_variable = { w_sum = w_basic }
+	add_to_temp_variable = { w_sum = w_durable }
+	add_to_temp_variable = { w_sum = w_vehicles }
+	add_to_temp_variable = { w_sum = w_elec }
+	if = { limit = { check_variable = { w_sum < 0.01 } } set_temp_variable = { w_sum = 1 } }
+
+	divide_temp_variable = { w_basic = w_sum }
+	divide_temp_variable = { w_durable = w_sum }
+	divide_temp_variable = { w_vehicles = w_sum }
+	divide_temp_variable = { w_elec = w_sum }
+
+
+	# ============================================================
+	# 6) Convert factories -> production points
+	# Tuning knob: points_per_factory = 10
+	# ============================================================
+    cwic_cg_allocate_monthly_production_points = yes
+
+
+
+	# ============================================================
+	# 7) Points -> units (tier affects complexity)
+	# ============================================================
+
+	# BASIC
+	set_temp_variable = { cost_basic = ROOT.cg_basic_producible_tier }
+	multiply_temp_variable = { cost_basic = 0.10 }
+	add_to_temp_variable = { cost_basic = 1.00 }
+	set_temp_variable = { units_basic = pts_basic }
+	divide_temp_variable = { units_basic = cost_basic }
+
+    set_variable = { units_basic_test = units_basic }
+
+	# DURABLE
+	set_temp_variable = { cost_durable = ROOT.cg_durable_producible_tier }
+	multiply_temp_variable = { cost_durable = 0.20 }
+	add_to_temp_variable = { cost_durable = 2.00 }
+	set_temp_variable = { units_durable = pts_durable }
+	divide_temp_variable = { units_durable = cost_durable }
+
+	# VEHICLES
+	set_temp_variable = { cost_vehicles = ROOT.cg_vehicles_producible_tier }
+	multiply_temp_variable = { cost_vehicles = 0.30 }
+	add_to_temp_variable = { cost_vehicles = 4.00 }
+	set_temp_variable = { units_vehicles = pts_vehicles }
+	divide_temp_variable = { units_vehicles = cost_vehicles }
+
+	# ELECTRONICS
+	set_temp_variable = { cost_elec = ROOT.cg_consumer_electronics_producible_tier }
+	multiply_temp_variable = { cost_elec = 0.35 }
+	add_to_temp_variable = { cost_elec = 3.00 }
+	set_temp_variable = { units_elec = pts_elec }
+	divide_temp_variable = { units_elec = cost_elec }
+
+	round_temp_variable = units_basic
+	round_temp_variable = units_durable
+	round_temp_variable = units_vehicles
+	round_temp_variable = units_elec
+
+	if = { limit = { check_variable = { units_basic < 0 } } set_temp_variable = { units_basic = 0 } }
+	if = { limit = { check_variable = { units_durable < 0 } } set_temp_variable = { units_durable = 0 } }
+	if = { limit = { check_variable = { units_vehicles < 0 } } set_temp_variable = { units_vehicles = 0 } }
+	if = { limit = { check_variable = { units_elec < 0 } } set_temp_variable = { units_elec = 0 } }
+
+    set_variable = { units_basic_test2 = units_basic }
+    set_variable = { units_durable_test2 = units_durable }
+    set_variable = { units_vehicles_test2 = units_vehicles }
+    set_variable = { units_elec_test2 = units_elec }
+
+
+    # ============================================================
+    # 8) Resource caps + resource consumption (USING WRITABLE POOLS)
+    # ============================================================
+
+    # ----------------------------
+    # BASIC resource costs per unit:
+    # steel 0.03 + 0.01*tier
+    # coal  0.08 + 0.01*tier
+    # ----------------------------
+    set_temp_variable = { steel_u = ROOT.cg_basic_producible_tier }
+    multiply_temp_variable = { steel_u = 0.01 }
+    add_to_temp_variable = { steel_u = 0.03 }
+
+
+    set_temp_variable = { coal_u = ROOT.cg_basic_producible_tier }
+    multiply_temp_variable = { coal_u = 0.01 }
+    add_to_temp_variable = { coal_u = 0.04 }
+
+    # Cap by STEEL pool
+    set_temp_variable = { cap_units = ROOT.cwic_res_steel_pool }
+    divide_temp_variable = { cap_units = steel_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_basic > cap_units } } set_temp_variable = { units_basic = cap_units } }
+
+    set_variable = { units_basic_test3 = units_basic }
+
+    # Cap by COAL pool
+    set_temp_variable = { cap_units = ROOT.cwic_res_coal_pool }
+    divide_temp_variable = { cap_units = coal_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_basic > cap_units } } set_temp_variable = { units_basic = cap_units } }
+
+    round_temp_variable = units_basic
+    if = { limit = { check_variable = { units_basic < 0 } } set_temp_variable = { units_basic = 0 } }
+
+    set_variable = { units_basic_test5 = units_basic }
+
+    # Spend STEEL
+    set_temp_variable = { cg_tmp = units_basic }
+    multiply_temp_variable = { cg_tmp = steel_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_steel_pool = cg_tmp }
+
+    set_variable = { units_basic_test6 = units_basic }
+
+    # Spend COAL
+    set_temp_variable = { cg_tmp = units_basic }
+    multiply_temp_variable = { cg_tmp = coal_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_coal_pool = cg_tmp }
+
+    set_variable = { cg_tmp_test = cg_tmp }
+
+    set_variable = { units_basic_test8 = units_basic }
+    set_variable = { cwic_res_coal_pool_test = cwic_res_coal_pool}
+
+
+    # ----------------------------
+    # DURABLE resource costs per unit:
+    # steel 0.10 + 0.015*tier
+    # aluminium 0.06 + 0.01*tier
+    # coal 0.10 + 0.01*tier
+    # ----------------------------
+    set_temp_variable = { steel_u = ROOT.cg_durable_producible_tier }
+    multiply_temp_variable = { steel_u = 0.015 }
+    add_to_temp_variable = { steel_u = 0.10 }
+
+    set_temp_variable = { alum_u = ROOT.cg_durable_producible_tier }
+    multiply_temp_variable = { alum_u = 0.01 }
+    add_to_temp_variable = { alum_u = 0.06 }
+
+    set_temp_variable = { coal_u = ROOT.cg_durable_producible_tier }
+    multiply_temp_variable = { coal_u = 0.01 }
+    add_to_temp_variable = { coal_u = 0.10 }
+
+    # Cap by STEEL
+    set_temp_variable = { cap_units = ROOT.cwic_res_steel_pool }
+    divide_temp_variable = { cap_units = steel_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_durable > cap_units } } set_temp_variable = { units_durable = cap_units } }
+
+    set_variable = { units_durable_test3 = units_durable }
+
+    # Cap by ALUMINIUM
+    set_temp_variable = { cap_units = ROOT.cwic_res_aluminium_pool }
+    divide_temp_variable = { cap_units = alum_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_durable > cap_units } } set_temp_variable = { units_durable = cap_units } }
+
+    set_variable = { units_durable_test4 = units_durable }
+
+    # Cap by COAL
+    set_temp_variable = { cap_units = ROOT.cwic_res_coal_pool }
+    divide_temp_variable = { cap_units = coal_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_durable > cap_units } } set_temp_variable = { units_durable = cap_units } }
+
+    round_temp_variable = units_durable
+    if = { limit = { check_variable = { units_durable < 0 } } set_temp_variable = { units_durable = 0 } }
+
+    set_variable = { units_durable_test5 = units_durable }
+
+    # Spend STEEL
+    set_temp_variable = { cg_tmp = units_durable }
+    multiply_temp_variable = { cg_tmp = steel_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_steel_pool = cg_tmp }
+
+    # Spend ALUMINIUM
+    set_temp_variable = { cg_tmp = units_durable }
+    multiply_temp_variable = { cg_tmp = alum_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_aluminium_pool = cg_tmp }
+
+    # Spend COAL
+    set_temp_variable = { cg_tmp = units_durable }
+    multiply_temp_variable = { cg_tmp = coal_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_coal_pool = cg_tmp }
+
+
+    # ----------------------------
+    # VEHICLES resource costs per unit:
+    # steel 0.22 + 0.02*tier
+    # aluminium 0.12 + 0.015*tier
+    # oil 0.10 + 0.01*tier
+    # coal 0.12 + 0.01*tier
+    # ----------------------------
+    set_temp_variable = { steel_u = ROOT.cg_vehicles_producible_tier }
+    multiply_temp_variable = { steel_u = 0.02 }
+    add_to_temp_variable = { steel_u = 0.22 }
+
+    set_temp_variable = { alum_u = ROOT.cg_vehicles_producible_tier }
+    multiply_temp_variable = { alum_u = 0.015 }
+    add_to_temp_variable = { alum_u = 0.12 }
+
+    set_temp_variable = { oil_u = ROOT.cg_vehicles_producible_tier }
+    multiply_temp_variable = { oil_u = 0.01 }
+    add_to_temp_variable = { oil_u = 0.10 }
+
+    set_temp_variable = { coal_u = ROOT.cg_vehicles_producible_tier }
+    multiply_temp_variable = { coal_u = 0.01 }
+    add_to_temp_variable = { coal_u = 0.12 }
+
+    # Cap by STEEL
+    set_temp_variable = { cap_units = ROOT.cwic_res_steel_pool }
+    divide_temp_variable = { cap_units = steel_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_vehicles > cap_units } } set_temp_variable = { units_vehicles = cap_units } }
+
+    set_variable = { units_vehicles_test3 = units_vehicles }
+
+    # Cap by ALUMINIUM
+    set_temp_variable = { cap_units = ROOT.cwic_res_aluminium_pool }
+    divide_temp_variable = { cap_units = alum_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_vehicles > cap_units } } set_temp_variable = { units_vehicles = cap_units } }
+
+    set_variable = { units_vehicles_test4 = units_vehicles }
+
+    # Cap by OIL
+    set_temp_variable = { cap_units = ROOT.cwic_res_oil_pool }
+    divide_temp_variable = { cap_units = oil_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_vehicles > cap_units } } set_temp_variable = { units_vehicles = cap_units } }
+
+    set_variable = { units_vehicles_test5 = units_vehicles }
+
+    # Cap by COAL
+    set_temp_variable = { cap_units = ROOT.cwic_res_coal_pool }
+    divide_temp_variable = { cap_units = coal_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_vehicles > cap_units } } set_temp_variable = { units_vehicles = cap_units } }
+
+    round_temp_variable = units_vehicles
+    if = { limit = { check_variable = { units_vehicles < 0 } } set_temp_variable = { units_vehicles = 0 } }
+
+    set_variable = { units_vehicles_test6 = units_vehicles }
+
+    # Spend STEEL
+    set_temp_variable = { cg_tmp = units_vehicles }
+    multiply_temp_variable = { cg_tmp = steel_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_steel_pool = cg_tmp }
+
+    # Spend ALUMINIUM
+    set_temp_variable = { cg_tmp = units_vehicles }
+    multiply_temp_variable = { cg_tmp = alum_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_aluminium_pool = cg_tmp }
+
+    # Spend OIL
+    set_temp_variable = { cg_tmp = units_vehicles }
+    multiply_temp_variable = { cg_tmp = oil_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_oil_pool = cg_tmp }
+
+    # Spend COAL
+    set_temp_variable = { cg_tmp = units_vehicles }
+    multiply_temp_variable = { cg_tmp = coal_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_coal_pool = cg_tmp }
+
+
+    # ----------------------------
+    # ELECTRONICS resource costs per unit:
+    # aluminium 0.08 + 0.015*tier
+    # tungsten 0.10 + 0.02*tier
+    # coal 0.14 + 0.02*tier
+    # oil 0.04 + 0.005*tier
+    # ----------------------------
+    set_temp_variable = { alum_u = ROOT.cg_consumer_electronics_producible_tier }
+    multiply_temp_variable = { alum_u = 0.015 }
+    add_to_temp_variable = { alum_u = 0.08 }
+
+    set_temp_variable = { tung_u = ROOT.cg_consumer_electronics_producible_tier }
+    multiply_temp_variable = { tung_u = 0.02 }
+    add_to_temp_variable = { tung_u = 0.10 }
+
+    set_temp_variable = { coal_u = ROOT.cg_consumer_electronics_producible_tier }
+    multiply_temp_variable = { coal_u = 0.02 }
+    add_to_temp_variable = { coal_u = 0.14 }
+
+    set_temp_variable = { oil_u = ROOT.cg_consumer_electronics_producible_tier }
+    multiply_temp_variable = { oil_u = 0.005 }
+    add_to_temp_variable = { oil_u = 0.04 }
+
+    # Cap by ALUMINIUM
+    set_temp_variable = { cap_units = ROOT.cwic_res_aluminium_pool }
+    divide_temp_variable = { cap_units = alum_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_elec > cap_units } } set_temp_variable = { units_elec = cap_units } }
+
+    # Cap by TUNGSTEN (rare earth)
+    set_temp_variable = { cap_units = ROOT.cwic_res_tungsten_pool }
+    divide_temp_variable = { cap_units = tung_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_elec > cap_units } } set_temp_variable = { units_elec = cap_units } }
+
+    # Cap by COAL
+    set_temp_variable = { cap_units = ROOT.cwic_res_coal_pool }
+    divide_temp_variable = { cap_units = coal_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_elec > cap_units } } set_temp_variable = { units_elec = cap_units } }
+
+    # Cap by OIL
+    set_temp_variable = { cap_units = ROOT.cwic_res_oil_pool }
+    divide_temp_variable = { cap_units = oil_u }
+    subtract_from_temp_variable = { cap_units = 0.49 }
+    round_temp_variable = cap_units
+    if = { limit = { check_variable = { cap_units < 0 } } set_temp_variable = { cap_units = 0 } }
+    if = { limit = { check_variable = { units_elec > cap_units } } set_temp_variable = { units_elec = cap_units } }
+
+    round_temp_variable = units_elec
+    if = { limit = { check_variable = { units_elec < 0 } } set_temp_variable = { units_elec = 0 } }
+
+    # Spend ALUMINIUM
+    set_temp_variable = { cg_tmp = units_elec }
+    multiply_temp_variable = { cg_tmp = alum_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_aluminium_pool = cg_tmp }
+
+    # Spend TUNGSTEN
+    set_temp_variable = { cg_tmp = units_elec }
+    multiply_temp_variable = { cg_tmp = tung_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_tungsten_pool = cg_tmp }
+
+    # Spend COAL
+    set_temp_variable = { cg_tmp = units_elec }
+    multiply_temp_variable = { cg_tmp = coal_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_coal_pool = cg_tmp }
+
+    # Spend OIL
+    set_temp_variable = { cg_tmp = units_elec }
+    multiply_temp_variable = { cg_tmp = oil_u }
+    round_temp_variable = cg_tmp
+    if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+    subtract_from_variable = { cwic_res_oil_pool = cg_tmp }
+
+
+	# ============================================================
+	# 9) Add production to stockpiles (best tier only)
+	# ============================================================
+	set_variable = { cg_basic_produced_this_month = units_basic }
+	set_variable = { cg_durable_produced_this_month = units_durable }
+	set_variable = { cg_vehicles_produced_this_month = units_vehicles }
+	set_variable = { cg_consumer_electronics_produced_this_month = units_elec }
+
+	# BASIC add to tier
+	if = { limit = { check_variable = { ROOT.cg_basic_producible_tier = 5 } } add_to_variable = { cg_basic_stock_t5 = units_basic } }
+	else_if = { limit = { check_variable = { ROOT.cg_basic_producible_tier = 4 } } add_to_variable = { cg_basic_stock_t4 = units_basic } }
+	else_if = { limit = { check_variable = { ROOT.cg_basic_producible_tier = 3 } } add_to_variable = { cg_basic_stock_t3 = units_basic } }
+	else_if = { limit = { check_variable = { ROOT.cg_basic_producible_tier = 2 } } add_to_variable = { cg_basic_stock_t2 = units_basic } }
+	else_if = { limit = { check_variable = { ROOT.cg_basic_producible_tier = 1 } } add_to_variable = { cg_basic_stock_t1 = units_basic } }
+	else = { add_to_variable = { cg_basic_stock_t0 = units_basic } }
+
+	# DURABLE add to tier
+	if = { limit = { check_variable = { ROOT.cg_durable_producible_tier = 5 } } add_to_variable = { cg_durable_stock_t5 = units_durable } }
+	else_if = { limit = { check_variable = { ROOT.cg_durable_producible_tier = 4 } } add_to_variable = { cg_durable_stock_t4 = units_durable } }
+	else_if = { limit = { check_variable = { ROOT.cg_durable_producible_tier = 3 } } add_to_variable = { cg_durable_stock_t3 = units_durable } }
+	else_if = { limit = { check_variable = { ROOT.cg_durable_producible_tier = 2 } } add_to_variable = { cg_durable_stock_t2 = units_durable } }
+	else_if = { limit = { check_variable = { ROOT.cg_durable_producible_tier = 1 } } add_to_variable = { cg_durable_stock_t1 = units_durable } }
+	else = { add_to_variable = { cg_durable_stock_t0 = units_durable } }
+
+	# VEHICLES add (only if allowed)
+	if = {
+		limit = { check_variable = { allow_vehicles = 1 } }
+		if = { limit = { check_variable = { ROOT.cg_vehicles_producible_tier = 5 } } add_to_variable = { cg_vehicles_stock_t5 = units_vehicles } }
+		else_if = { limit = { check_variable = { ROOT.cg_vehicles_producible_tier = 4 } } add_to_variable = { cg_vehicles_stock_t4 = units_vehicles } }
+		else_if = { limit = { check_variable = { ROOT.cg_vehicles_producible_tier = 3 } } add_to_variable = { cg_vehicles_stock_t3 = units_vehicles } }
+		else_if = { limit = { check_variable = { ROOT.cg_vehicles_producible_tier = 2 } } add_to_variable = { cg_vehicles_stock_t2 = units_vehicles } }
+		else_if = { limit = { check_variable = { ROOT.cg_vehicles_producible_tier = 1 } } add_to_variable = { cg_vehicles_stock_t1 = units_vehicles } }
+		else = { add_to_variable = { cg_vehicles_stock_t0 = units_vehicles } }
+	}
+
+	# ELECTRONICS add (only if allowed)
+	if = {
+		limit = { check_variable = { allow_elec = 1 } }
+		if = { limit = { check_variable = { ROOT.cg_consumer_electronics_producible_tier = 5 } } add_to_variable = { cg_consumer_electronics_stock_t5 = units_elec } }
+		else_if = { limit = { check_variable = { ROOT.cg_consumer_electronics_producible_tier = 4 } } add_to_variable = { cg_consumer_electronics_stock_t4 = units_elec } }
+		else_if = { limit = { check_variable = { ROOT.cg_consumer_electronics_producible_tier = 3 } } add_to_variable = { cg_consumer_electronics_stock_t3 = units_elec } }
+		else_if = { limit = { check_variable = { ROOT.cg_consumer_electronics_producible_tier = 2 } } add_to_variable = { cg_consumer_electronics_stock_t2 = units_elec } }
+		else = { add_to_variable = { cg_consumer_electronics_stock_t1 = units_elec } }
+	}
+
+
+	# ============================================================
+	# Cleanup temps
+	# ============================================================
+	clr_temp_variable = cg_hdi
+
+	clr_temp_variable = allow_vehicles
+	clr_temp_variable = allow_elec
+
+	clr_temp_variable = office_parks
+	clr_temp_variable = elec_office_gate
+	clr_temp_variable = veh_office_gate
+	clr_temp_variable = elec_rare_gate
+
+	clr_temp_variable = stock_basic
+	clr_temp_variable = stock_durable
+	clr_temp_variable = stock_vehicles
+	clr_temp_variable = stock_elec
+
+	clr_temp_variable = sh_basic
+	clr_temp_variable = sh_durable
+	clr_temp_variable = sh_vehicles
+	clr_temp_variable = sh_elec
+
+	clr_temp_variable = hdi_low
+	clr_temp_variable = w_basic
+	clr_temp_variable = w_durable
+	clr_temp_variable = w_vehicles
+	clr_temp_variable = w_elec
+	clr_temp_variable = w_sum
+
+	clr_temp_variable = total_points
+	clr_temp_variable = pts_basic
+	clr_temp_variable = pts_durable
+	clr_temp_variable = pts_vehicles
+	clr_temp_variable = pts_elec
+
+	clr_temp_variable = cost_basic
+	clr_temp_variable = cost_durable
+	clr_temp_variable = cost_vehicles
+	clr_temp_variable = cost_elec
+
+	clr_temp_variable = units_basic
+	clr_temp_variable = units_durable
+	clr_temp_variable = units_vehicles
+	clr_temp_variable = units_elec
+
+	clr_temp_variable = steel_u
+	clr_temp_variable = alum_u
+	clr_temp_variable = tung_u
+	clr_temp_variable = oil_u
+	clr_temp_variable = coal_u
+	clr_temp_variable = cap_units
+	clr_temp_variable = cg_tmp
+}
+cwic_cg_monthly_consume_and_compute_coverage = {
+
+	# ============================================================
+	# 0) Determine expected tier by date (decade)
+	# Tier mapping:
+	# - Tier 0: pre-1950
+	# - Tier 1: 1950s
+	# - Tier 2: 1960s
+	# - Tier 3: 1970s
+	# - Tier 4: 1980s
+	# - Tier 5: 1990+
+	# Consumer Electronics has no Tier 0 (min expected tier is 1)
+	# ============================================================
+
+	# BASIC expected tier
+	set_temp_variable = { exp_basic = 0 }
+	if = { limit = { date < 1950.01.01 } set_temp_variable = { exp_basic = 0 } }
+	else_if = { limit = { date < 1960.01.01 } set_temp_variable = { exp_basic = 1 } }
+	else_if = { limit = { date < 1970.01.01 } set_temp_variable = { exp_basic = 2 } }
+	else_if = { limit = { date < 1980.01.01 } set_temp_variable = { exp_basic = 3 } }
+	else_if = { limit = { date < 1990.01.01 } set_temp_variable = { exp_basic = 4 } }
+	else = { set_temp_variable = { exp_basic = 5 } }
+
+	# DURABLE expected tier
+	set_temp_variable = { exp_durable = 0 }
+	if = { limit = { date < 1950.01.01 } set_temp_variable = { exp_durable = 0 } }
+	else_if = { limit = { date < 1960.01.01 } set_temp_variable = { exp_durable = 1 } }
+	else_if = { limit = { date < 1970.01.01 } set_temp_variable = { exp_durable = 2 } }
+	else_if = { limit = { date < 1980.01.01 } set_temp_variable = { exp_durable = 3 } }
+	else_if = { limit = { date < 1990.01.01 } set_temp_variable = { exp_durable = 4 } }
+	else = { set_temp_variable = { exp_durable = 5 } }
+
+	# VEHICLES expected tier
+	set_temp_variable = { exp_vehicles = 0 }
+	if = { limit = { date < 1950.01.01 } set_temp_variable = { exp_vehicles = 0 } }
+	else_if = { limit = { date < 1960.01.01 } set_temp_variable = { exp_vehicles = 1 } }
+	else_if = { limit = { date < 1970.01.01 } set_temp_variable = { exp_vehicles = 2 } }
+	else_if = { limit = { date < 1980.01.01 } set_temp_variable = { exp_vehicles = 3 } }
+	else_if = { limit = { date < 1990.01.01 } set_temp_variable = { exp_vehicles = 4 } }
+	else = { set_temp_variable = { exp_vehicles = 5 } }
+
+	# ELECTRONICS expected tier (min 1)
+	set_temp_variable = { exp_elec = 1 }
+	if = { limit = { date < 1960.01.01 } set_temp_variable = { exp_elec = 1 } }
+	else_if = { limit = { date < 1970.01.01 } set_temp_variable = { exp_elec = 2 } }
+	else_if = { limit = { date < 1980.01.01 } set_temp_variable = { exp_elec = 3 } }
+	else_if = { limit = { date < 1990.01.01 } set_temp_variable = { exp_elec = 4 } }
+	else = { set_temp_variable = { exp_elec = 5 } }
+
+
+	# ============================================================
+	# Helper notes:
+	# - remaining = demand
+	# - take = min(stock_tier, remaining)
+	# - gap_weight += take * max(exp_tier - tier, 0)
+	# - coverage = total_consumed / demand (if demand > 0)
+	# - antiquity_gap_avg = gap_weight / total_consumed (if total_consumed > 0)
+	# - antiquity_scalar = clamp(1 - 0.20 * antiquity_gap_avg, 0..1)
+	#   (0.20 means each tier behind costs 20% quality on average)
+	# ============================================================
+
+
+	# ============================================================
+	# 1) BASIC consumption (tiers 5..0)
+	# Outputs:
+	# - ROOT.cg_basic_coverage (0..1)
+	# - ROOT.cg_basic_antiquity_scalar (0..1)
+	# - ROOT.cg_basic_antiquity_gap_avg (0..5)
+	# ============================================================
+	set_temp_variable = { remaining = ROOT.cg_basic_demand }
+	if = { limit = { check_variable = { remaining < 0 } } set_temp_variable = { remaining = 0 } }
+
+	set_temp_variable = { consumed = 0 }
+	set_temp_variable = { gap_weight = 0 }
+
+	# Tier 5
+	set_temp_variable = { take = ROOT.cg_basic_stock_t5 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_basic_stock_t5 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+
+	# gap for tier 5
+	if = {
+		limit = { check_variable = { exp_basic > 5 } }
+		set_temp_variable = { cg_tmp = exp_basic }
+		subtract_from_temp_variable = { cg_tmp = 5 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 4
+	set_temp_variable = { take = ROOT.cg_basic_stock_t4 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_basic_stock_t4 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+
+	if = {
+		limit = { check_variable = { exp_basic > 4 } }
+		set_temp_variable = { cg_tmp = exp_basic }
+		subtract_from_temp_variable = { cg_tmp = 4 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 3
+	set_temp_variable = { take = ROOT.cg_basic_stock_t3 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_basic_stock_t3 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+
+	if = {
+		limit = { check_variable = { exp_basic > 3 } }
+		set_temp_variable = { cg_tmp = exp_basic }
+		subtract_from_temp_variable = { cg_tmp = 3 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 2
+	set_temp_variable = { take = ROOT.cg_basic_stock_t2 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_basic_stock_t2 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+
+	if = {
+		limit = { check_variable = { exp_basic > 2 } }
+		set_temp_variable = { cg_tmp = exp_basic }
+		subtract_from_temp_variable = { cg_tmp = 2 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 1
+	set_temp_variable = { take = ROOT.cg_basic_stock_t1 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_basic_stock_t1 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+
+	if = {
+		limit = { check_variable = { exp_basic > 1 } }
+		set_temp_variable = { cg_tmp = exp_basic }
+		subtract_from_temp_variable = { cg_tmp = 1 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 0
+	set_temp_variable = { take = ROOT.cg_basic_stock_t0 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_basic_stock_t0 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+
+	if = {
+		limit = { check_variable = { exp_basic > 0 } }
+		set_temp_variable = { cg_tmp = exp_basic }
+		# subtract 0 does nothing, but keeps format consistent
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# coverage + antiquity (basic)
+	set_variable = { cg_basic_coverage = 1 }
+	set_variable = { cg_basic_antiquity_gap_avg = 0 }
+	set_variable = { cg_basic_antiquity_scalar = 1 }
+
+	if = {
+		limit = { check_variable = { ROOT.cg_basic_demand > 0 } }
+		set_temp_variable = { cg_tmp = consumed }
+		divide_temp_variable = { cg_tmp = ROOT.cg_basic_demand }
+		if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+		if = { limit = { check_variable = { cg_tmp > 1 } } set_temp_variable = { cg_tmp = 1 } }
+		set_variable = { cg_basic_coverage = cg_tmp }
+	}
+
+	if = {
+		limit = { check_variable = { consumed > 0 } }
+		set_temp_variable = { cg_tmp = gap_weight }
+		divide_temp_variable = { cg_tmp = consumed }
+		set_variable = { cg_basic_antiquity_gap_avg = cg_tmp }
+
+		# antiquity_scalar = 1 - 0.20 * gap_avg
+		multiply_temp_variable = { cg_tmp = 0.20 }
+		set_temp_variable = { cg_tmp2 = 1 }
+		subtract_from_temp_variable = { cg_tmp2 = cg_tmp }
+		if = { limit = { check_variable = { cg_tmp2 < 0 } } set_temp_variable = { cg_tmp2 = 0 } }
+		if = { limit = { check_variable = { cg_tmp2 > 1 } } set_temp_variable = { cg_tmp2 = 1 } }
+		set_variable = { cg_basic_antiquity_scalar = cg_tmp2 }
+	}
+
+
+	# ============================================================
+	# 2) DURABLE consumption (tiers 5..0)
+	# Outputs:
+	# - ROOT.cg_durable_coverage
+	# - ROOT.cg_durable_antiquity_scalar
+	# - ROOT.cg_durable_antiquity_gap_avg
+	# ============================================================
+	set_temp_variable = { remaining = ROOT.cg_durable_demand }
+	if = { limit = { check_variable = { remaining < 0 } } set_temp_variable = { remaining = 0 } }
+
+	set_temp_variable = { consumed = 0 }
+	set_temp_variable = { gap_weight = 0 }
+
+	# Tier 5
+	set_temp_variable = { take = ROOT.cg_durable_stock_t5 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_durable_stock_t5 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_durable > 5 } }
+		set_temp_variable = { cg_tmp = exp_durable }
+		subtract_from_temp_variable = { cg_tmp = 5 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 4
+	set_temp_variable = { take = ROOT.cg_durable_stock_t4 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_durable_stock_t4 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_durable > 4 } }
+		set_temp_variable = { cg_tmp = exp_durable }
+		subtract_from_temp_variable = { cg_tmp = 4 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 3
+	set_temp_variable = { take = ROOT.cg_durable_stock_t3 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_durable_stock_t3 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_durable > 3 } }
+		set_temp_variable = { cg_tmp = exp_durable }
+		subtract_from_temp_variable = { cg_tmp = 3 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 2
+	set_temp_variable = { take = ROOT.cg_durable_stock_t2 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_durable_stock_t2 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_durable > 2 } }
+		set_temp_variable = { cg_tmp = exp_durable }
+		subtract_from_temp_variable = { cg_tmp = 2 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 1
+	set_temp_variable = { take = ROOT.cg_durable_stock_t1 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_durable_stock_t1 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_durable > 1 } }
+		set_temp_variable = { cg_tmp = exp_durable }
+		subtract_from_temp_variable = { cg_tmp = 1 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 0
+	set_temp_variable = { take = ROOT.cg_durable_stock_t0 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_durable_stock_t0 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_durable > 0 } }
+		set_temp_variable = { cg_tmp = exp_durable }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	set_variable = { cg_durable_coverage = 1 }
+	set_variable = { cg_durable_antiquity_gap_avg = 0 }
+	set_variable = { cg_durable_antiquity_scalar = 1 }
+
+	if = {
+		limit = { check_variable = { ROOT.cg_durable_demand > 0 } }
+		set_temp_variable = { cg_tmp = consumed }
+		divide_temp_variable = { cg_tmp = ROOT.cg_durable_demand }
+		if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+		if = { limit = { check_variable = { cg_tmp > 1 } } set_temp_variable = { cg_tmp = 1 } }
+		set_variable = { cg_durable_coverage = cg_tmp }
+	}
+
+	if = {
+		limit = { check_variable = { consumed > 0 } }
+		set_temp_variable = { cg_tmp = gap_weight }
+		divide_temp_variable = { cg_tmp = consumed }
+		set_variable = { cg_durable_antiquity_gap_avg = cg_tmp }
+
+		multiply_temp_variable = { cg_tmp = 0.20 }
+		set_temp_variable = { cg_tmp2 = 1 }
+		subtract_from_temp_variable = { cg_tmp2 = cg_tmp }
+		if = { limit = { check_variable = { cg_tmp2 < 0 } } set_temp_variable = { cg_tmp2 = 0 } }
+		if = { limit = { check_variable = { cg_tmp2 > 1 } } set_temp_variable = { cg_tmp2 = 1 } }
+		set_variable = { cg_durable_antiquity_scalar = cg_tmp2 }
+	}
+
+
+	# ============================================================
+	# 3) VEHICLES consumption (tiers 5..0)
+	# Outputs:
+	# - ROOT.cg_vehicles_coverage
+	# - ROOT.cg_vehicles_antiquity_scalar
+	# - ROOT.cg_vehicles_antiquity_gap_avg
+	# ============================================================
+	set_temp_variable = { remaining = ROOT.cg_vehicles_demand }
+	if = { limit = { check_variable = { remaining < 0 } } set_temp_variable = { remaining = 0 } }
+
+	set_temp_variable = { consumed = 0 }
+	set_temp_variable = { gap_weight = 0 }
+
+	# Tier 5
+	set_temp_variable = { take = ROOT.cg_vehicles_stock_t5 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_vehicles_stock_t5 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_vehicles > 5 } }
+		set_temp_variable = { cg_tmp = exp_vehicles }
+		subtract_from_temp_variable = { cg_tmp = 5 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 4
+	set_temp_variable = { take = ROOT.cg_vehicles_stock_t4 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_vehicles_stock_t4 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_vehicles > 4 } }
+		set_temp_variable = { cg_tmp = exp_vehicles }
+		subtract_from_temp_variable = { cg_tmp = 4 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 3
+	set_temp_variable = { take = ROOT.cg_vehicles_stock_t3 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_vehicles_stock_t3 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_vehicles > 3 } }
+		set_temp_variable = { cg_tmp = exp_vehicles }
+		subtract_from_temp_variable = { cg_tmp = 3 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 2
+	set_temp_variable = { take = ROOT.cg_vehicles_stock_t2 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_vehicles_stock_t2 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_vehicles > 2 } }
+		set_temp_variable = { cg_tmp = exp_vehicles }
+		subtract_from_temp_variable = { cg_tmp = 2 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 1
+	set_temp_variable = { take = ROOT.cg_vehicles_stock_t1 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_vehicles_stock_t1 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_vehicles > 1 } }
+		set_temp_variable = { cg_tmp = exp_vehicles }
+		subtract_from_temp_variable = { cg_tmp = 1 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 0
+	set_temp_variable = { take = ROOT.cg_vehicles_stock_t0 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_vehicles_stock_t0 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_vehicles > 0 } }
+		set_temp_variable = { cg_tmp = exp_vehicles }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	set_variable = { cg_vehicles_coverage = 1 }
+	set_variable = { cg_vehicles_antiquity_gap_avg = 0 }
+	set_variable = { cg_vehicles_antiquity_scalar = 1 }
+
+	if = {
+		limit = { check_variable = { ROOT.cg_vehicles_demand > 0 } }
+		set_temp_variable = { cg_tmp = consumed }
+		divide_temp_variable = { cg_tmp = ROOT.cg_vehicles_demand }
+		if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+		if = { limit = { check_variable = { cg_tmp > 1 } } set_temp_variable = { cg_tmp = 1 } }
+		set_variable = { cg_vehicles_coverage = cg_tmp }
+	}
+
+	if = {
+		limit = { check_variable = { consumed > 0 } }
+		set_temp_variable = { cg_tmp = gap_weight }
+		divide_temp_variable = { cg_tmp = consumed }
+		set_variable = { cg_vehicles_antiquity_gap_avg = cg_tmp }
+
+		multiply_temp_variable = { cg_tmp = 0.20 }
+		set_temp_variable = { cg_tmp2 = 1 }
+		subtract_from_temp_variable = { cg_tmp2 = cg_tmp }
+		if = { limit = { check_variable = { cg_tmp2 < 0 } } set_temp_variable = { cg_tmp2 = 0 } }
+		if = { limit = { check_variable = { cg_tmp2 > 1 } } set_temp_variable = { cg_tmp2 = 1 } }
+		set_variable = { cg_vehicles_antiquity_scalar = cg_tmp2 }
+	}
+
+
+	# ============================================================
+	# 4) ELECTRONICS consumption (tiers 5..1, no tier 0)
+	# Outputs:
+	# - ROOT.cg_consumer_electronics_coverage
+	# - ROOT.cg_consumer_electronics_antiquity_scalar
+	# - ROOT.cg_consumer_electronics_antiquity_gap_avg
+	# ============================================================
+	set_temp_variable = { remaining = ROOT.cg_consumer_electronics_demand }
+	if = { limit = { check_variable = { remaining < 0 } } set_temp_variable = { remaining = 0 } }
+
+	set_temp_variable = { consumed = 0 }
+	set_temp_variable = { gap_weight = 0 }
+
+	# Tier 5
+	set_temp_variable = { take = ROOT.cg_consumer_electronics_stock_t5 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_consumer_electronics_stock_t5 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_elec > 5 } }
+		set_temp_variable = { cg_tmp = exp_elec }
+		subtract_from_temp_variable = { cg_tmp = 5 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 4
+	set_temp_variable = { take = ROOT.cg_consumer_electronics_stock_t4 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_consumer_electronics_stock_t4 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_elec > 4 } }
+		set_temp_variable = { cg_tmp = exp_elec }
+		subtract_from_temp_variable = { cg_tmp = 4 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 3
+	set_temp_variable = { take = ROOT.cg_consumer_electronics_stock_t3 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_consumer_electronics_stock_t3 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_elec > 3 } }
+		set_temp_variable = { cg_tmp = exp_elec }
+		subtract_from_temp_variable = { cg_tmp = 3 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 2
+	set_temp_variable = { take = ROOT.cg_consumer_electronics_stock_t2 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_consumer_electronics_stock_t2 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_elec > 2 } }
+		set_temp_variable = { cg_tmp = exp_elec }
+		subtract_from_temp_variable = { cg_tmp = 2 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	# Tier 1
+	set_temp_variable = { take = ROOT.cg_consumer_electronics_stock_t1 }
+	if = { limit = { check_variable = { take > remaining } } set_temp_variable = { take = remaining } }
+	if = { limit = { check_variable = { take > 0 } } subtract_from_variable = { cg_consumer_electronics_stock_t1 = take } }
+	subtract_from_temp_variable = { remaining = take }
+	add_to_temp_variable = { consumed = take }
+	if = {
+		limit = { check_variable = { exp_elec > 1 } }
+		set_temp_variable = { cg_tmp = exp_elec }
+		subtract_from_temp_variable = { cg_tmp = 1 }
+		multiply_temp_variable = { cg_tmp = take }
+		add_to_temp_variable = { gap_weight = cg_tmp }
+	}
+
+	set_variable = { cg_consumer_electronics_coverage = 1 }
+	set_variable = { cg_consumer_electronics_antiquity_gap_avg = 0 }
+	set_variable = { cg_consumer_electronics_antiquity_scalar = 1 }
+
+	if = {
+		limit = { check_variable = { ROOT.cg_consumer_electronics_demand > 0 } }
+		set_temp_variable = { cg_tmp = consumed }
+		divide_temp_variable = { cg_tmp = ROOT.cg_consumer_electronics_demand }
+		if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
+		if = { limit = { check_variable = { cg_tmp > 1 } } set_temp_variable = { cg_tmp = 1 } }
+		set_variable = { cg_consumer_electronics_coverage = cg_tmp }
+	}
+
+	if = {
+		limit = { check_variable = { consumed > 0 } }
+		set_temp_variable = { cg_tmp = gap_weight }
+		divide_temp_variable = { cg_tmp = consumed }
+		set_variable = { cg_consumer_electronics_antiquity_gap_avg = cg_tmp }
+
+		multiply_temp_variable = { cg_tmp = 0.20 }
+		set_temp_variable = { cg_tmp2 = 1 }
+		subtract_from_temp_variable = { cg_tmp2 = cg_tmp }
+		if = { limit = { check_variable = { cg_tmp2 < 0 } } set_temp_variable = { cg_tmp2 = 0 } }
+		if = { limit = { check_variable = { cg_tmp2 > 1 } } set_temp_variable = { cg_tmp2 = 1 } }
+		set_variable = { cg_consumer_electronics_antiquity_scalar = cg_tmp2 }
+	}
+
+
+	# ============================================================
+	# Cleanup temps
+	# ============================================================
+	clr_temp_variable = exp_basic
+	clr_temp_variable = exp_durable
+	clr_temp_variable = exp_vehicles
+	clr_temp_variable = exp_elec
+
+	clr_temp_variable = remaining
+	clr_temp_variable = consumed
+	clr_temp_variable = gap_weight
+	clr_temp_variable = take
+	clr_temp_variable = cg_tmp
+	clr_temp_variable = cg_tmp2
+}
+# ============================================================
+# CWIC Consumer Goods: Master scaler variables for ONE dynamic modifier
+# Uses coverage + antiquity scalar from:
+# - cg_basic_coverage, cg_durable_coverage, cg_vehicles_coverage, cg_consumer_electronics_coverage
+# - cg_basic_antiquity_scalar, cg_durable_antiquity_scalar, cg_vehicles_antiquity_scalar, cg_consumer_electronics_antiquity_scalar
+#
+# Outputs (country variables read by the dynamic modifier):
+# - CG_M_PRODUCTIVITY                     (negative or small positive)
+# - CG_M_STABILITY                        (negative)
+# - CG_M_POLITICAL_POWER_GAIN             (negative)
+# - CG_M_OFFICE_PARK_INCOME_BONUS         (negative, cap -0.15)
+# - CG_M_WORKFORCE_RATIO                  (negative, cap -0.15)
+# - CG_M_PUBLIC_SERVICE_COST              (positive)
+# - CG_M_POLICING_COST                    (positive)
+# - CG_M_CONSTRUCTION_SPEED               (negative)
+# - CG_M_CONSUMER_GOODS_FACTOR            (positive)   # optional: makes CG load worse under shortages
+# ============================================================
+
+cwic_cg_update_master_modifiers = {
+
+	# ============================================================
+	# 0) Load + clamp inputs (coverage 0..1, antiquity 0..1)
+	# ============================================================
+	set_temp_variable = { cov_basic = ROOT.cg_basic_coverage }
+	set_temp_variable = { cov_durable = ROOT.cg_durable_coverage }
+	set_temp_variable = { cov_vehicles = ROOT.cg_vehicles_coverage }
+	set_temp_variable = { cov_elec = ROOT.cg_consumer_electronics_coverage }
+
+	set_temp_variable = { qual_basic = ROOT.cg_basic_antiquity_scalar }
+	set_temp_variable = { qual_durable = ROOT.cg_durable_antiquity_scalar }
+	set_temp_variable = { qual_vehicles = ROOT.cg_vehicles_antiquity_scalar }
+	set_temp_variable = { qual_elec = ROOT.cg_consumer_electronics_antiquity_scalar }
+
+	if = { limit = { check_variable = { cov_basic < 0 } } set_temp_variable = { cov_basic = 0 } }
+	if = { limit = { check_variable = { cov_basic > 1 } } set_temp_variable = { cov_basic = 1 } }
+	if = { limit = { check_variable = { cov_durable < 0 } } set_temp_variable = { cov_durable = 0 } }
+	if = { limit = { check_variable = { cov_durable > 1 } } set_temp_variable = { cov_durable = 1 } }
+	if = { limit = { check_variable = { cov_vehicles < 0 } } set_temp_variable = { cov_vehicles = 0 } }
+	if = { limit = { check_variable = { cov_vehicles > 1 } } set_temp_variable = { cov_vehicles = 1 } }
+	if = { limit = { check_variable = { cov_elec < 0 } } set_temp_variable = { cov_elec = 0 } }
+	if = { limit = { check_variable = { cov_elec > 1 } } set_temp_variable = { cov_elec = 1 } }
+
+	if = { limit = { check_variable = { qual_basic < 0 } } set_temp_variable = { qual_basic = 0 } }
+	if = { limit = { check_variable = { qual_basic > 1 } } set_temp_variable = { qual_basic = 1 } }
+	if = { limit = { check_variable = { qual_durable < 0 } } set_temp_variable = { qual_durable = 0 } }
+	if = { limit = { check_variable = { qual_durable > 1 } } set_temp_variable = { qual_durable = 1 } }
+	if = { limit = { check_variable = { qual_vehicles < 0 } } set_temp_variable = { qual_vehicles = 0 } }
+	if = { limit = { check_variable = { qual_vehicles > 1 } } set_temp_variable = { qual_vehicles = 1 } }
+	if = { limit = { check_variable = { qual_elec < 0 } } set_temp_variable = { qual_elec = 0 } }
+	if = { limit = { check_variable = { qual_elec > 1 } } set_temp_variable = { qual_elec = 1 } }
+
+	# ============================================================
+	# 1) Compute shortage (0..1) and outdated penalty (0..1)
+	# ============================================================
+	set_temp_variable = { sh_basic = 1 }   subtract_from_temp_variable = { sh_basic = cov_basic }
+	set_temp_variable = { sh_durable = 1 } subtract_from_temp_variable = { sh_durable = cov_durable }
+	set_temp_variable = { sh_vehicles = 1 } subtract_from_temp_variable = { sh_vehicles = cov_vehicles }
+	set_temp_variable = { sh_elec = 1 }   subtract_from_temp_variable = { sh_elec = cov_elec }
+
+	set_temp_variable = { od_basic = 1 }  subtract_from_temp_variable = { od_basic = qual_basic }
+	set_temp_variable = { od_durable = 1 } subtract_from_temp_variable = { od_durable = qual_durable }
+	set_temp_variable = { od_vehicles = 1 } subtract_from_temp_variable = { od_vehicles = qual_vehicles }
+	set_temp_variable = { od_elec = 1 }   subtract_from_temp_variable = { od_elec = qual_elec }
+
+	# clamp
+	if = { limit = { check_variable = { sh_basic < 0 } } set_temp_variable = { sh_basic = 0 } }
+	if = { limit = { check_variable = { sh_basic > 1 } } set_temp_variable = { sh_basic = 1 } }
+	if = { limit = { check_variable = { sh_durable < 0 } } set_temp_variable = { sh_durable = 0 } }
+	if = { limit = { check_variable = { sh_durable > 1 } } set_temp_variable = { sh_durable = 1 } }
+	if = { limit = { check_variable = { sh_vehicles < 0 } } set_temp_variable = { sh_vehicles = 0 } }
+	if = { limit = { check_variable = { sh_vehicles > 1 } } set_temp_variable = { sh_vehicles = 1 } }
+	if = { limit = { check_variable = { sh_elec < 0 } } set_temp_variable = { sh_elec = 0 } }
+	if = { limit = { check_variable = { sh_elec > 1 } } set_temp_variable = { sh_elec = 1 } }
+
+	if = { limit = { check_variable = { od_basic < 0 } } set_temp_variable = { od_basic = 0 } }
+	if = { limit = { check_variable = { od_basic > 1 } } set_temp_variable = { od_basic = 1 } }
+	if = { limit = { check_variable = { od_durable < 0 } } set_temp_variable = { od_durable = 0 } }
+	if = { limit = { check_variable = { od_durable > 1 } } set_temp_variable = { od_durable = 1 } }
+	if = { limit = { check_variable = { od_vehicles < 0 } } set_temp_variable = { od_vehicles = 0 } }
+	if = { limit = { check_variable = { od_vehicles > 1 } } set_temp_variable = { od_vehicles = 1 } }
+	if = { limit = { check_variable = { od_elec < 0 } } set_temp_variable = { od_elec = 0 } }
+	if = { limit = { check_variable = { od_elec > 1 } } set_temp_variable = { od_elec = 1 } }
+
+	# ============================================================
+	# 2) Severity per category (0..1.5)
+	# severity = shortage + (outdated * weight)
+	# ============================================================
+	set_temp_variable = { sev_basic = sh_basic }
+	set_temp_variable = { cg_tmp = od_basic }
+	multiply_temp_variable = { cg_tmp = 0.35 }
+	add_to_temp_variable = { sev_basic = cg_tmp }
+
+	set_temp_variable = { sev_durable = sh_durable }
+	set_temp_variable = { cg_tmp = od_durable }
+	multiply_temp_variable = { cg_tmp = 0.45 }
+	add_to_temp_variable = { sev_durable = cg_tmp }
+
+	set_temp_variable = { sev_vehicles = sh_vehicles }
+	set_temp_variable = { cg_tmp = od_vehicles }
+	multiply_temp_variable = { cg_tmp = 0.55 }
+	add_to_temp_variable = { sev_vehicles = cg_tmp }
+
+	set_temp_variable = { sev_elec = sh_elec }
+	set_temp_variable = { cg_tmp = od_elec }
+	multiply_temp_variable = { cg_tmp = 0.60 }
+	add_to_temp_variable = { sev_elec = cg_tmp }
+
+	if = { limit = { check_variable = { sev_basic > 1.5 } } set_temp_variable = { sev_basic = 1.5 } }
+	if = { limit = { check_variable = { sev_durable > 1.5 } } set_temp_variable = { sev_durable = 1.5 } }
+	if = { limit = { check_variable = { sev_vehicles > 1.5 } } set_temp_variable = { sev_vehicles = 1.5 } }
+	if = { limit = { check_variable = { sev_elec > 1.5 } } set_temp_variable = { sev_elec = 1.5 } }
+
+	# ============================================================
+	# 3) Compute master impacts (decimals)
+	# ============================================================
+
+	# Productivity (negative)
+	set_temp_variable = { CG_prod = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = -0.10 } add_to_temp_variable = { CG_prod = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_durable }  multiply_temp_variable = { cg_tmp = -0.05 } add_to_temp_variable = { CG_prod = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_prod = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_elec }     multiply_temp_variable = { cg_tmp = -0.04 } add_to_temp_variable = { CG_prod = cg_tmp }
+
+	# Stability (negative)
+	set_temp_variable = { CG_stab = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = -0.10 } add_to_temp_variable = { CG_stab = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_durable }  multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_stab = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_stab = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_elec }     multiply_temp_variable = { cg_tmp = -0.02 } add_to_temp_variable = { CG_stab = cg_tmp }
+
+	# Political Power gain (negative)
+	set_temp_variable = { CG_pp = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = -0.08 } add_to_temp_variable = { CG_pp = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_pp = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_elec }     multiply_temp_variable = { cg_tmp = -0.06 } add_to_temp_variable = { CG_pp = cg_tmp }
+
+	# Office Park income (negative, cap -0.15)
+	set_temp_variable = { CG_office_income = 0 }
+	set_temp_variable = { cg_tmp = sev_elec }     multiply_temp_variable = { cg_tmp = -0.18 } add_to_temp_variable = { CG_office_income = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_durable }  multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_office_income = cg_tmp }
+	if = { limit = { check_variable = { CG_office_income < -0.15 } } set_temp_variable = { CG_office_income = -0.15 } }
+	if = { limit = { check_variable = { CG_office_income > 0 } } set_temp_variable = { CG_office_income = 0 } }
+
+	# Industrial Park income (negative, smaller)
+	set_temp_variable = { CG_industrial_income = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_industrial_income = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_durable }  multiply_temp_variable = { cg_tmp = -0.05 } add_to_temp_variable = { CG_industrial_income = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_industrial_income = cg_tmp }
+	if = { limit = { check_variable = { CG_industrial_income < -0.12 } } set_temp_variable = { CG_industrial_income = -0.12 } }
+	if = { limit = { check_variable = { CG_industrial_income > 0 } } set_temp_variable = { CG_industrial_income = 0 } }
+
+	# Workforce ratio (negative, cap -0.15; nastier basic collapse)
+	set_temp_variable = { CG_workforce = 0 }
+	set_temp_variable = { cg_tmp = sh_basic }     multiply_temp_variable = { cg_tmp = -0.18 } add_to_temp_variable = { CG_workforce = cg_tmp }
+	set_temp_variable = { cg_tmp = od_basic }     multiply_temp_variable = { cg_tmp = -0.06 } add_to_temp_variable = { CG_workforce = cg_tmp }
+	set_temp_variable = { cg_tmp = sh_durable }   multiply_temp_variable = { cg_tmp = -0.02 } add_to_temp_variable = { CG_workforce = cg_tmp }
+	set_temp_variable = { cg_tmp = sh_elec }      multiply_temp_variable = { cg_tmp = -0.02 } add_to_temp_variable = { CG_workforce = cg_tmp }
+	if = { limit = { check_variable = { CG_workforce < -0.15 } } set_temp_variable = { CG_workforce = -0.15 } }
+	if = { limit = { check_variable = { CG_workforce > 0 } } set_temp_variable = { CG_workforce = 0 } }
+
+	# Public services spending modifier (positive)
+	set_temp_variable = { CG_public_cost = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = 0.08 } add_to_temp_variable = { CG_public_cost = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = 0.12 } add_to_temp_variable = { CG_public_cost = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_elec }     multiply_temp_variable = { cg_tmp = 0.03 } add_to_temp_variable = { CG_public_cost = cg_tmp }
+	if = { limit = { check_variable = { CG_public_cost < 0 } } set_temp_variable = { CG_public_cost = 0 } }
+	if = { limit = { check_variable = { CG_public_cost > 0.25 } } set_temp_variable = { CG_public_cost = 0.25 } }
+
+	# Policing spending modifier (positive)
+	set_temp_variable = { CG_police_cost = 0 }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = 0.15 } add_to_temp_variable = { CG_police_cost = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = 0.05 } add_to_temp_variable = { CG_police_cost = cg_tmp }
+	if = { limit = { check_variable = { CG_police_cost < 0 } } set_temp_variable = { CG_police_cost = 0 } }
+	if = { limit = { check_variable = { CG_police_cost > 0.30 } } set_temp_variable = { CG_police_cost = 0.30 } }
+
+	# Welfare spending modifier (positive): basics + durable shortages push welfare
+	set_temp_variable = { CG_welfare_cost = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = 0.10 } add_to_temp_variable = { CG_welfare_cost = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_durable }  multiply_temp_variable = { cg_tmp = 0.04 } add_to_temp_variable = { CG_welfare_cost = cg_tmp }
+	if = { limit = { check_variable = { CG_welfare_cost < 0 } } set_temp_variable = { CG_welfare_cost = 0 } }
+	if = { limit = { check_variable = { CG_welfare_cost > 0.30 } } set_temp_variable = { CG_welfare_cost = 0.30 } }
+
+	# Construction speed factor (negative): vehicles shortage dominates
+	set_temp_variable = { CG_construction = 0 }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = -0.12 } add_to_temp_variable = { CG_construction = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = -0.02 } add_to_temp_variable = { CG_construction = cg_tmp }
+	if = { limit = { check_variable = { CG_construction > 0 } } set_temp_variable = { CG_construction = 0 } }
+	if = { limit = { check_variable = { CG_construction < -0.15 } } set_temp_variable = { CG_construction = -0.15 } }
+
+	# Other resources income bonus (negative): shortages disrupt extraction/transport/utilities
+	set_temp_variable = { CG_other_income = 0 }
+	set_temp_variable = { cg_tmp = sev_basic }    multiply_temp_variable = { cg_tmp = -0.03 } add_to_temp_variable = { CG_other_income = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_vehicles } multiply_temp_variable = { cg_tmp = -0.05 } add_to_temp_variable = { CG_other_income = cg_tmp }
+	set_temp_variable = { cg_tmp = sev_durable }  multiply_temp_variable = { cg_tmp = -0.02 } add_to_temp_variable = { CG_other_income = cg_tmp }
+	if = { limit = { check_variable = { CG_other_income < -0.12 } } set_temp_variable = { CG_other_income = -0.12 } }
+	if = { limit = { check_variable = { CG_other_income > 0 } } set_temp_variable = { CG_other_income = 0 } }
+
+	# Education gain rate (raw additive): basic shortages + outdated basics reduce education progress
+	set_temp_variable = { CG_edu = 0 }
+	set_temp_variable = { cg_tmp = sh_basic }  multiply_temp_variable = { cg_tmp = -0.40 } add_to_temp_variable = { CG_edu = cg_tmp }
+	set_temp_variable = { cg_tmp = od_basic }  multiply_temp_variable = { cg_tmp = -0.15 } add_to_temp_variable = { CG_edu = cg_tmp }
+	if = { limit = { check_variable = { CG_edu < -0.80 } } set_temp_variable = { CG_edu = -0.80 } }
+	if = { limit = { check_variable = { CG_edu > 0 } } set_temp_variable = { CG_edu = 0 } }
+
+
+	# ============================================================
+	# 4) Export to the existing pressure-master dynamic modifier vars
+	# ============================================================
+	set_variable = { CWIC_DM_CG_STABILITY_FACTOR = CG_stab }
+	set_variable = { CWIC_DM_CG_POLITICAL_POWER_GAIN = CG_pp }
+
+	set_variable = { CWIC_DM_CG_WORKFORCE_RATIO = CG_workforce }
+	set_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = CG_prod }
+
+	set_variable = { CWIC_DM_CG_WELFARE_SPENDING_MOD = CG_welfare_cost }
+	set_variable = { CWIC_DM_CG_POLICING_SPENDING_MOD = CG_police_cost }
+	set_variable = { CWIC_DM_CG_PUBLIC_SERVICES_SPENDING_MOD = CG_public_cost }
+
+	set_variable = { CWIC_DM_CG_CONSTRUCTION_SPEED_FACTOR = CG_construction }
+	set_variable = { CWIC_DM_CG_OTHER_RESOURCES_INCOME_BONUS = CG_other_income }
+
+	set_variable = { CWIC_DM_CG_INDUSTRIAL_PARK_INCOME_BONUS = CG_industrial_income }
+	set_variable = { CWIC_DM_CG_OFFICE_PARK_INCOME_BONUS = CG_office_income }
+
+	set_variable = { CWIC_DM_CG_EDUCATION_GAIN_RATE = CG_edu }
+
+
+	# ============================================================
+	# Cleanup temps
+	# ============================================================
+	clr_temp_variable = cov_basic
+	clr_temp_variable = cov_durable
+	clr_temp_variable = cov_vehicles
+	clr_temp_variable = cov_elec
+
+	clr_temp_variable = qual_basic
+	clr_temp_variable = qual_durable
+	clr_temp_variable = qual_vehicles
+	clr_temp_variable = qual_elec
+
+	clr_temp_variable = sh_basic
+	clr_temp_variable = sh_durable
+	clr_temp_variable = sh_vehicles
+	clr_temp_variable = sh_elec
+
+	clr_temp_variable = od_basic
+	clr_temp_variable = od_durable
+	clr_temp_variable = od_vehicles
+	clr_temp_variable = od_elec
+
+	clr_temp_variable = sev_basic
+	clr_temp_variable = sev_durable
+	clr_temp_variable = sev_vehicles
+	clr_temp_variable = sev_elec
+
+	clr_temp_variable = CG_prod
+	clr_temp_variable = CG_stab
+	clr_temp_variable = CG_pp
+	clr_temp_variable = CG_office_income
+	clr_temp_variable = CG_industrial_income
+	clr_temp_variable = CG_workforce
+	clr_temp_variable = CG_public_cost
+	clr_temp_variable = CG_police_cost
+	clr_temp_variable = CG_welfare_cost
+	clr_temp_variable = CG_construction
+	clr_temp_variable = CG_other_income
+	clr_temp_variable = CG_edu
+
+	clr_temp_variable = cg_tmp
+}
+# ============================================================
+# MONTHLY MASTER TICK (put in monthly on_action)
+# Uses: demand -> production -> consume/coverage -> DM update -> hygiene
+# IMPORTANT: Do NOT also call cwic_calculate_consumer_goods_coverage_and_consume
+# if you are using cwic_cg_monthly_consume_and_compute_coverage
+# ============================================================
+cwic_cg_monthly_master_tick = {
+
+	# (1) Demand generation (HDI + workforce + decade)
+	cwic_calculate_consumer_goods_monthly_demand = yes
+
+	# (2) Production + allotment (fills stockpiles)
+	cwic_cg_monthly_production_and_allotment = yes
+
+	# (3) Consume -> coverage + antiquity
+	cwic_cg_monthly_consume_and_compute_coverage = yes
+
+	# (4) Update master DM variables + apply dynamic modifier
+	cwic_cg_update_master_modifiers = yes
+
+	# (5) Stockpile hygiene
+	cwic_cg_stockpile_hygiene = yes
+}
+# ============================================================
+# WRAPPER: Update consumer goods pressure master DM
+# ============================================================
+cwic_cg_update_master_modifiers = {
+	cwic_apply_consumer_goods_pressure_master = yes
+}
+
+# ============================================================
+# STOCKPILE HYGIENE + CLAMPING
+# - clamps negative stockpiles to 0
+# - clamps resource@... below 0 to 0
+# - optional caps (enabled by country flag): cwic_cg_enable_stockpile_caps
+#   caps are in "months of demand" per category
+# ============================================================
+cwic_cg_stockpile_hygiene = {
+
+	# ----------------------------
+	# (A) Clamp all stockpiles to >= 0
+	# ----------------------------
+
+	# BASIC (t0..t5)
+	if = { limit = { check_variable = { ROOT.cg_basic_stock_t0 < 0 } } set_variable = { cg_basic_stock_t0 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_basic_stock_t1 < 0 } } set_variable = { cg_basic_stock_t1 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_basic_stock_t2 < 0 } } set_variable = { cg_basic_stock_t2 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_basic_stock_t3 < 0 } } set_variable = { cg_basic_stock_t3 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_basic_stock_t4 < 0 } } set_variable = { cg_basic_stock_t4 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_basic_stock_t5 < 0 } } set_variable = { cg_basic_stock_t5 = 0 } }
+
+	# DURABLE (t0..t5)
+	if = { limit = { check_variable = { ROOT.cg_durable_stock_t0 < 0 } } set_variable = { cg_durable_stock_t0 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_durable_stock_t1 < 0 } } set_variable = { cg_durable_stock_t1 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_durable_stock_t2 < 0 } } set_variable = { cg_durable_stock_t2 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_durable_stock_t3 < 0 } } set_variable = { cg_durable_stock_t3 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_durable_stock_t4 < 0 } } set_variable = { cg_durable_stock_t4 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_durable_stock_t5 < 0 } } set_variable = { cg_durable_stock_t5 = 0 } }
+
+	# VEHICLES (t0..t5)
+	if = { limit = { check_variable = { ROOT.cg_vehicles_stock_t0 < 0 } } set_variable = { cg_vehicles_stock_t0 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_vehicles_stock_t1 < 0 } } set_variable = { cg_vehicles_stock_t1 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_vehicles_stock_t2 < 0 } } set_variable = { cg_vehicles_stock_t2 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_vehicles_stock_t3 < 0 } } set_variable = { cg_vehicles_stock_t3 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_vehicles_stock_t4 < 0 } } set_variable = { cg_vehicles_stock_t4 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_vehicles_stock_t5 < 0 } } set_variable = { cg_vehicles_stock_t5 = 0 } }
+
+	# ELECTRONICS (t1..t5)
+	if = { limit = { check_variable = { ROOT.cg_consumer_electronics_stock_t1 < 0 } } set_variable = { cg_consumer_electronics_stock_t1 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_consumer_electronics_stock_t2 < 0 } } set_variable = { cg_consumer_electronics_stock_t2 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_consumer_electronics_stock_t3 < 0 } } set_variable = { cg_consumer_electronics_stock_t3 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_consumer_electronics_stock_t4 < 0 } } set_variable = { cg_consumer_electronics_stock_t4 = 0 } }
+	if = { limit = { check_variable = { ROOT.cg_consumer_electronics_stock_t5 < 0 } } set_variable = { cg_consumer_electronics_stock_t5 = 0 } }
+
+
+	# ----------------------------
+	# (B) Clamp resources (integer pools) to >= 0
+	# ----------------------------
+	if = { limit = { check_variable = { resource@steel < 0 } } set_variable = { resource@steel = 0 } }
+	if = { limit = { check_variable = { resource@aluminium < 0 } } set_variable = { resource@aluminium = 0 } }
+	if = { limit = { check_variable = { resource@oil < 0 } } set_variable = { resource@oil = 0 } }
+	if = { limit = { check_variable = { resource@coal < 0 } } set_variable = { resource@coal = 0 } }
+	if = { limit = { check_variable = { resource@tungsten < 0 } } set_variable = { resource@tungsten = 0 } }
+
+
+	# ----------------------------
+	# (C) Optional caps (months-of-demand), gated by flag
+	# You can tune these numbers freely.
+	# ----------------------------
+	if = {
+		limit = { has_country_flag = cwic_cg_enable_stockpile_caps }
+
+		# Build totals per category
+		set_temp_variable = { cap_total = 0 }
+
+		# ===== BASIC cap = 6 months demand
+		set_temp_variable = { cap_limit = ROOT.cg_basic_demand }
+		multiply_temp_variable = { cap_limit = 6 }
+		if = { limit = { check_variable = { cap_limit < 0 } } set_temp_variable = { cap_limit = 0 } }
+
+		set_temp_variable = { cap_total = ROOT.cg_basic_stock_t0 }
+		add_to_temp_variable = { cap_total = ROOT.cg_basic_stock_t1 }
+		add_to_temp_variable = { cap_total = ROOT.cg_basic_stock_t2 }
+		add_to_temp_variable = { cap_total = ROOT.cg_basic_stock_t3 }
+		add_to_temp_variable = { cap_total = ROOT.cg_basic_stock_t4 }
+		add_to_temp_variable = { cap_total = ROOT.cg_basic_stock_t5 }
+
+		# If total > cap, clamp oldest tiers first (t0 upward)
+		if = {
+			limit = { check_variable = { cap_total > cap_limit } }
+
+			set_temp_variable = { cap_over = cap_total }
+			subtract_from_temp_variable = { cap_over = cap_limit }
+
+			# t0
+			set_temp_variable = { cap_take = ROOT.cg_basic_stock_t0 }
+			if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+			subtract_from_variable = { cg_basic_stock_t0 = cap_take }
+			subtract_from_temp_variable = { cap_over = cap_take }
+
+			# t1
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_basic_stock_t1 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_basic_stock_t1 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+
+			# t2
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_basic_stock_t2 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_basic_stock_t2 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+
+			# t3
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_basic_stock_t3 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_basic_stock_t3 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+
+			# t4
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_basic_stock_t4 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_basic_stock_t4 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+
+			# t5
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_basic_stock_t5 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_basic_stock_t5 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+		}
+
+		# ===== DURABLE cap = 4 months demand
+		set_temp_variable = { cap_limit = ROOT.cg_durable_demand }
+		multiply_temp_variable = { cap_limit = 4 }
+		if = { limit = { check_variable = { cap_limit < 0 } } set_temp_variable = { cap_limit = 0 } }
+
+		set_temp_variable = { cap_total = ROOT.cg_durable_stock_t0 }
+		add_to_temp_variable = { cap_total = ROOT.cg_durable_stock_t1 }
+		add_to_temp_variable = { cap_total = ROOT.cg_durable_stock_t2 }
+		add_to_temp_variable = { cap_total = ROOT.cg_durable_stock_t3 }
+		add_to_temp_variable = { cap_total = ROOT.cg_durable_stock_t4 }
+		add_to_temp_variable = { cap_total = ROOT.cg_durable_stock_t5 }
+
+		if = {
+			limit = { check_variable = { cap_total > cap_limit } }
+
+			set_temp_variable = { cap_over = cap_total }
+			subtract_from_temp_variable = { cap_over = cap_limit }
+
+			set_temp_variable = { cap_take = ROOT.cg_durable_stock_t0 }
+			if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+			subtract_from_variable = { cg_durable_stock_t0 = cap_take }
+			subtract_from_temp_variable = { cap_over = cap_take }
+
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_durable_stock_t1 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_durable_stock_t1 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_durable_stock_t2 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_durable_stock_t2 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_durable_stock_t3 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_durable_stock_t3 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_durable_stock_t4 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_durable_stock_t4 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_durable_stock_t5 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_durable_stock_t5 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+		}
+
+		# ===== VEHICLES cap = 3 months demand
+		set_temp_variable = { cap_limit = ROOT.cg_vehicles_demand }
+		multiply_temp_variable = { cap_limit = 3 }
+		if = { limit = { check_variable = { cap_limit < 0 } } set_temp_variable = { cap_limit = 0 } }
+
+		set_temp_variable = { cap_total = ROOT.cg_vehicles_stock_t0 }
+		add_to_temp_variable = { cap_total = ROOT.cg_vehicles_stock_t1 }
+		add_to_temp_variable = { cap_total = ROOT.cg_vehicles_stock_t2 }
+		add_to_temp_variable = { cap_total = ROOT.cg_vehicles_stock_t3 }
+		add_to_temp_variable = { cap_total = ROOT.cg_vehicles_stock_t4 }
+		add_to_temp_variable = { cap_total = ROOT.cg_vehicles_stock_t5 }
+
+		if = {
+			limit = { check_variable = { cap_total > cap_limit } }
+
+			set_temp_variable = { cap_over = cap_total }
+			subtract_from_temp_variable = { cap_over = cap_limit }
+
+			set_temp_variable = { cap_take = ROOT.cg_vehicles_stock_t0 }
+			if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+			subtract_from_variable = { cg_vehicles_stock_t0 = cap_take }
+			subtract_from_temp_variable = { cap_over = cap_take }
+
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_vehicles_stock_t1 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_vehicles_stock_t1 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_vehicles_stock_t2 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_vehicles_stock_t2 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_vehicles_stock_t3 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_vehicles_stock_t3 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_vehicles_stock_t4 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_vehicles_stock_t4 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_vehicles_stock_t5 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_vehicles_stock_t5 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+		}
+
+		# ===== ELECTRONICS cap = 2 months demand (tiers 1..5)
+		set_temp_variable = { cap_limit = ROOT.cg_consumer_electronics_demand }
+		multiply_temp_variable = { cap_limit = 2 }
+		if = { limit = { check_variable = { cap_limit < 0 } } set_temp_variable = { cap_limit = 0 } }
+
+		set_temp_variable = { cap_total = ROOT.cg_consumer_electronics_stock_t1 }
+		add_to_temp_variable = { cap_total = ROOT.cg_consumer_electronics_stock_t2 }
+		add_to_temp_variable = { cap_total = ROOT.cg_consumer_electronics_stock_t3 }
+		add_to_temp_variable = { cap_total = ROOT.cg_consumer_electronics_stock_t4 }
+		add_to_temp_variable = { cap_total = ROOT.cg_consumer_electronics_stock_t5 }
+
+		if = {
+			limit = { check_variable = { cap_total > cap_limit } }
+
+			set_temp_variable = { cap_over = cap_total }
+			subtract_from_temp_variable = { cap_over = cap_limit }
+
+			set_temp_variable = { cap_take = ROOT.cg_consumer_electronics_stock_t1 }
+			if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+			subtract_from_variable = { cg_consumer_electronics_stock_t1 = cap_take }
+			subtract_from_temp_variable = { cap_over = cap_take }
+
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_consumer_electronics_stock_t2 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_consumer_electronics_stock_t2 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_consumer_electronics_stock_t3 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_consumer_electronics_stock_t3 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_consumer_electronics_stock_t4 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_consumer_electronics_stock_t4 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+			if = { limit = { check_variable = { cap_over > 0 } }
+				set_temp_variable = { cap_take = ROOT.cg_consumer_electronics_stock_t5 }
+				if = { limit = { check_variable = { cap_take > cap_over } } set_temp_variable = { cap_take = cap_over } }
+				subtract_from_variable = { cg_consumer_electronics_stock_t5 = cap_take }
+				subtract_from_temp_variable = { cap_over = cap_take }
+			}
+		}
+
+		# Cleanup cap temps
+		clr_temp_variable = cap_total
+		clr_temp_variable = cap_limit
+		clr_temp_variable = cap_over
+		clr_temp_variable = cap_take
+	}
+}
+cwic_cg_sync_resource_pools_from_vanilla = {
+
+	# Copy vanilla resource variables into writable CWIC pools
+	set_variable = { cwic_res_steel_pool = resource@steel }
+	set_variable = { cwic_res_aluminium_pool = resource@aluminium }
+	set_variable = { cwic_res_oil_pool = resource@oil }
+	set_variable = { cwic_res_coal_pool = resource@coal }
+	set_variable = { cwic_res_tungsten_pool = resource@tungsten }
+
+	# Clamp to >= 0 (safety)
+	if = { limit = { check_variable = { ROOT.cwic_res_steel_pool < 0 } } set_variable = { cwic_res_steel_pool = 0 } }
+	if = { limit = { check_variable = { ROOT.cwic_res_aluminium_pool < 0 } } set_variable = { cwic_res_aluminium_pool = 0 } }
+	if = { limit = { check_variable = { ROOT.cwic_res_oil_pool < 0 } } set_variable = { cwic_res_oil_pool = 0 } }
+	if = { limit = { check_variable = { ROOT.cwic_res_coal_pool < 0 } } set_variable = { cwic_res_coal_pool = 0 } }
+	if = { limit = { check_variable = { ROOT.cwic_res_tungsten_pool < 0 } } set_variable = { cwic_res_tungsten_pool = 0 } }
+}
+
+### ============================================================
+### MONTHLY: Allocate production points by CG category
+### Expects (temp vars): w_basic, w_durable, w_vehicles, w_elec
+### Writes (country vars): cg_monthly_points_*
+### ============================================================
+
+cwic_cg_allocate_monthly_production_points = {
+    set_variable = { cg_points_per_factory = 25 }
+	# ------------------------------------------------------------
+	# 0) Resolve tuning knob (points per factory)
+	# ------------------------------------------------------------
+	clr_temp_variable = cg_ppf
+	set_temp_variable = { cg_ppf = ROOT.cg_points_per_factory }
+
+	# Default if missing or too small
+	if = {
+		limit = { check_variable = { cg_ppf < 0.1 } }
+		set_temp_variable = { cg_ppf = 10 }
+	}
+
+	# ------------------------------------------------------------
+	# 1) Total monthly points from "Actual_Civilian_Factories"
+	# ------------------------------------------------------------
+	clr_temp_variable = total_points
+	set_temp_variable = { total_points = ROOT.Actual_Civilian_Factories }
+	if = { limit = { check_variable = { total_points < 0 } } set_temp_variable = { total_points = 0 } }
+
+	multiply_temp_variable = { total_points = cg_ppf }
+
+	# Keep points as whole numbers for downstream math
+	round_temp_variable = total_points
+
+	set_variable = { cg_monthly_points_total = total_points }
+
+	# ------------------------------------------------------------
+	# 2) Allocate points by normalized weights
+	# ------------------------------------------------------------
+	clr_temp_variable = pts_basic
+	clr_temp_variable = pts_durable
+	clr_temp_variable = pts_vehicles
+	clr_temp_variable = pts_elec
+
+	set_temp_variable = { pts_basic = total_points }
+	multiply_temp_variable = { pts_basic = w_basic }
+
+	set_temp_variable = { pts_durable = total_points }
+	multiply_temp_variable = { pts_durable = w_durable }
+
+	set_temp_variable = { pts_vehicles = total_points }
+	multiply_temp_variable = { pts_vehicles = w_vehicles }
+
+	set_temp_variable = { pts_elec = total_points }
+	multiply_temp_variable = { pts_elec = w_elec }
+
+	round_temp_variable = pts_basic
+	round_temp_variable = pts_durable
+	round_temp_variable = pts_vehicles
+	round_temp_variable = pts_elec
+
+	# ------------------------------------------------------------
+	# 3) Rounding reconciliation
+	# If rounding lost or gained points, shove the difference into BASIC.
+	# ------------------------------------------------------------
+	clr_temp_variable = pts_sum
+	clr_temp_variable = pts_diff
+
+	set_temp_variable = { pts_sum = pts_basic }
+	add_to_temp_variable = { pts_sum = pts_durable }
+	add_to_temp_variable = { pts_sum = pts_vehicles }
+	add_to_temp_variable = { pts_sum = pts_elec }
+
+	set_temp_variable = { pts_diff = total_points }
+	subtract_from_temp_variable = { pts_diff = pts_sum }
+
+	# If diff > 0, add to basic
+	if = {
+		limit = { check_variable = { pts_diff > 0 } }
+		add_to_temp_variable = { pts_basic = pts_diff }
+	}
+
+	# If diff < 0, subtract from basic (clamped at 0)
+	if = {
+		limit = { check_variable = { pts_diff < 0 } }
+		add_to_temp_variable = { pts_basic = pts_diff }
+		if = { limit = { check_variable = { pts_basic < 0 } } set_temp_variable = { pts_basic = 0 } }
+	}
+
+	# ------------------------------------------------------------
+	# 4) Write country variables
+	# ------------------------------------------------------------
+	set_variable = { cg_monthly_points_basic = pts_basic }
+	set_variable = { cg_monthly_points_durable = pts_durable }
+	set_variable = { cg_monthly_points_vehicles = pts_vehicles }
+	set_variable = { cg_monthly_points_electronics = pts_elec }
+
+	# ------------------------------------------------------------
+	# 5) Cleanup temps used here (optional, matches your hygiene style)
+	# ------------------------------------------------------------
+	clr_temp_variable = cg_ppf
+	clr_temp_variable = total_points
+	clr_temp_variable = pts_basic
+	clr_temp_variable = pts_durable
+	clr_temp_variable = pts_vehicles
+	clr_temp_variable = pts_elec
+	clr_temp_variable = pts_sum
+	clr_temp_variable = pts_diff
+}

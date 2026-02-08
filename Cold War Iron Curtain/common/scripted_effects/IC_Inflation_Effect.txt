@@ -1,0 +1,422 @@
+# ============================================================
+# scripted_effects/cwic_inflation.txt
+# ============================================================
+cwic_inflation_monthly_pulse = {
+
+	# ============================================================
+	# 0) Defaults / init safety
+	# ============================================================
+	# price level index starts at 1.0
+	if = {
+		limit = { check_variable = { CWIC_cpi_index < 0.01 } }
+		set_variable = { CWIC_cpi_index = 1 }
+	}
+	# stored monthly inflation starts at 0.2% if unset/zeroed
+	if = {
+		limit = { check_variable = { CWIC_inflation_mom = 0 } }
+		set_variable = { CWIC_inflation_mom = 0.002 }
+	}
+
+	# ============================================================
+	# 1) Clear temps
+	# ============================================================
+	clr_temp_variable = gdp_tmp
+	clr_temp_variable = cg_pressure
+	clr_temp_variable = sp
+	clr_temp_variable = def_ratio
+	clr_temp_variable = fp
+	clr_temp_variable = ds_ratio
+	clr_temp_variable = dp
+	clr_temp_variable = tight
+	clr_temp_variable = td
+	clr_temp_variable = cred
+	clr_temp_variable = expect_mult
+	clr_temp_variable = raw_infl
+	clr_temp_variable = prev_infl
+	clr_temp_variable = smooth_infl
+	clr_temp_variable = tmp
+
+	# ============================================================
+	# 2) Tuning knobs
+	#    Keep these here so you can rebalance later
+	# ============================================================
+	set_temp_variable = { k_sp = 0.020 }   # shortage pressure weight (dominant)
+	set_temp_variable = { k_fp = 0.030 }   # deficit pressure weight
+	set_temp_variable = { k_dp = 0.020 }   # debt-service pressure weight
+	set_temp_variable = { k_td = 0.025 }   # interest tightening drag
+	set_temp_variable = { k_exp = 0.75 }   # expectation multiplier strength
+
+	set_temp_variable = { base_infl = 0.001 }   # baseline inflation (0.1% per month)
+
+	set_temp_variable = { def_cap = 0.20 }  # deficit ratio clamp
+	set_temp_variable = { ds_cap  = 0.20 }  # debt service clamp
+	set_temp_variable = { t_cap   = 0.50 }  # tightness clamp (Interest_Rate - 1)
+
+	set_temp_variable = { w_new = 0.25 }    # smoothing: how much new info affects inflation each month
+
+	# ============================================================
+	# 3) GDP guard
+	# ============================================================
+	set_temp_variable = { gdp_tmp = grossdomesticproduct }
+	if = { limit = { check_variable = { gdp_tmp < 0.1 } } set_temp_variable = { gdp_tmp = 0.1 } }
+
+	# ============================================================
+	# 4) Shortage pressure (SP)
+	#    Reconstruct consumer goods pressure from CWIC_DM_CG_STABILITY_FACTOR
+	#    since it equals (master_scalar * -0.18) in your CG script
+	# ============================================================
+	set_temp_variable = { cg_pressure = CWIC_DM_CG_STABILITY_FACTOR }
+	divide_temp_variable = { cg_pressure = -0.18 } # -> master_scalar (0..1)
+
+	if = { limit = { check_variable = { cg_pressure < 0 } } set_temp_variable = { cg_pressure = 0 } }
+	if = { limit = { check_variable = { cg_pressure > 1 } } set_temp_variable = { cg_pressure = 1 } }
+
+	# Nonlinear: square it (p = 2)
+	set_temp_variable = { sp = cg_pressure }
+	multiply_temp_variable = { sp = cg_pressure }
+	multiply_temp_variable = { sp = k_sp }
+
+	# ============================================================
+	# 5) Fiscal pressure (FP) from pulse_deficit / GDP
+	# ============================================================
+	set_temp_variable = { def_ratio = 0 }
+	if = {
+		limit = { check_variable = { pulse_deficit > 0 } }
+		set_temp_variable = { def_ratio = pulse_deficit }
+		divide_temp_variable = { def_ratio = gdp_tmp }
+		if = { limit = { check_variable = { def_ratio > def_cap } } set_temp_variable = { def_ratio = def_cap } }
+	}
+
+	set_temp_variable = { fp = def_ratio }
+	multiply_temp_variable = { fp = k_fp }
+
+	# ============================================================
+	# 6) Debt stress pressure (DP) from debt service / GDP
+	# ============================================================
+	set_temp_variable = { ds_ratio = 0 }
+	if = {
+		limit = { check_variable = { currentDebtPayments > 0 } }
+		set_temp_variable = { ds_ratio = currentDebtPayments }
+		divide_temp_variable = { ds_ratio = gdp_tmp }
+		if = { limit = { check_variable = { ds_ratio > ds_cap } } set_temp_variable = { ds_ratio = ds_cap } }
+	}
+
+	set_temp_variable = { dp = ds_ratio }
+	multiply_temp_variable = { dp = k_dp }
+
+	# ============================================================
+	# 7) Policy drag (TD) from interest tightening
+	# ============================================================
+	set_temp_variable = { tight = Interest_Rate }
+	subtract_from_temp_variable = { tight = 1 } # Interest_Rate - 1
+
+	if = { limit = { check_variable = { tight < 0 } } set_temp_variable = { tight = 0 } }
+	if = { limit = { check_variable = { tight > t_cap } } set_temp_variable = { tight = t_cap } }
+
+	set_temp_variable = { td = tight }
+	multiply_temp_variable = { td = k_td }
+
+	# ============================================================
+	# 8) Expectations multiplier from Credit_Rating
+	#    credibility = Credit_Rating / 10 clamped to 0.1..1.0
+	#    expect_mult = 1 + k_exp * (1 - credibility)
+	# ============================================================
+	set_temp_variable = { cred = Credit_Rating }
+	divide_temp_variable = { cred = 10 }
+
+	if = { limit = { check_variable = { cred < 0.1 } } set_temp_variable = { cred = 0.1 } }
+	if = { limit = { check_variable = { cred > 1 } } set_temp_variable = { cred = 1 } }
+
+	set_temp_variable = { expect_mult = 1 }
+	set_temp_variable = { tmp = 1 }
+	subtract_from_temp_variable = { tmp = cred }        # (1 - cred)
+	multiply_temp_variable = { tmp = k_exp }            # k_exp*(1-cred)
+	add_to_temp_variable = { expect_mult = tmp }        # 1 + k_exp*(1-cred)
+
+	# ============================================================
+	# 9) Raw inflation this month
+	#    raw = base + expect_mult*(SP + FP + DP) - TD
+	# ============================================================
+	set_temp_variable = { raw_infl = sp }
+	add_to_temp_variable = { raw_infl = fp }
+	add_to_temp_variable = { raw_infl = dp }
+
+	multiply_temp_variable = { raw_infl = expect_mult }
+	add_to_temp_variable = { raw_infl = base_infl }
+	subtract_from_temp_variable = { raw_infl = td }
+
+   # Tag bias (can be negative for deflation-prone economies)
+    add_to_temp_variable = { raw_infl = CWIC_inflation_bias_mom }
+ 
+	# clamp monthly inflation (gameplay safety)
+	if = { limit = { check_variable = { raw_infl < -0.02 } } set_temp_variable = { raw_infl = -0.02 } } # -2% / month floor
+	if = { limit = { check_variable = { raw_infl > 0.20 } } set_temp_variable = { raw_infl = 0.20 } }   # 20% / month cap
+
+	# ============================================================
+	# 10) Smooth inflation (stickiness)
+	#     smooth = prev*(1-w_new) + raw*w_new
+	# ============================================================
+	set_temp_variable = { prev_infl = CWIC_inflation_mom }
+
+	set_temp_variable = { smooth_infl = prev_infl }
+	set_temp_variable = { tmp = 1 }
+	subtract_from_temp_variable = { tmp = w_new }           # (1 - w_new)
+	multiply_temp_variable = { smooth_infl = tmp }          # prev*(1-w_new)
+
+	set_temp_variable = { tmp = raw_infl }
+	multiply_temp_variable = { tmp = w_new }                # raw*w_new
+	add_to_temp_variable = { smooth_infl = tmp }
+
+	set_variable = { CWIC_inflation_mom = smooth_infl }
+
+	# ============================================================
+	# 11) Update price level
+	#     price_level *= (1 + inflation_mom)
+	# ============================================================
+	set_temp_variable = { tmp = 1 }
+	add_to_temp_variable = { tmp = CWIC_inflation_mom }
+	multiply_variable = { CWIC_cpi_index = tmp }
+
+	# ============================================================
+	# 12) Convenience display variables (optional)
+	# ============================================================
+	set_variable = { CWIC_inflation_yoy_display = CWIC_inflation_mom }
+	multiply_variable = { CWIC_inflation_yoy_display = 12 }     # rough YoY
+	multiply_variable = { CWIC_inflation_yoy_display = 100 }    # percent for GUI/loc
+}
+#Other
+cwic_inflation_env_clear = {
+	set_variable = { CWIC_inflation_bias_mom = 0 }
+	set_variable = { CWIC_inflation_env_id = 0 }
+}
+cwic_inflation_env_set_defl_1 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = -0.00084 }
+	set_variable = { CWIC_inflation_env_id = 1 }
+}
+cwic_inflation_env_set_defl_2 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = -0.00168 }
+	set_variable = { CWIC_inflation_env_id = 2 }
+}
+cwic_inflation_env_set_defl_3 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = -0.00253 }
+	set_variable = { CWIC_inflation_env_id = 3 }
+}
+
+cwic_inflation_env_set_1 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.00083 }
+	set_variable = { CWIC_inflation_env_id = 11 }
+}
+cwic_inflation_env_set_2 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.00165 }
+	set_variable = { CWIC_inflation_env_id = 12 }
+}
+cwic_inflation_env_set_4 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.00327 }
+	set_variable = { CWIC_inflation_env_id = 13 }
+}
+cwic_inflation_env_set_8 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.00643 }
+	set_variable = { CWIC_inflation_env_id = 14 }
+}
+cwic_inflation_env_set_10 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.00797 }
+	set_variable = { CWIC_inflation_env_id = 15 }
+}
+cwic_inflation_env_set_15 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.01171 }
+	set_variable = { CWIC_inflation_env_id = 16 }
+}
+cwic_inflation_env_set_25 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.01877 }
+	set_variable = { CWIC_inflation_env_id = 17 }
+}
+cwic_inflation_env_set_50 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.03437 }
+	set_variable = { CWIC_inflation_env_id = 18 }
+}
+cwic_inflation_env_set_100 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.05946 }
+	set_variable = { CWIC_inflation_env_id = 19 }
+}
+cwic_inflation_env_set_200 = {
+	cwic_inflation_env_clear = yes
+	set_variable = { CWIC_inflation_bias_mom = 0.09587 }
+	set_variable = { CWIC_inflation_env_id = 20 }
+}
+cwic_inflation_env_remove_defl_1 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 1 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_defl_2 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 2 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_defl_3 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 3 } } cwic_inflation_env_clear = yes } }
+
+cwic_inflation_env_remove_1   = { if = { limit = { check_variable = { CWIC_inflation_env_id = 11 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_2   = { if = { limit = { check_variable = { CWIC_inflation_env_id = 12 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_4   = { if = { limit = { check_variable = { CWIC_inflation_env_id = 13 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_8   = { if = { limit = { check_variable = { CWIC_inflation_env_id = 14 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_10  = { if = { limit = { check_variable = { CWIC_inflation_env_id = 15 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_15  = { if = { limit = { check_variable = { CWIC_inflation_env_id = 16 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_25  = { if = { limit = { check_variable = { CWIC_inflation_env_id = 17 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_50  = { if = { limit = { check_variable = { CWIC_inflation_env_id = 18 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_100 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 19 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_200 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 20 } } cwic_inflation_env_clear = yes } }
+
+cwic_inflation_tier_monthly_assign = {
+
+	# ------------------------------------------------------------
+	# 0) Compute YoY inflation (rough)
+	# ------------------------------------------------------------
+	clr_temp_variable = infl_yoy
+	set_temp_variable = { infl_yoy = CWIC_inflation_mom }
+	multiply_temp_variable = { infl_yoy = 12 }
+
+	# optional display percent (for GUI/loc later)
+	set_variable = { CWIC_infl_yoy = infl_yoy }
+
+	# ------------------------------------------------------------
+	# 1) Determine new tier id from YoY inflation
+	# ------------------------------------------------------------
+	clr_temp_variable = new_tier
+	set_temp_variable = { new_tier = 0 }
+
+	# Deep deflation (< -3%)
+	if = {
+		limit = { check_variable = { infl_yoy < -0.03 } }
+		set_temp_variable = { new_tier = 3 }
+	}
+	# Strong deflation (-3% to -2%)
+	else_if = {
+		limit = { check_variable = { infl_yoy < -0.02 } }
+		set_temp_variable = { new_tier = 2 }
+	}
+	# Mild deflation (-2% to 0%)
+	else_if = {
+		limit = { check_variable = { infl_yoy < 0 } }
+		set_temp_variable = { new_tier = 1 }
+	}
+
+	# Severe hyperinflation (> 200%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 2.00 } }
+		set_temp_variable = { new_tier = 20 }
+	}
+	# Hyperinflation (> 100%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 1.00 } }
+		set_temp_variable = { new_tier = 19 }
+	}
+	# Crisis inflation (> 50%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.50 } }
+		set_temp_variable = { new_tier = 18 }
+	}
+	# Serious inflation (> 25%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.25 } }
+		set_temp_variable = { new_tier = 17 }
+	}
+	# High inflation (> 15%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.15 } }
+		set_temp_variable = { new_tier = 16 }
+	}
+	# Moderate inflation (> 10%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.10 } }
+		set_temp_variable = { new_tier = 15 }
+	}
+	# Noticeable inflation (> 8%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.08 } }
+		set_temp_variable = { new_tier = 14 }
+	}
+	# Mild inflation (> 4%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.04 } }
+		set_temp_variable = { new_tier = 13 }
+	}
+	# Stable inflation (> 2%)
+	else_if = {
+		limit = { check_variable = { infl_yoy > 0.02 } }
+		set_temp_variable = { new_tier = 12 }
+	}
+	# Very stable (0–2%)
+	else = {
+		set_temp_variable = { new_tier = 11 }
+	}
+
+	# ------------------------------------------------------------
+	# 2) Hysteresis: require 2 consecutive months to change tier
+	# ------------------------------------------------------------
+	# init
+	if = { limit = { check_variable = { CWIC_infl_tier_id = 0 } } set_variable = { CWIC_infl_tier_id = new_tier } }
+	if = { limit = { check_variable = { CWIC_infl_tier_pending = 0 } } set_variable = { CWIC_infl_tier_pending = new_tier } }
+	if = { limit = { check_variable = { CWIC_infl_tier_pending_count = 0 } } set_variable = { CWIC_infl_tier_pending_count = 0 } }
+
+	# if new_tier equals current, reset pending
+	if = {
+		limit = { check_variable = { new_tier = CWIC_infl_tier_id } }
+		set_variable = { CWIC_infl_tier_pending = new_tier }
+		set_variable = { CWIC_infl_tier_pending_count = 0 }
+	}
+	else = {
+		# if pending matches new_tier, increment count, else reset pending
+		if = {
+			limit = { check_variable = { new_tier = CWIC_infl_tier_pending } }
+			add_to_variable = { CWIC_infl_tier_pending_count = 1 }
+		}
+		else = {
+			set_variable = { CWIC_infl_tier_pending = new_tier }
+			set_variable = { CWIC_infl_tier_pending_count = 1 }
+		}
+
+		# commit after 2 consecutive months
+		if = {
+			limit = { check_variable = { CWIC_infl_tier_pending_count >= 2 } }
+			set_variable = { CWIC_infl_tier_id = new_tier }
+			set_variable = { CWIC_infl_tier_pending_count = 0 }
+		}
+	}
+
+	# ------------------------------------------------------------
+	# 3) Apply tier idea (remove all, then add the one for CWIC_infl_tier_id)
+	# ------------------------------------------------------------
+	remove_ideas = CWIC_infl_env_deflation_1
+	remove_ideas = CWIC_infl_env_deflation_2
+	remove_ideas = CWIC_infl_env_deflation_3
+	remove_ideas = CWIC_infl_env_very_stable_1
+	remove_ideas = CWIC_infl_env_stable_2
+	remove_ideas = CWIC_infl_env_mild_4
+	remove_ideas = CWIC_infl_env_noticeable_8
+	remove_ideas = CWIC_infl_env_moderate_10
+	remove_ideas = CWIC_infl_env_high_15
+	remove_ideas = CWIC_infl_env_serious_25
+	remove_ideas = CWIC_infl_env_crisis_50
+	remove_ideas = CWIC_infl_env_hyper_light_100
+	remove_ideas = CWIC_infl_env_hyper_hard_200
+
+	# Add the active one
+	if = { limit = { check_variable = { CWIC_infl_tier_id = 3 } } add_ideas = CWIC_infl_env_deflation_3 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 2 } } add_ideas = CWIC_infl_env_deflation_2 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 1 } } add_ideas = CWIC_infl_env_deflation_1 }
+
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 20 } } add_ideas = CWIC_infl_env_hyper_hard_200 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 19 } } add_ideas = CWIC_infl_env_hyper_light_100 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 18 } } add_ideas = CWIC_infl_env_crisis_50 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 17 } } add_ideas = CWIC_infl_env_serious_25 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 16 } } add_ideas = CWIC_infl_env_high_15 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 15 } } add_ideas = CWIC_infl_env_moderate_10 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 14 } } add_ideas = CWIC_infl_env_noticeable_8 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 13 } } add_ideas = CWIC_infl_env_mild_4 }
+	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 12 } } add_ideas = CWIC_infl_env_stable_2 }
+	else = { add_ideas = CWIC_infl_env_very_stable_1 }
+}
