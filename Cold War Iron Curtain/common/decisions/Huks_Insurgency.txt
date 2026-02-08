@@ -77,7 +77,16 @@ Huks_Insurgency_Decisions = {
 	huks_attack_hacienda_luisita = {
 		icon = generic_civil_support
 		allowed = { tag = HUK }
-		visible = { owns_state = 1949 }
+		visible = { 
+			OR = {
+				any_owned_state = {
+					any_neighbor_state = {
+						state = 1949
+					}
+				}
+				owns_state = 1949
+			}
+		}
 		available = {
 			has_army_manpower = {
 				size > 14999
@@ -90,25 +99,156 @@ Huks_Insurgency_Decisions = {
 		complete_effect = {
 			set_country_flag = time_to_end_plantations
 			PHI = { country_event = HUK_insurgency.7 }
+			custom_effect_tooltip = huks_attack_hacienda_luisita_tt
 		}
 	}
-	huks_contest_state = {
+	huks_attack_hacienda_luisita_owned = {
 		icon = generic_civil_support
 		allowed = { tag = HUK }
-		visible = {
-			any_owned_state = { any_neighbor_state = { has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } } }
+		visible = { 
+			has_country_flag = time_to_end_plantations
+			NOT = { has_active_mission = huks_attack_hacienda_luisita_owned_mission }
 		}
-		on_map_mode = map_and_decisions_view
-		state_target = yes
-		target_trigger = {
-			FROM = {
-				AND = {
-					has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier }
-					check_variable = { huk_barrios > 70 }
+		available = {
+			owns_state = 1949
+			has_army_manpower = {
+				size > 14999
+			}
+			divisions_in_state = {
+				size > 0
+				state = 1949
+			}
+		}
+		custom_cost_trigger = {
+			command_power > 14
+		}
+		custom_cost_text = HUK_decision_cost_CP_15
+		ai_will_do = {
+			factor = 0
+		}
+		fire_only_once = no
+		complete_effect = {
+			add_command_power = -15
+			activate_mission = huks_attack_hacienda_luisita_owned_mission
+		}
+	}
+	huks_attack_hacienda_luisita_owned_mission = {
+		icon = generic_civil_support
+		allowed = { tag = HUK }
+		available = {
+			always = no
+		}
+		days_mission_timeout = 15
+		activation = {
+			always = no
+		}
+		complete_effect = {
+			
+		}
+		cancel_trigger = {
+			divisions_in_state = {
+				size < 1
+				state = 1949
+			}
+		}
+		is_good = yes
+		timeout_effect = {
+			1947 = { set_state_flag = huk_can_raid }
+			1948 = { set_state_flag = huk_can_raid }
+			1953 = { set_state_flag = huk_can_raid }
+			custom_effect_tooltip = insurgency_raid_HUK_hacienda_luisita_effect_tt
+			1948 = { add_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+			1949 = { add_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+			1953 = { add_dynamic_modifier = { modifier = HUK_disrupted_control_modifier } }
+			clr_country_flag = time_to_end_plantations
+			add_equipment_to_stockpile = {
+				type = infantry_equipment
+				amount = 1500
+				producer = PHI
+			}
+			add_manpower = 1000
+		}
+	}
+	huks_recruit_government_troops = {
+		icon = generic_civil_support
+		allowed = { tag = HUK }
+		available = {
+			
+		}
+		custom_cost_trigger = {
+			has_political_power > 199
+			check_variable = {
+				currentMoney > 0.5
+			}
+		}
+		custom_cost_text = decision_cost_huks_recruit_government_troops
+		ai_will_do = {
+			factor = 0
+		}
+		days_remove = 30
+		
+		fire_only_once = yes
+		complete_effect = {
+			add_political_power = -200
+			add_to_variable = {
+				currentMoney = -0.5
+			}
+			set_temp_variable = {
+				x = -500
+				tooltip = adjust_money_mil_tt
+			}
+		}
+		remove_effect = {
+			division_template = {
+				name = "Constabulary District Division"
+				regiments = {
+					militia = { x = 0 y = 0 }
+					militia = { x = 0 y = 1 }
+					militia = { x = 0 y = 2 }
+					artillery = { x = 1 y = 0 }
+				}
+				support = {
+					engineer = { x = 0 y = 0 }
+					signal_company = { x = 0 y = 1 }
+					recon_motorized = { x = 0 y = 2 }
+				}
+			}
+			capital_scope = {
+				create_unit = { 
+					division = "name = \"Constabulary Division \"Bulacan\"\" division_template = \"Constabulary District Division\" start_experience_factor = 1 start_equipment_factor = 1"
+					owner = HUK
+					count = 2
 				}
 			}
 		}
-		available = { has_border_war = no }
+	}
+	huks_contest_state = {
+		icon = border_war
+		allowed = { tag = HUK }
+		visible = {
+			has_global_flag = huks_insurgency
+		}
+		on_map_mode = map_only
+		state_target = yes
+		target_trigger = {
+			FROM = {
+				any_neighbor_state = { 
+					is_owned_by = HUK
+				}
+				is_owned_by = PHI
+				has_state_flag = huk_can_raid
+			}
+		}
+		available = { 
+			has_border_war = no
+			FROM = {
+				has_dynamic_modifier = { modifier = HUK_disrupted_control_modifier }
+				custom_trigger_tooltip = {
+					tooltip = insurgency_raid_HUK_convoy_tt
+					check_variable = { huk_barrios > 69 }
+				}
+			}
+		}
 		ai_will_do = {
 			factor = 1
 		}
@@ -137,6 +277,7 @@ Huks_Insurgency_Decisions = {
 					on_cancel = Indochina_War.4
 				}
 			}
+			custom_effect_tooltip = HUK_border_war_tt
 		}
 	}
 	huks_reestablish_communications = {
@@ -160,6 +301,7 @@ Huks_Insurgency_Decisions = {
 					size > 1
 				}
 			}
+			NOT = { has_active_mission = huks_reestablish_communications_timer }
 		}
 		ai_will_do = {
 			factor = 1
@@ -216,53 +358,7 @@ Huks_Insurgency_Decisions = {
 			set_country_flag = magsaysay_secnatdef
 			add_ideas = phi_magsaysay_secnatdef_1
 			HUK = { country_event = HUK_insurgency.8 }
-		}
-	}
-	huks_raid_communist_hq = {
-		icon = generic_civil_support
-		allowed = { tag = PHI }
-		visible = {
-			has_idea = phi_magsaysay_secnatdef_1
-		}
-		on_map_mode = map_only
-		state_target = yes
-		target_trigger = {
-			FROM = {
-				is_owned_by = HUK
-				any_neighbor_state = { is_owned_by = PHI }
-				is_capital = no
-			}
-		}
-		available = { has_border_war = no }
-		ai_will_do = {
-			factor = 1
-		}
-		#fire_only_once = yes
-		complete_effect = {
-			FROM = {
-				set_variable = { ROOT.defender_state = THIS.id }
-				random_neighbor_state = {
-					limit = { is_owned_by = PHI }
-					set_variable = { ROOT.attacker_state = THIS.id }
-				}
-			}
-			start_border_war = {
-				change_state_after_war = no
-				defender = {
-					state = FROM
-					num_provinces = 1
-					on_win = HUK_insurgency.11
-					on_lose = HUK_insurgency.12
-					on_cancel = Indochina_War.4
-				}
-				attacker = {
-					state = var:attacker_state
-					num_provinces = 1
-					on_win = HUK_insurgency.13
-					on_lose = HUK_insurgency.14
-					on_cancel = Indochina_War.4
-				}
-			}
+			custom_effect_tooltip = huks_offer_magsaysay_secnatdef
 		}
 	}
 	huks_enroll_edcor = {
