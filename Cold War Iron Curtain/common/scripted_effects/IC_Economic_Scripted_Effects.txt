@@ -966,3 +966,59 @@ add_loans_effect = {
 	add_to_variable = { currentDebtPayments = debtPayment }
 	loan_set_assigning_borrowable = yes
 }
+
+cwic_fx_regime_monthly = {
+
+	if = { limit = { NOT = { has_variable = CWIC_fx_regime } } set_variable = { CWIC_fx_regime = 0 } }
+	if = { limit = { NOT = { has_variable = CWIC_fx_reserves } } set_variable = { CWIC_fx_reserves = 0 } }
+	if = { limit = { NOT = { has_variable = CWIC_black_market_pressure } } set_variable = { CWIC_black_market_pressure = 0 } }
+
+	# Peg maintenance
+	if = {
+		limit = { check_variable = { CWIC_fx_regime = 1 } }
+
+		# Peg credibility anchor: modest inflation suppression (tunable)
+		subtract_from_variable = { CWIC_inflation_mom = 0.0010 }
+
+		# Reserve drain under pressure (inflation + black market proxy)
+		set_temp_variable = { peg_drain = 0 }
+
+		# Drain from inflation (only if positive)
+		set_temp_variable = { peg_infl = CWIC_inflation_mom }
+		if = { limit = { check_variable = { peg_infl < 0 } } set_temp_variable = { peg_infl = 0 } }
+		multiply_temp_variable = { peg_infl = 40 }          # tuning knob (reserve sensitivity)
+		add_to_temp_variable = { peg_drain = peg_infl }
+
+		# Drain from black market (proxy for FX leakage)
+		set_temp_variable = { peg_bm = CWIC_black_market_pressure }
+		multiply_temp_variable = { peg_bm = 8 }             # tuning knob
+		add_to_temp_variable = { peg_drain = peg_bm }
+
+		subtract_from_variable = { CWIC_fx_reserves = peg_drain }
+
+		# Clamp reserves
+		if = { limit = { check_variable = { CWIC_fx_reserves < 0 } } set_variable = { CWIC_fx_reserves = 0 } }
+
+		# Peg break condition: low reserves + high inflation pressure
+		if = {
+			limit = {
+				check_variable = { CWIC_fx_reserves < 1 }
+				check_variable = { CWIC_inflation_mom > 0.008 }
+			}
+			set_variable = { CWIC_fx_regime = 0 }
+			set_country_flag = CWIC_fx_pegged_currency_break
+
+			# Break shock (tunable)
+			add_to_variable = { CWIC_inflation_mom = 0.010 }
+			add_to_variable = { CWIC_black_market_pressure = 0.10 }
+			add_to_variable = { CWIC_inflation_bias_mom = 0.001 }
+
+			# Clamp black market
+			if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
+		}
+	}
+	else = {
+		# Clear break flag if floating
+		clr_country_flag = CWIC_fx_pegged_currency_break
+	}
+}

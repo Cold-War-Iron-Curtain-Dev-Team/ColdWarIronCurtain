@@ -339,6 +339,9 @@ process_credit_rating = {
 		}
 	}
 	else = {
+		# Money printing erodes credit credibility over time
+		if = { limit = { has_country_flag = CWIC_money_printing_active } add_to_variable = { Credit_Progress = -1 } }
+
 		if = {
 			limit = {
 				NOT = {
@@ -1014,6 +1017,8 @@ set_starting_credit_ratings = {
 }
 
 set_interest_rates = {
+	# Monetary policy multiplier (1 = neutral). Used by currency policy decisions.
+	if = { limit = { NOT = { has_variable = CWIC_monetary_policy_mult } } set_variable = { CWIC_monetary_policy_mult = 1 } }
 	if = {
 		limit = {
 			check_variable = {
@@ -1199,6 +1204,56 @@ set_interest_rates = {
 		}
 	}
 	else = {
+	}
+
+	# Apply monetary stance (multiplies base rate by CWIC_monetary_policy_mult)
+	multiply_variable = { Interest_Rate = CWIC_monetary_policy_mult }
+
+	# Reserve currency privilege: structural discount on borrowing costs (tunable)
+	if = {
+		limit = { check_variable = { CWIC_reserve_currency > 0 } }
+
+		# Base rate discount scales with trust
+		set_temp_variable = { reserve_discount = CWIC_reserve_trust }
+		multiply_temp_variable = { reserve_discount = 0.10 }   # max 10% discount
+		set_temp_variable = { reserve_mult = 1 }
+		subtract_from_temp_variable = { reserve_mult = reserve_discount }
+		multiply_variable = { Interest_Rate = reserve_mult }
+
+		# Inflation premium dampening scales with trust
+		set_temp_variable = { infl_discount = CWIC_reserve_trust }
+		multiply_temp_variable = { infl_discount = 0.50 }      # max 50% dampening
+		set_temp_variable = { infl_mult = 1 }
+		subtract_from_temp_variable = { infl_mult = infl_discount }
+		multiply_variable = { infl_premium = infl_mult }
+	}
+
+	# Inflation risk premium: higher inflation increases borrowing costs
+	# Reserve currency issuers experience a dampened premium (exorbitant privilege).
+	if = {
+		limit = { has_variable = CWIC_inflation_mom }
+
+		set_temp_variable = { infl_premium = CWIC_inflation_mom }
+		multiply_temp_variable = { infl_premium = 2.0 } # tuning knob
+
+		# Reserve issuer premium dampener
+		if = {
+			limit = {
+				has_variable = CWIC_reserve_currency
+				check_variable = { CWIC_reserve_currency > 0 }
+			}
+			multiply_temp_variable = { infl_premium = 0.50 } # tuning knob
+		}
+
+		add_to_variable = { Interest_Rate = infl_premium }
+	}
+	if = {
+		limit = { has_global_flag = CWIC_oil_pricing_USA }
+		if = { limit = { original_tag = USA } multiply_variable = { Interest_Rate = 0.95 } }
+	}
+	if = {
+		limit = { has_global_flag = CWIC_oil_pricing_SOV }
+		if = { limit = { original_tag = SOV } multiply_variable = { Interest_Rate = 0.95 } }
 	}
 }
 
@@ -1957,3 +2012,338 @@ get_decade_industrial_base_capita = {
 	}
 }
 
+
+
+get_decade_industrial_base_capita = {
+	if = {
+		limit = {
+			date < 1960.1.1
+		}
+		set_variable = { current_decade = 1950 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 0.49 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 1970.1.1
+		}
+		set_variable = { current_decade = 1960 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3.5 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2.5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.75 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 0.99 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 1980.1.1
+		}
+		set_variable = { current_decade = 1970 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 7 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3.5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2.25 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.49 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 1990.1.1
+		}
+		set_variable = { current_decade = 1980 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 10 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 7 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 1.99 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else_if = {
+		limit = {
+			date < 2000.1.1
+		}
+		set_variable = { current_decade = 1990 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 15 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 10 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 8 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 5 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 2.99 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+	else = {
+		set_variable = { current_decade = 2000 }
+		if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 20 }
+			}
+			set_variable = { industrial_base_tier = 6 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 15 }
+			}
+			set_variable = { industrial_base_tier = 5 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 10 }
+			}
+			set_variable = { industrial_base_tier = 4 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 8 }
+			}
+			set_variable = { industrial_base_tier = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { grossdomesticproductcapita > 3.49 }
+			}
+			set_variable = { industrial_base_tier = 2 }
+		}
+		else = { set_variable = { industrial_base_tier = 1 } }
+	}
+}
+
+cwic_default_monthly_check = {
+
+	# Safety init
+	if = { limit = { NOT = { has_variable = currentDebtPayments } } set_variable = { currentDebtPayments = 0 } }
+	if = { limit = { NOT = { has_variable = currentMoney } } set_variable = { currentMoney = 0 } }
+	if = { limit = { NOT = { has_variable = Credit_Rating } } set_variable = { Credit_Rating = 7 } }
+
+	# Evaluate only if payments exist
+	if = {
+		limit = { check_variable = { currentDebtPayments > 0.01 } }
+
+		# Liquidity default: cannot cover debt service this month
+		if = {
+			limit = { check_variable = { currentMoney < currentDebtPayments } }
+
+			set_country_flag = CWIC_DEFAULTED
+			set_country_flag = CWIC_MARKET_LOCKOUT
+
+			# Immediate credibility hit (tunable)
+			subtract_from_variable = { Credit_Rating = 2 }
+			if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
+
+			# Macro shock (tunable)
+			add_to_variable = { CWIC_inflation_mom = 0.010 }
+			add_to_variable = { CWIC_black_market_pressure = 0.10 }
+
+			# Clamp black market
+			if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
+		}
+	}
+}
+cwic_clear_default_status = {
+	clr_country_flag = CWIC_DEFAULTED
+	clr_country_flag = CWIC_MARKET_LOCKOUT
+}
+cwic_reserve_currency_update = {
+
+	if = { limit = { NOT = { has_variable = CWIC_reserve_currency } } set_variable = { CWIC_reserve_currency = 0 } }
+	if = { limit = { NOT = { has_variable = CWIC_reserve_trust } } set_variable = { CWIC_reserve_trust = 0 } }
+
+	# Only evaluate for current reserve issuers
+	if = {
+		limit = { check_variable = { CWIC_reserve_currency > 0 } }
+
+		# Inflation erosion
+		if = { limit = { check_variable = { CWIC_inflation_mom > 0.01 } } subtract_from_variable = { CWIC_reserve_trust = 0.02 } }
+
+		# Default destroys trust
+		if = { limit = { has_country_flag = CWIC_DEFAULTED } subtract_from_variable = { CWIC_reserve_trust = 0.10 } }
+
+		# Peg collapse reduces credibility
+		if = { limit = { has_country_flag = CWIC_fx_pegged_currency_break } subtract_from_variable = { CWIC_reserve_trust = 0.05 } }
+
+		# Stability helps rebuild trust slowly
+		if = { limit = { check_variable = { CWIC_inflation_mom < 0.004 } } add_to_variable = { CWIC_reserve_trust = 0.01 } }
+
+		# Clamp trust
+		if = { limit = { check_variable = { CWIC_reserve_trust > 1 } } set_variable = { CWIC_reserve_trust = 1 } }
+		if = { limit = { check_variable = { CWIC_reserve_trust < 0 } } set_variable = { CWIC_reserve_trust = 0 } }
+
+		# Lose reserve status if trust collapses
+		if = {
+			limit = { check_variable = { CWIC_reserve_trust < 0.30 } }
+			set_variable = { CWIC_reserve_currency = 0 }
+		}
+	}
+	# Lose reserve if GDP collapses
+	if = {
+		limit = {
+			check_variable = { CWIC_reserve_currency > 0 }
+			check_variable = { grossdomesticproduct < 200 }
+		}
+		set_variable = { CWIC_reserve_currency = 0 }
+	}
+}
+cwic_reserve_candidate_check = {
+
+	if = { limit = { NOT = { has_variable = grossdomesticproduct } } set_variable = { grossdomesticproduct = 0 } }
+
+	set_variable = { CWIC_reserve_candidate = 0 }
+
+	if = {
+		limit = {
+			check_variable = { grossdomesticproduct > 300 }
+			check_variable = { CWIC_inflation_mom < 0.004 }
+			check_variable = { Credit_Rating > 8 }
+			NOT = { has_country_flag = CWIC_DEFAULTED }
+		}
+		set_variable = { CWIC_reserve_candidate = 1 }
+	}
+}
+cwic_oil_pricing_monthly = {
+
+	# Clear structural oil trust bonus
+	if = { limit = { has_variable = CWIC_oil_structural_bonus } set_variable = { CWIC_oil_structural_bonus = 0 } }
+
+	# USA oil pricing
+	if = {
+		limit = { has_global_flag = CWIC_oil_pricing_USA }
+		if = { limit = { original_tag = USA } add_to_variable = { CWIC_reserve_trust = 0.01 } }
+	}
+
+	# USSR oil pricing
+	if = {
+		limit = { has_global_flag = CWIC_oil_pricing_USSR }
+		if = { limit = { original_tag = SOV } add_to_variable = { CWIC_reserve_trust = 0.01 } }
+	}
+
+	# Clamp trust
+	if = { limit = { check_variable = { CWIC_reserve_trust > 1 } } set_variable = { CWIC_reserve_trust = 1 } }
+}

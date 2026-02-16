@@ -548,3 +548,76 @@ imf_pulse_event_effect = {
 		}
 }
 
+
+# ============================================================
+# CWIC Credit-Driven IMF Programs (Stand-By Arrangements)
+# Separate from legacy IMF influence-array pulse.
+# ============================================================
+
+cwic_imf_eligibility_update = {
+	# Default: not eligible
+	set_variable = { CWIC_imf_eligible = 0 }
+
+	# Safety init for Credit_Rating if missing
+	if = { limit = { NOT = { has_variable = Credit_Rating } } set_variable = { Credit_Rating = 7 } }
+
+	# Eligible if rating is poor or if defaulted
+	if = { limit = { check_variable = { Credit_Rating < 5 } } set_variable = { CWIC_imf_eligible = 1 } }
+	if = { limit = { has_country_flag = CWIC_DEFAULTED } set_variable = { CWIC_imf_eligible = 1 } }
+
+	# Not eligible if already in a program
+	if = { limit = { has_country_flag = CWIC_IMF_PROGRAM_ACTIVE } set_variable = { CWIC_imf_eligible = 0 } }
+}
+
+cwic_imf_start_program = {
+
+	# Begin a 3-tranche SBA (tunable)
+	set_country_flag = CWIC_IMF_PROGRAM_ACTIVE
+	set_variable = { CWIC_imf_tranche_remaining = 3 }
+
+	# Cash injection (billions; tune later)
+	add_to_variable = { currentMoney = 8 }
+
+	# Credibility improvement: reduce chronic inflation pressure
+	if = { limit = { NOT = { has_variable = CWIC_inflation_bias_mom } } set_variable = { CWIC_inflation_bias_mom = 0 } }
+	subtract_from_variable = { CWIC_inflation_bias_mom = 0.001 }
+	if = { limit = { check_variable = { CWIC_inflation_bias_mom < -0.005 } } set_variable = { CWIC_inflation_bias_mom = -0.005 } }
+
+	# Conditionality flags (hook into spending / policy later)
+	set_country_flag = CWIC_IMF_COND_AUSTERITY
+	set_country_flag = CWIC_IMF_COND_TIGHTENING
+
+	# Stabilization reduces informalization somewhat
+	if = { limit = { NOT = { has_variable = CWIC_black_market_pressure } } set_variable = { CWIC_black_market_pressure = 0 } }
+	subtract_from_variable = { CWIC_black_market_pressure = 0.08 }
+	if = { limit = { check_variable = { CWIC_black_market_pressure < 0 } } set_variable = { CWIC_black_market_pressure = 0 } }
+
+	# Re-entry from default
+	if = { limit = { has_country_flag = CWIC_DEFAULTED } clr_country_flag = CWIC_DEFAULTED }
+	clr_country_flag = CWIC_MARKET_LOCKOUT
+}
+
+cwic_imf_tranche_payout = {
+	# Call on a scheduled cadence (suggested: every 90 days) while program is active
+
+	if = {
+		limit = { has_country_flag = CWIC_IMF_PROGRAM_ACTIVE }
+
+		if = {
+			limit = { check_variable = { CWIC_imf_tranche_remaining > 0 } }
+			subtract_from_variable = { CWIC_imf_tranche_remaining = 1 }
+			add_to_variable = { currentMoney = 4 }
+
+			# Printing while under IMF undermines the program
+			if = { limit = { has_country_flag = CWIC_money_printing_active } add_to_variable = { CWIC_inflation_bias_mom = 0.001 } }
+		}
+
+		# End program once all tranches are disbursed
+		if = {
+			limit = { check_variable = { CWIC_imf_tranche_remaining < 1 } }
+			clr_country_flag = CWIC_IMF_PROGRAM_ACTIVE
+			clr_country_flag = CWIC_IMF_COND_AUSTERITY
+			clr_country_flag = CWIC_IMF_COND_TIGHTENING
+		}
+	}
+}
