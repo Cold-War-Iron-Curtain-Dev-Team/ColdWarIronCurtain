@@ -16,6 +16,11 @@ cwic_inflation_monthly_pulse = {
 		limit = { check_variable = { CWIC_inflation_mom = 0 } }
 		set_variable = { CWIC_inflation_mom = 0.002 }
 	}
+	# Monetary policy multiplier default
+	if = {
+		limit = { NOT = { has_variable = CWIC_monetary_policy_mult } }
+		set_variable = { CWIC_monetary_policy_mult = 1 }
+	}
 
 	# ============================================================
 	# 1) Clear temps
@@ -117,6 +122,23 @@ cwic_inflation_monthly_pulse = {
 	multiply_temp_variable = { td = k_td }
 
 	# ============================================================
+	# 7b) Monetary transmission channel (second-order effect)
+	#     Higher rates suppress inflation further.
+	#     Lower-than-neutral rates mildly stimulate.
+	# ============================================================
+
+	set_temp_variable = { rate_trans = Interest_Rate }
+	subtract_from_temp_variable = { rate_trans = 1 }     # deviation from neutral
+
+	# clamp deviation (avoid extreme spiral)
+	if = { limit = { check_variable = { rate_trans > 0.50 } } set_temp_variable = { rate_trans = 0.50 } }
+	if = { limit = { check_variable = { rate_trans < -0.50 } } set_temp_variable = { rate_trans = -0.50 } }
+
+	# transmission strength tuning knob
+	set_temp_variable = { k_trans = 0.50 }
+	multiply_temp_variable = { rate_trans = k_trans }
+
+	# ============================================================
 	# 8) Expectations multiplier from Credit_Rating
 	#    credibility = Credit_Rating / 10 clamped to 0.1..1.0
 	#    expect_mult = 1 + k_exp * (1 - credibility)
@@ -144,6 +166,8 @@ cwic_inflation_monthly_pulse = {
 	multiply_temp_variable = { raw_infl = expect_mult }
 	add_to_temp_variable = { raw_infl = base_infl }
 	subtract_from_temp_variable = { raw_infl = td }
+	subtract_from_temp_variable = { raw_infl = rate_trans }
+
 
    # Tag bias (can be negative for deflation-prone economies)
     add_to_temp_variable = { raw_infl = CWIC_inflation_bias_mom }
@@ -256,7 +280,8 @@ cwic_inflation_env_set_200 = {
 	set_variable = { CWIC_inflation_env_id = 20 }
 }
 cwic_inflation_env_remove_defl_1 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 1 } } cwic_inflation_env_clear = yes } }
-cwic_inflation_env_remove_defl_2 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 2 } } cwic_inflation_env_clear = yes } }
+cwic_inflation_env_remove_defl_2 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 2 } } cwic
+	multiply_temp_variable = { infl_yoy = 12 }_inflation_env_clear = yes } }
 cwic_inflation_env_remove_defl_3 = { if = { limit = { check_variable = { CWIC_inflation_env_id = 3 } } cwic_inflation_env_clear = yes } }
 
 cwic_inflation_env_remove_1   = { if = { limit = { check_variable = { CWIC_inflation_env_id = 11 } } cwic_inflation_env_clear = yes } }
@@ -277,7 +302,6 @@ cwic_inflation_tier_monthly_assign = {
 	# ------------------------------------------------------------
 	clr_temp_variable = infl_yoy
 	set_temp_variable = { infl_yoy = CWIC_inflation_mom }
-	multiply_temp_variable = { infl_yoy = 12 }
 
 	# optional display percent (for GUI/loc later)
 	set_variable = { CWIC_infl_yoy = infl_yoy }
@@ -419,4 +443,342 @@ cwic_inflation_tier_monthly_assign = {
 	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 13 } } add_ideas = CWIC_infl_env_mild_4 }
 	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 12 } } add_ideas = CWIC_infl_env_stable_2 }
 	else = { add_ideas = CWIC_infl_env_very_stable_1 }
+}
+cwic_capital_controls_monthly_effects = {
+
+	# --------------------------------------------
+	# Init safe defaults if missing (optional)
+	# --------------------------------------------
+	if = { limit = { NOT = { has_variable = CWIC_black_market_pressure } } set_variable = { CWIC_black_market_pressure = 0 } }
+	if = { limit = { NOT = { has_variable = CWIC_productivity_mult } } set_variable = { CWIC_productivity_mult = 0 } }
+
+	# --------------------------------------------
+	# Ongoing inflation suppression + distortion costs
+	# --------------------------------------------
+
+	# Light capital controls
+	if = {
+		limit = { has_country_flag = CWIC_capital_controls_light }
+
+		# modest ongoing inflation suppression
+		subtract_from_variable = { CWIC_inflation_mom = 0.0005 }
+
+		# distortions accumulate
+		add_to_variable = { CWIC_black_market_pressure = 0.01 }
+		add_to_variable = { CWIC_productivity_mult = -0.002 }
+	}
+
+	# Heavy capital controls
+	if = {
+		limit = { has_country_flag = CWIC_capital_controls_heavy }
+
+		# stronger ongoing inflation suppression
+		subtract_from_variable = { CWIC_inflation_mom = 0.0015 }
+
+		# distortions accumulate faster
+		add_to_variable = { CWIC_black_market_pressure = 0.03 }
+		add_to_variable = { CWIC_productivity_mult = -0.006 }
+	}
+
+	# Price controls (essentials)
+	if = {
+		limit = { has_country_flag = CWIC_price_controls_basic }
+
+		# suppress inflation mechanically short-term
+		subtract_from_variable = { CWIC_inflation_mom = 0.0007 }
+
+		# black market grows (shortages / informal trade)
+		add_to_variable = { CWIC_black_market_pressure = 0.02 }
+		add_to_variable = { CWIC_productivity_mult = -0.003 }
+	}
+
+	# Dual exchange rate system
+	if = {
+		limit = { has_country_flag = CWIC_fx_controls_dual }
+
+		# suppress inflation via forced FX allocation
+		subtract_from_variable = { CWIC_inflation_mom = 0.0010 }
+
+		# very distortionary
+		add_to_variable = { CWIC_black_market_pressure = 0.03 }
+		add_to_variable = { CWIC_productivity_mult = -0.008 }
+	}
+
+	# --------------------------------------------
+	# Natural recovery / decay if no controls
+	# --------------------------------------------
+	if = {
+		limit = {
+			NOT = { has_country_flag = CWIC_capital_controls_light }
+			NOT = { has_country_flag = CWIC_capital_controls_heavy }
+			NOT = { has_country_flag = CWIC_price_controls_basic }
+			NOT = { has_country_flag = CWIC_fx_controls_dual }
+		}
+
+		# black market pressure slowly decays
+		subtract_from_variable = { CWIC_black_market_pressure = 0.01 }
+
+		# productivity drag slowly recovers toward 0
+		add_to_variable = { CWIC_productivity_mult = 0.003 }
+	}
+
+	# --------------------------------------------
+	# Clamp safety (avoid negative black market or positive runaway productivity mult)
+	# --------------------------------------------
+	if = { limit = { check_variable = { CWIC_black_market_pressure < 0 } } set_variable = { CWIC_black_market_pressure = 0 } }
+	if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
+
+	if = { limit = { check_variable = { CWIC_productivity_mult > 0 } } set_variable = { CWIC_productivity_mult = 0 } }
+	if = { limit = { check_variable = { CWIC_productivity_mult < -0.25 } } set_variable = { CWIC_productivity_mult = -0.25 } }
+
+	# --------------------------------------------
+	# Black market feedback loop
+	# High black market pressure makes inflation harder to control
+	# and slows productivity recovery even if controls are lifted.
+	# --------------------------------------------
+
+	# Mild black market feedback
+	if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.25 } }
+		add_to_variable = { CWIC_inflation_mom = 0.0003 }
+		add_to_variable = { CWIC_productivity_mult = -0.002 }
+	}
+
+	# Strong feedback
+	if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.50 } }
+		add_to_variable = { CWIC_inflation_mom = 0.0007 }
+		add_to_variable = { CWIC_productivity_mult = -0.004 }
+	}
+
+	# Severe feedback
+	if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.75 } }
+		add_to_variable = { CWIC_inflation_mom = 0.0012 }
+		add_to_variable = { CWIC_productivity_mult = -0.006 }
+	}
+
+}
+#Black Market
+cwic_black_market_monthly_update = {
+
+	# --------------------------------------------
+	# Safe init
+	# --------------------------------------------
+	if = { limit = { NOT = { has_variable = CWIC_black_market_pressure } } set_variable = { CWIC_black_market_pressure = 0 } }
+	if = { limit = { NOT = { has_variable = CWIC_black_market_tier_id } } set_variable = { CWIC_black_market_tier_id = 0 } }
+
+	# Optional inputs from other systems (if absent, defaults)
+	# CWIC_policing_eff should be 0..1 where 1 = strong policing capacity
+	if = { limit = { NOT = { has_variable = CWIC_policing_eff } } set_variable = { CWIC_policing_eff = 0.5 } }
+
+	# Optional shortage driver (0..1) if you have it
+	if = { limit = { NOT = { has_variable = CWIC_shortage_pressure } } set_variable = { CWIC_shortage_pressure = 0 } }
+
+	# --------------------------------------------
+	# Compute monthly delta = base + controls + shortages - policing - no-controls decay
+	# --------------------------------------------
+	set_temp_variable = { bm_delta = 0.002 } # base drift (tunable)
+
+	# Controls increase pressure
+	if = { limit = { has_country_flag = CWIC_capital_controls_light } add_to_temp_variable = { bm_delta = 0.010 } }
+	if = { limit = { has_country_flag = CWIC_capital_controls_heavy } add_to_temp_variable = { bm_delta = 0.030 } }
+	if = { limit = { has_country_flag = CWIC_price_controls_basic } add_to_temp_variable = { bm_delta = 0.020 } }
+	if = { limit = { has_country_flag = CWIC_fx_controls_dual } add_to_temp_variable = { bm_delta = 0.030 } }
+
+	# Shortages increase pressure (scaled by CWIC_shortage_pressure 0..1)
+	# Adds up to +0.020 at max shortage (tunable)
+	set_temp_variable = { bm_short = CWIC_shortage_pressure }
+	multiply_temp_variable = { bm_short = 0.020 }
+	add_to_temp_variable = { bm_delta = bm_short }
+
+	# High inflation tends to accelerate informalization (optional, lightweight)
+	if = { limit = { has_variable = CWIC_inflation_mom } 
+		if = { limit = { check_variable = { CWIC_inflation_mom > 0.010 } } add_to_temp_variable = { bm_delta = 0.005 } }  # ~12%+
+		if = { limit = { check_variable = { CWIC_inflation_mom > 0.020 } } add_to_temp_variable = { bm_delta = 0.010 } }  # ~24%+
+	}
+
+	# Policing reduces pressure: subtract (policing_eff * 0.020)
+	set_temp_variable = { bm_pol = CWIC_policing_eff }
+	multiply_temp_variable = { bm_pol = 0.020 }
+	subtract_from_temp_variable = { bm_delta = bm_pol }
+
+	# If no controls are active, apply extra decay (market normalizes)
+	if = {
+		limit = {
+			NOT = { has_country_flag = CWIC_capital_controls_light }
+			NOT = { has_country_flag = CWIC_capital_controls_heavy }
+			NOT = { has_country_flag = CWIC_price_controls_basic }
+			NOT = { has_country_flag = CWIC_fx_controls_dual }
+		}
+		subtract_from_temp_variable = { bm_delta = 0.010 } # extra decay (tunable)
+	}
+
+	# Apply delta
+	add_to_variable = { CWIC_black_market_pressure = bm_delta }
+
+	# --------------------------------------------
+	# Clamp 0..1
+	# --------------------------------------------
+	if = { limit = { check_variable = { CWIC_black_market_pressure < 0 } } set_variable = { CWIC_black_market_pressure = 0 } }
+	if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
+}
+cwic_black_market_tier_assign = {
+
+	# Ensure pressure exists
+	if = { limit = { NOT = { has_variable = CWIC_black_market_pressure } } set_variable = { CWIC_black_market_pressure = 0 } }
+
+	# Default
+	set_variable = { CWIC_black_market_tier_id = 0 }
+
+	# Severe (> 0.75)
+	if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.75 } }
+		set_variable = { CWIC_black_market_tier_id = 4 }
+	}
+	# High (> 0.50)
+	else_if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.50 } }
+		set_variable = { CWIC_black_market_tier_id = 3 }
+	}
+	# Moderate (> 0.25)
+	else_if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.25 } }
+		set_variable = { CWIC_black_market_tier_id = 2 }
+	}
+	# Low (> 0.10)
+	else_if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.10 } }
+		set_variable = { CWIC_black_market_tier_id = 1 }
+	}
+}
+cwic_black_market_apply_outputs = {
+
+	# Init outputs
+	set_variable = { CWIC_bm_tax_leak_mult = 0 }
+	set_variable = { CWIC_bm_productivity_penalty = 0 }
+	set_variable = { CWIC_bm_stability_penalty = 0 }
+
+	# Tier 1 (low)
+	if = {
+		limit = { check_variable = { CWIC_black_market_tier_id = 1 } }
+		set_variable = { CWIC_bm_tax_leak_mult = 0.03 }
+		set_variable = { CWIC_bm_productivity_penalty = 0.01 }
+		set_variable = { CWIC_bm_stability_penalty = 0.005 }
+	}
+	# Tier 2 (moderate)
+	else_if = {
+		limit = { check_variable = { CWIC_black_market_tier_id = 2 } }
+		set_variable = { CWIC_bm_tax_leak_mult = 0.08 }
+		set_variable = { CWIC_bm_productivity_penalty = 0.03 }
+		set_variable = { CWIC_bm_stability_penalty = 0.015 }
+	}
+	# Tier 3 (high)
+	else_if = {
+		limit = { check_variable = { CWIC_black_market_tier_id = 3 } }
+		set_variable = { CWIC_bm_tax_leak_mult = 0.18 }
+		set_variable = { CWIC_bm_productivity_penalty = 0.07 }
+		set_variable = { CWIC_bm_stability_penalty = 0.03 }
+	}
+	# Tier 4 (severe)
+	else_if = {
+		limit = { check_variable = { CWIC_black_market_tier_id = 4 } }
+		set_variable = { CWIC_bm_tax_leak_mult = 0.35 }
+		set_variable = { CWIC_bm_productivity_penalty = 0.12 }
+		set_variable = { CWIC_bm_stability_penalty = 0.06 }
+	}
+}
+cwic_currency_monthly_cooldowns = {
+
+	if = { limit = { NOT = { has_variable = CWIC_money_print_cooldown } } set_variable = { CWIC_money_print_cooldown = 0 } }
+	if = { limit = { NOT = { has_variable = CWIC_reform_cooldown } } set_variable = { CWIC_reform_cooldown = 0 } }
+
+	# decrement if > 0
+	if = { limit = { check_variable = { CWIC_money_print_cooldown > 0 } } subtract_from_variable = { CWIC_money_print_cooldown = 1 } }
+	if = { limit = { check_variable = { CWIC_reform_cooldown > 0 } } subtract_from_variable = { CWIC_reform_cooldown = 1 } }
+
+	# persistent effects while flags active
+	if = {
+		limit = { has_country_flag = CWIC_money_printing_active }
+		add_to_variable = { CWIC_inflation_mom = 0.0010 }
+		add_to_variable = { CWIC_black_market_pressure = 0.01 }
+	}
+
+	if = {
+		limit = { has_country_flag = CWIC_monetary_tightening_active }
+		subtract_from_variable = { CWIC_inflation_mom = 0.0010 }
+		add_to_variable = { CWIC_productivity_mult = -0.002 }
+	}
+
+	# reforms have a short “aftershock” window
+	if = {
+		limit = { has_country_flag = CWIC_currency_reform_recent }
+		add_to_variable = { CWIC_inflation_mom = 0.0005 }
+	}
+
+	# Clear reform recent flag after 6 months
+	if = { limit = { NOT = { has_variable = CWIC_reform_recent_months } } set_variable = { CWIC_reform_recent_months = 0 } }
+
+	if = {
+		limit = { has_country_flag = CWIC_currency_reform_recent }
+		add_to_variable = { CWIC_reform_recent_months = 1 }
+	}
+
+	if = {
+		limit = {
+			has_country_flag = CWIC_currency_reform_recent
+			check_variable = { CWIC_reform_recent_months > 6 }
+		}
+		clr_country_flag = CWIC_currency_reform_recent
+		set_variable = { CWIC_reform_recent_months = 0 }
+	}
+
+
+	# safety clamps
+	if = { limit = { check_variable = { CWIC_black_market_pressure < 0 } } set_variable = { CWIC_black_market_pressure = 0 } }
+	if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
+}
+# Seigniorage bursts (one-shots)
+cwic_money_print_small = {
+	add_to_variable = { currentMoney = 2 }
+	set_temp_variable = { print_infl = 0.0010 }
+	set_temp_variable = { print_bm = 0.03 }
+	cwic_apply_reserve_currency_print_discount = yes
+	add_to_variable = { CWIC_inflation_mom = print_infl }
+	add_to_variable = { CWIC_black_market_pressure = print_bm }
+	set_variable = { CWIC_money_print_cooldown = 2 }
+}
+
+cwic_money_print_medium = {
+	add_to_variable = { currentMoney = 6 }
+	set_temp_variable = { print_infl = 0.0025 }
+	set_temp_variable = { print_bm = 0.06 }
+	cwic_apply_reserve_currency_print_discount = yes
+	add_to_variable = { CWIC_inflation_mom = print_infl }
+	add_to_variable = { CWIC_black_market_pressure = print_bm }
+	set_variable = { CWIC_money_print_cooldown = 3 }
+}
+
+cwic_money_print_large = {
+	add_to_variable = { currentMoney = 15 }
+	set_temp_variable = { print_infl = 0.0050 }
+	set_temp_variable = { print_bm = 0.10 }
+	cwic_apply_reserve_currency_print_discount = yes
+	add_to_variable = { CWIC_inflation_mom = print_infl }
+	add_to_variable = { CWIC_black_market_pressure = print_bm }
+	set_variable = { CWIC_money_print_cooldown = 4 }
+}
+cwic_apply_reserve_currency_print_discount = {
+	# Inputs (temp vars expected to exist in caller):
+	# - print_infl
+	# - print_bm
+
+	if = {
+		limit = {
+			has_variable = CWIC_reserve_currency
+			check_variable = { CWIC_reserve_currency > 0 }
+		}
+		multiply_temp_variable = { print_infl = 0.70 }
+		multiply_temp_variable = { print_bm = 0.70 }
+	}
 }

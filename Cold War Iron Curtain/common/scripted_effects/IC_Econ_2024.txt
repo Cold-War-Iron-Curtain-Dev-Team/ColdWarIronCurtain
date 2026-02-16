@@ -982,37 +982,36 @@ employing_effect = {
 
 ###########################################################################################################
 
-calculate_national_productivity_factor = {
-		set_variable = { productivity_factor = 0 }
+calculate_national_productivity_factor_var = {
+		set_variable = { productivity_factor_var = 0 }
 
 		#Takes stuff from Literacy, then State Developement and multiplies afterwards with Production Efficiency calculate_theoretical_population
 
-		add_to_variable = { productivity_factor = literate_educated }
+		add_to_variable = { productivity_factor_var = literate_educated }
 
 		set_temp_variable = { primary_factor = primary_educated }
 		multiply_temp_variable = { primary_factor = 1.25 }
 
-		add_to_variable = { productivity_factor = primary_factor}
+		add_to_variable = { productivity_factor_var = primary_factor}
 
 		set_temp_variable = { high_school_factor = high_school_educated }
 		multiply_temp_variable = { high_school_factor = 1.75 }
 
-		add_to_variable = { productivity_factor = high_school_factor}
+		add_to_variable = { productivity_factor_var = high_school_factor}
 
 		set_temp_variable = { college_factor = college_educated }
 		multiply_temp_variable = { college_factor = 3.5 }		
 
-		add_to_variable = { productivity_factor = college_factor}
+		add_to_variable = { productivity_factor_var = college_factor}
 
-		divide_variable = { productivity_factor = 100 }
-		multiply_variable = { productivity_factor = state_development }
+		divide_variable = { productivity_factor_var = 100 }
+		multiply_variable = { productivity_factor_var = state_development }
 
-		# set_variable = { national_productivity_factor = owner:modifier@production_factory_max_efficiency_factor }
-		# add_to_variable = { national_productivity_factor = 0.5 }
+		add_to_variable = { productivity_factor_var = modifier@productivity_factor }
 
-		# multiply_variable = { productivity_factor = national_productivity_factor }
+		# multiply_variable = { productivity_factor_var = national_productivity_factor_var }
 
-		multiply_variable = { productivity_factor = overemployment_factor }
+		multiply_variable = { productivity_factor_var = overemployment_factor }
 
 		#Also check infrastructure
 
@@ -1020,12 +1019,34 @@ calculate_national_productivity_factor = {
 		multiply_temp_variable = { modifier_infra_factor = infrastructure_level }
 		add_to_temp_variable = { modifier_infra_factor = 1 }
 		
-		multiply_variable = { productivity_factor = modifier_infra_factor }
+		multiply_variable = { productivity_factor_var = modifier_infra_factor }
 
-		multiply_variable = { productivity_factor = PREV.electricity_debuff_factor }		
-		# log = "[?THIS.productivity_factor] at [THIS.GetId.GetName]"
+		multiply_variable = { productivity_factor_var = PREV.electricity_debuff_factor }		
+		# log = "[?THIS.productivity_factor_var] at [THIS.GetId.GetName]"
 
-	
+		#Black Market and Inflation
+		# --------------------------------------------
+		# Black market + controls productivity impacts
+		#  - CWIC_productivity_mult: accumulative drag (typically negative, ex: -0.02)
+		#  - CWIC_bm_productivity_penalty: tiered penalty (positive, ex: 0.03)
+		# Final multiplier = 1 + CWIC_productivity_mult - CWIC_bm_productivity_penalty
+		# --------------------------------------------
+
+		# Safe init if missing
+		if = { limit = { NOT = { has_variable = CWIC_productivity_mult } } set_variable = { CWIC_productivity_mult = 0 } }
+		if = { limit = { NOT = { has_variable = CWIC_bm_productivity_penalty } } set_variable = { CWIC_bm_productivity_penalty = 0 } }
+
+		set_temp_variable = { cwic_prod_final_mult = 1 }
+		add_to_temp_variable = { cwic_prod_final_mult = CWIC_productivity_mult }
+		subtract_from_temp_variable = { cwic_prod_final_mult = CWIC_bm_productivity_penalty }
+
+		# Clamp safety (never negative or absurd)
+		if = { limit = { check_variable = { cwic_prod_final_mult < 0.10 } } set_temp_variable = { cwic_prod_final_mult = 0.10 } }
+		if = { limit = { check_variable = { cwic_prod_final_mult > 1.10 } } set_temp_variable = { cwic_prod_final_mult = 1.10 } }
+
+		multiply_variable = { productivity_factor_var = cwic_prod_final_mult }
+
+
 }
 
 
@@ -1053,40 +1074,40 @@ get_electricity_debuff = {
 }
 
 check_individual_factory_productivity = {
-	set_variable = { civ_productivity_factor = modifier@industrial_park_income_bonus }
-	add_to_variable = { civ_productivity_factor = 1 }
+	set_variable = { civ_productivity_factor_var = modifier@industrial_park_income_bonus }
+	add_to_variable = { civ_productivity_factor_var = 1 }
 
-	set_variable = { mil_productivity_factor = modifier@military_factory_income_bonus }
-	add_to_variable = { mil_productivity_factor = 1 }
+	set_variable = { mil_productivity_factor_var = modifier@military_factory_income_bonus }
+	add_to_variable = { mil_productivity_factor_var = 1 }
 
-	set_variable = { ofp_productivity_factor = modifier@office_park_income_bonus }
+	set_variable = { ofp_productivity_factor_var = modifier@office_park_income_bonus }
 	add_to_variable = {
-		ofp_productivity_factor = modifier@office_park_income_adjustment
+		ofp_productivity_factor_var = modifier@office_park_income_adjustment
 	}
 	if = {
 		limit = {
 			has_country_flag = office_park_penalty
 		}
 		multiply_variable = {
-			ofp_productivity_factor = office_park_penalty_rate
+			ofp_productivity_factor_var = office_park_penalty_rate
 		}
 	}
-	add_to_variable = { ofp_productivity_factor = 1 }
+	add_to_variable = { ofp_productivity_factor_var = 1 }
 
-	set_variable = { stl_productivity_factor = modifier@foundry_district_income_bonus }
-	add_to_variable = { stl_productivity_factor = 1 }
+	set_variable = { stl_productivity_factor_var = modifier@foundry_district_income_bonus }
+	add_to_variable = { stl_productivity_factor_var = 1 }
 
-	set_variable = { tng_productivity_factor = modifier@metallurgy_plant_income_bonus}
-	add_to_variable = { tng_productivity_factor = 1 }
+	set_variable = { tng_productivity_factor_var = modifier@metallurgy_plant_income_bonus}
+	add_to_variable = { tng_productivity_factor_var = 1 }
 
-	set_variable = { fod_productivity_factor = modifier@food_income_bonus }
-	add_to_variable = { fod_productivity_factor = 1 }				
+	set_variable = { fod_productivity_factor_var = modifier@food_income_bonus }
+	add_to_variable = { fod_productivity_factor_var = 1 }				
 
-	set_variable = { rsc_productivity_factor = modifier@other_resources_income_bonus }
-	add_to_variable = { rsc_productivity_factor = 1 }			
+	set_variable = { rsc_productivity_factor_var = modifier@other_resources_income_bonus }
+	add_to_variable = { rsc_productivity_factor_var = 1 }			
 
-	#set_variable = { doc_productivity_factor = modifier@dockyard_income_bonus }
-	#add_to_variable = { doc_productivity_factor = 1 }		
+	#set_variable = { doc_productivity_factor_var = modifier@dockyard_income_bonus }
+	#add_to_variable = { doc_productivity_factor_var = 1 }		
 }
 
 calculate_factory_gross_profits = {
@@ -1110,8 +1131,8 @@ calculate_factory_gross_profits = {
 				}
 				multiply_temp_variable = { baseValue = 1.25 }
 			}
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.civ_productivity_factor }
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.civ_productivity_factor_var }
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 0
@@ -1121,8 +1142,8 @@ calculate_factory_gross_profits = {
 			#Mils
 			set_temp_variable = { baseValue = 1.25 }
 			#multiply_temp_variable = { baseValue = arms_factory_tech }
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.mil_productivity_factor }			
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.mil_productivity_factor_var }			
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 1
@@ -1149,8 +1170,8 @@ calculate_factory_gross_profits = {
 				}
 				multiply_temp_variable = { baseValue = 1.35 }
 			}
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.ofp_productivity_factor }			
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.ofp_productivity_factor_var }			
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 2
@@ -1160,8 +1181,8 @@ calculate_factory_gross_profits = {
 			#Steel Fac
 			set_temp_variable = { baseValue = 1.75 }
 			#multiply_temp_variable = { baseValue = steel_works_tech }
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.stl_productivity_factor }			
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.stl_productivity_factor_var }			
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 3
@@ -1171,8 +1192,8 @@ calculate_factory_gross_profits = {
 			#Tungsten Fac 
 			set_temp_variable = { baseValue = 1.75 }
 			#multiply_temp_variable = { baseValue = tungsten_factory_tech }
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.tng_productivity_factor }			
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.tng_productivity_factor_var }			
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 4
@@ -1250,8 +1271,8 @@ calculate_factory_gross_profits = {
 			}
 			add_to_temp_variable = { baseValue = cropBoost }
 
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.fod_productivity_factor }
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.fod_productivity_factor_var }
 
 			# === Pollution Penalties ===
 			# Land Pollution
@@ -1280,8 +1301,8 @@ calculate_factory_gross_profits = {
 
 			#Other resources
 			set_temp_variable = { baseValue = 0.5 }
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.rsc_productivity_factor }						
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.rsc_productivity_factor_var }						
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 6
@@ -1289,8 +1310,8 @@ calculate_factory_gross_profits = {
 			}			
 
 			set_temp_variable = { baseValue = 2.5 }
-			multiply_temp_variable = { baseValue = productivity_factor }
-			multiply_temp_variable = { baseValue = PREV.doc_productivity_factor }						
+			multiply_temp_variable = { baseValue = productivity_factor_var }
+			multiply_temp_variable = { baseValue = PREV.doc_productivity_factor_var }						
 			add_to_array = {
 				array = THIS.Building_Profits
 				index = 7
@@ -1384,12 +1405,12 @@ calculate_net_poptype_earnings = {
 
 		set_temp_variable = { pop_farmer_gross_wage = theoretical_farmer_sum }
 		multiply_temp_variable = { pop_farmer_gross_wage = 0.7 }
-		multiply_temp_variable = { pop_farmer_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_farmer_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_farmer_gross_wage = 100 }
 
 		set_temp_variable = { pop_labourer_gross_wage = theoretical_labourer_sum }
 		multiply_temp_variable = { pop_labourer_gross_wage = 1.0 }
-		multiply_temp_variable = { pop_labourer_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_labourer_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_labourer_gross_wage = 100 }
 
 		set_variable = { pop_lowerclass_gross_wage = pop_labourer_gross_wage }
@@ -1401,21 +1422,21 @@ calculate_net_poptype_earnings = {
 
 		set_temp_variable = { pop_soldier_gross_wage = theoretical_soldier_sum }
 		multiply_temp_variable = { pop_soldier_gross_wage = 1.6 }
-		multiply_temp_variable = { pop_soldier_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_soldier_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_soldier_gross_wage = 100 }	
 
 		#Middle-Class non-building_pops
 
 		set_variable = { pop_artisan_gross_wage = theoretical_artisan_sum }
 		multiply_variable = { pop_artisan_gross_wage = 2.2 }
-		multiply_variable = { pop_artisan_gross_wage = productivity_factor }
+		multiply_variable = { pop_artisan_gross_wage = productivity_factor_var }
 		divide_variable = { pop_artisan_gross_wage = 100 }	
 
 		#Middle-Class Building/Resource Pops	
 
 		set_temp_variable = { pop_worker_gross_wage = theoretical_worker_sum }
 		multiply_temp_variable = { pop_worker_gross_wage = 2.0 }
-		multiply_temp_variable = { pop_worker_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_worker_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_worker_gross_wage = 100 }		
 
 		set_variable = { pop_middleclass_gross_wage = pop_worker_gross_wage }
@@ -1424,7 +1445,7 @@ calculate_net_poptype_earnings = {
 
 		set_temp_variable = { pop_bureaucrat_gross_wage = theoretical_bureaucrat_sum }
 		multiply_temp_variable = { pop_bureaucrat_gross_wage = 3.5 }
-		multiply_temp_variable = { pop_bureaucrat_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_bureaucrat_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_bureaucrat_gross_wage = 100 }		
 
 		add_to_variable = { pop_middleclass_gross_wage = pop_bureaucrat_gross_wage }
@@ -1441,13 +1462,13 @@ calculate_net_poptype_earnings = {
 			multiply_temp_variable = { pop_capitalist_gross_wage = 100 }
 			multiply_temp_variable = { pop_rentier_gross_wage = 100 }
 		}
-		multiply_temp_variable = { pop_capitalist_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_capitalist_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_capitalist_gross_wage = 100 }		
 
 		set_variable = { pop_upperclass_gross_wage = pop_capitalist_gross_wage }
 
 
-		multiply_temp_variable = { pop_rentier_gross_wage = productivity_factor }
+		multiply_temp_variable = { pop_rentier_gross_wage = productivity_factor_var }
 		divide_temp_variable = { pop_rentier_gross_wage = 100 }		
 
 		add_to_variable = { pop_upperclass_gross_wage = pop_rentier_gross_wage }
@@ -1538,7 +1559,7 @@ gdp_calculation_effect = {
 		calculate_conversion_lwa_capitalist_and_bureaucrat = yes
 		list_worker_type = yes
 
-		calculate_national_productivity_factor = yes
+		calculate_national_productivity_factor_var = yes
 		calculate_factory_gross_profits = yes
 
 		calculate_gross_factory_earnings = yes

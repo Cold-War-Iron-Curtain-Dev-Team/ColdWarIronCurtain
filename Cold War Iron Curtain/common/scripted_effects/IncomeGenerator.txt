@@ -288,6 +288,21 @@ income_effect = {
 	}
 	gdp_calculation_effect = yes
 	cwic_cg_monthly_master_tick = yes
+
+	# Flags -> display variables (0/1)
+	set_variable = { CWIC_disp_cap_light = 0 }
+	if = { limit = { has_country_flag = CWIC_capital_controls_light } set_variable = { CWIC_disp_cap_light = 1 } }
+
+	set_variable = { CWIC_disp_cap_heavy = 0 }
+	if = { limit = { has_country_flag = CWIC_capital_controls_heavy } set_variable = { CWIC_disp_cap_heavy = 1 } }
+
+	set_variable = { CWIC_disp_price_controls = 0 }
+	if = { limit = { has_country_flag = CWIC_price_controls_basic } set_variable = { CWIC_disp_price_controls = 1 } }
+
+	set_variable = { CWIC_disp_dual_fx = 0 }
+	if = { limit = { has_country_flag = CWIC_fx_controls_dual } set_variable = { CWIC_disp_dual_fx = 1 } }
+		
+
 	#DO NOT TOUCH FILE WITHOUT APPROVAL; IDEALLY FROM SWF
 	set_variable = {
 		grossdomesticproduct_influence_limit = grossdomesticproduct
@@ -1100,56 +1115,80 @@ income_effect = {
 			}
 		}
 		#Austerity and Default Checks
+		# ============================================================
+		# Cash-flow default check (liquidity)
+		# Fires before solvency-based defaultCheck/currentDebt logic
+		# ============================================================
+
 		if = {
 			limit = {
-				check_variable = {
-					defaultCheck < currentDebt
-				}
-				check_variable = {
-					Credit_Rating < 10
-				}
+				check_variable = { currentDebtPayments > 0.01 }
+				check_variable = { currentMoney < currentDebtPayments }
 				NOT = {
-					check_variable = {
-						defaultCheck = 0
-					}
 					original_tag = NLF
 				}
 			}
 			if = {
 				limit = {
-					NOT = {
-						has_idea = Recent_Default
-					}
+					NOT = { has_idea = Recent_Default }
 				}
+
+				# Mark default status for later systems (market lockout, IMF eligibility, etc.)
+				set_country_flag = CWIC_DEFAULTED
+				set_country_flag = CWIC_MARKET_LOCKOUT
+
+				# Optional: immediate rating hit (tunable)
+				subtract_from_variable = { Credit_Rating = 2 }
+				if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
+
+				# Optional: macro shock (tunable)
+				add_to_variable = { CWIC_inflation_mom = 0.010 }
+				add_to_variable = { CWIC_black_market_pressure = 0.10 }
+
 				country_event = CWIC_ECON_PENALTIES.2
 			}
 		}
-		else_if = {
-			limit = {
-				check_variable = {
-					austerityCheck < currentDebt
-				}
-				NOT = {
-					check_variable = {
-						defaultCheck = 0
-					}
-					original_tag = NLF
-				}
-				check_variable = {
-					Credit_Rating < 10
-				}
-			}
+		else = {
+			# ============================================================
+			# Austerity and Default Checks (solvency, legacy behavior)
+			# ============================================================
+
 			if = {
 				limit = {
+					check_variable = { defaultCheck < currentDebt }
+					check_variable = { Credit_Rating < 10 }
 					NOT = {
-						has_idea = Recent_Austerity_Measures
+						check_variable = { defaultCheck = 0 }
+					}
+					NOT = {
+						original_tag = NLF
 					}
 				}
-				country_event = CWIC_ECON_PENALTIES.1
+				if = {
+					limit = { NOT = { has_idea = Recent_Default } }
+					country_event = CWIC_ECON_PENALTIES.2
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = { austerityCheck < currentDebt }
+					NOT = {
+						check_variable = { defaultCheck = 0 }
+					}
+					NOT = {
+						original_tag = NLF
+					}
+					check_variable = { Credit_Rating < 10 }
+				}
+				if = {
+					limit = { NOT = { has_idea = Recent_Austerity_Measures } }
+					country_event = CWIC_ECON_PENALTIES.1
+				}
+			}
+			else = {
 			}
 		}
-		else = {
-		}
+
 		#New
 		if = {
 			limit = {
@@ -1568,7 +1607,15 @@ income_effect = {
 	log = "WAGE SHARE: [?total_employed_pay_national]"
 	log = "PROFIT SHARE: [?national_net_factory_earnings]"
 
+	
+	cwic_capital_controls_monthly_effects = yes
+	cwic_black_market_monthly_update = yes
+	cwic_black_market_tier_assign = yes
+	cwic_black_market_apply_outputs = yes
+	cwic_currency_monthly_cooldowns = yes
+	cwic_fx_regime_monthly = yes
 	cwic_inflation_monthly_pulse = yes
+	cwic_reserve_currency_update = yes
 }
 
 military_expenditure = {

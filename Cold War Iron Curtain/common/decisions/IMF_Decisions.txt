@@ -938,4 +938,54 @@ imf_decisions = {
 		}
 	}
 
+
+# ============================================================
+# CWIC Credit-Driven IMF Programs (Stand-By Arrangements)
+# This layer is separate from the legacy influence-array IMF pulse.
+# Requires monthly calling: cwic_imf_eligibility_update (and tranche payout if used)
+# ============================================================
+
+CWIC_IMF_Credit_Programs = {
+	icon = generic_goal_generic_major_war
+
+	visible = {
+		has_variable = CWIC_imf_eligible
+		check_variable = { CWIC_imf_eligible > 0 }
+	}
+
+	available = {
+		is_subject = no
+	}
+
+	CWIC_request_imf_sba = {
+		icon = generic_industry
+		cost = 50
+
+		available = {
+			check_variable = { CWIC_imf_eligible > 0 }
+			NOT = { has_country_flag = CWIC_IMF_PROGRAM_ACTIVE }
+		}
+
+		complete_effect = {
+			cwic_imf_start_program = yes
+		}
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 8
+				has_country_flag = CWIC_DEFAULTED
+			}
+			modifier = {
+				factor = 6
+				check_variable = { Credit_Rating < 4 }
+			}
+			modifier = {
+				factor = 0.3
+				check_variable = { CWIC_inflation_mom < 0.004 }
+			}
+		}
+	}
+}
+
 }
