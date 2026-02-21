@@ -190,6 +190,22 @@ cwic_apply_consumer_goods_pressure_master = {
 	set_variable = { CWIC_DM_CG_STABILITY_FACTOR = master_scalar }
 	multiply_variable = { CWIC_DM_CG_STABILITY_FACTOR = -0.18 }
 
+	# --------------------------------------------
+	# Black market stability penalty
+	# CWIC_bm_stability_penalty is a 0..1-ish penalty value (ex: 0.015)
+	# We add it directly to the stability factor variable as a negative.
+	# --------------------------------------------
+
+	# Safe init
+	if = { limit = { NOT = { has_variable = CWIC_bm_stability_penalty } } set_variable = { CWIC_bm_stability_penalty = 0 } }
+
+	# Clamp safety (keep it sane if tuning goes wild)
+	if = { limit = { check_variable = { CWIC_bm_stability_penalty < 0 } } set_variable = { CWIC_bm_stability_penalty = 0 } }
+	if = { limit = { check_variable = { CWIC_bm_stability_penalty > 0.20 } } set_variable = { CWIC_bm_stability_penalty = 0.20 } }
+
+	# Apply as a direct negative contribution to stability factor
+	subtract_from_variable = { CWIC_DM_CG_STABILITY_FACTOR = CWIC_bm_stability_penalty }
+
 	set_variable = { CWIC_DM_CG_POLITICAL_POWER_GAIN = master_scalar }
 	multiply_variable = { CWIC_DM_CG_POLITICAL_POWER_GAIN = -0.20 }
 
@@ -245,6 +261,10 @@ cwic_apply_consumer_goods_pressure_master = {
 
 	if = { limit = { check_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR > 1 } } set_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = 1 } }
 	multiply_variable = { CWIC_DM_CG_PRODUCTIVITY_FACTOR = -0.16 }
+
+	#black market strains enforcement and services
+	add_to_variable = { CWIC_DM_CG_POLICING_SPENDING_MOD = CWIC_bm_tax_leak_mult }
+	add_to_variable = { CWIC_DM_CG_PUBLIC_SERVICES_SPENDING_MOD = CWIC_bm_tax_leak_mult }
 
 
 	# ============================================================

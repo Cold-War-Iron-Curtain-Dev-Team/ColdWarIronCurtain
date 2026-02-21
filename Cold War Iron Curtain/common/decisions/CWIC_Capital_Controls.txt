@@ -1,0 +1,577 @@
+
+CWIC_capital_controls = {
+    CWIC_capital_controls_light = {
+        icon = decision_economic_policy
+        cost = 50
+
+        available = {
+            NOT = { has_country_flag = CWIC_capital_controls_light }
+            check_variable = { CWIC_inflation_mom > 0.006 } # ~8%+
+        }
+
+        effect = {
+            set_country_flag = CWIC_capital_controls_light
+            subtract_from_variable = { CWIC_inflation_mom = 0.002 }
+            add_to_variable = { CWIC_inflation_bias_mom = -0.0005 }
+            add_to_variable = { CWIC_black_market_pressure = 0.05 }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            modifier = {
+                factor = 3
+                check_variable = { CWIC_inflation_mom > 0.008 }
+            }
+            modifier = {
+                factor = 6
+                check_variable = { CWIC_inflation_mom > 0.010 }
+            }
+            modifier = {
+                factor = 0.2
+                check_variable = { CWIC_inflation_mom < 0.004 }
+            }
+        }
+    }
+
+    CWIC_capital_controls_heavy = {
+        icon = decision_economic_policy
+        cost = 100
+
+        available = {
+            has_country_flag = CWIC_capital_controls_light
+            NOT = { has_country_flag = CWIC_capital_controls_heavy }
+            check_variable = { CWIC_inflation_mom > 0.01 } # ~12%+
+        }
+
+        effect = {
+            set_country_flag = CWIC_capital_controls_heavy
+            subtract_from_variable = { CWIC_inflation_mom = 0.006 }
+            add_to_variable = { CWIC_inflation_bias_mom = -0.001 }
+            add_to_variable = { CWIC_black_market_pressure = 0.15 }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            modifier = {
+                factor = 4
+                check_variable = { CWIC_inflation_mom > 0.015 }
+            }
+            modifier = {
+                factor = 10
+                check_variable = { CWIC_inflation_mom > 0.02 }
+            }
+            modifier = {
+                factor = 0.3
+                check_variable = { CWIC_black_market_pressure > 0.5 }
+            }
+        }
+    }
+
+    CWIC_price_controls_basic = {
+        icon = decision_consumer_goods
+        cost = 50
+
+        available = {
+            NOT = { has_country_flag = CWIC_price_controls_basic }
+            check_variable = { CWIC_inflation_mom > 0.004 }
+        }
+
+        effect = {
+            set_country_flag = CWIC_price_controls_basic
+            subtract_from_variable = { CWIC_inflation_mom = 0.0015 }
+            add_to_variable = { CWIC_black_market_pressure = 0.08 }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            # prefer this if stability is threatened
+            modifier = {
+                factor = 3
+                check_variable = { CWIC_inflation_mom > 0.008 }
+            }
+            # avoid if black market already high
+            modifier = {
+                factor = 0.25
+                check_variable = { CWIC_black_market_pressure > 0.4 }
+            }
+        }
+    }
+
+    CWIC_fx_controls_dual = {
+        icon = decision_trade
+        cost = 75
+
+        available = {
+            NOT = { has_country_flag = CWIC_fx_controls_dual }
+            check_variable = { CWIC_inflation_mom > 0.008 }
+        }
+
+        effect = {
+            set_country_flag = CWIC_fx_controls_dual
+            subtract_from_variable = { CWIC_inflation_mom = 0.003 }
+            add_to_variable = { CWIC_black_market_pressure = 0.12 }
+            add_to_variable = { CWIC_productivity_mult = -0.03 }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            modifier = {
+                factor = 5
+                check_variable = { CWIC_inflation_mom > 0.012 }
+            }
+            modifier = {
+                factor = 0.4
+                has_country_flag = CWIC_capital_controls_heavy
+            }
+        }
+    }
+
+    CWIC_capital_controls_lift = {
+        icon = decision_liberalization
+        cost = 75
+
+        available = {
+            OR = {
+                has_country_flag = CWIC_capital_controls_light
+                has_country_flag = CWIC_capital_controls_heavy
+                has_country_flag = CWIC_fx_controls_dual
+                has_country_flag = CWIC_price_controls_basic
+            }
+        }
+
+        effect = {
+
+            # Base bounce
+            add_to_variable = { CWIC_inflation_mom = 0.0015 }
+
+            # Extra bounce if heavy controls were in place
+            if = {
+                limit = { has_country_flag = CWIC_capital_controls_heavy }
+                add_to_variable = { CWIC_inflation_mom = 0.0025 }
+            }
+
+            # Extra bounce from black market overhang
+            if = {
+                limit = { check_variable = { CWIC_black_market_pressure > 0.40 } }
+                add_to_variable = { CWIC_inflation_mom = 0.0010 }
+            }
+            if = {
+                limit = { check_variable = { CWIC_black_market_pressure > 0.70 } }
+                add_to_variable = { CWIC_inflation_mom = 0.0015 }
+            }
+
+            # Clear control flags
+            clr_country_flag = CWIC_capital_controls_light
+            clr_country_flag = CWIC_capital_controls_heavy
+            clr_country_flag = CWIC_fx_controls_dual
+            clr_country_flag = CWIC_price_controls_basic
+
+            # Undo some structural drag from controls (tunable)
+            add_to_variable = { CWIC_inflation_bias_mom = 0.0005 }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            modifier = {
+                factor = 6
+                check_variable = { CWIC_inflation_mom < 0.005 }
+            }
+            modifier = {
+                factor = 0.2
+                check_variable = { CWIC_inflation_mom > 0.01 }
+            }
+            modifier = {
+                factor = 0.3
+                check_variable = { CWIC_black_market_pressure > 0.70 }
+            }
+        }
+    }
+
+
+
+}
+CWIC_black_market = {
+    CWIC_black_market_raids = {
+        icon = decision_police
+        cost = 35
+
+        available = {
+            check_variable = { CWIC_black_market_pressure > 0.20 }
+            NOT = { has_country_flag = Black_Market_Raids }
+        }
+
+        effect = {
+            subtract_from_variable = { CWIC_black_market_pressure = 0.10 }
+            add_to_variable = { CWIC_productivity_mult = -0.002 } # disruption cost
+            set_country_flag = {
+                id = Black_Market_Raids
+                days = 30
+            }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            modifier = {
+                factor = 4
+                check_variable = { CWIC_black_market_pressure > 0.40 }
+            }
+            modifier = {
+                factor = 8
+                check_variable = { CWIC_black_market_pressure > 0.60 }
+            }
+        }
+    }
+    CWIC_black_market_enforcement_campaign = {
+        icon = decision_police
+        cost = 75
+
+        available = {
+            check_variable = { CWIC_black_market_pressure > 0.45 }
+            NOT = { has_country_flag = Black_Market_Raids }
+        }
+
+        effect = {
+            subtract_from_variable = { CWIC_black_market_pressure = 0.25 }
+            add_to_variable = { CWIC_productivity_mult = -0.008 } # harsher disruption
+            set_country_flag = {
+                id = Black_Market_Raids
+                days = 30
+            }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            modifier = {
+                factor = 6
+                check_variable = { CWIC_black_market_pressure > 0.65 }
+            }
+            modifier = {
+                factor = 12
+                check_variable = { CWIC_black_market_pressure > 0.80 }
+            }
+        }
+    }
+    CWIC_black_market_amnesty = {
+        icon = decision_liberalization
+        cost = 50
+
+        available = {
+            check_variable = { CWIC_black_market_pressure > 0.30 }
+            NOT = { has_country_flag = CWIC_price_controls_basic } # avoid while price freezes exist
+            NOT = { has_country_flag = Black_Market_Amnesty }
+        }
+
+        effect = {
+            subtract_from_variable = { CWIC_black_market_pressure = 0.20 }
+
+            # normalization has a short-term inflation pulse
+            add_to_variable = { CWIC_inflation_mom = 0.0010 }
+
+            set_country_flag = {
+                id = Black_Market_Amnesty
+                days = 365
+            }
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            # prefer when inflation is already under control
+            modifier = {
+                factor = 5
+                check_variable = { CWIC_inflation_mom < 0.006 }
+            }
+            # avoid when inflation is high
+            modifier = {
+                factor = 0.2
+                check_variable = { CWIC_inflation_mom > 0.012 }
+            }
+        }
+    }
+}
+CWIC_currency_policy = {
+    CWIC_enable_money_printing = {
+        icon = decision_economic_policy
+        cost = 25
+
+        available = {
+            NOT = { has_country_flag = CWIC_money_printing_active }
+        }
+
+        effect = {
+            set_country_flag = CWIC_money_printing_active
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 4 check_variable = { currentMoney < 5 } }
+            modifier = { factor = 0.3 check_variable = { CWIC_inflation_mom > 0.012 } }
+        }
+    }
+    CWIC_disable_money_printing = {
+        icon = decision_liberalization
+        cost = 25
+
+        available = {
+            has_country_flag = CWIC_money_printing_active
+        }
+
+        effect = {
+            clr_country_flag = CWIC_money_printing_active
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 6 check_variable = { CWIC_inflation_mom > 0.010 } }
+            modifier = { factor = 0.4 check_variable = { currentMoney < 3 } }
+        }
+    }
+    CWIC_print_money_small = {
+        icon = decision_economic_policy
+        cost = 35
+
+        available = {
+            check_variable = { CWIC_money_print_cooldown = 0 }
+        }
+
+        effect = {
+            cwic_money_print_small = yes
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 6 check_variable = { currentMoney < 3 } }
+            modifier = { factor = 0.3 check_variable = { CWIC_inflation_mom > 0.012 } }
+        }
+    }
+    CWIC_print_money_medium = {
+        icon = decision_economic_policy
+        cost = 60
+
+        available = {
+            check_variable = { CWIC_money_print_cooldown = 0 }
+            check_variable = { CWIC_inflation_mom < 0.02 }
+        }
+
+        effect = {
+            cwic_money_print_medium = yes
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 8 check_variable = { currentMoney < 2 } }
+            modifier = { factor = 0.2 check_variable = { CWIC_inflation_mom > 0.015 } }
+        }
+    }
+    CWIC_print_money_large = {
+        icon = decision_economic_policy
+        cost = 90
+
+        available = {
+            check_variable = { CWIC_money_print_cooldown = 0 }
+            check_variable = { currentMoney < 1 }
+        }
+
+        effect = {
+            cwic_money_print_large = yes
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 10 check_variable = { currentMoney < 0.5 } }
+            modifier = { factor = 0.15 check_variable = { CWIC_inflation_mom > 0.02 } }
+        }
+    }
+    CWIC_enable_monetary_tightening = {
+        icon = decision_economic_policy
+        cost = 50
+
+        available = {
+            NOT = { has_country_flag = CWIC_monetary_tightening_active }
+            check_variable = { CWIC_inflation_mom > 0.006 }
+        }
+
+        effect = {
+            set_country_flag = CWIC_monetary_tightening_active
+
+            # immediate brake
+            subtract_from_variable = { CWIC_inflation_mom = 0.003 }
+
+            # short-term pain
+            add_to_variable = { CWIC_productivity_mult = -0.010 }
+            add_to_variable = { CWIC_black_market_pressure = 0.02 }
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 6 check_variable = { CWIC_inflation_mom > 0.010 } }
+            modifier = { factor = 12 check_variable = { CWIC_inflation_mom > 0.020 } }
+            modifier = { factor = 0.3 check_variable = { currentMoney < 1 } }
+        }
+    }
+    CWIC_disable_monetary_tightening = {
+        icon = decision_liberalization
+        cost = 25
+
+        available = {
+            has_country_flag = CWIC_monetary_tightening_active
+            check_variable = { CWIC_inflation_mom < 0.008 }
+        }
+
+        effect = {
+            clr_country_flag = CWIC_monetary_tightening_active
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 6 check_variable = { CWIC_inflation_mom < 0.005 } }
+            modifier = { factor = 0.2 check_variable = { CWIC_inflation_mom > 0.010 } }
+        }
+    }
+    CWIC_currency_reform = {
+        icon = decision_liberalization
+        cost = 150
+
+        available = {
+            check_variable = { CWIC_reform_cooldown = 0 }
+
+            # don't allow during hyperinflation collapse unless you want it
+            check_variable = { CWIC_inflation_mom < 0.06 }     # under ~100% annual
+            check_variable = { CWIC_black_market_pressure < 0.80 }
+        }
+
+        effect = {
+
+            # reduce CPI index somewhat (rebasing / redenomination)
+            # (Do NOT set to 1 or you break long-run comparisons)
+            multiply_variable = { CWIC_cpi_index = 0.50 }
+
+            # immediate inflation break
+            subtract_from_variable = { CWIC_inflation_mom = 0.010 }
+
+            # credibility improvement (reduce chronic inflation)
+            subtract_from_variable = { CWIC_inflation_bias_mom = 0.001 }
+
+            # suppress black market via conversion & enforcement
+            subtract_from_variable = { CWIC_black_market_pressure = 0.20 }
+
+            # short-term disruption
+            add_to_variable = { CWIC_productivity_mult = -0.020 }
+
+            # reform aftershock window
+            set_country_flag = CWIC_currency_reform_recent
+            set_variable = { CWIC_reform_cooldown = 24 }  # 2 years
+        }
+
+        ai_will_do = {
+            factor = 1
+
+            # strongly prefer if inflation is very high but not total hypercollapse
+            modifier = { factor = 8 check_variable = { CWIC_inflation_mom > 0.015 } }
+            modifier = { factor = 12 check_variable = { CWIC_inflation_mom > 0.030 } }
+
+            # avoid if black market is extremely high (reform will be undermined)
+            modifier = { factor = 0.2 check_variable = { CWIC_black_market_pressure > 0.70 } }
+        }
+    }
+
+}
+
+CWIC_fx_policy = {
+    CWIC_internationalize_currency = {
+        icon = decision_trade
+        cost = 150
+
+        available = {
+            check_variable = { CWIC_reserve_candidate = 1 }
+            check_variable = { CWIC_reserve_currency = 0 }
+        }
+
+        effect = {
+            set_variable = { CWIC_reserve_currency = 1 }
+            set_variable = { CWIC_reserve_trust = 0.50 }
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 3 check_variable = { grossdomesticproduct > 400 } }
+            modifier = { factor = 0.3 check_variable = { CWIC_inflation_mom > 0.006 } }
+        }
+    }
+
+    CWIC_adopt_currency_peg = {
+        icon = decision_trade
+        cost = 75
+
+        available = {
+            check_variable = { CWIC_fx_regime = 0 }
+            check_variable = { CWIC_fx_reserves > 5 }
+        }
+
+        effect = {
+            set_variable = { CWIC_fx_regime = 1 }
+            subtract_from_variable = { CWIC_fx_reserves = 2 } # setup cost
+            if = { limit = { check_variable = { CWIC_fx_reserves < 0 } } set_variable = { CWIC_fx_reserves = 0 } }
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 4 check_variable = { CWIC_inflation_mom > 0.008 } }
+            modifier = { factor = 0.2 check_variable = { CWIC_fx_reserves < 6 } }
+        }
+    }
+
+    CWIC_float_currency = {
+        icon = decision_trade
+        cost = 25
+
+        available = {
+            check_variable = { CWIC_fx_regime = 1 }
+        }
+
+        effect = {
+            set_variable = { CWIC_fx_regime = 0 }
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 6 check_variable = { CWIC_fx_reserves < 2 } }
+        }
+    }
+
+}
+CWIC_global_monetary_order = {
+    CWIC_challenge_petrodollar = {
+        icon = decision_trade
+        cost = 200
+
+        available = {
+            original_tag = SOV
+            check_variable = { grossdomesticproduct > 400 }
+            check_variable = { CWIC_reserve_trust > 0.4 }
+        }
+
+        effect = {
+            clr_global_flag = CWIC_oil_pricing_USA
+            set_global_flag = CWIC_oil_pricing_USSR
+
+            # Global instability shock
+            add_to_variable = { CWIC_inflation_mom = 0.005 }
+
+            # USA trust hit
+            country_event = CWIC_OIL_ORDER.1
+        }
+
+        ai_will_do = {
+            factor = 1
+            modifier = { factor = 5 check_variable = { grossdomesticproduct > 300 } }
+        }
+    }
+}
