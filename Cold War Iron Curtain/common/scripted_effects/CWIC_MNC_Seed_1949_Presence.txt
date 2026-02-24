@@ -1,0 +1,411 @@
+# =====================================================
+# CWIC MNC – 1949 Historical Seeding (Presence + Baselines)
+# =====================================================
+
+cwic_seed_mnc_1949_presence = {
+
+    # -------------------------------------------------
+    # Baseline Nationalization Pressure (Heuristic)
+    # -------------------------------------------------
+    # Baseline nationalization pressure:
+    # tmp_nat = (economic_x_axis / 20) + (1 - National_HDI) * 2.5
+
+    if = {
+        limit = { has_variable = economic_x_axis }
+
+        # --- econ axis term (0..~5) ---
+        set_temp_variable = { tmp_nat = economic_x_axis }
+        divide_temp_variable = { tmp_nat = 20 }
+
+        # --- HDI term (0..2.5) ---
+        set_temp_variable = { tmp_hdi = 0.5 }  # fallback mid value
+        if = {
+            limit = { has_variable = National_HDI }
+            set_temp_variable = { tmp_hdi = National_HDI }
+        }
+
+        clamp_temp_variable = { var = tmp_hdi min = 0 max = 1 }
+
+        set_temp_variable = { hdi_term = 1 }
+        subtract_from_temp_variable = { hdi_term = tmp_hdi }   # 0..1
+        multiply_temp_variable = { hdi_term = 2.5 }            # 0..2.5
+
+        add_to_temp_variable = { tmp_nat = hdi_term }
+
+        clamp_temp_variable = { var = tmp_nat min = 0 max = 5 }
+        set_variable = { CWIC_nationalization_pressure_index = tmp_nat }
+    }
+
+
+    # -------------------------------------------------
+    # Historical Presence Dispatch
+    # -------------------------------------------------
+# One-time historical seeding for the 1949 start.
+    # Sets sectorized presence tiers (1..5). Unseeded corps remain absent.
+
+        # Dispatch by TAG (kept as a single loop for performance).
+        if = {
+            limit = { tag = ALG }
+            # ALG seeded presences
+            set_variable = { corp_sonatrach_presence_hydrocarbons = 5 }
+            set_variable = { corp_total_cfp_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = ANG }
+            # ANG seeded presences
+            set_variable = { corp_anglo_american_presence_mining = 3 }
+            set_variable = { corp_de_beers_presence_mining = 2 }
+        }
+
+        else_if = {
+            limit = { tag = ARG }
+            # ARG seeded presences
+            set_variable = { corp_ford_presence_manufacturing = 2 }
+            set_variable = { corp_gm_presence_manufacturing = 2 }
+        }
+
+        else_if = {
+            limit = { tag = AUS }
+            # AUS seeded presences
+            set_variable = { corp_rio_tinto_presence_mining = 5 }
+        }
+
+        else_if = {
+            limit = { tag = BEL }
+            # BEL seeded presences
+            set_variable = { corp_gécamines_presence_mining = 3 }
+        }
+
+        else_if = {
+            limit = { tag = BRA }
+            # BRA seeded presences
+            set_variable = { corp_gm_presence_manufacturing = 2 }
+            set_variable = { corp_ford_presence_manufacturing = 2 }
+            set_variable = { corp_ibm_presence_electronics = 1 }
+        }
+
+        else_if = {
+            limit = { tag = CAN }
+            # CAN seeded presences
+            set_variable = { corp_inco_presence_mining = 5 }
+            set_variable = { corp_noranda_presence_mining = 4 }
+        }
+
+        else_if = {
+            limit = { tag = CHL }
+            # CHL seeded presences
+            set_variable = { corp_anaconda_copper_presence_mining = 5 }
+            set_variable = { corp_kennecott_presence_mining = 4 }
+        }
+
+        else_if = {
+            limit = { tag = DOC }
+            # DOC seeded presences
+            set_variable = { corp_gécamines_presence_mining = 5 }
+            set_variable = { corp_anglo_american_presence_mining = 3 }
+        }
+
+        else_if = {
+            limit = { tag = DUB }
+            # DUB seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 3 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = EGY }
+            # EGY seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 2 }
+            set_variable = { corp_shell_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = ENG }
+            # ENG seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 5 }
+            set_variable = { corp_shell_presence_hydrocarbons = 4 }
+            set_variable = { corp_gulf_oil_presence_hydrocarbons = 3 }
+            set_variable = { corp_rio_tinto_presence_mining = 4 }
+            set_variable = { corp_anglo_american_presence_mining = 4 }
+            set_variable = { corp_unilever_presence_agri = 5 }
+            set_variable = { corp_cadbury_presence_agri = 4 }
+        }
+
+        else_if = {
+            limit = { tag = FRA }
+            # FRA seeded presences
+            set_variable = { corp_total_cfp_presence_hydrocarbons = 5 }
+        }
+
+        else_if = {
+            limit = { tag = GER }
+            # GER seeded presences
+            set_variable = { corp_siemens_presence_electronics = 5 }
+            set_variable = { corp_basf_presence_manufacturing = 5 }
+            set_variable = { corp_bayer_presence_manufacturing = 5 }
+            set_variable = { corp_daimler_benz_presence_manufacturing = 5 }
+            set_variable = { corp_vw_presence_manufacturing = 5 }
+        }
+
+        else_if = {
+            limit = { tag = GHA }
+            # GHA seeded presences
+            set_variable = { corp_cadbury_presence_agri = 3 }
+            set_variable = { corp_nestle_presence_agri = 2 }
+        }
+
+        else_if = {
+            limit = { tag = GUA }
+            # GUA seeded presences
+            set_variable = { corp_united_fruit_presence_agri = 5 }
+        }
+
+        else_if = {
+            limit = { tag = HOL }
+            # HOL seeded presences
+            set_variable = { corp_shell_presence_hydrocarbons = 4 }
+            set_variable = { corp_philips_presence_electronics = 5 }
+            set_variable = { corp_unilever_presence_agri = 4 }
+        }
+
+        else_if = {
+            limit = { tag = HON }
+            # HON seeded presences
+            set_variable = { corp_united_fruit_presence_agri = 4 }
+        }
+
+        else_if = {
+            limit = { tag = INS }
+            # INS seeded presences
+            set_variable = { corp_pertamina_presence_hydrocarbons = 5 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = IRQ }
+            # IRQ seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 3 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+            set_variable = { corp_total_cfp_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = ITA }
+            # ITA seeded presences
+            set_variable = { corp_eni_presence_hydrocarbons = 5 }
+            set_variable = { corp_fiat_presence_manufacturing = 5 }
+            set_variable = { corp_olivetti_presence_electronics = 4 }
+        }
+
+        else_if = {
+            limit = { tag = IVO }
+            # IVO seeded presences
+            set_variable = { corp_cadbury_presence_agri = 3 }
+            set_variable = { corp_nestle_presence_agri = 2 }
+        }
+
+        else_if = {
+            limit = { tag = JAP }
+            # JAP seeded presences
+            set_variable = { corp_toyota_presence_manufacturing = 5 }
+            set_variable = { corp_nissan_presence_manufacturing = 5 }
+            set_variable = { corp_sony_presence_electronics = 4 }
+            set_variable = { corp_panasonic_presence_electronics = 4 }
+            set_variable = { corp_toshiba_presence_electronics = 4 }
+            set_variable = { corp_mitsui_bussan_presence_agri = 4 }
+            set_variable = { corp_sumitomo_mining_presence_mining = 4 }
+        }
+
+        else_if = {
+            limit = { tag = KUW }
+            # KUW seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 4 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = LBA }
+            # LBA seeded presences
+            set_variable = { corp_eni_presence_hydrocarbons = 4 }
+            set_variable = { corp_bp_presence_hydrocarbons = 3 }
+            set_variable = { corp_shell_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = MAL }
+            # MAL seeded presences
+            set_variable = { corp_unilever_presence_agri = 4 }
+        }
+
+        else_if = {
+            limit = { tag = MEX }
+            # MEX seeded presences
+            set_variable = { corp_pemex_presence_hydrocarbons = 5 }
+            set_variable = { corp_gm_presence_manufacturing = 2 }
+            set_variable = { corp_ford_presence_manufacturing = 2 }
+        }
+
+        else_if = {
+            limit = { tag = MLA }
+            # MLA seeded presences
+            set_variable = { corp_unilever_presence_agri = 4 }
+        }
+
+        else_if = {
+            limit = { tag = NGA }
+            # NGA seeded presences
+            set_variable = { corp_nnpc_presence_hydrocarbons = 4 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+            set_variable = { corp_bp_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = NIC }
+            # NIC seeded presences
+            set_variable = { corp_united_fruit_presence_agri = 3 }
+        }
+
+        else_if = {
+            limit = { tag = NOR }
+            # NOR seeded presences
+            set_variable = { corp_statoil_presence_hydrocarbons = 5 }
+        }
+
+        else_if = {
+            limit = { tag = OMA }
+            # OMA seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 2 }
+            set_variable = { corp_shell_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = PER }
+            # PER seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 4 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = PHI }
+            # PHI seeded presences
+            set_variable = { corp_del_monte_presence_agri = 4 }
+            set_variable = { corp_dole_presence_agri = 3 }
+        }
+
+        else_if = {
+            limit = { tag = PRU }
+            # PRU seeded presences
+            set_variable = { corp_kennecott_presence_mining = 4 }
+            set_variable = { corp_anaconda_copper_presence_mining = 3 }
+        }
+
+        else_if = {
+            limit = { tag = QAT }
+            # QAT seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 2 }
+            set_variable = { corp_shell_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = RCG }
+            # RCG seeded presences
+            set_variable = { corp_gécamines_presence_mining = 2 }
+            set_variable = { corp_anglo_american_presence_mining = 2 }
+        }
+
+        else_if = {
+            limit = { tag = SAF }
+            # SAF seeded presences
+            set_variable = { corp_de_beers_presence_mining = 5 }
+            set_variable = { corp_anglo_american_presence_mining = 5 }
+        }
+
+        else_if = {
+            limit = { tag = SAU }
+            # SAU seeded presences
+            set_variable = { corp_aramco_presence_hydrocarbons = 5 }
+            set_variable = { corp_exxon_presence_hydrocarbons = 4 }
+            set_variable = { corp_mobil_presence_hydrocarbons = 4 }
+            set_variable = { corp_chevron_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = TUR }
+            # TUR seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 1 }
+            set_variable = { corp_siemens_presence_electronics = 1 }
+        }
+
+        else_if = {
+            limit = { tag = UAE }
+            # UAE seeded presences
+            set_variable = { corp_bp_presence_hydrocarbons = 3 }
+            set_variable = { corp_shell_presence_hydrocarbons = 3 }
+        }
+
+        else_if = {
+            limit = { tag = USA }
+            # USA seeded presences
+            set_variable = { corp_exxon_presence_hydrocarbons = 5 }
+            set_variable = { corp_mobil_presence_hydrocarbons = 5 }
+            set_variable = { corp_chevron_presence_hydrocarbons = 5 }
+            set_variable = { corp_texaco_presence_hydrocarbons = 4 }
+            set_variable = { corp_gm_presence_manufacturing = 5 }
+            set_variable = { corp_ford_presence_manufacturing = 5 }
+            set_variable = { corp_chrysler_presence_manufacturing = 4 }
+            set_variable = { corp_ge_presence_manufacturing = 5 }
+            set_variable = { corp_dupont_presence_manufacturing = 5 }
+            set_variable = { corp_dow_presence_manufacturing = 5 }
+            set_variable = { corp_ibm_presence_electronics = 5 }
+            set_variable = { corp_rca_presence_electronics = 4 }
+            set_variable = { corp_att_presence_electronics = 5 }
+            set_variable = { corp_itt_presence_electronics = 4 }
+            set_variable = { corp_cargill_presence_agri = 5 }
+            set_variable = { corp_adm_presence_agri = 5 }
+            set_variable = { corp_bunge_presence_agri = 4 }
+            set_variable = { corp_kennecott_presence_mining = 4 }
+            set_variable = { corp_anaconda_copper_presence_mining = 4 }
+            set_variable = { corp_alcoa_presence_mining = 4 }
+        }
+
+        else_if = {
+            limit = { tag = VEN }
+            # VEN seeded presences
+            set_variable = { corp_pdvsa_presence_hydrocarbons = 5 }
+            set_variable = { corp_exxon_presence_hydrocarbons = 3 }
+            set_variable = { corp_shell_presence_hydrocarbons = 2 }
+        }
+
+        else_if = {
+            limit = { tag = WGR }
+            # WGR seeded presences
+            set_variable = { corp_siemens_presence_electronics = 5 }
+            set_variable = { corp_basf_presence_manufacturing = 5 }
+            set_variable = { corp_bayer_presence_manufacturing = 5 }
+            set_variable = { corp_daimler_benz_presence_manufacturing = 5 }
+            set_variable = { corp_vw_presence_manufacturing = 5 }
+        }
+
+        else_if = {
+            limit = { tag = ZAM }
+            # ZAM seeded presences
+            set_variable = { corp_anglo_american_presence_mining = 5 }
+        }
+
+        else_if = {
+            limit = { tag = ZAR }
+            # ZAR seeded presences
+            set_variable = { corp_gécamines_presence_mining = 4 }
+            set_variable = { corp_anglo_american_presence_mining = 3 }
+        }
+
+        else = { }
+    
+
+    # -------------------------------------------------
+    # Apply Sector & Elite Capture Rollups Immediately
+    # -------------------------------------------------
+    cwic_mnc_apply_sector_presence_effects_country = yes
+    cwic_mnc_apply_elite_capture_effects_country = yes
+}

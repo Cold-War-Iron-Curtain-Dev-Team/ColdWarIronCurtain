@@ -1541,8 +1541,9 @@ gdp_calculation_effect = {
 	}
 	set_variable = { total_personal_income_tax = 0 }
 	set_variable = { total_office_parks = 0 }
+	cwic_begin_separatism_rollup  = yes
 	every_owned_state = {
-		income_effect_every_owned_scope = yes #Legacy
+		income_effect_every_owned_scope = yes 
 		get_total_infrastructure = yes	#For Public Services Expenses
 
 		reset_potential_problems = yes
@@ -2584,6 +2585,7 @@ generate_class_pie_chart_gui = {
 	multiply_variable = { pie_chart_sector_ren = 1000 }
 	add_to_variable = { pie_chart_sector_ren = pie_chart_sector_cap }
 
+	cwic_calc_sector_output_indices = yes
 
 	#Enterprise Breakdown GUI
 	set_variable = { civilian_sector_calc = civilian_sector }
@@ -3046,3 +3048,302 @@ biome_life_expectancy_adjustment = {
 #    
 #    Expected would be current weights x education spending x development
 
+cwic_calc_sector_output_indices = {
+
+	# =========================
+	# TUNING CONSTANTS
+	# =========================
+	# Tune by checking USA/USSR/UK/FR/DE baseline values and adjusting until indices sit ~4-6 for majors.
+	set_temp_variable = { AG_DIV = 200 }     # food_sector -> agriculture index
+	set_temp_variable = { MFG_DIV = 500 }    # (civilian+mic+mill) -> manufacturing index
+	set_temp_variable = { ELEC_DIV = 300 }   # service_sector -> electronics proxy
+
+	# Extractive mapping divisors (earnings -> index)
+	set_temp_variable = { OIL_DIV = 250 }    # oil_earn -> oil index
+	set_temp_variable = { MIN_DIV = 250 }    # min_earn -> mining index
+
+	# =========================
+	# AGRICULTURE INDEX (0.5..6.0)
+	# =========================
+	set_temp_variable = { tmp = food_sector }
+	divide_temp_variable = { tmp = AG_DIV }
+	clamp_temp_variable = { var = tmp min = 0.5 max = 6.0 }
+	set_variable = { CWIC_agriculture_output_index = tmp }
+
+	# =========================
+	# MANUFACTURING INDEX (0.5..8.0)
+	# =========================
+	set_temp_variable = { tmp = civilian_sector }
+	add_to_temp_variable = { tmp = mic_sector }
+	add_to_temp_variable = { tmp = mill_sector }
+	divide_temp_variable = { tmp = MFG_DIV }
+	clamp_temp_variable = { var = tmp min = 0.5 max = 8.0 }
+	set_variable = { CWIC_manufacturing_index = tmp }
+
+	# =========================
+	# ELECTRONICS INDEX (0.5..8.0) [v1 proxy]
+	# =========================
+	set_temp_variable = { tmp = service_sector }
+	divide_temp_variable = { tmp = ELEC_DIV }
+	clamp_temp_variable = { var = tmp min = 0.5 max = 8.0 }
+	set_variable = { CWIC_electronics_index = tmp }
+
+	# =========================
+	# EXTRACTIVE SPLIT: OIL vs MINING (value-weighted, trade-adjusted)
+	# effective = production + exports - imports
+	# rubber and coal excluded intentionally
+	# =========================
+
+	# Defaults if no extractive base
+	set_variable = { CWIC_oil_output_index = 0.5 }
+	set_variable = { CWIC_mining_output_index = 0.5 }
+
+	# ---- Effective resource supplies ----
+
+	# Oil
+	set_temp_variable = { oil_amt = resource@oil }
+	add_to_temp_variable = { oil_amt = oil_exports }
+	subtract_from_temp_variable = { oil_amt = oil_imports }
+	clamp_temp_variable = { var = oil_amt min = 0 max = 1000000 }
+
+	# Aluminium
+	set_temp_variable = { alu_amt = resource@aluminium }
+	add_to_temp_variable = { alu_amt = aluminium_exports }
+	subtract_from_temp_variable = { alu_amt = aluminium_imports }
+	clamp_temp_variable = { var = alu_amt min = 0 max = 1000000 }
+
+	# Tungsten
+	set_temp_variable = { tng_amt = resource@tungsten }
+	add_to_temp_variable = { tng_amt = tungsten_exports }
+	subtract_from_temp_variable = { tng_amt = tungsten_imports }
+	clamp_temp_variable = { var = tng_amt min = 0 max = 1000000 }
+
+	# Steel
+	set_temp_variable = { stl_amt = resource@steel }
+	add_to_temp_variable = { stl_amt = steel_exports }
+	subtract_from_temp_variable = { stl_amt = steel_imports }
+	clamp_temp_variable = { var = stl_amt min = 0 max = 1000000 }
+
+	# Chromium
+	set_temp_variable = { chr_amt = resource@chromium }
+	add_to_temp_variable = { chr_amt = chromium_exports }
+	subtract_from_temp_variable = { chr_amt = chromium_imports }
+	clamp_temp_variable = { var = chr_amt min = 0 max = 1000000 }
+
+	# ---- Value weights using your resource.cic ----
+	# oil.cic = 0.200
+	set_temp_variable = { oil_val = oil_amt }
+	multiply_temp_variable = { oil_val = 0.200 }
+
+	# aluminium.cic = 0.100
+	set_temp_variable = { alu_val = alu_amt }
+	multiply_temp_variable = { alu_val = 0.100 }
+
+	# tungsten.cic = 0.250
+	set_temp_variable = { tng_val = tng_amt }
+	multiply_temp_variable = { tng_val = 0.250 }
+
+	# steel.cic = 0.100
+	set_temp_variable = { stl_val = stl_amt }
+	multiply_temp_variable = { stl_val = 0.100 }
+
+	# chromium.cic = 0.500
+	set_temp_variable = { chr_val = chr_amt }
+	multiply_temp_variable = { chr_val = 0.500 }
+
+	# metal_val = alu + tng + stl + chr
+	set_temp_variable = { metal_val = 0 }
+	add_to_temp_variable = { metal_val = alu_val }
+	add_to_temp_variable = { metal_val = tng_val }
+	add_to_temp_variable = { metal_val = stl_val }
+	add_to_temp_variable = { metal_val = chr_val }
+
+	# total_val = oil + metals
+	set_temp_variable = { total_val = oil_val }
+	add_to_temp_variable = { total_val = metal_val }
+
+	# ---- If we have any extractive value, split rgo_sector into oil/mining earnings ----
+	if = {
+		limit = { check_variable = { total_val > 0 } }
+
+		# oil_share = oil_val / total_val
+		set_temp_variable = { oil_share = oil_val }
+		divide_temp_variable = { oil_share = total_val }
+		clamp_temp_variable = { var = oil_share min = 0 max = 1 }
+
+		# mining_share = metal_val / total_val
+		set_temp_variable = { mining_share = metal_val }
+		divide_temp_variable = { mining_share = total_val }
+		clamp_temp_variable = { var = mining_share min = 0 max = 1 }
+
+		# oil_earn = rgo_sector * oil_share
+		set_temp_variable = { oil_earn = rgo_sector }
+		multiply_temp_variable = { oil_earn = oil_share }
+
+		# min_earn = rgo_sector * mining_share
+		set_temp_variable = { min_earn = rgo_sector }
+		multiply_temp_variable = { min_earn = mining_share }
+
+		# Convert to indices
+		set_temp_variable = { tmp = oil_earn }
+		divide_temp_variable = { tmp = OIL_DIV }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 8.0 }
+		set_variable = { CWIC_oil_output_index = tmp }
+
+		set_temp_variable = { tmp = min_earn }
+		divide_temp_variable = { tmp = MIN_DIV }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 6.0 }
+		set_variable = { CWIC_mining_output_index = tmp }
+	}
+}
+cwic_calc_nationalization_pressure_index = {
+
+	# =========================
+	# DEFAULT
+	# =========================
+	set_variable = { CWIC_nationalization_pressure_index = 0 }
+
+	# =========================
+	# COMPONENT 1: ECONOMIC AXIS BASE (0..4)
+	# =========================
+	# Higher economic_x_axis = more state control / more nationalization pressure
+	# Tune the thresholds to your axis scale.
+	set_temp_variable = { base_axis = 0 }
+
+	# Example mapping for a 0..30-ish axis
+	if = { limit = { check_variable = { economic_x_axis > 25 } } set_temp_variable = { base_axis = 4 } }
+	else_if = { limit = { check_variable = { economic_x_axis > 21 } } set_temp_variable = { base_axis = 3 } }
+	else_if = { limit = { check_variable = { economic_x_axis > 17 } } set_temp_variable = { base_axis = 2 } }
+	else_if = { limit = { check_variable = { economic_x_axis > 13 } } set_temp_variable = { base_axis = 1 } }
+	else = { set_temp_variable = { base_axis = 0 } }
+
+	# =========================
+	# COMPONENT 2: INSTABILITY ADD (0..1.5)
+	# =========================
+	# Instability makes nationalization more likely (scapegoating, emergency measures).
+	# CWIC_instability_index is 0..3
+	set_temp_variable = { inst_add = CWIC_instability_index }
+	multiply_temp_variable = { inst_add = 0.5 }  # 0..1.5
+
+	# =========================
+	# COMPONENT 3: STABILITY RELIEF (0..1.0)
+	# =========================
+	# Higher stability reduces pressure slightly.
+	set_temp_variable = { stab_relief = 0 }
+
+	# If using vanilla stability (0..1)
+	set_temp_variable = { stab_relief = stability }
+	multiply_temp_variable = { stab_relief = 1.0 }  # 0..1
+
+	# If you prefer CWIC_stability_percent instead, use this block and comment out the 3 lines above:
+	# set_temp_variable = { stab_relief = CWIC_stability_percent }
+	# divide_temp_variable = { stab_relief = 100 }
+	# clamp_temp_variable = { var = stab_relief min = 0 max = 1 }
+
+	# =========================
+	# COMPONENT 4: FREE MARKET BONUSES RELIEF (0..1.5)
+	# =========================
+	set_temp_variable = { market_relief = 0 }
+
+	if = { limit = { has_free_market_bonus_max = yes } add_to_temp_variable = { market_relief = 1.5 } }
+	else_if = { limit = { has_moderate_free_market_bonus = yes } add_to_temp_variable = { market_relief = 1.0 } }
+	else_if = { limit = { has_socialist_free_market_bonus = yes } add_to_temp_variable = { market_relief = 0.5 } }
+	else = { }
+
+	# =========================
+	# FINAL COMBINE
+	# pressure = base_axis + inst_add - stab_relief - market_relief
+	# clamp to 0..5
+	# =========================
+	set_temp_variable = { press = base_axis }
+	add_to_temp_variable = { press = inst_add }
+	subtract_from_temp_variable = { press = stab_relief }
+	subtract_from_temp_variable = { press = market_relief }
+
+	clamp_temp_variable = { var = press min = 0 max = 5 }
+	set_variable = { CWIC_nationalization_pressure_index = press }
+}
+cwic_calc_stability_percent = {
+	set_temp_variable = { tmp = stability }
+	multiply_temp_variable = { tmp = 100 }
+	clamp_temp_variable = { var = tmp min = 0 max = 100 }
+	set_variable = { CWIC_stability_percent = tmp }
+}
+cwic_calc_global_budget_risk_factor = {
+
+	# risk_factor = clamp(0.25, 1.0, 1.0 - (risk/120))
+	set_temp_variable = { tmp = CWIC_corporate_risk_index }
+	divide_temp_variable = { tmp = 120 }
+
+	set_temp_variable = { risk_factor = 1 }
+	subtract_from_temp_variable = { risk_factor = tmp }
+
+	clamp_temp_variable = { var = risk_factor min = 0.25 max = 1.0 }
+	set_variable = { CWIC_global_budget_risk_factor = risk_factor }
+}
+cwic_calc_global_budget_shock_factor = {
+
+	set_variable = { CWIC_global_budget_shock_factor = 1.0 }
+
+	if = {
+		limit = { check_variable = { global.CWIC_any_corp_shock > 0 } }
+		set_variable = { CWIC_global_budget_shock_factor = 0.5 }
+	}
+}
+cwic_calc_corporate_risk_index = {
+
+	# =========================
+	# DEFAULT
+	# =========================
+	set_variable = { CWIC_corporate_risk_index = 0 }
+
+	# =========================
+	# COMPONENT WEIGHTS (TUNING KNOBS)
+	# =========================
+	set_temp_variable = { W_INST = 15 }   # instability weight
+	set_temp_variable = { W_NAT  = 12 }   # nationalization weight
+	set_temp_variable = { W_INF  = 6 }    # inflation weight
+	set_temp_variable = { W_STAB = 0.10 } # stability dampener
+
+	# =========================
+	# BASE RISK BUILD
+	# =========================
+
+	set_temp_variable = { risk = 0 }
+
+	# Instability (0..3 → 0..45)
+	set_temp_variable = { tmp = CWIC_instability_index }
+	multiply_temp_variable = { tmp = W_INST }
+	add_to_temp_variable = { risk = tmp }
+
+	# Nationalization pressure (0..5 → 0..60)
+	set_temp_variable = { tmp = CWIC_nationalization_pressure_index }
+	multiply_temp_variable = { tmp = W_NAT }
+	add_to_temp_variable = { risk = tmp }
+
+	# Inflation pressure (0..6 → 0..36)
+	set_temp_variable = { tmp = CWIC_inflation_pressure_index }
+	multiply_temp_variable = { tmp = W_INF }
+	add_to_temp_variable = { risk = tmp }
+
+	# =========================
+	# WAR SHOCK ADD
+	# =========================
+	if = {
+		limit = { has_war = yes }
+		add_to_temp_variable = { risk = 20 }
+	}
+
+	# =========================
+	# STABILITY DAMPENER
+	# =========================
+	set_temp_variable = { tmp = CWIC_stability_percent }
+	multiply_temp_variable = { tmp = W_STAB }
+	subtract_from_temp_variable = { risk = tmp }
+
+	# =========================
+	# FINAL CLAMP
+	# =========================
+	clamp_temp_variable = { var = risk min = 0 max = 100 }
+	set_variable = { CWIC_corporate_risk_index = risk }
+}

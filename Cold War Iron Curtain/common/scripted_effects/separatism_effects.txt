@@ -156,4 +156,80 @@ calculate_separatism = {
 
     clamp_variable = { var = separatism min = 0 max = 100 }
     #log = "[?THIS.GetID.GetName] END calculate_separatism | separatism post-clamp=[?separatism]"
+
+	# =========================
+	# NATIONAL ROLLUP ACCUMULATION (STATE -> COUNTRY)
+	# =========================
+	# We accumulate sums here for performance.
+	# Final formatting and clamping happens in cwic_finalize_separatism_rollup.
+
+	# Weight = state_population / pop_divisor
+	# pop_divisor is purely to keep numbers sane, ratio stays identical.
+	set_temp_variable = { pop_divisor = 100000 }  # tune as needed
+
+	set_temp_variable = { w = state_population }
+	divide_temp_variable = { w = pop_divisor }
+
+	# Safety clamp: if w becomes 0 from small states, give a tiny weight
+	# so micro-states still contribute a bit.
+	clamp_temp_variable = { var = w min = 0.01 max = 1000000 }
+
+	# weighted = separatism * w
+	set_temp_variable = { weighted = separatism }
+	multiply_temp_variable = { weighted = w }
+
+	# Add to country accumulators (FROM = country)
+	add_to_variable = { FROM.CWIC_sep_roll_sum_weight = w }
+	add_to_variable = { FROM.CWIC_sep_roll_sum_weighted = weighted }
+
+	# Optional debug
+	add_to_variable = { FROM.CWIC_sep_roll_state_count = 1 }
+}
+cwic_begin_separatism_rollup = {
+
+	# Reset national rollup accumulators (country scope)
+	set_variable = { CWIC_sep_roll_sum_weight = 0 }
+	set_variable = { CWIC_sep_roll_sum_weighted = 0 }
+
+	# Optional debug
+	set_variable = { CWIC_sep_roll_state_count = 0 }
+}
+
+cwic_finalize_separatism_rollup = {
+
+	# =========================
+	# FINALIZE NATIONAL SEPARATISM -> CWIC_instability_index (0..3)
+	# =========================
+
+	# Default safe values if something went wrong
+	set_variable = { CWIC_avg_separatism = 0 }
+	set_variable = { CWIC_instability_index = 0 }
+
+	# Guard against divide-by-zero
+	if = {
+		limit = {
+			check_variable = { CWIC_sep_roll_sum_weight > 0 }
+		}
+
+		# avg_sep = sum_weighted / sum_weight
+		set_temp_variable = { avg_sep = CWIC_sep_roll_sum_weighted }
+		divide_temp_variable = { avg_sep = CWIC_sep_roll_sum_weight }
+
+		# Store avg separatism for debugging/UI (0..100)
+		set_variable = { CWIC_avg_separatism = avg_sep }
+		clamp_variable = { var = CWIC_avg_separatism min = 0 max = 100 }
+
+		# instability_index = clamp(0..3, avg_sep / 33.4)
+		set_temp_variable = { inst = avg_sep }
+		divide_temp_variable = { inst = 33.4 }
+
+		set_variable = { CWIC_instability_index = inst }
+		clamp_variable = { var = CWIC_instability_index min = 0 max = 3 }
+	}
+
+	# Optional: reset rollup sums after finalize
+	# If you want to keep them for debugging, comment these out.
+	set_variable = { CWIC_sep_roll_sum_weight = 0 }
+	set_variable = { CWIC_sep_roll_sum_weighted = 0 }
+	set_variable = { CWIC_sep_roll_state_count = 0 }
 }

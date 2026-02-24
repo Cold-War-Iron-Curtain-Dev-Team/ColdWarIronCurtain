@@ -2,7 +2,7 @@
 # scripted_effects/cwic_inflation.txt
 # ============================================================
 cwic_inflation_monthly_pulse = {
-
+	set_variable = { CWIC_cpi_index_last = CWIC_cpi_index }
 	# ============================================================
 	# 0) Defaults / init safety
 	# ============================================================
@@ -781,4 +781,80 @@ cwic_apply_reserve_currency_print_discount = {
 		multiply_temp_variable = { print_infl = 0.70 }
 		multiply_temp_variable = { print_bm = 0.70 }
 	}
+}
+
+cwic_calc_inflation_pressure_index = {
+
+	# =========================
+	# CPI-BASED INFLATION PRESSURE (0..6)
+	# Requires:
+	#   CWIC_cpi_index (current month)
+	#   CWIC_cpi_index_last (previous month)
+	# Writes:
+	#   CWIC_inflation_pressure_index (0..6)
+	# Optional:
+	#   CWIC_inflation_monthly_rate_pct (debug, percent)
+	# =========================
+
+	# Safety: if last is missing or <= 0, set it to current
+	if = {
+		limit = {
+			OR = {
+				NOT = { has_variable = CWIC_cpi_index_last }
+				check_variable = { CWIC_cpi_index_last <= 0 }
+			}
+		}
+		set_variable = { CWIC_cpi_index_last = CWIC_cpi_index }
+	}
+
+	# rate = (now - last) / last
+	set_temp_variable = { cpi_now = CWIC_cpi_index }
+	set_temp_variable = { cpi_last = CWIC_cpi_index_last }
+
+	set_temp_variable = { delta = cpi_now }
+	subtract_from_temp_variable = { delta = cpi_last }
+
+	set_temp_variable = { rate = delta }
+	divide_temp_variable = { rate = cpi_last }
+
+	# Convert to percent for easier thresholds: rate_pct = rate * 100
+	set_temp_variable = { rate_pct = rate }
+	multiply_temp_variable = { rate_pct = 100 }
+
+	# Optional clamp to avoid extreme spikes breaking tuning
+	# (does not affect sign, only bounds)
+	clamp_temp_variable = { var = rate_pct min = -5 max = 25 }
+
+	# Store debug percent change (optional)
+	set_variable = { CWIC_inflation_monthly_rate_pct = rate_pct }
+
+	# =========================
+	# Map monthly CPI % change to pressure tier 0..6
+	# Thresholds (percent per month):
+	# <= 0.0  -> 0
+	# 0.0-0.3 -> 1
+	# 0.3-0.7 -> 2
+	# 0.7-1.5 -> 3
+	# 1.5-3.0 -> 4
+	# 3.0-6.0 -> 5
+	# > 6.0   -> 6
+	# =========================
+
+	set_variable = { CWIC_inflation_pressure_index = 0 }
+
+	if = {
+		limit = { check_variable = { rate_pct > 0 } }
+
+		# default at least 1 if positive
+		set_variable = { CWIC_inflation_pressure_index = 1 }
+
+		if = { limit = { check_variable = { rate_pct >= 0.3 } } set_variable = { CWIC_inflation_pressure_index = 2 } }
+		if = { limit = { check_variable = { rate_pct >= 0.7 } } set_variable = { CWIC_inflation_pressure_index = 3 } }
+		if = { limit = { check_variable = { rate_pct >= 1.5 } } set_variable = { CWIC_inflation_pressure_index = 4 } }
+		if = { limit = { check_variable = { rate_pct >= 3.0 } } set_variable = { CWIC_inflation_pressure_index = 5 } }
+		if = { limit = { check_variable = { rate_pct > 6.0 } } set_variable = { CWIC_inflation_pressure_index = 6 } }
+	}
+
+	# Hard clamp just in case
+	clamp_variable = { var = CWIC_inflation_pressure_index min = 0 max = 6 }
 }
