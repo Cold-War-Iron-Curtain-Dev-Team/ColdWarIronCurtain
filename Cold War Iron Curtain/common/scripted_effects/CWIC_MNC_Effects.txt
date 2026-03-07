@@ -15194,3 +15194,172 @@ cwic_mnc_nationalize_toshiba_electronics = {
 		clamp_variable = { var = CWIC_instability_index min = 0 max = 3 }
 	}
 }
+# ============================================================
+# CWIC MNC: Consolidated Governance Stress (NO state loops)
+#
+# Outputs:
+#   CWIC_mnc_backlash_index        0..100
+#   CWIC_governance_stress_index   0..100
+#   CWIC_governance_stress_tier    0..5
+#
+# Requires:
+#   National_HDI (0..1)
+#   CWIC_nationalization_pressure_index (0..5)
+#   Extractive rollup tiers (country vars, 0..5):
+#     mnc_presence_hydrocarbons_tier
+#     mnc_presence_mining_tier
+#   Unrest proxies (choose what you already have):
+#     CWIC_instability_index (0..3)  (preferred)
+#     OR CWIC_instability_index-like variable you already compute
+#   Elite capture:
+#     CWIC_elite_capture_index (0..100) OR CWIC_mnc_capture_tier (0..5)
+# ============================================================
+
+cwic_calc_governance_stress_index_fast = {
+
+    # -------------------------
+    # 0) Inputs / fallbacks
+    # -------------------------
+    set_temp_variable = { n_hdi = 0.5 }
+    if = {
+        limit = { has_variable = National_HDI }
+        set_temp_variable = { n_hdi = National_HDI }
+    }
+    clamp_temp_variable = { var = n_hdi min = 0 max = 1 }
+
+    # Extractive tier = max(hydrocarbons, mining)
+    set_temp_variable = { ex_tier = 0 }
+    if = {
+        limit = { has_variable = CWIC_mnc_presence_tier_hydrocarbons }
+        set_temp_variable = { ex_tier = CWIC_mnc_presence_tier_hydrocarbons }
+    }
+    if = {
+        limit = {
+            has_variable = CWIC_mnc_presence_tier_mining
+            check_variable = { CWIC_mnc_presence_tier_mining > ex_tier }
+        }
+        set_temp_variable = { ex_tier = CWIC_mnc_presence_tier_mining }
+    }
+    clamp_temp_variable = { var = ex_tier min = 0 max = 5 }
+
+    # Elite capture term (0..100)
+    set_temp_variable = { elite = 0 }
+    if = {
+        limit = { has_variable = CWIC_elite_capture_index }
+        set_temp_variable = { elite = CWIC_elite_capture_index }
+    }
+    else_if = {
+        limit = { has_variable = CWIC_mnc_capture_tier }
+        set_temp_variable = { elite = CWIC_mnc_capture_tier }
+        divide_temp_variable = { elite = 5 }
+        multiply_temp_variable = { elite = 100 }
+    }
+    clamp_temp_variable = { var = elite min = 0 max = 100 }
+
+    # Nationalization pressure term -> 0..100
+    set_temp_variable = { natp = 0 }
+    if = {
+        limit = { has_variable = CWIC_nationalization_pressure_index }
+        set_temp_variable = { natp = CWIC_nationalization_pressure_index }
+        divide_temp_variable = { natp = 5 }
+        multiply_temp_variable = { natp = 100 }
+    }
+    clamp_temp_variable = { var = natp min = 0 max = 100 }
+
+    # Unrest proxy -> 0..100
+    set_temp_variable = { unrest = 0 }
+    if = {
+        limit = { has_variable = CWIC_instability_index }
+        set_temp_variable = { unrest = CWIC_instability_index }
+        divide_temp_variable = { unrest = 3 }
+        multiply_temp_variable = { unrest = 100 }
+    }
+    clamp_temp_variable = { var = unrest min = 0 max = 100 }
+
+    # -------------------------
+    # 1) Backlash index (0..100)
+    # -------------------------
+    set_temp_variable = { backlash = 0 }
+
+    if = {
+        limit = { check_variable = { ex_tier > 2 } }
+
+        set_temp_variable = { tier_term = ex_tier }
+        subtract_from_temp_variable = { tier_term = 2 }
+        divide_temp_variable = { tier_term = 3 }
+        clamp_temp_variable = { var = tier_term min = 0 max = 1 }
+
+        set_temp_variable = { hdi_term = 1 }
+        subtract_from_temp_variable = { hdi_term = n_hdi }
+
+        set_temp_variable = { unrest_term = unrest }
+        divide_temp_variable = { unrest_term = 200 }
+        add_to_temp_variable = { unrest_term = 0.5 }
+        clamp_temp_variable = { var = unrest_term min = 0.5 max = 1.0 }
+
+        set_temp_variable = { backlash = 100 }
+        multiply_temp_variable = { backlash = tier_term }
+        multiply_temp_variable = { backlash = hdi_term }
+        multiply_temp_variable = { backlash = unrest_term }
+    }
+
+    clamp_temp_variable = { var = backlash min = 0 max = 100 }
+    set_variable = { CWIC_mnc_backlash_index = backlash }
+
+    # -------------------------
+    # 2) Governance stress (0..100)
+    # -------------------------
+    set_temp_variable = { stress = 0 }
+
+    set_temp_variable = { tmp = elite }
+    multiply_temp_variable = { tmp = 0.45 }
+    add_to_temp_variable = { stress = tmp }
+
+    set_temp_variable = { tmp = backlash }
+    multiply_temp_variable = { tmp = 0.40 }
+    add_to_temp_variable = { stress = tmp }
+
+    set_temp_variable = { tmp = natp }
+    multiply_temp_variable = { tmp = 0.15 }
+    add_to_temp_variable = { stress = tmp }
+
+    clamp_temp_variable = { var = stress min = 0 max = 100 }
+    set_variable = { CWIC_governance_stress_index = stress }
+
+    # Tier 0..5
+    set_temp_variable = { tmp = stress }
+    divide_temp_variable = { tmp = 20 }
+    clamp_temp_variable = { var = tmp min = 0 max = 5 }
+    set_variable = { CWIC_governance_stress_tier = tmp }
+}
+cwic_apply_governance_stress_modifiers_country = {
+
+	# Remove old tier modifiers
+	remove_ideas = cwic_governance_stress_t1
+	remove_ideas = cwic_governance_stress_t2
+	remove_ideas = cwic_governance_stress_t3
+	remove_ideas = cwic_governance_stress_t4
+	remove_ideas = cwic_governance_stress_t5
+
+	if = {
+		limit = { check_variable = { CWIC_governance_stress_tier = 1 } }
+		add_ideas = cwic_governance_stress_t1
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_governance_stress_tier = 2 } }
+		add_ideas = cwic_governance_stress_t2
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_governance_stress_tier = 3 } }
+		add_ideas = cwic_governance_stress_t3
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_governance_stress_tier = 4 } }
+		add_ideas = cwic_governance_stress_t4
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_governance_stress_tier = 5 } }
+		add_ideas = cwic_governance_stress_t5
+	}
+	else = { }
+}
