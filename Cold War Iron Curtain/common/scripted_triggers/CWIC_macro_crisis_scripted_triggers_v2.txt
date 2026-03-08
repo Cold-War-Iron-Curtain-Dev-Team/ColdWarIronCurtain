@@ -1,0 +1,1452 @@
+# ============================================================
+# CWIC Macro Crisis Scripted Triggers (v2)
+# First-pass canonical crisis checks using existing econ variables
+# where available. Kept intentionally modular so compound crises,
+# monthly evaluators, and modifiers can all reference the same names.
+#
+# Notes:
+# - Several crises are fully grounded in live variables already present
+#   in your uploaded files: fiscal, inflation, finance, governance,
+#   crop failure, and food security.
+# - Economic contraction still wants a dedicated real GDP growth / GDPpc
+#   trend variable to be truly clean. Placeholder support is included.
+# - Energy crisis now references real oil/electricity demand and food/power
+#   pulse variables, but still lacks a perfect electricity production balance
+#   variable in the uploaded scripts.
+# ============================================================
+
+scripted_triggers = {
+
+    # ------------------------------------------------------------
+    # Shared helpers
+    # ------------------------------------------------------------
+
+    CWIC_has_gdp_growth_series = {
+        OR = {
+            has_variable = CWIC_real_gdp_growth_yoy
+            has_variable = CWIC_gdp_growth_yoy
+            has_variable = CWIC_gdp_growth_mom_annualized
+        }
+    }
+
+    CWIC_has_food_accounting = {
+        has_variable = FoodProdTotal
+        has_variable = ConsumptionTotal
+        has_variable = FoodBalanceTotal
+        has_variable = food_penalty
+    }
+
+    CWIC_has_energy_accounting = {
+        has_variable = oil_consumption
+        has_variable = electricity_consumption
+    }
+
+    CWIC_has_macro_finance_accounting = {
+        has_variable = grossdomesticproduct
+        has_variable = currentMoney
+        has_variable = currentDebt
+        has_variable = currentDebtPayments
+        has_variable = Credit_Rating
+    }
+
+    # ------------------------------------------------------------
+    # 1) Fiscal Crisis
+    # ------------------------------------------------------------
+
+    CWIC_is_fiscal_crisis_low = {
+        OR = {
+            has_country_flag = CWIC_DEFAULTED
+            has_country_flag = CWIC_MARKET_LOCKOUT
+            AND = {
+                has_variable = pulse_deficit
+                has_variable = grossdomesticproduct
+                check_variable = { pulse_deficit > 0 }
+                check_variable = { grossdomesticproduct > 0 }
+                # deficit > ~4% GDP proxy
+                check_variable = { pulse_deficit > 0.04 }
+                check_variable = { austerityCheck > 0 }
+            }
+            AND = {
+                has_variable = currentDebtPayments
+                has_variable = grossdomesticproduct
+                check_variable = { grossdomesticproduct > 0 }
+                # debt service > ~5% GDP proxy
+                check_variable = { currentDebtPayments > 0.05 }
+            }
+        }
+    }
+
+    CWIC_is_fiscal_crisis_medium = {
+        OR = {
+            has_country_flag = CWIC_DEFAULTED
+            has_country_flag = CWIC_MARKET_LOCKOUT
+            AND = {
+                has_variable = pulse_deficit
+                has_variable = grossdomesticproduct
+                check_variable = { pulse_deficit > 0.08 }
+                check_variable = { austerityCheck > 0 }
+            }
+            AND = {
+                has_variable = currentDebtPayments
+                has_variable = grossdomesticproduct
+                check_variable = { currentDebtPayments > 0.10 }
+            }
+            AND = {
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 5 }
+            }
+        }
+    }
+
+    CWIC_is_fiscal_crisis_high = {
+        OR = {
+            has_country_flag = CWIC_DEFAULTED
+            has_country_flag = CWIC_MARKET_LOCKOUT
+            AND = {
+                has_variable = pulse_deficit
+                has_variable = grossdomesticproduct
+                check_variable = { pulse_deficit > 0.12 }
+            }
+            AND = {
+                has_variable = currentDebtPayments
+                check_variable = { currentDebtPayments > 0.15 }
+            }
+            AND = {
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 4 }
+            }
+            AND = {
+                has_variable = currentMoney
+                has_variable = currentDebtPayments
+                check_variable = { currentDebtPayments > 0 }
+                check_variable = { currentMoney < currentDebtPayments }
+            }
+        }
+    }
+
+    CWIC_is_fiscal_crisis_extreme = {
+        OR = {
+            has_country_flag = CWIC_DEFAULTED
+            AND = {
+                has_country_flag = CWIC_MARKET_LOCKOUT
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 3 }
+            }
+            AND = {
+                has_variable = pulse_deficit
+                check_variable = { pulse_deficit > 0.18 }
+            }
+            AND = {
+                has_variable = currentDebtPayments
+                check_variable = { currentDebtPayments > 0.20 }
+            }
+        }
+    }
+
+    CWIC_is_fiscal_crisis = {
+        OR = {
+            CWIC_is_fiscal_crisis_low = yes
+            CWIC_is_fiscal_crisis_medium = yes
+            CWIC_is_fiscal_crisis_high = yes
+            CWIC_is_fiscal_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 2) Economic Contraction Crisis
+    # ------------------------------------------------------------
+    # Wants a real growth trend variable. Placeholder support included.
+    # Fallback path uses weak credit + soft/negative inflation + low money.
+    # ------------------------------------------------------------
+
+    CWIC_is_economic_contraction_crisis_low = {
+        OR = {
+            AND = {
+                has_variable = CWIC_real_gdp_growth_yoy
+                check_variable = { CWIC_real_gdp_growth_yoy < 0 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_yoy
+                check_variable = { CWIC_gdp_growth_yoy < 0 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_mom_annualized
+                check_variable = { CWIC_gdp_growth_mom_annualized < 0 }
+            }
+            AND = {
+                has_variable = Credit_Rating
+                has_variable = CWIC_inflation_mom
+                check_variable = { Credit_Rating < 6 }
+                check_variable = { CWIC_inflation_mom < 0.002 }
+            }
+        }
+    }
+
+    CWIC_is_economic_contraction_crisis_medium = {
+        OR = {
+            AND = {
+                has_variable = CWIC_real_gdp_growth_yoy
+                check_variable = { CWIC_real_gdp_growth_yoy < -0.02 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_yoy
+                check_variable = { CWIC_gdp_growth_yoy < -0.02 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_mom_annualized
+                check_variable = { CWIC_gdp_growth_mom_annualized < -0.02 }
+            }
+            AND = {
+                has_variable = Credit_Rating
+                has_variable = CWIC_inflation_mom
+                has_variable = currentMoney
+                check_variable = { Credit_Rating < 5 }
+                check_variable = { CWIC_inflation_mom < 0.001 }
+                check_variable = { currentMoney < 0 }
+            }
+        }
+    }
+
+    CWIC_is_economic_contraction_crisis_high = {
+        OR = {
+            AND = {
+                has_variable = CWIC_real_gdp_growth_yoy
+                check_variable = { CWIC_real_gdp_growth_yoy < -0.04 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_yoy
+                check_variable = { CWIC_gdp_growth_yoy < -0.04 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_mom_annualized
+                check_variable = { CWIC_gdp_growth_mom_annualized < -0.04 }
+            }
+            AND = {
+                has_variable = Credit_Rating
+                has_variable = CWIC_inflation_mom
+                check_variable = { Credit_Rating < 4 }
+                check_variable = { CWIC_inflation_mom < 0.0005 }
+            }
+        }
+    }
+
+    CWIC_is_economic_contraction_crisis_extreme = {
+        OR = {
+            AND = {
+                has_variable = CWIC_real_gdp_growth_yoy
+                check_variable = { CWIC_real_gdp_growth_yoy < -0.06 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_yoy
+                check_variable = { CWIC_gdp_growth_yoy < -0.06 }
+            }
+            AND = {
+                has_variable = CWIC_gdp_growth_mom_annualized
+                check_variable = { CWIC_gdp_growth_mom_annualized < -0.06 }
+            }
+        }
+    }
+
+    CWIC_is_economic_contraction_crisis = {
+        OR = {
+            CWIC_is_economic_contraction_crisis_low = yes
+            CWIC_is_economic_contraction_crisis_medium = yes
+            CWIC_is_economic_contraction_crisis_high = yes
+            CWIC_is_economic_contraction_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 3) Inflationary Crisis
+    # Based directly on CWIC_inflation_mom monthly rate.
+    # 0.005 ~= ~6% annualized, 0.01 ~= ~12%, 0.02 ~= ~24%+
+    # ------------------------------------------------------------
+
+    CWIC_is_inflationary_crisis_low = {
+        OR = {
+            AND = {
+                has_variable = CWIC_inflation_mom
+                check_variable = { CWIC_inflation_mom > 0.005 }
+            }
+            AND = {
+                has_variable = CWIC_black_market_pressure
+                check_variable = { CWIC_black_market_pressure > 0.25 }
+            }
+        }
+    }
+
+    CWIC_is_inflationary_crisis_medium = {
+        OR = {
+            AND = {
+                has_variable = CWIC_inflation_mom
+                check_variable = { CWIC_inflation_mom > 0.010 }
+            }
+            AND = {
+                has_variable = CWIC_black_market_pressure
+                check_variable = { CWIC_black_market_pressure > 0.50 }
+            }
+            has_country_flag = CWIC_fx_pegged_currency_break
+        }
+    }
+
+    CWIC_is_inflationary_crisis_high = {
+        OR = {
+            AND = {
+                has_variable = CWIC_inflation_mom
+                check_variable = { CWIC_inflation_mom > 0.020 }
+            }
+            AND = {
+                has_variable = CWIC_black_market_pressure
+                check_variable = { CWIC_black_market_pressure > 0.75 }
+            }
+            AND = {
+                has_country_flag = CWIC_fx_pegged_currency_break
+                has_variable = CWIC_inflation_mom
+                check_variable = { CWIC_inflation_mom > 0.012 }
+            }
+        }
+    }
+
+    CWIC_is_inflationary_crisis_extreme = {
+        OR = {
+            AND = {
+                has_variable = CWIC_inflation_mom
+                check_variable = { CWIC_inflation_mom > 0.035 }
+            }
+            AND = {
+                has_country_flag = CWIC_fx_pegged_currency_break
+                has_variable = CWIC_black_market_pressure
+                check_variable = { CWIC_black_market_pressure > 0.85 }
+            }
+        }
+    }
+
+    CWIC_is_inflationary_crisis = {
+        OR = {
+            CWIC_is_inflationary_crisis_low = yes
+            CWIC_is_inflationary_crisis_medium = yes
+            CWIC_is_inflationary_crisis_high = yes
+            CWIC_is_inflationary_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 4) Deflationary Crisis
+    # Negative/very low inflation plus contraction or tight money.
+    # ------------------------------------------------------------
+
+    CWIC_is_deflationary_crisis_low = {
+        AND = {
+            has_variable = CWIC_inflation_mom
+            check_variable = { CWIC_inflation_mom < 0.001 }
+            OR = {
+                CWIC_is_economic_contraction_crisis_low = yes
+                AND = {
+                    has_variable = Interest_Rate
+                    check_variable = { Interest_Rate > 1.10 }
+                }
+            }
+        }
+    }
+
+    CWIC_is_deflationary_crisis_medium = {
+        AND = {
+            has_variable = CWIC_inflation_mom
+            check_variable = { CWIC_inflation_mom < 0 }
+            OR = {
+                CWIC_is_economic_contraction_crisis_medium = yes
+                AND = {
+                    has_variable = Interest_Rate
+                    check_variable = { Interest_Rate > 1.20 }
+                    has_variable = Credit_Rating
+                    check_variable = { Credit_Rating < 6 }
+                }
+            }
+        }
+    }
+
+    CWIC_is_deflationary_crisis_high = {
+        AND = {
+            has_variable = CWIC_inflation_mom
+            check_variable = { CWIC_inflation_mom < -0.002 }
+            OR = {
+                CWIC_is_economic_contraction_crisis_high = yes
+                AND = {
+                    has_variable = Interest_Rate
+                    check_variable = { Interest_Rate > 1.30 }
+                }
+            }
+        }
+    }
+
+    CWIC_is_deflationary_crisis_extreme = {
+        AND = {
+            has_variable = CWIC_inflation_mom
+            check_variable = { CWIC_inflation_mom < -0.004 }
+            CWIC_is_economic_contraction_crisis_high = yes
+        }
+    }
+
+    CWIC_is_deflationary_crisis = {
+        OR = {
+            CWIC_is_deflationary_crisis_low = yes
+            CWIC_is_deflationary_crisis_medium = yes
+            CWIC_is_deflationary_crisis_high = yes
+            CWIC_is_deflationary_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 5) Energy Crisis
+    # Uses real consumption variables from industrial pulse.
+    # Electricity side is still a proxy until a national electricity
+    # production / balance variable is formalized.
+    # ------------------------------------------------------------
+
+    CWIC_is_energy_crisis_low = {
+        OR = {
+            AND = {
+                has_variable = oil_consumption
+                check_variable = { oil_consumption > 5 }
+                # resource@oil can go negative elsewhere in the system
+                has_resources_amount = { resource = oil amount < 5 delivered = yes }
+            }
+            AND = {
+                has_variable = electricity_consumption
+                check_variable = { electricity_consumption > 10 }
+                OR = {
+                    check_variable = { fossil_fuel_plant_quantity < 2 }
+                    check_variable = { nuclear_powerplant_quantity < 1 }
+                }
+            }
+        }
+    }
+
+    CWIC_is_energy_crisis_medium = {
+        OR = {
+            AND = {
+                has_variable = oil_consumption
+                check_variable = { oil_consumption > 10 }
+                has_resources_amount = { resource = oil amount < 3 delivered = yes }
+            }
+            AND = {
+                has_variable = electricity_consumption
+                check_variable = { electricity_consumption > 20 }
+                check_variable = { fossil_fuel_plant_quantity < 2 }
+                check_variable = { nuclear_powerplant_quantity < 1 }
+            }
+        }
+    }
+
+    CWIC_is_energy_crisis_high = {
+        OR = {
+            AND = {
+                has_variable = oil_consumption
+                check_variable = { oil_consumption > 15 }
+                has_resources_amount = { resource = oil amount < 1 delivered = yes }
+            }
+            AND = {
+                has_variable = electricity_consumption
+                check_variable = { electricity_consumption > 30 }
+                check_variable = { fossil_fuel_plant_quantity < 1 }
+                check_variable = { nuclear_powerplant_quantity < 1 }
+                check_variable = { nuclear_reactor_quantity < 1 }
+            }
+        }
+    }
+
+    CWIC_is_energy_crisis_extreme = {
+        OR = {
+            AND = {
+                has_variable = oil_consumption
+                check_variable = { oil_consumption > 20 }
+                has_resources_amount = { resource = oil amount = 0 delivered = yes }
+            }
+            AND = {
+                has_variable = electricity_consumption
+                check_variable = { electricity_consumption > 40 }
+                check_variable = { fossil_fuel_plant_quantity < 1 }
+                check_variable = { nuclear_powerplant_quantity < 1 }
+                check_variable = { nuclear_reactor_quantity < 1 }
+                check_variable = { synthetic_refinery_quantity < 1 }
+            }
+        }
+    }
+
+    CWIC_is_energy_crisis = {
+        OR = {
+            CWIC_is_energy_crisis_low = yes
+            CWIC_is_energy_crisis_medium = yes
+            CWIC_is_energy_crisis_high = yes
+            CWIC_is_energy_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 6) Trade / External Shock Crisis
+    # FX break, market lockout, food import dependence stress, and reserve strain.
+    # ------------------------------------------------------------
+
+    CWIC_is_trade_external_shock_crisis_low = {
+        OR = {
+            has_country_flag = CWIC_MARKET_LOCKOUT
+            has_country_flag = CWIC_fx_pegged_currency_break
+            AND = {
+                has_variable = CWIC_fx_reserves
+                check_variable = { CWIC_fx_reserves < 3 }
+            }
+            AND = {
+                has_variable = FoodImported
+                has_variable = FoodProdTotal
+                check_variable = { FoodImported > FoodProdTotal }
+            }
+        }
+    }
+
+    CWIC_is_trade_external_shock_crisis_medium = {
+        OR = {
+            AND = {
+                has_country_flag = CWIC_MARKET_LOCKOUT
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 6 }
+            }
+            AND = {
+                has_country_flag = CWIC_fx_pegged_currency_break
+                has_variable = CWIC_fx_reserves
+                check_variable = { CWIC_fx_reserves < 2 }
+            }
+            AND = {
+                has_variable = FoodImported
+                has_variable = ConsumptionTotal
+                check_variable = { FoodImported > 0 }
+                check_variable = { ConsumptionTotal > 0 }
+                check_variable = { FoodImported > 5 }
+            }
+        }
+    }
+
+    CWIC_is_trade_external_shock_crisis_high = {
+        OR = {
+            AND = {
+                has_country_flag = CWIC_MARKET_LOCKOUT
+                has_country_flag = CWIC_DEFAULTED
+            }
+            AND = {
+                has_variable = CWIC_fx_reserves
+                check_variable = { CWIC_fx_reserves < 1 }
+                has_country_flag = CWIC_fx_pegged_currency_break
+            }
+            AND = {
+                has_variable = FoodImported
+                has_variable = FoodProdTotal
+                check_variable = { FoodImported > 8 }
+                check_variable = { FoodImported > FoodProdTotal }
+            }
+        }
+    }
+
+    CWIC_is_trade_external_shock_crisis_extreme = {
+        OR = {
+            AND = {
+                has_country_flag = CWIC_MARKET_LOCKOUT
+                has_country_flag = CWIC_DEFAULTED
+                has_country_flag = CWIC_fx_pegged_currency_break
+            }
+            AND = {
+                has_variable = CWIC_fx_reserves
+                check_variable = { CWIC_fx_reserves < 0.5 }
+            }
+        }
+    }
+
+    CWIC_is_trade_external_shock_crisis = {
+        OR = {
+            CWIC_is_trade_external_shock_crisis_low = yes
+            CWIC_is_trade_external_shock_crisis_medium = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+            CWIC_is_trade_external_shock_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 7) Financial / Credit Crisis
+    # ------------------------------------------------------------
+
+    CWIC_is_financial_credit_crisis_low = {
+        OR = {
+            has_country_flag = CWIC_DEFAULTED
+            has_country_flag = CWIC_MARKET_LOCKOUT
+            AND = {
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 6 }
+            }
+            AND = {
+                has_variable = currentDebtPayments
+                has_variable = currentMoney
+                check_variable = { currentDebtPayments > 0 }
+                check_variable = { currentMoney < currentDebtPayments }
+            }
+        }
+    }
+
+    CWIC_is_financial_credit_crisis_medium = {
+        OR = {
+            has_country_flag = CWIC_DEFAULTED
+            has_country_flag = CWIC_MARKET_LOCKOUT
+            AND = {
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 5 }
+            }
+            AND = {
+                has_variable = CWIC_fx_reserves
+                check_variable = { CWIC_fx_reserves < 2 }
+                has_country_flag = CWIC_fx_pegged_currency_break
+            }
+        }
+    }
+
+    CWIC_is_financial_credit_crisis_high = {
+        OR = {
+            AND = {
+                has_country_flag = CWIC_DEFAULTED
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 4 }
+            }
+            AND = {
+                has_country_flag = CWIC_MARKET_LOCKOUT
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 4 }
+            }
+            AND = {
+                has_variable = CWIC_black_market_pressure
+                check_variable = { CWIC_black_market_pressure > 0.60 }
+                has_country_flag = CWIC_fx_pegged_currency_break
+            }
+        }
+    }
+
+    CWIC_is_financial_credit_crisis_extreme = {
+        OR = {
+            AND = {
+                has_country_flag = CWIC_DEFAULTED
+                has_country_flag = CWIC_MARKET_LOCKOUT
+                has_variable = Credit_Rating
+                check_variable = { Credit_Rating < 3 }
+            }
+            AND = {
+                has_variable = CWIC_fx_reserves
+                check_variable = { CWIC_fx_reserves < 1 }
+                has_variable = CWIC_black_market_pressure
+                check_variable = { CWIC_black_market_pressure > 0.75 }
+            }
+        }
+    }
+
+    CWIC_is_financial_credit_crisis = {
+        OR = {
+            CWIC_is_financial_credit_crisis_low = yes
+            CWIC_is_financial_credit_crisis_medium = yes
+            CWIC_is_financial_credit_crisis_high = yes
+            CWIC_is_financial_credit_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 8) Governance / Institutional Crisis
+    # This remains partly project-specific. Use your existing instability,
+    # separatism, corruption, and insurgency proxies where present.
+    # ------------------------------------------------------------
+
+    CWIC_is_governance_institutional_crisis_low = {
+        OR = {
+            AND = {
+                has_variable = CWIC_instability_index
+                check_variable = { CWIC_instability_index > 0.25 }
+            }
+            AND = {
+                has_variable = CWIC_avg_separatism
+                check_variable = { CWIC_avg_separatism > 0.15 }
+            }
+            AND = {
+                has_variable = CorruptionLevel
+                check_variable = { CorruptionLevel > 4 }
+            }
+            has_country_flag = active_insurgency
+        }
+    }
+
+    CWIC_is_governance_institutional_crisis_medium = {
+        OR = {
+            AND = {
+                has_variable = CWIC_instability_index
+                check_variable = { CWIC_instability_index > 0.40 }
+            }
+            AND = {
+                has_variable = CWIC_avg_separatism
+                check_variable = { CWIC_avg_separatism > 0.25 }
+            }
+            AND = {
+                has_variable = CorruptionLevel
+                check_variable = { CorruptionLevel > 6 }
+            }
+            AND = {
+                has_country_flag = active_insurgency
+                has_variable = CWIC_instability_index
+                check_variable = { CWIC_instability_index > 0.25 }
+            }
+        }
+    }
+
+    CWIC_is_governance_institutional_crisis_high = {
+        OR = {
+            AND = {
+                has_variable = CWIC_instability_index
+                check_variable = { CWIC_instability_index > 0.55 }
+            }
+            AND = {
+                has_variable = CWIC_avg_separatism
+                check_variable = { CWIC_avg_separatism > 0.35 }
+            }
+            AND = {
+                has_variable = CorruptionLevel
+                check_variable = { CorruptionLevel > 8 }
+            }
+            AND = {
+                has_country_flag = active_insurgency
+                has_variable = CWIC_avg_separatism
+                check_variable = { CWIC_avg_separatism > 0.20 }
+            }
+        }
+    }
+
+    CWIC_is_governance_institutional_crisis_extreme = {
+        OR = {
+            AND = {
+                has_variable = CWIC_instability_index
+                check_variable = { CWIC_instability_index > 0.70 }
+            }
+            AND = {
+                has_variable = CWIC_avg_separatism
+                check_variable = { CWIC_avg_separatism > 0.50 }
+                has_country_flag = active_insurgency
+            }
+            AND = {
+                has_variable = CorruptionLevel
+                check_variable = { CorruptionLevel > 9 }
+            }
+        }
+    }
+
+    CWIC_is_governance_institutional_crisis = {
+        OR = {
+            CWIC_is_governance_institutional_crisis_low = yes
+            CWIC_is_governance_institutional_crisis_medium = yes
+            CWIC_is_governance_institutional_crisis_high = yes
+            CWIC_is_governance_institutional_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 9) Crop Failure Crisis
+    # Grounded in agri output / food production and the agricultural
+    # dysfunction + pollution-linked pulse logic.
+    # ------------------------------------------------------------
+
+    CWIC_is_crop_failure_crisis_low = {
+        OR = {
+            has_country_flag = food_highprices
+            AND = {
+                has_variable = farm_output_modif
+                check_variable = { farm_output_modif < 0.85 }
+            }
+            AND = {
+                has_variable = food_bonus
+                has_variable = foodProduction
+                check_variable = { food_bonus < foodProduction }
+            }
+        }
+    }
+
+    CWIC_is_crop_failure_crisis_medium = {
+        OR = {
+            has_country_flag = food_shortages
+            AND = {
+                has_variable = farm_output_modif
+                check_variable = { farm_output_modif < 0.65 }
+            }
+            AND = {
+                has_variable = foodProduction
+                has_variable = food_consumption
+                check_variable = { foodProduction < food_consumption }
+            }
+        }
+    }
+
+    CWIC_is_crop_failure_crisis_high = {
+        OR = {
+            has_country_flag = food_famine
+            AND = {
+                has_variable = farm_output_modif
+                check_variable = { farm_output_modif < 0.45 }
+            }
+            AND = {
+                has_variable = FoodProdTotal
+                has_variable = food_consumption
+                check_variable = { FoodProdTotal < food_consumption }
+            }
+        }
+    }
+
+    CWIC_is_crop_failure_crisis_extreme = {
+        OR = {
+            has_country_flag = food_famine_extreme
+            AND = {
+                has_variable = farm_output_modif
+                check_variable = { farm_output_modif < 0.25 }
+            }
+            AND = {
+                has_variable = food_penalty
+                check_variable = { food_penalty > 3 }
+            }
+        }
+    }
+
+    CWIC_is_crop_failure_crisis = {
+        OR = {
+            CWIC_is_crop_failure_crisis_low = yes
+            CWIC_is_crop_failure_crisis_medium = yes
+            CWIC_is_crop_failure_crisis_high = yes
+            CWIC_is_crop_failure_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 10) Food Security / Famine Crisis
+    # Grounded directly in FoodProdTotal / ConsumptionTotal / FoodBalanceTotal
+    # and your live famine flags.
+    # ------------------------------------------------------------
+
+    CWIC_is_food_security_famine_crisis_low = {
+        OR = {
+            has_country_flag = food_highprices
+            AND = {
+                has_variable = FoodProdTotal
+                has_variable = ConsumptionTotal
+                check_variable = { FoodProdTotal < ConsumptionTotal }
+            }
+            AND = {
+                has_variable = food_penalty
+                check_variable = { food_penalty > 0 }
+            }
+        }
+    }
+
+    CWIC_is_food_security_famine_crisis_medium = {
+        OR = {
+            has_country_flag = food_shortages
+            AND = {
+                has_variable = FoodBalanceTotal
+                check_variable = { FoodBalanceTotal < 0 }
+            }
+            AND = {
+                has_variable = food_penalty
+                check_variable = { food_penalty > 0.2 }
+            }
+        }
+    }
+
+    CWIC_is_food_security_famine_crisis_high = {
+        OR = {
+            has_country_flag = food_famine
+            AND = {
+                has_variable = food_penalty
+                check_variable = { food_penalty > 0.8 }
+            }
+        }
+    }
+
+    CWIC_is_food_security_famine_crisis_extreme = {
+        OR = {
+            has_country_flag = food_famine_extreme
+            AND = {
+                has_variable = food_penalty
+                check_variable = { food_penalty > 3 }
+            }
+        }
+    }
+
+    CWIC_is_food_security_famine_crisis = {
+        OR = {
+            CWIC_is_food_security_famine_crisis_low = yes
+            CWIC_is_food_security_famine_crisis_medium = yes
+            CWIC_is_food_security_famine_crisis_high = yes
+            CWIC_is_food_security_famine_crisis_extreme = yes
+        }
+    }
+}
+# ============================================================
+# CWIC Compound Crisis Scripted Triggers (v1)
+# Built to sit on top of CWIC_macro_crisis_scripted_triggers_v2.txt
+#
+# Philosophy:
+# - Compound crises are emergent conditions, not standalone meters.
+# - These triggers reference the canonical macro crisis triggers.
+# - Severity helpers are included so later effects/UI can distinguish
+#   between weak and hard versions of the same compound state.
+# - Thresholds are intentionally conservative so you do not get every
+#   compound condition firing at once.
+# ============================================================
+
+scripted_triggers = {
+
+    # ------------------------------------------------------------
+    # Shared helpers
+    # ------------------------------------------------------------
+
+    CWIC_count_macro_crises_at_least_medium_2 = {
+        count_triggers = {
+            amount = 2
+            trigger = { OR = {
+                CWIC_is_fiscal_crisis_medium = yes
+                CWIC_is_economic_contraction_crisis_medium = yes
+                CWIC_is_inflationary_crisis_medium = yes
+                CWIC_is_deflationary_crisis_medium = yes
+                CWIC_is_energy_crisis_medium = yes
+                CWIC_is_trade_external_shock_crisis_medium = yes
+                CWIC_is_financial_credit_crisis_medium = yes
+                CWIC_is_governance_institutional_crisis_medium = yes
+                CWIC_is_crop_failure_crisis_medium = yes
+                CWIC_is_food_security_famine_crisis_medium = yes
+            } }
+        }
+    }
+
+    CWIC_count_macro_crises_at_least_medium_3 = {
+        count_triggers = {
+            amount = 3
+            trigger = { OR = {
+                CWIC_is_fiscal_crisis_medium = yes
+                CWIC_is_economic_contraction_crisis_medium = yes
+                CWIC_is_inflationary_crisis_medium = yes
+                CWIC_is_deflationary_crisis_medium = yes
+                CWIC_is_energy_crisis_medium = yes
+                CWIC_is_trade_external_shock_crisis_medium = yes
+                CWIC_is_financial_credit_crisis_medium = yes
+                CWIC_is_governance_institutional_crisis_medium = yes
+                CWIC_is_crop_failure_crisis_medium = yes
+                CWIC_is_food_security_famine_crisis_medium = yes
+            } }
+        }
+    }
+
+    CWIC_count_macro_crises_at_least_high_2 = {
+        count_triggers = {
+            amount = 2
+            trigger = { OR = {
+                CWIC_is_fiscal_crisis_high = yes
+                CWIC_is_economic_contraction_crisis_high = yes
+                CWIC_is_inflationary_crisis_high = yes
+                CWIC_is_deflationary_crisis_high = yes
+                CWIC_is_energy_crisis_high = yes
+                CWIC_is_trade_external_shock_crisis_high = yes
+                CWIC_is_financial_credit_crisis_high = yes
+                CWIC_is_governance_institutional_crisis_high = yes
+                CWIC_is_crop_failure_crisis_high = yes
+                CWIC_is_food_security_famine_crisis_high = yes
+            } }
+        }
+    }
+
+    CWIC_count_macro_crises_at_least_high_3 = {
+        count_triggers = {
+            amount = 3
+            trigger = { OR = {
+                CWIC_is_fiscal_crisis_high = yes
+                CWIC_is_economic_contraction_crisis_high = yes
+                CWIC_is_inflationary_crisis_high = yes
+                CWIC_is_deflationary_crisis_high = yes
+                CWIC_is_energy_crisis_high = yes
+                CWIC_is_trade_external_shock_crisis_high = yes
+                CWIC_is_financial_credit_crisis_high = yes
+                CWIC_is_governance_institutional_crisis_high = yes
+                CWIC_is_crop_failure_crisis_high = yes
+                CWIC_is_food_security_famine_crisis_high = yes
+            } }
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 1) Stagflation
+    # Inflation + contraction, often energy-driven.
+    # ------------------------------------------------------------
+
+    CWIC_is_stagflation_low = {
+        CWIC_is_inflationary_crisis_low = yes
+        CWIC_is_economic_contraction_crisis_low = yes
+    }
+
+    CWIC_is_stagflation_medium = {
+        CWIC_is_inflationary_crisis_medium = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+    }
+
+    CWIC_is_stagflation_high = {
+        CWIC_is_inflationary_crisis_high = yes
+        CWIC_is_economic_contraction_crisis_high = yes
+        OR = {
+            CWIC_is_energy_crisis_medium = yes
+            CWIC_is_energy_crisis_high = yes
+        }
+    }
+
+    CWIC_is_stagflation_extreme = {
+        CWIC_is_inflationary_crisis_extreme = yes
+        CWIC_is_economic_contraction_crisis_high = yes
+        CWIC_is_energy_crisis_high = yes
+    }
+
+    CWIC_is_stagflation = {
+        OR = {
+            CWIC_is_stagflation_low = yes
+            CWIC_is_stagflation_medium = yes
+            CWIC_is_stagflation_high = yes
+            CWIC_is_stagflation_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 2) Debt Trap
+    # Fiscal + financial, often worsened by external/trade stress.
+    # ------------------------------------------------------------
+
+    CWIC_is_debt_trap_low = {
+        CWIC_is_fiscal_crisis_low = yes
+        CWIC_is_financial_credit_crisis_low = yes
+    }
+
+    CWIC_is_debt_trap_medium = {
+        CWIC_is_fiscal_crisis_medium = yes
+        CWIC_is_financial_credit_crisis_medium = yes
+    }
+
+    CWIC_is_debt_trap_high = {
+        CWIC_is_fiscal_crisis_high = yes
+        CWIC_is_financial_credit_crisis_medium = yes
+        OR = {
+            CWIC_is_trade_external_shock_crisis_medium = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+        }
+    }
+
+    CWIC_is_debt_trap_extreme = {
+        CWIC_is_fiscal_crisis_extreme = yes
+        CWIC_is_financial_credit_crisis_high = yes
+        CWIC_is_trade_external_shock_crisis_high = yes
+    }
+
+    CWIC_is_debt_trap = {
+        OR = {
+            CWIC_is_debt_trap_low = yes
+            CWIC_is_debt_trap_medium = yes
+            CWIC_is_debt_trap_high = yes
+            CWIC_is_debt_trap_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 3) Collapse Spiral
+    # Governance + contraction + wider macro breakdown.
+    # ------------------------------------------------------------
+
+    CWIC_is_collapse_spiral_low = {
+        CWIC_is_governance_institutional_crisis_medium = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+        CWIC_count_macro_crises_at_least_medium_3 = yes
+    }
+
+    CWIC_is_collapse_spiral_medium = {
+        CWIC_is_governance_institutional_crisis_high = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+        CWIC_count_macro_crises_at_least_medium_3 = yes
+    }
+
+    CWIC_is_collapse_spiral_high = {
+        CWIC_is_governance_institutional_crisis_high = yes
+        CWIC_is_economic_contraction_crisis_high = yes
+        CWIC_count_macro_crises_at_least_high_2 = yes
+    }
+
+    CWIC_is_collapse_spiral_extreme = {
+        CWIC_is_governance_institutional_crisis_extreme = yes
+        CWIC_is_economic_contraction_crisis_high = yes
+        CWIC_count_macro_crises_at_least_high_3 = yes
+    }
+
+    CWIC_is_collapse_spiral = {
+        OR = {
+            CWIC_is_collapse_spiral_low = yes
+            CWIC_is_collapse_spiral_medium = yes
+            CWIC_is_collapse_spiral_high = yes
+            CWIC_is_collapse_spiral_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 4) Energy-Industrial Shock
+    # Energy shortage + contracting economy, often inflationary.
+    # ------------------------------------------------------------
+
+    CWIC_is_energy_industrial_shock_low = {
+        CWIC_is_energy_crisis_low = yes
+        CWIC_is_economic_contraction_crisis_low = yes
+    }
+
+    CWIC_is_energy_industrial_shock_medium = {
+        CWIC_is_energy_crisis_medium = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+    }
+
+    CWIC_is_energy_industrial_shock_high = {
+        CWIC_is_energy_crisis_high = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+        OR = {
+            CWIC_is_inflationary_crisis_medium = yes
+            CWIC_is_inflationary_crisis_high = yes
+        }
+    }
+
+    CWIC_is_energy_industrial_shock_extreme = {
+        CWIC_is_energy_crisis_extreme = yes
+        CWIC_is_economic_contraction_crisis_high = yes
+        CWIC_is_inflationary_crisis_high = yes
+    }
+
+    CWIC_is_energy_industrial_shock = {
+        OR = {
+            CWIC_is_energy_industrial_shock_low = yes
+            CWIC_is_energy_industrial_shock_medium = yes
+            CWIC_is_energy_industrial_shock_high = yes
+            CWIC_is_energy_industrial_shock_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 5) Famine Spiral
+    # Crop failure + food security breakdown, often trade-driven.
+    # ------------------------------------------------------------
+
+    CWIC_is_famine_spiral_low = {
+        CWIC_is_crop_failure_crisis_low = yes
+        CWIC_is_food_security_famine_crisis_low = yes
+    }
+
+    CWIC_is_famine_spiral_medium = {
+        CWIC_is_crop_failure_crisis_medium = yes
+        CWIC_is_food_security_famine_crisis_medium = yes
+    }
+
+    CWIC_is_famine_spiral_high = {
+        CWIC_is_crop_failure_crisis_high = yes
+        CWIC_is_food_security_famine_crisis_high = yes
+        OR = {
+            CWIC_is_trade_external_shock_crisis_medium = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+        }
+    }
+
+    CWIC_is_famine_spiral_extreme = {
+        CWIC_is_crop_failure_crisis_extreme = yes
+        CWIC_is_food_security_famine_crisis_high = yes
+        CWIC_is_trade_external_shock_crisis_high = yes
+    }
+
+    CWIC_is_famine_spiral = {
+        OR = {
+            CWIC_is_famine_spiral_low = yes
+            CWIC_is_famine_spiral_medium = yes
+            CWIC_is_famine_spiral_high = yes
+            CWIC_is_famine_spiral_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 6) Capital Flight Crisis
+    # Financial crisis + inflation OR governance OR trade shock.
+    # ------------------------------------------------------------
+
+    CWIC_is_capital_flight_crisis_low = {
+        CWIC_is_financial_credit_crisis_low = yes
+        OR = {
+            CWIC_is_inflationary_crisis_low = yes
+            CWIC_is_governance_institutional_crisis_low = yes
+            CWIC_is_trade_external_shock_crisis_low = yes
+        }
+    }
+
+    CWIC_is_capital_flight_crisis_medium = {
+        CWIC_is_financial_credit_crisis_medium = yes
+        OR = {
+            CWIC_is_inflationary_crisis_medium = yes
+            CWIC_is_governance_institutional_crisis_medium = yes
+            CWIC_is_trade_external_shock_crisis_medium = yes
+        }
+    }
+
+    CWIC_is_capital_flight_crisis_high = {
+        CWIC_is_financial_credit_crisis_high = yes
+        OR = {
+            CWIC_is_inflationary_crisis_medium = yes
+            CWIC_is_governance_institutional_crisis_high = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+        }
+    }
+
+    CWIC_is_capital_flight_crisis_extreme = {
+        CWIC_is_financial_credit_crisis_extreme = yes
+        OR = {
+            CWIC_is_inflationary_crisis_high = yes
+            CWIC_is_governance_institutional_crisis_high = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+        }
+    }
+
+    CWIC_is_capital_flight_crisis = {
+        OR = {
+            CWIC_is_capital_flight_crisis_low = yes
+            CWIC_is_capital_flight_crisis_medium = yes
+            CWIC_is_capital_flight_crisis_high = yes
+            CWIC_is_capital_flight_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 7) Austerity Trap
+    # Fiscal stress + contraction, usually after attempted stabilization.
+    # ------------------------------------------------------------
+
+    CWIC_is_austerity_trap_low = {
+        CWIC_is_fiscal_crisis_low = yes
+        CWIC_is_economic_contraction_crisis_low = yes
+        OR = {
+            has_variable = austerityCheck
+            has_country_flag = CWIC_IMF_PROGRAM_ACTIVE
+        }
+    }
+
+    CWIC_is_austerity_trap_medium = {
+        CWIC_is_fiscal_crisis_medium = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+        OR = {
+            AND = {
+                has_variable = austerityCheck
+                check_variable = { austerityCheck > 0 }
+            }
+            has_country_flag = CWIC_IMF_PROGRAM_ACTIVE
+        }
+    }
+
+    CWIC_is_austerity_trap_high = {
+        CWIC_is_fiscal_crisis_high = yes
+        CWIC_is_economic_contraction_crisis_medium = yes
+        OR = {
+            AND = {
+                has_variable = austerityCheck
+                check_variable = { austerityCheck > 0 }
+            }
+            has_country_flag = CWIC_IMF_PROGRAM_ACTIVE
+            has_country_flag = CWIC_MARKET_LOCKOUT
+        }
+    }
+
+    CWIC_is_austerity_trap_extreme = {
+        CWIC_is_fiscal_crisis_extreme = yes
+        CWIC_is_economic_contraction_crisis_high = yes
+        OR = {
+            has_country_flag = CWIC_IMF_PROGRAM_ACTIVE
+            has_country_flag = CWIC_MARKET_LOCKOUT
+        }
+    }
+
+    CWIC_is_austerity_trap = {
+        OR = {
+            CWIC_is_austerity_trap_low = yes
+            CWIC_is_austerity_trap_medium = yes
+            CWIC_is_austerity_trap_high = yes
+            CWIC_is_austerity_trap_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 8) Resource Curse Crisis
+    # Resource-heavy economy + governance weakness + energy/trade volatility.
+    # ------------------------------------------------------------
+
+    CWIC_is_resource_curse_crisis_low = {
+        OR = {
+            has_variable = CWIC_mnc_presence_tier_hydrocarbons
+            has_variable = CWIC_mnc_presence_tier_mining
+            has_variable = oil_income
+            has_variable = mining_income
+        }
+        CWIC_is_governance_institutional_crisis_low = yes
+        OR = {
+            CWIC_is_energy_crisis_low = yes
+            CWIC_is_trade_external_shock_crisis_low = yes
+        }
+    }
+
+    CWIC_is_resource_curse_crisis_medium = {
+        CWIC_is_governance_institutional_crisis_medium = yes
+        OR = {
+            AND = {
+                has_variable = CWIC_mnc_presence_tier_hydrocarbons
+                check_variable = { CWIC_mnc_presence_tier_hydrocarbons > 1 }
+            }
+            AND = {
+                has_variable = CWIC_mnc_presence_tier_mining
+                check_variable = { CWIC_mnc_presence_tier_mining > 1 }
+            }
+            AND = {
+                has_variable = oil_income
+                check_variable = { oil_income > 0 }
+            }
+            AND = {
+                has_variable = mining_income
+                check_variable = { mining_income > 0 }
+            }
+        }
+        OR = {
+            CWIC_is_energy_crisis_medium = yes
+            CWIC_is_trade_external_shock_crisis_medium = yes
+        }
+    }
+
+    CWIC_is_resource_curse_crisis_high = {
+        CWIC_is_governance_institutional_crisis_high = yes
+        OR = {
+            AND = {
+                has_variable = CWIC_mnc_presence_tier_hydrocarbons
+                check_variable = { CWIC_mnc_presence_tier_hydrocarbons > 2 }
+            }
+            AND = {
+                has_variable = CWIC_mnc_presence_tier_mining
+                check_variable = { CWIC_mnc_presence_tier_mining > 2 }
+            }
+        }
+        OR = {
+            CWIC_is_energy_crisis_high = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+        }
+    }
+
+    CWIC_is_resource_curse_crisis_extreme = {
+        CWIC_is_governance_institutional_crisis_extreme = yes
+        OR = {
+            AND = {
+                has_variable = CWIC_mnc_presence_tier_hydrocarbons
+                check_variable = { CWIC_mnc_presence_tier_hydrocarbons > 3 }
+            }
+            AND = {
+                has_variable = CWIC_mnc_presence_tier_mining
+                check_variable = { CWIC_mnc_presence_tier_mining > 3 }
+            }
+        }
+        OR = {
+            CWIC_is_energy_crisis_high = yes
+            CWIC_is_trade_external_shock_crisis_high = yes
+        }
+    }
+
+    CWIC_is_resource_curse_crisis = {
+        OR = {
+            CWIC_is_resource_curse_crisis_low = yes
+            CWIC_is_resource_curse_crisis_medium = yes
+            CWIC_is_resource_curse_crisis_high = yes
+            CWIC_is_resource_curse_crisis_extreme = yes
+        }
+    }
+
+    # ------------------------------------------------------------
+    # 9) Militarized Economy Lock-In
+    # High defense burden + external/energy stress + governance weakness.
+    # ------------------------------------------------------------
+
+    CWIC_is_militarized_economy_lock_in_low = {
+        CWIC_is_governance_institutional_crisis_low = yes
+        OR = {
+            CWIC_is_trade_external_shock_crisis_low = yes
+            CWIC_is_energy_crisis_low = yes
+        }
+        OR = {
+            AND = {
+                has_variable = militaryBudget
+                has_variable = grossdomesticproduct
+                check_variable = { militaryBudget > 0.04 }
+            }
+            has_idea = war_economy
+            has_idea = tot_economic_mobilisation
+        }
+    }
+
+    CWIC_is_militarized_economy_lock_in_medium = {
+        CWIC_is_governance_institutional_crisis_medium = yes
+        OR = {
+            CWIC_is_trade_external_shock_crisis_medium = yes
+            CWIC_is_energy_crisis_medium = yes
+        }
+        OR = {
+            AND = {
+                has_variable = militaryBudget
+                has_variable = grossdomesticproduct
+                check_variable = { militaryBudget > 0.06 }
+            }
+            has_idea = war_economy
+            has_idea = tot_economic_mobilisation
+        }
+    }
+
+    CWIC_is_militarized_economy_lock_in_high = {
+        CWIC_is_governance_institutional_crisis_high = yes
+        OR = {
+            CWIC_is_trade_external_shock_crisis_high = yes
+            CWIC_is_energy_crisis_high = yes
+        }
+        OR = {
+            AND = {
+                has_variable = militaryBudget
+                has_variable = grossdomesticproduct
+                check_variable = { militaryBudget > 0.08 }
+            }
+            has_idea = war_economy
+            has_idea = tot_economic_mobilisation
+        }
+    }
+
+    CWIC_is_militarized_economy_lock_in_extreme = {
+        CWIC_is_governance_institutional_crisis_extreme = yes
+        OR = {
+            CWIC_is_trade_external_shock_crisis_high = yes
+            CWIC_is_energy_crisis_high = yes
+        }
+        OR = {
+            AND = {
+                has_variable = militaryBudget
+                has_variable = grossdomesticproduct
+                check_variable = { militaryBudget > 0.10 }
+            }
+            has_idea = war_economy
+            has_idea = tot_economic_mobilisation
+            has_country_flag = active_insurgency
+        }
+    }
+
+    CWIC_is_militarized_economy_lock_in = {
+        OR = {
+            CWIC_is_militarized_economy_lock_in_low = yes
+            CWIC_is_militarized_economy_lock_in_medium = yes
+            CWIC_is_militarized_economy_lock_in_high = yes
+            CWIC_is_militarized_economy_lock_in_extreme = yes
+        }
+    }
+
+}
