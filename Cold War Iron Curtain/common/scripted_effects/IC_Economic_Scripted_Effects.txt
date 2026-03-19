@@ -1405,7 +1405,7 @@ cwic_spend_money = {
 				current_index = 1
 			}	
 		}
-		automatic_loan_setting = yes
+		automatic_loan_setting_spending = yes
 	}
 	else_if = {
 		limit = {
@@ -1806,7 +1806,7 @@ cwic_spend_money = {
 				current_index = 1
 			}	
 		}
-		automatic_loan_setting = yes
+		automatic_loan_setting_spending = yes
 	}
 	else = {
 		subtract_from_variable = {
@@ -1830,4 +1830,65 @@ cwic_spend_money = {
 			custom_effect_tooltip = cwic_spend_money_debtless_bil_tt
 		}
 	}
+}
+automatic_loan_setting_spending = {
+	set_variable = {
+		potential_loan_total = deficit_temp
+	}
+	set_variable = {
+		potential_loan_total_adj = deficit_temp
+	}
+	set_variable = {
+		potential_loan_interest = currentInterestRateCalc^current_index
+	}
+	divide_variable = {
+		potential_loan_interest = 100
+	}
+	multiply_variable = {
+		potential_loan_total_adj = potential_loan_interest
+	}
+	add_to_variable = {
+		potential_loan_total = potential_loan_total_adj
+	}
+	set_variable = {
+		potential_loan_monthly_length = purchase_length^current_index
+	}
+	multiply_variable = {
+		potential_loan_monthly_length = 12
+	}
+	set_variable = {
+		potential_loan_monthly_cost = potential_loan_total
+	}
+	divide_variable = {
+		potential_loan_monthly_cost = potential_loan_monthly_length
+	}
+	#Actual Setting
+	set_variable = {
+		loan_amount = potential_loan_total
+	}
+	add_to_variable = {
+		currentDebt = loan_amount
+	}
+	add_to_array = {
+		debtTotalsArray = loan_amount
+	}
+	add_to_array = {
+		debtOwnerArray = global_event_target:this_loan_country
+	}
+	add_to_array = {
+		debtOwnerDomesticStatusArray = bank_name_prompt
+	}
+	add_to_array = {
+		debtInterestArray = potential_loan_interest
+	}
+	set_variable = {
+		debtPayment = potential_loan_monthly_cost
+	}
+	add_to_array = {
+		debtPaymentArray = debtPayment
+	}
+	add_to_variable = {
+		currentDebtPayments = debtPayment
+	}
+	loan_set_assigning_borrowable = yes
 }
