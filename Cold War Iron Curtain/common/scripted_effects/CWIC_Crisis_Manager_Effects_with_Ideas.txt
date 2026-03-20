@@ -1,0 +1,518 @@
+# ============================================================
+# CWIC Crisis Manager Effects
+# Reads scripted triggers, then sets clean country flags for
+# macro crises and compound crisis conditions.
+#
+# Recommended placement:
+# common/scripted_effects/CWIC_Crisis_Manager_Effects.txt
+#
+# Recommended monthly call order:
+# 1. core economic pulse / GDP calc / inflation / food / power
+# 2. cwic_store_gdp_and_monthly_growth = yes
+# 3. CWIC_evaluate_national_crises = yes
+# 4. dynamic modifiers / events / decisions read flags below
+# ============================================================
+
+CWIC_clear_macro_crisis_flags = {
+    clr_country_flag = CWIC_CRISIS_FISCAL
+    clr_country_flag = CWIC_CRISIS_FISCAL_LOW
+    clr_country_flag = CWIC_CRISIS_FISCAL_MEDIUM
+    clr_country_flag = CWIC_CRISIS_FISCAL_HIGH
+    clr_country_flag = CWIC_CRISIS_FISCAL_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_INFLATION
+    clr_country_flag = CWIC_CRISIS_INFLATION_LOW
+    clr_country_flag = CWIC_CRISIS_INFLATION_MEDIUM
+    clr_country_flag = CWIC_CRISIS_INFLATION_HIGH
+    clr_country_flag = CWIC_CRISIS_INFLATION_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_DEFLATION
+    clr_country_flag = CWIC_CRISIS_DEFLATION_LOW
+    clr_country_flag = CWIC_CRISIS_DEFLATION_MEDIUM
+    clr_country_flag = CWIC_CRISIS_DEFLATION_HIGH
+    clr_country_flag = CWIC_CRISIS_DEFLATION_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_ENERGY
+    clr_country_flag = CWIC_CRISIS_ENERGY_LOW
+    clr_country_flag = CWIC_CRISIS_ENERGY_MEDIUM
+    clr_country_flag = CWIC_CRISIS_ENERGY_HIGH
+    clr_country_flag = CWIC_CRISIS_ENERGY_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK
+    clr_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_LOW
+    clr_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_MEDIUM
+    clr_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_HIGH
+    clr_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT
+    clr_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_LOW
+    clr_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_MEDIUM
+    clr_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_HIGH
+    clr_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL
+    clr_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_LOW
+    clr_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_MEDIUM
+    clr_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_HIGH
+    clr_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_CROP_FAILURE
+    clr_country_flag = CWIC_CRISIS_CROP_FAILURE_LOW
+    clr_country_flag = CWIC_CRISIS_CROP_FAILURE_MEDIUM
+    clr_country_flag = CWIC_CRISIS_CROP_FAILURE_HIGH
+    clr_country_flag = CWIC_CRISIS_CROP_FAILURE_EXTREME
+
+    clr_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE
+    clr_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_LOW
+    clr_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_MEDIUM
+    clr_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_HIGH
+    clr_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_EXTREME
+}
+
+CWIC_clear_compound_crisis_flags = {
+    clr_country_flag = CWIC_COMPOUND_STAGFLATION
+    clr_country_flag = CWIC_COMPOUND_STAGFLATION_LOW
+    clr_country_flag = CWIC_COMPOUND_STAGFLATION_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_STAGFLATION_HIGH
+    clr_country_flag = CWIC_COMPOUND_STAGFLATION_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_DEBT_TRAP
+    clr_country_flag = CWIC_COMPOUND_DEBT_TRAP_LOW
+    clr_country_flag = CWIC_COMPOUND_DEBT_TRAP_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_DEBT_TRAP_HIGH
+    clr_country_flag = CWIC_COMPOUND_DEBT_TRAP_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL
+    clr_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_LOW
+    clr_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_HIGH
+    clr_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK
+    clr_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_LOW
+    clr_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_HIGH
+    clr_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL
+    clr_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_LOW
+    clr_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_HIGH
+    clr_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT
+    clr_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_LOW
+    clr_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_HIGH
+    clr_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP
+    clr_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_LOW
+    clr_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_HIGH
+    clr_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_RESOURCE_CURSE
+    clr_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_LOW
+    clr_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_HIGH
+    clr_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_EXTREME
+
+    clr_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN
+    clr_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_LOW
+    clr_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_MEDIUM
+    clr_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_HIGH
+    clr_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_EXTREME
+}
+
+CWIC_evaluate_macro_crisis_flags = {
+
+    # 1) Fiscal
+    if = {
+        limit = { CWIC_is_fiscal_crisis = yes }
+        set_country_flag = CWIC_CRISIS_FISCAL
+    }
+    if = { limit = { CWIC_is_fiscal_crisis_low = yes } set_country_flag = CWIC_CRISIS_FISCAL_LOW }
+    if = { limit = { CWIC_is_fiscal_crisis_medium = yes } set_country_flag = CWIC_CRISIS_FISCAL_MEDIUM }
+    if = { limit = { CWIC_is_fiscal_crisis_high = yes } set_country_flag = CWIC_CRISIS_FISCAL_HIGH }
+    if = { limit = { CWIC_is_fiscal_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_FISCAL_EXTREME }
+
+    # 2) Economic Contraction
+    if = {
+        limit = { CWIC_is_economic_contraction_crisis = yes }
+        set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION
+    }
+    if = { limit = { CWIC_is_economic_contraction_crisis_low = yes } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW }
+    if = { limit = { CWIC_is_economic_contraction_crisis_medium = yes } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM }
+    if = { limit = { CWIC_is_economic_contraction_crisis_high = yes } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH }
+    if = { limit = { CWIC_is_economic_contraction_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME }
+
+    # 3) Inflationary
+    if = {
+        limit = { CWIC_is_inflationary_crisis = yes }
+        set_country_flag = CWIC_CRISIS_INFLATION
+    }
+    if = { limit = { CWIC_is_inflationary_crisis_low = yes } set_country_flag = CWIC_CRISIS_INFLATION_LOW }
+    if = { limit = { CWIC_is_inflationary_crisis_medium = yes } set_country_flag = CWIC_CRISIS_INFLATION_MEDIUM }
+    if = { limit = { CWIC_is_inflationary_crisis_high = yes } set_country_flag = CWIC_CRISIS_INFLATION_HIGH }
+    if = { limit = { CWIC_is_inflationary_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_INFLATION_EXTREME }
+
+    # 4) Deflationary
+    if = {
+        limit = { CWIC_is_deflationary_crisis = yes }
+        set_country_flag = CWIC_CRISIS_DEFLATION
+    }
+    if = { limit = { CWIC_is_deflationary_crisis_low = yes } set_country_flag = CWIC_CRISIS_DEFLATION_LOW }
+    if = { limit = { CWIC_is_deflationary_crisis_medium = yes } set_country_flag = CWIC_CRISIS_DEFLATION_MEDIUM }
+    if = { limit = { CWIC_is_deflationary_crisis_high = yes } set_country_flag = CWIC_CRISIS_DEFLATION_HIGH }
+    if = { limit = { CWIC_is_deflationary_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_DEFLATION_EXTREME }
+
+    # 5) Energy
+    if = {
+        limit = { CWIC_is_energy_crisis = yes }
+        set_country_flag = CWIC_CRISIS_ENERGY
+    }
+    if = { limit = { CWIC_is_energy_crisis_low = yes } set_country_flag = CWIC_CRISIS_ENERGY_LOW }
+    if = { limit = { CWIC_is_energy_crisis_medium = yes } set_country_flag = CWIC_CRISIS_ENERGY_MEDIUM }
+    if = { limit = { CWIC_is_energy_crisis_high = yes } set_country_flag = CWIC_CRISIS_ENERGY_HIGH }
+    if = { limit = { CWIC_is_energy_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_ENERGY_EXTREME }
+
+    # 6) Trade / External Shock
+    if = {
+        limit = { CWIC_is_trade_external_shock_crisis = yes }
+        set_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK
+    }
+    if = { limit = { CWIC_is_trade_external_shock_crisis_low = yes } set_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_LOW }
+    if = { limit = { CWIC_is_trade_external_shock_crisis_medium = yes } set_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_MEDIUM }
+    if = { limit = { CWIC_is_trade_external_shock_crisis_high = yes } set_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_HIGH }
+    if = { limit = { CWIC_is_trade_external_shock_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_EXTREME }
+
+    # 7) Financial / Credit
+    if = {
+        limit = { CWIC_is_financial_credit_crisis = yes }
+        set_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT
+    }
+    if = { limit = { CWIC_is_financial_credit_crisis_low = yes } set_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_LOW }
+    if = { limit = { CWIC_is_financial_credit_crisis_medium = yes } set_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_MEDIUM }
+    if = { limit = { CWIC_is_financial_credit_crisis_high = yes } set_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_HIGH }
+    if = { limit = { CWIC_is_financial_credit_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_EXTREME }
+
+    # 8) Governance / Institutional
+    if = {
+        limit = { CWIC_is_governance_institutional_crisis = yes }
+        set_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL
+    }
+    if = { limit = { CWIC_is_governance_institutional_crisis_low = yes } set_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_LOW }
+    if = { limit = { CWIC_is_governance_institutional_crisis_medium = yes } set_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_MEDIUM }
+    if = { limit = { CWIC_is_governance_institutional_crisis_high = yes } set_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_HIGH }
+    if = { limit = { CWIC_is_governance_institutional_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_EXTREME }
+
+    # 9) Crop Failure
+    if = {
+        limit = { CWIC_is_crop_failure_crisis = yes }
+        set_country_flag = CWIC_CRISIS_CROP_FAILURE
+    }
+    if = { limit = { CWIC_is_crop_failure_crisis_low = yes } set_country_flag = CWIC_CRISIS_CROP_FAILURE_LOW }
+    if = { limit = { CWIC_is_crop_failure_crisis_medium = yes } set_country_flag = CWIC_CRISIS_CROP_FAILURE_MEDIUM }
+    if = { limit = { CWIC_is_crop_failure_crisis_high = yes } set_country_flag = CWIC_CRISIS_CROP_FAILURE_HIGH }
+    if = { limit = { CWIC_is_crop_failure_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_CROP_FAILURE_EXTREME }
+
+    # 10) Food Security / Famine
+    if = {
+        limit = { CWIC_is_food_security_famine_crisis = yes }
+        set_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE
+    }
+    if = { limit = { CWIC_is_food_security_famine_crisis_low = yes } set_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_LOW }
+    if = { limit = { CWIC_is_food_security_famine_crisis_medium = yes } set_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_MEDIUM }
+    if = { limit = { CWIC_is_food_security_famine_crisis_high = yes } set_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_HIGH }
+    if = { limit = { CWIC_is_food_security_famine_crisis_extreme = yes } set_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_EXTREME }
+}
+
+CWIC_evaluate_compound_crisis_flags = {
+
+    # 1) Stagflation
+    if = { limit = { CWIC_is_stagflation = yes } set_country_flag = CWIC_COMPOUND_STAGFLATION }
+    if = { limit = { CWIC_is_stagflation_low = yes } set_country_flag = CWIC_COMPOUND_STAGFLATION_LOW }
+    if = { limit = { CWIC_is_stagflation_medium = yes } set_country_flag = CWIC_COMPOUND_STAGFLATION_MEDIUM }
+    if = { limit = { CWIC_is_stagflation_high = yes } set_country_flag = CWIC_COMPOUND_STAGFLATION_HIGH }
+    if = { limit = { CWIC_is_stagflation_extreme = yes } set_country_flag = CWIC_COMPOUND_STAGFLATION_EXTREME }
+
+    # 2) Debt Trap
+    if = { limit = { CWIC_is_debt_trap = yes } set_country_flag = CWIC_COMPOUND_DEBT_TRAP }
+    if = { limit = { CWIC_is_debt_trap_low = yes } set_country_flag = CWIC_COMPOUND_DEBT_TRAP_LOW }
+    if = { limit = { CWIC_is_debt_trap_medium = yes } set_country_flag = CWIC_COMPOUND_DEBT_TRAP_MEDIUM }
+    if = { limit = { CWIC_is_debt_trap_high = yes } set_country_flag = CWIC_COMPOUND_DEBT_TRAP_HIGH }
+    if = { limit = { CWIC_is_debt_trap_extreme = yes } set_country_flag = CWIC_COMPOUND_DEBT_TRAP_EXTREME }
+
+    # 3) Collapse Spiral
+    if = { limit = { CWIC_is_collapse_spiral = yes } set_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL }
+    if = { limit = { CWIC_is_collapse_spiral_low = yes } set_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_LOW }
+    if = { limit = { CWIC_is_collapse_spiral_medium = yes } set_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_MEDIUM }
+    if = { limit = { CWIC_is_collapse_spiral_high = yes } set_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_HIGH }
+    if = { limit = { CWIC_is_collapse_spiral_extreme = yes } set_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_EXTREME }
+
+    # 4) Energy-Industrial Shock
+    if = { limit = { CWIC_is_energy_industrial_shock = yes } set_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK }
+    if = { limit = { CWIC_is_energy_industrial_shock_low = yes } set_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_LOW }
+    if = { limit = { CWIC_is_energy_industrial_shock_medium = yes } set_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_MEDIUM }
+    if = { limit = { CWIC_is_energy_industrial_shock_high = yes } set_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_HIGH }
+    if = { limit = { CWIC_is_energy_industrial_shock_extreme = yes } set_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_EXTREME }
+
+    # 5) Famine Spiral
+    if = { limit = { CWIC_is_famine_spiral = yes } set_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL }
+    if = { limit = { CWIC_is_famine_spiral_low = yes } set_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_LOW }
+    if = { limit = { CWIC_is_famine_spiral_medium = yes } set_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_MEDIUM }
+    if = { limit = { CWIC_is_famine_spiral_high = yes } set_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_HIGH }
+    if = { limit = { CWIC_is_famine_spiral_extreme = yes } set_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_EXTREME }
+
+    # 6) Capital Flight Crisis
+    if = { limit = { CWIC_is_capital_flight_crisis = yes } set_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT }
+    if = { limit = { CWIC_is_capital_flight_crisis_low = yes } set_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_LOW }
+    if = { limit = { CWIC_is_capital_flight_crisis_medium = yes } set_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_MEDIUM }
+    if = { limit = { CWIC_is_capital_flight_crisis_high = yes } set_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_HIGH }
+    if = { limit = { CWIC_is_capital_flight_crisis_extreme = yes } set_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_EXTREME }
+
+    # 7) Austerity Trap
+    if = { limit = { CWIC_is_austerity_trap = yes } set_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP }
+    if = { limit = { CWIC_is_austerity_trap_low = yes } set_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_LOW }
+    if = { limit = { CWIC_is_austerity_trap_medium = yes } set_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_MEDIUM }
+    if = { limit = { CWIC_is_austerity_trap_high = yes } set_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_HIGH }
+    if = { limit = { CWIC_is_austerity_trap_extreme = yes } set_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_EXTREME }
+
+    # 8) Resource Curse Crisis
+    if = { limit = { CWIC_is_resource_curse_crisis = yes } set_country_flag = CWIC_COMPOUND_RESOURCE_CURSE }
+    if = { limit = { CWIC_is_resource_curse_crisis_low = yes } set_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_LOW }
+    if = { limit = { CWIC_is_resource_curse_crisis_medium = yes } set_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_MEDIUM }
+    if = { limit = { CWIC_is_resource_curse_crisis_high = yes } set_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_HIGH }
+    if = { limit = { CWIC_is_resource_curse_crisis_extreme = yes } set_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_EXTREME }
+
+    # 9) Militarized Economy Lock-In
+    if = { limit = { CWIC_is_militarized_economy_lock_in = yes } set_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN }
+    if = { limit = { CWIC_is_militarized_economy_lock_in_low = yes } set_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_LOW }
+    if = { limit = { CWIC_is_militarized_economy_lock_in_medium = yes } set_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_MEDIUM }
+    if = { limit = { CWIC_is_militarized_economy_lock_in_high = yes } set_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_HIGH }
+    if = { limit = { CWIC_is_militarized_economy_lock_in_extreme = yes } set_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_EXTREME }
+}
+
+
+# ============================================================
+# Idea management
+# Replace the idea keys below with your actual idea definitions.
+# Current keys assume one idea per crisis severity.
+# ============================================================
+
+CWIC_clear_macro_crisis_ideas = {
+    remove_ideas = cwic_crisis_fiscal_low
+    remove_ideas = cwic_crisis_fiscal_medium
+    remove_ideas = cwic_crisis_fiscal_high
+    remove_ideas = cwic_crisis_fiscal_extreme
+
+    remove_ideas = cwic_crisis_economic_contraction_low
+    remove_ideas = cwic_crisis_economic_contraction_medium
+    remove_ideas = cwic_crisis_economic_contraction_high
+    remove_ideas = cwic_crisis_economic_contraction_extreme
+
+    remove_ideas = cwic_crisis_inflation_low
+    remove_ideas = cwic_crisis_inflation_medium
+    remove_ideas = cwic_crisis_inflation_high
+    remove_ideas = cwic_crisis_inflation_extreme
+
+    remove_ideas = cwic_crisis_deflation_low
+    remove_ideas = cwic_crisis_deflation_medium
+    remove_ideas = cwic_crisis_deflation_high
+    remove_ideas = cwic_crisis_deflation_extreme
+
+    remove_ideas = cwic_crisis_energy_low
+    remove_ideas = cwic_crisis_energy_medium
+    remove_ideas = cwic_crisis_energy_high
+    remove_ideas = cwic_crisis_energy_extreme
+
+    remove_ideas = cwic_crisis_trade_external_shock_low
+    remove_ideas = cwic_crisis_trade_external_shock_medium
+    remove_ideas = cwic_crisis_trade_external_shock_high
+    remove_ideas = cwic_crisis_trade_external_shock_extreme
+
+    remove_ideas = cwic_crisis_financial_credit_low
+    remove_ideas = cwic_crisis_financial_credit_medium
+    remove_ideas = cwic_crisis_financial_credit_high
+    remove_ideas = cwic_crisis_financial_credit_extreme
+
+    remove_ideas = cwic_crisis_governance_institutional_low
+    remove_ideas = cwic_crisis_governance_institutional_medium
+    remove_ideas = cwic_crisis_governance_institutional_high
+    remove_ideas = cwic_crisis_governance_institutional_extreme
+
+    remove_ideas = cwic_crisis_crop_failure_low
+    remove_ideas = cwic_crisis_crop_failure_medium
+    remove_ideas = cwic_crisis_crop_failure_high
+    remove_ideas = cwic_crisis_crop_failure_extreme
+
+    remove_ideas = cwic_crisis_food_security_famine_low
+    remove_ideas = cwic_crisis_food_security_famine_medium
+    remove_ideas = cwic_crisis_food_security_famine_high
+    remove_ideas = cwic_crisis_food_security_famine_extreme
+}
+
+CWIC_clear_compound_crisis_ideas = {
+    remove_ideas = cwic_compound_stagflation_low
+    remove_ideas = cwic_compound_stagflation_medium
+    remove_ideas = cwic_compound_stagflation_high
+    remove_ideas = cwic_compound_stagflation_extreme
+
+    remove_ideas = cwic_compound_debt_trap_low
+    remove_ideas = cwic_compound_debt_trap_medium
+    remove_ideas = cwic_compound_debt_trap_high
+    remove_ideas = cwic_compound_debt_trap_extreme
+
+    remove_ideas = cwic_compound_collapse_spiral_low
+    remove_ideas = cwic_compound_collapse_spiral_medium
+    remove_ideas = cwic_compound_collapse_spiral_high
+    remove_ideas = cwic_compound_collapse_spiral_extreme
+
+    remove_ideas = cwic_compound_energy_industrial_shock_low
+    remove_ideas = cwic_compound_energy_industrial_shock_medium
+    remove_ideas = cwic_compound_energy_industrial_shock_high
+    remove_ideas = cwic_compound_energy_industrial_shock_extreme
+
+    remove_ideas = cwic_compound_famine_spiral_low
+    remove_ideas = cwic_compound_famine_spiral_medium
+    remove_ideas = cwic_compound_famine_spiral_high
+    remove_ideas = cwic_compound_famine_spiral_extreme
+
+    remove_ideas = cwic_compound_capital_flight_low
+    remove_ideas = cwic_compound_capital_flight_medium
+    remove_ideas = cwic_compound_capital_flight_high
+    remove_ideas = cwic_compound_capital_flight_extreme
+
+    remove_ideas = cwic_compound_austerity_trap_low
+    remove_ideas = cwic_compound_austerity_trap_medium
+    remove_ideas = cwic_compound_austerity_trap_high
+    remove_ideas = cwic_compound_austerity_trap_extreme
+
+    remove_ideas = cwic_compound_resource_curse_low
+    remove_ideas = cwic_compound_resource_curse_medium
+    remove_ideas = cwic_compound_resource_curse_high
+    remove_ideas = cwic_compound_resource_curse_extreme
+
+    remove_ideas = cwic_compound_militarized_economy_lock_in_low
+    remove_ideas = cwic_compound_militarized_economy_lock_in_medium
+    remove_ideas = cwic_compound_militarized_economy_lock_in_high
+    remove_ideas = cwic_compound_militarized_economy_lock_in_extreme
+}
+
+CWIC_apply_macro_crisis_ideas = {
+    if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_EXTREME } add_ideas = cwic_crisis_fiscal_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_HIGH } add_ideas = cwic_crisis_fiscal_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_MEDIUM } add_ideas = cwic_crisis_fiscal_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_LOW } add_ideas = cwic_crisis_fiscal_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME } add_ideas = cwic_crisis_economic_contraction_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH } add_ideas = cwic_crisis_economic_contraction_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM } add_ideas = cwic_crisis_economic_contraction_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW } add_ideas = cwic_crisis_economic_contraction_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_EXTREME } add_ideas = cwic_crisis_inflation_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_HIGH } add_ideas = cwic_crisis_inflation_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_MEDIUM } add_ideas = cwic_crisis_inflation_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_LOW } add_ideas = cwic_crisis_inflation_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_EXTREME } add_ideas = cwic_crisis_deflation_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_HIGH } add_ideas = cwic_crisis_deflation_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_MEDIUM } add_ideas = cwic_crisis_deflation_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_LOW } add_ideas = cwic_crisis_deflation_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_EXTREME } add_ideas = cwic_crisis_energy_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_HIGH } add_ideas = cwic_crisis_energy_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_MEDIUM } add_ideas = cwic_crisis_energy_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_LOW } add_ideas = cwic_crisis_energy_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_EXTREME } add_ideas = cwic_crisis_trade_external_shock_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_HIGH } add_ideas = cwic_crisis_trade_external_shock_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_MEDIUM } add_ideas = cwic_crisis_trade_external_shock_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_LOW } add_ideas = cwic_crisis_trade_external_shock_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_EXTREME } add_ideas = cwic_crisis_financial_credit_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_HIGH } add_ideas = cwic_crisis_financial_credit_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_MEDIUM } add_ideas = cwic_crisis_financial_credit_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_LOW } add_ideas = cwic_crisis_financial_credit_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_EXTREME } add_ideas = cwic_crisis_governance_institutional_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_HIGH } add_ideas = cwic_crisis_governance_institutional_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_MEDIUM } add_ideas = cwic_crisis_governance_institutional_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_LOW } add_ideas = cwic_crisis_governance_institutional_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_EXTREME } add_ideas = cwic_crisis_crop_failure_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_HIGH } add_ideas = cwic_crisis_crop_failure_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_MEDIUM } add_ideas = cwic_crisis_crop_failure_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_LOW } add_ideas = cwic_crisis_crop_failure_low }
+
+    if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_EXTREME } add_ideas = cwic_crisis_food_security_famine_extreme }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_HIGH } add_ideas = cwic_crisis_food_security_famine_high }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_MEDIUM } add_ideas = cwic_crisis_food_security_famine_medium }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_LOW } add_ideas = cwic_crisis_food_security_famine_low }
+}
+
+CWIC_apply_compound_crisis_ideas = {
+    if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_EXTREME } add_ideas = cwic_compound_stagflation_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_HIGH } add_ideas = cwic_compound_stagflation_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_MEDIUM } add_ideas = cwic_compound_stagflation_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_LOW } add_ideas = cwic_compound_stagflation_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_EXTREME } add_ideas = cwic_compound_debt_trap_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_HIGH } add_ideas = cwic_compound_debt_trap_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_MEDIUM } add_ideas = cwic_compound_debt_trap_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_LOW } add_ideas = cwic_compound_debt_trap_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_EXTREME } add_ideas = cwic_compound_collapse_spiral_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_HIGH } add_ideas = cwic_compound_collapse_spiral_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_MEDIUM } add_ideas = cwic_compound_collapse_spiral_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_LOW } add_ideas = cwic_compound_collapse_spiral_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_EXTREME } add_ideas = cwic_compound_energy_industrial_shock_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_HIGH } add_ideas = cwic_compound_energy_industrial_shock_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_MEDIUM } add_ideas = cwic_compound_energy_industrial_shock_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_LOW } add_ideas = cwic_compound_energy_industrial_shock_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_EXTREME } add_ideas = cwic_compound_famine_spiral_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_HIGH } add_ideas = cwic_compound_famine_spiral_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_MEDIUM } add_ideas = cwic_compound_famine_spiral_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_LOW } add_ideas = cwic_compound_famine_spiral_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_EXTREME } add_ideas = cwic_compound_capital_flight_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_HIGH } add_ideas = cwic_compound_capital_flight_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_MEDIUM } add_ideas = cwic_compound_capital_flight_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_LOW } add_ideas = cwic_compound_capital_flight_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_EXTREME } add_ideas = cwic_compound_austerity_trap_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_HIGH } add_ideas = cwic_compound_austerity_trap_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_MEDIUM } add_ideas = cwic_compound_austerity_trap_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_LOW } add_ideas = cwic_compound_austerity_trap_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_EXTREME } add_ideas = cwic_compound_resource_curse_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_HIGH } add_ideas = cwic_compound_resource_curse_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_MEDIUM } add_ideas = cwic_compound_resource_curse_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_LOW } add_ideas = cwic_compound_resource_curse_low }
+
+    if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_EXTREME } add_ideas = cwic_compound_militarized_economy_lock_in_extreme }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_HIGH } add_ideas = cwic_compound_militarized_economy_lock_in_high }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_MEDIUM } add_ideas = cwic_compound_militarized_economy_lock_in_medium }
+    else_if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_LOW } add_ideas = cwic_compound_militarized_economy_lock_in_low }
+}
+
+CWIC_evaluate_national_crises = {
+    CWIC_clear_macro_crisis_flags = yes
+    CWIC_clear_compound_crisis_flags = yes
+    CWIC_evaluate_macro_crisis_flags = yes
+    CWIC_evaluate_compound_crisis_flags = yes
+
+    CWIC_clear_macro_crisis_ideas = yes
+    CWIC_clear_compound_crisis_ideas = yes
+    CWIC_apply_macro_crisis_ideas = yes
+    CWIC_apply_compound_crisis_ideas = yes
+}
