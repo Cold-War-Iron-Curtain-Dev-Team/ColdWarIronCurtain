@@ -1023,811 +1023,845 @@ cwic_fx_regime_monthly = {
 	}
 }
 
-cwic_spend_money = {
+cwic_change_money = {
+	##TO USE
+	## Set Temp Variable money_change_temp in billions
 	if = {
 		limit = {
 			check_variable = {
+				money_change_temp < 0
+			}
+		}
+		multiply_temp_variable = {
+			money_change_temp = -1
+		}
+		if = {
+			limit = {
+				check_variable = {
+					currentMoney = 0
+				}
+			}
+			set_temp_variable = {
+				deficit_temp = money_change_temp
+			}
+			if = {
+				limit = {
+					check_variable = {
+						money_change_temp < 1
+					}
+				}
+				set_temp_variable = {
+					money_change_temp_mil = money_change_temp
+				}
+				multiply_temp_variable = {
+					money_change_temp_mil = 1000
+				}
+				custom_effect_tooltip = cwic_spend_money_nomoney_mil_tt
+			}
+			else = {
+				custom_effect_tooltip = cwic_spend_money_nomoney_bil_tt
+			}
+			if = {
+				limit = {
+					check_variable = {
+						ReserveMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 1
+				}
+				save_global_event_target_as = this_loan_country
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				add_to_array = {
+					purchase_length = 7
+				}
+				add_to_array = {
+					purchase_length = 10
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = ReserveCurrentInterestRate
+				}
+				add_to_array = {
+					currentInterestRateCalc = ReserveCurrentInterestRate
+				}
+				add_to_array = {
+					currentInterestRateCalc = ReserveCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 2
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						available_liquidity > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 2
+				}			#Not Eligible
+				save_global_event_target_as = this_loan_country
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				add_to_array = {
+					purchase_length = 10
+				}
+				add_to_array = {
+					purchase_length = 15
+				}
+				add_to_array = {
+					purchase_length = 20
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate
+				}
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate
+				}
+				set_variable = {
+					Interest_Rate_Adjusted = Interest_Rate
+				}
+				multiply_variable = {
+					Interest_Rate_Adjusted = 1.2
+				}
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate_Adjusted
+				}
+				multiply_variable = {
+					Interest_Rate_Adjusted = 1.2
+				}
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate_Adjusted
+				}
+				set_variable = {
+					max_index = 3
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			#World Bank                  5Y
+			else_if = {
+				limit = {
+					check_variable = {
+						WorldMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 10
+				}
+				WBK = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				add_to_array = {
+					purchase_length = 10
+				}
+				add_to_array = {
+					purchase_length = 15
+				}
+				add_to_array = {
+					purchase_length = 20
+				}
+				add_to_array = {
+					purchase_length = 25
+				}
+				add_to_array = {
+					purchase_length = 30
+				}
+				add_to_array = {
+					purchase_length = 35
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = 1.35
+				}
+				add_to_array = {
+					currentInterestRateCalc = 1.35
+				}
+				add_to_array = {
+					currentInterestRateCalc = 1.62
+				}
+				add_to_array = {
+					currentInterestRateCalc = 1.95
+				}
+				add_to_array = {
+					currentInterestRateCalc = 2.34
+				}
+				add_to_array = {
+					currentInterestRateCalc = 2.81
+				}
+				add_to_array = {
+					currentInterestRateCalc = 3.37
+				}
+				set_variable = {
+					max_index = 6
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						MorganMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 8
+				}
+				JPM = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = MorganCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						ParisMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 3
+				}
+				BNP = {
+					save_global_event_target_as = this_loan_counftry
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = ParisCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						BarclaysMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 4
+				}
+				BRC = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = BarclaysCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						MitsubishiMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 5
+				}
+				CHY = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = MitsubishiCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						DeutscheMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 7
+				}
+				DBA = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = DeutscheCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						SuisseMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 6
+				}
+				SKA = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = SuisseCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else = {
+				GER = {
+					save_global_event_target_as = this_loan_country
+				}
+				set_variable = {
+					bank_name_prompt = 9
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 1
+				}
+				add_to_array = {
+					purchase_length = 2
+				}
+				add_to_array = {
+					purchase_length = 3
+				}
+				add_to_array = {
+					purchase_length = 4
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = 7
+				}
+				add_to_array = {
+					currentInterestRateCalc = 9
+				}
+				add_to_array = {
+					currentInterestRateCalc = 12
+				}
+				add_to_array = {
+					currentInterestRateCalc = 15
+				}
+				set_variable = {
+					max_index = 3
+				}
+				set_variable = {
+					current_index = 1
+				}	
+			}
+			automatic_loan_setting_spending = yes
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					money_change_temp > currentMoney
+				}
+			}
+			set_temp_variable = {
+				deficit_temp = money_change_temp
+			}
+			subtract_from_temp_variable = {
+				deficit_temp = currentMoney
+			}
+			set_variable = {
 				currentMoney = 0
 			}
-		}
-		set_temp_variable = {
-			deficit_temp = spending_temp
-		}
-		if = {
-			limit = {
-				check_variable = {
-					spending_temp < 1
+			if = {
+				limit = {
+					check_variable = {
+						money_change_temp < 1
+					}
+				}
+				set_temp_variable = {
+					money_change_temp_mil = money_change_temp
+				}
+				multiply_temp_variable = {
+					money_change_temp_mil = 1000
+				}
+				set_temp_variable = {
+					deficit_temp_mil = deficit_temp
+				}
+				multiply_temp_variable = {
+					deficit_temp_mil = 1000
+				}
+				set_temp_variable = {
+					currentMoney_temp_mil = currentMoney
+				}
+				multiply_temp_variable = {
+					currentMoney_temp_mil = 1000
+				}
+				custom_effect_tooltip = cwic_spend_money_debt_mil_tt
+			}
+			else = {
+				custom_effect_tooltip = cwic_spend_money_debt_bil_tt
+			}
+			if = {
+				limit = {
+					check_variable = {
+						ReserveMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 1
+				}
+				save_global_event_target_as = this_loan_country
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				add_to_array = {
+					purchase_length = 7
+				}
+				add_to_array = {
+					purchase_length = 10
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = ReserveCurrentInterestRate
+				}
+				add_to_array = {
+					currentInterestRateCalc = ReserveCurrentInterestRate
+				}
+				add_to_array = {
+					currentInterestRateCalc = ReserveCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 2
+				}
+				set_variable = {
+					current_index = 0
 				}
 			}
-			set_temp_variable = {
-				spending_temp_mil = spending_temp
+			else_if = {
+				limit = {
+					check_variable = {
+						available_liquidity > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 2
+				}			#Not Eligible
+				save_global_event_target_as = this_loan_country
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				add_to_array = {
+					purchase_length = 10
+				}
+				add_to_array = {
+					purchase_length = 15
+				}
+				add_to_array = {
+					purchase_length = 20
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate
+				}
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate
+				}
+				set_variable = {
+					Interest_Rate_Adjusted = Interest_Rate
+				}
+				multiply_variable = {
+					Interest_Rate_Adjusted = 1.2
+				}
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate_Adjusted
+				}
+				multiply_variable = {
+					Interest_Rate_Adjusted = 1.2
+				}
+				add_to_array = {
+					currentInterestRateCalc = Interest_Rate_Adjusted
+				}
+				set_variable = {
+					max_index = 3
+				}
+				set_variable = {
+					current_index = 0
+				}
 			}
-			multiply_temp_variable = {
-				spending_temp_mil = 1000
+			#World Bank                  5Y
+			else_if = {
+				limit = {
+					check_variable = {
+						WorldMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 10
+				}
+				WBK = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				add_to_array = {
+					purchase_length = 10
+				}
+				add_to_array = {
+					purchase_length = 15
+				}
+				add_to_array = {
+					purchase_length = 20
+				}
+				add_to_array = {
+					purchase_length = 25
+				}
+				add_to_array = {
+					purchase_length = 30
+				}
+				add_to_array = {
+					purchase_length = 35
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = 1.35
+				}
+				add_to_array = {
+					currentInterestRateCalc = 1.35
+				}
+				add_to_array = {
+					currentInterestRateCalc = 1.62
+				}
+				add_to_array = {
+					currentInterestRateCalc = 1.95
+				}
+				add_to_array = {
+					currentInterestRateCalc = 2.34
+				}
+				add_to_array = {
+					currentInterestRateCalc = 2.81
+				}
+				add_to_array = {
+					currentInterestRateCalc = 3.37
+				}
+				set_variable = {
+					max_index = 6
+				}
+				set_variable = {
+					current_index = 0
+				}
 			}
-			custom_effect_tooltip = cwic_spend_money_nomoney_mil_tt
+			else_if = {
+				limit = {
+					check_variable = {
+						MorganMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 8
+				}
+				JPM = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = MorganCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						ParisMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 3
+				}
+				BNP = {
+					save_global_event_target_as = this_loan_counftry
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = ParisCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						BarclaysMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 4
+				}
+				BRC = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = BarclaysCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						MitsubishiMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 5
+				}
+				CHY = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = MitsubishiCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						DeutscheMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 7
+				}
+				DBA = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = DeutscheCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = {
+						SuisseMaxBorrowable > deficit_temp
+					}
+				}
+				set_variable = {
+					bank_name_prompt = 6
+				}
+				SKA = {
+					save_global_event_target_as = this_loan_country
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 5
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = SuisseCurrentInterestRate
+				}
+				set_variable = {
+					max_index = 0
+				}
+				set_variable = {
+					current_index = 0
+				}
+			}
+			else = {
+				GER = {
+					save_global_event_target_as = this_loan_country
+				}
+				set_variable = {
+					bank_name_prompt = 9
+				}
+				clear_array = purchase_length
+				add_to_array = {
+					purchase_length = 1
+				}
+				add_to_array = {
+					purchase_length = 2
+				}
+				add_to_array = {
+					purchase_length = 3
+				}
+				add_to_array = {
+					purchase_length = 4
+				}
+				clear_array = currentInterestRateCalc
+				add_to_array = {
+					currentInterestRateCalc = 7
+				}
+				add_to_array = {
+					currentInterestRateCalc = 9
+				}
+				add_to_array = {
+					currentInterestRateCalc = 12
+				}
+				add_to_array = {
+					currentInterestRateCalc = 15
+				}
+				set_variable = {
+					max_index = 3
+				}
+				set_variable = {
+					current_index = 1
+				}	
+			}
+			automatic_loan_setting_spending = yes
 		}
 		else = {
-			custom_effect_tooltip = cwic_spend_money_nomoney_bil_tt
-		}
-		if = {
-			limit = {
-				check_variable = {
-					ReserveMaxBorrowable > deficit_temp
+			subtract_from_variable = {
+				currentMoney = money_change_temp
+			}
+			if = {
+				limit = {
+					check_variable = {
+						money_change_temp < 1
+					}
 				}
-			}
-			set_variable = {
-				bank_name_prompt = 1
-			}
-			save_global_event_target_as = this_loan_country
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 7
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 2
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					available_liquidity > deficit_temp
+				set_temp_variable = {
+					money_change_temp_mil = money_change_temp
 				}
-			}
-			set_variable = {
-				bank_name_prompt = 2
-			}			#Not Eligible
-			save_global_event_target_as = this_loan_country
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			add_to_array = {
-				purchase_length = 15
-			}
-			add_to_array = {
-				purchase_length = 20
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate
-			}
-			set_variable = {
-				Interest_Rate_Adjusted = Interest_Rate
-			}
-			multiply_variable = {
-				Interest_Rate_Adjusted = 1.2
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate_Adjusted
-			}
-			multiply_variable = {
-				Interest_Rate_Adjusted = 1.2
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate_Adjusted
-			}
-			set_variable = {
-				max_index = 3
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		#World Bank                  5Y
-		else_if = {
-			limit = {
-				check_variable = {
-					WorldMaxBorrowable > deficit_temp
+				multiply_temp_variable = {
+					money_change_temp_mil = 1000
 				}
+				custom_effect_tooltip = cwic_spend_money_debtless_mil_tt
 			}
-			set_variable = {
-				bank_name_prompt = 10
-			}
-			WBK = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			add_to_array = {
-				purchase_length = 15
-			}
-			add_to_array = {
-				purchase_length = 20
-			}
-			add_to_array = {
-				purchase_length = 25
-			}
-			add_to_array = {
-				purchase_length = 30
-			}
-			add_to_array = {
-				purchase_length = 35
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = 1.35
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.35
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.62
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.95
-			}
-			add_to_array = {
-				currentInterestRateCalc = 2.34
-			}
-			add_to_array = {
-				currentInterestRateCalc = 2.81
-			}
-			add_to_array = {
-				currentInterestRateCalc = 3.37
-			}
-			set_variable = {
-				max_index = 6
-			}
-			set_variable = {
-				current_index = 0
+			else = {
+				custom_effect_tooltip = cwic_spend_money_debtless_bil_tt
 			}
 		}
-		else_if = {
-			limit = {
-				check_variable = {
-					MorganMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 8
-			}
-			JPM = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = MorganCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					ParisMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 3
-			}
-			BNP = {
-				save_global_event_target_as = this_loan_counftry
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = ParisCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					BarclaysMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 4
-			}
-			BRC = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = BarclaysCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					MitsubishiMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 5
-			}
-			CHY = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = MitsubishiCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					DeutscheMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 7
-			}
-			DBA = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = DeutscheCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					SuisseMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 6
-			}
-			SKA = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = SuisseCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else = {
-			GER = {
-				save_global_event_target_as = this_loan_country
-			}
-			set_variable = {
-				bank_name_prompt = 9
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 1
-			}
-			add_to_array = {
-				purchase_length = 2
-			}
-			add_to_array = {
-				purchase_length = 3
-			}
-			add_to_array = {
-				purchase_length = 4
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = 7
-			}
-			add_to_array = {
-				currentInterestRateCalc = 9
-			}
-			add_to_array = {
-				currentInterestRateCalc = 12
-			}
-			add_to_array = {
-				currentInterestRateCalc = 15
-			}
-			set_variable = {
-				max_index = 3
-			}
-			set_variable = {
-				current_index = 1
-			}	
-		}
-		automatic_loan_setting_spending = yes
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				spending_temp > currentMoney
-			}
-		}
-		set_temp_variable = {
-			deficit_temp = spending_temp
-		}
-		subtract_from_temp_variable = {
-			deficit_temp = currentMoney
-		}
-		set_variable = {
-			currentMoney = 0
-		}
-		if = {
-			limit = {
-				check_variable = {
-					spending_temp < 1
-				}
-			}
-			set_temp_variable = {
-				spending_temp_mil = spending_temp
-			}
-			multiply_temp_variable = {
-				spending_temp_mil = 1000
-			}
-			set_temp_variable = {
-				deficit_temp_mil = deficit_temp
-			}
-			multiply_temp_variable = {
-				deficit_temp_mil = 1000
-			}
-			set_temp_variable = {
-				currentMoney_temp_mil = currentMoney
-			}
-			multiply_temp_variable = {
-				currentMoney_temp_mil = 1000
-			}
-			custom_effect_tooltip = cwic_spend_money_debt_mil_tt
-		}
-		else = {
-			custom_effect_tooltip = cwic_spend_money_debt_bil_tt
-		}
-		if = {
-			limit = {
-				check_variable = {
-					ReserveMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 1
-			}
-			save_global_event_target_as = this_loan_country
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 7
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 2
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					available_liquidity > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 2
-			}			#Not Eligible
-			save_global_event_target_as = this_loan_country
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			add_to_array = {
-				purchase_length = 15
-			}
-			add_to_array = {
-				purchase_length = 20
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate
-			}
-			set_variable = {
-				Interest_Rate_Adjusted = Interest_Rate
-			}
-			multiply_variable = {
-				Interest_Rate_Adjusted = 1.2
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate_Adjusted
-			}
-			multiply_variable = {
-				Interest_Rate_Adjusted = 1.2
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate_Adjusted
-			}
-			set_variable = {
-				max_index = 3
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		#World Bank                  5Y
-		else_if = {
-			limit = {
-				check_variable = {
-					WorldMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 10
-			}
-			WBK = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			add_to_array = {
-				purchase_length = 15
-			}
-			add_to_array = {
-				purchase_length = 20
-			}
-			add_to_array = {
-				purchase_length = 25
-			}
-			add_to_array = {
-				purchase_length = 30
-			}
-			add_to_array = {
-				purchase_length = 35
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = 1.35
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.35
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.62
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.95
-			}
-			add_to_array = {
-				currentInterestRateCalc = 2.34
-			}
-			add_to_array = {
-				currentInterestRateCalc = 2.81
-			}
-			add_to_array = {
-				currentInterestRateCalc = 3.37
-			}
-			set_variable = {
-				max_index = 6
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					MorganMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 8
-			}
-			JPM = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = MorganCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					ParisMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 3
-			}
-			BNP = {
-				save_global_event_target_as = this_loan_counftry
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = ParisCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					BarclaysMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 4
-			}
-			BRC = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = BarclaysCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					MitsubishiMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 5
-			}
-			CHY = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = MitsubishiCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					DeutscheMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 7
-			}
-			DBA = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = DeutscheCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					SuisseMaxBorrowable > deficit_temp
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 6
-			}
-			SKA = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = SuisseCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else = {
-			GER = {
-				save_global_event_target_as = this_loan_country
-			}
-			set_variable = {
-				bank_name_prompt = 9
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 1
-			}
-			add_to_array = {
-				purchase_length = 2
-			}
-			add_to_array = {
-				purchase_length = 3
-			}
-			add_to_array = {
-				purchase_length = 4
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = 7
-			}
-			add_to_array = {
-				currentInterestRateCalc = 9
-			}
-			add_to_array = {
-				currentInterestRateCalc = 12
-			}
-			add_to_array = {
-				currentInterestRateCalc = 15
-			}
-			set_variable = {
-				max_index = 3
-			}
-			set_variable = {
-				current_index = 1
-			}	
-		}
-		automatic_loan_setting_spending = yes
 	}
 	else = {
-		subtract_from_variable = {
-			currentMoney = spending_temp
+		add_to_variable = {
+			currentMoney = money_change_temp
 		}
 		if = {
 			limit = {
 				check_variable = {
-					spending_temp < 1
+					money_change_temp < 1
 				}
 			}
 			set_temp_variable = {
-				spending_temp_mil = spending_temp
+				money_change_temp_mil = money_change_temp
 			}
 			multiply_temp_variable = {
-				spending_temp_mil = 1000
+				money_change_temp_mil = 1000
 			}
-			custom_effect_tooltip = cwic_spend_money_debtless_mil_tt
+			custom_effect_tooltip = cwic_add_money_mil_tt
 		}
 		else = {
-			custom_effect_tooltip = cwic_spend_money_debtless_bil_tt
+			custom_effect_tooltip = cwic_add_money_bil_tt
 		}
 	}
 }
