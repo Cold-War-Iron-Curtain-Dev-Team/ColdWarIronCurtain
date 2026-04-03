@@ -84,40 +84,19 @@ PixelShader =
 
 	MainCode PixelTexture
 	[[
-		//All credits to TNO Guangdong Team	
 		float4 main( VS_OUTPUT v ) : PDX_COLOR
 		{
-			
 			float4 texColor = tex2D(TextureOne, v.vTexCoord0.xy);
 			if (texColor.a == 0) return float4(0, 0, 0, 0);
 			
-			float numColors = vFirstColor.r * 1000.f;
-			float inputFrame = CurrentState * 10000.f;
-			float color = floor(inputFrame/1000.f) - 1;
-			float opacity = saturate(mod(inputFrame, 1000.f) / 100.f);
-			float alpha = vFirstColor.a;
+			float alpha = vFirstColor.r;
+			float paletteWidth = vFirstColor.g * 100.f;
+			float correction = 0.01;
+			float xCoord = CurrentState * (10000 / paletteWidth) - correction;
+			float yCoord = 0;
 
 			float frameWidth = vSecondColor.r * 1000.f;
 			float frameHeight = vSecondColor.g * 1000.f;
-
-			float PaletteSize = vSecondColor.b * 1000.f;
-			float rescale = PaletteSize/frameHeight;
-			if(frameWidth>frameHeight)  {
-				float rescale = PaletteSize/frameWidth;
-			}
-
-			float imgX = (v.vTexCoord0.x - (1.0 - rescale)/1.9) / rescale;
-			float imgY = (v.vTexCoord0.y + (1.0 - rescale)/2.3) / rescale;
-
-			if(frameWidth>frameHeight) {
-				float toCrop = (frameWidth-frameHeight) / (2*frameWidth);
-				imgX = (imgX - toCrop) / (1.0 - 2 * toCrop);
-			}
-			else {
-				float toCrop = (frameHeight-frameWidth) / (2*frameHeight);
-				imgY = (imgY - toCrop) / (1.0 - 2 * toCrop);
-			}
-
 
 			float BorderSize = vSecondColor.a * 1000.f;
 			bool isOnEdge = tex2D(TextureOne, v.vTexCoord0.xy + float2(BorderSize/frameWidth, BorderSize/frameHeight)).a == 0 ||
@@ -129,22 +108,20 @@ PixelShader =
 							tex2D(TextureOne, v.vTexCoord0.xy + float2(-BorderSize/frameWidth, BorderSize/frameHeight)).a == 0 ||
 							tex2D(TextureOne, v.vTexCoord0.xy + float2(-BorderSize/frameWidth, BorderSize/frameHeight)).a == 0;
 
-			float4 fillColor = tex2D(TextureTwo, float2((color + 0.1f) * (1.0f / numColors), 0));
-			if (imgX > 0.001f && imgX < 1 && imgY <= 0  && imgY >= -1 && !isOnEdge) {
-				fillColor = tex2D(TextureTwo, float2((color + imgX) * (1.0f / numColors), imgY));
-			}
+
+
+			// Construct Fill Color
+			float4 fillColor = tex2D(TextureTwo, float2 (xCoord, yCoord));
+			if (fillColor.a == 0) return texColor;
 
 			if(isOnEdge) {
 				fillColor.rgb *= 1.5f;
 			}
-			else {
-				fillColor.rgb *= (0.5f + opacity * 0.5f);
-			}
 
-			float3 displayColor = texColor.rgb * alpha + fillColor.rgb * (1 - alpha);
-			return float4(displayColor.rgb, 1.0);
+			// Overlay & Return
+			float3 displayColor = texColor.rgb * (1 - alpha) + fillColor.rgb * alpha;
+			return float4(displayColor.r, displayColor.g, displayColor.b, 1.0);
 		}
-
 	]]
 }
 
