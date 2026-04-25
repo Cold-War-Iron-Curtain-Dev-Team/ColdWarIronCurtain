@@ -431,6 +431,8 @@ SIA_Triangle_Sarit_Action_effect = {
 		}
 	}
 }
+#TO MYSELF OR ANY OTHER DEVS -- IF YOU WANT TO COPY THIS FOR A SYSTEM, PLEASE DON'T UNLESS YOU HAVE UNDERSTOOD THE CODE -- POG
+#ALSO IF YOU WANT TO OPTIMIZE IT JUST DONT IT DOESNT FUCKING MATTER ITS ONLY A FEW ARRAY PARSING PER 90 DAYS OR BUTTON CLICK
 #Groups
 #1 - Thai
 #2 - Isan
@@ -440,6 +442,8 @@ SIA_Triangle_Sarit_Action_effect = {
 #6 - Tai Yuan
 #7 - Talaku
 #8 - Malayan Government
+#9 - Communist Malaya
+#10 - Communist Chinese
 SIA_Separatists_Setup_Effect = {
 	#Han 60 set it later
 	#Tai yuan will be sort of insignificant later so im not redesigning the system once again
@@ -488,6 +492,8 @@ SIA_Separatists_Setup_Effect = {
 	add_to_array = { array = SIA_Culture_Group_Support value = 40 }
 	add_to_array = { array = SIA_Culture_Group_Support value = 20 }
 	add_to_array = { array = SIA_Culture_Group_Support value = 35 }
+	add_to_array = { array = SIA_Culture_Group_Support value = 15 }
+	add_to_array = { array = SIA_Culture_Group_Support value = 10 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 0 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 100 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 55 }
@@ -497,6 +503,8 @@ SIA_Separatists_Setup_Effect = {
 	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 85 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 0 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 0 }
+	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 0 }
+	add_to_array = { array = SIA_Culture_Group_Initial_Progress value = 60 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0.5 }
@@ -506,7 +514,10 @@ SIA_Separatists_Setup_Effect = {
 	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0.7 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0.3 }
 	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0 }
+	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0 }
+	add_to_array = { array = SIA_Culture_Group_Initial_Rate value = 0.3 }
 	
+	set_country_flag = SIA_Tengku_Mahmud_Active
 	884 = {
 		set_state_flag = SIA_Separatists_State
 		add_to_array = { array = SIA_Separatist_Culture_Group value = 2 }
@@ -630,7 +641,228 @@ SIA_Separatists_Setup_Effect = {
 		}
 		divide_variable = { Thaification_Rate = THIS.CultureAmount }
 	}
+	SIA_Setup_Selection = yes
 	SIA_All_State_Update_Culture_Display = yes
+	SIA_Culture_Select_State_Verify_Culture = yes
+}
+SIA_Setup_Selection = {
+	every_state = {
+		limit = {
+			has_state_flag = SIA_Separatists_State
+		}
+		set_variable = {
+			SIA_State_NumCulture = 0
+		}
+		for_each_loop = {
+			array = THIS.SIA_Separatist_Culture_Group
+			value = v
+			index = i
+			add_to_variable = {
+				SIA_State_NumCulture = 1
+			}
+		}
+		set_variable = {
+			SIA_State_Selected_Culture_i = 0
+		}
+		set_variable = {
+			SIA_State_Selected_Culture = SIA_Separatist_Culture_Group^SIA_State_Selected_Culture_i
+		}
+	}
+}
+SIA_Culture_Rotate_Left = {
+	var:SIA_Selected_State = {
+		set_variable = {
+			SIA_State_NumCulture = 0
+		}
+		for_each_loop = {
+			array = THIS.SIA_Separatist_Culture_Group
+			value = v
+			index = i
+			add_to_variable = {
+				SIA_State_NumCulture = 1
+			}
+		}
+		add_to_variable = {
+			SIA_State_Selected_Culture_i = -1
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA_State_Selected_Culture_i < 0
+				}
+			}
+			set_variable = { SIA_State_Selected_Culture_i = SIA_State_NumCulture }
+			subtract_from_variable = { SIA_State_Selected_Culture_i = 1 }
+		}
+		else = {
+			modulo_variable = {
+				SIA_State_Selected_Culture_i = SIA_State_NumCulture
+			}
+		}
+		set_variable = {
+			SIA_State_Selected_Culture = SIA_Separatist_Culture_Group^SIA_State_Selected_Culture_i
+		}
+	}
+	SIA_State_Set_Flag = yes
+}
+SIA_Culture_Rotate_Right = {
+	var:SIA_Selected_State = {
+		set_variable = {
+			SIA_State_NumCulture = 0
+		}
+		for_each_loop = {
+			array = THIS.SIA_Separatist_Culture_Group
+			value = v
+			index = i
+			add_to_variable = {
+				SIA_State_NumCulture = 1
+			}
+		}
+		add_to_variable = {
+			SIA_State_Selected_Culture_i = 1
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA_State_Selected_Culture_i < 0
+				}
+			}
+			set_variable = { SIA_State_Selected_Culture_i = SIA_State_NumCulture }
+			subtract_from_variable = { SIA_State_Selected_Culture_i = 1 }
+		}
+		else = {
+			modulo_variable = {
+				SIA_State_Selected_Culture_i = SIA_State_NumCulture
+			}
+		}
+		set_variable = {
+			SIA_State_Selected_Culture = SIA_Separatist_Culture_Group^SIA_State_Selected_Culture_i
+		}
+	}
+	SIA_State_Set_Flag = yes
+}
+SIA_Culture_Select_State_Verify_Culture = {
+	var:SIA_Selected_State = {
+		if = {
+			limit = {
+				check_variable = {
+					SIA_Separatist_Culture_Group_bool^SIA_State_Selected_Culture = 0
+				}
+			}
+			set_variable = {
+				SIA_State_Selected_Culture_i = 0
+			}
+			set_variable = {
+				SIA_State_Selected_Culture = SIA_Separatist_Culture_Group^SIA_State_Selected_Culture_i
+			}
+		}
+	}
+	SIA_State_Set_Flag = yes
+}
+SIA_State_Set_Flag = {
+	hidden_effect = {
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 1
+				}
+			}
+			SIA = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 2
+				}
+			}
+			ISA = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 3
+				}
+			}
+			SRM = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 4
+				}
+			}
+			YAN = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 5
+				}
+			}
+			KND = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 6
+				}
+			}
+			TYU = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					SIA.SIA_Selected_State:SIA_State_Selected_Culture = 7
+				}
+			}
+			TLK = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+						SIA.SIA_Selected_State:SIA_State_Selected_Culture = 8
+				}
+			}
+			MAL = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+			set_variable = { SIA_CultureTag = MAL }
+		}
+		if = {
+			limit = {
+				check_variable = {
+						SIA.SIA_Selected_State:SIA_State_Selected_Culture = 9
+				}
+			}
+			YAN = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+						SIA.SIA_Selected_State:SIA_State_Selected_Culture = 10
+				}
+			}
+			MLA = {
+				save_global_event_target_as = SIASeparatistsFlagTag
+			}
+		}
+	}
 }
 SIA_All_State_Update_Culture_Display = {
 	every_state = {
@@ -827,7 +1059,7 @@ SIA_State_Details_Recalculation = {
 			array = THIS.SIA_Culture_Group_Support
 			value = v
 			index = i
-			set_var = { THIS.SIA_Separatist_Culture_Group_bool^i = 0 }
+			set_variable = { THIS.SIA_Separatist_Culture_Group_bool^i = 0 }
 		}
 		for_each_loop = {
 			array = THIS.SIA_Separatist_Culture_Group
@@ -835,7 +1067,7 @@ SIA_State_Details_Recalculation = {
 			index = i
 			set_variable = { THIS.SIA_Separatist_Culture_Group_bool^v = 1 }
 		}
-		set_temp_variable = { THIS.CultureAmount = 0 }
+		set_variable = { THIS.CultureAmount = 0 }
 		set_variable = {
 			Thaification_Progress = 0
 		}
@@ -844,7 +1076,7 @@ SIA_State_Details_Recalculation = {
 			value = v
 			index = i
 			add_to_variable = { THIS.Thaification_Progress = THIS.SIA_Separatist_Culture_Group_Thaification_Progress^v }
-			add_to_temp_variable = { THIS.CultureAmount = 1 }
+			add_to_variable = { THIS.CultureAmount = 1 }
 		}
 		divide_variable = { Thaification_Progress = THIS.CultureAmount }
 		set_variable = {
@@ -874,4 +1106,21 @@ SIA_Change_Thaificiation_Progress = {
 	}
 	SIA_State_Details_Recalculation = yes
 	custom_effect_tooltip = SIA_Change_Thaificiation_Progress_tt
+}
+SIA_Change_Support = {
+	add_to_variable = {
+		THIS.SIA_Culture_Group_Support^SIA_Thaificiation_Change_culture_id = SIA_Support_Change_temp
+	}
+	SIA_State_Details_Recalculation = yes
+	custom_effect_tooltip = SIA_Change_Support_tt
+}
+SIA_Add_Culture = {
+	custom_effect_tooltip = SIA_Add_Culture_tt
+	add_to_array = { array = SIA_Separatist_Culture_Group value = SIA_State_Culture_Temp }
+	SIA_State_Details_Recalculation = yes
+}
+SIA_Remove_Culture = {
+	custom_effect_tooltip = SIA_Remove_Culture_tt
+	remove_from_array = { array = SIA_Separatist_Culture_Group value = SIA_State_Culture_Temp }
+	SIA_State_Details_Recalculation = yes
 }
