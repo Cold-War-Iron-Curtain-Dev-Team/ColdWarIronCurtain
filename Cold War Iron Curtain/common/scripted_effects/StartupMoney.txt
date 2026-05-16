@@ -1,0 +1,910 @@
+
+# ============================================================
+# CWIC Starting Money Seeding
+# Unit: 1 currentMoney = 1 million
+# Debt is intentionally handled in a separate effect later.
+# ============================================================
+
+cwic_seed_starting_money = {
+
+	# ------------------------------------------------------------
+	# 1) Generic baseline
+	# Assumption: grossdomesticproduct is also stored in millions.
+	# Starting liquid treasury is not total wealth. It is fiscal cash.
+	# Baseline = 3.5% of annual GDP.
+	# ------------------------------------------------------------
+
+	if = {
+		limit = { has_variable = grossdomesticproduct }
+		set_temp_variable = { cwic_start_money = grossdomesticproduct }
+		multiply_temp_variable = { cwic_start_money = 0.035 }
+	}
+	else = {
+		set_temp_variable = { cwic_start_money = 25 }
+	}
+
+	# ------------------------------------------------------------
+	# 2) Development / administrative liquidity adjustment
+	# Higher HDI states have deeper tax systems, stronger reserves,
+	# and more reliable fiscal administration.
+	# ------------------------------------------------------------
+
+	if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI > 0.800 }
+		}
+		multiply_temp_variable = { cwic_start_money = 1.30 }
+	}
+	else_if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI > 0.650 }
+		}
+		multiply_temp_variable = { cwic_start_money = 1.15 }
+	}
+	else_if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI < 0.350 }
+		}
+		multiply_temp_variable = { cwic_start_money = 0.70 }
+	}
+	else_if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI < 0.500 }
+		}
+		multiply_temp_variable = { cwic_start_money = 0.85 }
+	}
+
+	# ------------------------------------------------------------
+	# 3) Reserve currency / financial privilege
+	# Debt later should still be high for several of these states,
+	# but current liquidity should be better.
+	# ------------------------------------------------------------
+
+	if = {
+		limit = {
+			has_variable = CWIC_reserve_currency
+			check_variable = { CWIC_reserve_currency > 0 }
+		}
+		multiply_temp_variable = { cwic_start_money = 1.40 }
+	}
+
+	# ------------------------------------------------------------
+	# 4) Country-specific liquidity profiles
+	# These are NOT debt values. These are starting cash/liquidity
+	# modifiers after the generic GDP/HDI calculation.
+	# ------------------------------------------------------------
+
+	# United States: enormous fiscal capacity, reserve privilege.
+	if = {
+		limit = { tag = USA }
+		multiply_temp_variable = { cwic_start_money = 1.35 }
+	}
+
+	# United Kingdom: high institutional capacity, but postwar austerity,
+	# dollar shortage, imperial commitments, and sterling stress.
+	if = {
+		limit = { tag = ENG }
+		multiply_temp_variable = { cwic_start_money = 0.85 }
+	}
+
+	# France: reconstruction pressure, colonial commitments, unstable fiscal politics.
+	if = {
+		limit = { OR = { tag = FRA tag = FRE } }
+		multiply_temp_variable = { cwic_start_money = 0.90 }
+	}
+
+	# Western occupation/reconstruction cases.
+	if = {
+		limit = {
+			OR = {
+				tag = WGR
+				tag = AUS
+				tag = ITA
+				tag = JAP
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.70 }
+	}
+
+	# East Germany: occupation extraction, reconstruction, limited sovereign liquidity.
+	if = {
+		limit = { tag = DDR }
+		multiply_temp_variable = { cwic_start_money = 0.55 }
+	}
+
+	# Soviet Union: large state capacity, but postwar reconstruction and command allocation.
+	if = {
+		limit = { tag = SOV }
+		multiply_temp_variable = { cwic_start_money = 0.95 }
+	}
+
+	# Eastern Bloc reconstruction and constrained liquidity.
+	if = {
+		limit = {
+			OR = {
+				tag = POL
+				tag = CZE
+				tag = HUN
+				tag = ROM
+				tag = BUL
+				tag = ALB
+				tag = YUG
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.75 }
+	}
+
+	# Stable rich small states.
+	if = {
+		limit = {
+			OR = {
+				tag = SWE
+				tag = NOR
+				tag = DEN
+				tag = SWI
+				tag = BEL
+				tag = HOL
+				tag = LUX
+				tag = CAN
+				tag = AST
+				tag = NZL
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 1.15 }
+	}
+
+	# Iberia and Ireland: stable-ish but lower postwar liquidity/development.
+	if = {
+		limit = {
+			OR = {
+				tag = SPR
+				tag = POR
+				tag = IRE
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.90 }
+	}
+
+	# Greece, Turkey, Korea, China: conflict pressure, state weakness, reconstruction.
+	if = {
+		limit = {
+			OR = {
+				tag = GRE
+				tag = PDG
+				tag = TUR
+				tag = KOR
+				tag = KPA
+				tag = CHI
+				tag = PRC
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.65 }
+	}
+
+	# British Raj successor / partition stress.
+	if = {
+		limit = {
+			OR = {
+				tag = RAJ
+				tag = PAK
+				tag = BAN
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.70 }
+	}
+
+	# Oil monarchies and Gulf microstates: low bureaucracy early, but cash potential.
+	if = {
+		limit = {
+			OR = {
+				tag = SAU
+				tag = KUW
+				tag = UAE
+				tag = QAT
+				tag = BHR
+				tag = OMA
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 1.20 }
+	}
+
+	# Latin American middle-income states.
+	if = {
+		limit = {
+			OR = {
+				tag = ARG
+				tag = BRA
+				tag = MEX
+				tag = CHL
+				tag = COL
+				tag = PRU
+				tag = PER
+				tag = VEN
+				tag = URG
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 1.00 }
+	}
+
+	# Smaller Latin American / Caribbean states.
+	if = {
+		limit = {
+			OR = {
+				tag = BOL
+				tag = ECU
+				tag = PAR
+				tag = COS
+				tag = ELS
+				tag = GUA
+				tag = HON
+				tag = NIC
+				tag = PAN
+				tag = CUB
+				tag = DOM
+				tag = HAI
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.80 }
+	}
+
+	# Postcolonial / colonial low-liquidity baseline.
+	if = {
+		limit = {
+			OR = {
+				tag = GHA
+				tag = NGA
+				tag = SUD
+				tag = KEN
+				tag = UGA
+				tag = TZN
+				tag = ZAM
+				tag = ZIM
+				tag = COG
+				tag = DOC
+				tag = SEN
+				tag = MLI
+				tag = NGR
+				tag = VOL
+				tag = GNA
+				tag = MRT
+				tag = TOG
+				tag = DAH
+				tag = CHA
+				tag = IVO
+				tag = MLW
+				tag = SOM
+				tag = ETH
+				tag = LBA
+				tag = MOR
+				tag = TUN
+				tag = ALG
+			}
+		}
+		multiply_temp_variable = { cwic_start_money = 0.65 }
+	}
+
+	# Microstates: protect from unusably tiny values.
+	if = {
+		limit = {
+			OR = {
+				tag = VTC
+				tag = SNM
+				tag = MOC
+				tag = LIC
+				tag = AND
+				tag = ANR
+				tag = MLT
+				tag = PLU
+				tag = NAU
+			}
+		}
+		clamp_temp_variable = { var = cwic_start_money min = 5 max = 250 }
+	}
+
+	# ------------------------------------------------------------
+	# 5) Global safety clamps
+	# Avoid dead-on-arrival states and absurd liquid reserves.
+	# These can be loosened later after testing.
+	# ------------------------------------------------------------
+
+	clamp_temp_variable = { var = cwic_start_money min = 10 max = 50000 }
+	round_temp_variable = cwic_start_money
+
+	set_variable = { currentMoney = cwic_start_money }
+}
+
+#Debt
+
+# ============================================================
+# CWIC Starting Debt Seeding
+# Unit: 1 = 1 million
+# Uses existing add_loans_effect loan ledger.
+# Reparations are NOT handled here.
+# ============================================================
+
+cwic_seed_starting_debt = {
+	cwic_calculate_generic_starting_debt = yes
+	cwic_apply_historical_debt_ratio_overrides = yes
+	cwic_apply_starting_debt_profile = yes
+}
+cwic_calculate_generic_starting_debt = {
+	if = {
+		limit = { has_variable = grossdomesticproduct }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+	}
+	else = {
+		set_temp_variable = { cwic_seed_total_debt = 100 }
+	}
+
+	# Generic fallback: 30% debt-to-GDP
+	set_temp_variable = { cwic_seed_debt_ratio = 0.30 }
+
+	if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI > 0.800 }
+		}
+		set_temp_variable = { cwic_seed_debt_ratio = 0.55 }
+	}
+	else_if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI > 0.650 }
+		}
+		set_temp_variable = { cwic_seed_debt_ratio = 0.40 }
+	}
+	else_if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI < 0.350 }
+		}
+		set_temp_variable = { cwic_seed_debt_ratio = 0.12 }
+	}
+	else_if = {
+		limit = {
+			has_variable = National_HDI
+			check_variable = { National_HDI < 0.500 }
+		}
+		set_temp_variable = { cwic_seed_debt_ratio = 0.22 }
+	}
+
+	multiply_temp_variable = { cwic_seed_total_debt = cwic_seed_debt_ratio }
+	round_temp_variable = cwic_seed_total_debt
+}
+cwic_apply_historical_debt_ratio_overrides = {
+
+	# Major postwar debt cases
+	if = {
+		limit = { tag = USA }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 1.00 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = ENG }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 2.00 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = FRA tag = FRE } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.90 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = ITA }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.75 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = JAP }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.70 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = WGR }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.30 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = DDR }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.22 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = SOV }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.30 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	# Other developed/postwar states
+	if = {
+		limit = { tag = CAN }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.55 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = AST tag = NZL } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.65 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = BEL tag = HOL } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.90 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = SWE tag = NOR tag = DEN tag = SWI } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.35 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = FIN }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.45 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	# Eastern Europe
+	if = {
+		limit = { OR = { tag = POL tag = CZE tag = HUN } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.25 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = ROM tag = BUL tag = ALB } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.20 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = YUG }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.35 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	# Conflict/reconstruction stress
+	if = {
+		limit = { OR = { tag = GRE tag = PDG } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.60 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = TUR }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.30 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = KOR tag = KPA } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.12 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	# China civil war era, low reliable formal debt but unstable state finance
+	if = {
+		limit = { tag = CHI }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.25 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { tag = PRC }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.20 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	# Partition states
+	if = {
+		limit = { tag = RAJ }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.20 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+
+	if = {
+		limit = { OR = { tag = PAK tag = BAN } }
+		set_temp_variable = { cwic_seed_total_debt = grossdomesticproduct }
+		multiply_temp_variable = { cwic_seed_total_debt = 0.18 }
+		round_temp_variable = cwic_seed_total_debt
+	}
+}
+cwic_apply_starting_debt_profile = {
+
+	if = {
+		limit = { tag = USA }
+		cwic_seed_debt_profile_advanced_domestic_market = yes
+	}
+
+	else_if = {
+		limit = { tag = ENG }
+		cwic_seed_debt_profile_sterling_postwar = yes
+	}
+
+	else_if = {
+		limit = { OR = { tag = FRA tag = FRE } }
+		cwic_seed_debt_profile_franc_postwar = yes
+	}
+
+	else_if = {
+		limit = { OR = { tag = ITA tag = JAP tag = GRE tag = PDG tag = AUS tag = KOR } }
+		cwic_seed_debt_profile_reconstruction_world_bank = yes
+	}
+
+	else_if = {
+		limit = { tag = WGR }
+		cwic_seed_debt_profile_west_german_reconstruction = yes
+	}
+
+	else_if = {
+		limit = {
+			OR = {
+				tag = SOV
+				tag = DDR
+				tag = POL
+				tag = CZE
+				tag = HUN
+				tag = ROM
+				tag = BUL
+				tag = ALB
+				tag = PRC
+				tag = KPA
+				tag = MON
+			}
+		}
+		cwic_seed_debt_profile_command_economy_internal = yes
+	}
+
+	else_if = {
+		limit = {
+			OR = {
+				tag = CAN
+				tag = AST
+				tag = NZL
+				tag = SWE
+				tag = NOR
+				tag = DEN
+				tag = SWI
+				tag = BEL
+				tag = HOL
+				tag = LUX
+			}
+		}
+		cwic_seed_debt_profile_advanced_domestic_market = yes
+	}
+
+	else_if = {
+		limit = {
+			OR = {
+				tag = ARG
+				tag = BRA
+				tag = MEX
+				tag = CHL
+				tag = COL
+				tag = PRU
+				tag = PER
+				tag = VEN
+				tag = URG
+				tag = BOL
+				tag = ECU
+				tag = PAR
+				tag = COS
+				tag = ELS
+				tag = GUA
+				tag = HON
+				tag = NIC
+				tag = PAN
+				tag = CUB
+				tag = DOM
+				tag = HAI
+				tag = PHI
+				tag = LIB
+			}
+		}
+		cwic_seed_debt_profile_us_linked_developing = yes
+	}
+
+	else_if = {
+		limit = {
+			OR = {
+				tag = GHA
+				tag = NGA
+				tag = SUD
+				tag = KEN
+				tag = UGA
+				tag = TZN
+				tag = ZAM
+				tag = ZIM
+				tag = COG
+				tag = DOC
+				tag = SEN
+				tag = MLI
+				tag = NGR
+				tag = VOL
+				tag = GNA
+				tag = MRT
+				tag = TOG
+				tag = DAH
+				tag = CHA
+				tag = IVO
+				tag = MLW
+				tag = SOM
+				tag = ETH
+			}
+		}
+		cwic_seed_debt_profile_low_capacity_development = yes
+	}
+
+	else = {
+		cwic_seed_debt_profile_mixed_generic = yes
+	}
+}
+cwic_seed_debt_profile_advanced_domestic_market = {
+	# 80% Domestic Commercial, 20 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.80 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 3 }
+	add_loans_effect = yes
+
+	# 20% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.20 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_sterling_postwar = {
+	# 45% Domestic Commercial, 20 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.45 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 3 }
+	add_loans_effect = yes
+
+	# 20% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.20 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+
+	# 20% American/dollar debt proxy, J.P. Morgan, 5 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.20 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 8 }
+	set_temp_variable = { current_index_temp = 0 }
+	add_loans_effect = yes
+
+	# 15% Barclays, 5 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.15 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 4 }
+	set_temp_variable = { current_index_temp = 0 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_franc_postwar = {
+	# 50% Domestic Commercial, 20 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.50 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 3 }
+	add_loans_effect = yes
+
+	# 25% BNP, 5 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.25 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 3 }
+	set_temp_variable = { current_index_temp = 0 }
+	add_loans_effect = yes
+
+	# 25% World Bank, 30 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.25 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 10 }
+	set_temp_variable = { current_index_temp = 5 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_reconstruction_world_bank = {
+	# 45% World Bank, 35 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.45 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 10 }
+	set_temp_variable = { current_index_temp = 6 }
+	add_loans_effect = yes
+
+	# 35% Domestic Commercial, 20 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.35 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 3 }
+	add_loans_effect = yes
+
+	# 20% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.20 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_west_german_reconstruction = {
+	# 50% Domestic Commercial, 20 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.50 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 3 }
+	add_loans_effect = yes
+
+	# 35% World Bank, 35 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.35 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 10 }
+	set_temp_variable = { current_index_temp = 6 }
+	add_loans_effect = yes
+
+	# 15% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.15 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_command_economy_internal = {
+	# 75% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.75 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+
+	# 25% Domestic Commercial, 15 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.25 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_us_linked_developing = {
+	# 45% Domestic Commercial, 15 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.45 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+
+	# 30% JP Morgan, 5 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.30 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 8 }
+	set_temp_variable = { current_index_temp = 0 }
+	add_loans_effect = yes
+
+	# 25% World Bank, 30 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.25 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 10 }
+	set_temp_variable = { current_index_temp = 5 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_low_capacity_development = {
+	# 65% World Bank, 35 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.65 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 10 }
+	set_temp_variable = { current_index_temp = 6 }
+	add_loans_effect = yes
+
+	# 35% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.35 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+}
+cwic_seed_debt_profile_mixed_generic = {
+	# 50% Domestic Commercial, 15 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.50 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 2 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+
+	# 30% Domestic Reserve, 10 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.30 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 1 }
+	set_temp_variable = { current_index_temp = 2 }
+	add_loans_effect = yes
+
+	# 20% World Bank, 25 years
+	set_temp_variable = { cwic_seed_loan_amount = cwic_seed_total_debt }
+	multiply_temp_variable = { cwic_seed_loan_amount = 0.20 }
+	round_temp_variable = cwic_seed_loan_amount
+	set_temp_variable = { purchase_amount_temp = cwic_seed_loan_amount }
+	set_temp_variable = { lender_temp = 10 }
+	set_temp_variable = { current_index_temp = 4 }
+	add_loans_effect = yes
+}
