@@ -1,0 +1,217 @@
+
+# ============================================================
+# CWIC War Reparations Setup
+# Historical-ish May 1949 startup values
+# Totals are abstracted millions USD-equivalent.
+# economic_modifier_war_reparations:
+#   negative = paying
+#   positive = receiving
+# ============================================================
+
+cwic_setup_postwar_soviet_reparations = {
+
+	SOV = {
+		set_variable = { CWIC_war_reparations_receiving_total_monthly = 0 }
+		set_variable = { economic_modifier_war_reparations = 0 }
+	}
+
+	# ------------------------------------------------------------
+	# DDR / Soviet Zone Germany
+	# Direct reparations transfer layer only.
+	# Does not naturally pay off. Should be frozen/terminated by 1953 event.
+	# ------------------------------------------------------------
+	DDR = {
+		set_country_flag = CWIC_paying_war_reparations_to_soviet
+		set_country_flag = CWIC_ddr_reparations_subject_to_1953_freeze
+
+		set_variable = { CWIC_war_reparations_total_due = 999999 }
+		set_variable = { CWIC_war_reparations_paid = 0 }
+
+		# Low abstract monthly tracker amount.
+		# Actual burden is represented by economic_modifier_war_reparations.
+		set_variable = { CWIC_war_reparations_monthly_payment = 15 }
+
+		set_variable = { economic_modifier_war_reparations = -0.08 }
+
+		SOV = {
+			add_to_variable = { CWIC_war_reparations_receiving_total_monthly = 0.08 }
+		}
+	}
+
+	FIN = {
+		set_country_flag = CWIC_paying_war_reparations_to_soviet
+		set_variable = { CWIC_war_reparations_total_due = 125 }
+		set_variable = { CWIC_war_reparations_paid = 0 }
+		set_variable = { CWIC_war_reparations_monthly_payment = 3.33 }
+		set_variable = { economic_modifier_war_reparations = -0.025 }
+
+		SOV = {
+			add_to_variable = { CWIC_war_reparations_receiving_total_monthly = 0.025 }
+		}
+	}
+
+	ROM = {
+		set_country_flag = CWIC_paying_war_reparations_to_soviet
+		set_variable = { CWIC_war_reparations_total_due = 205 }
+		set_variable = { CWIC_war_reparations_paid = 0 }
+		set_variable = { CWIC_war_reparations_monthly_payment = 3.2 }
+		set_variable = { economic_modifier_war_reparations = -0.03 }
+
+		SOV = {
+			add_to_variable = { CWIC_war_reparations_receiving_total_monthly = 0.03 }
+		}
+	}
+
+	HUN = {
+		set_country_flag = CWIC_paying_war_reparations_to_soviet
+		set_variable = { CWIC_war_reparations_total_due = 137 }
+		set_variable = { CWIC_war_reparations_paid = 0 }
+		set_variable = { CWIC_war_reparations_monthly_payment = 2.14 }
+		set_variable = { economic_modifier_war_reparations = -0.025 }
+
+		SOV = {
+			add_to_variable = { CWIC_war_reparations_receiving_total_monthly = 0.025 }
+		}
+	}
+
+	ITA = {
+		set_country_flag = CWIC_paying_war_reparations_to_soviet
+		set_variable = { CWIC_war_reparations_total_due = 69 }
+		set_variable = { CWIC_war_reparations_paid = 0 }
+		set_variable = { CWIC_war_reparations_monthly_payment = 1.08 }
+		set_variable = { economic_modifier_war_reparations = -0.01 }
+
+		SOV = {
+			add_to_variable = { CWIC_war_reparations_receiving_total_monthly = 0.01 }
+		}
+	}
+
+	SOV = {
+		set_variable = {
+			economic_modifier_war_reparations = CWIC_war_reparations_receiving_total_monthly
+		}
+	}
+}
+
+# ============================================================
+# Monthly war reparations processor
+# Call from on_monthly for every country
+# ============================================================
+
+cwic_process_war_reparations = {
+	if = {
+		limit = {
+			has_country_flag = CWIC_paying_war_reparations_to_soviet
+			NOT = { has_country_flag = CWIC_ddr_reparations_subject_to_1953_freeze }
+			check_variable = { CWIC_war_reparations_total_due > 0 }
+			check_variable = { CWIC_war_reparations_paid < CWIC_war_reparations_total_due }
+		}
+
+		add_to_variable = {
+			CWIC_war_reparations_paid = CWIC_war_reparations_monthly_payment
+		}
+
+		if = {
+			limit = {
+                OR = {
+                    check_variable = {
+                        CWIC_war_reparations_paid > CWIC_war_reparations_total_due
+                    }
+                    check_variable = {
+                        CWIC_war_reparations_paid = CWIC_war_reparations_total_due
+                    }
+                }
+
+			}
+
+			set_variable = {
+				CWIC_war_reparations_paid = CWIC_war_reparations_total_due
+			}
+
+			cwic_complete_soviet_war_reparations = yes
+		}
+	}
+}
+
+# ============================================================
+# Removes normal payer burden and adjusts Soviet aggregate receipt
+# DDR should not use this. Use the 1953 freeze effect instead.
+# ============================================================
+
+cwic_complete_soviet_war_reparations = {
+	clr_country_flag = CWIC_paying_war_reparations_to_soviet
+	set_country_flag = CWIC_war_reparations_completed
+
+	set_variable = { economic_modifier_war_reparations = 0 }
+
+	if = {
+		limit = { tag = FIN }
+		SOV = {
+			subtract_from_variable = { CWIC_war_reparations_receiving_total_monthly = 0.025 }
+		}
+	}
+
+	if = {
+		limit = { tag = ROM }
+		SOV = {
+			subtract_from_variable = { CWIC_war_reparations_receiving_total_monthly = 0.03 }
+		}
+	}
+
+	if = {
+		limit = { tag = HUN }
+		SOV = {
+			subtract_from_variable = { CWIC_war_reparations_receiving_total_monthly = 0.025 }
+		}
+	}
+
+	if = {
+		limit = { tag = ITA }
+		SOV = {
+			subtract_from_variable = { CWIC_war_reparations_receiving_total_monthly = 0.01 }
+		}
+	}
+
+	SOV = {
+		clamp_variable = {
+			var = CWIC_war_reparations_receiving_total_monthly
+			min = 0
+			max = 1
+		}
+
+		set_variable = {
+			economic_modifier_war_reparations = CWIC_war_reparations_receiving_total_monthly
+		}
+	}
+}
+
+# ============================================================
+# DDR 1953 reparations freeze / cancellation
+# Fired by event, focus, scripted history pulse, or Soviet decision.
+# ============================================================
+
+cwic_freeze_ddr_soviet_reparations_1953 = {
+	DDR = {
+		clr_country_flag = CWIC_paying_war_reparations_to_soviet
+		clr_country_flag = CWIC_ddr_reparations_subject_to_1953_freeze
+		set_country_flag = CWIC_ddr_soviet_reparations_frozen_1953
+
+		set_variable = { economic_modifier_war_reparations = 0 }
+	}
+
+	SOV = {
+		subtract_from_variable = {
+			CWIC_war_reparations_receiving_total_monthly = 0.08
+		}
+
+		clamp_variable = {
+			var = CWIC_war_reparations_receiving_total_monthly
+			min = 0
+			max = 1
+		}
+
+		set_variable = {
+			economic_modifier_war_reparations = CWIC_war_reparations_receiving_total_monthly
+		}
+	}
+}
