@@ -1932,3 +1932,228 @@ automatic_loan_setting_spending = {
 	}
 	loan_set_assigning_borrowable = yes
 }
+cwic_seed_starting_inflation = {
+
+	# Default: stable/moderate monthly inflation
+	set_variable = { CWIC_inflation_mom = 0.0025 }
+
+	# Developed stable economies
+	if = {
+		limit = {
+			OR = {
+				tag = USA
+				tag = CAN
+				tag = SWE
+				tag = NOR
+				tag = DEN
+				tag = SWI
+				tag = BEL
+				tag = HOL
+				tag = LUX
+				tag = AST
+				tag = NZL
+			}
+		}
+		set_variable = { CWIC_inflation_mom = 0.0015 }
+	}
+
+	# Postwar strained Western Europe / Japan
+	if = {
+		limit = {
+			OR = {
+				tag = ENG
+				tag = FRA
+				tag = FRE
+				tag = ITA
+				tag = WGR
+				tag = AUS
+				tag = JAP
+				tag = GRE
+			}
+		}
+		set_variable = { CWIC_inflation_mom = 0.0040 }
+	}
+
+	# Higher instability / weaker monetary systems
+	if = {
+		limit = {
+			OR = {
+				tag = CHI
+				tag = PRC
+				tag = KOR
+				tag = KPA
+				tag = TUR
+				tag = ARG
+				tag = BRA
+				tag = MEX
+			}
+		}
+		set_variable = { CWIC_inflation_mom = 0.0060 }
+	}
+
+	# Command economies: price controls suppress visible inflation
+	if = {
+		limit = {
+			OR = {
+				tag = SOV
+				tag = DDR
+				tag = POL
+				tag = CZE
+				tag = HUN
+				tag = ROM
+				tag = BUL
+				tag = ALB
+				tag = MON
+			}
+		}
+		set_variable = { CWIC_inflation_mom = 0.0010 }
+	}
+
+	# Hyper/near-hyper special case if still relevant in 1949 China
+	if = {
+		limit = { tag = CHI }
+		set_variable = { CWIC_inflation_mom = 0.0500 }
+	}
+}
+cwic_seed_starting_fx_balance = {
+
+	if = {
+		limit = { has_variable = grossdomesticproduct }
+		set_temp_variable = { cwic_start_fx = grossdomesticproduct }
+		multiply_temp_variable = { cwic_start_fx = 0.020 }
+	}
+	else = {
+		set_temp_variable = { cwic_start_fx = 10 }
+	}
+
+	# Reserve currency countries get much deeper external settlement capacity.
+	if = {
+		limit = {
+			has_variable = CWIC_reserve_currency
+			check_variable = { CWIC_reserve_currency > 0 }
+		}
+		multiply_temp_variable = { cwic_start_fx = 4.00 }
+	}
+
+	# United States: dollar issuer and global reserve anchor.
+	if = {
+		limit = { tag = USA }
+		multiply_temp_variable = { cwic_start_fx = 2.00 }
+	}
+
+	# Postwar dollar shortage states.
+	if = {
+		limit = {
+			OR = {
+				tag = ENG
+				tag = FRA
+				tag = FRE
+				tag = ITA
+				tag = WGR
+				tag = AUS
+				tag = JAP
+				tag = GRE
+				tag = PDG
+			}
+		}
+		multiply_temp_variable = { cwic_start_fx = 0.65 }
+	}
+
+	# Commonwealth/dollar-area states with better external access.
+	if = {
+		limit = {
+			OR = {
+				tag = CAN
+				tag = AST
+				tag = NZL
+			}
+		}
+		multiply_temp_variable = { cwic_start_fx = 1.25 }
+	}
+
+	# Oil/export hard-currency states.
+	if = {
+		limit = {
+			OR = {
+				tag = SAU
+				tag = KUW
+				tag = VEN
+				tag = IRQ
+				tag = ARB
+				tag = PER
+			}
+		}
+		multiply_temp_variable = { cwic_start_fx = 1.50 }
+	}
+
+	# Command economies: lower convertible hard-currency access.
+	if = {
+		limit = {
+			OR = {
+				tag = SOV
+				tag = DDR
+				tag = POL
+				tag = CZE
+				tag = HUN
+				tag = ROM
+				tag = BUL
+				tag = ALB
+				tag = PRC
+				tag = KPA
+				tag = MON
+			}
+		}
+		multiply_temp_variable = { cwic_start_fx = 0.45 }
+	}
+
+	# Poor/postcolonial states: very thin external reserves.
+	if = {
+		limit = {
+			OR = {
+				tag = ETH
+				tag = GHA
+				tag = NGA
+				tag = SUD
+				tag = KEN
+				tag = UGA
+				tag = TZN
+				tag = ZAM
+				tag = ZIM
+				tag = SOM
+				tag = SEN
+				tag = MLI
+				tag = NGR
+				tag = VOL
+				tag = CHA
+				tag = IVO
+				tag = MLW
+				tag = COG
+				tag = DOC
+			}
+		}
+		multiply_temp_variable = { cwic_start_fx = 0.55 }
+	}
+
+	# Microstates get a minimum usable reserve buffer.
+	if = {
+		limit = {
+			OR = {
+				tag = VTC
+				tag = SNM
+				tag = MOC
+				tag = LIC
+				tag = AND
+				tag = ANR
+				tag = MLT
+				tag = PLU
+				tag = NAU
+			}
+		}
+		clamp_temp_variable = { var = cwic_start_fx min = 5 max = 500 }
+	}
+
+	clamp_temp_variable = { var = cwic_start_fx min = 5 max = 25000 }
+	round_temp_variable = cwic_start_fx
+
+	set_variable = { CWIC_fx_reserves = cwic_start_fx }
+}
