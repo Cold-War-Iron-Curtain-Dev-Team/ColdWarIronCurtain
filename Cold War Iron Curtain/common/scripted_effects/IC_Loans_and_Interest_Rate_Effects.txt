@@ -946,76 +946,114 @@ set_starting_credit_ratings = {
 		set_country_flag = Credit_Rating_Locked
 	}
 	else_if = {
+		limit = { has_variable = National_HDI }
+
 		if = {
 			limit = {
-				check_variable = {
-					average_development > 3
-				}
+				check_variable = { National_HDI > 0.800 }
 			}
-			set_variable = {
-				Credit_Rating = 9
-			}
+			set_variable = { Credit_Rating = 9 }
 		}
 		else_if = {
 			limit = {
-				check_variable = {
-					average_development > 2.8
-				}
+				check_variable = { National_HDI > 0.700 }
 			}
-			set_variable = {
-				Credit_Rating = 8
-			}
+			set_variable = { Credit_Rating = 8 }
 		}
 		else_if = {
 			limit = {
-				check_variable = {
-					average_development > 2.5
-				}
+				check_variable = { National_HDI > 0.650 }
 			}
-			set_variable = {
-				Credit_Rating = 7
-			}
+			set_variable = { Credit_Rating = 7 }
 		}
 		else_if = {
 			limit = {
-				check_variable = {
-					average_development > 2.3
-				}
+				check_variable = { National_HDI > 0.560 }
 			}
-			set_variable = {
-				Credit_Rating = 6
-			}
+			set_variable = { Credit_Rating = 6 }
 		}
 		else_if = {
 			limit = {
-				check_variable = {
-					average_development > 2
-				}
+				check_variable = { National_HDI > 0.480 }
 			}
-			set_variable = {
-				Credit_Rating = 5
-			}
+			set_variable = { Credit_Rating = 5 }
 		}
 		else_if = {
 			limit = {
-				check_variable = {
-					average_development > 1.5
-				}
+				check_variable = { National_HDI > 0.360 }
 			}
-			set_variable = {
-				Credit_Rating = 4
-			}
+			set_variable = { Credit_Rating = 4 }
 		}
 		else = {
-			set_variable = {
-				Credit_Rating = 3
-			}
+			set_variable = { Credit_Rating = 3 }
 		}
+
+		# Reserve currency privilege
+		if = {
+			limit = {
+				has_variable = CWIC_reserve_currency
+				check_variable = { CWIC_reserve_currency > 0 }
+				check_variable = { Credit_Rating < 10 }
+			}
+			add_to_variable = { Credit_Rating = 1 }
+		}
+
+		# Postwar dollar shortage / reconstruction pressure
+		if = {
+			limit = {
+				OR = {
+					tag = FRA
+					tag = FRE
+					tag = ITA
+					tag = WGR
+					tag = AUS
+					tag = JAP
+					tag = GRE
+					tag = PDG
+				}
+				check_variable = { Credit_Rating > 3 }
+			}
+			subtract_from_variable = { Credit_Rating = 1 }
+		}
+
+		# Command economy external credit limitations
+		if = {
+			limit = {
+				OR = {
+					tag = DDR
+					tag = POL
+					tag = CZE
+					tag = HUN
+					tag = ROM
+					tag = BUL
+					tag = ALB
+					tag = PRC
+					tag = KPA
+					tag = MON
+				}
+				check_variable = { Credit_Rating > 3 }
+			}
+			subtract_from_variable = { Credit_Rating = 1 }
+		}
+
+		# Strong U.S.-aligned / advanced creditor states
+		if = {
+			limit = {
+				OR = {
+					tag = CAN
+					tag = SWI
+					tag = SWE
+				}
+				check_variable = { Credit_Rating < 10 }
+			}
+			add_to_variable = { Credit_Rating = 1 }
+		}
+
+		# Clamp
+		clamp_variable = { var = Credit_Rating min = 1 max = 10 }
 	}
 	else = {
-		set_variable = {
-			Credit_Rating = 3
-		}
+		set_variable = { Credit_Rating = 3 }
 	}
 }
 
