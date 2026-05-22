@@ -506,6 +506,8 @@ CWIC_apply_compound_crisis_ideas = {
 }
 
 CWIC_evaluate_national_crises = {
+    cwic_calculate_fiscal_ratio_proxies = yes
+    
     CWIC_clear_macro_crisis_flags = yes
     CWIC_clear_compound_crisis_flags = yes
     CWIC_evaluate_macro_crisis_flags = yes
@@ -515,4 +517,31 @@ CWIC_evaluate_national_crises = {
     CWIC_clear_compound_crisis_ideas = yes
     CWIC_apply_macro_crisis_ideas = yes
     CWIC_apply_compound_crisis_ideas = yes
+}
+cwic_calculate_fiscal_ratio_proxies = {
+
+	# Debt service to GDP
+	set_variable = { CWIC_debt_service_gdp_ratio = 0 }
+	if = {
+		limit = {
+			has_variable = grossdomesticproduct
+			check_variable = { grossdomesticproduct > 0 }
+		}
+		set_variable = { CWIC_debt_service_gdp_ratio = currentDebtPayments }
+		multiply_variable = { CWIC_debt_service_gdp_ratio = 12 }
+		divide_variable = { CWIC_debt_service_gdp_ratio = grossdomesticproduct }
+	}
+
+	# Deficit to GDP
+	set_variable = { CWIC_deficit_gdp_ratio = 0 }
+	if = {
+		limit = {
+			has_variable = grossdomesticproduct
+			check_variable = { grossdomesticproduct > 0 }
+			check_variable = { pulse_deficit > 0 }
+		}
+		set_variable = { CWIC_deficit_gdp_ratio = pulse_deficit }
+		multiply_variable = { CWIC_deficit_gdp_ratio = 12 }
+		divide_variable = { CWIC_deficit_gdp_ratio = grossdomesticproduct }
+	}
 }
