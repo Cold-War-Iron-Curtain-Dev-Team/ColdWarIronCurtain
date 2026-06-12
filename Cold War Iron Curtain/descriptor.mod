@@ -6,7 +6,7 @@ tags={
 	"Historical"
 	"Map"
 }
-version="1.18"
+version="1.19"
 replace_path="events"
 replace_path="common/decisions"
 replace_path="common/national_focus"
