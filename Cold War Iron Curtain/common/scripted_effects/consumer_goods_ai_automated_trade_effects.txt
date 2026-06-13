@@ -1,0 +1,3733 @@
+# Consumer Goods AI / Automated Trading Effects
+
+cwic_ai_consumer_goods_trade_master = {
+	# ------------------------------------------------------------
+	# Automated consumer goods trade.
+	# Recommended placement:
+	# 1) monthly production
+	# 2) apply existing imports to domestic stock
+	# 3) calculate persistent export stock
+	# 4) run this AI trade master
+	# 5) optionally apply new imports to domestic stock if trades should deliver immediately
+	# 6) consume/allot domestic consumer goods
+	# ------------------------------------------------------------
+	if = {
+		limit = {
+            OR = {
+                is_ai = yes
+                check_variable = { trade_automation = 2 }
+            }
+			
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		cwic_ai_import_cg_basic = yes
+		cwic_ai_import_cg_durable = yes
+		cwic_ai_import_cg_vehicles = yes
+		cwic_ai_import_cg_electronics = yes
+	}
+
+	set_variable = { purchase_amount = 0 }
+	set_variable = { purchase_amount_prior = 0 }
+}
+
+cwic_ai_import_cg_basic = {
+	# ------------------------------------------------------------
+	# Basic Consumer Goods AI import target
+	# Need = monthly demand - current domestic stock.
+	# Existing imports are already included if cwic_apply_consumer_goods_imports_to_stock ran earlier this tick.
+	# ------------------------------------------------------------
+	set_variable = { cg_basic_ai_stock_total = 0 }
+	add_to_variable = { cg_basic_ai_stock_total = cg_basic_stock_t0 }
+	add_to_variable = { cg_basic_ai_stock_total = cg_basic_stock_t1 }
+	add_to_variable = { cg_basic_ai_stock_total = cg_basic_stock_t2 }
+	add_to_variable = { cg_basic_ai_stock_total = cg_basic_stock_t3 }
+	add_to_variable = { cg_basic_ai_stock_total = cg_basic_stock_t4 }
+	add_to_variable = { cg_basic_ai_stock_total = cg_basic_stock_t5 }
+
+	set_variable = { cg_basic_ai_need = cg_basic_demand }
+	subtract_from_variable = { cg_basic_ai_need = cg_basic_ai_stock_total }
+
+	if = {
+		limit = { check_variable = { cg_basic_ai_need < 1 } }
+		set_variable = { cg_basic_ai_need = 0 }
+	}
+
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+		if = {
+			limit = {
+				check_variable = { cg_basic_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_basic_expected_tier > 4 }
+			}
+			cwic_ai_import_cg_basic_t5 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_basic_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_basic_expected_tier > 3 }
+			}
+			cwic_ai_import_cg_basic_t4 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_basic_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_basic_expected_tier > 2 }
+			}
+			cwic_ai_import_cg_basic_t3 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_basic_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_basic_expected_tier > 1 }
+			}
+			cwic_ai_import_cg_basic_t2 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_basic_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_basic_expected_tier > 0 }
+			}
+			cwic_ai_import_cg_basic_t1 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_basic_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+			}
+			cwic_ai_import_cg_basic_t0 = yes
+		}
+	}
+
+	clear_variable = cg_basic_ai_stock_total
+	clear_variable = cg_basic_ai_need
+}
+
+cwic_ai_import_cg_durable = {
+	# ------------------------------------------------------------
+	# Durable Consumer Goods AI import target
+	# Need = monthly demand - current domestic stock.
+	# Existing imports are already included if cwic_apply_consumer_goods_imports_to_stock ran earlier this tick.
+	# ------------------------------------------------------------
+	set_variable = { cg_durable_ai_stock_total = 0 }
+	add_to_variable = { cg_durable_ai_stock_total = cg_durable_stock_t0 }
+	add_to_variable = { cg_durable_ai_stock_total = cg_durable_stock_t1 }
+	add_to_variable = { cg_durable_ai_stock_total = cg_durable_stock_t2 }
+	add_to_variable = { cg_durable_ai_stock_total = cg_durable_stock_t3 }
+	add_to_variable = { cg_durable_ai_stock_total = cg_durable_stock_t4 }
+	add_to_variable = { cg_durable_ai_stock_total = cg_durable_stock_t5 }
+
+	set_variable = { cg_durable_ai_need = cg_durable_demand }
+	subtract_from_variable = { cg_durable_ai_need = cg_durable_ai_stock_total }
+
+	if = {
+		limit = { check_variable = { cg_durable_ai_need < 1 } }
+		set_variable = { cg_durable_ai_need = 0 }
+	}
+
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+		if = {
+			limit = {
+				check_variable = { cg_durable_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_durable_expected_tier > 4 }
+			}
+			cwic_ai_import_cg_durable_t5 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_durable_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_durable_expected_tier > 3 }
+			}
+			cwic_ai_import_cg_durable_t4 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_durable_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_durable_expected_tier > 2 }
+			}
+			cwic_ai_import_cg_durable_t3 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_durable_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_durable_expected_tier > 1 }
+			}
+			cwic_ai_import_cg_durable_t2 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_durable_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_durable_expected_tier > 0 }
+			}
+			cwic_ai_import_cg_durable_t1 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_durable_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+			}
+			cwic_ai_import_cg_durable_t0 = yes
+		}
+	}
+
+	clear_variable = cg_durable_ai_stock_total
+	clear_variable = cg_durable_ai_need
+}
+
+cwic_ai_import_cg_vehicles = {
+	# ------------------------------------------------------------
+	# Vehicles AI import target
+	# Need = monthly demand - current domestic stock.
+	# Existing imports are already included if cwic_apply_consumer_goods_imports_to_stock ran earlier this tick.
+	# ------------------------------------------------------------
+	set_variable = { cg_vehicles_ai_stock_total = 0 }
+	add_to_variable = { cg_vehicles_ai_stock_total = cg_vehicles_stock_t0 }
+	add_to_variable = { cg_vehicles_ai_stock_total = cg_vehicles_stock_t1 }
+	add_to_variable = { cg_vehicles_ai_stock_total = cg_vehicles_stock_t2 }
+	add_to_variable = { cg_vehicles_ai_stock_total = cg_vehicles_stock_t3 }
+	add_to_variable = { cg_vehicles_ai_stock_total = cg_vehicles_stock_t4 }
+	add_to_variable = { cg_vehicles_ai_stock_total = cg_vehicles_stock_t5 }
+
+	set_variable = { cg_vehicles_ai_need = cg_vehicles_demand }
+	subtract_from_variable = { cg_vehicles_ai_need = cg_vehicles_ai_stock_total }
+
+	if = {
+		limit = { check_variable = { cg_vehicles_ai_need < 1 } }
+		set_variable = { cg_vehicles_ai_need = 0 }
+	}
+
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+		if = {
+			limit = {
+				check_variable = { cg_vehicles_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_vehicles_expected_tier > 4 }
+			}
+			cwic_ai_import_cg_vehicles_t5 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_vehicles_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_vehicles_expected_tier > 3 }
+			}
+			cwic_ai_import_cg_vehicles_t4 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_vehicles_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_vehicles_expected_tier > 2 }
+			}
+			cwic_ai_import_cg_vehicles_t3 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_vehicles_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_vehicles_expected_tier > 1 }
+			}
+			cwic_ai_import_cg_vehicles_t2 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_vehicles_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_vehicles_expected_tier > 0 }
+			}
+			cwic_ai_import_cg_vehicles_t1 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_vehicles_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+			}
+			cwic_ai_import_cg_vehicles_t0 = yes
+		}
+	}
+
+	clear_variable = cg_vehicles_ai_stock_total
+	clear_variable = cg_vehicles_ai_need
+}
+
+cwic_ai_import_cg_electronics = {
+	# ------------------------------------------------------------
+	# Consumer Electronics AI import target
+	# Need = monthly demand - current domestic stock.
+	# Existing imports are already included if cwic_apply_consumer_goods_imports_to_stock ran earlier this tick.
+	# ------------------------------------------------------------
+	set_variable = { cg_electronics_ai_stock_total = 0 }
+	add_to_variable = { cg_electronics_ai_stock_total = cg_consumer_electronics_stock_t1 }
+	add_to_variable = { cg_electronics_ai_stock_total = cg_consumer_electronics_stock_t2 }
+	add_to_variable = { cg_electronics_ai_stock_total = cg_consumer_electronics_stock_t3 }
+	add_to_variable = { cg_electronics_ai_stock_total = cg_consumer_electronics_stock_t4 }
+	add_to_variable = { cg_electronics_ai_stock_total = cg_consumer_electronics_stock_t5 }
+
+	set_variable = { cg_electronics_ai_need = cg_consumer_electronics_demand }
+	subtract_from_variable = { cg_electronics_ai_need = cg_electronics_ai_stock_total }
+
+	if = {
+		limit = { check_variable = { cg_electronics_ai_need < 1 } }
+		set_variable = { cg_electronics_ai_need = 0 }
+	}
+
+	if = {
+		limit = {
+			check_variable = { cg_electronics_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+		if = {
+			limit = {
+				check_variable = { cg_electronics_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_consumer_electronics_expected_tier > 4 }
+			}
+			cwic_ai_import_cg_electronics_t5 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_electronics_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_consumer_electronics_expected_tier > 3 }
+			}
+			cwic_ai_import_cg_electronics_t4 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_electronics_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_consumer_electronics_expected_tier > 2 }
+			}
+			cwic_ai_import_cg_electronics_t3 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_electronics_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+				check_variable = { cg_consumer_electronics_expected_tier > 1 }
+			}
+			cwic_ai_import_cg_electronics_t2 = yes
+		}
+		if = {
+			limit = {
+				check_variable = { cg_electronics_ai_need > 0.99 }
+				check_variable = { trade_infrastructure_total_available > 0.99 }
+			}
+			cwic_ai_import_cg_electronics_t1 = yes
+		}
+	}
+
+	clear_variable = cg_electronics_ai_stock_total
+	clear_variable = cg_electronics_ai_need
+}
+
+cwic_ai_import_cg_basic_t0 = {
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_basic_t0_import_array = yes
+		sort_price_number_cg_basic_t0 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgBasicT0Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_basic_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgBasicT0Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_basic_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgBasicT0Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgBasicT0Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_basic_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgBasicT0_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT0_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgBasicT0_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgBasicT0_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT0_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgBasicT0_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgBasicT0Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgBasicT0 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgBasicT0Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgBasicT0ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgBasicT0ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgBasicT0ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgBasicT0ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgBasicT0ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgBasicT0ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgBasicT0ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgBasicT0Export < 0 }
+						}
+						country_event = trade.40
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_basic_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_basic_t1 = {
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_basic_t1_import_array = yes
+		sort_price_number_cg_basic_t1 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgBasicT1Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_basic_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgBasicT1Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_basic_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgBasicT1Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgBasicT1Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_basic_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgBasicT1_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT1_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgBasicT1_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgBasicT1_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT1_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgBasicT1_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgBasicT1Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgBasicT1 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgBasicT1Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgBasicT1ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgBasicT1ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgBasicT1ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgBasicT1ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgBasicT1ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgBasicT1ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgBasicT1ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgBasicT1Export < 0 }
+						}
+						country_event = trade.20
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_basic_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_basic_t2 = {
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_basic_t2_import_array = yes
+		sort_price_number_cg_basic_t2 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgBasicT2Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_basic_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgBasicT2Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_basic_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgBasicT2Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgBasicT2Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_basic_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgBasicT2_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT2_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgBasicT2_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgBasicT2_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT2_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgBasicT2_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgBasicT2Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgBasicT2 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgBasicT2Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgBasicT2ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgBasicT2ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgBasicT2ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgBasicT2ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgBasicT2ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgBasicT2ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgBasicT2ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgBasicT2Export < 0 }
+						}
+						country_event = trade.21
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_basic_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_basic_t3 = {
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_basic_t3_import_array = yes
+		sort_price_number_cg_basic_t3 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgBasicT3Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_basic_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgBasicT3Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_basic_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgBasicT3Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgBasicT3Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_basic_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgBasicT3_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT3_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgBasicT3_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgBasicT3_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT3_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgBasicT3_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgBasicT3Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgBasicT3 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgBasicT3Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgBasicT3ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgBasicT3ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgBasicT3ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgBasicT3ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgBasicT3ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgBasicT3ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgBasicT3ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgBasicT3Export < 0 }
+						}
+						country_event = trade.22
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_basic_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_basic_t4 = {
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_basic_t4_import_array = yes
+		sort_price_number_cg_basic_t4 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgBasicT4Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_basic_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgBasicT4Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_basic_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgBasicT4Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgBasicT4Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_basic_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgBasicT4_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT4_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgBasicT4_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgBasicT4_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT4_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgBasicT4_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgBasicT4Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgBasicT4 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgBasicT4Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgBasicT4ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgBasicT4ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgBasicT4ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgBasicT4ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgBasicT4ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgBasicT4ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgBasicT4ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgBasicT4Export < 0 }
+						}
+						country_event = trade.23
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_basic_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_basic_t5 = {
+	if = {
+		limit = {
+			check_variable = { cg_basic_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_basic_t5_import_array = yes
+		sort_price_number_cg_basic_t5 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgBasicT5Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_basic_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgBasicT5Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_basic_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgBasicT5Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgBasicT5Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_basic_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgBasicT5_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT5_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgBasicT5_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgBasicT5_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgBasicT5_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgBasicT5_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgBasicT5Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgBasicT5 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgBasicT5Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgBasicT5ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgBasicT5ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgBasicT5ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgBasicT5ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgBasicT5ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgBasicT5ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgBasicT5ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgBasicT5Export < 0 }
+						}
+						country_event = trade.24
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_basic_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_durable_t0 = {
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_durable_t0_import_array = yes
+		sort_price_number_cg_durable_t0 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgDurableT0Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_durable_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgDurableT0Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_durable_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgDurableT0Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgDurableT0Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_durable_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgDurableT0_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT0_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgDurableT0_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgDurableT0_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT0_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgDurableT0_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgDurableT0Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgDurableT0 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgDurableT0Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgDurableT0ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgDurableT0ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgDurableT0ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgDurableT0ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgDurableT0ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgDurableT0ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgDurableT0ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgDurableT0Export < 0 }
+						}
+						country_event = trade.41
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_durable_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_durable_t1 = {
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_durable_t1_import_array = yes
+		sort_price_number_cg_durable_t1 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgDurableT1Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_durable_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgDurableT1Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_durable_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgDurableT1Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgDurableT1Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_durable_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgDurableT1_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT1_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgDurableT1_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgDurableT1_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT1_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgDurableT1_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgDurableT1Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgDurableT1 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgDurableT1Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgDurableT1ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgDurableT1ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgDurableT1ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgDurableT1ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgDurableT1ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgDurableT1ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgDurableT1ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgDurableT1Export < 0 }
+						}
+						country_event = trade.25
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_durable_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_durable_t2 = {
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_durable_t2_import_array = yes
+		sort_price_number_cg_durable_t2 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgDurableT2Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_durable_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgDurableT2Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_durable_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgDurableT2Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgDurableT2Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_durable_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgDurableT2_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT2_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgDurableT2_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgDurableT2_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT2_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgDurableT2_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgDurableT2Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgDurableT2 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgDurableT2Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgDurableT2ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgDurableT2ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgDurableT2ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgDurableT2ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgDurableT2ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgDurableT2ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgDurableT2ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgDurableT2Export < 0 }
+						}
+						country_event = trade.26
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_durable_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_durable_t3 = {
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_durable_t3_import_array = yes
+		sort_price_number_cg_durable_t3 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgDurableT3Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_durable_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgDurableT3Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_durable_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgDurableT3Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgDurableT3Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_durable_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgDurableT3_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT3_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgDurableT3_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgDurableT3_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT3_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgDurableT3_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgDurableT3Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgDurableT3 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgDurableT3Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgDurableT3ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgDurableT3ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgDurableT3ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgDurableT3ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgDurableT3ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgDurableT3ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgDurableT3ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgDurableT3Export < 0 }
+						}
+						country_event = trade.27
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_durable_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_durable_t4 = {
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_durable_t4_import_array = yes
+		sort_price_number_cg_durable_t4 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgDurableT4Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_durable_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgDurableT4Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_durable_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgDurableT4Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgDurableT4Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_durable_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgDurableT4_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT4_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgDurableT4_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgDurableT4_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT4_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgDurableT4_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgDurableT4Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgDurableT4 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgDurableT4Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgDurableT4ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgDurableT4ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgDurableT4ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgDurableT4ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgDurableT4ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgDurableT4ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgDurableT4ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgDurableT4Export < 0 }
+						}
+						country_event = trade.28
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_durable_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_durable_t5 = {
+	if = {
+		limit = {
+			check_variable = { cg_durable_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_durable_t5_import_array = yes
+		sort_price_number_cg_durable_t5 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgDurableT5Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_durable_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgDurableT5Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_durable_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgDurableT5Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgDurableT5Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_durable_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgDurableT5_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT5_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgDurableT5_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgDurableT5_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgDurableT5_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgDurableT5_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgDurableT5Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgDurableT5 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgDurableT5Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgDurableT5ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgDurableT5ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgDurableT5ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgDurableT5ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgDurableT5ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgDurableT5ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgDurableT5ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgDurableT5Export < 0 }
+						}
+						country_event = trade.29
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_durable_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_vehicles_t0 = {
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_vehicles_t0_import_array = yes
+		sort_price_number_cg_vehicles_t0 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgVehiclesT0Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_vehicles_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgVehiclesT0Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_vehicles_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgVehiclesT0Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgVehiclesT0Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_vehicles_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgVehiclesT0_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT0_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgVehiclesT0_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgVehiclesT0_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT0_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgVehiclesT0_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgVehiclesT0Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgVehiclesT0 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgVehiclesT0Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgVehiclesT0ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgVehiclesT0ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgVehiclesT0ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgVehiclesT0ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT0ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgVehiclesT0ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT0ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgVehiclesT0Export < 0 }
+						}
+						country_event = trade.42
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_vehicles_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_vehicles_t1 = {
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_vehicles_t1_import_array = yes
+		sort_price_number_cg_vehicles_t1 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgVehiclesT1Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_vehicles_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgVehiclesT1Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_vehicles_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgVehiclesT1Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgVehiclesT1Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_vehicles_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgVehiclesT1_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT1_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgVehiclesT1_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgVehiclesT1_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT1_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgVehiclesT1_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgVehiclesT1Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgVehiclesT1 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgVehiclesT1Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgVehiclesT1ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgVehiclesT1ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgVehiclesT1ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgVehiclesT1ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT1ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgVehiclesT1ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT1ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgVehiclesT1Export < 0 }
+						}
+						country_event = trade.30
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_vehicles_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_vehicles_t2 = {
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_vehicles_t2_import_array = yes
+		sort_price_number_cg_vehicles_t2 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgVehiclesT2Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_vehicles_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgVehiclesT2Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_vehicles_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgVehiclesT2Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgVehiclesT2Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_vehicles_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgVehiclesT2_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT2_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgVehiclesT2_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgVehiclesT2_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT2_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgVehiclesT2_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgVehiclesT2Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgVehiclesT2 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgVehiclesT2Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgVehiclesT2ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgVehiclesT2ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgVehiclesT2ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgVehiclesT2ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT2ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgVehiclesT2ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT2ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgVehiclesT2Export < 0 }
+						}
+						country_event = trade.31
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_vehicles_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_vehicles_t3 = {
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_vehicles_t3_import_array = yes
+		sort_price_number_cg_vehicles_t3 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgVehiclesT3Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_vehicles_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgVehiclesT3Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_vehicles_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgVehiclesT3Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgVehiclesT3Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_vehicles_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgVehiclesT3_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT3_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgVehiclesT3_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgVehiclesT3_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT3_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgVehiclesT3_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgVehiclesT3Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgVehiclesT3 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgVehiclesT3Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgVehiclesT3ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgVehiclesT3ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgVehiclesT3ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgVehiclesT3ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT3ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgVehiclesT3ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT3ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgVehiclesT3Export < 0 }
+						}
+						country_event = trade.32
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_vehicles_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_vehicles_t4 = {
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_vehicles_t4_import_array = yes
+		sort_price_number_cg_vehicles_t4 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgVehiclesT4Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_vehicles_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgVehiclesT4Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_vehicles_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgVehiclesT4Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgVehiclesT4Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_vehicles_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgVehiclesT4_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT4_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgVehiclesT4_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgVehiclesT4_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT4_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgVehiclesT4_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgVehiclesT4Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgVehiclesT4 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgVehiclesT4Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgVehiclesT4ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgVehiclesT4ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgVehiclesT4ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgVehiclesT4ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT4ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgVehiclesT4ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT4ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgVehiclesT4Export < 0 }
+						}
+						country_event = trade.33
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_vehicles_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_vehicles_t5 = {
+	if = {
+		limit = {
+			check_variable = { cg_vehicles_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_vehicles_t5_import_array = yes
+		sort_price_number_cg_vehicles_t5 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgVehiclesT5Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_vehicles_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgVehiclesT5Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_vehicles_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgVehiclesT5Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgVehiclesT5Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_vehicles_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgVehiclesT5_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT5_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgVehiclesT5_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgVehiclesT5_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgVehiclesT5_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgVehiclesT5_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgVehiclesT5Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgVehiclesT5 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgVehiclesT5Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgVehiclesT5ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgVehiclesT5ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgVehiclesT5ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgVehiclesT5ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT5ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgVehiclesT5ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgVehiclesT5ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgVehiclesT5Export < 0 }
+						}
+						country_event = trade.34
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_vehicles_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_electronics_t1 = {
+	if = {
+		limit = {
+			check_variable = { cg_electronics_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_consumer_electronics_t1_import_array = yes
+		sort_price_number_cg_electronics_t1 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgElectronicsT1Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_electronics_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgElectronicsT1Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_electronics_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgElectronicsT1Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgElectronicsT1Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_electronics_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgElectronicsT1_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT1_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgElectronicsT1_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgElectronicsT1_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT1_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgElectronicsT1_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgElectronicsT1Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgElectronicsT1 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgElectronicsT1Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgElectronicsT1ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgElectronicsT1ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgElectronicsT1ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgElectronicsT1ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT1ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgElectronicsT1ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT1ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgElectronicsT1Export < 0 }
+						}
+						country_event = trade.35
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_electronics_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_electronics_t2 = {
+	if = {
+		limit = {
+			check_variable = { cg_electronics_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_consumer_electronics_t2_import_array = yes
+		sort_price_number_cg_electronics_t2 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgElectronicsT2Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_electronics_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgElectronicsT2Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_electronics_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgElectronicsT2Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgElectronicsT2Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_electronics_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgElectronicsT2_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT2_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgElectronicsT2_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgElectronicsT2_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT2_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgElectronicsT2_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgElectronicsT2Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgElectronicsT2 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgElectronicsT2Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgElectronicsT2ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgElectronicsT2ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgElectronicsT2ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgElectronicsT2ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT2ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgElectronicsT2ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT2ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgElectronicsT2Export < 0 }
+						}
+						country_event = trade.36
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_electronics_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_electronics_t3 = {
+	if = {
+		limit = {
+			check_variable = { cg_electronics_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_consumer_electronics_t3_import_array = yes
+		sort_price_number_cg_electronics_t3 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgElectronicsT3Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_electronics_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgElectronicsT3Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_electronics_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgElectronicsT3Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgElectronicsT3Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_electronics_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgElectronicsT3_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT3_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgElectronicsT3_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgElectronicsT3_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT3_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgElectronicsT3_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgElectronicsT3Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgElectronicsT3 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgElectronicsT3Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgElectronicsT3ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgElectronicsT3ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgElectronicsT3ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgElectronicsT3ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT3ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgElectronicsT3ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT3ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgElectronicsT3Export < 0 }
+						}
+						country_event = trade.37
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_electronics_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_electronics_t4 = {
+	if = {
+		limit = {
+			check_variable = { cg_electronics_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_consumer_electronics_t4_import_array = yes
+		sort_price_number_cg_electronics_t4 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgElectronicsT4Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_electronics_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgElectronicsT4Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_electronics_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgElectronicsT4Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgElectronicsT4Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_electronics_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgElectronicsT4_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT4_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgElectronicsT4_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgElectronicsT4_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT4_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgElectronicsT4_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgElectronicsT4Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgElectronicsT4 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgElectronicsT4Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgElectronicsT4ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgElectronicsT4ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgElectronicsT4ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgElectronicsT4ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT4ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgElectronicsT4ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT4ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgElectronicsT4Export < 0 }
+						}
+						country_event = trade.38
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_electronics_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_import_cg_electronics_t5 = {
+	if = {
+		limit = {
+			check_variable = { cg_electronics_ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_cg_consumer_electronics_t5_import_array = yes
+		sort_price_number_cg_electronics_t5 = yes
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_each_scope_loop = {
+			array = ROOT.cgElectronicsT5Exporters
+			break = cheapest_brk
+
+			if = {
+				limit = {
+					check_variable = { ROOT.cg_electronics_ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailableCgElectronicsT5Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.cg_electronics_ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailableCgElectronicsT5Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailableCgElectronicsT5Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.cg_electronics_ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.CgElectronicsT5_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT5_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.CgElectronicsT5_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = CgElectronicsT5_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { CgElectronicsT5_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { CgElectronicsT5_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailableCgElectronicsT5Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExportedCgElectronicsT5 = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.cgElectronicsT5Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						CgElectronicsT5ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						CgElectronicsT5ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = cgElectronicsT5ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						CgElectronicsT5ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT5ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.CgElectronicsT5ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.CgElectronicsT5ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailableCgElectronicsT5Export < 0 }
+						}
+						country_event = trade.39
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.cg_electronics_ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+		}
+	}
+
+	clear_variable = cheapest_brk
+}
+
+cwic_ai_consumer_goods_trade_master_with_immediate_delivery = {
+	cwic_ai_consumer_goods_trade_master = yes
+
+	# Use this wrapper only if AI purchases should enter domestic stock in the same monthly tick.
+	# If imports should arrive next month, call cwic_ai_consumer_goods_trade_master instead.
+	cwic_apply_consumer_goods_imports_to_stock = yes
+	cwic_calculate_consumer_goods_trade_totals = yes
+}
