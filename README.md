@@ -69,7 +69,7 @@ Swf541, Polarace
 Kreunz, Higuyscd32, Timur the Lame, Zarathustra_the_Godless, Comrade Doggo, Parnjt, Boski, Niko, Steyer, Mcborscht, Scarecroww, Refused Stone, RobDaFlob, Jav, Big Papa, Yuri1917, Slimemix
 
 **Contributors**  
-JonJon, Gre, Chatterbox, Vapor, F1nnisher, Death Octimus, Troiya, Birran, christopher0936, DemmieRepkin, Hegan Tank, xen, Dan, Geimo, Blyatman, St Bernard of Clairvaux, fahmu_bnd, -=TORN=-, vindictive, lushr, Curious Twit, Redia, denny32san
+JonJon, Gre, Chatterbox, Vapor, F1nnisher, Death Octimus, Troiya, Birran, christopher0936, DemmieRepkin, Hegan Tank, xen, Dan, Geimo, Blyatman, St Bernard of Clairvaux, fahmu_bnd, -=TORN=-, vindictive, lushr, Curious Twit, Redia
 
 **Retired**  
 Harain - Hero of the mod  
