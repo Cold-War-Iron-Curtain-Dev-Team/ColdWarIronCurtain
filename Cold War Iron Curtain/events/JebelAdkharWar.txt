@@ -260,3 +260,83 @@ news_event = {
 		}
 	}
 }
+
+# =====================================================
+# JEBEL AKHDAR WAR: SULTANATE VICTORY (OMA/ENG won)
+# Fires on OMA, triggered from on_capitulation when SMI capitulates
+# =====================================================
+country_event = {
+	id = OMA_Jebel_Adkhar.13
+	immediate = {log = "[GetDateText]: [Root.GetTag]: id = OMA_Jebel_Adkhar.13"}
+	title = "The Jebel Akhdar War: British Victory"
+	desc = "The Imamate of Oman has been crushed. Sultan Said bin Taimur, backed by British forces, has reasserted control over the Jebel Akhdar region. Oman remains firmly within the British sphere."
+	picture = GFX_Jebel_Adkhar_War_British_Victory
+
+	is_triggered_only = yes
+
+	immediate = {
+		# Clear the war flag on both sides
+		clr_country_flag = Jebel_Adkhar_War
+		SMI = { clr_country_flag = Jebel_Adkhar_War }
+		# Fire the news event
+		news_event = OMA_Jebel_Adkhar.10
+		# OMA becomes a British Protectorate
+		ENG = {
+			set_autonomy = {
+				target = OMA
+				autonomy_state = autonomy_puppet
+			}
+		}
+		# If QAT_UGE has already formed, Oman joins the federation
+		if = {
+			limit = { QAT = { has_cosmetic_tag = QAT_UGE } }
+			QAT = { annex_country = { target = OMA transfer_troops = yes } }
+		}
+		else_if = {
+			limit = { BHR = { has_cosmetic_tag = QAT_UGE } }
+			BHR = { annex_country = { target = OMA transfer_troops = yes } }
+		}
+		# Otherwise OMA remains as an ENG puppet
+	}
+
+	option = {
+		name = "Victory for the Sultan"
+	}
+}
+
+# =====================================================
+# JEBEL AKHDAR WAR: IMAMATE VICTORY (SMI won)
+# Fires on SMI, triggered from on_capitulation when OMA capitulates
+# =====================================================
+country_event = {
+	id = OMA_Jebel_Adkhar.14
+	immediate = {log = "[GetDateText]: [Root.GetTag]: id = OMA_Jebel_Adkhar.14"}
+	title = "The Jebel Akhdar War: Imamate Victory"
+	desc = "The Sultanate of Oman has been defeated. The Imamate of Oman, backed by Saudi Arabia, has triumphed. The Jebel Akhdar falls under Imamate control — and Saudi Arabia moves to consolidate its influence over the victorious Imam."
+	picture = GFX_Jebel_Adkhar_War_Imamate_Victory
+
+	is_triggered_only = yes
+
+	immediate = {
+		# Clear the war flag
+		clr_country_flag = Jebel_Adkhar_War
+		# Annex OMA if it wasn't already annexed during the war
+		if = {
+			limit = { country_exists = OMA }
+			annex_country = { target = OMA transfer_troops = yes }
+		}
+		# Fire the news event
+		news_event = OMA_Jebel_Adkhar.11
+		# SAU puppets the victorious Imamate
+		SAU = {
+			set_autonomy = {
+				target = SMI
+				autonomy_state = autonomy_puppet
+			}
+		}
+	}
+
+	option = {
+		name = "Victory for the Imam"
+	}
+}

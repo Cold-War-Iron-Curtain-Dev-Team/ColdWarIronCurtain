@@ -1,0 +1,44 @@
+# ============================================================
+# CWIC Division Limit System - Scripted Triggers
+# Based on Kaiserreich's unit limit triggers (used with credit)
+# ============================================================
+
+# True if the country currently has more divisions than their limit
+CWIC_has_exceeded_maximum_divisions = {
+	has_variable = CWIC_max_divisions
+	if = {
+		limit = { has_variable = CWIC_num_actual_divisions }
+		check_variable = { CWIC_num_actual_divisions > CWIC_max_divisions }
+	}
+	else = {
+		check_variable = { num_divisions > CWIC_max_divisions }
+	}
+}
+
+# True if the country has reached (but not exceeded) their limit
+CWIC_has_reached_maximum_divisions = {
+	has_variable = CWIC_max_divisions
+	if = {
+		limit = { has_variable = CWIC_num_actual_divisions }
+		NOT = { check_variable = { CWIC_num_actual_divisions < CWIC_max_divisions } }
+	}
+	else = {
+		NOT = { check_variable = { num_divisions < CWIC_max_divisions } }
+	}
+}
+
+# True if the AI should NOT demobilise yet
+# Wartime = no limit at all, so the main check is just has_war
+# Additional flags cover situations where war just ended but demob is premature
+CWIC_has_unattained_important_goals = {
+	OR = {
+		# Currently at war - no limit applies at all
+		has_war = yes
+
+		# Korean War is ongoing (USA, UN, PRC, KPA should not demob)
+		has_global_flag = korean_war
+
+		# WW3 has started
+		has_global_flag = WW3_Started
+	}
+}
