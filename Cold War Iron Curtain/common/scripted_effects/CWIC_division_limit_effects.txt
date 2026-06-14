@@ -1,0 +1,211 @@
+# ============================================================
+# CWIC Division Limit System - Scripted Effects
+# Based on Kaiserreich's unit limit system (used with credit)
+# ============================================================
+
+# --------------------------------------------------
+# Calculate the maximum allowed divisions for a country
+# Result stored in CWIC_max_divisions
+# --------------------------------------------------
+CWIC_calculate_maximum_divisions = {
+	# Wartime: no limit - armies expand freely
+	if = {
+		limit = { has_war = yes }
+		set_variable = { CWIC_max_divisions = 9999 }
+	}
+	else = {
+		# --- Tiered base from GDP ---
+		# Calibrated against: USA=2589, USSR=660, FRA=444, ENG=398, CHI=204, PRC=117
+		# Note: using > instead of >= since HOI4 doesn't support >= in check_variable
+		if = {
+			limit = { check_variable = { grossdomesticproduct > 1999 } }
+			set_variable = { CWIC_max_divisions = 170 }		# Superpower (USA)
+		}
+		else_if = {
+			limit = { check_variable = { grossdomesticproduct > 399 } }
+			set_variable = { CWIC_max_divisions = 145 }		# Major power (USSR, FRA, ENG)
+		}
+		else_if = {
+			limit = { check_variable = { grossdomesticproduct > 149 } }
+			set_variable = { CWIC_max_divisions = 25 }		# Regional power
+		}
+		else_if = {
+			limit = { check_variable = { grossdomesticproduct > 49 } }
+			set_variable = { CWIC_max_divisions = 15 }		# Secondary power
+		}
+		else = {
+			set_variable = { CWIC_max_divisions = 8 }		# Minor
+		}
+
+		# --- Army model law bonus (unit_limit_bonus modifier on the law idea) ---
+		# volunteer_professional: +0   (small quality force, no bonus)
+		# national_service:       +15  (mixed system)
+		# mass_conscription:      +30  (large standing army)
+		add_to_variable = { CWIC_max_divisions = modifier@unit_limit_bonus }
+
+		# --- Percentage modifier from national spirits / focuses ---
+		multiply_variable = {
+			CWIC_max_divisions = {
+				value = 1
+				add = modifier@unit_limit_factor
+			}
+		}
+
+		# Hard floor: no peacetime country drops below 5 divisions
+		clamp_variable = {
+			var = CWIC_max_divisions
+			min = 5
+		}
+		round_variable = CWIC_max_divisions
+	}
+}
+
+# --------------------------------------------------
+# Calculate the mobilisation penalty scaling
+# Penalty = how far over limit / 4, capped at 25%
+# --------------------------------------------------
+CWIC_calculate_mobilisation_penalty = {
+	set_variable = {
+		CWIC_mobilisation_penalty_var_positive = {
+			value = CWIC_num_actual_divisions
+			divide = CWIC_max_divisions
+			subtract = 1
+			multiply = 0.25
+			clamp = { min = -0.25 max = 0.25 }
+		}
+	}
+	# Negative version for org/reinforce debuffs (explicit two-step, safer than inline block)
+	set_variable = { CWIC_mobilisation_penalty_var = CWIC_mobilisation_penalty_var_positive }
+	multiply_variable = { CWIC_mobilisation_penalty_var = -1 }
+}
+
+# --------------------------------------------------
+# Daily recalculation - run for every country on_daily
+# Applies/removes penalty for human player
+# --------------------------------------------------
+CWIC_unit_limit_calculation_effect = {
+	CWIC_calculate_maximum_divisions = yes
+
+	# Explicit two-step for safety
+	set_variable = { CWIC_num_actual_divisions = num_divisions }
+	clamp_variable = { var = CWIC_num_actual_divisions min = 0 max = 10000 }
+
+	# Only apply the penalty modifier to human players
+	if = {
+		limit = { is_ai = no }
+		if = {
+			limit = { has_dynamic_modifier = { modifier = CWIC_mobilisation_penalty_modifier } }
+			if = {
+				# At war or back under limit - remove penalty
+				limit = {
+					OR = {
+						has_war = yes
+						CWIC_has_exceeded_maximum_divisions = no
+					}
+				}
+				clear_variable = CWIC_mobilisation_penalty_var
+				clear_variable = CWIC_mobilisation_penalty_var_positive
+				remove_dynamic_modifier = { modifier = CWIC_mobilisation_penalty_modifier }
+			}
+			else = {
+				# Still over limit in peacetime - update scaling
+				CWIC_calculate_mobilisation_penalty = yes
+			}
+		}
+		else_if = {
+			# Not at war, over limit, no penalty yet - apply it
+			limit = {
+				has_war = no
+				CWIC_has_exceeded_maximum_divisions = yes
+			}
+			CWIC_calculate_mobilisation_penalty = yes
+			add_dynamic_modifier = { modifier = CWIC_mobilisation_penalty_modifier }
+		}
+	}
+
+	# --- GUI properties variable (drives scripted_gui properties block refresh) ---
+	# 1 = under/at limit  |  2 = over limit
+	# Note: scripted triggers cannot be used inside set_variable math blocks in HOI4,
+	# so we use a plain if/else instead.
+	if = {
+		limit = { CWIC_has_exceeded_maximum_divisions = yes }
+		set_variable = { CWIC_unit_limit_status_frame = 2 }
+	}
+	else = {
+		set_variable = { CWIC_unit_limit_status_frame = 1 }
+	}
+}
+
+# --------------------------------------------------
+# Disband helper: set up a temporary country in an impassable
+# state to safely transfer and disband units (manpower returns to owner)
+# Based on Kaiserreich's disband_units_setup (used with credit)
+# --------------------------------------------------
+CWIC_disband_units_setup = {
+	set_temp_variable = { CWIC_disband_country = THIS }
+	random_state = {
+		limit = {
+			impassable = yes
+			is_fully_controlled_by = owner
+		}
+		set_temp_variable = { CWIC_disband_state = THIS }
+		set_temp_variable = { CWIC_disband_state_owner = THIS.owner }
+		create_dynamic_country = {
+			original_tag = PREV.PREV
+			transfer_state = PREV
+			set_temp_variable = { CWIC_disband_instance = THIS }
+			set_temp_variable = { CWIC_old_manpower = manpower_k }
+		}
+	}
+}
+
+CWIC_disband_units_transfer_manpower = {
+	delete_unit = { disband = yes }
+
+	set_temp_variable = { CWIC_manpower_diff = { value = manpower_k subtract = CWIC_old_manpower } }
+
+	# Avoid overflow
+	while_loop_effect = {
+		limit = { check_variable = { CWIC_manpower_diff > 100 } }
+		subtract_from_temp_variable = { CWIC_manpower_diff = 100 }
+		var:CWIC_disband_country = { add_manpower = 100000 }
+		add_manpower = -100000
+	}
+
+	multiply_temp_variable = { CWIC_manpower_diff = 1000 }
+	var:CWIC_disband_country = { add_manpower = CWIC_manpower_diff }
+
+	multiply_temp_variable = { CWIC_manpower_diff = -1 }
+	add_manpower = CWIC_manpower_diff
+}
+
+CWIC_disband_units_finalise = {
+	var:CWIC_disband_state = { transfer_state_to = var:CWIC_disband_state_owner }
+}
+
+# --------------------------------------------------
+# Disband ~1% of the army (roughly 1-3 divisions)
+# Called by AI event loop every 7 days until under limit
+# Based on Kaiserreich's disband_one_to_three_divisions (used with credit)
+# --------------------------------------------------
+CWIC_disband_one_to_three_divisions = {
+	hidden_effect = {
+		CWIC_disband_units_setup = yes
+		transfer_units_fraction = {
+			target = var:CWIC_disband_instance
+			target_organization = 1
+			source_organization = 1
+			size = 0
+			stockpile_ratio = 0
+			army_ratio = 0.01
+			navy_ratio = 0
+			air_ratio = 0
+			keep_unit_leaders_trigger = { always = yes }
+		}
+		var:CWIC_disband_instance = {
+			CWIC_disband_units_transfer_manpower = yes
+			send_equipment_fraction = { target = var:CWIC_disband_country value = 1 }
+		}
+		CWIC_disband_units_finalise = yes
+	}
+}

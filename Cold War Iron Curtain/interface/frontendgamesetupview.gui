@@ -257,11 +257,12 @@ guiTypes = {
 
 	containerWindowType = {
 		name = "focus_entry"
-		size = { width=60 height=80}
+		size = { width=60 height=80 }
 		clipping = no
 		
 		iconType = {
 			name = "icon"
+			position = {x = 0 y = 7}
 			quadTextureSprite ="GFX_idea_unknown"
 			orientation = "CENTER"
 			centerPosition = yes
@@ -287,11 +288,11 @@ guiTypes = {
 			position = { x=26 y =10 }
 			clicksound = click_checkbox
 		}
-		buttonType = {
+		iconType = {
 			name = "country_shine"
 			quadTextureSprite = "GFX_country_selection_entry_shine"
-			position = { x=0 y =0 }
-			clicksound = click_checkbox
+			position = { x=-100000 y =0 }
+			alwaystransparent = yes
 		}
 
 			
@@ -302,6 +303,14 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 			alwaystransparent = yes
 		}
+
+		iconType = {
+			name = "new_content"
+			position = { x = 110 y = 10 }
+			spriteType = "GFX_unplayed_content_notification"
+			alwaystransparent = yes
+		}
+
 		instantTextBoxType = {
 			name = "country_name"
 			position = { x = 8 y = -2045 }
@@ -329,16 +338,23 @@ guiTypes = {
 		}
 		
 		buttonType = {
-			name = "country"	
+			name = "country"
 			quadTextureSprite = "GFX_country_selection_minor_entry"
 			position = { x=0 y =0 }
 			clicksound = click_checkbox
 		}
-		buttonType = {
+		iconType = {
 			name = "country_shine"
 			quadTextureSprite = "GFX_minor_country_selector_shine"
 			position = { x=0 y =0 }
-			clicksound = click_checkbox
+			alwaystransparent = yes
+		}
+
+		iconType = {
+			name = "new_content"
+			position = { x = 100 y = 15 }
+			spriteType = "GFX_unplayed_content_notification"
+			alwaystransparent = yes
 		}
 	}
 	
@@ -360,15 +376,37 @@ guiTypes = {
 			position = { x=0 y =0 }
 			clicksound = click_checkbox
 		}
-		buttonType = {
+		iconType = {
 			name = "country_shine"
 			quadTextureSprite = "GFX_mini_country_selector_shine"
 			position = { x=0 y =0 }
-			clicksound = click_checkbox
+			alwaystransparent = yes
+		}
+
+		iconType = {
+			name = "new_content"
+			position = { x = 42 y = 0 }
+			spriteType = "GFX_unplayed_content_notification"
+			alwaystransparent = yes
 		}
 	}
-	
-	
+
+	### country filter
+	containerWindowType = {
+		name = "country_filter"
+		size = { width = 149 height = 33 }
+
+		buttonType = {
+			name = "button"
+			quadTextureSprite = "GFX_country_filter_entry"
+			buttonText = "FILTER"
+			buttonFont = "hoi_16mbs"
+			clicksound = click_default
+			oversound = ui_menu_over
+			frame = 2
+		}
+	}
+
 	### LOAD GAME
 	containerWindowType = {
 		name ="gamesetup_load"
@@ -455,7 +493,8 @@ guiTypes = {
 			position = { x = -1 y = 126 }
 			size = { width = 350 height = 415}
 			verticalScrollbar = "right_vertical_slider"
-			vertical_scroll_step = 5
+			scroll_wheel_factor = 55
+			smooth_scrolling = yes
 			
 			background = {
 				name = "Background"		
@@ -769,7 +808,7 @@ guiTypes = {
 	
 	containerWindowType = {
 		name ="gamesetup_interesting_countries_window"
-		size = { width=1280 height=640 }
+		size = { width=1280 height=720 }
 		Orientation = center
 		origo = center
 		clipping = no
@@ -788,7 +827,7 @@ guiTypes = {
 
 		instantTextBoxType = {
 			name = "title"
-			position = { x = 435 y = 12 }
+			position = { x = 472 y = 12 }
 			textureFile = ""
 			font = "seventwelve_60"
 			borderSize = {x = 0 y = 0}
@@ -852,7 +891,7 @@ guiTypes = {
 				slotsize = { width = 53 height = 40 }
 				max_slots_horizontal = 23
 				add_horizontal = yes
-				max_slots_vertical = 3
+				max_slots_vertical = 4
 				format = "UPPER_LEFT"
 			}
 		}
@@ -873,7 +912,58 @@ guiTypes = {
 			}
 
 		}
-		
+
+		# New in vanilla update: country filters bar (hidden, CWIC uses its own layout)
+		OverlappingElementsBoxType = {
+			name = "filters"
+			position = { x = -100000 y = 321 }
+			size = { x = 1181 y = 32 }
+			format = center
+			spacing = 14.0
+		}
+
+		# New in vanilla update: "more countries" dropdown (hidden, CWIC uses its own layout)
+		dropDownBoxType = {
+			name = "more_countries"
+			position = { x = -100000 y = 412 }
+
+			expandButton = {
+				name = "expand_button"
+				position = { x = 1168 y = -4 }
+				quadTextureSprite = "GFX_peace_drop_down_button"
+				clicksound = click_default
+			}
+
+			expandedWindow = {
+				name = "expanded_window"
+				position = { x=0 y= -300 }
+				show_position = { x = 0 y = 25 }
+				show_animation_type = decelerated
+				hide_animation_type = accelerated
+				animation_time = 300
+				size = { width=1205 height=58 }	# dynamically resized in code using countries_mini_expanded's slot size
+				verticalScrollbar = "right_vertical_slider"
+				scroll_wheel_factor = 50
+				smooth_scrolling = yes
+				margin = { top = 7 bottom = 7 right = 6 }
+
+				background = {
+					name = "Background"
+					quadTextureSprite ="GFX_tiled_window_1b_thin_border"
+				}
+
+				gridBoxType = {
+					name = "countries_mini_expanded"
+					position = { x = 8 y = 0 }
+					size = { width = 199 height = 100%% }
+					slotsize = { width = 52 height = 38 }
+					add_horizontal = yes
+					max_slots_horizontal = 22
+					format = "UPPER_LEFT"
+				}
+			}
+		}
+
 		
 		#iconType = {
 		#	name = "COMECONLOGO"
@@ -892,7 +982,7 @@ guiTypes = {
 		iconType = {
 			name = "minor_country_leader"
 			quadTextureSprite ="GFX_leader_unknown"
-			position = { x = 209 y = 312 }
+			position = { x = 209 y = 359 }
 			scale=0.696
 			# rotation=-0.04
 		}
@@ -900,14 +990,14 @@ guiTypes = {
 		iconType = {
 			name ="minor_portrait_overlay"
 			spriteType = "GFX_minor_portrait_overlay"
-			position = { x= 200 y = 301 }
+			position = { x= 200 y = 350 }
 			rotation=0.04
 		}
 		
 		
 		instantTextBoxType = {
 			name = "info_title"
-			position = { x = 0 y = 280 }
+			position = { x = 0 y = 330 }
 			font = "seventwelve_28"
 			borderSize = {x = 0 y = 0}
 			text = "FE_COUNTRY_INFO_TITLE"
@@ -922,7 +1012,7 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "leader_label"
-				position = { x = -10 y = -150 }
+				position = { x = -10 y = -90 }
 				font = "ComputerSaysNo_16_bold"
 				borderSize = {x = 0 y = 0}
 				text = "LEADER"
@@ -933,19 +1023,19 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "leader"
-				position = { x = -10 y = -130 }
+				position = { x = -10 y = -70 }
 				textureFile = ""
 				font = "ComputerSaysNo_18"
 				borderSize = {x = 0 y = 0}
 				text = ""
-				maxWidth = 340
+				maxWidth = 180
 				maxHeight = 30	
 				format = left
 			}
 			
 			instantTextBoxType = {
 				name = "ideology_label"
-				position = { x = -10 y = -100 }
+				position = { x = -10 y = -30 }
 				textureFile = ""
 				font = "ComputerSaysNo_16_bold"
 				borderSize = {x = 0 y = 0}
@@ -957,17 +1047,17 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "ideology"
-				position = { x = -10 y = -80 }
+				position = { x = -10 y = -10 }
 				font = "ComputerSaysNo_18"
 				borderSize = {x = 0 y = 0}
-				maxWidth = 340
+				maxWidth = 180
 				maxHeight = 30	
 				format = left
 			}
 			
 			instantTextBoxType = {
 				name = "government_label"
-				position = { x = -10 y = -50 }
+				position = { x = -10 y = 30 }
 				font = "ComputerSaysNo_16_bold"
 				borderSize = {x = 0 y = 0}
 				text = "GOVERNMENT"
@@ -978,7 +1068,7 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "government"
-				position = { x = -10 y = -30 }
+				position = { x = -10 y = 50 }
 				font = "ComputerSaysNo_18"
 				borderSize = {x = 0 y = 0}
 				text = "FE_INTERESTING_COUNTRIES"
@@ -1010,7 +1100,7 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "party_label"
-				position = { x = -10 y = 0 }
+				position = { x = -10 y = 90 }
 				font = "ComputerSaysNo_16_bold"
 				borderSize = {x = 0 y = 0}
 				text = "RULING_PARTY"
@@ -1021,7 +1111,7 @@ guiTypes = {
 			
 			instantTextBoxType = {
 				name = "party"
-				position = { x = -10 y = 20 }
+				position = { x = -10 y = 110 }
 				font = "ComputerSaysNo_18"
 				borderSize = {x = 0 y = 0}
 				maxWidth = 200
@@ -1032,7 +1122,7 @@ guiTypes = {
 		
 		instantTextBoxType = {
 			name = "nation_title"
-			position = { x = 25 y = 240 }
+			position = { x = 25 y = 290 }
 			font = "seventwelve_60"
 			borderSize = {x = 0 y = 0}
 			maxWidth = 1000
@@ -1047,7 +1137,7 @@ guiTypes = {
 			iconType ={
 				name ="pol_faction_icon"
 				spriteType = "GFX_pol_factions_strip"
-				position = { x= -200 y = -160  }
+				position = { x= -225 y = -100  }
 				frame = 1
 			}
 			
@@ -1069,20 +1159,21 @@ guiTypes = {
 			
 			containerWindowType = {
 				name ="focus"
-				position = { x = -110 y = -340 }
+				position = { x = -110 y = -300 }
 				size = { width = 920 height = 345 }
 				
 				# verticalScrollbar = "right_vertical_slider"
 				
 				background = {
 					name = "single_player_country_bg"
+					position = { x = 0 y = 7 }
 					quadTextureSprite ="GFX_tiled_window_2b_border_crt"
 				}
 				iconType = {
 					name = "Map"
 					spriteType = "GFX_Country_selection_map_1949"
 					alwaystransparent = yes
-					position = { x = 10 y = 7 }
+					position = { x = 10 y = 15 }
 				}
 				
 				# instantTextBoxType = {
@@ -1612,6 +1703,8 @@ guiTypes = {
 			size = { width = 100%% height = 484 }
 			margin = { top = 0 bottom = 0 right = 26 left = 15 }
 			verticalScrollbar = "right_vertical_slider"
+			scroll_wheel_factor = 40
+			smooth_scrolling = yes
 
 			background = {
 				name = "Background"
@@ -1637,7 +1730,7 @@ guiTypes = {
 				position = { x = 10 y = -39}
 				quadTextureSprite ="GFX_button_123x34"
 				orientation = "LOWER_LEFT"
-				buttonText = "CUSTOM_GAME_SETTINGS_BACK"
+				buttonText = "SM_APPLY"
 				buttonFont = "hoi_18mbs"
 				clicksound = click_default
 			}
@@ -2191,12 +2284,16 @@ guiTypes = {
 			animation_time = 1000
 			size = { width=102% height =128}
 			clipping = no
-		
-			Background =
-			{
-				name ="top_bg"
-				spriteType = "GFX_tiled_frontend_upper_bar"
-				position = { x=-10 y=0 }
+
+			containerWindowType = {
+				name = background
+				size = { width=102% height=100% }
+				Background =
+				{
+					name ="top_bg"
+					spriteType = "GFX_tiled_frontend_upper_bar"
+					position = { x=-10 y=0 }
+				}
 			}
 			ButtonType = {
 				name = "randomize_country_button"
@@ -2376,12 +2473,16 @@ guiTypes = {
 			animation_type = decelerated
 			animation_time = 1000				
 			size = { width=102% height =128}
-			Orientation = lower_left	
-			
-			Background ={
-				name ="bottom_win"
-				spriteType = "GFX_tiled_frontend_lower_bar"
-				position = { x=-10 y =0}
+			Orientation = lower_left
+
+			containerWindowType = {
+				name = background
+				size = { width=102% height=100% }
+				Background ={
+					name ="bottom_win"
+					spriteType = "GFX_tiled_frontend_lower_bar"
+					position = { x=-10 y =0}
+				}
 			}
 			
 			ButtonType = {
