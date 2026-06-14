@@ -1,0 +1,108 @@
+add_namespace = cwic_demob
+
+# ============================================================
+# CWIC Division Limit System - Events
+# Based on Kaiserreich's demobilisation events (used with credit)
+# ============================================================
+
+# --------------------------------------------------
+# cwic_demob.1
+# AI law downgrade on peace
+# Fires when the AI is at a high mobilisation law but is no longer at war
+# Steps the manpower law down one tier and refunds PP
+# --------------------------------------------------
+country_event = {
+	id = cwic_demob.1
+
+	hidden = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = yes
+		has_war = no
+		CWIC_has_unattained_important_goals = no
+		OR = {
+			# Still on heavy conscription with no war to justify it
+			AND = {
+				has_idea = scraping_the_barrel
+				NOT = { has_war_support > 0.7 }
+			}
+			AND = {
+				has_idea = all_adults_serve
+				NOT = { has_war_support > 0.5 }
+			}
+			AND = {
+				has_idea = service_by_requirement
+				NOT = { has_war_support > 0.3 }
+			}
+		}
+	}
+
+	option = {
+		if = {
+			limit = { has_idea = scraping_the_barrel }
+			add_political_power = 375
+			swap_ideas = {
+				remove_idea = scraping_the_barrel
+				add_idea = all_adults_serve
+			}
+		}
+		else_if = {
+			limit = { has_idea = all_adults_serve }
+			add_political_power = 300
+			swap_ideas = {
+				remove_idea = all_adults_serve
+				add_idea = service_by_requirement
+			}
+		}
+		else_if = {
+			limit = { has_idea = service_by_requirement }
+			add_political_power = 150
+			swap_ideas = {
+				remove_idea = service_by_requirement
+				add_idea = extensive_conscription
+			}
+		}
+
+		# Chain: check again after a delay in case more steps are needed
+		if = {
+			limit = { NOT = { has_country_flag = CWIC_demob_law_check } }
+			set_country_flag = { flag = CWIC_demob_law_check days = 30 value = 1 }
+			country_event = { id = cwic_demob.1 days = 30 }
+		}
+	}
+}
+
+# --------------------------------------------------
+# cwic_demob.2
+# AI slow-disband loop
+# Fires every 7 days while AI is over the division limit
+# Disbands ~1% of the army per tick (roughly 1-3 divisions)
+# Stops automatically once under limit or if a war starts
+# Based on Kaiserreich's generic_events.121 (used with credit)
+# --------------------------------------------------
+country_event = {
+	id = cwic_demob.2
+
+	hidden = yes
+	is_triggered_only = yes
+
+	option = {
+		if = {
+			limit = {
+				is_ai = yes
+				has_war = no
+				CWIC_has_exceeded_maximum_divisions = yes
+				CWIC_has_unattained_important_goals = no
+			}
+			log = "[GetLogRoot] cwic_demob.2: disbanding. divisions=[?num_divisions] limit=[?CWIC_max_divisions]"
+			CWIC_disband_one_to_three_divisions = yes
+			# Schedule the next check
+			country_event = { id = cwic_demob.2 days = 7 random_hours = 48 }
+		}
+		else = {
+			log = "[GetLogRoot] cwic_demob.2: stopping loop. divisions=[?num_divisions] limit=[?CWIC_max_divisions] at_war=[?has_war]"
+			clr_country_flag = CWIC_has_reduce_units_check
+		}
+	}
+}
