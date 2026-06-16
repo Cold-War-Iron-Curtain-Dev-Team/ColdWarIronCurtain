@@ -1,0 +1,340 @@
+# ============================================================
+# CWIC Crisis GUI Array Effects
+#
+# Purpose:
+# - Startup: build one global catalog array of every possible crisis.
+# - Monthly/country: rebuild arrays of the crises active in this country.
+#
+# Crisis ID convention:
+# - 1-10   = base macro crises
+# - 101-109 = compound crises
+#
+# Severity convention:
+# - 0 = active but no severity flag found, fallback/debug only
+# - 1 = low
+# - 2 = medium
+# - 3 = high
+# - 4 = extreme
+#
+# Recommended placement:
+# common/scripted_effects/CWIC_Crisis_GUI_Array_Effects.txt
+# ============================================================
+
+CWIC_init_global_crisis_arrays = {
+
+    add_to_array = { array = global.CWIC_all_potential_crises value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 2 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 3 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 4 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 5 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 6 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 7 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 8 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 9 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 10 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 0 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 101 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 102 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 103 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 104 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 105 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 106 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 107 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 108 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+    add_to_array = { array = global.CWIC_all_potential_crises value = 109 }
+    add_to_array = { array = global.CWIC_all_potential_crisis_is_compound value = 1 }
+}
+
+CWIC_clear_active_crisis_arrays = {
+    clear_array = CWIC_active_crises
+    clear_array = CWIC_active_crisis_severity
+    clear_array = CWIC_active_crisis_is_compound
+    set_variable = { CWIC_active_crisis_count = 0 }
+}
+
+CWIC_update_active_crisis_arrays = {
+    CWIC_clear_active_crisis_arrays = yes
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_FISCAL }
+        add_to_array = { array = CWIC_active_crises value = 1 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION }
+        add_to_array = { array = CWIC_active_crises value = 2 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_INFLATION }
+        add_to_array = { array = CWIC_active_crises value = 3 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_INFLATION_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_DEFLATION }
+        add_to_array = { array = CWIC_active_crises value = 4 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_DEFLATION_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_ENERGY }
+        add_to_array = { array = CWIC_active_crises value = 5 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_ENERGY_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK }
+        add_to_array = { array = CWIC_active_crises value = 6 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_TRADE_EXTERNAL_SHOCK_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT }
+        add_to_array = { array = CWIC_active_crises value = 7 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FINANCIAL_CREDIT_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL }
+        add_to_array = { array = CWIC_active_crises value = 8 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_GOVERNANCE_INSTITUTIONAL_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE }
+        add_to_array = { array = CWIC_active_crises value = 9 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_CROP_FAILURE_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE }
+        add_to_array = { array = CWIC_active_crises value = 10 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 0 }
+
+        if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_CRISIS_FOOD_SECURITY_FAMINE_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION }
+        add_to_array = { array = CWIC_active_crises value = 101 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_STAGFLATION_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP }
+        add_to_array = { array = CWIC_active_crises value = 102 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_DEBT_TRAP_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL }
+        add_to_array = { array = CWIC_active_crises value = 103 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_COLLAPSE_SPIRAL_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK }
+        add_to_array = { array = CWIC_active_crises value = 104 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_ENERGY_INDUSTRIAL_SHOCK_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL }
+        add_to_array = { array = CWIC_active_crises value = 105 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_FAMINE_SPIRAL_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT }
+        add_to_array = { array = CWIC_active_crises value = 106 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_CAPITAL_FLIGHT_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP }
+        add_to_array = { array = CWIC_active_crises value = 107 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_AUSTERITY_TRAP_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE }
+        add_to_array = { array = CWIC_active_crises value = 108 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_RESOURCE_CURSE_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+
+    if = {
+        limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN }
+        add_to_array = { array = CWIC_active_crises value = 109 }
+        add_to_array = { array = CWIC_active_crisis_is_compound value = 1 }
+
+        if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_EXTREME } add_to_array = { array = CWIC_active_crisis_severity value = 4 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_HIGH } add_to_array = { array = CWIC_active_crisis_severity value = 3 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_MEDIUM } add_to_array = { array = CWIC_active_crisis_severity value = 2 } }
+        else_if = { limit = { has_country_flag = CWIC_COMPOUND_MILITARIZED_ECONOMY_LOCK_IN_LOW } add_to_array = { array = CWIC_active_crisis_severity value = 1 } }
+        else = { add_to_array = { array = CWIC_active_crisis_severity value = 0 } }
+
+        add_to_variable = { CWIC_active_crisis_count = 1 }
+    }
+}
