@@ -137,25 +137,27 @@ CWIC_unit_limit_calculation_effect = {
 }
 
 # --------------------------------------------------
-# Disband helper: set up a temporary country in an impassable
-# state to safely transfer and disband units (manpower returns to owner)
-# Based on Kaiserreich's disband_units_setup (used with credit)
+# Disband helper: use the permanent UNS utility tag as a unit
+# "graveyard" instead of spawning a fresh dynamic country.
+#
+# Why: create_dynamic_country measured ~0.9s PER CALL in the profiler
+# (8.9s over a single 80-day run) and left an orphan country behind on
+# every disband, which also inflated the engine's native AI/intel passes.
+# UNS already exists and owns territory at game start, so there is no
+# allocation and no state to transfer back and forth. We just move the
+# units in, disband them, and return the freed manpower to the owner.
+#
+# NOTE: delete_unit (in CWIC_disband_units_transfer_manpower) disbands
+# ALL units owned by the scope. This is safe only because UNS holds no
+# army units of its own. If UNS is ever given combat divisions, this
+# trick must change (track transferred unit ids instead).
+# Based on Kaiserreich's disband_units_setup (concept used with credit)
 # --------------------------------------------------
 CWIC_disband_units_setup = {
 	set_temp_variable = { CWIC_disband_country = THIS }
-	random_state = {
-		limit = {
-			impassable = yes
-			is_fully_controlled_by = owner
-		}
-		set_temp_variable = { CWIC_disband_state = THIS }
-		set_temp_variable = { CWIC_disband_state_owner = THIS.owner }
-		create_dynamic_country = {
-			original_tag = PREV.PREV
-			transfer_state = PREV
-			set_temp_variable = { CWIC_disband_instance = THIS }
-			set_temp_variable = { CWIC_old_manpower = manpower_k }
-		}
+	UNS = {
+		set_temp_variable = { CWIC_disband_instance = THIS }
+		set_temp_variable = { CWIC_old_manpower = manpower_k }
 	}
 }
 
@@ -179,9 +181,9 @@ CWIC_disband_units_transfer_manpower = {
 	add_manpower = CWIC_manpower_diff
 }
 
-CWIC_disband_units_finalise = {
-	var:CWIC_disband_state = { transfer_state_to = var:CWIC_disband_state_owner }
-}
+# NOTE: CWIC_disband_units_finalise is no longer needed - the old version
+# transferred the temporary impassable state back to its owner, but the
+# UNS graveyard approach never moves a state, so there is nothing to undo.
 
 # --------------------------------------------------
 # Disband ~1% of the army (roughly 1-3 divisions)
@@ -206,6 +208,5 @@ CWIC_disband_one_to_three_divisions = {
 			CWIC_disband_units_transfer_manpower = yes
 			send_equipment_fraction = { target = var:CWIC_disband_country value = 1 }
 		}
-		CWIC_disband_units_finalise = yes
 	}
 }
