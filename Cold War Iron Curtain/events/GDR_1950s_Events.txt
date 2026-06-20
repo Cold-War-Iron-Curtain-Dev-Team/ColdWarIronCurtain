@@ -2561,14 +2561,43 @@ country_event = {
 
 	option = {
 		name = SOV_GDR.1000.a
+		DDR = {
+			country_event = {
+				id = gdr_1953.1
+				days = 5
+			}
+		}
 	}
 
 	option = {
 		name = SOV_GDR.1000.b
+		DDR = {
+			country_event = DDR_SOV.1001
+			load_focus_tree = GDR_1953_Nuschke
+			set_politics = {
+				ruling_party = Christian_Democratic
+				elections_allowed = no
+			}
+		}
+		news_event = news_DDR_SOV.1001
 	}
 
 	option = {
 		name = SOV_GDR.1000.c
+		DDR = {
+			country_event = DDR_SOV.1002
+			load_focus_tree = GDR_1953_Wirth
+			set_politics = {
+				ruling_party = Social_Liberalism
+				elections_allowed = no
+			}
+			create_country_leader = {
+				name = "Joesph Wirth"
+				picture = "Joesph_Wirth.png"
+				ideology = social_liberal
+			}
+		}
+		news_event = news_DDR_SOV.1002
 	}
 }
 
@@ -4372,6 +4401,19 @@ country_event = {
 
 	option = {
 		name = FCB_REIMANN53.2.a
+		if = {
+			limit = {
+				tag = DDR
+			}
+			load_focus_tree = GDR_1953_Reimann
+			every_possible_country = {
+				limit = { has_character = WGR_Maximillian_Reimann }
+				random_character = {
+					limit = { is_character = WGR_Maximillian_Reimann }
+					set_nationality = DDR
+				}
+			}
+		}
 	}
 }
 
@@ -4839,5 +4881,339 @@ news_event = {
 
 	option = {
 		name = GDR_1956_UNREST.11.a
+	}
+}
+
+
+add_namespace = reimann_berlin
+
+
+country_event = {
+	id = reimann_berlin.1
+	title = reimann_berlin.1.t
+	desc = reimann_berlin.1.d
+	picture = GFX_report_event_reimann_berlin
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		set_country_flag = FCB_reimann_berlin_government_proclaimed
+	}
+
+	option = {
+		name = reimann_berlin.1.a
+
+		hidden_effect = {
+			save_global_event_target_as = Reimann_Berlin_Government
+
+			news_event = {
+				id = reimann_berlin.2
+				hours = 4
+			}
+		}
+	}
+}
+
+
+news_event = {
+	id = reimann_berlin.2
+	title = reimann_berlin.2.t
+	desc = reimann_berlin.2.d
+	picture = GFX_news_event_reimann_berlin
+
+	major = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = reimann_berlin.2.a
+	}
+}
+add_namespace = gdr_1953
+
+
+country_event = {
+	id = gdr_1953.1
+	title = gdr_1953.1.t
+	desc = gdr_1953.1.d
+	picture = GFX_report_event_berlin_uprising
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		save_global_event_target_as = DDR_1953_Subject
+	}
+
+	# Historical route: Ulbricht survives and the uprising is suppressed.
+	option = {
+		name = gdr_1953.1.a
+
+		ai_chance = {
+			base = 75
+		}
+
+		set_country_flag = DDR_1953_ulbricht_survives
+
+		# Keep any existing Ulbricht leadership / idea setup here.
+		load_focus_tree = GDR_1953_Ulbricht
+
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.2
+				hours = 4
+			}
+		}
+	}
+
+
+	# Stalin remains in power: Dahlem replaces Ulbricht.
+	option = {
+		name = gdr_1953.1.b
+
+		trigger = {
+			SOV = {
+				# Replace with your actual Stalin-survives trigger.
+				has_country_flag = SOV_Stalin_Path
+			}
+		}
+
+		ai_chance = {
+			base = 10
+		}
+
+		set_country_flag = DDR_1953_dahlem_succeeds
+
+		# Insert your existing Dahlem leader / party / idea effects here.
+		load_focus_tree = GDR_1953_Dahlem
+		create_country_leader = {
+			name = "Franz Dahlem"
+			picture = "Franz_Dahlem.png"
+			ideology = stalinism
+			traits = {
+				brutal_stalinist
+			}
+		}
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.2
+				hours = 4
+			}
+		}
+	}
+
+
+	# Khrushchev-aligned succession: Schirdewan replaces Ulbricht.
+	option = {
+		name = gdr_1953.1.c
+
+		trigger = {
+			SOV = {
+				# Replace with your actual Khrushchev-path trigger.
+				has_country_flag = Khruschev_Reign
+			}
+		}
+
+		ai_chance = {
+			base = 10
+		}
+
+		set_country_flag = DDR_1953_schirdewan_succeeds
+
+		# Insert your existing Schirdewan leader / party / idea effects here.
+		load_focus_tree = GDR_1953_Schirdewan
+		create_country_leader = {
+			name = "Kurt Schirdewan"
+			picture = "Kurt_Schirdewan.png"
+			ideology = marxism_leninism
+			traits = {
+			}
+		}
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.2
+				hours = 4
+			}
+		}
+	}
+
+
+	# Beria/Malenkov succession: Herrnstadt replaces Ulbricht.
+	option = {
+		name = gdr_1953.1.d
+
+		trigger = {
+			SOV = {
+				# Replace with your actual Beria/Malenkov-path trigger.
+				OR = {
+					has_country_flag = SOV_beria_leads
+					has_country_flag = Malenkov_Reign
+				}
+			}
+		}
+
+		ai_chance = {
+			base = 10
+		}
+
+		set_country_flag = DDR_1953_herrnstadt_succeeds
+
+		# Insert your existing Herrnstadt leader / party / idea effects here.
+		load_focus_tree = GDR_1953_Herrnstadt
+		create_country_leader = {
+			name = "Rudolf Herrnstadt"
+			picture = "Herrnstadt.png"
+			ideology = marxism_leninism
+			traits = {
+			}
+		}
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.2
+				hours = 4
+			}
+		}
+	}
+}
+
+
+news_event = {
+	id = gdr_1953.2
+	title = gdr_1953.2.t
+	desc = gdr_1953.2.d
+	picture = GFX_news_event_berlin_uprising_1953
+
+	major = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = gdr_1953.2.a
+	}
+}
+
+country_event = {
+	id = gdr_1953.3
+	title = gdr_1953.3.t
+	desc = gdr_1953.3.d
+	picture = GFX_report_event_berlin_uprising
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		save_global_event_target_as = DDR_1953_Subject
+		set_country_flag = DDR_1953_grotewohl_removed
+	}
+
+	# ------------------------------------------------------------
+	# Niekisch succeeds Grotewohl
+	# ------------------------------------------------------------
+	option = {
+		name = gdr_1953.3.a
+
+		set_country_flag = DDR_1953_niekisch_succeeds
+
+		# Your existing leader / party setup for Ernst Niekisch goes here.
+		# retire_character = DDR_Otto_Grotewohl
+		# promote_character = DDR_Ernst_Niekisch
+
+		load_focus_tree = GDR_1953_Niekisch
+		create_country_leader = {
+			name = "Ernst Niekisch"
+			picture = "Ernst_Niekisch.png"
+			ideology = german_national_communism
+			traits = {
+			}
+		}
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.4
+				hours = 4
+			}
+		}
+	}
+
+
+	# ------------------------------------------------------------
+	# Ulbricht returns to power
+	# ------------------------------------------------------------
+	option = {
+		name = gdr_1953.3.b
+
+		set_country_flag = DDR_1953_ulbricht_returns
+
+		# Your existing leader / party setup for Walter Ulbricht goes here.
+		# retire_character = DDR_Otto_Grotewohl
+		# promote_character = DDR_Walter_Ulbricht
+
+		load_focus_tree = GDR_1953_Ulbricht
+		create_country_leader = {
+			name = "Walter Ulbricht"
+			picture = "Walter_Ulbricht.dds"
+			ideology = stalinism
+			traits = {
+				brutal_stalinist
+				utopian_economics
+				fears_the_west
+			}
+		}
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.4
+				hours = 4
+			}
+		}
+	}
+
+
+	# ------------------------------------------------------------
+	# Dahlem succeeds Grotewohl — Stalin survives
+	# ------------------------------------------------------------
+	option = {
+		name = gdr_1953.3.c
+
+		trigger = {
+			SOV = {
+				has_country_flag = SOV_Stalin_Path
+			}
+		}
+
+		set_country_flag = DDR_1953_dahlem_succeeds
+
+		# Your existing leader / party setup for Franz Dahlem goes here.
+		load_focus_tree = GDR_1953_Dahlem
+		create_country_leader = {
+			name = "Franz Dahlem"
+			picture = "Franz_Dahlem.png"
+			ideology = stalinism
+			traits = {
+				brutal_stalinist
+			}
+		}
+
+		hidden_effect = {
+			news_event = {
+				id = gdr_1953.4
+				hours = 4
+			}
+		}
+	}
+}
+
+
+news_event = {
+	id = gdr_1953.4
+	title = gdr_1953.4.t
+	desc = gdr_1953.4.d
+	picture = GFX_news_event_berlin_uprising
+
+	major = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = gdr_1953.4.a
 	}
 }
