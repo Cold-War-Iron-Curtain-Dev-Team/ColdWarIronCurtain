@@ -1,59 +1,51 @@
-# befriend
-# conquer
-# antagonize
-# build_ship
-# build_army
-KPA_build_peacetime_armyprekorean = {
+####################################################################
+# KPA (North Korea) AI strategy - Cold War 1949-1971
+####################################################################
+
+# ----------------------------- ARMY BUILD -----------------------------
+KPA_build_peacetime_army_prekorean = {
 	allowed = { tag = KPA }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = no
 		has_army_manpower = { size < 170000 }
 	}
-	abort = {
-	date > 1952.1.1
-	}
-	abort_when_not_enabled = yes
-
+	abort = { date > 1952.1.1 }
 	ai_strategy = { type = build_army id = motorized value = 500 }
 	ai_strategy = { type = build_army id = infantry value = 400 }
 	ai_strategy = { type = force_build_armies value = 300 }
 }
-KPA_build_peacetime_armyprekorean = {
+# (renamed from the duplicate "KPA_build_peacetime_armyprekorean")
+KPA_build_peacetime_army_postkorean = {
 	allowed = { tag = KPA }
-	enable = { 
+	enable = {
 		date > 1952.1.1
 		has_war = no
 		has_army_manpower = { size < 400000 }
 	}
 	abort_when_not_enabled = yes
-	abort = { }
 	ai_strategy = { type = build_army id = motorized value = 500 }
 	ai_strategy = { type = build_army id = infantry value = 400 }
 	ai_strategy = { type = force_build_armies value = 300 }
 }
 KPA_build_wartime_army = {
 	allowed = { tag = KPA }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = yes
-		has_army_manpower = { size < 50000 }
+		has_army_manpower = { size < 1000000 }
 	}
 	abort_when_not_enabled = yes
-	abort = { }
 	ai_strategy = { type = build_army id = motorized value = 500 }
 	ai_strategy = { type = build_army id = infantry value = 400 }
 	ai_strategy = { type = force_build_armies value = 300 }
 }
+
+# ----------------------------- KOREAN WAR -----------------------------
 KPA_prepare_korean_war = {
 	allowed = { tag = KPA }
-	enable = { 
-		date > 1950.5.1
-	}
-	abort_when_not_enabled = yes
-	abort = {
-		has_global_flag = KOREA_CEASEFIRE_UN
-	}	
+	enable = { date > 1950.5.1 }
+	abort = { has_global_flag = KOREA_CEASEFIRE_UN }
 	ai_strategy = {
 		type = front_unit_request
 		tag = KOR
@@ -76,12 +68,8 @@ KPA_prepare_korean_war = {
 }
 KPA_take_the_south = {
 	allowed = { tag = KPA }
-	enable = { 
-		has_idea = take_the_south
-	}
+	enable = { has_idea = take_the_south }
 	abort_when_not_enabled = yes
-	abort = {
-	}	
 	ai_strategy = {
 		type = front_control
 		state_trigger = {
@@ -93,144 +81,78 @@ KPA_take_the_south = {
 		manual_attack = no
 	}
 }
-# unit_ratio
-# build_building
-# research_tech
-# garrison
-# protect
-# influence
-# alliance
-# ignore
-# invade
+KPA_Korean_War_1 = {
+	allowed = { original_tag = KPA }
+	enable = { tag = KPA }
+	abort_when_not_enabled = yes
+	ai_strategy = {
+		type = naval_invasion_focus
+		value = 500
+	}
+	ai_strategy = {
+		type = ignore_army_incompetence
+		value = 300
+	}
+}
+
+# ----------------------------- FOREIGN POLICY -----------------------------
+KPA_foriegn_policy = {
+	allowed = { tag = KPA }
+	enable = { tag = KPA }
+	abort = { always = no }
+	ai_strategy = {
+		type = front_unit_request
+		tag = PRC
+		value = 200
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = SOV
+		value = 200
+	}
+	ai_strategy = {
+		type = befriend
+		id = "PRC"
+		value = 400
+	}
+}
+
+# --------- Allies supporting the North during the Korean War ---------
+SOV_Support_KPA = {
+	allowed = { original_tag = SOV }
+	enable = {
+		KPA = { has_war_with = KOR }
+		NOT = { has_global_flag = KOREA_CEASEFIRE_UN }
+	}
+	abort_when_not_enabled = yes
+	ai_strategy = {
+		type = support
+		id = KPA
+		value = 1500
+	}
+}
+PRC_Support_KPA = {
+	allowed = { original_tag = PRC }
+	enable = {
+		KPA = { has_war_with = KOR }
+		NOT = { has_global_flag = KOREA_CEASEFIRE_UN }
+	}
+	abort_when_not_enabled = yes
+	ai_strategy = {
+		type = support
+		id = KPA
+		value = 1500
+	}
+}
+
+# --------- North Vietnam: keep the Chinese border calm pre-split ---------
 VIN_ignore_china_border = {
 	allowed = { tag = VIN }
-	enable = {		
-		NOT = { has_global_flag = sino_viet_split }
-	}
-	abort = { }
+	enable = { NOT = { has_global_flag = sino_viet_split } }
 	abort_when_not_enabled = yes
-
 	ai_strategy = {
 		type = front_unit_request
 		tag = PRC
 		value = -200
 	}
-}
-KPA_foriegn_policy = {
-	allowed = { tag = KPA }
-	enable = {		
-		tag = KPA
-	}
-	abort = { }
-	abort_when_not_enabled = yes
-
-	ai_strategy = {
-		type = front_unit_request
-		tag = PRC
-		value = 200
-	}
-	
-	ai_strategy = {
-		type = front_unit_request
-		tag = SOV
-		value = 200
-	}
-	
-	# ai_strategy = {
-		# type = conquer
-		# id = "KOR"			
-		# value = 800
-	# }
-	# ai_strategy = {
-		# type = antagonize
-		# id = "KOR"			
-		# value = 400
-	# }
-	# ai_strategy = {
-		# type = befriend
-		# id = "SOV"			
-		# value = 400
-	# }	
-	ai_strategy = {
-		type = befriend
-		id = "PRC"			
-		value = 400
-	}	
-	# ai_strategy = {
-		# type = alliance
-		# id = "SOV"			
-		# value = -4000
-	# }	
-	# ai_strategy = {
-		# type = antagonize
-		# id = "JAP"			
-		# value = 400
-	# }	
-	# ai_strategy = {
-		# type = antagonize
-		# id = "USA"			
-		# value = 400
-	# }	
-	# ai_strategy = {
-		# type = antagonize
-		# id = "CHI"			
-		# value = 400
-	# }	
-}
-SOV_Support_KPA = {
-    allowed = {
-		original_tag = SOV
-    }
-    enable = {
-		tag = SOV
-        KPA = {
-			has_war_with = KOR
-		}
-		NOT = {
-			has_global_flag = KOREA_CEASEFIRE_UN
-		}
-    }
-    abort_when_not_enabled = yes
-    ai_strategy = {
-        type = support
-        id = KPA
-        value = 1500
-    }
-}
-PRC_Support_KPA = {
-    allowed = {
-		original_tag = PRC
-    }
-    enable = {
-		tag = PRC
-        KPA = {
-			has_war_with = KOR
-		}
-		NOT = {
-			has_global_flag = KOREA_CEASEFIRE_UN
-		}
-    }
-    abort_when_not_enabled = yes
-    ai_strategy = {
-        type = support
-        id = KPA
-        value = 1500
-    }
-}
-KPA_Korean_War_1 = {
-    allowed = {
-		original_tag = KPA
-    }
-    enable = {
-		tag = KPA
-    }
-    abort_when_not_enabled = yes
-    ai_strategy = {
-        type = naval_invasion_focus
-        value = 500
-    }
-	ai_strategy = {
-        type = ignore_army_incompetence
-        value = 300
-    }
 }
