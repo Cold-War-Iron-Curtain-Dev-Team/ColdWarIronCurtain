@@ -23,8 +23,7 @@ USA_protect_against_extremism = { # Reverse strategy
 				is_subject = no
 			}
 		}
-		any_of_scopes = {
-			array = enemies
+		any_enemy_country = {
 			NOT = { tag = USA }
 			OR = {
 				has_government = communism
@@ -56,46 +55,6 @@ USA_protect_against_extremism = { # Reverse strategy
 	}
 }
 ########CONQUER#############
-SOV_is_bad = {
-	allowed = {
-		tag = USA
-	}
-	
-	enable = {
-		SOV = {
-			exists = yes
-		}
-		NOT = { is_ally_with = SOV }
-		}
-	
-	abort_when_not_enabled = yes
-	abort = { always = no }
-	ai_strategy = {
-		type = prepare_for_war
-		id = SOV
-		value = 120
-	}
-}
-DDR_is_bad = {
-	allowed = {
-		tag = USA
-	}
-	
-	enable = {
-		SOV = {
-			exists = yes
-		}
-		NOT = { is_ally_with = DDR }
-	}
-	
-	abort_when_not_enabled = yes
-	
-	ai_strategy = {
-		type = prepare_for_war
-		id = DDR
-		value = 100
-	}
-}
 USA_gang_up_SOV_with_NATO = {
 	allowed = {
 		tag = USA
@@ -109,18 +68,77 @@ USA_gang_up_SOV_with_NATO = {
 	ai_strategy = {
 		type = force_defend_ally_borders
 		value = 100
-		target = europe
+		id = europe
 	}
 	ai_strategy = {
 		type = force_defend_ally_borders
 		value = 100
-		target = asia
+		id = asia
 	}
 	ai_strategy = {
 		type = force_defend_ally_borders
 		value = 20
-		target = africa
+		id = africa
 	}
+}
+########################################################################
+# FORWARD DEPLOYMENT (NATO leader): prioritise the central European front and
+# Korea in peacetime. Yields automatically to USA_defend_the_coasts, which sets
+# strongly negative overseas area_priority when the homeland is threatened.
+USA_forward_deployment = {
+	allowed = { tag = USA }
+	enable = {
+		tag = USA
+		date > 1949.1.1
+		NOT = {
+			any_neighbor_country = { has_war_with = ROOT }
+		}
+	}
+	abort_when_not_enabled = yes
+	ai_strategy = { type = area_priority id = europe value = 150 }
+	ai_strategy = { type = area_priority id = korea  value = 100 }
+	ai_strategy = { type = area_priority id = asia   value = 60 }
+}
+########################################################################
+# COLD WAR STANCE vs the Eastern Bloc.
+# NOTE: this intentionally does NOT use "prepare_for_war". prepare_for_war
+# orders the AI to mass troops on the TARGET'S BORDER; the USA shares no land
+# border with SOV/DDR/PRC, so the border/front planner dereferenced a null
+# border on an AI worker thread -> EXCEPTION_ACCESS_VIOLATION CTD (this was the
+# old SOV_is_bad / DDR_is_bad / PRC_is_bad crash). Use diplomatic hostility
+# (antagonize) + containment instead; actual troop positioning in Europe is
+# handled by USA_gang_up_SOV_with_NATO and the unit-buffer strategies below.
+########################################################################
+USA_cold_war_stance = {
+	allowed = { tag = USA }
+	enable = {
+		tag = USA
+		date > 1949.1.1
+	}
+	abort = { always = no }
+	ai_strategy = { type = antagonize id = SOV value = 120 }
+	ai_strategy = { type = contain   id = SOV value = 120 }
+	ai_strategy = { type = consider_weak id = SOV value = -50 }
+}
+USA_cold_war_stance_DDR = {
+	allowed = { tag = USA }
+	enable = {
+		tag = USA
+		country_exists = DDR
+	}
+	abort_when_not_enabled = yes
+	ai_strategy = { type = antagonize id = DDR value = 100 }
+	ai_strategy = { type = contain   id = DDR value = 100 }
+}
+USA_cold_war_stance_PRC = {
+	allowed = { tag = USA }
+	enable = {
+		tag = USA
+		country_exists = PRC
+	}
+	abort_when_not_enabled = yes
+	ai_strategy = { type = antagonize id = PRC value = 100 }
+	ai_strategy = { type = contain   id = PRC value = 100 }
 }
 # antagonize
 # build_ship
@@ -152,57 +170,18 @@ USA_build_wartime_army = {
 	ai_strategy = { type = force_build_armies value = 90 }
 }
 USA_division_production = {
-	allowed = {
-		original_tag = USA
-	}
-	enable = {
-		always = yes
-		date > 1959.1.1
-	}
-	abort = {
-	date > 1959.1.1
-	}
-	ai_strategy = {
-		type = role_ratio
-		id = paratroopers
-		value = 4
-	}
-
-	ai_strategy = {
-		type = role_ratio
-		id = mountaineers
-		value = 3
-	}
-
-	ai_strategy = {
-		type = role_ratio
-		id = marines
-		value = 3
-	}
-
-	ai_strategy = {
-		type = role_ratio
-		id = motorized
-		value = 100
-	}
-
-	ai_strategy = {
-		type = role_ratio
-		id = mechanized
-		value = 30
-	}
-
-	ai_strategy = {
-		type = role_ratio
-		id = medium_armor
-		value = 30
-	}
-
-	ai_strategy = {
-		type = role_ratio
-		id = infantry
-		value = 0 #because doctrine 70
-	}
+	allowed = { original_tag = USA }
+	# (was enable date>1959 AND abort date>1959 - contradictory, so it never ran.)
+	enable = { always = yes }
+	abort = { always = no }
+	# USA fields the modern Division-86 mix - templates in common/ai_templates/templates_USA.txt.
+	# These ids are USA-only roles defined there, so they don't disturb other countries.
+	ai_strategy = { type = role_ratio id = usa_infantry value = 50 }
+	ai_strategy = { type = role_ratio id = usa_mech     value = 40 }
+	ai_strategy = { type = role_ratio id = usa_armor    value = 30 }
+	ai_strategy = { type = role_ratio id = usa_marine   value = 4 }
+	ai_strategy = { type = role_ratio id = usa_airborne value = 4 }
+	ai_strategy = { type = role_ratio id = usa_mountain value = 3 }
 }
 ########unit_ratio##########
 USA_unit_production = {

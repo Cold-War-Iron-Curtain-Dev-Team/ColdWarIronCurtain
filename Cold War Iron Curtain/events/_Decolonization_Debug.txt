@@ -1479,6 +1479,13 @@ country_event = {
 				picture = "Aden_Adde.dds"
 				ideology = nationalist_ideology
 			}
+			# Unite with British Somaliland (SML became independent on 26 Jun 1960) to form
+			# the Somali Republic on 1 July 1960. Without this, SML and SOM both lingered as
+			# two separate countries ("Somalia and Somaliland in a weird spot").
+			if = {
+				limit = { country_exists = SML }
+				annex_country = { target = SML transfer_troops = yes }
+			}
 			country_event = som.4
 		}
 	}
@@ -2510,20 +2517,21 @@ country_event = {
 	hidden = yes
 	immediate = {
 		log = "[GetDateText]: [Root.GetTag]: DEBUG id = debug_decolon.85 (Senegal leaves Mali Federation)"
-		# Free SEN from whichever overlord currently holds it
+		# BUG FIX: debug_decolon.75 had MLI *annex* SEN (annex_country), so Senegal no
+		# longer existed and the old set_autonomy could never split it back out - which
+		# is why "Senegal never left the Mali Federation". Recreate SEN from MLI's
+		# territory (MLI holds Senegal's cores after that annexation).
 		if = {
+			limit = { NOT = { country_exists = SEN } }
+			MLI = { release = SEN }
+		}
+		else_if = {
 			limit = { SEN = { is_subject_of = MLI } }
 			MLI = {
 				set_autonomy = {
 					target = SEN
 					autonomy_state = autonomy_free
 				}
-			}
-		}
-		else = {
-			set_autonomy = {
-				target = SEN
-				autonomy_state = autonomy_free
 			}
 		}
 		# The Mali Federation is over — MLI becomes the Republic of Mali

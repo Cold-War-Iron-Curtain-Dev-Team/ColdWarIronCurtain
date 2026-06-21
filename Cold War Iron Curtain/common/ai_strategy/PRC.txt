@@ -1,98 +1,122 @@
-# befriend
-# conquer
-# antagonize
-# build_ship
-# build_army
+####################################################################
+# PRC (People's Republic of China) AI strategy - Cold War 1949-1971
+# Conventions used here:
+#  - Each block uses ONE abort convention (either abort_when_not_enabled
+#    OR an abort = { triggers } block, never both, and never an empty abort = {}).
+#  - front_unit_request blocks target a SINGLE tag/state each.
+#  - No duplicate strategy ids.
+####################################################################
+
+# ----------------------------- ARMY BUILD -----------------------------
 PRC_build_peacetime_army = {
 	allowed = { tag = PRC }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = no
 		has_army_manpower = { size < 1200000 }
 	}
 	abort_when_not_enabled = yes
-	abort = { always = no }
 	ai_strategy = { type = build_army id = motorized value = 500 }
 	ai_strategy = { type = build_army id = infantry value = 400 }
 	ai_strategy = { type = force_build_armies value = 300 }
 }
 PRC_build_wartime_army = {
 	allowed = { tag = PRC }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = yes
 		has_army_manpower = { size < 5000000 }
 	}
 	abort_when_not_enabled = yes
-	abort = { always = no }
 	ai_strategy = { type = build_army id = motorized value = 500 }
 	ai_strategy = { type = build_army id = infantry value = 400 }
 	ai_strategy = { type = force_build_armies value = 300 }
 }
-PRC_sino_soviet_pact = {
+
+# --------------------- SINO-SOVIET FRIENDSHIP (pre-split) ---------------------
+# Don't mass troops on the Soviet/Mongolian borders while the alliance holds.
+PRC_sino_soviet_pact_SOV = {
 	allowed = { tag = PRC }
-	enable = { 
+	enable = {
 		date < 1955.1.1
+		NOT = { has_global_flag = Sino_Soviet_Split }
 	}
 	abort_when_not_enabled = yes
-	abort = { always = no }
 	ai_strategy = {
 		type = front_unit_request
 		tag = SOV
+		value = -200
+	}
+}
+PRC_sino_soviet_pact_MON = {
+	allowed = { tag = PRC }
+	enable = {
+		date < 1955.1.1
+		NOT = { has_global_flag = Sino_Soviet_Split }
+	}
+	abort_when_not_enabled = yes
+	ai_strategy = {
+		type = front_unit_request
 		tag = MON
 		value = -200
 	}
 }
+PRC_befriend_SOV = {
+	allowed = { tag = PRC }
+	enable = {
+		country_exists = SOV
+		NOT = { has_global_flag = Sino_Soviet_Split }
+	}
+	abort = { has_global_flag = Sino_Soviet_Split }
+	ai_strategy = { type = befriend id = SOV value = 200 }
+	ai_strategy = { type = ignore id = SOV value = 200 }
+}
+
+# --------------------- INTERNAL FRONTS (Yunnan / Tibet) ---------------------
 PRC_yunnan = {
 	allowed = { tag = PRC }
-	enable = { 
-		country_exists = YAN
-	}
+	enable = { country_exists = YAN }
 	abort_when_not_enabled = yes
-	abort = { always = no }
 	ai_strategy = {
 		type = front_unit_request
 		tag = YAN
 		value = 200
 	}
 }
-PRC_tibet = {
+PRC_tibet_TIB = {
 	allowed = { tag = PRC }
-	enable = { 
-		country_exists = TIB
-	}
+	enable = { country_exists = TIB }
 	abort_when_not_enabled = yes
-	abort = { always = no }
-	ai_strategy = {
-		type = front_unit_request
-		tag = TIB
-		tag = NAN
-		tag = LIN
-		tag = HOR
-		tag = DER
-		tag = CHK
-		value = 200
-	}
+	ai_strategy = { type = front_unit_request tag = TIB value = 200 }
+}
+PRC_tibet_minors = {
+	allowed = { tag = PRC }
+	enable = { OR = { country_exists = NAN country_exists = LIN country_exists = HOR country_exists = DER country_exists = CHK } }
+	abort_when_not_enabled = yes
+	ai_strategy = { type = front_unit_request tag = NAN value = 200 }
+	ai_strategy = { type = front_unit_request tag = LIN value = 200 }
+	ai_strategy = { type = front_unit_request tag = HOR value = 200 }
+	ai_strategy = { type = front_unit_request tag = DER value = 200 }
+	ai_strategy = { type = front_unit_request tag = CHK value = 200 }
 }
 
-PRC_sino_soviet_pact = {
+# --------------------- KOREA: don't over-commit the border before intervention ---------------------
+# (Renamed from the old duplicate "PRC_sino_soviet_pact".)
+PRC_korea_no_premature_buildup = {
 	allowed = { tag = PRC }
-	enable = { 
-		NOT = { KPA = { has_war_with = KOR } }
-	}
+	enable = { NOT = { KPA = { has_war_with = KOR } } }
 	abort_when_not_enabled = yes
-	abort = { always = no }
 	ai_strategy = {
 		type = front_unit_request
 		tag = KPA
 		value = -200
 	}
 }
+
+# --------------------- KOREAN WAR: support the North ---------------------
 PRC_supports_north = {
 	allowed = { tag = PRC }
-	enable = {
-		KPA = { has_war_with = KOR }
-	}
+	enable = { KPA = { has_war_with = KOR } }
 	abort_when_not_enabled = yes
 	ai_strategy = {
 		type = front_armor_score
@@ -101,39 +125,36 @@ PRC_supports_north = {
 	}
 	ai_strategy = {
 		type = send_volunteers_desire
-		id = "KPA"			
+		id = "KPA"
 		value = -10000
 	}
 	ai_strategy = {
 		type = force_defend_ally_borders
+		id = asia
 		value = 100
-		target = asia
 	}
 	ai_strategy = {
 		type = put_unit_buffers
-		#you can define a target in following ways. you can define more than one
-
 		order_id = 2
-		states = { 
+		states = {
 			1131
 			920
 			525
 		}
-		
 		ratio = 0.25
 		area = asia
-		
 		subtract_invasions_from_need = no
 	}
 }
 
+# --------------------- CHINESE CIVIL WAR: liberate Taiwan/CHI ---------------------
 PRC_Liberation_War_phase_one = {
-    allowed = { original_tag = PRC }
-    enable = { 
+	allowed = { original_tag = PRC }
+	enable = {
 		has_global_flag = CCW_Started
 		NOT = { controls_state = 1994 }
 	}
-    abort_when_not_enabled = yes
+	abort_when_not_enabled = yes
 	ai_strategy = {
 		type = front_armor_score
 		id = CHI
@@ -142,36 +163,35 @@ PRC_Liberation_War_phase_one = {
 	ai_strategy = {
 		type = front_control
 		state = 1786
-		strategic_region = 200				# Target a strategic region. Can specify multiple.
-		strategic_region = 145				# Target a strategic region. Can specify multiple.
-		ratio = 0.60			# At least this ratio of the frontline provinces need to be targeted for the AI strat to apply
-		priority = 100			# Higher prio strats will override lower
-		ordertype = front		# Can be either {front, invasion}
-		execution_type = rush	# Can be either {careful, balanced, rush, rush_weak}
-		execute_order = yes		# If set, will force activate/deactivate execution
-		manual_attack = yes		# If set the AI will try manual poke attacks (for front orders)
+		strategic_region = 200
+		strategic_region = 145
+		ratio = 0.60
+		priority = 100
+		ordertype = front
+		execution_type = rush
+		execute_order = yes
+		manual_attack = yes
 	}
 	ai_strategy = {
 		type = front_control
-		strategic_region = 144				# Target a strategic region. Can specify multiple.
-		ratio = 0.2			# At least this ratio of the frontline provinces need to be targeted for the AI strat to apply
-		priority = 20			# Higher prio strats will override lower
-		ordertype = front		# Can be either {front, invasion}
-		execution_type = careful	# Can be either {careful, balanced, rush, rush_weak}
-		execute_order = yes		# If set, will force activate/deactivate execution
+		strategic_region = 144
+		ratio = 0.2
+		priority = 20
+		ordertype = front
+		execution_type = careful
+		execute_order = yes
 	}
-	
 	ai_strategy = {
 		type = front_control
-		strategic_region = 323				# Target a strategic region. Can specify multiple.
-		strategic_region = 165				# Target a strategic region. Can specify multiple.
-		strategic_region = 322				# Target a strategic region. Can specify multiple.
-		ratio = 0.50			# At least this ratio of the frontline provinces need to be targeted for the AI strat to apply
-		priority = 100			# Higher prio strats will override lower
-		ordertype = front		# Can be either {front, invasion}
-		execution_type = rush	# Can be either {careful, balanced, rush, rush_weak}
-		execute_order = yes		# If set, will force activate/deactivate execution
-		manual_attack = yes		# If set the AI will try manual poke attacks (for front orders)
+		strategic_region = 323
+		strategic_region = 165
+		strategic_region = 322
+		ratio = 0.50
+		priority = 100
+		ordertype = front
+		execution_type = rush
+		execute_order = yes
+		manual_attack = yes
 	}
 	ai_strategy = {
 		type = garrison
@@ -179,12 +199,12 @@ PRC_Liberation_War_phase_one = {
 	}
 }
 PRC_Liberation_War_Final = {
-    allowed = { original_tag = PRC }
-    enable = { 
+	allowed = { original_tag = PRC }
+	enable = {
 		has_global_flag = CCW_Started
 		controls_state = 1994
 	}
-    abort_when_not_enabled = yes
+	abort_when_not_enabled = yes
 	ai_strategy = {
 		type = front_armor_score
 		id = CHI
@@ -192,15 +212,15 @@ PRC_Liberation_War_Final = {
 	}
 	ai_strategy = {
 		type = front_control
-		strategic_region = 324				# Target a strategic region. Can specify multiple.
-		strategic_region = 165				# Target a strategic region. Can specify multiple.
-		strategic_region = 144				# Target a strategic region. Can specify multiple.
-		ratio = 0.80			# At least this ratio of the frontline provinces need to be targeted for the AI strat to apply
-		priority = 100			# Higher prio strats will override lower
-		ordertype = front		# Can be either {front, invasion}
-		execution_type = rush	# Can be either {careful, balanced, rush, rush_weak}
-		execute_order = yes		# If set, will force activate/deactivate execution
-		manual_attack = yes		# If set the AI will try manual poke attacks (for front orders)
+		strategic_region = 324
+		strategic_region = 165
+		strategic_region = 144
+		ratio = 0.80
+		priority = 100
+		ordertype = front
+		execution_type = rush
+		execute_order = yes
+		manual_attack = yes
 	}
 	ai_strategy = {
 		type = garrison
