@@ -1110,237 +1110,51 @@ check_individual_factory_productivity = {
 	#add_to_variable = { doc_productivity_factor_var = 1 }		
 }
 
-calculate_factory_gross_profits = {
-			#Civs
-			set_temp_variable = { baseValue = 2 }
-			if = {
-				limit = {
-					has_free_market_bonus_max = yes
-				}
-				multiply_temp_variable = { baseValue = 1.75 }
-			}
-			if = {
-				limit = {
-					has_moderate_free_market_bonus = yes
-				}
-				multiply_temp_variable = { baseValue = 1.5 }
-			}
-			if = {
-				limit = {
-					has_socialist_free_market_bonus = yes
-				}
-				multiply_temp_variable = { baseValue = 1.25 }
-			}
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.civ_productivity_factor_var }
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 0
-				value = baseValue
-			}
-
-			#Mils
-			set_temp_variable = { baseValue = 1.25 }
-			#multiply_temp_variable = { baseValue = arms_factory_tech }
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.mil_productivity_factor_var }			
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 1
-				value = baseValue
-			}	
-
-			#Office
-			set_temp_variable = { baseValue = 7 }
-			if = {
-				limit = {
-					has_free_market_bonus_max = yes
-				}
-				multiply_temp_variable = { baseValue = 1.9 }
-			}
-			if = {
-				limit = {
-					has_moderate_free_market_bonus = yes
-				}
-				multiply_temp_variable = { baseValue = 1.65 }
-			}
-			if = {
-				limit = {
-					has_socialist_free_market_bonus = yes
-				}
-				multiply_temp_variable = { baseValue = 1.35 }
-			}
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.ofp_productivity_factor_var }			
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 2
-				value = baseValue
-			}	
-
-			#Steel Fac
-			set_temp_variable = { baseValue = 1.75 }
-			#multiply_temp_variable = { baseValue = steel_works_tech }
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.stl_productivity_factor_var }			
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 3
-				value = baseValue
-			}	
-
-			#Tungsten Fac 
-			set_temp_variable = { baseValue = 1.75 }
-			#multiply_temp_variable = { baseValue = tungsten_factory_tech }
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.tng_productivity_factor_var }			
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 4
-				value = baseValue
-			}
-
-			# === Agricultural Income (Food + Cash Crops) ===
-
-			# Base Food Income
-			set_temp_variable = { baseValue = 0.5 }
-
-			# Start Cash Crop Value at 0
-			set_temp_variable = { cropBoost = 0 }
-
-			# Delta – Rice, Sugar, Jute
-			if = {
-				limit = { has_state_flag = delta }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
-			}
-
-			# Tropical – Coffee, Cocoa, Bananas, Sugar
-			else_if = {
-				limit = { has_state_flag = tropical }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Coffee }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
-			}
-
-			# Subtropical Monsoon – Rice, Spices
-			else_if = {
-				limit = { has_state_flag = subtropical_monsoon }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Spice }
-			}
-
-			# Savanna – Cotton, Groundnuts, Millet
-			else_if = {
-				limit = { has_state_flag = savanna }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
-			}
-			# Lush Desert
-			else_if = {
-				limit = { has_state_flag = desertlush }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
-			}
-			# Mediterranean – Olives, Citrus, Grapes
-			else_if = {
-				limit = { has_state_flag = mediterranean }
-				add_to_temp_variable = { cropBoost = global.CashCrop_CitrusGrape }
-			}
-
-			else_if = {
-				limit = {
-					has_state_flag = steppe
-				}
-				add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
-				multiply_temp_variable = { baseValue = 1.05 } # slight boost to simulate grain/mechanized output
-			}
-
-			# Wetlands – Water-Intensive Rice
-			else_if = {
-				limit = { has_state_flag = wetlands }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
-				add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
-			}
-			else = { }
-			if = {  #Colonial or Rentier Adjustment to Food v Cash Crop
-				limit = { 
-					OR = {
-						check_variable = { economic_x_axis = 26 } 
-						check_variable = { economic_x_axis = 24 } 
-					}
-				} 
-				multiply_temp_variable = { cropBoost = 1.5 }
-			}
-			add_to_temp_variable = { baseValue = cropBoost }
-
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.fod_productivity_factor_var }
-
-			# === Pollution Penalties ===
-			# Land Pollution
-			if = { limit = { has_state_flag = land_pollution_disturbed } multiply_variable = { baseValue = 0.95 } }
-			else_if = { limit = { has_state_flag = land_pollution_degraded } multiply_variable = { baseValue = 0.90 } }
-			else_if = { limit = { has_state_flag = land_pollution_severe } multiply_variable = { baseValue = 0.80 } }
-			else_if = { limit = { has_state_flag = land_pollution_catastrophic } multiply_variable = { baseValue = 0.65 } }
-			else_if = { limit = { has_state_flag = land_pollution_deadzone } multiply_variable = { baseValue = 0.40 } }
-			else = { }
-
-			# Water Pollution (apply if irrigated area)
-			if = { limit = { has_state_flag = water_pollution_disturbed } multiply_variable = { baseValue = 0.95 } }
-			else_if = { limit = { has_state_flag = water_pollution_degraded } multiply_variable = { baseValue = 0.90 } }
-			else_if = { limit = { has_state_flag = water_pollution_severe } multiply_variable = { baseValue = 0.80 } }
-			else_if = { limit = { has_state_flag = water_pollution_catastrophic } multiply_variable = { baseValue = 0.60 } }
-			else_if = { limit = { has_state_flag = water_pollution_deadzone } multiply_variable = { baseValue = 0.30 } }
-			else = { }
-
-			# Final Agricultural Income
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 5
-				value = baseValue
-			}
-
-
-			#Other resources
-			set_temp_variable = { baseValue = 0.5 }
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.rsc_productivity_factor_var }						
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 6
-				value = baseValue
-			}			
-
-			set_temp_variable = { baseValue = 2.5 }
-			multiply_temp_variable = { baseValue = productivity_factor_var }
-			multiply_temp_variable = { baseValue = PREV.doc_productivity_factor_var }						
-			add_to_array = {
-				array = THIS.Building_Profits
-				index = 7
-				value = baseValue
-			}						
-
-			#log = "Array: [?THIS.Building_Profits^0] [?THIS.Building_Profits^1] [?THIS.Building_Profits^2] [?THIS.Building_Profits^3] [?THIS.Building_Profits^4] [?THIS.Building_Profits^5] [?THIS.Building_Profits^6] at [THIS.GetID.GetName]"
-	
-}
-
 calculate_gross_factory_earnings = {
+		clear_array = THIS.Building_Profits
 		set_variable = { gross_factory_earnings = 0 }
 
 		#Civs
-		set_temp_variable = { civs_gross_factory_earnings = THIS.Building_Profits^0 }
+		set_temp_variable = { civs_gross_factory_earnings = 2 }
+		if = {
+			limit = {
+				has_free_market_bonus_max = yes
+			}
+			multiply_temp_variable = { civs_gross_factory_earnings = 1.75 }
+		}
+		if = {
+			limit = {
+				has_moderate_free_market_bonus = yes
+			}
+			multiply_temp_variable = { civs_gross_factory_earnings = 1.5 }
+		}
+		if = {
+			limit = {
+				has_socialist_free_market_bonus = yes
+			}
+			multiply_temp_variable = { civs_gross_factory_earnings = 1.25 }
+		}
+		multiply_temp_variable = { civs_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { civs_gross_factory_earnings = PREV.civ_productivity_factor_var }
 		multiply_temp_variable = { civs_gross_factory_earnings = THIS.buildings^0 }
 		add_to_variable = { gross_factory_earnings = civs_gross_factory_earnings }
 
 		add_to_variable = { PREV.civilian_sector = civs_gross_factory_earnings }
 		
 		#Mils + Dock
-		set_temp_variable = { mils_gross_factory_earnings = THIS.Building_Profits^1 }
+		set_temp_variable = { mils_gross_factory_earnings = 1.25 }
+		#multiply_temp_variable = { mils_gross_factory_earnings = arms_factory_tech }
+		multiply_temp_variable = { mils_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { mils_gross_factory_earnings = PREV.mil_productivity_factor_var }
 		multiply_temp_variable = { mils_gross_factory_earnings = THIS.buildings^1 }
 		add_to_variable = { gross_factory_earnings = mils_gross_factory_earnings }
 
 		add_to_variable = { PREV.mic_sector = mils_gross_factory_earnings }
 
 
-		set_temp_variable = { docks_gross_factory_earnings = THIS.Building_Profits^7 }
+		set_temp_variable = { docks_gross_factory_earnings = 2.5 }
+		multiply_temp_variable = { docks_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { docks_gross_factory_earnings = PREV.doc_productivity_factor_var }
 		multiply_temp_variable = { docks_gross_factory_earnings = THIS.buildings^2 }
 		add_to_variable = { gross_factory_earnings = docks_gross_factory_earnings }
 
@@ -1348,7 +1162,27 @@ calculate_gross_factory_earnings = {
 
 		#Office Parks
 
-		set_temp_variable = { ofpar_gross_factory_earnings = THIS.Building_Profits^2 }
+		set_temp_variable = { ofpar_gross_factory_earnings = 7 }
+		if = {
+			limit = {
+				has_free_market_bonus_max = yes
+			}
+			multiply_temp_variable = { ofpar_gross_factory_earnings = 1.9 }
+		}
+		if = {
+			limit = {
+				has_moderate_free_market_bonus = yes
+			}
+			multiply_temp_variable = { ofpar_gross_factory_earnings = 1.65 }
+		}
+		if = {
+			limit = {
+				has_socialist_free_market_bonus = yes
+			}
+			multiply_temp_variable = { ofpar_gross_factory_earnings = 1.35 }
+		}
+		multiply_temp_variable = { ofpar_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { ofpar_gross_factory_earnings = PREV.ofp_productivity_factor_var }
 		multiply_temp_variable = { ofpar_gross_factory_earnings = THIS.buildings^3 }
 		add_to_variable = { gross_factory_earnings = ofpar_gross_factory_earnings }
 
@@ -1356,7 +1190,10 @@ calculate_gross_factory_earnings = {
 
 		#Steel Factory
 
-		set_temp_variable = { steel_gross_factory_earnings = THIS.Building_Profits^3 }
+		set_temp_variable = { steel_gross_factory_earnings = 1.75 }
+		#multiply_temp_variable = { steel_gross_factory_earnings = steel_works_tech }
+		multiply_temp_variable = { steel_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { steel_gross_factory_earnings = PREV.stl_productivity_factor_var }
 		multiply_temp_variable = { steel_gross_factory_earnings = THIS.buildings^5 }
 		add_to_variable = { gross_factory_earnings = steel_gross_factory_earnings }
 
@@ -1364,7 +1201,10 @@ calculate_gross_factory_earnings = {
 
 		#Tungsten Factory
 
-		set_temp_variable = { tungs_gross_factory_earnings = THIS.Building_Profits^4 }
+		set_temp_variable = { tungs_gross_factory_earnings = 1.75 }
+		#multiply_temp_variable = { tungs_gross_factory_earnings = tungsten_factory_tech }
+		multiply_temp_variable = { tungs_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { tungs_gross_factory_earnings = PREV.tng_productivity_factor_var }
 		multiply_temp_variable = { tungs_gross_factory_earnings = THIS.buildings^6 }		
 		add_to_variable = { gross_factory_earnings = tungs_gross_factory_earnings }
 
@@ -1372,7 +1212,9 @@ calculate_gross_factory_earnings = {
 
 		#Resources
 
-		set_temp_variable = { resou_gross_factory_earnings = THIS.Building_Profits^6 }
+		set_temp_variable = { resou_gross_factory_earnings = 0.5 }
+		multiply_temp_variable = { resou_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { resou_gross_factory_earnings = PREV.rsc_productivity_factor_var }
 		multiply_temp_variable = { resou_gross_factory_earnings = THIS.resources^2 }			
 		add_to_variable = { gross_factory_earnings = resou_gross_factory_earnings }
 
@@ -1380,7 +1222,84 @@ calculate_gross_factory_earnings = {
 
 		#Food
 
-		set_temp_variable = { food_gross_factory_earnings = THIS.Building_Profits^5 }
+		set_temp_variable = { food_gross_factory_earnings = 0.5 }
+		set_temp_variable = { cropBoost = 0 }
+
+		# Delta - Rice, Sugar, Jute
+		if = {
+			limit = { has_state_flag = delta }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
+		}
+		# Tropical - Coffee, Cocoa, Bananas, Sugar
+		else_if = {
+			limit = { has_state_flag = tropical }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Coffee }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
+		}
+		# Subtropical Monsoon - Rice, Spices
+		else_if = {
+			limit = { has_state_flag = subtropical_monsoon }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Spice }
+		}
+		# Savanna - Cotton, Groundnuts, Millet
+		else_if = {
+			limit = { has_state_flag = savanna }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
+		}
+		# Lush Desert
+		else_if = {
+			limit = { has_state_flag = desertlush }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
+		}
+		# Mediterranean - Olives, Citrus, Grapes
+		else_if = {
+			limit = { has_state_flag = mediterranean }
+			add_to_temp_variable = { cropBoost = global.CashCrop_CitrusGrape }
+		}
+		else_if = {
+			limit = {
+				has_state_flag = steppe
+			}
+			add_to_temp_variable = { cropBoost = global.CashCrop_Cotton }
+			multiply_temp_variable = { food_gross_factory_earnings = 1.05 }
+		}
+		# Wetlands - Water-Intensive Rice
+		else_if = {
+			limit = { has_state_flag = wetlands }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Rice }
+			add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
+		}
+		else = { }
+		if = {
+			limit = {
+				OR = {
+					check_variable = { economic_x_axis = 26 }
+					check_variable = { economic_x_axis = 24 }
+				}
+			}
+			multiply_temp_variable = { cropBoost = 1.5 }
+		}
+		add_to_temp_variable = { food_gross_factory_earnings = cropBoost }
+
+		multiply_temp_variable = { food_gross_factory_earnings = productivity_factor_var }
+		multiply_temp_variable = { food_gross_factory_earnings = PREV.fod_productivity_factor_var }
+
+		if = { limit = { has_state_flag = land_pollution_disturbed } multiply_temp_variable = { food_gross_factory_earnings = 0.95 } }
+		else_if = { limit = { has_state_flag = land_pollution_degraded } multiply_temp_variable = { food_gross_factory_earnings = 0.90 } }
+		else_if = { limit = { has_state_flag = land_pollution_severe } multiply_temp_variable = { food_gross_factory_earnings = 0.80 } }
+		else_if = { limit = { has_state_flag = land_pollution_catastrophic } multiply_temp_variable = { food_gross_factory_earnings = 0.65 } }
+		else_if = { limit = { has_state_flag = land_pollution_deadzone } multiply_temp_variable = { food_gross_factory_earnings = 0.40 } }
+		else = { }
+
+		if = { limit = { has_state_flag = water_pollution_disturbed } multiply_temp_variable = { food_gross_factory_earnings = 0.95 } }
+		else_if = { limit = { has_state_flag = water_pollution_degraded } multiply_temp_variable = { food_gross_factory_earnings = 0.90 } }
+		else_if = { limit = { has_state_flag = water_pollution_severe } multiply_temp_variable = { food_gross_factory_earnings = 0.80 } }
+		else_if = { limit = { has_state_flag = water_pollution_catastrophic } multiply_temp_variable = { food_gross_factory_earnings = 0.60 } }
+		else_if = { limit = { has_state_flag = water_pollution_deadzone } multiply_temp_variable = { food_gross_factory_earnings = 0.30 } }
+		else = { }
+
 		multiply_temp_variable = { food_gross_factory_earnings = THIS.resources^7 }			
 		add_to_variable = { gross_factory_earnings = food_gross_factory_earnings }
 
@@ -1561,8 +1480,6 @@ gdp_calculation_effect = {
 		list_worker_type = yes
 
 		calculate_national_productivity_factor_var = yes
-		calculate_factory_gross_profits = yes
-
 		calculate_gross_factory_earnings = yes
 		calculate_net_poptype_earnings = yes
 		calculate_take_taxes_from_people = yes
