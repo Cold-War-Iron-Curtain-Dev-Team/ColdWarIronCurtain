@@ -1,4 +1,5 @@
 scripted_gui = {
+
 	Loan_Confirmation_Window = {
 		context_type = player_context
 
@@ -2613,6 +2614,58 @@ scripted_gui = {
 				entry_container = current_debts_listing_entry
 			}
         }
+		triggers = {
+			pay_off_loan_click_enabled = {
+				check_variable = {
+					currentMoney > currentDebtTotalsArray^v
+				}
+			}
+		}
+		effects = {
+			pay_off_loan_click = {
+				set_variable = {
+					ROOT.debtTotalsArray^i = 0
+				}
+				set_variable = {
+					ROOT.debtPaymentArray^i = 0
+				}
+				set_variable = {
+					ROOT.debtOwnerArray^i = 0
+				}
+				set_variable = {
+					ROOT.debtOwnerDomesticStatusArray^i = 0
+				}
+				set_variable = {
+					ROOT.currentDebtOwnerArray^i = 0
+				}
+				subtract_from_variable = {
+					ROOT.currentMoney = currentDebtTotalsArray^v
+				}
+				subtract_from_variable = {
+					ROOT.currentDebt = currentDebtTotalsArray^v
+				}
+                clear_array = currentDebtTotalsArray
+                clear_array = currentDebtPaymentArray
+                clear_array = currentDebtOwnerArray
+                clear_array = currentDebtInterestArray
+                for_each_loop = {
+                    array = debtOwnerArray
+                    index = i
+                    if = {
+                        limit = {
+                            check_variable = {
+                                debtTotalsArray^i > 0
+                            }
+                        }
+                        add_to_array = { currentDebtTotalsArray = debtTotalsArray^i }
+                        add_to_array = { currentDebtPaymentArray = debtPaymentArray^i }
+                        add_to_array = { currentDebtOwnerArray = debtOwnerArray^i }
+						add_to_array = { currentDebtInterestArray = debtInterestArray^i }
+                    }
+                }
+
+			}
+		}
     }
 }
 scripted_gui = {
