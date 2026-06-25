@@ -511,42 +511,18 @@ calculate_employable_population = {
 }
 
 calculate_theoretical_population = {
-		set_variable = { theoretical_pop_sum = 0 }
-
-		#Civs
-		set_temp_variable = { theoretical_pop_sum_civs = THIS.buildings^0 }
-		multiply_temp_variable = { theoretical_pop_sum_civs = THIS.State_Employment^0 }
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_civs }
-
-		#Mils
-		set_temp_variable = { theoretical_pop_sum_mils = THIS.buildings^1 }
-		multiply_temp_variable = { theoretical_pop_sum_mils = THIS.State_Employment^2 }
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_mils }
-
-		#Docks
-		set_temp_variable = { theoretical_pop_sum_docks = THIS.buildings^2 }
-		multiply_temp_variable = { theoretical_pop_sum_docks = THIS.State_Employment^1 }
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_docks }
-
-		#Offices
-		set_temp_variable = { theoretical_pop_sum_offices = THIS.buildings^3 }
-		multiply_temp_variable = { theoretical_pop_sum_offices = THIS.State_Employment^2 }		
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_offices }
-
-		#Steel
-		set_temp_variable = { theoretical_pop_sum_steelfac = THIS.buildings^5 }
-		multiply_temp_variable = { theoretical_pop_sum_steelfac = THIS.State_Employment^3 }		
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_steelfac }
-
-		#Tungsten
-		set_temp_variable = { theoretical_pop_sum_tungstenfac = THIS.buildings^6 }
-		multiply_temp_variable = { theoretical_pop_sum_tungstenfac = THIS.State_Employment^4 }		
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_tungstenfac }
-
-		#Resources
-		set_temp_variable = { theoretical_pop_sum_resources = THIS.resources^7 }
-		multiply_temp_variable = { theoretical_pop_sum_resources = THIS.State_Employment^4 }		
-		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_resources }
+		set_variable = {
+			theoretical_pop_sum = {
+				value = THIS.buildings^0
+				multiply = THIS.State_Employment^0
+				add = { value = THIS.buildings^1 multiply = THIS.State_Employment^2 }
+				add = { value = THIS.buildings^2 multiply = THIS.State_Employment^1 }
+				add = { value = THIS.buildings^3 multiply = THIS.State_Employment^2 }
+				add = { value = THIS.buildings^5 multiply = THIS.State_Employment^3 }
+				add = { value = THIS.buildings^6 multiply = THIS.State_Employment^4 }
+				add = { value = THIS.resources^7 multiply = THIS.State_Employment^4 }
+			}
+		}
 
 		# ^- Labourer Pops only
 
@@ -560,14 +536,22 @@ calculate_theoretical_population = {
 
 		set_variable = { Test_Farmer_Value_Local = theoretical_pop_sum_food }
 
-		set_variable = { farmer_y_axis_shift = PREV.economic_y_axis }
-		subtract_from_variable = { farmer_y_axis_shift = 18 }
-		multiply_variable = { farmer_y_axis_shift = -0.1 }
-		add_to_variable = { farmer_y_axis_shift = 0.5 }
+		set_variable = {
+			farmer_y_axis_shift = {
+				value = PREV.economic_y_axis
+				subtract = 18
+				multiply = -0.1
+				add = 0.5
+			}
+		}
 
-		multiply_temp_variable = { theoretical_pop_sum_food = farmer_y_axis_shift }
-
-		multiply_temp_variable = { theoretical_pop_sum_food = THIS.State_Employment^5 }	
+		set_temp_variable = {
+			theoretical_pop_sum_food = {
+				value = theoretical_pop_sum_food
+				multiply = farmer_y_axis_shift
+				multiply = THIS.State_Employment^5
+			}
+		}
 		add_to_variable = { theoretical_pop_sum = theoretical_pop_sum_food }
 
 		set_variable = { theoretical_farmer_sum = theoretical_pop_sum_food }
@@ -684,156 +668,145 @@ calculate_conversion_labourer_worker = {
 }
 
 calculate_conversion_lwa_capitalist_and_bureaucrat = {
-		set_temp_variable = { economic_x_axis_minus_1 = PREV.economic_x_axis }
-		add_to_temp_variable = { economic_x_axis_minus_1 = -1 }
-		if = {
-			limit = { check_variable = { economic_x_axis_minus_1 < 0 } }
-			add_to_temp_variable = { economic_x_axis_minus_1 = 1 }
+	set_temp_variable = { economic_x_axis_minus_1 = { value = PREV.economic_x_axis subtract = 1 max = 0 } }
+
+	set_temp_variable = {
+		capitalist_office_park_adjustment = {
+			value = 1
+			add = { value = building_level@office_park multiply = 0.33 }
 		}
-		set_temp_variable = { capitalist_office_park_adjustment = 1 }
-		set_temp_variable = { capitalist_office_park_adjustment_modifier = building_level@office_park }
-		multiply_temp_variable = { capitalist_office_park_adjustment_modifier = 0.33 }
-		add_to_temp_variable = { capitalist_office_park_adjustment = capitalist_office_park_adjustment_modifier }
-		set_variable = { theoretical_capitalist_sum = 0 }	
+	}
 
-		set_temp_variable = { worker_to_capitalist_sum = theoretical_worker_sum }
-		multiply_temp_variable = { worker_to_capitalist_sum = 0.002 }		
-		multiply_temp_variable = { worker_to_capitalist_sum = 0.5 }	
-		multiply_temp_variable = { worker_to_capitalist_sum = capitalist_office_park_adjustment}	
-		multiply_temp_variable = { worker_to_capitalist_sum = economic_x_axis_minus_1 }		
-
-		subtract_from_variable = { theoretical_worker_sum = worker_to_capitalist_sum }
-		add_to_variable = { theoretical_capitalist_sum = worker_to_capitalist_sum }
-
-		set_temp_variable = { artisan_to_capitalist_sum = theoretical_artisan_sum }
-		multiply_temp_variable = { artisan_to_capitalist_sum = 0.003 }		
-		multiply_temp_variable = { artisan_to_capitalist_sum = 0.5 }		
-		multiply_temp_variable = { worker_to_capitalist_sum = capitalist_office_park_adjustment}
-		multiply_temp_variable = { artisan_to_capitalist_sum = economic_x_axis_minus_1 }		
-
-		subtract_from_variable = { theoretical_artisan_sum = artisan_to_capitalist_sum }
-		add_to_variable = { theoretical_capitalist_sum = artisan_to_capitalist_sum }
-
-		set_temp_variable = { labourer_to_capitalist_sum = theoretical_labourer_sum }
-		multiply_temp_variable = { labourer_to_capitalist_sum = 0.001 }
-		multiply_temp_variable = { labourer_to_capitalist_sum = 0.5 }	
-		multiply_temp_variable = { worker_to_capitalist_sum = capitalist_office_park_adjustment}	
-		multiply_temp_variable = { labourer_to_capitalist_sum = economic_x_axis_minus_1 }		
-
-		subtract_from_variable = { theoretical_labourer_sum = labourer_to_capitalist_sum }
-		add_to_variable = { theoretical_capitalist_sum = labourer_to_capitalist_sum }
-
-		#log = "[?theoretical_capitalist_sum] "
-
-	
-	#Rentier Added
-		set_temp_variable = { economic_x_axis_minus_1 = PREV.economic_x_axis }
-		add_to_temp_variable = { economic_x_axis_minus_1 = -1 }
-		if = {
-			limit = { check_variable = { economic_x_axis_minus_1 < 0 } }
-			add_to_temp_variable = { economic_x_axis_minus_1 = 1 }
+	set_temp_variable = {
+		worker_to_capitalist_sum = {
+			value = theoretical_worker_sum
+			multiply = 0.001
+			multiply = capitalist_office_park_adjustment
+			multiply = economic_x_axis_minus_1
 		}
-		set_variable = { capitalist_test = economic_x_axis_minus_1 }
-		set_temp_variable = { rentier_office_park_adjustment = 1 }
-		set_temp_variable = { rentier_office_park_adjustment_modifier = building_level@office_park }
-		multiply_temp_variable = { rentier_office_park_adjustment_modifier = 0.75 }
-		add_to_temp_variable = { rentier_office_park_adjustment = rentier_office_park_adjustment_modifier }
+	}
+	set_temp_variable = {
+		artisan_to_capitalist_sum = {
+			value = theoretical_artisan_sum
+			multiply = 0.0015
+			multiply = capitalist_office_park_adjustment
+			multiply = economic_x_axis_minus_1
+		}
+	}
+	set_temp_variable = {
+		labourer_to_capitalist_sum = {
+			value = theoretical_labourer_sum
+			multiply = 0.0005
+			multiply = capitalist_office_park_adjustment
+			multiply = economic_x_axis_minus_1
+		}
+	}
+	set_variable = {
+		theoretical_capitalist_sum = {
+			value = worker_to_capitalist_sum
+			add = artisan_to_capitalist_sum
+			add = labourer_to_capitalist_sum
+		}
+	}
+	subtract_from_variable = { theoretical_worker_sum = worker_to_capitalist_sum }
+	subtract_from_variable = { theoretical_artisan_sum = artisan_to_capitalist_sum }
+	subtract_from_variable = { theoretical_labourer_sum = labourer_to_capitalist_sum }
 
-		set_temp_variable = { rentier_office_park_adjustment_modifier_two = building_level@agri_industrial_complex }
-		multiply_temp_variable = { rentier_office_park_adjustment_modifier_two = 0.33 }
-		add_to_temp_variable = { rentier_office_park_adjustment = rentier_office_park_adjustment_modifier }
+	set_variable = { capitalist_test = economic_x_axis_minus_1 }
+	set_temp_variable = {
+		rentier_office_park_adjustment = {
+			value = 1
+			add = { value = building_level@office_park multiply = 0.75 }
+			add = { value = building_level@agri_industrial_complex multiply = 0.33 }
+			add = { value = tourism_infrastructure multiply = 0.33 }
+		}
+	}
 
-		set_temp_variable = { rentier_office_park_adjustment_modifier_three = tourism_infrastructure }
-		multiply_temp_variable = { rentier_office_park_adjustment_modifier_three = 0.33 }
-		add_to_temp_variable = { rentier_office_park_adjustment = rentier_office_park_adjustment_modifier }
+	set_temp_variable = {
+		worker_to_rentier_sum = {
+			value = theoretical_worker_sum
+			multiply = 0.0015
+			multiply = rentier_office_park_adjustment
+			multiply = economic_x_axis_minus_1
+		}
+	}
+	set_temp_variable = {
+		artisan_to_rentier_sum = {
+			value = theoretical_artisan_sum
+			multiply = 0.0025
+			multiply = rentier_office_park_adjustment
+			multiply = economic_x_axis_minus_1
+		}
+	}
+	set_temp_variable = {
+		labourer_to_rentier_sum = {
+			value = theoretical_labourer_sum
+			multiply = 0.0005
+			multiply = rentier_office_park_adjustment
+			multiply = economic_x_axis_minus_1
+		}
+	}
+	set_variable = {
+		theoretical_rentier_sum = {
+			value = worker_to_rentier_sum
+			add = artisan_to_rentier_sum
+			add = labourer_to_rentier_sum
+		}
+	}
+	subtract_from_variable = { theoretical_worker_sum = worker_to_rentier_sum }
+	subtract_from_variable = { theoretical_artisan_sum = artisan_to_rentier_sum }
+	subtract_from_variable = { theoretical_labourer_sum = labourer_to_rentier_sum }
 
-		set_variable = { theoretical_rentier_sum = 0 }	
+	set_temp_variable = {
+		bureaucrat_factor = {
+			value = PREV.economic_x_axis
+			subtract = 18
+			multiply = -0.1
+			add = 1.75
+		}
+	}
+	set_variable = { bureaucrat_factor_local_pre_building = bureaucrat_factor }
+	set_temp_variable = {
+		bureaucrat_factor = {
+			value = bureaucrat_factor
+			add = { value = building_level@office_park multiply = 0.67 }
+			add = { value = building_level@industrial_complex multiply = 0.2 }
+			add = { value = building_level@arms_factory multiply = 0.3 }
+			add = { value = building_level@dockyard multiply = 0.3 }
+		}
+	}
 
-		set_temp_variable = { worker_to_rentier_sum = theoretical_worker_sum }
-		multiply_temp_variable = { worker_to_rentier_sum = 0.003 }		
-		multiply_temp_variable = { worker_to_rentier_sum = 0.5 }	
-		multiply_temp_variable = { worker_to_rentier_sum = rentier_office_park_adjustment}	
-		multiply_temp_variable = { worker_to_rentier_sum = economic_x_axis_minus_1 }		
-
-		subtract_from_variable = { theoretical_worker_sum = worker_to_rentier_sum }
-		add_to_variable = { theoretical_rentier_sum = worker_to_rentier_sum }
-
-		set_temp_variable = { artisan_to_rentier_sum = theoretical_artisan_sum }
-		multiply_temp_variable = { artisan_to_rentier_sum = 0.005 }		
-		multiply_temp_variable = { artisan_to_rentier_sum = 0.5 }		
-		multiply_temp_variable = { worker_to_rentier_sum = rentier_office_park_adjustment}
-		multiply_temp_variable = { artisan_to_rentier_sum = economic_x_axis_minus_1 }		
-
-		subtract_from_variable = { theoretical_artisan_sum = artisan_to_rentier_sum }
-		add_to_variable = { theoretical_rentier_sum = artisan_to_rentier_sum }
-
-		set_temp_variable = { labourer_to_rentier_sum = theoretical_labourer_sum }
-		multiply_temp_variable = { labourer_to_rentier_sum = 0.001 }
-		multiply_temp_variable = { labourer_to_rentier_sum = 0.5 }	
-		multiply_temp_variable = { worker_to_rentier_sum = rentier_office_park_adjustment}	
-		multiply_temp_variable = { labourer_to_rentier_sum = economic_x_axis_minus_1 }		
-
-		subtract_from_variable = { theoretical_labourer_sum = labourer_to_rentier_sum }
-		add_to_variable = { theoretical_rentier_sum = labourer_to_rentier_sum }
-
-		#log = "[?theoretical_rentier_sum] "
-
-	
-		set_temp_variable = { bureaucrat_factor_reduction = PREV.economic_x_axis }
-		subtract_from_temp_variable = { bureaucrat_factor_reduction = 18 }
-		multiply_temp_variable = { bureaucrat_factor_reduction = -0.1 }
-		add_to_temp_variable = { bureaucrat_factor_reduction = 0.75 }
-
-		set_temp_variable = { bureaucrat_factor = 1 }
-		add_to_temp_variable = { bureaucrat_factor = bureaucrat_factor_reduction }
-
-		set_variable = { bureaucrat_factor_local_pre_building = bureaucrat_factor }
-
-		#For Management of Office Parks, Factories, Dockyards and MIC
-		set_temp_variable = { bureaucrat_building_adjustment = building_level@office_park }
-		multiply_temp_variable = { bureaucrat_building_adjustment_modifier = 0.67 }
-		add_to_temp_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
-
-		set_temp_variable = { bureaucrat_building_adjustment = building_level@industrial_complex }
-		multiply_temp_variable = { bureaucrat_building_adjustment_modifier = 0.2 }
-		add_to_temp_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
-
-		set_temp_variable = { bureaucrat_building_adjustment = building_level@arms_factory }
-		multiply_temp_variable = { bureaucrat_building_adjustment_modifier = 0.3 }
-		add_to_temp_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
-
-		set_temp_variable = { bureaucrat_building_adjustment = building_level@dockyard }
-		multiply_temp_variable = { bureaucrat_building_adjustment_modifier = 0.3 }
-		add_to_temp_variable = { bureaucrat_factor = bureaucrat_building_adjustment_modifier }
-		#End
-
-		set_variable = { theoretical_bureaucrat_sum = 0 }	
-
-		set_temp_variable = { worker_to_bureaucrat_sum = theoretical_worker_sum }
-		multiply_temp_variable = { worker_to_bureaucrat_sum = 0.05 }		
-		multiply_temp_variable = { worker_to_bureaucrat_sum = bureaucrat_factor }		
-
-
-		subtract_from_variable = { theoretical_worker_sum = worker_to_bureaucrat_sum }
-		add_to_variable = { theoretical_bureaucrat_sum = worker_to_bureaucrat_sum }
-
-		set_temp_variable = { artisan_to_bureaucrat_sum = theoretical_artisan_sum }
-		multiply_temp_variable = { artisan_to_bureaucrat_sum = 0.025 }	
-		multiply_temp_variable = { artisan_to_bureaucrat_sum = bureaucrat_factor }		
-
-
-		subtract_from_variable = { theoretical_artisan_sum = artisan_to_bureaucrat_sum }
-		add_to_variable = { theoretical_bureaucrat_sum = artisan_to_bureaucrat_sum }
-
-		set_temp_variable = { labourer_to_bureaucrat_sum = theoretical_labourer_sum }
-		multiply_temp_variable = { labourer_to_bureaucrat_sum = 0.025 }
-		multiply_temp_variable = { labourer_to_bureaucrat_sum = bureaucrat_factor }		
-
-
-		subtract_from_variable = { theoretical_labourer_sum = labourer_to_bureaucrat_sum }
-		add_to_variable = { theoretical_bureaucrat_sum = labourer_to_bureaucrat_sum }
-
-		#log = "[?PREV.economic_x_axis] "
+	set_temp_variable = {
+		worker_to_bureaucrat_sum = {
+			value = theoretical_worker_sum
+			multiply = 0.05
+			multiply = bureaucrat_factor
+		}
+	}
+	set_temp_variable = {
+		artisan_to_bureaucrat_sum = {
+			value = theoretical_artisan_sum
+			multiply = 0.025
+			multiply = bureaucrat_factor
+		}
+	}
+	set_temp_variable = {
+		labourer_to_bureaucrat_sum = {
+			value = theoretical_labourer_sum
+			multiply = 0.025
+			multiply = bureaucrat_factor
+		}
+	}
+	set_variable = {
+		theoretical_bureaucrat_sum = {
+			value = worker_to_bureaucrat_sum
+			add = artisan_to_bureaucrat_sum
+			add = labourer_to_bureaucrat_sum
+		}
+	}
+	subtract_from_variable = { theoretical_worker_sum = worker_to_bureaucrat_sum }
+	subtract_from_variable = { theoretical_artisan_sum = artisan_to_bureaucrat_sum }
+	subtract_from_variable = { theoretical_labourer_sum = labourer_to_bureaucrat_sum }
 	
 }
 
@@ -892,45 +865,20 @@ employing_effect = {
 ###########################################################################################################
 
 calculate_national_productivity_factor_var = {
-		set_variable = { productivity_factor_var = 0 }
-
-		#Takes stuff from Literacy, then State Developement and multiplies afterwards with Production Efficiency calculate_theoretical_population
-
-		add_to_variable = { productivity_factor_var = literate_educated }
-
-		set_temp_variable = { primary_factor = primary_educated }
-		multiply_temp_variable = { primary_factor = 1.25 }
-
-		add_to_variable = { productivity_factor_var = primary_factor}
-
-		set_temp_variable = { high_school_factor = high_school_educated }
-		multiply_temp_variable = { high_school_factor = 1.75 }
-
-		add_to_variable = { productivity_factor_var = high_school_factor}
-
-		set_temp_variable = { college_factor = college_educated }
-		multiply_temp_variable = { college_factor = 3.5 }		
-
-		add_to_variable = { productivity_factor_var = college_factor}
-
-		divide_variable = { productivity_factor_var = 100 }
-		multiply_variable = { productivity_factor_var = state_development }
-
-		add_to_variable = { productivity_factor_var = modifier@productivity_factor }
-
-		# multiply_variable = { productivity_factor_var = national_productivity_factor_var }
-
-		multiply_variable = { productivity_factor_var = overemployment_factor }
-
-		#Also check infrastructure
-
-		set_temp_variable = { modifier_infra_factor = 0.05 }
-		multiply_temp_variable = { modifier_infra_factor = infrastructure_level }
-		add_to_temp_variable = { modifier_infra_factor = 1 }
-		
-		multiply_variable = { productivity_factor_var = modifier_infra_factor }
-
-		multiply_variable = { productivity_factor_var = PREV.electricity_debuff_factor }		
+		set_variable = {
+			productivity_factor_var = {
+				value = literate_educated
+				add = { value = primary_educated multiply = 1.25 }
+				add = { value = high_school_educated multiply = 1.75 }
+				add = { value = college_educated multiply = 3.5 }
+				divide = 100
+				multiply = state_development
+				add = modifier@productivity_factor
+				multiply = overemployment_factor
+				multiply = { value = infrastructure_level multiply = 0.05 add = 1 }
+				multiply = PREV.electricity_debuff_factor
+			}
+		}
 		# log = "[?THIS.productivity_factor_var] at [THIS.GetId.GetName]"
 
 		#Black Market and Inflation
@@ -945,13 +893,14 @@ calculate_national_productivity_factor_var = {
 		if = { limit = { NOT = { has_variable = CWIC_productivity_mult } } set_variable = { CWIC_productivity_mult = 0 } }
 		if = { limit = { NOT = { has_variable = CWIC_bm_productivity_penalty } } set_variable = { CWIC_bm_productivity_penalty = 0 } }
 
-		set_temp_variable = { cwic_prod_final_mult = 1 }
-		add_to_temp_variable = { cwic_prod_final_mult = CWIC_productivity_mult }
-		subtract_from_temp_variable = { cwic_prod_final_mult = CWIC_bm_productivity_penalty }
-
-		# Clamp safety (never negative or absurd)
-		if = { limit = { check_variable = { cwic_prod_final_mult < 0.10 } } set_temp_variable = { cwic_prod_final_mult = 0.10 } }
-		if = { limit = { check_variable = { cwic_prod_final_mult > 1.10 } } set_temp_variable = { cwic_prod_final_mult = 1.10 } }
+		set_temp_variable = {
+			cwic_prod_final_mult = {
+				value = 1
+				add = CWIC_productivity_mult
+				subtract = CWIC_bm_productivity_penalty
+				clamp = { min = 0.10 max = 1.10 }
+			}
+		}
 
 		multiply_variable = { productivity_factor_var = cwic_prod_final_mult }
 
@@ -1461,31 +1410,18 @@ calculate_take_taxes_from_people = {
 	# -------------------------------------------------------
 	# Personal income tax (mass-based, per class)
 	# -------------------------------------------------------
-	set_variable = { state_personal_income_tax = 0 }
-
-	# Lower class
-	set_temp_variable = { lower_tax = total_lower_class_pay }
-	multiply_temp_variable = { lower_tax = owner:pop_lowerclass_tax_rate }
-	divide_temp_variable = { lower_tax = 12 }
-	add_to_variable = { state_personal_income_tax = lower_tax }
-
-	# Middle class
-	set_temp_variable = { middle_tax = total_middle_class_pay }
-	multiply_temp_variable = { middle_tax = owner:pop_middleclass_tax_rate }
-	divide_temp_variable = { middle_tax = 12 }
-	add_to_variable = { state_personal_income_tax = middle_tax }
-
-	# Upper-middle class (bureaucrats + professionals): tax them like upper class by default
-	set_temp_variable = { upper_middle_tax = total_upper_middle_class_pay }
-	multiply_temp_variable = { upper_middle_tax = owner:pop_upperclass_tax_rate }
-	divide_temp_variable = { upper_middle_tax = 12 }
-	add_to_variable = { state_personal_income_tax = upper_middle_tax }
-
-	# Upper class (elites)
-	set_temp_variable = { upper_tax = total_upper_class_pay }
-	multiply_temp_variable = { upper_tax = owner:pop_upperclass_tax_rate }
-	divide_temp_variable = { upper_tax = 12 }
-	add_to_variable = { state_personal_income_tax = upper_tax }
+	set_temp_variable = { lower_tax = { value = total_lower_class_pay multiply = owner:pop_lowerclass_tax_rate divide = 12 } }
+	set_temp_variable = { middle_tax = { value = total_middle_class_pay multiply = owner:pop_middleclass_tax_rate divide = 12 } }
+	set_temp_variable = { upper_middle_tax = { value = total_upper_middle_class_pay multiply = owner:pop_upperclass_tax_rate divide = 12 } }
+	set_temp_variable = { upper_tax = { value = total_upper_class_pay multiply = owner:pop_upperclass_tax_rate divide = 12 } }
+	set_variable = {
+		state_personal_income_tax = {
+			value = lower_tax
+			add = middle_tax
+			add = upper_middle_tax
+			add = upper_tax
+		}
+	}
 
 	# Add to national totals (country scope = PREV in your every_owned_state loop)
 	add_to_variable = { PREV.IncomeTotal = state_personal_income_tax }
@@ -1495,25 +1431,17 @@ calculate_take_taxes_from_people = {
 	# -------------------------------------------------------
 	# Net pay (optional, for GUI/national income contribution)
 	# -------------------------------------------------------
-	set_variable = { total_lower_class_pay_net = total_lower_class_pay }
-	subtract_from_variable = { total_lower_class_pay_net = lower_tax }
-
-	set_variable = { total_middle_class_pay_net = total_middle_class_pay }
-	subtract_from_variable = { total_middle_class_pay_net = middle_tax }
-
-	set_variable = { total_upper_middle_class_pay_net = total_upper_middle_class_pay }
-	subtract_from_variable = { total_upper_middle_class_pay_net = upper_middle_tax }
-
-	set_variable = { total_upper_class_pay_net = total_upper_class_pay }
-	subtract_from_variable = { total_upper_class_pay_net = upper_tax }
+	set_variable = { total_lower_class_pay_net = { value = total_lower_class_pay subtract = lower_tax } }
+	set_variable = { total_middle_class_pay_net = { value = total_middle_class_pay subtract = middle_tax } }
+	set_variable = { total_upper_middle_class_pay_net = { value = total_upper_middle_class_pay subtract = upper_middle_tax } }
+	set_variable = { total_upper_class_pay_net = { value = total_upper_class_pay subtract = upper_tax } }
 
 	calculate_state_hdi = yes
 
 
 	if = {
 		limit = { check_variable = { net_factory_earnings > 0 }}
-		set_temp_variable = { net_factory_taxed_earnings = net_factory_earnings }
-		multiply_temp_variable = { net_factory_taxed_earnings = owner:pop_corporateclass_tax_rate }
+		set_temp_variable = { net_factory_taxed_earnings = { value = net_factory_earnings multiply = owner:pop_corporateclass_tax_rate } }
 		add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
 		add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
 	}
@@ -2629,198 +2557,82 @@ calculate_state_hdi = {
     else = { }
 	set_variable = { state_life_expectancy_test_1 = state_life_expectancy }
     #x Healthcare Spending Weight = Life Expectancy
-    set_variable = {
-        healthcare_life_expectnacy_adj = ROOT.modifier@healthcare_spending_modifier
-    }
-    subtract_from_variable = {
-        healthcare_life_expectnacy_adj = 0.5
-    }
-    multiply_variable = {
-        healthcare_life_expectnacy_adj = 5
-    }
+    set_variable = { healthcare_life_expectnacy_adj = { value = ROOT.modifier@healthcare_spending_modifier subtract = 0.5 multiply = 5 } }
 	#Educated Bonus
-	set_variable = { College_Edu_LEI_Bonus = college_educated }
-	multiply_variable = { College_Edu_LEI_Bonus = 0.01 }
-	multiply_variable = { College_Edu_LEI_Bonus = 10 }
+	set_variable = { College_Edu_LEI_Bonus = { value = college_educated multiply = 0.1 } }
 	add_to_variable = { state_life_expectancy = College_Edu_LEI_Bonus }
 
-	set_variable = { Secondary_Edu_LEI_Bonus = high_school_educated }
-	set_variable = { Secondary_Edu_LEI_Bonus = college_educated }
-	multiply_variable = { Secondary_Edu_LEI_Bonus = 0.01 }
-	multiply_variable = { Secondary_Edu_LEI_Bonus = 5 }
+	set_variable = { Secondary_Edu_LEI_Bonus = { value = college_educated multiply = 0.05 } }
 	add_to_variable = { state_life_expectancy = Secondary_Edu_LEI_Bonus }
 	biome_life_expectancy_adjustment = yes
 
     add_to_variable = { state_life_expectancy = healthcare_life_expectnacy_adj }
-    set_variable = { HDI_LEI = state_life_expectancy }
-	subtract_from_variable = { HDI_LEI = 20 }
-	divide_variable = { HDI_LEI = 65 }
+    set_variable = { HDI_LEI = { value = state_life_expectancy subtract = 20 divide = 65 } }
 
 	#Education
 	education_hdi_calc = yes
 
 	#Income
-	set_variable = { state_gni_total = pop_lowerclass_gross_wage }
-	add_to_variable = { state_gni_total = pop_upperclass_gross_wage }
-	add_to_variable = { state_gni_total = pop_middleclass_gross_wage }
-	add_to_variable = { state_gni_total = pop_substinents_gross_wage }
-	add_to_variable = { state_gni_total = pop_soldier_gross_wage }
-	add_to_variable = { state_gni_total = pop_artisan_gross_wage }
-	add_to_variable = { state_gni_total = net_factory_earnings }
-
-	multiply_variable = { state_gni_total = 100 }
+	set_variable = {
+		state_gni_total = {
+			value = pop_lowerclass_gross_wage
+			add = pop_upperclass_gross_wage
+			add = pop_middleclass_gross_wage
+			add = pop_substinents_gross_wage
+			add = pop_soldier_gross_wage
+			add = pop_artisan_gross_wage
+			add = net_factory_earnings
+			multiply = 100
+		}
+	}
 
 	set_variable = { state_gni_total_backup = state_gni_total }
 
-	set_variable = { total_hdi_pop = total_upper_class_pop }
-	add_to_variable = { total_hdi_pop = total_middle_class_pop }
-	add_to_variable = { total_hdi_pop = total_lower_class_pop }
-	add_to_variable = { total_hdi_pop = total_under_class_pop }
+	set_variable = { total_hdi_pop = { value = total_upper_class_pop add = total_middle_class_pop add = total_lower_class_pop add = total_under_class_pop } }
 
-	divide_variable = { state_gni_total = total_hdi_pop }
+	set_variable = { state_gni_total = { value = state_gni_total divide = total_hdi_pop } }
 
-	state_gni_ln_lookup_table = yes
-	gni_ln_lookup_table_global_value = yes
-
-	set_variable = { state_gni_total_ln_backup = state_gni_total_ln }
-
-	subtract_from_variable = { state_gni_total_ln = ln_100 }
-
-	set_variable = { state_gni_total_ln_backup_2 = state_gni_total_ln }
-
-	if = { limit = { check_variable = { state_gni_total_ln < 0.001 } } set_variable = { state_gni_total_ln = 0.001 } }	#Fallback
-
-	divide_variable = { state_gni_total_ln = gni_hdi_divisor }
+	set_variable = {
+		state_gni_total_ln = {
+			value = state_gni_total
+			max = 0.001
+			min = 100
+			multiply = 1000
+			log = 2.718281828
+			subtract = ROOT.ln_100
+			max = 0.001
+			divide = ROOT.gni_hdi_divisor
+		}
+	}
 	set_variable = { HDI_II = state_gni_total_ln }
 
 	#Arithmetic Mean
-	set_variable = { State_HDI = HDI_II }
-	add_to_variable = { State_HDI = HDI_LEI }
-	add_to_variable = { State_HDI = HDI_EDU }
-	divide_variable = { State_HDI = 3 }
+	set_variable = { State_HDI = { value = HDI_II add = HDI_LEI add = HDI_EDU divide = 3 } }
 
-	set_variable = { state_pop_percentage = state_population_k }
-	divide_variable = { state_pop_percentage = ROOT.max_manpower_k }
+	set_variable = { state_pop_percentage = { value = state_population_k divide = ROOT.max_manpower_k } }
 
-	set_variable = { State_HDI_1000 = State_HDI }
-	multiply_variable = { State_HDI_1000 = 1000 }
-	multiply_variable = { State_HDI_1000 = state_pop_percentage }
+	set_variable = { State_HDI_1000 = { value = State_HDI multiply = 1000 multiply = state_pop_percentage } }
 	add_to_variable = { ROOT.National_HDI = State_HDI_1000 }
 
 }
 education_hdi_calc = {
-	set_variable = { state_college = college_educated }
-	set_variable = { state_secondary = high_school_educated }
-	set_variable = { state_primary = primary_educated }
-	set_variable = { state_literate = literate_educated }
-
-	set_variable = { Years_of_Education_16 = state_college }
-	set_variable = { Years_of_Education_12 = state_secondary }
-	set_variable = { Years_of_Education_6 = state_primary }
-	set_variable = { Years_of_Education_2 = state_literate }
-
-	subtract_from_variable = { Years_of_Education_12 = state_college }
-
-	subtract_from_variable = { Years_of_Education_6 = Years_of_Education_12 }
-
-	subtract_from_variable = { Years_of_Education_2 = Years_of_Education_12 }
-	subtract_from_variable = { Years_of_Education_2 = Years_of_Education_6 }
-
-	set_variable = { Years_of_Education_0 = 100 }
-	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_16 }
-	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_12 } 
-	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_6 }
-	subtract_from_variable = { Years_of_Education_0 = Years_of_Education_2 }
-
-
-	#MYS CALC
-    # avg_edu = (16 * P16 + 12 * P12 + 6 * P6 + 2 * P2 + 0 * P0) / 100 
-    set_variable = { avg_edu = Years_of_Education_16 }
-    multiply_variable = { avg_edu = 16 }                # 16 * P16
-
-    set_variable = { temp = Years_of_Education_12 }
-    multiply_variable = { temp = 12 }
-    add_to_variable = { avg_edu = temp }                # + 12 * P12
-
-    set_variable = { temp = Years_of_Education_6 }
-    multiply_variable = { temp = 6 }
-    add_to_variable = { avg_edu = temp }                # + 6 * P6
-
-    set_variable = { temp = Years_of_Education_2 }
-    multiply_variable = { temp = 2 }
-    add_to_variable = { avg_edu = temp }                # + 2 * P2
-
-    # Step 2: Divide by 100 to account for percentage
-    divide_variable = { avg_edu = 100 }
-
-	set_variable = { HDI_MYS = avg_edu }
-	divide_variable = { HDI_MYS = 12 }
-
-	#EYS Calc
-	set_variable = { HDI_EYS = 0 }
-	set_variable = { HDI_EYS_MODIFIER = ROOT.modifier@education_gain_rate }
-
-	set_variable = { Years_of_Education_16_EYS_gain = Years_of_Education_16 }
-	set_variable = { Years_of_Education_12_EYS_gain = Years_of_Education_12 }
-	set_variable = { Years_of_Education_6_EYS_gain = Years_of_Education_6  }
-	set_variable = { Years_of_Education_2_EYS_gain = Years_of_Education_2  }
-
-
-	set_variable = { Years_of_Education_16_EYS = Years_of_Education_16 }
-	set_variable = { Years_of_Education_12_EYS = Years_of_Education_12 }
-	set_variable = { Years_of_Education_6_EYS = Years_of_Education_6  }
-	set_variable = { Years_of_Education_2_EYS = Years_of_Education_2  }
-
-
-	multiply_variable = { Years_of_Education_16_EYS_gain = HDI_EYS_MODIFIER }
-	multiply_variable = { Years_of_Education_12_EYS_gain = HDI_EYS_MODIFIER }
-	multiply_variable = { Years_of_Education_6_EYS_gain = HDI_EYS_MODIFIER }
-	multiply_variable = { Years_of_Education_2_EYS_gain = HDI_EYS_MODIFIER }
-
-	add_to_variable = { Years_of_Education_16_EYS = Years_of_Education_16_EYS_gain }
-
-	subtract_from_variable = { Years_of_Education_12_EYS = Years_of_Education_16_EYS_gain }
-	add_to_variable = { Years_of_Education_12_EYS = Years_of_Education_12_EYS_gain }
-
-	subtract_from_variable = { Years_of_Education_6_EYS = Years_of_Education_12_EYS_gain }
-	add_to_variable = { Years_of_Education_6_EYS = Years_of_Education_6_EYS_gain }
-
-	subtract_from_variable = { Years_of_Education_2_EYS = Years_of_Education_6_EYS_gain }
-	add_to_variable = { Years_of_Education_2_EYS = Years_of_Education_2_EYS_gain }
-
-	set_variable = { Years_of_Education_0_EYS = 100 }
-	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_16_EYS }
-	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_12_EYS }
-	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_6_EYS }
-	subtract_from_variable = { Years_of_Education_0_EYS = Years_of_Education_2_EYS }
-
-    # Step 1: Weighted sum 
-	#MYS CALC
-    # avg_edu_eys = (16 * P16 + 12 * P12 + 6 * P6 + 2 * P2 + 0 * P0) / 100
-    set_variable = { avg_edu_eys = Years_of_Education_16_EYS }
-    multiply_variable = { avg_edu_eys = 16 }                # 16 * P16
-
-    set_variable = { temp = Years_of_Education_12_EYS }
-    multiply_variable = { temp = 12 }
-    add_to_variable = { avg_edu_eys = temp }                # + 12 * P12
-
-    set_variable = { temp = Years_of_Education_6_EYS }
-    multiply_variable = { temp = 6 }
-    add_to_variable = { avg_edu_eys = temp }                # + 6 * P6
-
-    set_variable = { temp = Years_of_Education_2_EYS }
-    multiply_variable = { temp = 2 }
-    add_to_variable = { avg_edu_eys = temp }                # + 2 * P2
-
-    # Step 2: Divide by 100 to account for percentage
-    divide_variable = { avg_edu_eys = 100 }
-	set_variable = { HDI_EYS = avg_edu_eys } 
-	divide_variable = { HDI_EYS = 12 }
-
-	#Final HDI_EDU CALC
-	set_variable = { HDI_EDU = HDI_EYS }
-	add_to_variable = { HDI_EDU = HDI_MYS }
-	divide_variable = { HDI_EDU = 2 }
+	set_variable = {
+		HDI_EDU = {
+			value = college_educated
+			multiply = 10
+			add = { value = high_school_educated multiply = 6 }
+			add = { value = primary_educated multiply = 4 }
+			add = { value = literate_educated multiply = 2 }
+			add = {
+				value = college_educated
+				add = high_school_educated
+				add = primary_educated
+				add = literate_educated
+				multiply = ROOT.modifier@education_gain_rate
+			}
+			divide = 1200
+		}
+	}
 }
 
 biome_life_expectancy_adjustment = {
