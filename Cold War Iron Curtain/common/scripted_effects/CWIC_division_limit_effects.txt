@@ -16,47 +16,31 @@ CWIC_calculate_maximum_divisions = {
 	else = {
 		# --- Tiered base from GDP ---
 		# Calibrated against: USA=2589, USSR=660, FRA=444, ENG=398, CHI=204, PRC=117
-		# Note: using > instead of >= since HOI4 doesn't support >= in check_variable
-		if = {
-			limit = { check_variable = { grossdomesticproduct > 1999 } }
-			set_variable = { CWIC_max_divisions = 340 }		# Superpower (USA)
-		}
-		else_if = {
-			limit = { check_variable = { grossdomesticproduct > 399 } }
-			set_variable = { CWIC_max_divisions = 290 }		# Major power (USSR, FRA, ENG)
-		}
-		else_if = {
-			limit = { check_variable = { grossdomesticproduct > 149 } }
-			set_variable = { CWIC_max_divisions = 50 }		# Regional power
-		}
-		else_if = {
-			limit = { check_variable = { grossdomesticproduct > 49 } }
-			set_variable = { CWIC_max_divisions = 30 }		# Secondary power
-		}
-		else = {
-			set_variable = { CWIC_max_divisions = 16 }		# Minor
-		}
-
-		# --- Army model law bonus (unit_limit_bonus modifier on the law idea) ---
-		# volunteer_professional: +0   (small quality force, no bonus)
-		# national_service:       +15  (mixed system)
-		# mass_conscription:      +30  (large standing army)
-		add_to_variable = { CWIC_max_divisions = modifier@unit_limit_bonus }
-
-		# --- Percentage modifier from national spirits / focuses ---
-		multiply_variable = {
+		set_variable = {
 			CWIC_max_divisions = {
-				value = 1
-				add = modifier@unit_limit_factor
+				value = 16										# Minor
+				if = { limit = { value = grossdomesticproduct greater_than_or_equals = 50 } add = 14 }		# Secondary power: 30
+				if = { limit = { value = grossdomesticproduct greater_than_or_equals = 150 } add = 20 }		# Regional power: 50
+				if = { limit = { value = grossdomesticproduct greater_than_or_equals = 400 } add = 240 }		# Major power: 290
+				if = { limit = { value = grossdomesticproduct greater_than_or_equals = 2000 } add = 50 }		# Superpower: 340
+
+				# Army model law bonus:
+				# volunteer_professional: +0   (small quality force, no bonus)
+				# national_service:       +15  (mixed system)
+				# mass_conscription:      +30  (large standing army)
+				add = modifier@unit_limit_bonus
+
+				# Percentage modifier from national spirits / focuses
+				multiply = {
+					value = 1
+					add = modifier@unit_limit_factor
+				}
+
+				# Hard floor: no peacetime country drops below 5 divisions
+				max = 5
+				round = yes
 			}
 		}
-
-		# Hard floor: no peacetime country drops below 5 divisions
-		clamp_variable = {
-			var = CWIC_max_divisions
-			min = 5
-		}
-		round_variable = CWIC_max_divisions
 	}
 }
 
@@ -74,9 +58,8 @@ CWIC_calculate_mobilisation_penalty = {
 			clamp = { min = -0.25 max = 0.25 }
 		}
 	}
-	# Negative version for org/reinforce debuffs (explicit two-step, safer than inline block)
-	set_variable = { CWIC_mobilisation_penalty_var = CWIC_mobilisation_penalty_var_positive }
-	multiply_variable = { CWIC_mobilisation_penalty_var = -1 }
+	# Negative version for org/reinforce debuffs
+	set_variable = { CWIC_mobilisation_penalty_var = { value = CWIC_mobilisation_penalty_var_positive multiply = -1 } }
 }
 
 # --------------------------------------------------
@@ -86,9 +69,7 @@ CWIC_calculate_mobilisation_penalty = {
 CWIC_unit_limit_calculation_effect = {
 	CWIC_calculate_maximum_divisions = yes
 
-	# Explicit two-step for safety
-	set_variable = { CWIC_num_actual_divisions = num_divisions }
-	clamp_variable = { var = CWIC_num_actual_divisions min = 0 max = 10000 }
+	set_variable = { CWIC_num_actual_divisions = { value = num_divisions clamp = { min = 0 max = 10000 } } }
 
 	# Only apply the penalty modifier to human players
 	if = {
@@ -123,17 +104,8 @@ CWIC_unit_limit_calculation_effect = {
 		}
 	}
 
-	# --- GUI properties variable (drives scripted_gui properties block refresh) ---
-	# 1 = under/at limit  |  2 = over limit
-	# Note: scripted triggers cannot be used inside set_variable math blocks in HOI4,
-	# so we use a plain if/else instead.
-	if = {
-		limit = { CWIC_has_exceeded_maximum_divisions = yes }
-		set_variable = { CWIC_unit_limit_status_frame = 2 }
-	}
-	else = {
-		set_variable = { CWIC_unit_limit_status_frame = 1 }
-	}
+	# GUI properties variable: 1 = under/at limit  |  2 = over limit
+	set_variable = { CWIC_unit_limit_status_frame = { value = CWIC_num_actual_divisions subtract = CWIC_max_divisions greater_than = 0 add = 1 } }
 }
 
 # --------------------------------------------------
