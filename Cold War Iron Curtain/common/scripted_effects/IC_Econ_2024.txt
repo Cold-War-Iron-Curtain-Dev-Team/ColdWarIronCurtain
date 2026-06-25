@@ -562,100 +562,99 @@ calculate_theoretical_population = {
 }
 
 calculate_unemployment_factor = {
-		set_variable = { overemployment_factor = 1 }
-		set_variable = { theoretical_unemployed = employable_population }
-		subtract_from_variable = { theoretical_unemployed = theoretical_pop_sum }
-
-
-		#If theoretically unemployed in a state
-		if = {
-			limit = { check_variable = { theoretical_unemployed > 0 } }
-			set_variable = { unemployment_factor = theoretical_unemployed }
-			divide_variable = { unemployment_factor = employable_population }	
-
-			#log = "[THIS.GetID.GetName] has Unemployment Rate of [?unemployment_factor|%] or [?theoretical_unemployed] Ppl."	
-
-			calculate_conversion_farmer_artisan = yes
+		set_temp_variable = {
+			theoretical_unemployed_raw = {
+				value = employable_population
+				subtract = theoretical_pop_sum
+			}
 		}
-		#If unemployed is below 0 it becomes overemployment
-		else = {
-
-			set_variable = { theoretical_unemployed = 0 }
-			set_variable = { overemployment_factor = employable_population }
-			divide_variable = { overemployment_factor = theoretical_pop_sum }
-
-			#log = "[THIS.GetID.GetName] is Overemployed. Overemployment Factor: [?overemployment_factor]"			
+		set_variable = {
+			overemployment_factor = {
+				value = 1
+				if = {
+					limit = {
+						value = theoretical_unemployed_raw
+						less_than = 0
+					}
+					multiply = employable_population
+					divide = theoretical_pop_sum
+				}
+			}
 		}
+		set_variable = {
+			theoretical_unemployed = {
+				value = theoretical_unemployed_raw
+				max = 0
+			}
+		}
+		calculate_conversion_farmer_artisan = yes
 	
 }
 
 calculate_conversion_farmer_artisan = {
 
-		set_temp_variable = { college_artisan_rate = college_educated }
-		multiply_temp_variable = { college_artisan_rate = 0.5 }
-
-		set_temp_variable = { hs_artisan_rate = high_school_educated }
-		multiply_temp_variable = { hs_artisan_rate = 0.25 }
-
-		set_temp_variable = { primary_artisan_rate = primary_educated }
-		multiply_temp_variable = { primary_artisan_rate = 0.25 }
-
-		set_variable = { artisan_rate = college_artisan_rate }
-		add_to_variable = { artisan_rate = hs_artisan_rate }
-		add_to_variable = { artisan_rate = primary_artisan_rate }
-		multiply_variable = { artisan_rate = 0.01 }
-
-
-		#log = "[?artisan_rate] at [THIS.GetID.GetName]"
-
-		set_temp_variable = { building_slots_worker_sum = THIS.State_Employment^6 }
-		multiply_temp_variable = { building_slots_worker_sum = THIS.building_slots_var}
-		
-		#log = "Building Slot Worker Sum: [?building_slots_worker_sum] at [THIS.GetID.GetName]"
-		#log = "Theoretically Unemployed: [?theoretical_unemployed] at [THIS.GetID.GetName]"
-
-
-		#If there is more free work space in building slots then there are theoretical unemployed people, then set unemployment to 0 and distribute artisans / substinents accordingly
-
-		if = {
-			limit = { check_variable = { building_slots_worker_sum > theoretical_unemployed } }
-			#log = "Less unemployed than building slots can provide.:"
-			set_variable = { theoretical_artisan_sum = theoretical_unemployed }
-			multiply_variable = { theoretical_artisan_sum = artisan_rate }
-
-			set_variable = { theoretical_substinents_sum = theoretical_unemployed }
-			subtract_from_variable = { theoretical_substinents_sum = theoretical_artisan_sum }
-			set_variable = { theoretical_unemployed = 0 }
-
-			set_variable = { unemployment_factor = 0 }
-
-			log = "Now it has [?theoretical_substinents_sum] Substinents, [?theoretical_artisan_sum] Artisans and [?theoretical_unemployed] Unemployed; Unemployment Rate: 0%"
-		}
-
-		#If there isnt, just subtract building_slots_worker_sum from theoretical unemployed
-		else = {
-			#log = "More unemployed than Building Slots can provide: [?building_slots_worker_sum]"
-			#If there are no building slots, no Calculations.
-			if = {
-				limit = { check_variable = { var = building_slots_worker_sum value = 0 compare = less_than_or_equals } }
-				log = "Now: [?THIS.theoretical_substinents_sum] Substinents, [?THIS.theoretical_artisan_sum] Artisans, [?theoretical_unemployed] Unemployed; Unemployment Rate: [?unemployment_factor|%]"
-			}	
-			else = {		
-				set_variable = { theoretical_artisan_sum = building_slots_worker_sum }
-				multiply_variable = { theoretical_artisan_sum = artisan_rate }
-
-				set_variable = { theoretical_substinents_sum = building_slots_worker_sum }
-				subtract_from_variable = { theoretical_substinents_sum = theoretical_artisan_sum }
-
-				subtract_from_variable = { theoretical_unemployed = building_slots_worker_sum }
-
-				set_variable = { unemployment_factor = theoretical_unemployed }
-				divide_variable = { unemployment_factor = employable_population }				
-
-				log = "Now: [?THIS.theoretical_substinents_sum] Substinents, [?theoretical_artisan_sum] Artisans, [?theoretical_unemployed] Unemployed; Unemployment Rate: [?unemployment_factor|%]"
+		set_variable = {
+			artisan_rate = {
+				value = college_educated
+				multiply = 0.5
+				add = {
+					value = high_school_educated
+					multiply = 0.25
+				}
+				add = {
+					value = primary_educated
+					multiply = 0.25
+				}
+				multiply = 0.01
 			}
 		}
-		#log = ""
+		set_temp_variable = {
+			building_slots_worker_sum = {
+				value = THIS.State_Employment^6
+				multiply = THIS.building_slots_var
+			}
+		}
+		set_temp_variable = {
+			artisan_conversion_base = {
+				value = building_slots_worker_sum
+				max = 0
+				min = theoretical_unemployed
+			}
+		}
+		set_variable = {
+			theoretical_artisan_sum = {
+				value = artisan_conversion_base
+				multiply = artisan_rate
+			}
+		}
+		set_variable = {
+			theoretical_substinents_sum = {
+				value = artisan_conversion_base
+				subtract = theoretical_artisan_sum
+			}
+		}
+		set_variable = {
+			theoretical_unemployed = {
+				value = theoretical_unemployed
+				subtract = artisan_conversion_base
+				max = 0
+			}
+		}
+		set_variable = {
+			unemployment_factor = {
+				value = 0
+				if = {
+					limit = {
+						value = theoretical_unemployed
+						greater_than = 0
+					}
+					add = {
+						value = theoretical_unemployed
+						divide = employable_population
+					}
+				}
+			}
+		}
 }
 
 calculate_conversion_labourer_worker = {
@@ -909,23 +908,21 @@ calculate_national_productivity_factor_var = {
 
 
 get_electricity_debuff = {
-	set_variable = { electricity_debuff_factor = 1}
-
-	set_temp_variable = { electricity_into_variable = resource@coal}			
-	if = {
-		limit = {
-			check_variable = { electricity_into_variable < 0}
-		}
-		multiply_temp_variable = { electricity_into_variable = -1 }
-		# turns positive
-		divide_temp_variable = { electricity_into_variable = total_factory_amount}
-
-		subtract_from_variable = { electricity_debuff_factor = electricity_into_variable}
-		if = {
-			limit = {
-				check_variable = { electricity_debuff_factor < 0 }
+	set_variable = {
+		electricity_debuff_factor = {
+			value = 1
+			if = {
+				limit = {
+					value = resource@coal
+					less_than = 0
+				}
+				subtract = {
+					value = resource@coal
+					multiply = -1
+					divide = total_factory_amount
+				}
+				max = 0
 			}
-			set_temp_variable = { electricity_debuff_factor = 0 }			
 		}
 	}
 	#log = "Electricity providence factor of [?electricity_debuff_factor]"	
@@ -1133,14 +1130,23 @@ calculate_gross_factory_earnings = {
 			add_to_temp_variable = { cropBoost = global.CashCrop_Sugar }
 		}
 		else = { }
-		if = {
-			limit = {
-				OR = {
-					check_variable = { economic_x_axis = 26 }
-					check_variable = { economic_x_axis = 24 }
+		set_temp_variable = {
+			cropBoost = {
+				value = cropBoost
+				multiply = {
+					value = 1
+					add = {
+						value = economic_x_axis
+						equals = 26
+						multiply = 0.5
+					}
+					add = {
+						value = economic_x_axis
+						equals = 24
+						multiply = 0.5
+					}
 				}
 			}
-			multiply_temp_variable = { cropBoost = 1.5 }
 		}
 		set_temp_variable = {
 			food_gross_factory_earnings = {
@@ -1232,22 +1238,40 @@ calculate_net_poptype_earnings = {
 		#Upper-Class Pop
 
 
-		set_temp_variable = { pop_capitalist_gross_wage = theoretical_capitalist_sum }
-		set_temp_variable = { pop_rentier_gross_wage = theoretical_rentier_sum }
-		if = {
-			limit = { check_variable = { PREV.economic_x_axis < 6 } }
-			multiply_temp_variable = { pop_capitalist_gross_wage = 2.5 }
-			multiply_temp_variable = { pop_rentier_gross_wage = 3 }
+		set_temp_variable = {
+			pop_capitalist_gross_wage = {
+				value = theoretical_capitalist_sum
+				multiply = {
+					value = 100
+					if = {
+						limit = {
+							value = PREV.economic_x_axis
+							less_than = 6
+						}
+						subtract = 97.5
+					}
+				}
+				multiply = productivity_factor_var
+				divide = 100
+			}
 		}
-		else = {
-			multiply_temp_variable = { pop_capitalist_gross_wage = 100 }
-			multiply_temp_variable = { pop_rentier_gross_wage = 100 }
+		set_temp_variable = {
+			pop_rentier_gross_wage = {
+				value = theoretical_rentier_sum
+				multiply = {
+					value = 100
+					if = {
+						limit = {
+							value = PREV.economic_x_axis
+							less_than = 6
+						}
+						subtract = 97
+					}
+				}
+				multiply = productivity_factor_var
+				divide = 100
+			}
 		}
-		multiply_temp_variable = { pop_capitalist_gross_wage = productivity_factor_var }
-		divide_temp_variable = { pop_capitalist_gross_wage = 100 }		
-
-		multiply_temp_variable = { pop_rentier_gross_wage = productivity_factor_var }
-		divide_temp_variable = { pop_rentier_gross_wage = 100 }		
 
 		set_variable = { pop_upperclass_gross_wage = { value = pop_capitalist_gross_wage add = pop_rentier_gross_wage } }
 
@@ -1440,12 +1464,15 @@ calculate_take_taxes_from_people = {
 	calculate_state_hdi = yes
 
 
-	if = {
-		limit = { check_variable = { net_factory_earnings > 0 }}
-		set_temp_variable = { net_factory_taxed_earnings = { value = net_factory_earnings multiply = owner:pop_corporateclass_tax_rate } }
-		add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
-		add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }			
+	set_temp_variable = {
+		net_factory_taxed_earnings = {
+			value = net_factory_earnings
+			max = 0
+			multiply = owner:pop_corporateclass_tax_rate
+		}
 	}
+	add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
+	add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }
 	# log = "[?owner:pop_middleclass_tax_rate]"
 }
 
@@ -2161,12 +2188,7 @@ generate_class_pie_chart_gui = {
 	set_variable = { pie_chart_test_mid = { value = total_middle_class_pop_calc multiply = 1000 add = pie_chart_test_upp } }
 	set_variable = { pie_chart_test_low = { value = total_lower_class_pop_calc multiply = 1000 add = pie_chart_test_mid } }
 	set_variable = { pie_chart_test_und = { value = total_under_class_pop_calc multiply = 1000 add = pie_chart_test_low } }
-	if = {
-		limit = {
-			check_variable = { pie_chart_test_und < 1000 }
-		}
-		set_variable = { pie_chart_test_und = 1000 }
-	}
+	set_variable = { pie_chart_test_und = { value = pie_chart_test_und max = 1000 } }
 
 	set_variable = { refresh_workforce_chart = show }
 	
