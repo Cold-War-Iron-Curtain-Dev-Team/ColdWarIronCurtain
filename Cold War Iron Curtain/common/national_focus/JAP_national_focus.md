@@ -2773,14 +2773,14 @@ focus_tree = {
 			}
 		}
 		completion_reward = {
-			country_event = jap_chi.1
+			country_event = jap_treaty.12
 			if = {
 				limit = { has_global_flag = PRC_victory }
-				PRC = { country_event = jap_chi.1 }
+				PRC = { country_event = jap_treaty.12 }
 			}
 			else_if = {
 				limit = { has_global_flag = ROC_victory }
-				CHI = { country_event = jap_chi.1 }
+				CHI = { country_event = jap_treaty.12 }
 			}
 		}
 	}
@@ -2944,13 +2944,13 @@ focus_tree = {
 			focus = JAP_The_Kishi_Administration
 		}
 		completion_reward = {
-			JAP = { country_event = { id = jap_wto.1 } }
-			POL = { country_event = { id = jap_wto.1 } }
-			CZE = { country_event = { id = jap_wto.1 } }
-			HUN = { country_event = { id = jap_wto.1 } }
-			BUL = { country_event = { id = jap_wto.1 } }
-			ROM = { country_event = { id = jap_wto.1 } }
-			SOV = { country_event = { id = jap_wto.1 } }
+			JAP = { country_event = { id = jap_treaty.11 } }
+			POL = { country_event = { id = jap_treaty.11 } }
+			CZE = { country_event = { id = jap_treaty.11 } }
+			HUN = { country_event = { id = jap_treaty.11 } }
+			BUL = { country_event = { id = jap_treaty.11 } }
+			ROM = { country_event = { id = jap_treaty.11 } }
+			SOV = { country_event = { id = jap_treaty.11 } }
 		}
 	}
 	focus = {
