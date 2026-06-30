@@ -1316,17 +1316,26 @@ gdp_calculation_effect = {
 	# multiply_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
 	# multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
 	# after generate_tax_info
+	# after generate_tax_info
 	set_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
-	multiply_variable = { pop_lowerclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_lowerclass_tax_rate_bonus = pop_lowerclass_tax_rate }
+	multiply_variable = { pop_lowerclass_tax_rate_bonus = effective_tax_rate }
+	add_to_variable = { pop_lowerclass_tax_rate = pop_lowerclass_tax_rate_bonus }
 
 	set_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
-	multiply_variable = { pop_middleclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_middleclass_tax_rate_bonus = pop_middleclass_tax_rate }
+	multiply_variable = { pop_middleclass_tax_rate_bonus = effective_tax_rate }
+	add_to_variable = { pop_middleclass_tax_rate = pop_middleclass_tax_rate_bonus }
 
 	set_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
-	multiply_variable = { pop_upperclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_upperclass_tax_rate_bonus = pop_upperclass_tax_rate }
+	multiply_variable = { pop_upperclass_tax_rate_bonus = effective_tax_rate }
+	add_to_variable = { pop_upperclass_tax_rate = pop_upperclass_tax_rate_bonus }
 
 	set_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
-	multiply_variable = { pop_corporateclass_tax_rate = effective_tax_rate }
+	set_variable = { pop_corporateclass_tax_rate_bonus = pop_corporateclass_tax_rate }
+	multiply_variable = { pop_corporateclass_tax_rate_bonus = effective_tax_rate }
+	add_to_variable = { pop_corporateclass_tax_rate = pop_corporateclass_tax_rate_bonus }
 
 	set_variable = { grossdomesticproduct = 0 }
 	set_variable = { national_net_factory_earnings = 0 }
@@ -1669,7 +1678,7 @@ calc_policing_expenditure = {
 calc_education_expenditure = {
 	#gives out expenditure at 50%
 	set_variable = { education_expenditure = manpower }
-	multiply_variable = { education_expenditure = 0.05 }	
+	multiply_variable = { education_expenditure = 0.01 }	
 
 	log = "Expanditures[?education_expenditure]"
 	
@@ -1680,14 +1689,8 @@ calc_education_expenditure = {
 	# now apply multiplier of idea
 	# multiply_variable = { education_expenditure = 1 }
 
-	set_variable = {
-		edu_cost_adjustment_policy = education_expenditure
-	}
 	multiply_variable = {
-		edu_cost_adjustment_policy = modifier@modifier_education_spending 
-	}
-	add_to_variable = {
-		education_expenditure = edu_cost_adjustment_policy
+		education_expenditure = modifier@education_spending_modifier 
 	}
 	multiply_variable = { education_expenditure = 0.1 }
 	log = "Expanditures[?education_expenditure]"
@@ -2023,14 +2026,20 @@ calc_nuke_army_expenditure = {
 	multiply_variable = { nuke_army_expenditure = modifier@strategic_forces_spending_modifier }
 }
 calc_space_expenditure = {
-	set_variable = {
-		space_expenditure = grossdomesticproduct
+	if = {
+		limit = {
+			has_country_flag = Space_Program_Active
+		}
+		set_variable = {
+			space_expenditure = grossdomesticproduct
+		}
+		divide_variable = {
+			space_expenditure = 5
+		}
+		multiply_variable = { space_expenditure = modifier@space_spending_modifier }
+		add_to_variable = { space_budget = space_expenditure }
 	}
-	divide_variable = {
-		space_expenditure = 5
-	}
-	multiply_variable = { space_expenditure = modifier@space_spending_modifier }
-	add_to_variable = { space_budget = space_expenditure }
+
 }
 #SWF Stuff
 calculate_employment_data_for_gui = {
