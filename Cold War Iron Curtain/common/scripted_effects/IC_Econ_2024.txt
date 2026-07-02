@@ -965,32 +965,79 @@ check_individual_factory_productivity = {
 	#add_to_variable = { doc_productivity_factor_var = 1 }		
 }
 
+cwic_cache_market_income_multipliers = {
+	set_variable = {
+		cwic_civ_market_income_multiplier = {
+			value = 1
+			if = {
+				limit = {
+					value = economic_x_axis
+					greater_than = 12
+					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				multiply = 1.75
+			}
+			if = {
+				limit = {
+					value = economic_x_axis
+					greater_than = 6
+					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				multiply = 1.5
+			}
+			if = {
+				limit = {
+					value = economic_x_axis
+					less_than = 7
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				multiply = 1.25
+			}
+		}
+	}
+	set_variable = {
+		cwic_ofp_market_income_multiplier = {
+			value = 1
+			if = {
+				limit = {
+					value = economic_x_axis
+					greater_than = 12
+					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				multiply = 1.9
+			}
+			if = {
+				limit = {
+					value = economic_x_axis
+					greater_than = 6
+					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				multiply = 1.65
+			}
+			if = {
+				limit = {
+					value = economic_x_axis
+					less_than = 7
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				multiply = 1.35
+			}
+		}
+	}
+}
+
 calculate_gross_factory_earnings = {
 		clear_array = THIS.Building_Profits
 
 		#Civs
-		set_temp_variable = { civs_gross_factory_earnings = 2 }
-		if = {
-			limit = {
-				has_free_market_bonus_max = yes
-			}
-			multiply_temp_variable = { civs_gross_factory_earnings = 1.75 }
-		}
-		if = {
-			limit = {
-				has_moderate_free_market_bonus = yes
-			}
-			multiply_temp_variable = { civs_gross_factory_earnings = 1.5 }
-		}
-		if = {
-			limit = {
-				has_socialist_free_market_bonus = yes
-			}
-			multiply_temp_variable = { civs_gross_factory_earnings = 1.25 }
-		}
 		set_temp_variable = {
 			civs_gross_factory_earnings = {
-				value = civs_gross_factory_earnings
+				value = 2
+				multiply = PREV.cwic_civ_market_income_multiplier
 				multiply = productivity_factor_var
 				multiply = PREV.civ_productivity_factor_var
 				multiply = THIS.buildings^0
@@ -1017,28 +1064,10 @@ calculate_gross_factory_earnings = {
 
 		#Office Parks
 
-		set_temp_variable = { ofpar_gross_factory_earnings = 7 }
-		if = {
-			limit = {
-				has_free_market_bonus_max = yes
-			}
-			multiply_temp_variable = { ofpar_gross_factory_earnings = 1.9 }
-		}
-		if = {
-			limit = {
-				has_moderate_free_market_bonus = yes
-			}
-			multiply_temp_variable = { ofpar_gross_factory_earnings = 1.65 }
-		}
-		if = {
-			limit = {
-				has_socialist_free_market_bonus = yes
-			}
-			multiply_temp_variable = { ofpar_gross_factory_earnings = 1.35 }
-		}
 		set_temp_variable = {
 			ofpar_gross_factory_earnings = {
-				value = ofpar_gross_factory_earnings
+				value = 7
+				multiply = PREV.cwic_ofp_market_income_multiplier
 				multiply = productivity_factor_var
 				multiply = PREV.ofp_productivity_factor_var
 				multiply = THIS.buildings^3
@@ -1295,6 +1324,7 @@ gdp_calculation_effect = {
 	employing_effect = yes
 	get_electricity_debuff = yes	#Must be Below get_average_development
 	check_individual_factory_productivity = yes
+	cwic_cache_market_income_multipliers = yes
 
 	set_variable = { civilian_sector = 0 }
 	set_variable = { mill_sector = 0 }
@@ -2226,43 +2256,16 @@ increase_global_oil_insecurity = {
 
 calculate_state_hdi = {
 	#Life Expectancy
-    if = {
-        limit = {
-            development_level_zero_check = yes
-        }
-        set_variable = { state_life_expectancy = 35 }
-    }
-    else_if = {
-        limit = {
-            development_level_one_check = yes
-        }
-        set_variable = { state_life_expectancy = 50 }
-    }
-    else_if = {
-        limit = {
-            development_level_two_check = yes
-        }
-        set_variable = { state_life_expectancy = 65 }
-    }
-    else_if = {
-        limit = {
-            development_level_three_check = yes
-        }
-        set_variable = { state_life_expectancy = 70 }
-    }
-    else_if = {
-        limit = {
-            development_level_four_check = yes
-        }
-        set_variable = { state_life_expectancy = 75 }
-    }
-    else_if = {
-        limit = {
-            development_level_five_check = yes
-        }
-        set_variable = { state_life_expectancy = 80 }
-    }
-    else = { }
+	set_variable = {
+		state_life_expectancy = {
+			value = 35
+			add = { value = state_development greater_than = 1 multiply = 15 }
+			add = { value = state_development greater_than = 2 multiply = 15 }
+			add = { value = state_development greater_than = 3 multiply = 5 }
+			add = { value = state_development greater_than = 4 multiply = 5 }
+			add = { value = state_development greater_than = 5 multiply = 5 }
+		}
+	}
 	set_variable = { state_life_expectancy_test_1 = state_life_expectancy }
     #x Healthcare Spending Weight = Life Expectancy
     set_variable = { healthcare_life_expectnacy_adj = { value = ROOT.modifier@healthcare_spending_modifier subtract = 0.5 multiply = 5 } }
@@ -2418,15 +2421,27 @@ cwic_calc_sector_output_indices = {
 	set_temp_variable = { total_val = { value = oil_val add = metal_val } }
 
 	# ---- If we have any extractive value, split rgo_sector into oil/mining earnings ----
-	if = {
-		limit = { check_variable = { total_val > 0 } }
-
-		set_temp_variable = { oil_share = { value = oil_val divide = total_val clamp = { min = 0 max = 1 } } }
-		set_temp_variable = { mining_share = { value = metal_val divide = total_val clamp = { min = 0 max = 1 } } }
-
-		set_variable = { CWIC_oil_output_index = { value = rgo_sector multiply = oil_share divide = 250 clamp = { min = 0.5 max = 8.0 } } }
-		set_variable = { CWIC_mining_output_index = { value = rgo_sector multiply = mining_share divide = 250 clamp = { min = 0.5 max = 6.0 } } }
+	set_temp_variable = {
+		oil_share = {
+			value = 0
+			if = {
+				limit = { value = total_val greater_than = 0 }
+				add = { value = oil_val divide = total_val clamp = { min = 0 max = 1 } }
+			}
+		}
 	}
+	set_temp_variable = {
+		mining_share = {
+			value = 0
+			if = {
+				limit = { value = total_val greater_than = 0 }
+				add = { value = metal_val divide = total_val clamp = { min = 0 max = 1 } }
+			}
+		}
+	}
+
+	set_variable = { CWIC_oil_output_index = { value = rgo_sector multiply = oil_share divide = 250 clamp = { min = 0.5 max = 8.0 } } }
+	set_variable = { CWIC_mining_output_index = { value = rgo_sector multiply = mining_share divide = 250 clamp = { min = 0.5 max = 6.0 } } }
 }
 cwic_calc_nationalization_pressure_index = {
 
@@ -2440,14 +2455,17 @@ cwic_calc_nationalization_pressure_index = {
 	# =========================
 	# Higher economic_x_axis = more state control / more nationalization pressure
 	# Tune the thresholds to your axis scale.
-	set_temp_variable = { base_axis = 0 }
 
 	# Example mapping for a 0..30-ish axis
-	if = { limit = { check_variable = { economic_x_axis > 25 } } set_temp_variable = { base_axis = 4 } }
-	else_if = { limit = { check_variable = { economic_x_axis > 21 } } set_temp_variable = { base_axis = 3 } }
-	else_if = { limit = { check_variable = { economic_x_axis > 17 } } set_temp_variable = { base_axis = 2 } }
-	else_if = { limit = { check_variable = { economic_x_axis > 13 } } set_temp_variable = { base_axis = 1 } }
-	else = { set_temp_variable = { base_axis = 0 } }
+	set_temp_variable = {
+		base_axis = {
+			value = 0
+			add = { value = economic_x_axis greater_than = 13 }
+			add = { value = economic_x_axis greater_than = 17 }
+			add = { value = economic_x_axis greater_than = 21 }
+			add = { value = economic_x_axis greater_than = 25 }
+		}
+	}
 
 	# =========================
 	# COMPONENT 2: INSTABILITY ADD (0..1.5)
@@ -2461,11 +2479,9 @@ cwic_calc_nationalization_pressure_index = {
 	# COMPONENT 3: STABILITY RELIEF (0..1.0)
 	# =========================
 	# Higher stability reduces pressure slightly.
-	set_temp_variable = { stab_relief = 0 }
 
 	# If using vanilla stability (0..1)
-	set_temp_variable = { stab_relief = stability }
-	multiply_temp_variable = { stab_relief = 1.0 }  # 0..1
+	set_temp_variable = { stab_relief = { value = stability multiply = 1.0 } }  # 0..1
 
 	# If you prefer CWIC_stability_percent instead, use this block and comment out the 3 lines above:
 	# set_temp_variable = { stab_relief = CWIC_stability_percent }
@@ -2475,24 +2491,44 @@ cwic_calc_nationalization_pressure_index = {
 	# =========================
 	# COMPONENT 4: FREE MARKET BONUSES RELIEF (0..1.5)
 	# =========================
-	set_temp_variable = { market_relief = 0 }
-
-	if = { limit = { has_free_market_bonus_max = yes } add_to_temp_variable = { market_relief = 1.5 } }
-	else_if = { limit = { has_moderate_free_market_bonus = yes } add_to_temp_variable = { market_relief = 1.0 } }
-	else_if = { limit = { has_socialist_free_market_bonus = yes } add_to_temp_variable = { market_relief = 0.5 } }
-	else = { }
+	set_temp_variable = {
+		market_relief = {
+			value = 0
+			if = {
+				limit = {
+					value = economic_x_axis
+					greater_than = 12
+					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				add = 1.5
+			}
+			else_if = {
+				limit = {
+					value = economic_x_axis
+					greater_than = 6
+					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				add = 1.0
+			}
+			else_if = {
+				limit = {
+					value = economic_x_axis
+					less_than = 7
+					and = { value = economic_y_axis less_than = 19 }
+				}
+				add = 0.5
+			}
+		}
+	}
 
 	# =========================
 	# FINAL COMBINE
 	# pressure = base_axis + inst_add - stab_relief - market_relief
 	# clamp to 0..5
 	# =========================
-	set_temp_variable = { press = base_axis }
-	add_to_temp_variable = { press = inst_add }
-	subtract_from_temp_variable = { press = stab_relief }
-	subtract_from_temp_variable = { press = market_relief }
-
-	clamp_temp_variable = { var = press min = 0 max = 5 }
+	set_temp_variable = { press = { value = base_axis add = inst_add subtract = stab_relief subtract = market_relief clamp = { min = 0 max = 5 } } }
 	set_variable = { CWIC_nationalization_pressure_index = press }
 }
 cwic_calc_stability_percent = {
@@ -2504,23 +2540,17 @@ cwic_calc_stability_percent = {
 cwic_calc_global_budget_risk_factor = {
 
 	# risk_factor = clamp(0.25, 1.0, 1.0 - (risk/120))
-	set_temp_variable = { tmp = CWIC_corporate_risk_index }
-	divide_temp_variable = { tmp = 120 }
-
-	set_temp_variable = { risk_factor = 1 }
-	subtract_from_temp_variable = { risk_factor = tmp }
-
-	clamp_temp_variable = { var = risk_factor min = 0.25 max = 1.0 }
-	set_variable = { CWIC_global_budget_risk_factor = risk_factor }
+	set_variable = {
+		CWIC_global_budget_risk_factor = {
+			value = 1
+			subtract = { value = CWIC_corporate_risk_index divide = 120 }
+			clamp = { min = 0.25 max = 1.0 }
+		}
+	}
 }
 cwic_calc_global_budget_shock_factor = {
 
-	set_variable = { CWIC_global_budget_shock_factor = 1.0 }
-
-	if = {
-		limit = { check_variable = { global.CWIC_any_corp_shock > 0 } }
-		set_variable = { CWIC_global_budget_shock_factor = 0.5 }
-	}
+	set_variable = { CWIC_global_budget_shock_factor = { value = 1.0 subtract = { value = global.CWIC_any_corp_shock greater_than = 0 multiply = 0.5 } } }
 }
 cwic_calc_corporate_risk_index = {
 
