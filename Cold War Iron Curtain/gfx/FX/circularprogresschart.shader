@@ -78,12 +78,12 @@ PixelShader =
     float distance = length(uv);
     if (distance > 0.5f) discard; // Cutoff for circle shape
     
-    // 2. Progress calculation (0-1 to 0-2π)
-    float progress = CurrentState * 6.283185307f; // 2π
+    // 2. Progress calculation (0-1 to 0-2pi)
+    float progress = CurrentState * 6.283185307f; // 2pi
     
     // 3. Angle calculation (clockwise from top)
     float angle = atan2(uv.y, -uv.x) - 1.5707963268f; // Offset to start from top
-    if(angle < 0) angle += 6.283185307f; // Normalize to 0-2π
+    if(angle < 0) angle += 6.283185307f; // Normalize to 0-2pi
     
     // 4. Color selection
     if(angle < progress) {

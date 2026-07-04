@@ -72,7 +72,7 @@ PixelShader =
         float row_radius(int j, int rows, float innerR, float outerR, float curvature)
         {
             if (rows <= 1) return outerR;
-            float t  = (float)j / (float)(rows - 1);
+            float t  = float(j) / float(rows - 1);
             float t2 = lerp(t, pow(t, 1.0 + curvature * 1.5), curvature); // bias toward outer
             return lerp(innerR, outerR, t2);
         }
@@ -84,30 +84,30 @@ PixelShader =
             float2 p  = float2(uv.x, uv.y) * 0.97; // 5% shrink to keep dots inside the box
 
             // input params
-            int totalSeats = max(1, (int)round(vFirstColor.a));
+            int totalSeats = max(1, int(round(vFirstColor.a)));
             // accept either absolute seats or a 0..1 fraction in CurrentState
             float cs = CurrentState;
-            int filled = (cs <= 1.001) ? (int)round(cs * (float)totalSeats) : (int)round(cs);
+            int filled = (cs <= 1.001) ? int(round(cs * float(totalSeats))) : int(round(cs));
             filled = clamp(filled, 0, totalSeats);
 
-            int rowsParam = (int)round(vSecondColor.a);
+            int rowsParam = int(round(vSecondColor.a));
             // auto rows heuristic ~ sqrt(N); clamp to [3..8]
-            int rows = (rowsParam > 0) ? rowsParam : clamp( (int)round( sqrt( (float)totalSeats / 9.0 ) ), 3, 8 );
+            int rows = (rowsParam > 0) ? rowsParam : clamp( int(round( sqrt( float(totalSeats) / 9.0 ) )), 3, 8 );
 
             // look constants (tweak here if you want a different shape)
-			// Dynamic band: fewer total seats ⇒ tighter rows (larger innerR),
+			// Dynamic band: fewer total seats means tighter rows (larger innerR),
 			// and slightly straighter spacing (lower curvature)
-			float tight = saturate( (180.0 - (float)totalSeats) / 360.0 ); // kicks in below ~180 seats
+			float tight = saturate( (180.0 - float(totalSeats)) / 360.0 ); // kicks in below ~180 seats
 
 			float innerR    = lerp(0.60, 0.70, tight);  // up to +0.10 tighter when seats are low
-			float outerR    = 0.92;                     // keep same margin so sides don’t clip
+			float outerR    = 0.92;                     // keep same margin so sides don't clip
 			float curvature = lerp(0.12, 0.08, tight);  // a bit more even spacing when tight
 
 			const float dotR = 0.019;   // keep your working dot size
 			const float aa   = 0.0035;
 
 
-            // only draw inside semicircle (theta ∈ [0..pi])
+            // only draw inside semicircle (theta in [0..pi])
             float2 pol   = ToPolar(p);
             float theta  = pol.y;
             if (theta < 0.0 || theta > 3.14159265) return float4(0,0,0,0);
@@ -134,15 +134,15 @@ PixelShader =
                 if (j >= rows) break;
                 float rj = row_radius(j, rows, innerR, outerR, curvature);
 
-                // seats on this row (continuous weight → integer)
-                int n = max(1, (int)round( (3.14159265 * rj / sumW) * (float)totalSeats ));
-				float dTh = 3.14159265 / (float)max(n,1);
+                // seats on this row (continuous weight to integer)
+                int n = max(1, int(round( (3.14159265 * rj / sumW) * float(totalSeats) )));
+				float dTh = 3.14159265 / float(max(n,1));
 
 				// snap to sector, then place the center at the midpoint of that sector
 				float kf = floor(theta / dTh);
-				kf = clamp(kf, 0.0, (float)(n - 1));
-				int   k   = (int)kf;
-				float thC = (kf + 0.5) * dTh;   // midpoint avoids the 0/π seam
+				kf = clamp(kf, 0.0, float(n - 1));
+				int   k   = int(kf);
+				float thC = (kf + 0.5) * dTh;   // midpoint avoids the 0/pi seam
 				float2 c  = FromPolar(rj, thC);
 
                 float d = length(p - c);
@@ -161,20 +161,20 @@ PixelShader =
                 float rj = row_radius(j, rows, innerR, outerR, curvature);
                 wBefore += 3.14159265 * rj;
             }
-			int prefixSeats = (int)floor( (wBefore / sumW) * (float)totalSeats + 1e-4 );
+			int prefixSeats = int(floor( (wBefore / sumW) * float(totalSeats) + 1e-4 ));
 
 			// use a different name so we don't shadow float2 p above
 			float prog = (CurrentState <= 1.001)
 					   ? saturate(CurrentState)                           // 0..1 fraction
-					   : saturate(CurrentState / (float)totalSeats);      // seats → fraction
+					   : saturate(CurrentState / float(totalSeats));      // seats to fraction
 
 			// seats to fill on THIS row, based on fraction
-			int rowFilled = (int)floor(prog * (float)bestN + 1e-5);
+			int rowFilled = int(floor(prog * float(bestN) + 1e-5));
 
 			// k=0 is rightmost; convert to "index from LEFT"
 			int kFromLeft = (bestN - 1) - bestK;
 
-			// column-wise fill: left→right, same fraction on all rows
+			// column-wise fill: left to right, same fraction on all rows
 			bool isFilled = (kFromLeft < rowFilled);
 
             float4 filledCol   = float4(vFirstColor.rgb, 1.0);
