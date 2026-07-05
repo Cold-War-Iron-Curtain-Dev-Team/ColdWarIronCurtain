@@ -1,0 +1,145 @@
+# ============================================================
+# Employment system initialization
+# Moved out of USA_TRUMAN_The_Truman_Administration (2026-07-05):
+# this code computed local_pop_k_test / employable_modifier for
+# every state and country-level employment sums, but only ran
+# when the USA completed its first focus. It now runs at startup
+# (see on_startup_defines.txt) so set_employment_in_state has
+# valid workforce numbers from day one for all countries.
+# ============================================================
+
+# Run ONCE at global scope, before any workforce computation
+cwic_set_employable_adjustments = {
+	ELS = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	COS = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	PAN = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	HAI = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	GHA = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	UGA = { set_variable = { employable_modifier_adjustment = 0.05 } }
+	NIC = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	GUA = { set_variable = { employable_modifier_adjustment = 0.15 } }
+	FIN = { set_variable = { employable_modifier_adjustment = 0.1 } }
+	SWE = { set_variable = { employable_modifier_adjustment = 0.1 } }
+	JOR = { set_variable = { employable_modifier_adjustment = 0.2 } }
+	ICE = { set_variable = { employable_modifier_adjustment = 0.5 } }
+	ISR = { set_variable = { employable_modifier_adjustment = 0.3 } }
+}
+
+# Run in COUNTRY scope. Computes each core state's workforce
+# (local_pop_k_test) and the country-level employment sums.
+# Must run BEFORE set_employment_in_state on the country's states.
+cwic_compute_country_workforce = {
+	set_variable = { total_pop_k_test = 0 }
+	set_variable = { rgo_employment = 0 }
+	set_variable = { power_employment = 0 }
+	set_variable = { refinery_employment = 0 }
+	set_variable = { dockyard_employment = 0 }
+	set_variable = { office_employment = 0 }
+	set_variable = { arms_employment = 0 }
+	set_variable = { farm_employment = 0 }
+	set_variable = { industrial_employment = 0 }
+
+	every_owned_state = {
+		limit = {
+			is_core_of = PREV
+		}
+		set_variable = {
+			local_pop_k_test = state_population_k
+		}
+		set_variable = {
+			employable_modifier = 0
+		}
+		add_to_variable = {
+			employable_modifier = PREV.employable_modifier_adjustment
+		}
+		if = {
+			limit = {
+				development_level_zero_check = yes
+			}
+			add_to_variable = {
+				employable_modifier = 0.10
+			}
+			multiply_variable = {
+				local_pop_k_test = employable_modifier
+			}
+		}
+		else_if = {
+			limit = {
+				development_level_one_check = yes
+			}
+			add_to_variable = {
+				employable_modifier = 0.2
+			}
+			multiply_variable = {
+				local_pop_k_test = employable_modifier
+			}
+		}
+		else_if = {
+			limit = {
+				development_level_two_check = yes
+			}
+			add_to_variable = {
+				employable_modifier = 0.35
+			}
+			multiply_variable = {
+				local_pop_k_test = employable_modifier
+			}
+		}
+		else_if = {
+			limit = {
+				development_level_three_check = yes
+			}
+			add_to_variable = {
+				employable_modifier = 0.38
+			}
+			multiply_variable = {
+				local_pop_k_test = employable_modifier
+			}
+		}
+		add_to_variable = {
+			PREV.total_pop_k_test = local_pop_k_test
+		}
+		add_to_variable = {
+			PREV.rgo_employment = resource@steel
+		}
+		add_to_variable = {
+			PREV.rgo_employment = resource@chromium
+		}
+		add_to_variable = {
+			PREV.rgo_employment = resource@aluminium
+		}
+		add_to_variable = {
+			PREV.rgo_employment = resource@oil
+		}
+		add_to_variable = {
+			PREV.rgo_employment = resource@tungsten
+		}
+		add_to_variable = {
+			PREV.power_employment = building_level@fossil_fuel_powerplant
+		}
+		add_to_variable = {
+			PREV.industrial_employment = building_level@industrial_complex
+		}
+		add_to_variable = {
+			PREV.refinery_employment = building_level@tungsten_factory
+		}
+		add_to_variable = {
+			PREV.refinery_employment = building_level@synthetic_refinery
+		}
+		add_to_variable = {
+			PREV.refinery_employment = building_level@steel_factory
+		}
+		add_to_variable = {
+			PREV.farm_employment = building_level@agri_industrial_complex
+		}
+		add_to_variable = {
+			PREV.office_employment = building_level@office_park
+		}
+		add_to_variable = {
+			PREV.dockyard_employment = building_level@dockyard
+		}
+		add_to_variable = {
+			PREV.arms_employment = building_level@arms_factory
+		}
+	}
+}

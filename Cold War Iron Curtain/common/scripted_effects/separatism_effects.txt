@@ -48,9 +48,12 @@ calculate_separatism = {
     set_temp_variable = { Mmedia = 0 }
     #log = "[?THIS.GetID.GetName] Mmedia default=[?Mmedia]"
 
+    # FIX 2026-07: modifier@drift_defence_factor returns only the bonus (typical values 0.01-0.25),
+    # NOT base-1-plus-bonus as the original formula assumed. The old '1 - factor' produced a permanent
+    # +0.8/month upward push on every state worldwide -> global governance crises ~10 months in.
+    # Correct per original intent: Mmedia = -defence - corruption (always downward pressure).
     set_temp_variable = { Mmedia = FROM.modifier@drift_defence_factor }
     multiply_temp_variable = { Mmedia = -1 }
-    add_to_temp_variable = { Mmedia = 1 }
     subtract_from_temp_variable = { Mmedia = CorruptionLevel }
 
     #log = "[?THIS.GetID.GetName] CorruptionLevel=[?CorruptionLevel] drift_defence_factor=[?FROM.modifier@drift_defence_factor] Mmedia=[?Mmedia]"
@@ -110,6 +113,16 @@ calculate_separatism = {
 	add_to_temp_variable = { delta_core = res_term }
 
 	#log = "[?THIS.GetID.GetName] res_term=[?res_term] delta_core after res add=[?delta_core]"
+
+    # =========================
+    # GROWTH GATE (2026-07): separatism only grows for countries that have been
+    # given the hidden idea CWIC_separatism_growth_enabled. For everyone else the
+    # monthly delta is clamped to <= 0, so separatism can decay but never rise.
+    # =========================
+    if = {
+        limit = { NOT = { FROM = { has_idea = CWIC_separatism_growth_enabled } } }
+        clamp_temp_variable = { var = delta_core min = -1000 max = 0 }
+    }
 
     # =========================
     # POPULATION SCALE MULTIPLIER
@@ -226,6 +239,13 @@ cwic_finalize_separatism_rollup = {
 		set_variable = { CWIC_instability_index = inst }
 		clamp_variable = { var = CWIC_instability_index min = 0 max = 3 }
 
+        # Corp/nationalization unrest fades over time - without this decay the factor only ever ratchets up
+        # (+0.05 per nationalization, 67 call sites in CWIC_MNC_Effects.txt) and permanently locks countries
+        # into governance crises.
+        subtract_from_variable = { CWIC_instability_index_corp_factor = 0.02 }
+        clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+        subtract_from_variable = { CWIC_nationalization_pressure_index = 0.02 }
+        clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
         add_to_variable = { CWIC_instability_index = CWIC_instability_index_corp_factor }
 	}
 
