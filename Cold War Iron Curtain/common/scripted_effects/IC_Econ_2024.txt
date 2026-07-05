@@ -1409,6 +1409,7 @@ gdp_calculation_effect = {
 		calculate_sum_up_total = yes
 
 	}
+	divide_variable = { total_personal_income_tax = 100 }	# FIX 2026-07-05: scaled once here (was /10 per state inside the loop); matches the /100 applied to IncomeTotal below
 	set_variable = { ui_income_tax = total_personal_income_tax }
 	set_variable = { ui_corporate_tax = total_corporate_tax }
 	set_variable = { ui_wage_mass = total_employed_pay_national }
@@ -1460,11 +1461,17 @@ calculate_take_taxes_from_people = {
 
 	# -------------------------------------------------------
 	# Personal income tax (mass-based, per class)
+	# FIX 2026-07-05: divisor was 12, but the old wage-based system
+	# carried a built-in /100 on every wage (see calculate_net_poptype_earnings).
+	# The pay masses from Employment_Effects have no such scaling, so taxes
+	# came out ~8.3x too high (USSR ~200B/month, debts cleared in month one).
+	# /100 here + the /100 on IncomeTotal after the state loop restores the
+	# old overall scale.
 	# -------------------------------------------------------
-	set_temp_variable = { lower_tax = { value = total_lower_class_pay multiply = owner:pop_lowerclass_tax_rate divide = 12 } }
-	set_temp_variable = { middle_tax = { value = total_middle_class_pay multiply = owner:pop_middleclass_tax_rate divide = 12 } }
-	set_temp_variable = { upper_middle_tax = { value = total_upper_middle_class_pay multiply = owner:pop_upperclass_tax_rate divide = 12 } }
-	set_temp_variable = { upper_tax = { value = total_upper_class_pay multiply = owner:pop_upperclass_tax_rate divide = 12 } }
+	set_temp_variable = { lower_tax = { value = total_lower_class_pay multiply = owner:pop_lowerclass_tax_rate divide = 100 } }
+	set_temp_variable = { middle_tax = { value = total_middle_class_pay multiply = owner:pop_middleclass_tax_rate divide = 100 } }
+	set_temp_variable = { upper_middle_tax = { value = total_upper_middle_class_pay multiply = owner:pop_upperclass_tax_rate divide = 100 } }
+	set_temp_variable = { upper_tax = { value = total_upper_class_pay multiply = owner:pop_upperclass_tax_rate divide = 100 } }
 	set_variable = {
 		state_personal_income_tax = {
 			value = lower_tax
@@ -1477,7 +1484,10 @@ calculate_take_taxes_from_people = {
 	# Add to national totals (country scope = PREV in your every_owned_state loop)
 	add_to_variable = { PREV.IncomeTotal = state_personal_income_tax }
 	add_to_variable = { PREV.total_personal_income_tax = state_personal_income_tax }
-	divide_variable = { PREV.total_personal_income_tax = 10 }
+	# FIX 2026-07-05: removed 'divide_variable = { PREV.total_personal_income_tax = 10 }'
+	# — it ran once per state, dividing the accumulating national total by 10
+	# every iteration and corrupting the ui_income_tax display.
+	# The total is now scaled once after the loop in gdp_calculation_effect.
 
 	# -------------------------------------------------------
 	# Net pay (optional, for GUI/national income contribution)
@@ -1493,7 +1503,7 @@ calculate_take_taxes_from_people = {
 	set_temp_variable = {
 		net_factory_taxed_earnings = {
 			value = net_factory_earnings
-			max = 0
+			min = 0	# FIX 2026-07-05: was 'max = 0' (upper clamp), which made corporate tax always <= 0. min = 0 means: no tax on loss-making states, normal tax otherwise.
 			multiply = owner:pop_corporateclass_tax_rate
 		}
 	}
