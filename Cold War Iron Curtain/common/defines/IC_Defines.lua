@@ -36,8 +36,48 @@ NDefines.NAir.STRATEGIC_BOMBER_NUKE_AIR_SUPERIORITY = 10.0 -- How much air super
 NDefines.NAir.NAVAL_COMBAT_EXTERNAL_PLANES_JOIN_RATIO = 0.02 -- Max planes that can join a combat comparing to the total strength of the ships
 NDefines.NAir.COMBAT_STACK_LIMIT = 3 -- The biggest allowed dogfight combination (1vs1 or 2vs1). Bigger value cause that amount of airplanes matters more then their stats. Only used in naval air combat, for land air combat see COMBAT_MULTIPLANE_CAP
 NDefines.NAir.NAVAL_STRIKE_DAMAGE_TO_STR = 2 -- Balancing value to convert damage ( naval_strike_attack * hits ) to Strength reduction.
-NDefines.NAir.MISSION_COMMAND_POWER_COSTS = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-NDefines.NAir.MISSION_FUEL_COSTS = { 1.0, 0.5, 0.2, 1.3, 1.3, 20.0, 3.0, 1.0, 1.3, 2.0, 0.5, 2.0, 2.0, 1.0, 1.0, 1.0 }
+NDefines.NAir.MISSION_COMMAND_POWER_COSTS = {  -- command power cost per plane to create a mission (synced to vanilla mission list, 19 entries)
+	0.0, -- AIR_SUPERIORITY
+	0.0, -- CAS
+	0.0, -- INTERCEPTION
+	0.0, -- STRATEGIC_BOMBER
+	0.0, -- NAVAL_BOMBER
+	0.0, -- DROP_NUKE
+	0.0, -- PARADROP
+	0.0, -- NAVAL_KAMIKAZE
+	0.0, -- PORT_STRIKE
+	0.0, -- ATTACK_LOGISTICS
+	0.0, -- AIR_SUPPLY
+	0.0, -- TRAINING
+	0.0, -- NAVAL_MINES_PLANTING
+	0.0, -- NAVAL_MINES_SWEEPING
+	0.0, -- RECON
+	0.0, -- NAVAL_PATROL
+	0.0, -- BARRAGE
+	0.0, -- NUCLEAR
+	0.0, -- SAM
+}
+NDefines.NAir.MISSION_FUEL_COSTS = {  -- fuel cost per plane for each mission (synced to vanilla mission list, 19 entries; CWIC values kept)
+	1.0, -- AIR_SUPERIORITY
+	0.5, -- CAS
+	0.2, -- INTERCEPTION
+	1.3, -- STRATEGIC_BOMBER
+	1.3, -- NAVAL_BOMBER
+	1.0, -- DROP_NUKE (unused in CWIC - nukes are delivered via the nuclear_strike raid; 20.0 legacy value only inflated the max-consumption tooltip)
+	3.0, -- PARADROP
+	1.0, -- NAVAL_KAMIKAZE
+	1.3, -- PORT_STRIKE
+	2.0, -- ATTACK_LOGISTICS
+	0.5, -- AIR_SUPPLY
+	1.2, -- TRAINING (vanilla 0.6; kept higher, jet-era training burns more fuel)
+	1.3, -- NAVAL_MINES_PLANTING (vanilla 1.0)
+	1.0, -- NAVAL_MINES_SWEEPING
+	1.0, -- RECON
+	1.0, -- NAVAL_PATROL
+	0.0, -- BARRAGE (vanilla value)
+	0.0, -- NUCLEAR (vanilla value)
+	0.0, -- SAM (vanilla value)
+}
 NDefines.NAir.CAS_NIGHT_ATTACK_FACTOR = 0.5 -- Balancing value to convert damage ( naval_strike_attack * hits ) to Strength reduction.
 NDefines.NAir.AIR_WING_AVERAGE_SIZE = 50 						-- Eyeballed average amount of airplanes in wing. Used when calculating air volunteer.
 
