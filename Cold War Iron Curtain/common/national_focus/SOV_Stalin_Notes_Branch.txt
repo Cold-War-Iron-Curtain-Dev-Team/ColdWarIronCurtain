@@ -1,0 +1,453 @@
+# ============================================================================
+#  THE GERMAN QUESTION - Stalin Notes side branch for the SOV (Stalin) tree.
+#
+#  Entry: event germanquestion.1 (auto ~1952, Stalin as leader) sets the flag
+#  SOV_german_question_active, which reveals this side branch (allow_branch).
+#
+#  Root -> forks (mutually exclusive):
+#    Path A (Historical): the Note is let die; the real 1952-56 events play out.
+#    Path B (Ahistorical): pursue the Note -> fires the existing StalinNotes.*
+#      negotiation, then a capstone + outcome-gated Soviet-policy sub-branches
+#      (Socialist / Neutral / Western Germany).
+#
+#  Effects use CWIC mechanics: FPP power projection (bonus_fpp_modifier), the
+#  budget system (money_to_gain + add_money_with_tooltip_effect), the German
+#  political systems (SED party power, faction influence, Stasi, party
+#  legitimacy, public discontent, policy sliders), influence, and the custom
+#  opinion modifiers (small/medium/large_increase).
+#
+#  Shared focuses; only the root is listed in the SOV_Stalin focus_tree header.
+# ============================================================================
+
+# ---- ROOT -------------------------------------------------------------------
+shared_focus = {
+	id = SOV_sn_the_german_question
+	icon = GFX_Stalin_Notes
+	text_icon = Soviet_focus_style
+	cost = 3
+	x = 45
+	y = 0
+	search_filters = { FOCUS_FILTER_POLITICAL }
+
+	allow_branch = { has_country_flag = SOV_german_question_active }
+	available = { has_country_flag = SOV_german_question_active }
+
+	completion_reward = {
+		add_political_power = 50
+		add_to_variable = { bonus_fpp_modifier = 0.25 tooltip = bonus_fpp_modifier_tt }
+		custom_effect_tooltip = SOV_sn_the_german_question_tt
+	}
+}
+
+# ---- FORK -------------------------------------------------------------------
+shared_focus = {
+	id = SOV_sn_manage_the_division
+	icon = GFX_For_the_Preservation_of_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_the_german_question
+	x = -4
+	y = 1
+	prerequisite = { focus = SOV_sn_the_german_question }
+	mutually_exclusive = { focus = SOV_sn_pursue_the_note }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+
+	completion_reward = {
+		set_country_flag = SOV_german_question_historical
+		if = {
+			limit = { country_exists = DDR }
+			DDR = {
+				increase_SED_party_power = yes
+				increase_faction_influence_ULBRICHT_GRUPPE = yes
+			}
+		}
+		add_political_power = 25
+	}
+}
+
+shared_focus = {
+	id = SOV_sn_pursue_the_note
+	icon = GFX_Dream_of_United_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_the_german_question
+	x = 4
+	y = 1
+	prerequisite = { focus = SOV_sn_the_german_question }
+	mutually_exclusive = { focus = SOV_sn_manage_the_division }
+	cancel = {
+		has_completed_focus = SOV_sn_manage_the_division
+	}
+	available = {
+		has_country_leader = { name = "Joseph Stalin" ruling_only = yes }
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	select_effect = {
+		country_event = StalinNotes.1
+	}
+	completion_reward = {
+		set_country_flag = SOV_german_question_ahistorical
+		add_to_variable = { bonus_fpp_modifier = 0.25 tooltip = bonus_fpp_modifier_tt }
+	}
+}
+
+# ============================================================================
+#  PATH A - HISTORICAL (1952 -> 1956)
+# ============================================================================
+shared_focus = {
+	id = SOV_sn_the_note_rejected
+	icon = GFX_Debate_Allied_Forces_in_West_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_manage_the_division
+	x = -1
+	y = 1
+	prerequisite = { focus = SOV_sn_manage_the_division }
+	available = { date > 1952.5.26 }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_political_power = 40
+		add_to_variable = { bonus_fpp_modifier = 0.5 tooltip = bonus_fpp_modifier_tt }
+		if = { limit = { country_exists = DDR } DDR = { set_temp_variable = { percent_change = -5 } set_temp_variable = { tag_index = USA.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes set_temp_variable = { percent_change = 5 } set_temp_variable = { tag_index = SOV.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes } }
+		if = { limit = { country_exists = WGR } WGR = { set_temp_variable = { percent_change = -5 } set_temp_variable = { tag_index = USA.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes set_temp_variable = { percent_change = 5 } set_temp_variable = { tag_index = SOV.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes } }
+		custom_effect_tooltip = SOV_sn_the_note_rejected_tt
+	}
+}
+
+shared_focus = {
+	id = SOV_sn_the_new_course
+	icon = GFX_Coal_East_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_manage_the_division
+	x = 1
+	y = 1
+	prerequisite = { focus = SOV_sn_manage_the_division }
+	available = { date > 1953.6.9 }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		if = {
+			limit = { country_exists = DDR }
+			DDR = {
+				decrease_public_discontent = yes
+				increase_faction_influence_REFORMIST = yes
+				set_temp_variable = { money_to_gain = 15 }
+				add_money_with_tooltip_effect = yes
+			}
+		}
+		add_political_power = 25
+	}
+}
+
+shared_focus = {
+	id = SOV_sn_crush_the_june_uprising
+	icon = GFX_Deport_Traitorous_Elements_in_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_the_new_course
+	x = -1
+	y = 1
+	prerequisite = { focus = SOV_sn_the_note_rejected }
+	prerequisite = { focus = SOV_sn_the_new_course }
+	available = { date > 1953.6.17 }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_war_support = 0.05
+		if = {
+			limit = { country_exists = DDR }
+			DDR = {
+				increase_stasi_power = yes
+				increase_SED_party_power = yes
+				increase_faction_influence_ULBRICHT_GRUPPE = yes
+				increase_public_discontent = yes
+			}
+		}
+		custom_effect_tooltip = SOV_sn_crush_the_june_uprising_tt
+	}
+}
+
+shared_focus = {
+	id = SOV_sn_adenauer_in_moscow
+	icon = GFX_Restructure_West_German_Debt
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_crush_the_june_uprising
+	x = 0
+	y = 1
+	prerequisite = { focus = SOV_sn_crush_the_june_uprising }
+	available = { date > 1955.9.9 }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		news_event = SOV_STL.9
+		add_political_power = 50
+		add_named_threat = { threat = -8 name = SOV_sn_adenauer_threat }
+		if = {
+			limit = { country_exists = WGR }
+			WGR = { add_opinion_modifier = { target = SOV modifier = medium_increase } }
+			add_opinion_modifier = { target = WGR modifier = medium_increase }
+		}
+		custom_effect_tooltip = SOV_sn_adenauer_in_moscow_tt
+	}
+}
+
+shared_focus = {
+	id = SOV_sn_treaty_on_relations
+	icon = GFX_German_Restitution_Law
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_adenauer_in_moscow
+	x = 0
+	y = 1
+	prerequisite = { focus = SOV_sn_adenauer_in_moscow }
+	available = { date > 1955.9.20 }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_political_power = 75
+		if = {
+			limit = { country_exists = DDR }
+			DDR = {
+				increase_party_legitimacy = yes
+				decrease_public_discontent = yes
+				set_temp_variable = { money_to_gain = 30 }
+				add_money_with_tooltip_effect = yes
+			}
+		}
+		custom_effect_tooltip = SOV_sn_treaty_on_relations_tt
+	}
+}
+
+# ============================================================================
+#  PATH B - AHISTORICAL: Soviet response to whatever Germany the Notes produced
+# ============================================================================
+shared_focus = {
+	id = SOV_sn_a_reunified_germany
+	icon = GFX_The_Unification_of_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_pursue_the_note
+	x = 0
+	y = 2
+	prerequisite = { focus = SOV_sn_pursue_the_note }
+	available = {
+		OR = {
+			has_global_flag = Germany_Unified_Neutral
+			NOT = { AND = { country_exists = WGR country_exists = DDR } }
+		}
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_political_power = 75
+		add_to_variable = { bonus_fpp_modifier = 0.5 tooltip = bonus_fpp_modifier_tt }
+		custom_effect_tooltip = SOV_sn_a_reunified_germany_tt
+	}
+}
+
+# ---- (i) SOCIALIST GERMANY (DDR-led unification, not neutral) ---------------
+shared_focus = {
+	id = SOV_sn_welcome_socialist_camp
+	icon = GFX_Warsaw_Pact
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_a_reunified_germany
+	x = -4
+	y = 1
+	prerequisite = { focus = SOV_sn_a_reunified_germany }
+	available = {
+		NOT = { has_global_flag = Germany_Unified_Neutral }
+		country_exists = DDR
+		NOT = { country_exists = WGR }
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_to_variable = { bonus_fpp_modifier = 1 tooltip = bonus_fpp_modifier_tt }
+		if = {
+			limit = { is_faction_leader = yes country_exists = DDR NOT = { is_in_faction_with = DDR } }
+			add_to_faction = DDR
+		}
+		if = {
+			limit = { country_exists = DDR }
+			DDR = {
+				increase_SED_party_power = yes
+				increase_party_legitimacy = yes
+				increase_faction_influence_MOSCOW_FACTION = yes
+			}
+		}
+		news_event = germanquestion.2
+		custom_effect_tooltip = SOV_sn_welcome_socialist_camp_tt
+	}
+}
+shared_focus = {
+	id = SOV_sn_arsenal_of_socialism
+	icon = GFX_German_Nuclear_Program
+	text_icon = Soviet_focus_style
+	cost = 8
+	relative_position_id = SOV_sn_welcome_socialist_camp
+	x = -1
+	y = 1
+	prerequisite = { focus = SOV_sn_welcome_socialist_camp }
+	search_filters = { FOCUS_FILTER_INDUSTRY }
+	completion_reward = {
+		set_temp_variable = { money_to_gain = 75 }
+		add_money_with_tooltip_effect = yes
+		random_owned_state = {
+			add_extra_state_shared_building_slots = 2
+			add_building_construction = { type = arms_factory level = 2 instant_build = yes }
+		}
+		news_event = germanquestion.3
+		custom_effect_tooltip = SOV_sn_arsenal_of_socialism_tt
+	}
+}
+shared_focus = {
+	id = SOV_sn_beacon_to_the_west
+	icon = GFX_Extol_Social_Freedom_of_West_Germany
+	text_icon = Soviet_focus_style
+	cost = 8
+	relative_position_id = SOV_sn_welcome_socialist_camp
+	x = 1
+	y = 1
+	prerequisite = { focus = SOV_sn_welcome_socialist_camp }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_to_variable = { bonus_fpp_modifier = 0.5 tooltip = bonus_fpp_modifier_tt }
+		if = { limit = { country_exists = FRA } FRA = { add_popularity = { ideology = communism popularity = 0.10 } set_temp_variable = { percent_change = -5 } set_temp_variable = { tag_index = USA.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes set_temp_variable = { percent_change = 5 } set_temp_variable = { tag_index = SOV.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes } }
+		if = { limit = { country_exists = ITA } ITA = { add_popularity = { ideology = communism popularity = 0.10 } set_temp_variable = { percent_change = -5 } set_temp_variable = { tag_index = USA.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes set_temp_variable = { percent_change = 5 } set_temp_variable = { tag_index = SOV.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes } }
+		custom_effect_tooltip = SOV_sn_beacon_to_the_west_tt
+	}
+}
+
+# ---- (ii) NEUTRAL GERMANY (Germany_Unified_Neutral) -------------------------
+shared_focus = {
+	id = SOV_sn_guarantee_neutrality
+	icon = GFX_Fully_Demilitarize_Germany
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_a_reunified_germany
+	x = 0
+	y = 1
+	prerequisite = { focus = SOV_sn_a_reunified_germany }
+	available = { has_global_flag = Germany_Unified_Neutral }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_political_power = 50
+		add_named_threat = { threat = -10 name = SOV_sn_neutrality_threat }
+		if = { limit = { country_exists = WGR } WGR = { set_temp_variable = { percent_change = -5 } set_temp_variable = { tag_index = USA.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes set_temp_variable = { percent_change = 5 } set_temp_variable = { tag_index = SOV.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes } }
+		if = { limit = { country_exists = DDR } DDR = { set_temp_variable = { percent_change = -5 } set_temp_variable = { tag_index = USA.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes set_temp_variable = { percent_change = 5 } set_temp_variable = { tag_index = SOV.id } set_temp_variable = { influence_target = THIS.id } change_influence_percentage = yes } }
+		news_event = germanquestion.4
+		custom_effect_tooltip = SOV_sn_guarantee_neutrality_tt
+	}
+}
+shared_focus = {
+	id = SOV_sn_spirit_of_rapallo
+	icon = GFX_Hold_Conference_on_Neutrality
+	text_icon = Soviet_focus_style
+	cost = 8
+	relative_position_id = SOV_sn_guarantee_neutrality
+	x = -1
+	y = 1
+	prerequisite = { focus = SOV_sn_guarantee_neutrality }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		set_temp_variable = { money_to_gain = 50 }
+		add_money_with_tooltip_effect = yes
+		if = {
+			limit = { country_exists = WGR }
+			WGR = { add_opinion_modifier = { target = SOV modifier = medium_increase_trade } }
+			add_opinion_modifier = { target = WGR modifier = medium_increase_trade }
+		}
+		if = {
+			limit = { country_exists = DDR }
+			DDR = { add_opinion_modifier = { target = SOV modifier = medium_increase_trade } }
+			add_opinion_modifier = { target = DDR modifier = medium_increase_trade }
+		}
+		news_event = germanquestion.5
+		custom_effect_tooltip = SOV_sn_spirit_of_rapallo_tt
+	}
+}
+shared_focus = {
+	id = SOV_sn_peace_dividend
+	icon = GFX_generic_seize_money
+	text_icon = Soviet_focus_style
+	cost = 8
+	relative_position_id = SOV_sn_guarantee_neutrality
+	x = 1
+	y = 1
+	prerequisite = { focus = SOV_sn_guarantee_neutrality }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_stability = 0.05
+		add_war_support = -0.05
+		add_named_threat = { threat = -10 name = SOV_sn_peace_dividend_threat }
+		set_temp_variable = { money_to_gain = 60 }
+		add_money_with_tooltip_effect = yes
+		custom_effect_tooltip = SOV_sn_peace_dividend_tt
+	}
+}
+
+# ---- (iii) WESTERN GERMANY (WGR-led unification, hostile) -------------------
+shared_focus = {
+	id = SOV_sn_a_costly_gamble
+	icon = GFX_usa_50_expanding_nato
+	text_icon = Soviet_focus_style
+	cost = 5
+	relative_position_id = SOV_sn_a_reunified_germany
+	x = 4
+	y = 1
+	prerequisite = { focus = SOV_sn_a_reunified_germany }
+	available = {
+		NOT = { has_global_flag = Germany_Unified_Neutral }
+		country_exists = WGR
+		NOT = { country_exists = DDR }
+	}
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		news_event = germanquestion.6
+		add_war_support = 0.10
+		add_stability = -0.05
+		custom_effect_tooltip = SOV_sn_a_costly_gamble_tt
+	}
+}
+shared_focus = {
+	id = SOV_sn_fortify_the_frontier
+	icon = GFX_Diplomacy_with_Poland
+	text_icon = Soviet_focus_style
+	cost = 8
+	relative_position_id = SOV_sn_a_costly_gamble
+	x = -1
+	y = 1
+	prerequisite = { focus = SOV_sn_a_costly_gamble }
+	search_filters = { FOCUS_FILTER_MILITARY }
+	completion_reward = {
+		add_war_support = 0.05
+		increase_military_policy = yes
+		if = {
+			limit = { country_exists = POL }
+			POL = { add_opinion_modifier = { target = SOV modifier = large_increase } }
+			add_opinion_modifier = { target = POL modifier = large_increase }
+		}
+		custom_effect_tooltip = SOV_sn_fortify_the_frontier_tt
+	}
+}
+shared_focus = {
+	id = SOV_sn_underground_struggle
+	icon = GFX_Deport_to_DDR
+	text_icon = Soviet_focus_style
+	cost = 8
+	relative_position_id = SOV_sn_a_costly_gamble
+	x = 1
+	y = 1
+	prerequisite = { focus = SOV_sn_a_costly_gamble }
+	search_filters = { FOCUS_FILTER_POLITICAL }
+	completion_reward = {
+		add_political_power = 25
+		if = {
+			limit = { country_exists = WGR }
+			WGR = {
+				increase_faction_influence_WESTERN_KPD = yes
+				increase_faction_influence_REICHSTAG_KPD = yes
+				add_popularity = { ideology = communism popularity = 0.10 }
+			}
+		}
+		news_event = germanquestion.7
+		custom_effect_tooltip = SOV_sn_underground_struggle_tt
+	}
+}
