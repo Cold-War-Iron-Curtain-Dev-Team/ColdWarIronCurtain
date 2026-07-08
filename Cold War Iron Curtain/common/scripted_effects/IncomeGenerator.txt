@@ -397,6 +397,7 @@ income_effect = {
 	add_to_variable = { totalexp = public_expenditure_total }
 	add_to_variable = { totalexp = policing_expenditure }
 	add_to_variable = { totalexp = education_expenditure }
+	set_variable = { custom_expenses = 0 }	# FIX 2026-07-05: was never reset, so reparation payers accumulated the charge every month forever
 	if = {
 		limit = {
 			check_variable = {
@@ -603,16 +604,21 @@ income_effect = {
 	clear_array = ROOT.Export_List
 	for_each_scope_loop = {
 		array = Steel_Export_List
+		# FIX 2026-07-05: this loop used a steel_export_check temp flag that
+		# tripped after the FIRST partner, so steel income from every partner
+		# after the first was silently dropped. Now uses the same Export_List
+		# dedupe pattern as the other resource loops.
 		if = {
 			limit = {
 				NOT = {
-					check_variable = {
-						steel_export_check = 1
+					is_in_array = {
+						array = ROOT.Export_List
+						value = THIS.id
 					}
 				}
 			}
-			set_temp_variable = {
-				steel_export_check = 1
+			add_to_array = {
+				ROOT.Export_List = THIS.id
 			}
 			add_to_variable = {
 				ROOT.steel_exports = ROOT.steelExportTargetMonthly^THIS
@@ -1251,12 +1257,22 @@ income_effect = {
 	multiply_variable = {
 		resource_income = trade_credit_factor
 	}
+	# FIX 2026-07-05: consumer goods export income was computed but never paid
+	# out — importers were charged (resource_cost) while exporters received
+	# nothing, so CG trade money vanished one-sidedly. Now credited like
+	# resource income, with the same trade_credit_factor.
+	multiply_variable = {
+		consumer_goods_export_income = trade_credit_factor
+	}
 	#Tax Rate Here?
 	add_to_variable = {
 		IncomeTotal = custom_income
 	}
 	add_to_variable = {
 		IncomeTotal = resource_income
+	}
+	add_to_variable = {
+		IncomeTotal = consumer_goods_export_income
 	}
 	set_variable = {
 		display_income = IncomeTotal
@@ -2786,7 +2802,9 @@ income_effect = {
 
 	cwic_country_add_all_corp_profits = yes
 
-	cwic_country_mnc_presence_growth = yes
+	# TODO(MNC): cwic_country_mnc_presence_growth is not defined anywhere yet (never was, per git history).
+	# Re-enable once the effect is written in the MNC scripted effects.
+	# cwic_country_mnc_presence_growth = yes
 
 	cwic_mnc_set_auto_invest_pool_flags_country = yes
 	cwic_mnc_apply_sector_presence_effects_country = yes
