@@ -1350,22 +1350,22 @@ gdp_calculation_effect = {
 	set_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
 	set_variable = { pop_lowerclass_tax_rate_bonus = pop_lowerclass_tax_rate }
 	multiply_variable = { pop_lowerclass_tax_rate_bonus = effective_tax_rate }
-	add_to_variable = { pop_lowerclass_tax_rate = pop_lowerclass_tax_rate_bonus }
+	set_variable = { pop_lowerclass_tax_rate = pop_lowerclass_tax_rate_bonus }
 
 	set_variable = { pop_middleclass_tax_rate = modifier@tax_rate_middle_class }
 	set_variable = { pop_middleclass_tax_rate_bonus = pop_middleclass_tax_rate }
 	multiply_variable = { pop_middleclass_tax_rate_bonus = effective_tax_rate }
-	add_to_variable = { pop_middleclass_tax_rate = pop_middleclass_tax_rate_bonus }
+	set_variable = { pop_middleclass_tax_rate = pop_middleclass_tax_rate_bonus }
 
 	set_variable = { pop_upperclass_tax_rate = modifier@tax_rate_upper_class }
 	set_variable = { pop_upperclass_tax_rate_bonus = pop_upperclass_tax_rate }
 	multiply_variable = { pop_upperclass_tax_rate_bonus = effective_tax_rate }
-	add_to_variable = { pop_upperclass_tax_rate = pop_upperclass_tax_rate_bonus }
+	set_variable = { pop_upperclass_tax_rate = pop_upperclass_tax_rate_bonus }
 
 	set_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
 	set_variable = { pop_corporateclass_tax_rate_bonus = pop_corporateclass_tax_rate }
 	multiply_variable = { pop_corporateclass_tax_rate_bonus = effective_tax_rate }
-	add_to_variable = { pop_corporateclass_tax_rate = pop_corporateclass_tax_rate_bonus }
+	set_variable = { pop_corporateclass_tax_rate = pop_corporateclass_tax_rate_bonus }
 
 	set_variable = { grossdomesticproduct = 0 }
 	set_variable = { national_net_factory_earnings = 0 }
@@ -1500,10 +1500,11 @@ calculate_take_taxes_from_people = {
 	calculate_state_hdi = yes
 
 
-	set_temp_variable = {
+	set_variable = {
 		net_factory_taxed_earnings = {
 			value = net_factory_earnings
-			min = 0	# FIX 2026-07-05: was 'max = 0' (upper clamp), which made corporate tax always <= 0. min = 0 means: no tax on loss-making states, normal tax otherwise.
+			max = 0	# FIX 2026-07-05: was 'max = 0' (upper clamp), which made corporate tax always <= 0. min = 0 means: no tax on loss-making states, normal tax otherwise. 
+					# REVERT FIX 2026-07-09 Bro this fix is ass it fixed nothing max = x Sets the accumulator to the maximum of itself and the value, means that if it is lower than 0 it will be set to 0. Stop trying to fix shit before actually seeing/testing the theoratical bug!!
 			multiply = owner:pop_corporateclass_tax_rate
 		}
 	}
