@@ -929,15 +929,15 @@ get_electricity_debuff = {
 }
 
 check_individual_factory_productivity = {
-	set_variable = { civ_productivity_factor_var = modifier@industrial_park_income_bonus }
+	set_variable = { civ_productivity_factor_var = industrial_park_income_bonus_drift }
 	add_to_variable = { civ_productivity_factor_var = 1 }
 
-	set_variable = { mil_productivity_factor_var = modifier@military_factory_income_bonus }
+	set_variable = { mil_productivity_factor_var = military_factory_income_bonus_drift }
 	add_to_variable = { mil_productivity_factor_var = 1 }
 
-	set_variable = { ofp_productivity_factor_var = modifier@office_park_income_bonus }
+	set_variable = { ofp_productivity_factor_var = office_park_income_bonus_drift }
 	add_to_variable = {
-		ofp_productivity_factor_var = modifier@office_park_income_adjustment
+		ofp_productivity_factor_var = office_park_income_adjustment_drift
 	}
 	if = {
 		limit = {
@@ -949,19 +949,19 @@ check_individual_factory_productivity = {
 	}
 	add_to_variable = { ofp_productivity_factor_var = 1 }
 
-	set_variable = { stl_productivity_factor_var = modifier@foundry_district_income_bonus }
+	set_variable = { stl_productivity_factor_var = foundry_district_income_bonus_drift }
 	add_to_variable = { stl_productivity_factor_var = 1 }
 
-	set_variable = { tng_productivity_factor_var = modifier@metallurgy_plant_income_bonus}
+	set_variable = { tng_productivity_factor_var = metallurgy_plant_income_bonus_drift}
 	add_to_variable = { tng_productivity_factor_var = 1 }
 
 	set_variable = { fod_productivity_factor_var = modifier@food_income_bonus }
 	add_to_variable = { fod_productivity_factor_var = 1 }				
 
-	set_variable = { rsc_productivity_factor_var = modifier@other_resources_income_bonus }
+	set_variable = { rsc_productivity_factor_var = other_resources_income_bonus_drift }
 	add_to_variable = { rsc_productivity_factor_var = 1 }			
 
-	#set_variable = { doc_productivity_factor_var = modifier@dockyard_income_bonus }
+	#set_variable = { doc_productivity_factor_var = dockyard_income_bonus_drift }
 	#add_to_variable = { doc_productivity_factor_var = 1 }		
 }
 
@@ -1347,6 +1347,7 @@ gdp_calculation_effect = {
 	# multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
 	# after generate_tax_info
 	# after generate_tax_info
+	if = { limit = { is_ai = no } log =  [?ROOT.CWIC_DM_CG_OFFICE_PARK_INCOME_BONUS] }
 	set_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
 	set_variable = { pop_lowerclass_tax_rate_bonus = pop_lowerclass_tax_rate }
 	multiply_variable = { pop_lowerclass_tax_rate_bonus = effective_tax_rate }
@@ -1383,6 +1384,7 @@ gdp_calculation_effect = {
 	set_variable = { total_personal_income_tax = 0 }
 	set_variable = { total_office_parks = 0 }
 	cwic_begin_separatism_rollup  = yes
+	CWIC_econ_drift_vars = yes
 	every_owned_state = {
 		income_effect_every_owned_scope = yes 
 		get_total_infrastructure = yes	#For Public Services Expenses
@@ -2603,3 +2605,72 @@ CWIC_clean_initial_gdp_record = {
 	clear_variable = CWIC_gdp_last_month
 	clear_variable = CWIC_gdp_last_year
 }
+CWIC_force_update_econ_drift_vars = {
+	set_variable = { industrial_park_income_bonus_drift = modifier@industrial_park_income_bonus }
+	set_variable = { military_factory_income_bonus_drift = modifier@military_factory_income_bonus }
+	set_variable = { office_park_income_bonus_drift = modifier@office_park_income_bonus }
+	set_variable = { office_park_income_adjustment_drift = modifier@office_park_income_adjustment }
+	set_variable = { foundry_district_income_bonus_drift = modifier@foundry_district_income_bonus }
+	set_variable = { metallurgy_plant_income_bonus_drift = modifier@metallurgy_plant_income_bonus }
+	set_variable = { other_resources_income_bonus_drift = modifier@other_resources_income_bonus }
+	set_variable = { dockyard_income_bonus_drift = modifier@dockyard_income_bonus }
+}
+CWIC_econ_drift_vars = {
+	set_variable = {
+		industrial_park_income_bonus_drift = {
+			value = industrial_park_income_bonus_drift
+			if = { limit = { value = industrial_park_income_bonus_drift greater_than = modifier@industrial_park_income_bonus } subtract = 0.01 max = modifier@industrial_park_income_bonus }
+			if = { limit = { value = industrial_park_income_bonus_drift less_than = modifier@industrial_park_income_bonus } subtract = 0.01 min = modifier@industrial_park_income_bonus }
+		}
+	}
+	set_variable = {
+		military_factory_income_bonus_drift = {
+			value = military_factory_income_bonus_drift
+			if = { limit = { value = military_factory_income_bonus_drift greater_than = modifier@military_factory_income_bonus } subtract = 0.01 max = modifier@military_factory_income_bonus }
+			if = { limit = { value = military_factory_income_bonus_drift less_than = modifier@military_factory_income_bonus } subtract = 0.01 min = modifier@military_factory_income_bonus }
+		}
+	}
+	set_variable = {
+		office_park_income_bonus_drift = {
+			value = office_park_income_bonus_drift
+			if = { limit = { value = office_park_income_bonus_drift greater_than = modifier@office_park_income_bonus } subtract = 0.01 max = modifier@office_park_income_bonus }
+			if = { limit = { value = office_park_income_bonus_drift less_than = modifier@office_park_income_bonus } subtract = 0.01 min = modifier@office_park_income_bonus }
+		}
+	}
+	set_variable = {
+		office_park_income_adjustment_drift = {
+			value = office_park_income_adjustment_drift
+			if = { limit = { value = office_park_income_adjustment_drift greater_than = modifier@office_park_income_adjustment } subtract = 0.01 max = modifier@office_park_income_adjustment }
+			if = { limit = { value = office_park_income_adjustment_drift less_than = modifier@office_park_income_adjustment } subtract = 0.01 min = modifier@office_park_income_adjustment }
+		}
+	}
+	set_variable = {
+		foundry_district_income_bonus_drift = {
+			value = foundry_district_income_bonus_drift
+			if = { limit = { value = foundry_district_income_bonus_drift greater_than = modifier@foundry_district_income_bonus } subtract = 0.01 max = modifier@foundry_district_income_bonus }
+			if = { limit = { value = foundry_district_income_bonus_drift less_than = modifier@foundry_district_income_bonus } subtract = 0.01 min = modifier@foundry_district_income_bonus }
+		}
+	}
+	set_variable = {
+		metallurgy_plant_income_bonus_drift = {
+			value = metallurgy_plant_income_bonus_drift
+			if = { limit = { value = metallurgy_plant_income_bonus_drift greater_than = modifier@metallurgy_plant_income_bonus } subtract = 0.01 max = modifier@metallurgy_plant_income_bonus }
+			if = { limit = { value = metallurgy_plant_income_bonus_drift less_than = modifier@metallurgy_plant_income_bonus } subtract = 0.01 min = modifier@metallurgy_plant_income_bonus }
+		}
+	}
+	set_variable = {
+		other_resources_income_bonus_drift = {
+			value = other_resources_income_bonus_drift
+			if = { limit = { value = other_resources_income_bonus_drift greater_than = modifier@other_resources_income_bonus } subtract = 0.01 max = modifier@other_resources_income_bonus }
+			if = { limit = { value = other_resources_income_bonus_drift less_than = modifier@other_resources_income_bonus } subtract = 0.01 min = modifier@other_resources_income_bonus }
+		}
+	}
+	set_variable = {
+		dockyard_income_bonus_drift = {
+			value = dockyard_income_bonus_drift
+			if = { limit  = { value = dockyard_income_bonus_drift greater_than = modifier@dockyard_income_bonus } subtract = 0.01 max = modifier@dockyard_income_bonus }
+			if = { limit = { value = dockyard_income_bonus_drift less_than = modifier@dockyard_income_bonus } subtract = 0.01 min = modifier@dockyard_income_bonus }
+		}
+	}
+}
+
