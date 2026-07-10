@@ -2284,44 +2284,10 @@ income_effect = {
 			}
 		}
 		#Austerity and Default Checks
-		# ============================================================
-		# Cash-flow default check (liquidity)
-		# Fires before solvency-based defaultCheck/currentDebt logic
-		# ============================================================
-
 		if = {
-			limit = {
-				check_variable = { currentDebtPayments > 0.01 }
-				check_variable = { currentMoney < currentDebtPayments }
-				NOT = {
-					original_tag = NLF
-				}
-			}
-			if = {
-				limit = {
-					NOT = { has_idea = Recent_Default }
-				}
-
-				# Mark default status for later systems (market lockout, IMF eligibility, etc.)
-				set_country_flag = CWIC_DEFAULTED
-				set_country_flag = CWIC_MARKET_LOCKOUT
-
-				# Optional: immediate rating hit (tunable)
-				subtract_from_variable = { Credit_Rating = 2 }
-				if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
-
-				# Optional: macro shock (tunable)
-				add_to_variable = { CWIC_inflation_mom = 0.010 }
-				add_to_variable = { CWIC_black_market_pressure = 0.10 }
-
-				country_event = CWIC_ECON_PENALTIES.2
-			}
-		}
-		else = {
 			# ============================================================
 			# Austerity and Default Checks (solvency, legacy behavior)
 			# ============================================================
-
 			if = {
 				limit = {
 					check_variable = { defaultCheck < currentDebt }
@@ -2334,7 +2300,22 @@ income_effect = {
 					}
 				}
 				if = {
-					limit = { NOT = { has_idea = Recent_Default } }
+					limit = {
+						NOT = { has_idea = Recent_Default }
+					}
+
+					# Mark default status for later systems (market lockout, IMF eligibility, etc.)
+					set_country_flag = CWIC_DEFAULTED
+					set_country_flag = CWIC_MARKET_LOCKOUT
+
+					# Optional: immediate rating hit (tunable)
+					subtract_from_variable = { Credit_Rating = 2 }
+					if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
+
+					# Optional: macro shock (tunable)
+					add_to_variable = { CWIC_inflation_mom = 0.010 }
+					add_to_variable = { CWIC_black_market_pressure = 0.10 }
+
 					country_event = CWIC_ECON_PENALTIES.2
 				}
 			}
