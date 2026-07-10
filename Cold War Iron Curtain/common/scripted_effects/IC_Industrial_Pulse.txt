@@ -472,6 +472,7 @@ industrial_pulse = {
 	add_to_variable = { foodProduction = agri_industrial_complex_quantity }
 	round_variable = food_bonus
 	add_to_variable = { FoodProdTotal = food_bonus }
+
 	add_to_variable = { FoodBalance = food_bonus }
 	set_variable = {
 		agri_consume_modifier = modifier@food_consumption_need
@@ -484,6 +485,7 @@ industrial_pulse = {
 	}	
 	round_variable = food_consumption
 	subtract_from_variable = { FoodBalance = food_consumption }
+
 	set_variable = { modFoodBalance = FoodBalance } # used for dynamic modifier
 
 	if = {
@@ -494,54 +496,6 @@ industrial_pulse = {
 		}
 		add_dynamic_modifier = { modifier = food_negative_in_capital }
 	}
-	#if = { limit = { tag = AST } log = "AST: agri: [?FoodProdTotal] - rubber: [?resource@rubber] - bonus: [?food_bonus]" }		
-
-#	#Bonus added to capital
-#	multiply_variable = { previousFoodBalance = -1 }
-#	random_owned_state = {
-#		limit = { is_capital = yes }
-#		if = { limit = { NOT = { has_variable = PREV.CapitalState } }
-#			set_temp_variable = { PREV.prevCapitalState = THIS } # no capital was set before - 1st pulse - startup or new country
-#		}
-#		else = {
-#			if = { 	limit = { check_variable =  { PREV.CapitalState = THIS } } # same capital
-#				set_temp_variable = { PREV.prevCapitalState = THIS }
-#			}
-#			else = {
-#				set_temp_variable = { PREV.prevCapitalState = PREV.CapitalState } # capital changed
-#			}
-#		}
-#		set_variable = { PREV.CapitalState = THIS } # Store Capital for next pulse
-#	}
-#	if = { 
-#		limit = { 
-#			has_variable = previousFoodBalance 
-#		} 
-#		var:prevCapitalState = {
-#			add_resource = {
-#				type = rubber
-#				amount = var:OWNER.previousFoodBalance # remove previous bonus
-#			}
-#		}
-#	}
-#	capital_scope = {
-#		add_resource = {
-#			type = rubber
-#			amount = var:FoodBalance # add new to capital
-#		}
-#	}
-#	#if = { limit = { tag = AST } log = "	[ROOT.GetTag]: removed [?previousFoodBalance] and added [?FoodBalance] Food to Capital" }
-#	
-#	# End of Capital bonus
-#
-#	# account for negative resources in capital
-#	if = { limit = { has_dynamic_modifier = { modifier = food_negative_in_capital } }
-#		remove_dynamic_modifier = { modifier = food_negative_in_capital }
-#	}
-#	if = { limit = { check_variable = { FoodBalance < 0 } } # in case of negative resources in capital
-#		add_dynamic_modifier = { modifier = food_negative_in_capital }
-#		#if = { limit = { tag = AST } log = "	[ROOT.GetTag]: added dynamic modifier: [?modFoodBalance]" }
-#	}
 
 	# Imports/Exports and Balance
 	add_to_variable = { FoodImported = resource_imported@rubber }
@@ -553,6 +507,17 @@ industrial_pulse = {
 	add_to_variable = { ConsumptionTotal = food_consumption }
 	add_to_variable = { ConsumptionTotal = FoodExported }
 	subtract_from_variable = { FoodBalanceTotal = ConsumptionTotal }
+
+	set_variable = { FoodProdTotalBonus = FoodProdTotal }
+	add_to_variable = { FoodProdTotal = agri_industrial_complex_quantity }	#requires double counting for non bonus
+	set_variable = { foodProdTotalDisplayTradeExempt = FoodProdTotal }
+	subtract_from_variable = { foodProdTotalDisplayTradeExempt = resource_imported@rubber }
+
+	set_variable = { food_consumption_dispaly = food_consumption }
+	add_to_variable = { food_consumption_dispaly = foodExport }
+
+
+	set_variable = { FoodBalanceTotal = resource@rubber }
 	round_variable = FoodBalanceTotal
 	
 	#puppets (this also accounts for unexpected discrepancies)
@@ -572,16 +537,12 @@ industrial_pulse = {
 		add_to_variable = { FoodBalanceTotal = FoodExported }
 		set_variable = { FoodExported = 0 }
 	}
-	# if = { limit = { tag = AST } # for testing purposes
-	# 	log = "	[ROOT.GetTag]: Production: [?foodProduction] / Puppets: [?FoodFromPuppets] / Bonus: [?food_bonus] / Imported: [?FoodImported]"
-	# 	log = "	[ROOT.GetTag]: Consumed: [?food_consumption] / Exported: [?FoodExported] ||| Balance: [?FoodBalanceTotal]"
-	# }
 
 	#Food Comparison for famine
 	set_variable = { food_penalty = 0 }
 	set_variable = { food_penalty_construction = 0 }
 	set_variable = { food_penalty_production = 0 }
-	if = { limit = { check_variable = { FoodProdTotal < ConsumptionTotal } }
+	if = { limit = { check_variable = { FoodBalanceTotal < 0 } }
 		set_temp_variable = { food_comp_calc = foodConsumptionComp }
         multiply_variable = { food_comp_calc = foodConsumptionComp }
         multiply_variable = { food_comp_calc = 7.4 }
