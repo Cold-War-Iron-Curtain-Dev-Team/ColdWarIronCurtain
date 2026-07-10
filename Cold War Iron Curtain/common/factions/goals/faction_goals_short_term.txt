@@ -12,22 +12,27 @@ faction_goal_unlock_research = {
 		FROM = { has_faction_research_unlocked = no }
 	}
 	select_effect = {
-		set_temp_variable = { total_techs = 0 }
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  {
-					faction_members
+		scope:faction = {
+			set_temp_variable = {
+				total_techs = {
+					value = 0
+					every_collection = {
+						named_collection = faction_members
+						add = {
+							value = num_researched_technologies
+							multiply = {
+								value = 0
+								if = { limit = { value = num_researched_technologies  less_than = 50 }  add = 1.25 }
+								else_if = { limit = { value = num_researched_technologies  less_than = 75 }  add = 1.2 }
+								else_if = { limit = { value = num_researched_technologies  less_than = 100 }  add = 1.15 }
+								else_if = { limit = { value = num_researched_technologies  less_than = 150 }  add = 1.1 }
+								else_if = { limit = { value = num_researched_technologies  less_than = 200 }  add = 1.05 }
+							}
+						}
+					}
+					round = yes
 				}
 			}
-			add_to_temp_variable = { total_techs = num_researched_technologies }
-		}
-		
-		multiply_temp_variable = {
-			var = total_techs
-			value = 1.20
-		}
-		scope:faction = {
 			set_variable = { unlock_military_techs_researched_target = total_techs }
 		}
 	}
@@ -35,23 +40,43 @@ faction_goal_unlock_research = {
 		scope:faction = {
 			hidden_trigger = {
 				tooltip_evaluation = eval
-				set_temp_variable = { unlock_military_techs_researched_compare = 0 }			
-				all_collection_elements = {
-					collection = {
-						input = game:scope
-						operators =  { faction_members }
+				set_temp_variable = {
+					unlock_military_techs_researched_compare_temp_target = {
+						value = 0
+						every_collection = {
+							named_collection = faction_members
+							add = num_researched_technologies
+						}
 					}
-					add_to_temp_variable = { unlock_military_techs_researched_compare = num_researched_technologies }
 				}
-				set_temp_variable = { unlock_military_techs_researched_compare_temp_target = unlock_military_techs_researched_compare }
-				multiply_temp_variable = { unlock_military_techs_researched_compare_temp_target = 1.20 }
+				set_temp_variable = {
+					unlock_military_techs_researched_compare = {
+						value = 0
+						every_collection = {
+							named_collection = faction_members
+							add = {
+								value = num_researched_technologies
+								multiply = {
+									value = 0
+									if = { limit = { value = num_researched_technologies  less_than = 50 }  add = 1.25 }
+									else_if = { limit = { value = num_researched_technologies  less_than = 75 }  add = 1.2 }
+									else_if = { limit = { value = num_researched_technologies  less_than = 100 }  add = 1.15 }
+									else_if = { limit = { value = num_researched_technologies  less_than = 150 }  add = 1.1 }
+									else_if = { limit = { value = num_researched_technologies  less_than = 200 }  add = 1.05 }
+								}
+							}
+						}
+						round = yes
+					}
+				}
 			}
+
 			if = {
 				limit = {
 					has_variable = unlock_military_techs_researched_target
 				}
 				check_variable = {
-					var = unlock_military_techs_researched_compare
+					var = unlock_military_techs_researched_compare_temp_target
 					value = unlock_military_techs_researched_target
 					compare = greater_than
 					tooltip = "GOAL_T_TRIGGER_A"
@@ -59,8 +84,8 @@ faction_goal_unlock_research = {
 			}
 			else = {
 				check_variable = {
-					var = unlock_military_techs_researched_compare
-					value = unlock_military_techs_researched_compare_temp_target
+					value = unlock_military_techs_researched_compare
+					var = unlock_military_techs_researched_compare_temp_target
 					compare = greater_than
 					tooltip = "GOAL_T_TRIGGER_A"
 				}
@@ -73,6 +98,10 @@ faction_goal_unlock_research = {
 	}
 	ai_will_do = {
 		base = 1000 # They should always do this if they can
+		modifier = {
+			add = 1000
+			original_tag = ENG
+		}
 	}
 }
 
@@ -88,22 +117,17 @@ faction_goal_unlock_military = {
 		FROM = { has_faction_military_unlocked = no }
 	}
 	select_effect = {
-		set_temp_variable = { total_divs = 0 }
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  {
-					faction_members
+		scope:faction = {
+			set_temp_variable = {
+				total_divs = {
+					value = 0
+					every_collection = {
+						named_collection = faction_members
+						add = num_armies
+					}
+					multiply = 1.20
 				}
 			}
-			add_to_temp_variable = { total_divs = num_armies }
-		}
-		
-		multiply_temp_variable = {
-			var = total_divs
-			value = 1.20
-		}
-		scope:faction = {
 			set_variable = { unlock_target = total_divs }
 		}
 	}
@@ -111,15 +135,20 @@ faction_goal_unlock_military = {
 		scope:faction = {
 			hidden_trigger = {
 				tooltip_evaluation = eval
-				set_temp_variable = { unlock_compare = 0 }			
-				all_collection_elements = {
-					collection = {
-						input = game:scope
-						operators =  { faction_members }
+				set_temp_variable = {
+					unlock_compare = {
+						value = 0
+						every_collection = {
+							named_collection = faction_members
+							add = num_armies
+						}
 					}
-					add_to_temp_variable = { unlock_compare = num_armies }
-					set_temp_variable = { unlock_military_techs_researched_compare_temp_target = unlock_compare }
-					multiply_temp_variable = { unlock_military_techs_researched_compare_temp_target = 1.20 }
+				}
+				set_temp_variable = {
+					unlock_military_techs_researched_compare_temp_target = {
+						value = unlock_compare
+						multiply = 1.20
+					}
 				}
 			}
 			if = {
@@ -149,8 +178,13 @@ faction_goal_unlock_military = {
 	}
 	ai_will_do = {
 		base = 1000 # They should always do this if they can
+		modifier = {
+			add = 1000
+			original_tag = GER
+		}
 	}
 }
+
 faction_goal_destroy_kingdom_of_greece = {
 	name = destroy_kingdom_of_greece
 	description = destroy_kingdom_of_greece_desc
@@ -160,6 +194,8 @@ faction_goal_destroy_kingdom_of_greece = {
 		ROOT = {
 			original_tag = SOV
 		}
+	}
+	available = {
 		FROM = {
 			is_subject_of = SOV
 		}
