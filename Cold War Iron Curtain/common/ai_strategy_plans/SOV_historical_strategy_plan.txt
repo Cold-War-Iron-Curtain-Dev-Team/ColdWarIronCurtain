@@ -41,6 +41,8 @@ soviet_historical_internal = {
 		STALIN_Project_30bis
 		SOV_Stalin_19th_Congress_Of_The_Communist_Party
 		SOV_Stalin_Arrest_The_Treasonous_Doctors
+		#4th/5th Five Year Plan missions bypass automatically when their economic
+		#objectives are met - see SOV_1950s_* helpers in common/ai_strategy/CWIC_building_strategies.txt
 		#Khrushchev
 		SOV_Stalin_Establish_the_Malenkov_Khrushchev_and_Beria_Troika
 		STALIN_Begin_Mass_Production_of_the_T54
@@ -62,8 +64,8 @@ soviet_historical_internal = {
 		SOV_krushchev_visit_china
 		SOV_establish_the_warsaw_pact
 		SOV_belgrade_declaration
-		SOV_establish_diplomatic_relations_with_west_germany
-		SOV_send_back_german_pows
+		SOV_Establish_Diplomatic_Relations_with_West_Germany
+		SOV_Send_Back_German_PoWs
 		SOV_india_burma_afghanistan_visit
 		SOV_introduce_kozlov_into_supreme_soviet_presidium
 		SOV_cancel_malenkovs_cuts_on_rewards_for_party_members
@@ -93,11 +95,13 @@ soviet_historical_internal = {
 		STALIN_Develop_the_Tu_16
 		SOV_Stalin_20th_Congress_of_the_Communist_Party
 	}
-	
-	# Defines which technology categories the AI has weighting towards/against during this plan.
-	# research = {
-		# <category> = <weight>
-	# }
+
+	# Weight the techs required by the 4th/5th Five Year Plan mission bypasses
+	# (organic_I / water_I are agriculture, inframunicipal_I / infrastate_I are infrastructure).
+	research = {
+		agriculture = 50.0
+		infrastructure = 50.0
+	}
 	
 	# Defines which ideas the AI has weighting towards/against during this plan.
 	# ideas = {
@@ -119,6 +123,204 @@ soviet_historical_internal = {
 		# <focus> = <weight>
 	# }
 	
+	# Keep small, as it is used as a factor for some things (such as research needs)
+	# Recommended around 1.0. Useful for relation between plans
+	weight = {
+		factor = 1.0
+		modifier = {
+			factor = 1.0
+		}
+	}
+}
+# The German Question / Stalin Notes side branch (SOV_Stalin_Notes_Branch.txt),
+# revealed by germanquestion.1. Historical: manage the division, never seriously
+# pursue the Note. The alternate outcomes live in SOV_alternate_strategy_plan.txt
+# and are driven by the SOV_german_question game rule.
+sov_german_question_division = {
+	name = "Soviet German Question - Manage the Division"
+	desc = "Historical handling of the German question: the Note is not seriously pursued"
+	allowed = {
+		original_tag = SOV
+	}
+	enable = {
+		has_country_flag = SOV_german_question_active
+		OR = {
+			AND = {
+				is_historical_focus_on = yes
+				has_game_rule = {
+					rule = SOV_german_question
+					option = DEFAULT
+				}
+			}
+			has_game_rule = {
+				rule = SOV_german_question
+				option = SOV_GQ_DIVISION
+			}
+		}
+	}
+	abort = {
+		date > 1957.01.01
+	}
+
+	ai_national_focuses = {
+		SOV_sn_the_german_question
+		SOV_sn_manage_the_division
+		SOV_sn_the_new_course
+		SOV_sn_crush_the_june_uprising
+		SOV_sn_adenauer_in_moscow
+		SOV_sn_treaty_on_relations
+	}
+
+	focus_factors = {
+		SOV_sn_pursue_the_note = 0
+	}
+
+	weight = {
+		factor = 1.0
+		modifier = {
+			factor = 1.0
+		}
+	}
+}
+soviet_historical_khrushchev_internal = {
+	name = "Soviet Historical Khrushchev Era"	   # Name of the plan
+	desc = "Historical behavior for the Soviet Union under Khrushchev (1956-1964)"	   # Description of the plan
+	allowed = {
+		original_tag = SOV
+	}
+	# When this plan is enabled. Requires Khrushchev to have won the succession struggle.
+	enable = {
+		has_global_flag = gensec_khrushev
+		OR = {
+			AND = {
+				is_historical_focus_on = yes
+				has_game_rule = {
+					rule = SOV_internal_ai_behavior
+					option = DEFAULT
+				}
+			}
+			has_game_rule = {
+				rule = SOV_internal_ai_behavior
+				option = HISTORICAL
+			}
+		}
+	}
+
+	# When this plan is aborted. Khrushchev is removed in October 1964 (soviet_leader_change.2).
+	abort = {
+		date > 1965.01.01
+	}
+
+	# Defines which national focuses the AI picks first during this plan.
+	# Ordered to follow the real 1956-1964 timeline. Mutually exclusive picks:
+	#  - SOV_invest_in_traditional_aircraft over SOV_restart_the_flying_submarine_program
+	#  - SOV_the_tu_114_propaganda_campaign over SOV_adopt_the_mig_15
+	#  - SOV_prioritize_high_speed_interceptors over SOV_focus_on_jet_interceptors
+	ai_national_focuses = {
+		#1956 - destalinization begins
+		SOV_khrushchevs_struggle_for_power
+		SOV_remove_monuments_to_stalin
+		SOV_dissolve_the_cominform
+		SOV_replace_molotov_as_foreign_minister
+		SOV_decree_lifting_restrictions_of_deported_caucasus_people
+		SOV_hold_the_first_spartakiad
+		SOV_cancel_criminal_registration_for_not_showing_up_for_work
+		SOV_sixth_five_year_plan
+		SOV_development_of_virgin_and_fallow_lands
+		SOV_emphasis_on_expansion_of_heavy_industry
+		SOV_open_the_serov_ferroalloy_plant
+		SOV_saratov_chemical_combine
+		#1957 - anti-party group and consolidation
+		SOV_anti_party_group_coup
+		SOV_exclude_antiparty_group_members_from_presidium
+		SOV_elect_new_presidium_members
+		SOV_authorize_the_6th_world_festival_of_youth_and_students
+		SOV_exclude_zhukov_from_presidium_amp_remove_from_minister_of_defence_position
+		SOV_abolish_special_tribunals
+		SOV_clean_up_khrushchevs_repressions_involvement
+		SOV_allow_soviet_citizens_to_travel_aboards
+		SOV_reorganise_sovnarkhoz
+		SOV_sponsor_radio_engineering_and_electronic_industry
+		SOV_finish_the_volzhskaya_hydroelectric_power_station
+		#military modernization (armed forces branch)
+		SOV_the_soviet_armed_forces
+		SOV_the_soviet_army
+		SOV_invest_in_the_t55
+		SOV_adopt_the_akm
+		SOV_the_soviet_navy
+		SOV_project_627_kit
+		SOV_kolin_class_destroyer
+		SOV_the_soviet_air_force
+		SOV_research_high_speed_bombers
+		SOV_increase_aircraft_production
+		SOV_invest_in_traditional_aircraft
+		SOV_the_tu_114_propaganda_campaign
+		#1958 - Khrushchev takes full power
+		SOV_appoint_khrushchev_chairman_of_the_council_of_ministers_of_the_ussr
+		SOV_khrushchevs_union
+		SOV_construction_of_verkhnetagilskaya_regional_thermal_power_plants
+		SOV_commission_more_hydroelectric_power_plants
+		SOV_build_the_novogorkovsky_and_volgograd_oil_refineries
+		SOV_development_of_nuclear_powerplants
+		SOV_atomic_powered_icebreaker
+		#1959 - XXI Congress and the Seven-Year Plan
+		SOV_xxith_cpsu_congress
+		SOV_seventh_five_year_plan
+		SOV_push_for_increase_in_meat_production
+		SOV_the_ryazan_miracle
+		SOV_accelerate_the_space_race
+		SOV_develop_residential_buildings
+		SOV_establish_soviet_weekends
+		SOV_search_for_effective_deposits_of_minerals
+		SOV_build_regional_thermal_power_plants
+		SOV_encourage_production_of_cultural_and_household_goods
+		#anti-religious campaign and social policy
+		SOV_limited_thaw_on_arts
+		SOV_force_hospitalization_for_the_socially_dangerous
+		SOV_imprison_religious_heads
+		SOV_demolish_churches
+		SOV_close_gulags_institution
+		SOV_commission_the_kiev_metro
+		SOV_reduce_working_time_to_8_hours_a_day
+		SOV_increase_the_minimum_wages_of_workers_and_employees
+		#military late 50s / early 60s
+		SOV_modernize_surface_to_air_missiles
+		SOV_improve_mobile_aa
+		SOV_prioritize_high_speed_interceptors
+		SOV_advanced_atgm_designs
+		SOV_project_659
+		SOV_groznykynda_class_cruiser
+		SOV_ka_25_naval_helicopter
+		SOV_invest_in_recon_drone_initiative
+		SOV_the_bmp
+		#1961 - XXII Congress and the second destalinization wave
+		SOV_xxii_cpsu_congress
+		SOV_rename_cities_named_after_stalin
+		SOV_devaluation_of_the_rubles
+		#1962-1963 - late reforms
+		SOV_divide_oblast_level_party_committees_into_parallel_structures
+		SOV_establishment_of_specialized_high_schools_for_gifted_students
+		SOV_focus_on_the_chemical_industry
+		SOV_expand_fertilizer_production
+		SOV_increase_natural_gas_production_in_ukraine
+		SOV_karaganda_metallurgical_plants
+		SOV_kachkanar_mining_and_processing_plant_in_the_urals
+		SOV_extend_heavy_industry_around_the_union
+		SOV_establish_new_institutes_for_the_ukrainian_academy_cf_sciences
+		SOV_establish_pensions_for_collective_farmers
+		SOV_commission_novovoronezh_and_beloyarsk_nuclear_power_plants
+		SOV_expand_hydroelectric_power_grid
+		#1964 - the end: triggers soviet_leader_change.2 (Brezhnev takes over on historical)
+		SOV_review_khrushchev_plans
+	}
+
+	# Keep weighting the FYP-mission tech categories through the Khrushchev era
+	# (several 4th/5th plan techs only unlock from 1955).
+	research = {
+		agriculture = 50.0
+		infrastructure = 50.0
+	}
+
 	# Keep small, as it is used as a factor for some things (such as research needs)
 	# Recommended around 1.0. Useful for relation between plans
 	weight = {
