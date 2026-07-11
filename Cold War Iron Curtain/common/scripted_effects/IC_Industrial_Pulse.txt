@@ -499,7 +499,7 @@ industrial_pulse = {
 
 	# Imports/Exports and Balance
 	add_to_variable = { FoodImported = resource_imported@rubber }
-	add_to_variable = { FoodExported = resource_exported@rubber }
+	add_to_variable = { FoodExported = foodExport }
 	round_variable = FoodExported
 	add_to_variable = { FoodProdTotal = FoodImported }
 	add_to_variable = { FoodBalanceTotal = FoodProdTotal }
@@ -512,6 +512,9 @@ industrial_pulse = {
 	add_to_variable = { FoodProdTotal = agri_industrial_complex_quantity }	#requires double counting for non bonus
 	set_variable = { foodProdTotalDisplayTradeExempt = FoodProdTotal }
 	subtract_from_variable = { foodProdTotalDisplayTradeExempt = resource_imported@rubber }
+
+	set_variable = { FoodProdTotalDisplay = foodProdTotalDisplayTradeExempt }
+	add_to_variable = { FoodProdTotalDisplay = resource_imported@rubber }
 
 	set_variable = { food_consumption_dispaly = food_consumption }
 	add_to_variable = { food_consumption_dispaly = foodExport }
@@ -539,44 +542,62 @@ industrial_pulse = {
 	}
 
 	#Food Comparison for famine
-	set_variable = { food_penalty = 0 }
-	set_variable = { food_penalty_construction = 0 }
-	set_variable = { food_penalty_production = 0 }
-	if = { limit = { check_variable = { FoodBalanceTotal < 0 } }
-		set_temp_variable = { food_comp_calc = foodConsumptionComp }
-        multiply_variable = { food_comp_calc = foodConsumptionComp }
-        multiply_variable = { food_comp_calc = 7.4 }
-        add_to_variable = { food_penalty = food_comp_calc }
-        set_temp_variable = { food_comp_calc = foodConsumptionComp }
-        multiply_variable = { food_comp_calc = 0.667 }
-        add_to_variable = { food_penalty = food_comp_calc }
-        add_to_variable = { food_penalty = -0.067 }
+	# Food shortage severity calculation
+	# food_penalty = absolute negative food balance / total food consumption
 
-		
-		set_variable = { food_penalty_production = modifier@production_factory_max_efficiency_factor }
-		multiply_variable = { food_penalty_production = food_penalty }
-		
-		set_variable = { food_penalty_construction = modifier@production_speed_buildings_factor }
-		multiply_variable = { food_penalty_construction = food_penalty }
+	set_variable = { food_penalty = 0 }
+
+	if = {
+		limit = {
+			check_variable = { resource@rubber < 0 }
+			has_variable = food_consumption
+			check_variable = { food_consumption > 0 }
+		}
+
+		set_temp_variable = { food_deficit = resource@rubber }
+		multiply_variable = { food_deficit = -1 }
+
+		set_variable = { food_penalty = food_deficit }
+		divide_variable = { food_penalty = food_consumption }
 	}
+
 	clr_country_flag = food_famine_extreme
 	clr_country_flag = food_famine
 	clr_country_flag = food_shortages
 	clr_country_flag = food_highprices
-	if = { limit = { check_variable = { food_penalty > 3 } }
+
+	if = {
+		limit = {
+			check_variable = { food_penalty > 3 }
+		}
 		set_country_flag = food_famine_extreme
 	}
-	else_if = { limit = { check_variable = { food_penalty > 0.8 } }
+	else_if = {
+		limit = {
+			check_variable = { food_penalty > 0.8 }
+		}
 		set_country_flag = food_famine
 	}
-	else_if = { limit = { check_variable = { food_penalty > 0.2 } }
+	else_if = {
+		limit = {
+			check_variable = { food_penalty > 0.2 }
+		}
 		set_country_flag = food_shortages
 	}
-	else_if = { limit = { check_variable = { food_penalty > 0 } }
+	else_if = {
+		limit = {
+			check_variable = { food_penalty > 0 }
+		}
 		set_country_flag = food_highprices
 	}
-	# to force refresh famine warning display
-	if = { limit = { check_variable = { food_penalty > 0 } }
+	else = { }
+
+	# Force refresh of famine warning display
+	if = {
+		limit = {
+			check_variable = { food_penalty > 0 }
+		}
+
 		set_temp_variable = { show = 1 }
 		subtract_from_temp_variable = { show = show_food_main }
 		set_variable = { show_food_main = show }
