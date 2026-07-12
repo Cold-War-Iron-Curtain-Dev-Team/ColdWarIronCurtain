@@ -1,0 +1,558 @@
+# =====================================================================
+# CWIC Super Event System  (auto-generated helper effects)
+# Central logic for logging super events to a "Latest News" array and
+# applying player popup-filter preferences. Fire sites now call
+# CWIC_Show_Super_Event instead of setting CWIC_Super_Event_Visible directly.
+# =====================================================================
+
+# Called (inside every_country, ROOT = source country) at each super event fire.
+CWIC_Show_Super_Event = {
+	CWIC_Resolve_Current_SE = yes      # figure out which event this is -> CWIC_se_current (id)
+	CWIC_Log_Current_SE = yes          # record it in the last-10 news log
+	if = {
+		limit = { CWIC_should_show_super_event = yes }
+		set_country_flag = CWIC_Super_Event_Visible
+	}
+	else = {
+		# player filtered this one out: don't leave its picture flag hanging
+		CWIC_Clear_All_SE_Flags = yes
+	}
+}
+
+# Append current event id to the news log (newest first), keeping only the last 10.
+# Skips if this event is already the newest entry (an event firing in several
+# countries calls this once per country, which would otherwise duplicate it).
+CWIC_Log_Current_SE = {
+	if = {
+		limit = {
+			check_variable = { CWIC_se_current > 0 }
+			OR = {
+				check_variable = { CWIC_se_log^num = 0 }
+				NOT = { check_variable = { CWIC_se_log^0 = CWIC_se_current } }
+			}
+		}
+		add_to_array = { array = CWIC_se_log value = CWIC_se_current index = 0 }
+		if = {
+			limit = { check_variable = { CWIC_se_log^num > 10 } }
+			remove_from_array = { array = CWIC_se_log index = 10 }
+		}
+	}
+}
+
+CWIC_Resolve_Current_SE = {
+	set_variable = { CWIC_se_current = 0 }
+	if = { limit = { has_country_flag = Super_Event_JAP_Economic_Dominance_visible } set_variable = { CWIC_se_current = 1 } }
+	else_if = { limit = { has_country_flag = Super_Event_Big_Soviet_Partial_Victory_visible } set_variable = { CWIC_se_current = 2 } }
+	else_if = { limit = { has_country_flag = Super_Event_gkchp_visible } set_variable = { CWIC_se_current = 3 } }
+	else_if = { limit = { has_country_flag = Super_Event_SUEZ_ENG_Victory_visible } set_variable = { CWIC_se_current = 4 } }
+	else_if = { limit = { has_country_flag = Super_Event_Korean_War_KOR_Victory_visible } set_variable = { CWIC_se_current = 5 } }
+	else_if = { limit = { has_country_flag = Super_Event_Grachev_Presidency_visible } set_variable = { CWIC_se_current = 6 } }
+	else_if = { limit = { has_country_flag = Super_Event_North_Vietnam_Indochina_War_Victory_visible } set_variable = { CWIC_se_current = 7 } }
+	else_if = { limit = { has_country_flag = Super_Event_South_Vietnam_Indochina_War_Victory_visible } set_variable = { CWIC_se_current = 8 } }
+	else_if = { limit = { has_country_flag = Super_Event_Zhirinovsky_visible } set_variable = { CWIC_se_current = 9 } }
+	else_if = { limit = { has_country_flag = Super_Event_Early_Putin_Presidency_visible } set_variable = { CWIC_se_current = 10 } }
+	else_if = { limit = { has_country_flag = Super_Event_Rutskoy_Presidency_visible } set_variable = { CWIC_se_current = 11 } }
+	else_if = { limit = { has_country_flag = Super_Event_Fall_of_Soviet_Union_visible } set_variable = { CWIC_se_current = 12 } }
+	else_if = { limit = { has_country_flag = Super_Event_SDI_visible } set_variable = { CWIC_se_current = 13 } }
+	else_if = { limit = { has_country_flag = Super_Event_Castro_Death_visible } set_variable = { CWIC_se_current = 14 } }
+	else_if = { limit = { has_country_flag = Super_Event_Cuban_Revolution_Alt_A_visible } set_variable = { CWIC_se_current = 15 } }
+	else_if = { limit = { has_country_flag = Super_Event_Cuban_Revolution_Alt_B_visible } set_variable = { CWIC_se_current = 16 } }
+	else_if = { limit = { has_country_flag = Super_Event_Cuban_Revolution_Alt_C_visible } set_variable = { CWIC_se_current = 17 } }
+	else_if = { limit = { has_country_flag = Super_Event_Russian_Soviet_Islamic_Federative_Republic_visible } set_variable = { CWIC_se_current = 18 } }
+	else_if = { limit = { has_country_flag = Super_Event_Havana_Spring_visible } set_variable = { CWIC_se_current = 19 } }
+	else_if = { limit = { has_country_flag = Super_Event_Waco_visible } set_variable = { CWIC_se_current = 20 } }
+	else_if = { limit = { has_country_flag = Super_Event_Russian_SFSR_visible } set_variable = { CWIC_se_current = 21 } }
+	else_if = { limit = { has_country_flag = Super_Event_Barkhasov_Nazi_Russia_visible } set_variable = { CWIC_se_current = 22 } }
+	else_if = { limit = { has_country_flag = Super_Event_Holy_Russian_Empire_visible } set_variable = { CWIC_se_current = 23 } }
+	else_if = { limit = { has_country_flag = Super_Event_Anpilov_USSR_visible } set_variable = { CWIC_se_current = 24 } }
+	else_if = { limit = { has_country_flag = Super_Event_Russian_Federation_visible } set_variable = { CWIC_se_current = 25 } }
+	else_if = { limit = { has_country_flag = Super_Event_Anti_Imperialist_Pact_visible } set_variable = { CWIC_se_current = 26 } }
+	else_if = { limit = { has_country_flag = Super_Event_Cuban_Civil_War_visible } set_variable = { CWIC_se_current = 27 } }
+	else_if = { limit = { has_country_flag = Super_Event_Batista_Triumphant_visible } set_variable = { CWIC_se_current = 28 } }
+	else_if = { limit = { has_country_flag = Super_Event_Batista_Steps_Down_visible } set_variable = { CWIC_se_current = 29 } }
+	else_if = { limit = { has_country_flag = Super_Event_Bay_of_Pigs_visible } set_variable = { CWIC_se_current = 30 } }
+	else_if = { limit = { has_country_flag = Super_Event_Operation_Juventud_visible } set_variable = { CWIC_se_current = 31 } }
+	else_if = { limit = { has_country_flag = Super_Event_Bolivian_Revolution_visible } set_variable = { CWIC_se_current = 32 } }
+	else_if = { limit = { has_country_flag = Super_Event_Winter_of_1954 } set_variable = { CWIC_se_current = 33 } }
+	else_if = { limit = { has_country_flag = Super_Event_Black_October_visible } set_variable = { CWIC_se_current = 34 } }
+	else_if = { limit = { has_country_flag = Super_Event_Cultural_Revolution_visible } set_variable = { CWIC_se_current = 35 } }
+	else_if = { limit = { has_country_flag = Super_Event_Burma_Liberation_War_visible } set_variable = { CWIC_se_current = 36 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Trump_visible } set_variable = { CWIC_se_current = 37 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_McGovern_1984_visible } set_variable = { CWIC_se_current = 38 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Robertson_visible } set_variable = { CWIC_se_current = 39 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Jesse_Jackson_visible } set_variable = { CWIC_se_current = 40 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Ted_Kennedy_visible } set_variable = { CWIC_se_current = 41 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Early_Clinton_visible } set_variable = { CWIC_se_current = 42 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Bradley_visible } set_variable = { CWIC_se_current = 43 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Dukakis_visible } set_variable = { CWIC_se_current = 44 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Inoyue_visible } set_variable = { CWIC_se_current = 45 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Brooke_visible } set_variable = { CWIC_se_current = 46 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Rumsfeld_visible } set_variable = { CWIC_se_current = 47 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Glenn_visible } set_variable = { CWIC_se_current = 48 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Bush_Sr_visible } set_variable = { CWIC_se_current = 49 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Hart_visible } set_variable = { CWIC_se_current = 50 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Anderson_Independent_visible } set_variable = { CWIC_se_current = 51 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Anderson_GOP_visible } set_variable = { CWIC_se_current = 52 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Gingrich_visible } set_variable = { CWIC_se_current = 53 } }
+	else_if = { limit = { has_country_flag = Super_Event_Pakistan_Victory_1971_visible } set_variable = { CWIC_se_current = 54 } }
+	else_if = { limit = { has_country_flag = Super_Event_Bangladesh_Liberation_War_visible } set_variable = { CWIC_se_current = 55 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Mondale_visible } set_variable = { CWIC_se_current = 56 } }
+	else_if = { limit = { has_country_flag = Super_Event_Smiling_Buddha_visible } set_variable = { CWIC_se_current = 57 } }
+	else_if = { limit = { has_country_flag = Super_Event_Chinese_Anarchy_visible } set_variable = { CWIC_se_current = 58 } }
+	else_if = { limit = { has_country_flag = Super_Event_Project_National_Glory_visible } set_variable = { CWIC_se_current = 59 } }
+	else_if = { limit = { has_country_flag = Super_Event_India_Victory_1965_visible } set_variable = { CWIC_se_current = 60 } }
+	else_if = { limit = { has_country_flag = Super_Event_Pakistan_Victory_1965_visible } set_variable = { CWIC_se_current = 61 } }
+	else_if = { limit = { has_country_flag = Super_Event_Sino_Indian_War_Indian_Victory_visible } set_variable = { CWIC_se_current = 62 } }
+	else_if = { limit = { has_country_flag = Super_Event_Sino_Indian_War_Chinese_Victory_visible } set_variable = { CWIC_se_current = 63 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Warren_visible } set_variable = { CWIC_se_current = 64 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Stassen_visible } set_variable = { CWIC_se_current = 65 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Dewey_visible } set_variable = { CWIC_se_current = 66 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Martin_visible } set_variable = { CWIC_se_current = 67 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Harriman_visible } set_variable = { CWIC_se_current = 68 } }
+	else_if = { limit = { has_country_flag = Super_Event_Early_President_Reagan_visible } set_variable = { CWIC_se_current = 69 } }
+	else_if = { limit = { has_country_flag = Super_Event_Early_President_Nixon_visible } set_variable = { CWIC_se_current = 70 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Rockefeller_visible } set_variable = { CWIC_se_current = 71 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Ford_visible } set_variable = { CWIC_se_current = 72 } }
+	else_if = { limit = { has_country_flag = Super_Event_Berlin_Wall_visible } set_variable = { CWIC_se_current = 73 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Agnew_visible } set_variable = { CWIC_se_current = 74 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Halleck_visible } set_variable = { CWIC_se_current = 75 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Muskie_visible } set_variable = { CWIC_se_current = 76 } }
+	else_if = { limit = { has_country_flag = Super_Event_Soviet_Turkish_War_visible } set_variable = { CWIC_se_current = 77 } }
+	else_if = { limit = { has_country_flag = Super_Event_RFK_visible } set_variable = { CWIC_se_current = 78 } }
+	else_if = { limit = { has_country_flag = Super_Event_chernobyl } set_variable = { CWIC_se_current = 79 } }
+	else_if = { limit = { has_country_flag = Super_Event_Shanghai_Defence } set_variable = { CWIC_se_current = 80 } }
+	else_if = { limit = { has_country_flag = Super_Event_Peaceful_reunification_Taiwan } set_variable = { CWIC_se_current = 81 } }
+	else_if = { limit = { has_country_flag = Super_Event_Liberate_Taiwan } set_variable = { CWIC_se_current = 82 } }
+	else_if = { limit = { has_country_flag = Super_Event_Image_LastWar_visible } set_variable = { CWIC_se_current = 84 } }
+	else_if = { limit = { has_country_flag = Super_Event_Nixon_Elected_visible } set_variable = { CWIC_se_current = 85 } }
+	else_if = { limit = { has_country_flag = Super_Event_McGovern_Victory } set_variable = { CWIC_se_current = 86 } }
+	else_if = { limit = { has_country_flag = Super_Event_Image_Mao_Funeral } set_variable = { CWIC_se_current = 87 } }
+	else_if = { limit = { has_country_flag = Super_Event_Iraq_July_14th_Revolution_visible } set_variable = { CWIC_se_current = 88 } }
+	else_if = { limit = { has_country_flag = Super_Event_Goldwater_Presidency_Visible } set_variable = { CWIC_se_current = 89 } }
+	else_if = { limit = { has_country_flag = Super_Event_Reagan_Presidency_Visible } set_variable = { CWIC_se_current = 90 } }
+	else_if = { limit = { has_country_flag = Super_Event_Humphrey_Presidency_Visible } set_variable = { CWIC_se_current = 91 } }
+	else_if = { limit = { has_country_flag = Super_Event_Carter_Presidency_Visible } set_variable = { CWIC_se_current = 92 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Jerry_Brown_Visible } set_variable = { CWIC_se_current = 93 } }
+	else_if = { limit = { has_country_flag = Super_Event_LBJ_Presidency_Visible } set_variable = { CWIC_se_current = 94 } }
+	else_if = { limit = { has_country_flag = BIDEN_VICTORY_SUPER_EVENT } set_variable = { CWIC_se_current = 95 } }
+	else_if = { limit = { has_country_flag = Super_Event_Eisenhower_Presidency_Visible } set_variable = { CWIC_se_current = 96 } }
+	else_if = { limit = { has_country_flag = Super_Event_Egyptian_Revolution_visible } set_variable = { CWIC_se_current = 97 } }
+	else_if = { limit = { has_country_flag = Super_Event_Farouk_Triumphant_visible } set_variable = { CWIC_se_current = 98 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_JFK_visible } set_variable = { CWIC_se_current = 99 } }
+	else_if = { limit = { has_country_flag = Super_Event_Hungarian_Revolution_Successful_visible } set_variable = { CWIC_se_current = 100 } }
+	else_if = { limit = { has_country_flag = Super_Event_Hungarian_Revolution_Crushed_visible } set_variable = { CWIC_se_current = 101 } }
+	else_if = { limit = { has_country_flag = Super_Event_Soviet_Moon_Landing_visible } set_variable = { CWIC_se_current = 102 } }
+	else_if = { limit = { has_country_flag = Super_Event_Nixon_Resignation_visible } set_variable = { CWIC_se_current = 103 } }
+	else_if = { limit = { has_country_flag = Super_Event_Sputnik_visible } set_variable = { CWIC_se_current = 104 } }
+	else_if = { limit = { has_country_flag = Super_Event_Korean_War_visible } set_variable = { CWIC_se_current = 105 } }
+	else_if = { limit = { has_country_flag = Super_Event_Korean_War_Nuclear_visible } set_variable = { CWIC_se_current = 106 } }
+	else_if = { limit = { has_country_flag = Super_Event_Korean_War_KPA_Victory_visible } set_variable = { CWIC_se_current = 107 } }
+	else_if = { limit = { has_country_flag = Super_Event_German_Reunification_DDR_visible } set_variable = { CWIC_se_current = 108 } }
+	else_if = { limit = { has_country_flag = Super_Event_American_Moon_Landing_visible } set_variable = { CWIC_se_current = 109 } }
+	else_if = { limit = { has_country_flag = Super_Event_Death_of_Stalin_visible } set_variable = { CWIC_se_current = 110 } }
+	else_if = { limit = { has_country_flag = Super_Event_Gensec_Khrushev_visible } set_variable = { CWIC_se_current = 111 } }
+	else_if = { limit = { has_country_flag = Super_Event_Gensec_Brezhnev_visible } set_variable = { CWIC_se_current = 112 } }
+	else_if = { limit = { has_country_flag = Super_Event_Zhukov_Coup_Succeed_visible } set_variable = { CWIC_se_current = 113 } }
+	else_if = { limit = { has_country_flag = Super_Event_APG_Coup_Succeed_visible } set_variable = { CWIC_se_current = 114 } }
+	else_if = { limit = { has_country_flag = Super_Event_Gensec_Kaganovich_visible } set_variable = { CWIC_se_current = 115 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Russell_visible } set_variable = { CWIC_se_current = 116 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Wallace_visible } set_variable = { CWIC_se_current = 117 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_MacArthur_visible } set_variable = { CWIC_se_current = 118 } }
+	else_if = { limit = { has_country_flag = castle_bravo_super_event_visible } set_variable = { CWIC_se_current = 119 } }
+	else_if = { limit = { has_country_flag = Super_Event_JFK_Assasination_visible } set_variable = { CWIC_se_current = 120 } }
+	else_if = { limit = { has_country_flag = Super_Event_Tsar_Bomba_visible } set_variable = { CWIC_se_current = 121 } }
+	else_if = { limit = { has_country_flag = Super_Event_Nazi_WGR_visible } set_variable = { CWIC_se_current = 122 } }
+	else_if = { limit = { has_country_flag = Super_Event_Rhodesian_UDI } set_variable = { CWIC_se_current = 123 } }
+	else_if = { limit = { has_country_flag = Super_Event_Sino_Soviet_War } set_variable = { CWIC_se_current = 124 } }
+	else_if = { limit = { has_country_flag = Super_Event_Vietnam_War } set_variable = { CWIC_se_current = 125 } }
+	else_if = { limit = { has_country_flag = Super_Event_Soviet_Afghan_War } set_variable = { CWIC_se_current = 126 } }
+	else_if = { limit = { has_country_flag = Super_Event_CMC_WW3_visible } set_variable = { CWIC_se_current = 127 } }
+	else_if = { limit = { has_country_flag = Super_Event_Asian_Liberation_War_visible } set_variable = { CWIC_se_current = 128 } }
+	else_if = { limit = { has_country_flag = Super_Event_Vietnam_Withdrawal } set_variable = { CWIC_se_current = 129 } }
+	else_if = { limit = { has_country_flag = Super_Event_Year_Zero } set_variable = { CWIC_se_current = 130 } }
+	else_if = { limit = { has_country_flag = Super_Event_Simba_Rebellion } set_variable = { CWIC_se_current = 131 } }
+	else_if = { limit = { has_country_flag = SAMSON_OPTION_SUPER_EVENT } set_variable = { CWIC_se_current = 132 } }
+	else_if = { limit = { has_country_flag = Portuguese_Colonial_War_Visible } set_variable = { CWIC_se_current = 133 } }
+	else_if = { limit = { has_country_flag = CUBAN_REVOLUTION_SUPER_EVENT } set_variable = { CWIC_se_current = 134 } }
+	else_if = { limit = { has_country_flag = ANGOLAN_CIVIL_WAR_SUPER_EVENT } set_variable = { CWIC_se_current = 135 } }
+	else_if = { limit = { has_country_flag = Super_Event_Congo_Crisis } set_variable = { CWIC_se_current = 136 } }
+	else_if = { limit = { has_country_flag = Super_Event_Stevenson_52 } set_variable = { CWIC_se_current = 137 } }
+	else_if = { limit = { has_country_flag = Super_Event_kefauver_52 } set_variable = { CWIC_se_current = 138 } }
+	else_if = { limit = { has_country_flag = Hashemite_Twilight_Visible } set_variable = { CWIC_se_current = 139 } }
+	else_if = { limit = { has_country_flag = Super_Event_First_Mafia_War_visible } set_variable = { CWIC_se_current = 140 } }
+	else_if = { limit = { has_country_flag = Super_Event_Woodstock_visible } set_variable = { CWIC_se_current = 141 } }
+	else_if = { limit = { has_country_flag = Super_Event_Ford_Assasination_visible } set_variable = { CWIC_se_current = 142 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Landgrebe_visible } set_variable = { CWIC_se_current = 143 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_McDonald_visible } set_variable = { CWIC_se_current = 144 } }
+	else_if = { limit = { has_country_flag = Super_Event_Second_Russian_Civil_War_visible } set_variable = { CWIC_se_current = 145 } }
+	else_if = { limit = { has_country_flag = Super_Event_Khasbulatov_Presidency_visible } set_variable = { CWIC_se_current = 146 } }
+	else_if = { limit = { has_country_flag = Super_Event_PCF_France_visible } set_variable = { CWIC_se_current = 147 } }
+	else_if = { limit = { has_country_flag = Super_Event_Maoist_France_visible } set_variable = { CWIC_se_current = 148 } }
+	else_if = { limit = { has_country_flag = Super_Event_April_Revolution_visible } set_variable = { CWIC_se_current = 149 } }
+	else_if = { limit = { has_country_flag = Super_Event_May_16th_Military_Coup_visible } set_variable = { CWIC_se_current = 150 } }
+	else_if = { limit = { has_country_flag = Super_Event_May_16th_Military_Revolution_visible } set_variable = { CWIC_se_current = 151 } }
+	else_if = { limit = { has_country_flag = Super_Event_Park_Assasination_visible } set_variable = { CWIC_se_current = 152 } }
+	else_if = { limit = { has_country_flag = Super_Event_Pablo_Elect_visible } set_variable = { CWIC_se_current = 153 } }
+	else_if = { limit = { has_country_flag = Super_Event_Pablo_Wins_DrugWar_visible } set_variable = { CWIC_se_current = 154 } }
+	else_if = { limit = { has_country_flag = Super_Event_President_Omar_Dhani_visible } set_variable = { CWIC_se_current = 155 } }
+	else_if = { limit = { has_country_flag = Super_Event_Liberian_Civil_War_visible } set_variable = { CWIC_se_current = 156 } }
+	else_if = { limit = { has_country_flag = Super_Event_Fall_of_China_visible } set_variable = { CWIC_se_current = 157 } }
+	else_if = { limit = { has_country_flag = Super_Event_Japans_Independence_visible } set_variable = { CWIC_se_current = 158 } }
+	else_if = { limit = { has_country_flag = Super_Event_Zhukov_Coup_visible } set_variable = { CWIC_se_current = 161 } }
+	else_if = { limit = { has_country_flag = Super_Event_Red_Finland } set_variable = { CWIC_se_current = 162 } }
+	else_if = { limit = { has_country_flag = Super_Event_Liberian_Civil_War } set_variable = { CWIC_se_current = 172 } }
+	else_if = { limit = { has_country_flag = Samson_Option_Visible } set_variable = { CWIC_se_current = 173 } }
+	else_if = { limit = { has_country_flag = Super_Event_American_Intervention_RCW_visible } set_variable = { CWIC_se_current = 174 } }
+	else_if = { limit = { has_country_flag = Super_Event_Gorbachev_1996_visible } set_variable = { CWIC_se_current = 175 } }
+	else_if = { limit = { has_country_flag = Super_Event_Russian_SMO_Kazakhistan_visible } set_variable = { CWIC_se_current = 176 } }
+	else_if = { limit = { has_country_flag = Super_Event_Russian_SMO_Ukraine_visible } set_variable = { CWIC_se_current = 177 } }
+	else_if = { limit = { has_country_flag = Super_Event_Zyuganov_1996_visible } set_variable = { CWIC_se_current = 178 } }
+}
+
+CWIC_Clear_All_SE_Flags = {
+	clr_country_flag = Super_Event_Big_Soviet_Partial_Victory_visible
+	clr_country_flag = Super_Event_Fall_of_China_visible
+	clr_country_flag = Super_Event_gkchp_visible
+	clr_country_flag = Super_Event_JAP_Economic_Dominance_visible
+	clr_country_flag = Super_Event_SUEZ_ENG_Victory_visible
+	clr_country_flag = Super_Event_Korean_War_KOR_Victory_visible
+	clr_country_flag = Super_Event_North_Vietnam_Indochina_War_Victory_visible
+	clr_country_flag = Super_Event_South_Vietnam_Indochina_War_Victory_visible
+	clr_country_flag = Super_Event_Grachev_Presidency_visible
+	clr_country_flag = Super_Event_Zhirinovsky_visible
+	clr_country_flag = Super_Event_Early_Putin_Presidency_visible
+	clr_country_flag = Super_Event_Rutskoy_Presidency_visible
+	clr_country_flag = Super_Event_Fall_of_Soviet_Union_visible
+	clr_country_flag = Super_Event_Castro_Death_visible
+	clr_country_flag = Super_Event_Russian_Soviet_Islamic_Federative_Republic_visible
+	clr_country_flag = Super_Event_Cuban_Revolution_Alt_A_visible
+	clr_country_flag = Super_Event_Cuban_Revolution_Alt_B_visible
+	clr_country_flag = Super_Event_Cuban_Revolution_Alt_C_visible
+	clr_country_flag = Super_Event_Havana_Spring_visible
+	clr_country_flag = Super_Event_Russian_SFSR_visible
+	clr_country_flag = Super_Event_Barkhasov_Nazi_Russia_visible
+	clr_country_flag = Super_Event_Holy_Russian_Empire_visible
+	clr_country_flag = Super_Event_Anpilov_USSR_visible
+	clr_country_flag = Super_Event_Russian_Federation_visible
+	clr_country_flag = Super_Event_Anti_Imperialist_Pact_visible
+	clr_country_flag = Super_Event_Waco_visible
+	clr_country_flag = Super_Event_SDI_visible
+	clr_country_flag = Super_Event_Cuban_Civil_War_visible
+	clr_country_flag = Super_Event_Batista_Triumphant_visible
+	clr_country_flag = Super_Event_Batista_Steps_Down_visible
+	clr_country_flag = Super_Event_Bay_of_Pigs_visible
+	clr_country_flag = Super_Event_Operation_Juventud_visible
+	clr_country_flag = Super_Event_Bolivian_Revolution_visible
+	clr_country_flag = Super_Event_Zyuganov_1996_visible
+	clr_country_flag = Super_Event_Russian_SMO_Ukraine_visible
+	clr_country_flag = Super_Event_Russian_SMO_Kazakhistan_visible
+	clr_country_flag = Super_Event_Gorbachev_1996_visible
+	clr_country_flag = Super_Event_American_Intervention_RCW_visible
+	clr_country_flag = Super_Event_Burma_Liberation_War_visible
+	clr_country_flag = Super_Event_Khasbulatov_Presidency_visible
+	clr_country_flag = Super_Event_Second_Russian_Civil_War_visible
+	clr_country_flag = Super_Event_Red_Finland_visible
+	clr_country_flag = Super_Event_Black_October_visible
+	clr_country_flag = Super_Event_Ford_Assasination_visible
+	clr_country_flag = Super_Event_President_Landgrebe_visible
+	clr_country_flag = Super_Event_President_McDonald_visible
+	clr_country_flag = Super_Event_Winter_of_1954
+	clr_country_flag = Super_Event_First_Mafia_War_visible
+	clr_country_flag = Super_Event_President_Mondale_visible
+	clr_country_flag = Super_Event_President_Trump_visible
+	clr_country_flag = Super_Event_President_McGovern_1984_visible
+	clr_country_flag = Super_Event_President_Robertson_visible
+	clr_country_flag = Super_Event_President_Jesse_Jackson_visible
+	clr_country_flag = Super_Event_President_Ted_Kennedy_visible
+	clr_country_flag = Super_Event_President_Early_Clinton_visible
+	clr_country_flag = Super_Event_President_Bradley_visible
+	clr_country_flag = Super_Event_President_Dukakis_visible
+	clr_country_flag = Super_Event_President_Inoyue_visible
+	clr_country_flag = Super_Event_President_Brooke_visible
+	clr_country_flag = Super_Event_President_Rumsfeld_visible
+	clr_country_flag = Super_Event_President_Glenn_visible
+	clr_country_flag = Super_Event_President_Bush_Sr_visible
+	clr_country_flag = Super_Event_President_Hart_visible
+	clr_country_flag = Super_Event_President_Anderson_Independent_visible
+	clr_country_flag = Super_Event_President_Anderson_GOP_visible
+	clr_country_flag = Super_Event_President_Gingrich_visible
+	clr_country_flag = Super_Event_Bangladesh_Liberation_War_visible
+	clr_country_flag = Super_Event_Pakistan_Victory_1971_visible
+	clr_country_flag = Super_Event_Cultural_Revolution_visible
+	clr_country_flag = Super_Event_Asian_Liberation_War_visible
+	clr_country_flag = Super_Event_Sino_Indian_War_Indian_Victory_visible
+	clr_country_flag = Super_Event_Sino_Indian_War_Chinese_Victory_visible
+	clr_country_flag = Super_Event_Pakistan_Victory_1965_visible
+	clr_country_flag = Super_Event_India_Victory_1965_visible
+	clr_country_flag = Super_Event_Chinese_Anarchy_visible
+	clr_country_flag = Super_Event_Project_National_Glory_visible
+	clr_country_flag = Super_Event_Smiling_Buddha_visible
+	clr_country_flag = Super_Event_CMC_WW3_visible
+	clr_country_flag = Super_Event_Image_Mao_Funeral
+	clr_country_flag = Super_Event_Early_President_Reagan_visible
+	clr_country_flag = Super_Event_Early_President_Nixon_visible
+	clr_country_flag = Super_Event_President_Rockefeller_visible
+	clr_country_flag = Super_Event_Nixon_Elected_visible
+	clr_country_flag = Super_Event_President_Agnew_visible
+	clr_country_flag = Super_Event_President_Halleck_visible
+	clr_country_flag = Super_Event_President_Muskie_visible
+	clr_country_flag = Super_Event_President_Warren_visible
+	clr_country_flag = Super_Event_President_Stassen_visible
+	clr_country_flag = Super_Event_President_Dewey_visible
+	clr_country_flag = Super_Event_President_Martin_visible
+	clr_country_flag = Super_Event_President_Harriman_visible
+	clr_country_flag = Super_Event_McGovern_Victory
+	clr_country_flag = Super_Event_Nixon_Presidency
+	clr_country_flag = Super_Event_Stevenson_52
+	clr_country_flag = Super_Event_RFK_visible
+	clr_country_flag = Super_Event_Goldwater_Presidency_Visible
+	clr_country_flag = Super_Event_Reagan_Presidency_Visible
+	clr_country_flag = Super_Event_Carter_Presidency_Visible
+	clr_country_flag = Super_Event_President_Jerry_Brown_Visible
+	clr_country_flag = Super_Event_LBJ_Presidency_Visible
+	clr_country_flag = Super_Event_Humphrey_Presidency_Visible
+	clr_country_flag = Super_Event_Eisenhower_Presidency_Visible
+	clr_country_flag = Super_Event_Soviet_Turkish_War_visible
+	clr_country_flag = Super_Event_Berlin_Wall_visible
+	clr_country_flag = Super_Event_Iraq_July_14th_Revolution_visible
+	clr_country_flag = Super_Event_Shanghai_Defence
+	clr_country_flag = Super_Event_Liberate_Taiwan
+	clr_country_flag = Super_Event_Peaceful_reunification_Taiwan
+	clr_country_flag = Super_Event_Egyptian_Revolution_visible
+	clr_country_flag = Super_Event_Death_Of_Stalin_visible
+	clr_country_flag = Super_Event_Korean_War_visible
+	clr_country_flag = Super_Event_PCF_France_visible
+	clr_country_flag = Super_Event_Maoist_France_visible
+	clr_country_flag = Super_Event_Gensec_Khrushev_visible
+	clr_country_flag = Super_Event_Gensec_Brezhnev_visible
+	clr_country_flag = Super_Event_Zhukov_Coup_visible
+	clr_country_flag = Super_Event_APG_Coup_Succeed_visible
+	clr_country_flag = Super_Event_Gensec_Kaganovich_visible
+	clr_country_flag = Super_Event_Image_LastWar_visible
+	clr_country_flag = Super_Event_April_Revolution_visible
+	clr_country_flag = Super_Event_May_16th_Military_Coup_visible
+	clr_country_flag = Super_Event_May_16th_Military_Revolution_visible
+	clr_country_flag = Super_Event_Park_Assasination_visible
+	clr_country_flag = Super_Event_Pablo_Elect_visible
+	clr_country_flag = Super_Event_Pablo_Wins_DrugWar_visible
+	clr_country_flag = Super_Event_President_Omar_Dhani_visible
+	clr_country_flag = Super_Event_Nazi_WGR_visible
+	clr_country_flag = Super_Event_Liberian_Civil_War_visible
+	clr_country_flag = Super_Event_Japans_Independence_visible
+	clr_country_flag = BIDEN_VICTORY_SUPER_EVENT
+	clr_country_flag = Super_Event_Woodstock_visible
+	clr_country_flag = Super_Event_American_Moon_Landing_visible
+	clr_country_flag = Super_Event_Death_of_Stalin_visible
+	clr_country_flag = Super_Event_Congo_Crisis
+	clr_country_flag = CUBAN_REVOLUTION_SUPER_EVENT
+	clr_country_flag = ANGOLAN_CIVIL_WAR_SUPER_EVENT
+	clr_country_flag = SAMSON_OPTION_SUPER_EVENT
+	clr_country_flag = Portuguese_Colonial_War_Visible
+	clr_country_flag = Super_Event_Rhodesian_UDI
+	clr_country_flag = Super_Event_Sino_Soviet_War
+	clr_country_flag = Super_Event_Vietnam_War
+	clr_country_flag = Super_Event_Soviet_Afghan_War
+	clr_country_flag = Super_Event_Vietnam_Withdrawal
+	clr_country_flag = Super_Event_Year_Zero
+	clr_country_flag = Super_Event_Simba_Rebellion
+	clr_country_flag = Super_Event_kefauver_52
+	clr_country_flag = castle_bravo_super_event_visible
+	clr_country_flag = Super_Event_JFK_Assasination_visible
+	clr_country_flag = Super_Event_Tsar_Bomba_visible
+	clr_country_flag = Super_Event_Korean_War_Nuclear_visible
+	clr_country_flag = Super_Event_Korean_War_KPA_Victory_visible
+	clr_country_flag = Super_Event_President_MacArthur_visible
+	clr_country_flag = Super_Event_German_Reunification_DDR_visible
+	clr_country_flag = Super_Event_President_Russell_visible
+	clr_country_flag = Super_Event_President_Wallace_visible
+	clr_country_flag = Hashemite_Twilight_Visible
+	clr_country_flag = Super_Event_Farouk_Triumphant_visible
+	clr_country_flag = Super_Event_President_JFK_visible
+	clr_country_flag = Super_Event_Hungarian_Revolution_Successful_visible
+	clr_country_flag = Super_Event_Hungarian_Revolution_Crushed_visible
+	clr_country_flag = Super_Event_Soviet_Moon_Landing_visible
+	clr_country_flag = Super_Event_Nixon_Resignation_visible
+	clr_country_flag = Super_Event_Sputnik_visible
+	clr_country_flag = Super_Event_chernobyl_visible
+	clr_country_flag = Super_Event_Red_Finland
+	clr_country_flag = Super_Event_Liberian_Civil_War
+	clr_country_flag = Super_Event_President_Ford_visible
+	clr_country_flag = Samson_Option_Visible
+	clr_country_flag = Super_Event_chernobyl
+	clr_country_flag = Super_Event_Zhukov_Coup_Succeed_visible
+	clr_country_flag = CWIC_Super_Event_Visible
+	set_variable = { CWIC_se_current = 0 }
+}
+
+# Reopen a past super event from the Latest News list (bypasses filters; player clicked it).
+CWIC_Reopen_SE_By_Id = {
+	CWIC_Clear_All_SE_Flags = yes
+	if = { limit = { check_variable = { CWIC_se_reopen = 1 } } set_country_flag = Super_Event_JAP_Economic_Dominance_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 2 } } set_country_flag = Super_Event_Big_Soviet_Partial_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 3 } } set_country_flag = Super_Event_gkchp_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 4 } } set_country_flag = Super_Event_SUEZ_ENG_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 5 } } set_country_flag = Super_Event_Korean_War_KOR_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 6 } } set_country_flag = Super_Event_Grachev_Presidency_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 7 } } set_country_flag = Super_Event_North_Vietnam_Indochina_War_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 8 } } set_country_flag = Super_Event_South_Vietnam_Indochina_War_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 9 } } set_country_flag = Super_Event_Zhirinovsky_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 10 } } set_country_flag = Super_Event_Early_Putin_Presidency_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 11 } } set_country_flag = Super_Event_Rutskoy_Presidency_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 12 } } set_country_flag = Super_Event_Fall_of_Soviet_Union_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 13 } } set_country_flag = Super_Event_SDI_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 14 } } set_country_flag = Super_Event_Castro_Death_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 15 } } set_country_flag = Super_Event_Cuban_Revolution_Alt_A_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 16 } } set_country_flag = Super_Event_Cuban_Revolution_Alt_B_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 17 } } set_country_flag = Super_Event_Cuban_Revolution_Alt_C_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 18 } } set_country_flag = Super_Event_Russian_Soviet_Islamic_Federative_Republic_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 19 } } set_country_flag = Super_Event_Havana_Spring_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 20 } } set_country_flag = Super_Event_Waco_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 21 } } set_country_flag = Super_Event_Russian_SFSR_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 22 } } set_country_flag = Super_Event_Barkhasov_Nazi_Russia_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 23 } } set_country_flag = Super_Event_Holy_Russian_Empire_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 24 } } set_country_flag = Super_Event_Anpilov_USSR_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 25 } } set_country_flag = Super_Event_Russian_Federation_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 26 } } set_country_flag = Super_Event_Anti_Imperialist_Pact_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 27 } } set_country_flag = Super_Event_Cuban_Civil_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 28 } } set_country_flag = Super_Event_Batista_Triumphant_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 29 } } set_country_flag = Super_Event_Batista_Steps_Down_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 30 } } set_country_flag = Super_Event_Bay_of_Pigs_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 31 } } set_country_flag = Super_Event_Operation_Juventud_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 32 } } set_country_flag = Super_Event_Bolivian_Revolution_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 33 } } set_country_flag = Super_Event_Winter_of_1954 }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 34 } } set_country_flag = Super_Event_Black_October_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 35 } } set_country_flag = Super_Event_Cultural_Revolution_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 36 } } set_country_flag = Super_Event_Burma_Liberation_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 37 } } set_country_flag = Super_Event_President_Trump_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 38 } } set_country_flag = Super_Event_President_McGovern_1984_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 39 } } set_country_flag = Super_Event_President_Robertson_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 40 } } set_country_flag = Super_Event_President_Jesse_Jackson_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 41 } } set_country_flag = Super_Event_President_Ted_Kennedy_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 42 } } set_country_flag = Super_Event_President_Early_Clinton_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 43 } } set_country_flag = Super_Event_President_Bradley_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 44 } } set_country_flag = Super_Event_President_Dukakis_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 45 } } set_country_flag = Super_Event_President_Inoyue_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 46 } } set_country_flag = Super_Event_President_Brooke_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 47 } } set_country_flag = Super_Event_President_Rumsfeld_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 48 } } set_country_flag = Super_Event_President_Glenn_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 49 } } set_country_flag = Super_Event_President_Bush_Sr_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 50 } } set_country_flag = Super_Event_President_Hart_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 51 } } set_country_flag = Super_Event_President_Anderson_Independent_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 52 } } set_country_flag = Super_Event_President_Anderson_GOP_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 53 } } set_country_flag = Super_Event_President_Gingrich_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 54 } } set_country_flag = Super_Event_Pakistan_Victory_1971_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 55 } } set_country_flag = Super_Event_Bangladesh_Liberation_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 56 } } set_country_flag = Super_Event_President_Mondale_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 57 } } set_country_flag = Super_Event_Smiling_Buddha_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 58 } } set_country_flag = Super_Event_Chinese_Anarchy_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 59 } } set_country_flag = Super_Event_Project_National_Glory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 60 } } set_country_flag = Super_Event_India_Victory_1965_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 61 } } set_country_flag = Super_Event_Pakistan_Victory_1965_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 62 } } set_country_flag = Super_Event_Sino_Indian_War_Indian_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 63 } } set_country_flag = Super_Event_Sino_Indian_War_Chinese_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 64 } } set_country_flag = Super_Event_President_Warren_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 65 } } set_country_flag = Super_Event_President_Stassen_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 66 } } set_country_flag = Super_Event_President_Dewey_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 67 } } set_country_flag = Super_Event_President_Martin_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 68 } } set_country_flag = Super_Event_President_Harriman_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 69 } } set_country_flag = Super_Event_Early_President_Reagan_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 70 } } set_country_flag = Super_Event_Early_President_Nixon_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 71 } } set_country_flag = Super_Event_President_Rockefeller_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 72 } } set_country_flag = Super_Event_President_Ford_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 73 } } set_country_flag = Super_Event_Berlin_Wall_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 74 } } set_country_flag = Super_Event_President_Agnew_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 75 } } set_country_flag = Super_Event_President_Halleck_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 76 } } set_country_flag = Super_Event_President_Muskie_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 77 } } set_country_flag = Super_Event_Soviet_Turkish_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 78 } } set_country_flag = Super_Event_RFK_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 79 } } set_country_flag = Super_Event_chernobyl }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 80 } } set_country_flag = Super_Event_Shanghai_Defence }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 81 } } set_country_flag = Super_Event_Peaceful_reunification_Taiwan }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 82 } } set_country_flag = Super_Event_Liberate_Taiwan }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 84 } } set_country_flag = Super_Event_Image_LastWar_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 85 } } set_country_flag = Super_Event_Nixon_Elected_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 86 } } set_country_flag = Super_Event_McGovern_Victory }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 87 } } set_country_flag = Super_Event_Image_Mao_Funeral }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 88 } } set_country_flag = Super_Event_Iraq_July_14th_Revolution_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 89 } } set_country_flag = Super_Event_Goldwater_Presidency_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 90 } } set_country_flag = Super_Event_Reagan_Presidency_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 91 } } set_country_flag = Super_Event_Humphrey_Presidency_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 92 } } set_country_flag = Super_Event_Carter_Presidency_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 93 } } set_country_flag = Super_Event_President_Jerry_Brown_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 94 } } set_country_flag = Super_Event_LBJ_Presidency_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 95 } } set_country_flag = BIDEN_VICTORY_SUPER_EVENT }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 96 } } set_country_flag = Super_Event_Eisenhower_Presidency_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 97 } } set_country_flag = Super_Event_Egyptian_Revolution_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 98 } } set_country_flag = Super_Event_Farouk_Triumphant_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 99 } } set_country_flag = Super_Event_President_JFK_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 100 } } set_country_flag = Super_Event_Hungarian_Revolution_Successful_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 101 } } set_country_flag = Super_Event_Hungarian_Revolution_Crushed_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 102 } } set_country_flag = Super_Event_Soviet_Moon_Landing_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 103 } } set_country_flag = Super_Event_Nixon_Resignation_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 104 } } set_country_flag = Super_Event_Sputnik_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 105 } } set_country_flag = Super_Event_Korean_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 106 } } set_country_flag = Super_Event_Korean_War_Nuclear_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 107 } } set_country_flag = Super_Event_Korean_War_KPA_Victory_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 108 } } set_country_flag = Super_Event_German_Reunification_DDR_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 109 } } set_country_flag = Super_Event_American_Moon_Landing_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 110 } } set_country_flag = Super_Event_Death_of_Stalin_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 111 } } set_country_flag = Super_Event_Gensec_Khrushev_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 112 } } set_country_flag = Super_Event_Gensec_Brezhnev_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 113 } } set_country_flag = Super_Event_Zhukov_Coup_Succeed_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 114 } } set_country_flag = Super_Event_APG_Coup_Succeed_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 115 } } set_country_flag = Super_Event_Gensec_Kaganovich_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 116 } } set_country_flag = Super_Event_President_Russell_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 117 } } set_country_flag = Super_Event_President_Wallace_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 118 } } set_country_flag = Super_Event_President_MacArthur_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 119 } } set_country_flag = castle_bravo_super_event_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 120 } } set_country_flag = Super_Event_JFK_Assasination_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 121 } } set_country_flag = Super_Event_Tsar_Bomba_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 122 } } set_country_flag = Super_Event_Nazi_WGR_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 123 } } set_country_flag = Super_Event_Rhodesian_UDI }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 124 } } set_country_flag = Super_Event_Sino_Soviet_War }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 125 } } set_country_flag = Super_Event_Vietnam_War }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 126 } } set_country_flag = Super_Event_Soviet_Afghan_War }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 127 } } set_country_flag = Super_Event_CMC_WW3_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 128 } } set_country_flag = Super_Event_Asian_Liberation_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 129 } } set_country_flag = Super_Event_Vietnam_Withdrawal }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 130 } } set_country_flag = Super_Event_Year_Zero }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 131 } } set_country_flag = Super_Event_Simba_Rebellion }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 132 } } set_country_flag = SAMSON_OPTION_SUPER_EVENT }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 133 } } set_country_flag = Portuguese_Colonial_War_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 134 } } set_country_flag = CUBAN_REVOLUTION_SUPER_EVENT }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 135 } } set_country_flag = ANGOLAN_CIVIL_WAR_SUPER_EVENT }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 136 } } set_country_flag = Super_Event_Congo_Crisis }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 137 } } set_country_flag = Super_Event_Stevenson_52 }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 138 } } set_country_flag = Super_Event_kefauver_52 }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 139 } } set_country_flag = Hashemite_Twilight_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 140 } } set_country_flag = Super_Event_First_Mafia_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 141 } } set_country_flag = Super_Event_Woodstock_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 142 } } set_country_flag = Super_Event_Ford_Assasination_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 143 } } set_country_flag = Super_Event_President_Landgrebe_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 144 } } set_country_flag = Super_Event_President_McDonald_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 145 } } set_country_flag = Super_Event_Second_Russian_Civil_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 146 } } set_country_flag = Super_Event_Khasbulatov_Presidency_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 147 } } set_country_flag = Super_Event_PCF_France_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 148 } } set_country_flag = Super_Event_Maoist_France_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 149 } } set_country_flag = Super_Event_April_Revolution_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 150 } } set_country_flag = Super_Event_May_16th_Military_Coup_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 151 } } set_country_flag = Super_Event_May_16th_Military_Revolution_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 152 } } set_country_flag = Super_Event_Park_Assasination_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 153 } } set_country_flag = Super_Event_Pablo_Elect_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 154 } } set_country_flag = Super_Event_Pablo_Wins_DrugWar_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 155 } } set_country_flag = Super_Event_President_Omar_Dhani_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 156 } } set_country_flag = Super_Event_Liberian_Civil_War_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 157 } } set_country_flag = Super_Event_Fall_of_China_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 158 } } set_country_flag = Super_Event_Japans_Independence_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 161 } } set_country_flag = Super_Event_Zhukov_Coup_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 162 } } set_country_flag = Super_Event_Red_Finland }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 172 } } set_country_flag = Super_Event_Liberian_Civil_War }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 173 } } set_country_flag = Samson_Option_Visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 174 } } set_country_flag = Super_Event_American_Intervention_RCW_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 175 } } set_country_flag = Super_Event_Gorbachev_1996_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 176 } } set_country_flag = Super_Event_Russian_SMO_Kazakhistan_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 177 } } set_country_flag = Super_Event_Russian_SMO_Ukraine_visible }
+	else_if = { limit = { check_variable = { CWIC_se_reopen = 178 } } set_country_flag = Super_Event_Zyuganov_1996_visible }
+	set_variable = { CWIC_se_current = CWIC_se_reopen }
+	set_country_flag = CWIC_Super_Event_Visible
+}

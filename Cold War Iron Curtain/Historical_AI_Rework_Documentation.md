@@ -147,6 +147,16 @@ Notable fixes on the way:
 - `soviet_historical_peaceful` no longer references the deleted rule (enables on historical mode alone) and no longer lists fork focuses — the per-branch rules always win because forks are decided purely by `ai_will_do`.
 - The old aggressive plan referenced `SOV_Stalin_Push_for_Socialist_Austria`, which only exists in the outdated "Trees for 0.35" folder — gone with the plan.
 
+## Pass 7 — inline event text extracted to localisation
+
+288 of 450 event files had text written directly in the script — 16,400+ inline strings (6,161 titles, 9,657 option names, 595 descs), which made translation impossible without editing event files.
+
+**14,302 strings extracted** to generated keys following the mod's own convention (`<eventid>.t` / `.d` / `.a .b .c`) and written to **68 new per-country loc files** (`localisation/english/extracted_<TAG>_l_english.yml`, largest: USA 3,643, misc 1,357, India 607). English display is pixel-identical (quoted literals were already looked up as keys first); translators now work from yml files only.
+
+Deliberately untouched: 1,064 `name =` entries inside `create_country_leader`/character blocks (not event options), 211 quoted strings that were already valid loc keys, and ~25 key-style references (`POLITICS_*_DESC` etc.) that are pre-existing references to keys defined elsewhere or missing from loc (pre-existing issue, unchanged behavior).
+
+Validation performed against a pre-run snapshot: event id sets byte-identical per file, comment-aware brace balance unchanged in all 209 modified files, all 14,302 generated keys defined exactly once, zero collisions with the 230,185 pre-existing loc keys, zero unreferenced keys, and a comment-aware final sweep found (and fixed) exactly one straggler (`pru.17`).
+
 ## Known gaps / next passes
 - **SOV Khrushchev-era foreign policy** has no dedicated tree (Mid_Foriegn_Policy is Brezhnev-era+); Hungary/Suez are event-driven.
 - **`SOV_Beria_New.txt` (tree `SOV_Beria`)** is only reachable via debug decisions — appears to be WIP; no plan written for it.
