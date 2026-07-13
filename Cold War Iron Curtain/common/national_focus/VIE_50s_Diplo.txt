@@ -328,13 +328,17 @@ shared_focus = {
 	relative_position_id = VIE_Accept_Foreign_Affairs_Administrative_Duties
 	prerequisite = {
 		focus = VIE_Accept_Foreign_Affairs_Administrative_Duties
+		focus = VIE_Greenlight_American_Intervention
 	}
-	x = 0
+	x = 1
 	y = 1
 	available = {
-		VIN = {
-			controls_province = 4529
-		}
+	    OR = {
+			controls_state = 1760
+    		VIN = {
+    			controls_state = 1760
+    		}
+        }
 	}
 	completion_reward = {
 		hidden_effect = {
@@ -344,7 +348,50 @@ shared_focus = {
 			set_temp_variable = { influence_target = THIS.id }
 			change_influence_percentage = yes
 			FUL = { set_cosmetic_tag = FUL_VIE }
-			remove_ideas = indo_associated_state
+			# US branch skips VIE_Pau_Treaty, so VIE may still hold the protectorate idea instead of the associated state one
+			if = {
+				limit = { has_idea = indo_associated_state }
+				remove_ideas = indo_associated_state
+			}
+			if = {
+				limit = { has_idea = indo_protectorate_status }
+				remove_ideas = indo_protectorate_status
+			}
+			if = {
+				limit = { NOT = { has_completed_focus = VIE_Pau_Treaty } }
+				FUL = {
+					if = {
+						limit = {
+							is_subject_of = VIE
+						}
+						keep_current_politics = yes
+						VIE = {
+							set_autonomy = {
+								target = FUL
+								autonomy_state = autonomy_integrated_puppet
+								end_wars = no
+								end_civil_wars = no
+							}
+						}
+					}
+				}
+				NUN = {
+					if = {
+						limit = {
+							is_subject_of = VIE
+						}
+						keep_current_politics = yes
+						VIE = {
+							set_autonomy = {
+								target = NUN
+								autonomy_state = autonomy_integrated_puppet
+								end_wars = no
+								end_civil_wars = no
+							}
+						}
+					}
+				}
+			}
 		}
 		effect_tooltip = {
 			FRA = {
@@ -402,8 +449,14 @@ shared_focus = {
 	y = 1
 	available = {
 		OR = {
-			has_country_flag = VIE_PM_Nguyen_Phan_Long
-			has_country_flag = VIE_PM_Tran_Van_Huu
+		    AND = {
+			    has_country_flag = VIE_PM_Nguyen_Phan_Long
+			    has_completed_focus = VIE_Long_Accept_French_Rulership
+			}
+			AND = {
+			    has_country_flag = VIE_PM_Tran_Van_Huu
+			    has_completed_focus = VIE_Huu_Winning_French_Favoritism
+			}
 		}
 	}
 	completion_reward = {
@@ -1742,6 +1795,7 @@ shared_focus = {
 	completion_reward = {
 		set_temp_variable = { influence_change = 5 }
 		VIE_Change_Domestic_Influence = yes
+		indochina_struggle_add_pro_independence_diplomatic_points = yes
 	}
 }
 shared_focus = {
@@ -1904,6 +1958,7 @@ shared_focus = {
 	y = 1
 	completion_reward = {
 		CAM = { country_event = Brevert_Lines.1 }
+		indochina_struggle_add_pro_independence_diplomatic_points = yes
 	}
 }
 shared_focus = {
@@ -1978,6 +2033,7 @@ shared_focus = {
 	}
 	completion_reward = {
 		FRA = { country_event = { id = Crown_Domains.4 days = 1 } }
+		indochina_struggle_add_pro_independence_diplomatic_points = yes
 		custom_effect_tooltip = if_they_accept
 		effect_tooltip = {
 			if = {

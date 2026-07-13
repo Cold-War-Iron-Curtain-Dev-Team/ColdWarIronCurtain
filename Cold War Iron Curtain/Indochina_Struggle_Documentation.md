@@ -142,16 +142,57 @@ Bypass triggers check if ending trigger is met OR war is over.
 - Awards 1500 Communist score and 200 escalation points
 - Unlocks ending in GUI
 
-**Indochina_Wrapup_Timer:**
-- Fallback only: After 1957.1.1, all AI-controlled, no GUI ending selected
-- Prevents indefinite conflict in AI-only games
+**Indochina_Wrapup_Timer (AI-only auto-resolution):**
+- Activated from `ic_pulse` (IC_scripted_effects.txt) only when `indochina_struggle_all_participants_ai_trigger` passes: France AND every Indochina participant (VIN, VIE, NLF, MEO, CAM, LOS, LAO, CCC, PQC, FUL, TAI, TAM, THO, NUN, FRE) is AI controlled. A human playing any participant keeps full control of the minigame; interloper players (USA/SOV/etc.) still shape the outcome through scores.
+- Historical window: activates 1954.5.20-1954.7.10, and the 60-day timeout lands ~21 July 1954 (OTL Geneva Accords). A post-1957.1.1 window catches AI-only stalemates that missed it. The 1954 window is skipped while a human USA is mid `USA_VIN_Reunification` chain.
+- On timeout it runs the first *earned* decisive ending (USA-VIN reunification complete → Communist Victory → Southern Victory → Kuomintang Victory → Dan Quoc Peace → Federal Vietnam → Balkanized Vietnam), defaulting to the historical Geneva partition otherwise. Each ending effect fires its own `major = yes` news event from FRA scope, so all players see the outcome.
+- Cancelled automatically if `Indochina_War_Over` gets set while the timer runs.
+
+**Save-load guard:**
+- The struggle `on_startup` block is guarded by `indochina_struggle_initialized`; without it every save reload reset the phase/scores and duplicated the phase/ending GUI arrays.
 
 ## Time-Based Bonuses
 
-Daily de-escalation bonuses for 1954 Geneva timing:
-- 1953: +0.3 points/day (~9/month)
-- 1954: +0.5 points/day (~15/month)
-- 1955: +0.4 points/day (~12/month)
+Monthly de-escalation bonuses for 1954 Geneva timing (on_monthly_FRA):
+- 1953: +9/month
+- 1954: +15/month
+- 1955: +12/month
+
+The drip runs in every active phase including Low Tension (gate `phase < 9`), so
+progress toward the Geneva threshold (phase 8 + 500 B points) does not stall
+once maximum de-escalation is reached.
+
+## Struggle Diplomacy Decisions
+
+Faction-gated decisions in `Indochina_War_Rework` (common/decisions/Indochina_War.txt),
+visible only during the tension phases (6-8), added because raids progressively
+disable as tension drops and previously left de-escalating players with no actions.
+All point awards go through the shared helpers in CWIC_Struggle_Effects.txt
+(`indochina_struggle_add_<faction>_diplomatic_points` = 75 B + 75 faction score;
+`..._military_points` = 75 A + 75 faction score).
+
+Per faction array (Pro-Independence, Communist, Pro-France):
+- 3 de-escalation decisions (25 PP, 70-day re-enable, ~96 B/month if cycled)
+- 1 escalation decision (50 PP, 90-day re-enable, `ai_will_do = 0` so only
+  players can push tension back up; AI escalation stays raid/border-war driven)
+- AI weight on the de-escalation decisions ramps x10 after 1953.1.1 to support
+  the historical Geneva timeline.
+
+**Pro-Independence path to Geneva:** `Indochina_Struggle_ProInd_Propose_Peace_Conference`
+(phase 8, B > 300, Geneva preparations not yet set) fires
+`Geneva_Conference_Invitation.5` at FRA. Accepting sets `Geneva_Conference_Preparations`,
+adds 150 B + 100 ProIndependence score and runs the normal invitation chain;
+declining costs 100 B (clamped at 0) and the proposal re-enables after 120 days.
+Previously only an FRA decision or FRE focus could initiate Geneva.
+
+**VIE Diplo tree hooks:** `VIE_Negotiate_Brevet_Lines`, `VIE_Beg_Pulo_Condore_Return`
+and `VIE_Beg_Crown_Domain_French_Renouncement` now award pro-independence
+diplomatic points (75 B + 75 score) on completion.
+
+**Raid failure parity fix:** all five `steal_*_INDO_KMT_AGAINST_COM` raids were
+missing the de-escalation award on failure that their `_COMMIE` and
+`_KMT_AGAINST_CAP` siblings have; failure now adds B points (16 small
+arms/armor, 8 artillery/motorized/mechanized) to match.
 
 ## File Locations
 
