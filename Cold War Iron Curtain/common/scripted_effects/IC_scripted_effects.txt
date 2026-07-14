@@ -740,75 +740,32 @@ ic_pulse = {
 		country_event = SWF_VIN.151
 	}
 
+	# Indochina wrap-up fallback: only runs when France AND every Indochina
+	# struggle participant are AI controlled, so a player inside the struggle
+	# never has the minigame bypassed. Started in late May 1954 the 60-day
+	# timer expires ~21 July 1954, the OTL Geneva Accords date. The post-1957
+	# window catches AI-only stalemates that missed the historical window.
 	if = {
 		limit = {
 			tag = FRA
-			date > 1954.4.1
-			date < 1954.6.1
-			NOT = {
-				has_global_flag = Indochina_War_Over
-			}
-			NOT = {
-				has_global_flag = Indochina_War_Timer_Active
-			}
-		}
-		if = {
-			limit = {
-				OR = {
-					NOT = { is_in_array = { StruggleInvolvedNationsIndochinaInterloper = USA } }
-					NOT = { is_in_array = { StruggleInvolvedNationsIndochinaInterloper = SOV } }
-					NOT = { is_in_array = { StruggleInvolvedNationsIndochinaInterloper = PRC } }
-					NOT = { is_in_array = { StruggleInvolvedNationsIndochinaInterloper = CHI } }
-				}
-			}
-
-			set_variable = { global.Indochina_War_Next_Phase_A = global.Indochina_War_Next_Phase_A }
-			set_variable = { global.Indochina_War_Next_Phase_A = 10 }
-
-			set_variable = { global.Indochina_War_Next_Phase_B = global.Indochina_War_Next_Phase_B }
-			set_variable = { global.Indochina_War_Next_Phase_B = 8 }
-
-			set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
-			set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
-			every_country = {
-				limit = {
-					OR = {
-						is_in_array = { StruggleInvolvedNationsIndochinaCommunist = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaProFrance = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = Indochina_War_Timer_Active }
+			indochina_struggle_all_participants_ai_trigger = yes
+			OR = {
+				AND = {
+					date > 1954.5.20
+					date < 1954.7.10
+					# Let a human USA finish the VIN reunification event chain
+					# instead of resolving under them; the 1957 fallback still
+					# catches an abandoned chain.
+					NOT = {
+						USA = {
+							is_ai = no
+							has_country_flag = USA_VIN_Reunification_Started
+						}
 					}
 				}
-				indochina_struggle_starting_idea_phase_change = yes
-				set_variable = {
-					global.indochina_phase_check = 1
-				}
-			}
-		}
-		else = {
-			set_variable = { global.Indochina_War_Next_Phase_A = global.Indochina_War_Next_Phase_A }
-			set_variable = { global.Indochina_War_Next_Phase_A = 9 }
-
-			set_variable = { global.Indochina_War_Next_Phase_B = global.Indochina_War_Next_Phase_B }
-			set_variable = { global.Indochina_War_Next_Phase_B = 8 }
-
-			set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
-			set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
-			every_country = {
-				limit = {
-					OR = {
-						is_in_array = { StruggleInvolvedNationsIndochinaCommunist = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaProFrance = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
-						is_in_array = { StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
-					}
-				}
-				indochina_struggle_starting_idea_phase_change = yes
-				set_variable = {
-					global.indochina_phase_check = 1
-				}
+				date > 1957.1.1
 			}
 		}
 		activate_mission = Indochina_Wrapup_Timer
@@ -17423,7 +17380,115 @@ ic_pulse = {
 			portrait = "gfx/leaders/EGY/Anwar_Sadat_80s.dds"
 		}
 	}
-
+	
+	# Portrait Changes - England (Britain)
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Elizabeth_II_50s
+			NOT = { has_global_flag = ENG_Elizabeth_II_60s }
+			date > 1961.1.1
+		}
+		clr_global_flag = ENG_Elizabeth_II_50s
+		set_global_flag = ENG_Elizabeth_II_60s
+		create_country_leader = {
+			name = "Elizabeth II"
+			picture = "gfx/leaders/ENG/Monarchy/Elizabeth_II_60s.dds"
+			ideology = monarchist
+		}
+	}
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Elizabeth_II_60s
+			NOT = { has_global_flag = ENG_Elizabeth_II_70s }
+			date > 1970.1.1
+		}
+		clr_global_flag = ENG_Elizabeth_II_60s
+		set_global_flag = ENG_Elizabeth_II_70s
+		create_country_leader = {
+			name = "Elizabeth II"
+			picture = "gfx/leaders/ENG/Monarchy/Elizabeth_II_70s.dds"
+			ideology = monarchist
+		}
+	}
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Elizabeth_II_70s
+			NOT = { has_global_flag = ENG_Elizabeth_II_80s }
+			date > 1980.1.1
+		}
+		clr_global_flag = ENG_Elizabeth_II_70s
+		set_global_flag = ENG_Elizabeth_II_80s
+		create_country_leader = {
+			name = "Elizabeth II"
+			picture = "gfx/leaders/ENG/Monarchy/Elizabeth_II_80s.dds"
+			ideology = monarchist
+		}
+	}
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Elizabeth_II_80s
+			NOT = { has_global_flag = ENG_Elizabeth_II_90s }
+			date > 1990.1.1
+		}
+		clr_global_flag = ENG_Elizabeth_II_80s
+		set_global_flag = ENG_Elizabeth_II_90s
+		create_country_leader = {
+			name = "Elizabeth II"
+			picture = "gfx/leaders/ENG/Monarchy/Elizabeth_II_90s.dds"
+			ideology = monarchist
+		}
+	}
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Elizabeth_II_90s
+			NOT = { has_global_flag = ENG_Elizabeth_II_00s }
+			date > 2000.1.1
+		}
+		clr_global_flag = ENG_Elizabeth_II_90s
+		set_global_flag = ENG_Elizabeth_II_00s
+		create_country_leader = {
+			name = "Elizabeth II"
+			picture = "gfx/leaders/ENG/Monarchy/Elizabeth_II_00s.dds"
+			ideology = monarchist
+		}
+	}
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Charles_III_80s
+			NOT = { has_global_flag = ENG_Charles_III_90s }
+			date > 1990.1.1
+		}
+		clr_global_flag = ENG_Charles_III_80s
+		set_global_flag = ENG_Charles_III_90s
+		create_country_leader = {
+			name = "Charles III"
+			picture = "gfx/leaders/ENG/Monarchy/Charles_III_90s.dds"
+			ideology = monarchist
+		}
+	}
+	if = {
+		limit = {
+			tag = ENG
+			has_global_flag = ENG_Charles_III_90s
+			NOT = { has_global_flag = ENG_Charles_III_00s }
+			date > 2000.1.1
+		}
+		clr_global_flag = ENG_Charles_III_90s
+		set_global_flag = ENG_Charles_III_00s
+		create_country_leader = {
+			name = "Charles III"
+			picture = "gfx/leaders/ENG/Monarchy/Charles_III_00s.dds"
+			ideology = monarchist
+		}
+	}
+	
+	
 	# Portrait Changes - Ethiopia
 	if = {
 		limit = {
