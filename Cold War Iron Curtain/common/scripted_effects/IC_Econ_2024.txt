@@ -1406,39 +1406,12 @@ gdp_calculation_effect = {
 		calculate_national_productivity_factor_var = yes
 		calculate_gross_factory_earnings = yes
 		calculate_net_poptype_earnings = yes
-		calculate_take_taxes_from_people = yes
 
 		calculate_sum_up_total = yes
 
 	}
-	divide_variable = { total_personal_income_tax = 100 }	# FIX 2026-07-05: scaled once here (was /10 per state inside the loop); matches the /100 applied to IncomeTotal below
-	set_variable = { ui_income_tax = total_personal_income_tax }
-	set_variable = { ui_corporate_tax = total_corporate_tax }
-	set_variable = { ui_wage_mass = total_employed_pay_national }
-	set_variable = { ui_profit_mass = national_net_factory_earnings }
-
-	divide_variable = { IncomeTotal = 100 }
-	set_variable = {
-		tax_display = IncomeTotal
-	}
-	# set_variable = { 
-		# total_personal_income_tax = IncomeTotal 
-	# }
-	# log = "tpi [?total_personal_income_tax]"
-	# divide_variable = { total_personal_income_tax = 100 }
-	divide_variable = { total_corporate_tax = 100 }
-
-	set_variable = { total_personal_income = tax_display }
-	subtract_from_variable = { total_personal_income = total_corporate_tax }
-
 	divide_variable = { grossdomesticproduct = 10 }
-
-	#set_temp_variable = { finance_extra_gdp = grossdomesticproduct }
-	#divide_temp_variable = { finance_extra_gdp = 12 }
-	#add_to_variable = { IncomeCheck = finance_extra_gdp }
-	#11/7/2026 - What the fuck is this supposed to do??? Incomecheck is Income-Expenses right??
-	add_to_variable = { IncomeCheck = IncomeTotal }
-
+	calculate_national_take_taxes_from_people = yes # Calculate National Income + Corporate Taxes
 	calculate_gdp_per_capita = yes
 	GDP_Extra_Calcs = yes					#Extra Logging and GUI Effects
 
@@ -1453,65 +1426,6 @@ gdp_calculation_effect = {
 	cwic_store_gdp_and_monthly_growth = yes
 
 		
-
-
-
-}
-
-calculate_take_taxes_from_people = {
-
-	# -------------------------------------------------------
-	# Personal income tax (mass-based, per class)
-	# FIX 2026-07-05: divisor was 12, but the old wage-based system
-	# carried a built-in /100 on every wage (see calculate_net_poptype_earnings).
-	# The pay masses from Employment_Effects have no such scaling, so taxes
-	# came out ~8.3x too high (USSR ~200B/month, debts cleared in month one).
-	# /100 here + the /100 on IncomeTotal after the state loop restores the
-	# old overall scale.
-	# -------------------------------------------------------
-	set_temp_variable = { lower_tax = { value = total_lower_class_pay multiply = owner:pop_lowerclass_tax_rate divide = 100 } }
-	set_temp_variable = { middle_tax = { value = total_middle_class_pay multiply = owner:pop_middleclass_tax_rate divide = 100 } }
-	set_temp_variable = { upper_middle_tax = { value = total_upper_middle_class_pay multiply = owner:pop_upperclass_tax_rate divide = 100 } }
-	set_temp_variable = { upper_tax = { value = total_upper_class_pay multiply = owner:pop_upperclass_tax_rate divide = 100 } }
-	set_variable = {
-		state_personal_income_tax = {
-			value = lower_tax
-			add = middle_tax
-			add = upper_middle_tax
-			add = upper_tax
-		}
-	}
-
-	# Add to national totals (country scope = PREV in your every_owned_state loop)
-	add_to_variable = { PREV.IncomeTotal = state_personal_income_tax }
-	add_to_variable = { PREV.total_personal_income_tax = state_personal_income_tax }
-	# FIX 2026-07-05: removed 'divide_variable = { PREV.total_personal_income_tax = 10 }'
-	# — it ran once per state, dividing the accumulating national total by 10
-	# every iteration and corrupting the ui_income_tax display.
-	# The total is now scaled once after the loop in gdp_calculation_effect.
-
-	# -------------------------------------------------------
-	# Net pay (optional, for GUI/national income contribution)
-	# -------------------------------------------------------
-	set_variable = { total_lower_class_pay_net = { value = total_lower_class_pay subtract = lower_tax } }
-	set_variable = { total_middle_class_pay_net = { value = total_middle_class_pay subtract = middle_tax } }
-	set_variable = { total_upper_middle_class_pay_net = { value = total_upper_middle_class_pay subtract = upper_middle_tax } }
-	set_variable = { total_upper_class_pay_net = { value = total_upper_class_pay subtract = upper_tax } }
-
-	calculate_state_hdi = yes
-
-
-	set_variable = {
-		net_factory_taxed_earnings = {
-			value = net_factory_earnings
-			max = 0	# FIX 2026-07-05: was 'max = 0' (upper clamp), which made corporate tax always <= 0. min = 0 means: no tax on loss-making states, normal tax otherwise. 
-					# REVERT FIX 2026-07-09 Bro this fix is ass it fixed nothing max = x Sets the accumulator to the maximum of itself and the value, means that if it is lower than 0 it will be set to 0. Stop trying to fix shit before actually seeing/testing the theoratical bug!!
-			multiply = owner:pop_corporateclass_tax_rate
-		}
-	}
-	add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
-	add_to_variable = { PREV.IncomeTotal = net_factory_taxed_earnings }
-	# log = "[?owner:pop_middleclass_tax_rate]"
 }
 
 
@@ -2687,5 +2601,75 @@ CWIC_econ_drift_vars = {
 			if = { limit = { value = workforce_ratio_drift less_than = modifier@workforce_ratio } add = 0.01 min = modifier@workforce_ratio }
 		}
 	}
+}
+calculate_take_taxes_from_people = {
+
+	# -------------------------------------------------------
+	# Personal income tax (mass-based, per class)
+	# FIX 2026-07-05: divisor was 12, but the old wage-based system
+	# carried a built-in /100 on every wage (see calculate_net_poptype_earnings).
+	# The pay masses from Employment_Effects have no such scaling, so taxes
+	# came out ~8.3x too high (USSR ~200B/month, debts cleared in month one).
+	# /100 here + the /100 on IncomeTotal after the state loop restores the
+	# old overall scale.
+	# -------------------------------------------------------
+	set_temp_variable = { pop_lowerclass_taken_wage = { value = pop_lowerclass_gross_wage multiply = owner:pop_lowerclass_tax_rate } }
+	set_temp_variable = { pop_substinents_taken_wage = { value = pop_substinents_gross_wage multiply = owner:pop_lowerclass_tax_rate } }
+	add_to_temp_variable = { pop_lowerclass_taken_wage  = pop_substinents_taken_wage }
+	
+	set_temp_variable = { pop_middleclass_taken_wage = { value = pop_middleclass_gross_wage multiply = owner:pop_middleclass_tax_rate } }
+	set_temp_variable = { pop_artisan_taken_wage = { value = pop_artisan_gross_wage multiply = owner:pop_middleclass_tax_rate } }
+	add_to_temp_variable = { pop_middleclass_taken_wage = pop_artisan_taken_wage }
+	set_temp_variable = { pop_upperclass_taken_wage = { value = pop_upperclass_gross_wage multiply = owner:pop_upperclass_tax_rate } }
+	set_variable = {
+		state_personal_income_tax = {
+			value = pop_lowerclass_taken_wage
+			add = pop_middleclass_taken_wage
+			add = pop_upperclass_taken_wage
+			divide = 100
+		}
+	}
+
+	# Add to national totals (country scope = PREV in your every_owned_state loop)
+	add_to_variable = { PREV.total_personal_income_tax = state_personal_income_tax }
+	# FIX 2026-07-05: removed 'divide_variable = { PREV.total_personal_income_tax = 10 }'
+	# — it ran once per state, dividing the accumulating national total by 10
+	# every iteration and corrupting the ui_income_tax display.
+	# The total is now scaled once after the loop in gdp_calculation_effect.
+
+	# -------------------------------------------------------
+	# Net pay (optional, for GUI/national income contribution) ##defunct no longer used
+	# -------------------------------------------------------
+	# set_variable = { total_lower_class_pay_net = { value = pop_lowerclass_gross_wage subtract = lower_tax } }
+	# set_variable = { total_middle_class_pay_net = { value = pop_middleclass_gross_wage subtract = middle_tax } }
+	# set_variable = { total_upper_middle_class_pay_net = { value = pop_upperclass_gross_wage subtract = upper_middle_tax } }
+
+	calculate_state_hdi = yes
+
+
+	set_variable = {
+		net_factory_taxed_earnings = {
+			value = net_factory_earnings
+			max = 0	# FIX 2026-07-05: was 'max = 0' (upper clamp), which made corporate tax always <= 0. min = 0 means: no tax on loss-making states, normal tax otherwise. 
+					# REVERT FIX 2026-07-09 Bro this fix is ass it fixed nothing max = x Sets the accumulator to the maximum of itself and the value, means that if it is lower than 0 it will be set to 0. Stop trying to fix shit before actually seeing/testing the theoratical bug!!
+			multiply = owner:pop_corporateclass_tax_rate
+			divide = 100
+		}
+	}
+	add_to_variable = { PREV.total_corporate_tax = net_factory_taxed_earnings }
+	# log = "[?owner:pop_middleclass_tax_rate]"
+}
+calculate_national_take_taxes_from_people = {
+	every_owned_state = { calculate_take_taxes_from_people = yes }
+	set_variable = { ui_income_tax = total_personal_income_tax }
+	set_variable = { ui_corporate_tax = total_corporate_tax }
+	set_variable = { ui_wage_mass = total_employed_pay_national }
+	set_variable = { ui_profit_mass = national_net_factory_earnings }
+	add_to_variable = { IncomeTotal = total_personal_income_tax }
+	add_to_variable = { IncomeTotal = total_corporate_tax }
+	add_to_variable = { IncomeCheck = IncomeTotal }
+	
+	# log = "tpi [?total_personal_income_tax]"
+
 }
 
