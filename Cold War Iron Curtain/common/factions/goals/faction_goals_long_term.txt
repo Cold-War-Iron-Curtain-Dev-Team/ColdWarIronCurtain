@@ -1084,41 +1084,31 @@ faction_goal_great_offensive = {
 	description = great_offensive_goal_desc
 	category = long_term
 	group = FOCUS_FILTER_ANNEXATION
+	# PERF: was collection_size over game:all_states (~2000 states) evaluated
+	# constantly by the AI (~18M state checks in one profiling session).
+	# any_state short-circuits at the first match.
 	visible = {
 		FROM = { has_war = yes }
-		collection_size = {
-			input = {
-				input = game:all_states
-				operators = {
-					limit = {
-						owner = {
-							has_war_with = ROOT
-						}
-						is_core_of = OWNER
-						is_controlled_by_ROOT_or_ally = yes
-					}
+		NOT = {
+			any_state = {
+				owner = {
+					has_war_with = ROOT
 				}
-				name = ENEMY_FACTION_CORE_STATES_CONTROLLED_BY_US
+				is_core_of = OWNER
+				is_controlled_by_ROOT_or_ally = yes
 			}
-			value < 1
 		}
 	}
 	completed = {
-		collection_size = {
-			input = {
-				input = game:all_states
-				operators = {
-					limit = {
-						owner = {
-							has_war_with = ROOT
-						}
-						is_core_of = OWNER
-						is_controlled_by_ROOT_or_ally = yes
-					}
+		custom_trigger_tooltip = {
+			tooltip = ENEMY_FACTION_CORE_STATES_CONTROLLED_BY_US
+			any_state = {
+				owner = {
+					has_war_with = ROOT
 				}
-				name = ENEMY_FACTION_CORE_STATES_CONTROLLED_BY_US
+				is_core_of = OWNER
+				is_controlled_by_ROOT_or_ally = yes
 			}
-			value > 0
 		}
 	}
 	complete_effect = {

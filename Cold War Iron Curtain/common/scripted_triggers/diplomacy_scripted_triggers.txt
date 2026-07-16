@@ -186,18 +186,23 @@ DIPLOMACY_OFFER_DOCKING_RIGHTS_ENABLE_TRIGGER = {
 }
 
 DIPLOMACY_LEND_LEASE_ENABLE_TRIGGER = {
+	# PERF: sphere check first so most country pairs short-circuit here.
+	# BUGFIX: NOT+faction checks wrapped in AND (was OR'd separately, so any
+	# country with a nonzero Sphere_Leader passed against anyone).
 	custom_trigger_tooltip = {
 		tooltip = Same_Sphere_Requirement_TT
 		OR = {
 			check_variable = {
 				ROOT.Sphere_Leader = FROM.Sphere_Leader
 			}
-			
-			NOT = { check_variable = { ROOT.Sphere_Leader = 0 } }
-			FROM = { is_in_faction_with = ROOT }
+			AND = {
+				NOT = { check_variable = { ROOT.Sphere_Leader = 0 } }
+				FROM = { is_in_faction_with = ROOT }
+			}
 		}
-
 	}
+	# PERF: else_if chain instead of 5 independent ifs - evaluates
+	# has_game_rule once for the common FREE/LIMITED cases instead of 5 times.
 	if = {
 		limit = {
 			has_game_rule = {
@@ -207,7 +212,7 @@ DIPLOMACY_LEND_LEASE_ENABLE_TRIGGER = {
 		}
 		always = yes
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -216,7 +221,7 @@ DIPLOMACY_LEND_LEASE_ENABLE_TRIGGER = {
 		}
 		always = yes		#handled by game logic, see above
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -228,7 +233,7 @@ DIPLOMACY_LEND_LEASE_ENABLE_TRIGGER = {
 			has_government = FROM
 		}
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -240,7 +245,7 @@ DIPLOMACY_LEND_LEASE_ENABLE_TRIGGER = {
 			is_in_faction_with = FROM
 		}
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -255,13 +260,19 @@ DIPLOMACY_LEND_LEASE_ENABLE_TRIGGER = {
 }
 
 DIPLOMACY_INCOMING_LEND_LEASE_ENABLE_TRIGGER = {
+	# BUGFIX: was implicit AND of all three conditions (required same sphere
+	# AND nonzero sphere AND faction) - now matches outgoing trigger logic.
 	custom_trigger_tooltip = {
 		tooltip = Same_Sphere_Requirement_TT
-		check_variable = {
-			ROOT.Sphere_Leader = FROM.Sphere_Leader
+		OR = {
+			check_variable = {
+				ROOT.Sphere_Leader = FROM.Sphere_Leader
+			}
+			AND = {
+				NOT = { check_variable = { ROOT.Sphere_Leader = 0 } }
+				FROM = { is_in_faction_with = ROOT }
+			}
 		}
-		NOT = { check_variable = { ROOT.Sphere_Leader = 0 } }
-		FROM = { is_in_faction_with = ROOT }
 	}
 	if = {
 		limit = {
@@ -272,7 +283,7 @@ DIPLOMACY_INCOMING_LEND_LEASE_ENABLE_TRIGGER = {
 		}
 		always = yes
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -281,7 +292,7 @@ DIPLOMACY_INCOMING_LEND_LEASE_ENABLE_TRIGGER = {
 		}
 		always = yes		#handled by game logic, see above
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -293,7 +304,7 @@ DIPLOMACY_INCOMING_LEND_LEASE_ENABLE_TRIGGER = {
 			has_government = FROM
 		}
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -305,7 +316,7 @@ DIPLOMACY_INCOMING_LEND_LEASE_ENABLE_TRIGGER = {
 			is_in_faction_with = FROM
 		}
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_lend_lease
@@ -329,7 +340,7 @@ DIPLOMACY_REQUEST_LICENSED_PRODUCTION_ENABLE_TRIGGER = {
 		}
 		always = yes
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_licensing
@@ -341,7 +352,7 @@ DIPLOMACY_REQUEST_LICENSED_PRODUCTION_ENABLE_TRIGGER = {
 			has_government = FROM
 		}
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_licensing
@@ -353,7 +364,7 @@ DIPLOMACY_REQUEST_LICENSED_PRODUCTION_ENABLE_TRIGGER = {
 			is_in_faction_with = FROM
 		}
 	}
-	if = {
+	else_if = {
 		limit = {
 			has_game_rule = {
 				rule = allow_licensing
