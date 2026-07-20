@@ -65,13 +65,15 @@ indochina_struggle_ending_southern_victory_trigger = {
 			has_war_with = VIN
 			OR = {
 				owns_state = 1760
-				VIN = {
-					OR = {
-						has_capitulated = yes
-						exists = no
-					}
-				}
+				VIN = { has_capitulated = yes }
 			}
+		}
+		# VIN already fully defeated and annexed: has_war_with can no longer be
+		# true, so accept unification by ownership of both Hanoi and Saigon.
+		AND = {
+			NOT = { country_exists = VIN }
+			owns_state = 1760
+			owns_state = 286
 		}
 	}
 }
@@ -785,4 +787,13 @@ indochina_struggle_all_participants_ai_trigger = {
 		NOT = { country_exists = FRE }
 		FRE = { is_ai = yes }
 	}
+}
+
+# Geneva Conference table actions: shared guard for both the action effects
+# and the conference GUI's click_enabled triggers. Scope: acting delegation.
+geneva_action_possible_trigger = {
+	has_global_flag = geneva_conference_in_session
+	is_in_array = { global.geneva_delegations = THIS.id }
+	NOT = { has_country_flag = geneva_walked_out }
+	check_variable = { geneva_actions_used < 2 }
 }

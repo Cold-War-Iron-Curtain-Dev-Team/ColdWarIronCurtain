@@ -29,6 +29,37 @@ VIE_Change_Domestic_Influence = {
 	refresh_favoritism_minigame = yes
 }
 
+# AI-only management of the French coup, driven by the VIE_ai_french_coup game rule.
+# Runs daily from on_daily_VIE. Never touches a human-controlled VIE.
+# influence_change adds to VIE_Influence and subtracts from FRA_Influence (see above),
+# so a NEGATIVE influence_change raises FRA_Influence.
+VIE_ai_french_coup_gamerule = {
+	if = {
+		limit = {
+			is_ai = yes
+			has_game_rule = { rule = VIE_ai_french_coup option = VIE_FRENCH_COUP_AI_PROTECTED }
+			check_variable = { FRA_Influence < 20 }
+		}
+		# Soft floor: lift FRA_Influence back to 25, keeping the pair summed to 100.
+		# influence_change = FRA_Influence - 25 (negative), so FRA_Influence -> 25.
+		set_temp_variable = { influence_change = FRA_Influence }
+		subtract_from_temp_variable = { var = influence_change value = 25 }
+		VIE_Change_Domestic_Influence = yes
+	}
+	else_if = {
+		limit = {
+			is_ai = yes
+			has_game_rule = { rule = VIE_ai_french_coup option = VIE_FRENCH_COUP_AI_GUARANTEED }
+			NOT = { has_country_flag = VIE_FRA_Coup }
+			check_variable = { FRA_Influence > 5 }
+		}
+		# Driver: push FRA_Influence down until it crosses the coup threshold (< 11),
+		# at which point ProFrench_Coup activates through its normal path.
+		set_temp_variable = { influence_change = 3 }
+		VIE_Change_Domestic_Influence = yes
+	}
+}
+
 vietnam_cochinchina_unification_war = {
 	CCC = {
 		var:Sphere_Leader = {
@@ -1382,7 +1413,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = { VIE_Warlord_Status_2 = 3 }
 		set_variable = { VIE_Region_16_Faction = 1 } #16 - Long An
 		add_political_power = -50
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Binh_Xuyen_warlord_modifier }
 			}
@@ -1427,7 +1458,7 @@ vietnam_faction_ui_decision_click = {
 			planning_skill = 1
 			logistics_skill = 1
 		}
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Binh_Xuyen_warlord_modifier }
 			}
@@ -1763,7 +1794,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = { VIE_Region_18_Faction = 1 } #18 - Bien Hoa
 		set_variable = { VIE_Region_20_Faction = 1 } #20 - Long Khan
 		set_variable = { VIE_Region_24_Faction = 1 } #24 - Tay Ninh
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Cao_Dai_warlord_modifier }
 			}
@@ -1815,7 +1846,7 @@ vietnam_faction_ui_decision_click = {
 		}
 		army_experience = 25
 		add_command_power = 25
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Cao_Dai_warlord_modifier }
 			}
@@ -2085,7 +2116,7 @@ vietnam_faction_ui_decision_click = {
 			check_variable = { vietnam_factionalism_decisions_list^i = 312 }	#Crush Harmonism
 		}
 		add_political_power = -50
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Harmonist_warlord_modifier }
 			}
@@ -2101,7 +2132,7 @@ vietnam_faction_ui_decision_click = {
 			check_variable = { vietnam_factionalism_decisions_list^i = 313 }	#Integrate Harmonist Followers
 		}
 		add_political_power = -50
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Harmonist_warlord_modifier }
 			}
@@ -2504,7 +2535,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = { VIE_Region_7_Faction = 1 }  #7 -   Chau Doc
 		set_variable = { VIE_Region_10_Faction = 1 } #10 - Sa Dec
 		set_variable = { VIE_Region_11_Faction = 1 } #11 - Kien Phong
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Hoa_Hao_warlord_modifier }
 			}
@@ -2557,7 +2588,7 @@ vietnam_faction_ui_decision_click = {
 		}
 		army_experience = 25
 		add_command_power = 25
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = Hoa_Hao_warlord_modifier }
 			}
@@ -2859,7 +2890,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = { VIE_Region_9_Faction = 1 } #9 - Vinh Long
 		set_variable = { VIE_Region_12_Faction = 1 } #12 - Kien Hoa
 		add_political_power = -50
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = UMDC_warlord_modifier }
 			}
@@ -2899,7 +2930,7 @@ vietnam_faction_ui_decision_click = {
 				}
 			}
 		}
-		every_owned_state = {
+		every_state = {
 			limit = {
 				has_dynamic_modifier = { modifier = UMDC_warlord_modifier }
 			}
@@ -12184,7 +12215,7 @@ VIN_improve_drv_navy = {
 # The VIE_etat_du_vietnam_* dynamic modifiers start as founding-era
 # values (see history/countries/VIE - Vietnam.txt). Each upgrade
 # effect below is tied to 50s military focuses in both the regular
-# and Cuong De trees; completing every upgrade path inverts the
+# and Cuong-De trees; completing every upgrade path inverts the
 # starting penalties and doubles the starting bonuses.
 
 # --- National Gendarmerie ---
@@ -12222,14 +12253,14 @@ VIE_army_academies_upgrade = {
 # VIE_ReEstablish_VietKienQuocQuan_Mil
 VIE_army_foundation_upgrade = {
 	custom_effect_tooltip = VIE_Army_Foundation_Upgrade_TT
-	add_to_variable = { var = VIE_M_A_PP value = 0.25 }		# -0.25 -> 0.25 with ministry step
+	add_to_variable = { var = VIE_M_A_PP value = 0.20 }		# -0.15 -> 0.25 with ministry step
 	add_to_variable = { var = VIE_M_A_RPF value = 0.20 }	# -0.20 -> 0.20 with mobilization step
 }
 
 # VIE_Organize_Vietnamese_BoQuocPhong & VIE_Establish_Autonomous_Command_Staffs
 VIE_army_ministry_upgrade = {
 	custom_effect_tooltip = VIE_Army_Ministry_Upgrade_TT
-	add_to_variable = { var = VIE_M_A_PP value = 0.25 }		# see foundation step
+	add_to_variable = { var = VIE_M_A_PP value = 0.20 }		# see foundation step
 	add_to_variable = { var = VIE_M_A_CPG value = 0.10 }	# 0.25 -> 0.50 with tactics step
 	add_to_variable = { var = VIE_M_A_MCP value = 0.10 }	# -0.10 -> 0.10 with tactics step
 }
