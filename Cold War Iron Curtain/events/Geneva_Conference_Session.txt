@@ -17,6 +17,9 @@
 #   .23 - news: the State of Vietnam's list wins the election
 #   .24 - hidden at VIN: annexes the South after .22
 #   .25 - hidden at VIE: annexes the North after .23
+#   .26 - campaign trail: fired at both VIE and VIN before .21 resolves the
+#         vote; desc variants read the war's final balance so both capitals
+#         see which list is favored to win
 # News events here deliberately have no fire_only_once: they are broadcast
 # to every human player and the system flags already prevent re-firing.
 # ============================================================================
@@ -261,6 +264,54 @@ country_event = {
 			}
 			annex_country = { target = VIE transfer_troops = yes }
 		}
+	}
+}
+
+# Campaign trail: fired at both Saigon and Hanoi in the run-up to the
+# all-Vietnam election. The desc variants read the final struggle balance
+# snapshotted by the settlement compiler, so both capitals see the same
+# front-runner the electorate does. The trigger re-checks the arbiter's own
+# guards: if the vote has been cancelled or resolved by the time this fires,
+# the report is silently dropped.
+country_event = {
+	id = Geneva_Conference_Session.26
+	title = Geneva_Conference_Session.26.t
+	desc = {
+		text = Geneva_Conference_Session.26.d_comm
+		trigger = {
+			check_variable = { global.geneva_final_comm_score > global.geneva_final_anticomm_score }
+		}
+	}
+	desc = {
+		text = Geneva_Conference_Session.26.d_anti
+		trigger = {
+			check_variable = { global.geneva_final_anticomm_score > global.geneva_final_comm_score }
+		}
+	}
+	desc = {
+		text = Geneva_Conference_Session.26.d_tie
+		trigger = {
+			NOT = { check_variable = { global.geneva_final_comm_score > global.geneva_final_anticomm_score } }
+			NOT = { check_variable = { global.geneva_final_anticomm_score > global.geneva_final_comm_score } }
+		}
+	}
+	picture = GFX_Geneva_Conference_Negotiations_Reunification
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = geneva_interim_government_period
+		NOT = { has_global_flag = geneva_election_resolved }
+		country_exists = VIE
+		country_exists = VIN
+		VIE = { NOT = { has_war_with = VIN } }
+		VIN = { NOT = { has_country_flag = VIN_reunification_election_cancelled } }
+		VIN = { NOT = { has_country_flag = VIN_liberation_of_the_south_prepared } }
+		VIE = { NOT = { has_country_flag = VIE_reunification_election_refused } }
+	}
+
+	option = {
+		name = Geneva_Conference_Session.26.a
 	}
 }
 

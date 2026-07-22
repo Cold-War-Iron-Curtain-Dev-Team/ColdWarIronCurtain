@@ -766,13 +766,69 @@ shared_focus = {
 	x = 1
 	y = 1
 	available = {
-		custom_trigger_tooltip = {
-			tooltip = Geneva_Complete_Success_TT
-			geneva_conference_complete_success_trigger = yes
+		OR = {
+			custom_trigger_tooltip = {
+				tooltip = USA_50s_The_Geneva_Conferece_avail_tt
+				has_global_flag = geneva_conference_in_session
+			}
+			custom_trigger_tooltip = {
+				tooltip = Geneva_Complete_Success_TT
+				geneva_conference_complete_success_trigger = yes
+			}
+		}
+	}
+	bypass = {
+		OR = {
+			# The accords scheduled immediate elections: the question is settled
+			# and Washington's assent is a formality.
+			custom_trigger_tooltip = {
+				tooltip = geneva_elections_immediate_bypass_TT
+				AND = {
+					has_global_flag = geneva_conference_concluded
+					check_variable = { global.geneva_elections_term = 3 }
+				}
+			}
+			# A settlement also sets Indochina_War_Over, so the war-over skip
+			# must not swallow the legitimate post-accords election window.
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 0.1
+			geneva_vie_side_dominant_trigger = yes
 		}
 	}
 	completion_reward = {
-		custom_effect_tooltip = autocompleted_by_event
+		# Washington throws its weight behind a supervised all-Vietnam vote.
+		set_temp_variable = { geneva_lev_amount = 50 }
+		geneva_add_usa_leverage = yes
+		if = {
+			limit = { has_global_flag = geneva_conference_in_session }
+			set_variable = { geneva_pref^2 = 2 }
+			if = {
+				limit = { check_variable = { geneva_prio^2 < 8 } }
+				set_variable = { geneva_prio^2 = 8 }
+			}
+			custom_effect_tooltip = geneva_usa_endorse_elections_TT
+		}
+		if = {
+			limit = { country_exists = VIN }
+			VIN = {
+				add_opinion_modifier = {
+					target = USA
+					modifier = medium_increase
+				}
+			}
+			add_opinion_modifier = {
+				target = VIN
+				modifier = medium_increase
+			}
+		}
 	}
 }
 
@@ -857,16 +913,52 @@ shared_focus = {
 	x = 0
 	y = 1
 	available = {
-		always = no
-		# Will be unlocked during Reunification Elections
+		custom_trigger_tooltip = {
+			tooltip = geneva_election_scheduled_avail_TT
+			has_global_flag = geneva_interim_government_period
+			NOT = { has_global_flag = geneva_election_resolved }
+		}
+		country_exists = VIE
+		country_exists = VIN
+	}
+	bypass = {
+		OR = {
+			has_global_flag = geneva_election_resolved
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+			AND = {
+				country_exists = VIN
+				VIN = {
+					OR = {
+						has_country_flag = VIN_reunification_election_cancelled
+						has_country_flag = VIN_liberation_of_the_south_prepared
+					}
+				}
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 0.1
+			is_historical_focus_on = yes
+		}
 	}
 	completion_reward = {
-		custom_effect_tooltip = autocompleted_by_event
+		# The vote itself is resolved by the hidden Session.21 arbiter; a fair
+		# election simply means Washington keeps its thumb off the scale.
+		custom_effect_tooltip = geneva_usa_free_elections_TT
 		VIN = {
-			annex_country = {
-				target = VIE
-				transfer_troops = yes
+			add_opinion_modifier = {
+				target = USA
+				modifier = medium_increase
 			}
+		}
+		add_opinion_modifier = {
+			target = VIN
+			modifier = medium_increase
 		}
 	}
 }
@@ -886,30 +978,48 @@ shared_focus = {
 	x = 2
 	y = 1
 	available = {
-		always = no
-		# Will be unlocked during Reunification Elections
+		custom_trigger_tooltip = {
+			tooltip = geneva_election_scheduled_avail_TT
+			has_global_flag = geneva_interim_government_period
+			NOT = { has_global_flag = geneva_election_resolved }
+		}
+		country_exists = VIE
+		country_exists = VIN
+	}
+	bypass = {
+		OR = {
+			has_global_flag = geneva_election_resolved
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+			AND = {
+				country_exists = VIN
+				VIN = {
+					OR = {
+						has_country_flag = VIN_reunification_election_cancelled
+						has_country_flag = VIN_liberation_of_the_south_prepared
+					}
+				}
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 2
+			is_historical_focus_on = yes
+		}
 	}
 	completion_reward = {
-		custom_effect_tooltip = autocompleted_by_event
-		random_list = {
-			70 = {
-				#VIN REJECTS ELECTION RESULTS
-			}
-			25 = {
-				VIN = {
-					annex_country = {
-						target = VIE
-						transfer_troops = yes
-					}
-				}
-			}
-			5 = {
-				VIE = {
-					annex_country = {
-						target = VIN
-						transfer_troops = yes
-					}
-				}
+		# USA_Tampered_With_VIE tilts the Session.21 arbiter toward Saigon
+		# (and away from Ho Chi Minh's list) when the vote is resolved.
+		custom_effect_tooltip = geneva_usa_rig_elections_TT
+		set_country_flag = USA_Tampered_With_VIE
+		VIN = {
+			add_opinion_modifier = {
+				target = USA
+				modifier = medium_decrease
 			}
 		}
 	}
@@ -917,7 +1027,6 @@ shared_focus = {
 
 shared_focus = {
 	id = USA_50s_Block_Unification_Elections
-	completion_reward = { }
 	text_icon = USA_focus_style
 	icon = GFX_usa_50_block_unification_elections
 	cost = 3
@@ -931,12 +1040,44 @@ shared_focus = {
 	x = -1
 	y = 1
 	bypass = {
-		custom_trigger_tooltip = {
-			tooltip = "The §YReunification Election§! deal wasn't passed."
-			OR = {
-				geneva_conference_otl_success_trigger = yes
-				NOT = { country_exists = VIE }
+		OR = {
+			# The accords scheduled no elections at all: nothing left to block.
+			custom_trigger_tooltip = {
+				tooltip = geneva_elections_never_scheduled_TT
+				AND = {
+					has_global_flag = geneva_conference_concluded
+					NOT = { check_variable = { global.geneva_elections_term > 1 } }
+				}
 			}
+			custom_trigger_tooltip = {
+				tooltip = "The §YReunification Election§! deal wasn't passed."
+				OR = {
+					geneva_conference_otl_success_trigger = yes
+					NOT = { country_exists = VIE }
+				}
+			}
+			# A settlement also sets Indochina_War_Over, so the war-over skip
+			# must not swallow the legitimate post-accords blocking window.
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 0.1
+			NOT = { geneva_vie_side_dominant_trigger = yes }
+		}
+		modifier = {
+			factor = 0
+			geneva_vie_side_losing_trigger = yes
+		}
+		modifier = {
+			factor = 2
+			is_historical_focus_on = yes
+			geneva_vie_side_dominant_trigger = yes
 		}
 	}
 	completion_reward = {
@@ -949,6 +1090,26 @@ shared_focus = {
 			set_variable = { geneva_pref^2 = 0 }
 			set_variable = { geneva_prio^2 = 10 }
 			custom_effect_tooltip = geneva_usa_hardline_elections_TT
+		}
+		# Taken after the accords scheduled a vote (the two-year window): the
+		# election dies in Saigon under American pressure, OTL-1956 style. The
+		# Session.21 arbiter stands down on these flags.
+		if = {
+			limit = {
+				has_global_flag = geneva_interim_government_period
+				NOT = { has_global_flag = geneva_election_resolved }
+				country_exists = VIE
+			}
+			set_country_flag = USA_Tampered_With_VIE
+			custom_effect_tooltip = geneva_usa_block_interim_TT
+			VIE = { set_country_flag = VIE_reunification_election_refused }
+			if = {
+				limit = { country_exists = VIN }
+				VIN = {
+					set_country_flag = VIN_reunification_election_cancelled
+					country_event = { id = VIE_VIN_Reunification_50s.3 days = 3 }
+				}
+			}
 		}
 		VIN = {
 			add_stability = -0.05
@@ -969,7 +1130,6 @@ shared_focus = {
 
 shared_focus = {
 	id = USA_50s_Stir_Unrest_Among_Catholic_North_Vietnamese
-	completion_reward = { }
 	text_icon = USA_focus_style
 	icon = GFX_usa_50_stir_unrest_north_vietnamese_catholics
 	cost = 3
@@ -1002,7 +1162,6 @@ shared_focus = {
 
 shared_focus = {
 	id = USA_50s_Launch_Operation_Passage_to_Freedom
-	completion_reward = { }
 	text_icon = USA_focus_style
 	icon = GFX_usa_50_operation_passage_to_freedom
 	cost = 2

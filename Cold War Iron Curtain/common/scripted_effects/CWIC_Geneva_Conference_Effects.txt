@@ -87,6 +87,18 @@ geneva_add_vie_vin_rapprochement = {
 geneva_conf_world_leverage_pulse = {
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		# --- War-balance cache for trigger-context readers (focus ai_will_do,
+		# --- geneva_vie_side_*_trigger): triggers cannot do arithmetic, so the
+		# --- pulse precomputes the totals daily. The settlement compiler
+		# --- re-derives them from the final-score snapshot at conclusion.
+		if = {
+			limit = { country_exists = FRA }
+			set_variable = { global.geneva_cache_comm_score = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+			set_variable = { global.geneva_cache_anticomm_score = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+			add_to_variable = { global.geneva_cache_anticomm_score = FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+			set_variable = { global.geneva_cache_comm_x2 = global.geneva_cache_comm_score }
+			multiply_variable = { global.geneva_cache_comm_x2 = 2 }
+		}
 		# --- Laotian Civil War tracking (LAO = Pathet Lao, LOS = Kingdom) ---
 		if = {
 			limit = {
@@ -231,6 +243,14 @@ geneva_conf_seat_delegation = {
 	set_variable = { geneva_backchannel_next = 0 }
 	set_variable = { geneva_threat_next = 0 }
 	set_variable = { View_Geneva_Conference = 1 }
+	# Political-tab entry (id 29 in the pseudo-foci list): the conference view
+	# must be reachable without the Indochina Struggle window — SOV and PRC
+	# hold Geneva seats without being struggle participants, and the struggle
+	# window may be gone in edge cases. Handler lives in Parliament.txt.
+	if = {
+		limit = { NOT = { is_in_array = { country_politics_list = 29 } } }
+		add_to_array = { country_politics_list = 29 }
+	}
 }
 
 # Re-derive a delegation's preferences mid-conference (e.g. after the
@@ -444,8 +464,25 @@ geneva_conf_set_delegation_prefs = {
 			limit = { has_global_flag = geneva_usa_backs_vie_applied }
 			set_variable = { geneva_pref^1 = 3 }	# push the line to the 20th
 		}
+		# Playtest: the categorical American veto on elections only makes
+		# sense from strength. An AI Washington whose Vietnamese clients are
+		# losing — or merely not dominant — accepts a supervised vote rather
+		# than wreck the talks. Focus commitments below still override this.
+		set_temp_variable = { g_usa_anti = g_sc_fra }
+		add_to_temp_variable = { g_usa_anti = g_sc_ind }
+		set_temp_variable = { g_usa_comm_x2 = g_sc_comm }
+		multiply_temp_variable = { g_usa_comm_x2 = 2 }
+		if = {
+			limit = {
+				is_ai = yes
+				NOT = { check_variable = { g_usa_anti > g_usa_comm_x2 } }
+			}
+			set_variable = { geneva_pref^2 = 2 }	# elections in two years
+			set_variable = { geneva_prio^2 = 5 }
+		}
 		if = {
 			limit = { has_completed_focus = USA_50s_Block_Unification_Elections }
+			set_variable = { geneva_pref^2 = 0 }
 			set_variable = { geneva_prio^2 = 10 }
 		}
 		# Washington softens if it agreed to a reunification vote instead.
@@ -1032,6 +1069,13 @@ geneva_conf_compile_settlement = {
 				set_variable = { global.geneva_final_comm_score = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 				set_variable = { global.geneva_final_anticomm_score = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
 				add_to_variable = { global.geneva_final_anticomm_score = FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+				# Freeze the trigger-context cache on the final balance: the
+				# daily pulse stops once the war winds down, but the election
+				# focus AI still reads geneva_vie_side_*_trigger afterwards.
+				set_variable = { global.geneva_cache_comm_score = global.geneva_final_comm_score }
+				set_variable = { global.geneva_cache_anticomm_score = global.geneva_final_anticomm_score }
+				set_variable = { global.geneva_cache_comm_x2 = global.geneva_cache_comm_score }
+				multiply_variable = { global.geneva_cache_comm_x2 = 2 }
 			}
 
 			# The signing ceremony: lists the agreed terms clause by clause
@@ -1127,17 +1171,26 @@ geneva_conf_compile_settlement = {
 					limit = { is_ai = no }
 					news_event = { id = Geneva_Conference_Session.20 days = 2 }
 				}
+				# Session.26 is the campaign trail: both capitals read the same
+				# polls (the war's final balance) before the arbiter resolves
+				# the vote, so nobody is blindsided by the result.
 				if = {
 					limit = { check_variable = { global.geneva_elections_term = 3 } }
+					VIE = { country_event = { id = Geneva_Conference_Session.26 days = 95 random_days = 15 } }
+					VIN = { country_event = { id = Geneva_Conference_Session.26 days = 95 random_days = 15 } }
 					VIN = { country_event = { id = Geneva_Conference_Session.21 days = 150 random_days = 30 } }
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_elections_term = 2 } }
+					VIE = { country_event = { id = Geneva_Conference_Session.26 days = 420 random_days = 30 } }
+					VIN = { country_event = { id = Geneva_Conference_Session.26 days = 420 random_days = 30 } }
 					VIN = { country_event = { id = Geneva_Conference_Session.21 days = 540 random_days = 90 } }
 				}
 				else = {
 					# Unified settlement with the vote postponed: the interim
 					# council still has to produce a government eventually.
+					VIE = { country_event = { id = Geneva_Conference_Session.26 days = 220 random_days = 30 } }
+					VIN = { country_event = { id = Geneva_Conference_Session.26 days = 220 random_days = 30 } }
 					VIN = { country_event = { id = Geneva_Conference_Session.21 days = 300 random_days = 90 } }
 				}
 			}

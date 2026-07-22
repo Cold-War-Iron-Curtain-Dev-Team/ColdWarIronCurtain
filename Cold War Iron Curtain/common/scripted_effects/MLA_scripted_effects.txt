@@ -154,12 +154,219 @@ ENG_Setup_MLA_Victory = {
 	}
 }
 
+MLA_prepare_emergency_operation = {
+	add_timed_idea = {
+		idea = MLA_prepared_operation
+		days = 75
+	}
+	# Front-load a strike package so the assaulting columns actually field artillery,
+	# support weapons and transport for the border war instead of raw riflemen.
+	add_manpower = 750
+	add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 400 producer = MLA }
+	add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 24 producer = CUM }
+	add_equipment_to_stockpile = { type = support_equipment_1 amount = 40 producer = MLA }
+	add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 30 producer = ENG }
+	set_country_flag = {
+		flag = MLA_operation_cooldown
+		days = 45
+	}
+}
+
+MLA_clamp_emergency_momentum = {
+	clamp_variable = {
+		var = emergency_momentum
+		min = -100
+		max = 100
+	}
+}
+
+MLA_apply_minor_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		add_to_variable = { emergency_momentum = 10 }
+		add_manpower = 500
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 400
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = ENG }
+		army_experience = 3
+	}
+	else = {
+		MLA = {
+			add_to_variable = { emergency_momentum = -8 }
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 60
+			}
+		}
+	}
+	MLA = { MLA_clamp_emergency_momentum = yes }
+}
+
+MLA_apply_standard_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		add_to_variable = { emergency_momentum = 15 }
+		add_manpower = 700
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 600
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 30 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 16 producer = ENG }
+		army_experience = 5
+	}
+	else = {
+		MLA = {
+			add_to_variable = { emergency_momentum = -10 }
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 60
+			}
+		}
+	}
+	MLA = { MLA_clamp_emergency_momentum = yes }
+}
+
+MLA_apply_major_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		add_to_variable = { emergency_momentum = 20 }
+		add_manpower = 950
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 900
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 40 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 24 producer = ENG }
+		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 20 producer = ENG }
+		army_experience = 8
+	}
+	else = {
+		MLA = {
+			add_to_variable = { emergency_momentum = -15 }
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 75
+			}
+		}
+	}
+	MLA = { MLA_clamp_emergency_momentum = yes }
+}
+
+MLA_apply_final_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		add_to_variable = { emergency_momentum = 25 }
+		add_manpower = 1200
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 1200
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 50 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 30 producer = ENG }
+		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 30 producer = ENG }
+		army_experience = 10
+	}
+	else = {
+		MLA = {
+			add_to_variable = { emergency_momentum = -15 }
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 75
+			}
+		}
+	}
+	MLA = { MLA_clamp_emergency_momentum = yes }
+}
+
+MLA_apply_counterinsurgency_raid_result = {
+	if = {
+		limit = { tag = MLA }
+		add_to_variable = { emergency_momentum = 6 }
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 200
+			producer = ENG
+		}
+	}
+	else = {
+		MLA = {
+			add_to_variable = { emergency_momentum = -6 }
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 45
+			}
+		}
+	}
+	MLA = { MLA_clamp_emergency_momentum = yes }
+}
+
+MLA_transition_to_postwar_government = {
+	clr_country_flag = active_insurgency
+	remove_ideas = MLA_guerrilla_economy
+	remove_ideas = MLA_prepared_operation
+	remove_ideas = MLA_operation_exhaustion
+	set_variable = { show_finance = 0 }
+	set_variable = { currentMoney = 5 }
+	set_variable = { currentDebt = 0 }
+	set_variable = { currentDebtPayments = 0 }
+
+	clear_current_economic_modifiers = yes
+	set_variable = { economic_x_axis = 6 }
+	set_variable = { economic_y_axis = 9 }
+	startup_economics = yes
+
+	cwic_clear_insurgent_conventional_policies = yes
+	set_variable = { army_level_value = 5 }
+	set_variable = { navy_level_value = 1 }
+	set_variable = { air_level_value = 1 }
+	set_variable = { strategic_forces_level_value = 0 }
+	set_variable = { space_level_value = 0 }
+	set_variable = { healthcare_level_value = 3 }
+	set_variable = { welfare_level_value = 3 }
+	set_variable = { education_level_value = 3 }
+	set_variable = { public_services_level_value = 2 }
+	set_variable = { policing_level_value = 4 }
+	refresh_army_policy_rate = yes
+	refresh_navy_policy_rate = yes
+	refresh_air_policy_rate = yes
+	refresh_strategic_forces_policy_rate = yes
+	refresh_space_policy_rate = yes
+	refresh_healthcare_policy_rate = yes
+	refresh_welfare_policy_rate = yes
+	refresh_education_policy_rate = yes
+	refresh_services_policy_rate = yes
+	refresh_policing_policy_rate = yes
+
+	# Only add the Malaya Conflict tab if the insurgency start-up didn't already grant
+	# it, so victory doesn't duplicate the politics-list entry.
+	if = {
+		limit = { NOT = { is_in_array = { array = country_politics_list value = 28 } } }
+		add_to_array = { country_politics_list = 28 }
+	}
+	resource_bonus_script = yes
+	industrial_pulse = yes
+}
+
 Fall_Of_Malaya = {
 	MLA = {
-	annex_country = {
-				target = MAL
-			}
-			country_event = MLA_Victory.1
+		set_country_flag = Victory_in_Malaysian_Emergency
+		if = {
+			limit = { NOT = { 791 = { is_core_of = MLA } } }
+			add_state_core = 791
+		}
+		remove_ideas = Resistance_Level_Regional_Civil_War
+			annex_country = {
+					target = MAL
+				}
+				MLA_transition_to_postwar_government = yes
+				country_event = MLA_Victory.1
 	}
 			ENG = {
 				every_state = {
@@ -245,7 +452,7 @@ Baling_Peace_Treaty = {
 		}
 	}
 	MLA = {
-		MLA_Chin_Peng = {
+		MLA_chin_peng = {
 			set_nationality = MAL
 			add_country_leader_role = {
 				promote_leader = yes
@@ -314,127 +521,4 @@ Baling_Peace_Treaty = {
 			elections_allowed = no
 		}
 	}
-}
-
-MLA_Main_Influence_effect = {
-	custom_effect_tooltip = MLA_Main_Influence_Effect_tt
-	add_to_variable = {
-		var = MLA_Main_Influence
-		value = MLA_Main_Influence_temp
-	}
-	subtract_from_variable = {
-		var = MLA_Alt_Influence
-		value = MLA_Main_Influence_temp
-	}
-	clamp_variable = {
-		var = MLA_Alt_Influence
-		min = 0
-		max = 100
-	}
-	clamp_variable = {
-		var = MLA_Main_Influence
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-MLA_Alt_Influence_effect = {
-	custom_effect_tooltip = MLA_Alt_Influence_Effect_tt
-	add_to_variable = {
-		var = MLA_Alt_Influence
-		value = MLA_Alt_Influence_temp
-	}
-	subtract_from_variable = {
-		var = MLA_Main_Influence
-		value = MLA_Alt_Influence_temp
-	}
-	clamp_variable = {
-		var = MLA_Alt_Influence
-		min = 0
-		max = 100
-	}
-	clamp_variable = {
-		var = MLA_Main_Influence
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-add_MLA_Influence = {
-	custom_effect_tooltip = add_mla_dom_influence_tt
-	add_to_variable = {
-		var = MLA_Influence
-		value = MLA_Influence_temp
-	}
-	clamp_variable = {
-		var = MLA_Influence
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-minus_MLA_Influence = {
-	custom_effect_tooltip = minus_mla_dom_influence_tt
-	subtract_from_variable = {
-		var = MLA_Influence
-		value = MLA_Influence_temp
-	}
-	clamp_variable = {
-		var = MLA_Influence
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-add_Main_Support = {
-	custom_effect_tooltip = add_mla_main_support_tt
-	add_to_variable = {
-		var = MLA_Main_Support
-		value = MLA_Main_Support_temp
-	}
-	clamp_variable = {
-		var = MLA_Main_Support
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-minus_Main_Support = {
-	custom_effect_tooltip = minus_mla_main_support_tt
-	subtract_from_variable = {
-		var = MLA_Main_Support
-		value = MLA_Main_Support_temp
-	}
-	clamp_variable = {
-		var = MLA_Main_Support
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-add_Alt_Support = {
-	custom_effect_tooltip = add_mla_alt_support_tt
-	add_to_variable = {
-		var = MLA_Alt_Support
-		value = MLA_Alt_Support_temp
-	}
-	clamp_variable = {
-		var = MLA_Alt_Support
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
-}
-minus_Alt_Support = {
-	custom_effect_tooltip = minus_mla_alt_support_tt
-	subtract_from_variable = {
-		var = MLA_Alt_Support
-		value = MLA_Alt_Support_temp
-	}
-	clamp_variable = {
-		var = MLA_Alt_Support
-		min = 0
-		max = 100
-	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
 }
