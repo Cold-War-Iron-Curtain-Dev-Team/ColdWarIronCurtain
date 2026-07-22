@@ -41,6 +41,7 @@ VIE_Flag_Change = {
 				}
 				set_cosmetic_tag = VIE_RCB_ETAT
 			}
+			VIE_sync_faction_name = yes
 		}
 	}
 	VIE_Merge_Two_Flags = {
@@ -92,6 +93,7 @@ VIE_Flag_Change = {
 				}
 				set_cosmetic_tag = VIE_CCC_ETAT
 			}
+			VIE_sync_faction_name = yes
 		}
 	}
 }
@@ -178,7 +180,7 @@ VIE_Bao_Dai_Power_Minigame = {
 				}
 			}
 		}
-		cost = 75
+		cost = 40
 		days_mission_timeout = 14
 		selectable_mission = yes
 		is_good = no
@@ -195,6 +197,10 @@ VIE_Bao_Dai_Power_Minigame = {
 				tooltip = CD_Xuan_Yes_tt
 				has_country_flag = CD_Xuan_Yes
 			}
+			custom_trigger_tooltip = {
+				tooltip = VIE_Xuan_CCC_Peace_tt
+				has_war = no
+			}
 		}
 		visible = {
 			has_country_flag = CD_Xuan_Yes
@@ -206,6 +212,12 @@ VIE_Bao_Dai_Power_Minigame = {
 		fire_only_once = yes
 		selectable_mission = no
 		complete_effect = {
+			add_stability = 0.10
+			add_political_power = 100
+			add_timed_idea = {
+				idea = VIE_Cochinchina_Devolution
+				days = 365
+			}
 			set_country_flag = {
 				flag = Released_CCC_CD_temp
 				days = 365
@@ -270,23 +282,21 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_250_mil
 		ai_will_do = {
-			base = 10
+			base = 1
+			# Pure equipment purchase (no favoritism effect): buy with spare cash and
+			# a political-power reserve so it never starves core spending.
 			modifier = {
-				factor = 100
+				factor = 30
 				AND = {
-					check_variable = {
-						currentMoney > 5
-					}
-					has_political_power > 74
+					check_variable = { currentMoney > 5 }
+					has_political_power > 100
 				}
 			}
 			modifier = {
 				factor = 0
-				AND = {
-					check_variable = {
-						currentMoney < 2
-					}
-					has_political_power < 49
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 75
 				}
 			}
 		}
@@ -301,9 +311,11 @@ VIE_Bao_Dai_Power_Minigame = {
 			add_money_with_tooltip_effect = yes
 			add_equipment_to_stockpile = {
 				type = infantry_equipment
-				amount = 500
+				amount = 1500
 				producer = USA
 			}
+			set_temp_variable = { influence_change = 8 }
+			VIE_Change_Domestic_Influence = yes
 		}
 	}
 	Reach_out_to_Phan_van_Giao = {
@@ -577,22 +589,22 @@ VIE_Bao_Dai_Power_Minigame = {
 			has_country_flag = VIE_Opposition_Cuong_De
 		}
 		ai_will_do = {
-			base = 10
+			base = 201
+			# Discrediting Cuong-De keeps Alt_Favoritism low (historical: the
+			# faction loses). Only pursued when the game rule / historical focus
+			# asks for it, and only with a political-power reserve to spare.
 			modifier = {
-				factor = 999
-				AND = {
-					is_historical_focus_on = yes
-					check_variable = {
-						Alt_Favoritism > 39
-					}
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
 			}
-			# modifier = {
-			# 	factor = 0
-			# 	AND = {
-			# 		AI will not do this at all if Cuong-De path is selected in game rules
-			# 	}
-			# }
+			modifier = {
+				factor = 0
+				has_political_power < 29
+			}
+			modifier = {
+				factor = 6
+				VIE_ai_pm_pursue_historical = yes
+			}
 		}
 		cost = 25
 		days_re_enable = 15
@@ -615,10 +627,20 @@ VIE_Bao_Dai_Power_Minigame = {
 			has_country_flag = VIE_Opposition_Cuong_De
 		}
 		ai_will_do = {
-			base = 5
+			base = 26
+			# Raises Alt_Favoritism toward a Cuong-De victory (challenger path).
+			# Only when the game rule / ahistorical game wants it, with a PP reserve.
 			modifier = {
 				factor = 0
-				is_historical_focus_on = yes
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 		cost = 25
@@ -642,10 +664,20 @@ VIE_Bao_Dai_Power_Minigame = {
 			has_country_flag = VIE_Opposition_Cuong_De
 		}
 		ai_will_do = {
-			base = 5
+			base = 26
+			# Raises Alt_Favoritism toward a Cuong-De victory (challenger path).
+			# Only when the game rule / ahistorical game wants it, with a PP reserve.
 			modifier = {
 				factor = 0
-				is_historical_focus_on = yes
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 		cost = 45
@@ -669,13 +701,23 @@ VIE_Bao_Dai_Power_Minigame = {
 			has_country_flag = VIE_Opposition_Cuong_De
 		}
 		ai_will_do = {
-			base = 5
+			base = 26
+			# Raises Alt_Favoritism toward a Cuong-De victory (challenger path).
+			# Only when the game rule / ahistorical game wants it, with a PP reserve.
 			modifier = {
 				factor = 0
-				is_historical_focus_on = yes
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
-		cost = 125
+		cost = 65
 		fire_only_once = yes
 		selectable_mission = no
 	}
@@ -688,6 +730,22 @@ VIE_Bao_Dai_Power_Minigame = {
 		days_re_enable = 45
 		fire_only_once = no
 		selectable_mission = no
+		ai_will_do = {
+			base = 26
+			# Discrediting Long keeps Alt_Favoritism low (historical: Long retires).
+			modifier = {
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 6
+				VIE_ai_pm_pursue_historical = yes
+			}
+		}
 		complete_effect = {
 			set_temp_variable = { favoritism_change = -5 }
 			VIE_Change_Alt_Favoritism = yes
@@ -701,6 +759,22 @@ VIE_Bao_Dai_Power_Minigame = {
 		days_re_enable = 5
 		fire_only_once = no
 		selectable_mission = no
+		ai_will_do = {
+			base = 26
+			# Raises Alt_Favoritism toward Long staying PM (challenger path).
+			modifier = {
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
+			}
+		}
 		complete_effect = {
 			set_temp_variable = { favoritism_change = 5 }
 			VIE_Change_Alt_Favoritism = yes
@@ -727,24 +801,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_100_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# USA arms raise Alt_Favoritism toward Long staying PM (challenger path).
+			# Bought only when the game rule wants the challenger and cash/PP allow.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 3
-					}
-					has_political_power > 49
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
 			}
 			modifier = {
 				factor = 0
-				AND = {
-					check_variable = {
-						currentMoney < 1
-					}
-					has_political_power < 19
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 		days_re_enable = 10
@@ -790,7 +863,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			if = {
 				limit = {
 					check_variable = {
-						Alt_Favoritism > 79
+						Alt_Favoritism > 59
 					}
 				}
 				set_country_flag = Long_Stays_PM
@@ -837,6 +910,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		days_re_enable = 45
 		fire_only_once = no
 		selectable_mission = no
+		ai_will_do = {
+			base = 26
+			# Discrediting Huu keeps Alt_Favoritism below Main (historical: Huu
+			# accepts French disinterest and is replaced by Tam).
+			modifier = {
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 6
+				VIE_ai_pm_pursue_historical = yes
+			}
+		}
 	}
 	Boost_Huu_French_Favoritism = {
 		visible = {
@@ -846,6 +936,22 @@ VIE_Bao_Dai_Power_Minigame = {
 		days_re_enable = 5
 		fire_only_once = no
 		selectable_mission = no
+		ai_will_do = {
+			base = 26
+			# Raises Alt_Favoritism toward "Huu Wins Over French" (challenger path).
+			modifier = {
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
+			}
+		}
 		complete_effect = {
 			set_temp_variable = { favoritism_change = 5 }
 			VIE_Change_Alt_Favoritism = yes
@@ -872,28 +978,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_250_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Historical path: lowers Alt_Favoritism. Bought only when the game rule
+			# wants the historical outcome and cash/PP allow.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 5
-					}
-					has_political_power > 74
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
 			}
 			modifier = {
 				factor = 0
-				AND = {
-					check_variable = {
-						currentMoney < 2
-					}
-					has_political_power < 49
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
 			}
 			modifier = {
-				factor = 0
-				is_historical_focus_on = yes
+				factor = 8
+				VIE_ai_pm_pursue_historical = yes
 			}
 		}
 		days_re_enable = 12
@@ -984,10 +1085,19 @@ VIE_Bao_Dai_Power_Minigame = {
 			VIE_Change_Alt_Favoritism = yes
 		}
 		ai_will_do = {
-			base = 5
+			base = 26
+			# Historical path: nudges Alt_Favoritism down. Only with a PP reserve.
 			modifier = {
 				factor = 0
-				is_historical_focus_on = yes
+				NOT = { VIE_ai_pm_pursue_historical = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 6
+				VIE_ai_pm_pursue_historical = yes
 			}
 		}
 	}
@@ -1006,15 +1116,22 @@ VIE_Bao_Dai_Power_Minigame = {
 			VIE_Change_Alt_Favoritism = yes
 		}
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Boosting Huu's French favoritism raises Alt_Favoritism, driving the
+			# alt-hist "Huu Wins Over French" outcome. The AI only does this when the
+			# game rule (or an ahistorical game) wants the challenger to prevail, and
+			# only with spare political power so it never starves integration / sects.
 			modifier = {
-				factor = 999
-				AND = {
-					is_historical_focus_on = yes
-					check_variable = {
-						FRA_Influence < VIE_Influence
-					}
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 	}
@@ -1034,19 +1151,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_200_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Historical path: lowers Alt_Favoritism. Bought only when the game rule
+			# wants the historical outcome and cash/PP allow.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 3
-					}
-					has_political_power > 49
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
 			}
 			modifier = {
 				factor = 0
-				is_historical_focus_on = yes
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
+				}
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_historical = yes
 			}
 		}
 		days_re_enable = 20
@@ -1098,27 +1219,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_150_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Raises Alt_Favoritism (challenger path). Gated on the game rule, on a
+			# political-power reserve, and on having cash for the aid package.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 3
-					}
-					has_political_power > 49
-					check_variable = {
-						FRA_Influence < VIE_Influence
-					}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
 			}
 			modifier = {
-				factor = 999
-				AND = {
-					is_historical_focus_on = yes
-					check_variable = {
-						FRA_Influence < VIE_Influence
-					}
-				}
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 		days_re_enable = 15
@@ -1161,19 +1278,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_250_mil
 		ai_will_do = {
-			base = 5
+			base = 26
+			# Historical path: lowers Alt_Favoritism. Bought only when the game rule
+			# wants the historical outcome and cash/PP allow.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 4
-					}
-					has_political_power > 59
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
 			}
 			modifier = {
 				factor = 0
-				is_historical_focus_on = yes
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
+				}
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_historical = yes
 			}
 		}
 		days_re_enable = 25
@@ -1221,27 +1342,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_200_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Raises Alt_Favoritism (challenger path). Gated on the game rule, on a
+			# political-power reserve, and on having cash for the aid package.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 4
-					}
-					has_political_power > 59
-					check_variable = {
-						FRA_Influence < VIE_Influence
-					}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
 			}
 			modifier = {
-				factor = 999
-				AND = {
-					is_historical_focus_on = yes
-					check_variable = {
-						FRA_Influence < VIE_Influence
-					}
-				}
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 		days_re_enable = 20
@@ -1294,24 +1411,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_200_mil
 		ai_will_do = {
-			base = 10
-			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 4
-					}
-					has_political_power > 59
-					}
-				}
+			base = 26
+			# French arms raise Alt_Favoritism toward "Huu Wins Over French"
+			# (challenger path). Bought only when the game rule wants the challenger.
 			modifier = {
 				factor = 0
-				AND = {
-					check_variable = {
-						currentMoney < 2
-					}
-					has_political_power < 39
+				NOT = { VIE_ai_pm_pursue_challenger = yes }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_challenger = yes
 			}
 		}
 		days_re_enable = 12
@@ -1373,24 +1489,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_200_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Historical path: lowers Alt_Favoritism. Bought only when the game rule
+			# wants the historical outcome and cash/PP allow.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 4
-					}
-					has_political_power > 59
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
 			}
 			modifier = {
 				factor = 0
-				AND = {
-					check_variable = {
-						currentMoney < 2
-					}
-					has_political_power < 39
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_historical = yes
 			}
 		}
 		days_re_enable = 12
@@ -1452,24 +1567,23 @@ VIE_Bao_Dai_Power_Minigame = {
 		}
 		custom_cost_text = VIE_has_150_mil
 		ai_will_do = {
-			base = 10
+			base = 26
+			# Historical path: lowers Alt_Favoritism. Bought only when the game rule
+			# wants the historical outcome and cash/PP allow.
 			modifier = {
-				factor = 100
-				AND = {
-					check_variable = {
-						currentMoney > 4
-					}
-					has_political_power > 59
-				}
+				factor = 0
+				NOT = { VIE_ai_pm_pursue_historical = yes }
 			}
 			modifier = {
 				factor = 0
-				AND = {
-					check_variable = {
-						currentMoney < 2
-					}
-					has_political_power < 14
+				OR = {
+					check_variable = { currentMoney < 2 }
+					has_political_power < 100
 				}
+			}
+			modifier = {
+				factor = 8
+				VIE_ai_pm_pursue_historical = yes
 			}
 		}
 		days_re_enable = 12
@@ -1577,7 +1691,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			VIE_Change_Domestic_Influence = yes
 		}
 		ai_will_do = {
-			base = 10
+			base = 1
 			modifier = {
 				factor = 150
 				AND = {
@@ -1622,7 +1736,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			}
 		}
 		ai_will_do = {
-			base = 10
+			base = 1
 			modifier = {
 				factor = 180
 				AND = {
@@ -1659,7 +1773,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			VIE_Change_Domestic_Influence = yes
 		}
 		ai_will_do = {
-			base = 10
+			base = 1
 			modifier = {
 				factor = 150
 				AND = {
@@ -1704,7 +1818,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			}
 		}
 		ai_will_do = {
-			base = 10
+			base = 1
 			modifier = {
 				factor = 180
 				AND = {
@@ -1774,7 +1888,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			}
 		}
 		ai_will_do = {
-			base = 10
+			base = 1
 			modifier = {
 				factor = 20
 				has_political_power > 159
@@ -1848,7 +1962,7 @@ VIE_Bao_Dai_Power_Minigame = {
 			}
 		}
 		ai_will_do = {
-			base = 10
+			base = 1
 			modifier = {
 				factor = 20
 				has_political_power > 249
@@ -1873,6 +1987,11 @@ VIE_Bao_Dai_Power_Minigame = {
 			OR = {
 				has_character = CCC_Jean_Leroy
 				has_character = VIE_Nguyen_Van_Hinh
+			}
+			# AI-only exemption via the VIE_ai_french_coup game rule. Humans are always subject to the coup.
+			OR = {
+				is_ai = no
+				NOT = { has_game_rule = { rule = VIE_ai_french_coup option = VIE_FRENCH_COUP_AI_EXEMPT } }
 			}
 		}
 		days_mission_timeout = 45
@@ -3528,14 +3647,14 @@ VIE_State_Integration_Decisions = {
 				factor = 100
 				has_political_power > 74
 				has_equipment = {
-					infantry_equipment < 350
+					infantry_equipment > 350
 				}
 			}
 			modifier = {
 				factor = 0
 				has_political_power < 49
 				has_equipment = {
-					infantry_equipment > 350
+					infantry_equipment < 350
 				}
 			}
 		}
@@ -3567,7 +3686,7 @@ VIE_State_Integration_Decisions = {
 				factor = 100
 				AND = {
 					has_political_power > 149
-					has_manpower < -5000
+					has_manpower < 5000
 				}
 			}
 			modifier = {
@@ -7869,6 +7988,198 @@ FUL_VietMinh_War = {
 		}
 		ai_will_do = {
 			factor = 100
+		}
+	}
+}
+
+####################################
+#Unlocked by VIE_NH_Diem_Study_Marxist_Org - Labour Personalism borrows Leninist organization
+VIE_Marxist_Organization = {
+	#Democratic Centralism ladder (one-shot, sequential)
+	VIE_Organize_Party_Cells = {
+		visible = {
+			NOT = {
+				has_idea = VIE_Democratic_Centralism_1
+				has_idea = VIE_Democratic_Centralism_2
+				has_idea = VIE_Democratic_Centralism_3
+			}
+		}
+		cost = 50
+		days_remove = 90
+		fire_only_once = yes
+		ai_will_do = {
+			base = 5
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+		remove_effect = {
+			add_ideas = VIE_Democratic_Centralism_1
+		}
+	}
+	VIE_Introduce_Democratic_Centralism = {
+		visible = {
+			has_idea = VIE_Democratic_Centralism_1
+		}
+		cost = 50
+		days_remove = 100
+		fire_only_once = yes
+		ai_will_do = {
+			base = 5
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+		remove_effect = {
+			swap_ideas = {
+				remove_idea = VIE_Democratic_Centralism_1
+				add_idea = VIE_Democratic_Centralism_2
+			}
+		}
+	}
+	VIE_Vanguard_NhanVi_Revolution = {
+		visible = {
+			has_idea = VIE_Democratic_Centralism_2
+		}
+		cost = 50
+		days_remove = 120
+		fire_only_once = yes
+		ai_will_do = {
+			base = 5
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+		remove_effect = {
+			swap_ideas = {
+				remove_idea = VIE_Democratic_Centralism_2
+				add_idea = VIE_Democratic_Centralism_3
+			}
+		}
+	}
+	#Chieu-Hoi cadre pool (finite - 5 uses, set by Study_Marxist_Org)
+	VIE_Cadres_To_Barracks = {
+		visible = {
+			check_variable = {
+				VIE_ChieuHoi_Cadres > 0
+			}
+		}
+		available = {
+			NOT = {
+				has_country_flag = VIE_Cadre_Deployment_Cooldown
+			}
+		}
+		cost = 25
+		custom_cost_trigger = {
+			has_political_power > 24
+			check_variable = {
+				currentMoney > 0.09
+			}
+		}
+		custom_cost_text = VIE_has_100_mil_25pp
+		days_remove = 60
+		fire_only_once = no
+		ai_will_do = {
+			base = 3
+			modifier = {
+				factor = 0
+				OR = {
+					has_political_power < 50
+					check_variable = {
+						currentMoney < 0.5
+					}
+				}
+			}
+		}
+		complete_effect = {
+			subtract_from_variable = {
+				VIE_ChieuHoi_Cadres = 1
+			}
+			set_temp_variable = {
+				money_to_gain = -0.1
+			}
+			add_money_with_tooltip_effect = yes
+			army_experience = 10
+			add_command_power = 5
+			set_country_flag = VIE_Cadre_Deployment_Cooldown
+		}
+		remove_effect = {
+			clr_country_flag = VIE_Cadre_Deployment_Cooldown
+			hidden_effect = {
+				random_list = {
+					20 = {
+						country_event = { id = DiemMarx.1 hours = 6 }
+					}
+					80 = {
+					}
+				}
+			}
+		}
+	}
+	VIE_Cadres_To_Villages = {
+		visible = {
+			check_variable = {
+				VIE_ChieuHoi_Cadres > 0
+			}
+		}
+		available = {
+			NOT = {
+				has_country_flag = VIE_Cadre_Deployment_Cooldown
+			}
+			check_variable = {
+				VIE_Land_Reform_Penalty < 0.6
+			}
+		}
+		cost = 25
+		custom_cost_trigger = {
+			has_political_power > 24
+			check_variable = {
+				currentMoney > 0.09
+			}
+		}
+		custom_cost_text = VIE_has_100_mil_25pp
+		days_remove = 60
+		fire_only_once = no
+		ai_will_do = {
+			base = 3
+			modifier = {
+				factor = 0
+				OR = {
+					has_political_power < 50
+					check_variable = {
+						currentMoney < 0.5
+					}
+				}
+			}
+		}
+		complete_effect = {
+			subtract_from_variable = {
+				VIE_ChieuHoi_Cadres = 1
+			}
+			set_temp_variable = {
+				money_to_gain = -0.1
+			}
+			add_money_with_tooltip_effect = yes
+			custom_effect_tooltip = Decrease_Land_Reform_Penalty_5
+			add_to_variable = {
+				VIE_Land_Reform_Penalty = 0.05
+			}
+			set_country_flag = VIE_Cadre_Deployment_Cooldown
+		}
+		remove_effect = {
+			clr_country_flag = VIE_Cadre_Deployment_Cooldown
+			hidden_effect = {
+				random_list = {
+					20 = {
+						country_event = { id = DiemMarx.1 hours = 6 }
+					}
+					80 = {
+					}
+				}
+			}
 		}
 	}
 }

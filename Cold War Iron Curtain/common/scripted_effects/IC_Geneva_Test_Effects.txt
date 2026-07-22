@@ -1,0 +1,660 @@
+# ============================================================================
+# Indochina QA / testing effects (Geneva Conference, GUIs, routes)
+# ----------------------------------------------------------------------------
+# Run from the console with:   e <effect_name>
+# The effect executes in the scope of the country you are playing, so switch
+# tag first (`tag VIE`, `tag FRA`, ...) when a test is tag-specific.
+#
+# Companion file: IC_Struggle_Test_Effects.txt covers the struggle core
+# (phases, faction scores, legacy/decisive endings, struggle GUI toggles).
+# This file covers everything built since: the round-based Geneva Conference,
+# its GUI and table actions, the interim election chain, and the VIE
+# sectarian GUI.
+#
+# Quick reference:
+#   -- Geneva lifecycle --
+#   e test_geneva_reset               tear down all conference state (rerunnable)
+#   e test_geneva_announce            player-facing "Road to Geneva" entry (6-day delay)
+#   e test_geneva_start               convene instantly, seat delegations, open GUI
+#   e test_geneva_tick                advance one negotiation round
+#   e test_geneva_tick_5              advance five rounds
+#   e test_geneva_finish              force the settlement compiler now
+#   e test_geneva_auto_resolve        full headless run (wrap-up timer path)
+#   -- Geneva GUI / player helpers --
+#   e test_geneva_show_gui            open the conference window for your country
+#   e test_geneva_hide_gui            close it
+#   e test_geneva_seat_me             seat your country as a delegation
+#   e test_geneva_buff_me             +500 weight, full patience, actions + PP refill
+#   e test_geneva_refresh_actions     reset per-round action count and cooldowns
+#   e test_geneva_max_rapprochement   VIE-VIN rapprochement to 120 + pref refresh
+#   e test_geneva_lev_all             +100 to every leverage pool
+#   -- Geneva routes / outcomes --
+#   e test_geneva_settle_otl          force the historical 17th-parallel accords
+#   e test_geneva_settle_unified      force a no-partition settlement + election chain
+#   e test_geneva_settle_13th         force a 13th-parallel partition
+#   e test_geneva_settle_20th         force a 20th-parallel partition
+#   e test_geneva_collapse_no_ceasefire   collapse: ceasefire clause voted down
+#   e test_geneva_collapse_walkouts   collapse: VIE + VIN storm out
+#   e test_geneva_election_now        fire the interim all-Vietnam election arbiter
+#   e test_geneva_election_favor_ho   stack the election snapshot for Hanoi
+#   e test_geneva_election_favor_saigon   stack it for Saigon
+#   e test_geneva_debug               branch-check the conference flags
+#   -- VIE sectarian GUI --
+#   e test_vie_sect_show_gui          open the sect window (as VIE)
+#   e test_vie_sect_hide_gui          close it
+#   e test_vie_sect_reset             restore start-of-game sect values
+#   e test_vie_sect_ready_integration all loyalty tracks to integration threshold
+#   e test_vie_sect_ready_dismantle   all annihilation tracks to dismantle threshold
+#   e test_vie_sect_max_pity          guarantee the next attack/seize rolls
+#   e test_vie_sect_prompt_attack_success / _attack_failure /
+#     _seize_success / _seize_failure   show the conflict result prompt
+#   -- Struggle gameplay extras --
+#   e test_indochina_diplomacy_phase  jump to tension phase 6 + 300 PP for the
+#                                     de-escalation decision layer
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Geneva Conference: lifecycle
+# ----------------------------------------------------------------------------
+
+# Full teardown of the conference so it can be convened again in the same
+# session. Also clears Indochina_War_Over so a concluded run does not block
+# re-initialization -- territorial changes from a previous ending are NOT
+# undone (reload for that). Struggle phase/scores are untouched; use
+# test_indochina_reset (IC_Struggle_Test_Effects.txt) for those.
+test_geneva_reset = {
+	clr_global_flag = geneva_conference_announced
+	clr_global_flag = geneva_conference_in_session
+	clr_global_flag = geneva_conference_concluded
+	clr_global_flag = geneva_unified_settlement
+	clr_global_flag = geneva_interim_government_period
+	clr_global_flag = geneva_election_resolved
+	clr_global_flag = Geneva_Conference_Preparations
+	clr_global_flag = Geneva_Conference_Negotiations_Complete
+	clr_global_flag = Geneva_Conference
+	clr_global_flag = Indochina_War_Over
+	set_variable = { global.geneva_round = 0 }
+	set_variable = { global.geneva_tick_days = 0 }
+	set_variable = { global.geneva_outcome = 0 }
+	set_variable = { global.geneva_wrecker = 0 }
+	set_variable = { global.geneva_partition_line = 0 }
+	set_variable = { global.geneva_elections_term = 0 }
+	set_variable = { global.geneva_withdrawal_term = 0 }
+	set_variable = { global.geneva_alignment_term = 0 }
+	set_variable = { global.geneva_laos_cambodia_term = 0 }
+	set_variable = { global.geneva_minorities_term = 0 }
+	set_variable = { global.geneva_final_comm_score = 0 }
+	set_variable = { global.geneva_final_anticomm_score = 0 }
+	clear_array = global.geneva_delegations
+	clear_array = global.geneva_clause_current
+	clear_array = global.geneva_push
+	every_country = {
+		limit = {
+			OR = {
+				tag = FRA
+				tag = VIE
+				tag = VIN
+				tag = USA
+				tag = SOV
+				tag = PRC
+				tag = ENG
+				tag = LOS
+				tag = CAM
+				tag = LAO
+				tag = PQC
+			}
+		}
+		clr_country_flag = geneva_walked_out
+		clr_country_flag = geneva_core_delegation
+		set_variable = { View_Geneva_Conference = 0 }
+	}
+	# Legacy outcome vocabulary from a previous compile.
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			clr_country_flag = FRA_Accepted_Ceasefire
+			clr_country_flag = FRA_Rejected_Ceasefire
+			clr_country_flag = FRA_Accepted_Reunification
+			clr_country_flag = FRA_Rejected_Reunification
+		}
+	}
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			clr_country_flag = VIE_Accepted_Ceasefire
+			clr_country_flag = VIE_Rejected_Ceasefire
+			clr_country_flag = VIE_Accepted_Reunification
+			clr_country_flag = VIE_Rejected_Reunification
+			clr_country_flag = VIE_Rejected_Reunification_USA_Intervention
+		}
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			clr_country_flag = VIN_Accepted_Ceasefire
+			clr_country_flag = VIN_Rejected_Ceasefire
+			clr_country_flag = VIN_Accepted_Reunification
+			clr_country_flag = VIN_Rejected_Reunification
+		}
+	}
+	if = {
+		limit = { country_exists = USA }
+		USA = {
+			clr_country_flag = USA_Tampered_With_VIE
+			clr_country_flag = USA_geneva_leaned_on_saigon
+		}
+	}
+}
+
+# Resets the pre-conference leverage pools and re-arms the one-shot world
+# detectors in geneva_conf_world_leverage_pulse. Separate from
+# test_geneva_reset because leverage accumulates across a whole campaign.
+test_geneva_reset_leverage = {
+	set_variable = { global.geneva_lev_communist = 0 }
+	set_variable = { global.geneva_lev_profrance = 0 }
+	set_variable = { global.geneva_lev_proindependence = 0 }
+	set_variable = { global.geneva_lev_usa = 0 }
+	set_variable = { global.geneva_lev_federal = 0 }
+	set_variable = { global.geneva_lev_ethnic = 0 }
+	set_variable = { global.geneva_rapprochement_vie_vin = 0 }
+	clr_global_flag = geneva_pathet_lao_war_seen
+	clr_global_flag = geneva_pathet_lao_outcome_applied
+	clr_global_flag = geneva_usa_backs_vie_applied
+	clr_global_flag = geneva_handoff_applied
+	clr_global_flag = geneva_usa_backs_france_applied
+	clr_global_flag = geneva_usa_danquoc_applied
+	clr_global_flag = geneva_cuongde_talks_applied
+	clr_global_flag = geneva_cuongde_front_applied
+}
+
+# The player-facing entry: "Road to Geneva" news to all delegations, session
+# opens via hidden Session.11 six days later. Use test_geneva_start instead
+# when you do not want to wait.
+test_geneva_announce = {
+	geneva_conf_announce = yes
+}
+
+# Convene instantly: seats every delegation, seeds weights from struggle
+# scores + leverage, opens the conference GUI for all seated countries.
+test_geneva_start = {
+	geneva_conf_initialize = yes
+}
+
+# Shared helper: make sure a live session exists. A concluded (or otherwise
+# blocked) conference is torn down and reconvened.
+test_geneva_force_session = {
+	if = {
+		limit = { NOT = { has_global_flag = geneva_conference_in_session } }
+		test_geneva_reset = yes
+		geneva_conf_initialize = yes
+	}
+}
+
+# One negotiation round: AI campaigning, weighted clause votes, patience
+# drain, walkout checks. Normally driven weekly from on_daily_FRA.
+test_geneva_tick = {
+	geneva_conf_round_tick = yes
+}
+
+test_geneva_tick_5 = {
+	geneva_conf_round_tick = yes
+	geneva_conf_round_tick = yes
+	geneva_conf_round_tick = yes
+	geneva_conf_round_tick = yes
+	geneva_conf_round_tick = yes
+}
+
+# Ends the session on whatever is currently on the table.
+test_geneva_finish = {
+	test_geneva_force_session = yes
+	set_variable = { global.geneva_round = 10 }
+	geneva_conf_compile_settlement = yes
+}
+
+# The wrap-up timer's headless path: convene if needed, play 12 rounds,
+# compile. Good smoke test for AI-only resolution.
+test_geneva_auto_resolve = {
+	geneva_conf_auto_resolve = yes
+}
+
+# ----------------------------------------------------------------------------
+# Geneva Conference: GUI / player helpers
+# ----------------------------------------------------------------------------
+
+test_geneva_show_gui = {
+	set_variable = { View_Geneva_Conference = 1 }
+}
+
+test_geneva_hide_gui = {
+	set_variable = { View_Geneva_Conference = 0 }
+}
+
+# Seat the country you are playing as a delegation (e.g. to test the table
+# actions from a tag that is not normally invited).
+test_geneva_seat_me = {
+	if = {
+		limit = {
+			has_global_flag = geneva_conference_in_session
+			NOT = { is_in_array = { global.geneva_delegations = THIS.id } }
+		}
+		geneva_conf_seat_delegation = yes
+	}
+}
+
+# Everything a player needs to spam table actions: weight, patience, PP,
+# fresh action count, cleared cooldowns.
+test_geneva_buff_me = {
+	add_political_power = 500
+	add_to_variable = { geneva_weight = 500 }
+	set_variable = { geneva_patience = 100 }
+	set_variable = { geneva_actions_used = 0 }
+	set_variable = { geneva_pressured_until = 0 }
+	set_variable = { geneva_backchannel_next = 0 }
+	set_variable = { geneva_threat_next = 0 }
+	clr_country_flag = geneva_walked_out
+}
+
+test_geneva_refresh_actions = {
+	set_variable = { geneva_actions_used = 0 }
+	set_variable = { geneva_pressured_until = 0 }
+	set_variable = { geneva_backchannel_next = 0 }
+	set_variable = { geneva_threat_next = 0 }
+}
+
+# Push the VIE-VIN back-channel over the 100 threshold and re-derive both
+# delegations' positions (elections become thinkable, the 17th acceptable).
+test_geneva_max_rapprochement = {
+	set_variable = { global.geneva_rapprochement_vie_vin = 120 }
+	if = {
+		limit = {
+			has_global_flag = geneva_conference_in_session
+			country_exists = VIE
+		}
+		VIE = { geneva_conf_refresh_prefs = yes }
+	}
+	if = {
+		limit = {
+			has_global_flag = geneva_conference_in_session
+			country_exists = VIN
+		}
+		VIN = { geneva_conf_refresh_prefs = yes }
+	}
+}
+
+# Leverage pools feed weight seeding and delegation preferences at convene
+# time, so add leverage BEFORE test_geneva_start.
+test_geneva_lev_communist = {
+	set_temp_variable = { geneva_lev_amount = 100 }
+	geneva_add_communist_leverage = yes
+}
+
+test_geneva_lev_profrance = {
+	set_temp_variable = { geneva_lev_amount = 100 }
+	geneva_add_profrance_leverage = yes
+}
+
+test_geneva_lev_proindependence = {
+	set_temp_variable = { geneva_lev_amount = 100 }
+	geneva_add_proindependence_leverage = yes
+}
+
+test_geneva_lev_usa = {
+	set_temp_variable = { geneva_lev_amount = 100 }
+	geneva_add_usa_leverage = yes
+}
+
+test_geneva_lev_federal = {
+	set_temp_variable = { geneva_lev_amount = 100 }
+	geneva_add_federal_leverage = yes
+}
+
+test_geneva_lev_ethnic = {
+	set_temp_variable = { geneva_lev_amount = 100 }
+	geneva_add_ethnic_leverage = yes
+}
+
+test_geneva_lev_all = {
+	test_geneva_lev_communist = yes
+	test_geneva_lev_profrance = yes
+	test_geneva_lev_proindependence = yes
+	test_geneva_lev_usa = yes
+	test_geneva_lev_federal = yes
+	test_geneva_lev_ethnic = yes
+}
+
+# ----------------------------------------------------------------------------
+# Geneva Conference: forced settlements and routes
+# ----------------------------------------------------------------------------
+# Clause indices/options are documented at the top of
+# CWIC_Geneva_Conference_Effects.txt:
+#   0 ceasefire (0 none / 1 phased / 2 immediate)
+#   1 partition (0 unified / 1 13th / 2 17th / 3 20th)
+#   2 elections (0 none / 1 postponed / 2 two years / 3 immediate)
+#   3 withdrawal (0 retained / 1 timetabled / 2 immediate)
+#   4 alignment (0 free blocs / 1 neutrality)
+#   5 Laos & Cambodia (0 French Union / 1 independent / 2 regroupment zones)
+#   6 minorities (0 none / 1 autonomy)
+
+# The OTL accords: immediate ceasefire, 17th parallel, elections postponed,
+# timetabled withdrawal, neutrality, independent Laos/Cambodia, no minority
+# provision.
+test_geneva_settle_otl = {
+	test_geneva_force_session = yes
+	set_variable = { global.geneva_clause_current^0 = 2 }
+	set_variable = { global.geneva_clause_current^1 = 2 }
+	set_variable = { global.geneva_clause_current^2 = 1 }
+	set_variable = { global.geneva_clause_current^3 = 1 }
+	set_variable = { global.geneva_clause_current^4 = 1 }
+	set_variable = { global.geneva_clause_current^5 = 1 }
+	set_variable = { global.geneva_clause_current^6 = 0 }
+	set_variable = { global.geneva_round = 10 }
+	geneva_conf_compile_settlement = yes
+}
+
+# No partition line at all: one Vietnam under an interim arrangement, with
+# the all-Vietnam election arbiter scheduled to decide who governs it.
+test_geneva_settle_unified = {
+	test_geneva_force_session = yes
+	set_variable = { global.geneva_clause_current^0 = 2 }
+	set_variable = { global.geneva_clause_current^1 = 0 }
+	set_variable = { global.geneva_clause_current^2 = 2 }
+	set_variable = { global.geneva_clause_current^3 = 1 }
+	set_variable = { global.geneva_clause_current^4 = 1 }
+	set_variable = { global.geneva_clause_current^5 = 1 }
+	set_variable = { global.geneva_clause_current^6 = 0 }
+	set_variable = { global.geneva_round = 10 }
+	geneva_conf_compile_settlement = yes
+}
+
+# Communist-favorable partition: VIN also takes Hue and the central coast.
+test_geneva_settle_13th = {
+	test_geneva_force_session = yes
+	set_variable = { global.geneva_clause_current^0 = 2 }
+	set_variable = { global.geneva_clause_current^1 = 1 }
+	set_variable = { global.geneva_clause_current^2 = 1 }
+	set_variable = { global.geneva_clause_current^3 = 1 }
+	set_variable = { global.geneva_clause_current^4 = 1 }
+	set_variable = { global.geneva_clause_current^5 = 1 }
+	set_variable = { global.geneva_clause_current^6 = 0 }
+	set_variable = { global.geneva_round = 10 }
+	geneva_conf_compile_settlement = yes
+}
+
+# South-favorable partition: VIE also takes Quang Binh and Nghe-Tinh.
+test_geneva_settle_20th = {
+	test_geneva_force_session = yes
+	set_variable = { global.geneva_clause_current^0 = 2 }
+	set_variable = { global.geneva_clause_current^1 = 3 }
+	set_variable = { global.geneva_clause_current^2 = 1 }
+	set_variable = { global.geneva_clause_current^3 = 1 }
+	set_variable = { global.geneva_clause_current^4 = 1 }
+	set_variable = { global.geneva_clause_current^5 = 1 }
+	set_variable = { global.geneva_clause_current^6 = 0 }
+	set_variable = { global.geneva_round = 10 }
+	geneva_conf_compile_settlement = yes
+}
+
+# Collapse route A: the ceasefire clause itself is voted down. Resolves to
+# the failed-state ending if its trigger passes, never-ending war otherwise.
+test_geneva_collapse_no_ceasefire = {
+	test_geneva_force_session = yes
+	set_variable = { global.geneva_clause_current^0 = 0 }
+	set_variable = { global.geneva_round = 10 }
+	geneva_conf_compile_settlement = yes
+}
+
+# Collapse route B: two core belligerents storm out.
+test_geneva_collapse_walkouts = {
+	test_geneva_force_session = yes
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_country_flag = geneva_walked_out
+			set_variable = { geneva_patience = 0 }
+		}
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			set_country_flag = geneva_walked_out
+			set_variable = { geneva_patience = 0 }
+			save_global_event_target_as = Geneva_Wrecker
+			set_variable = { global.geneva_wrecker = THIS.id }
+		}
+	}
+	geneva_conf_compile_settlement = yes
+}
+
+# Fire the interim all-Vietnam election arbiter (Session.21) now instead of
+# waiting out the 150-540 day timer. The arbiter re-checks its own guards,
+# so it still stands down if the VIN focus-tree crisis resolved things or
+# the war resumed.
+test_geneva_election_now = {
+	if = {
+		limit = {
+			country_exists = VIE
+			country_exists = VIN
+		}
+		set_global_flag = geneva_interim_government_period
+		clr_global_flag = geneva_election_resolved
+		VIN = { country_event = { id = Geneva_Conference_Session.21 days = 1 } }
+	}
+}
+
+# Bias the election's struggle-score snapshot (x1.8 weight on whichever side
+# leads). Combine with test_geneva_election_now.
+test_geneva_election_favor_ho = {
+	set_variable = { global.geneva_final_comm_score = 3000 }
+	set_variable = { global.geneva_final_anticomm_score = 300 }
+}
+
+test_geneva_election_favor_saigon = {
+	set_variable = { global.geneva_final_comm_score = 300 }
+	set_variable = { global.geneva_final_anticomm_score = 3000 }
+}
+
+# Branch-check readout: run with `e test_geneva_debug` and read which limits
+# passed in the effect tooltip.
+test_geneva_debug = {
+	if = {
+		limit = { has_global_flag = geneva_conference_announced }
+	}
+	else = {
+	}
+	if = {
+		limit = { has_global_flag = geneva_conference_in_session }
+	}
+	else = {
+	}
+	if = {
+		limit = { has_global_flag = geneva_conference_concluded }
+	}
+	else = {
+	}
+	if = {
+		limit = { has_global_flag = geneva_unified_settlement }
+	}
+	else = {
+	}
+	if = {
+		limit = { has_global_flag = geneva_interim_government_period }
+	}
+	else = {
+	}
+	if = {
+		limit = { has_global_flag = geneva_election_resolved }
+	}
+	else = {
+	}
+	if = {
+		limit = { has_global_flag = Geneva_Conference_Negotiations_Complete }
+	}
+	else = {
+	}
+	if = {
+		limit = { check_variable = { global.geneva_round > 0 } }
+	}
+	else = {
+	}
+	if = {
+		limit = { is_in_array = { global.geneva_delegations = THIS.id } }
+	}
+	else = {
+	}
+}
+
+# ----------------------------------------------------------------------------
+# VIE sectarian GUI
+# ----------------------------------------------------------------------------
+# Loyalty/Annihilation variables are INVERTED: they start high (60-100) and
+# grind DOWN; < 3 means integration/dismantle ready. The GUI displays
+# 100 - variable.
+
+test_vie_sect_show_gui = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = { set_variable = { show_vie_sect_gui = 1 } }
+	}
+}
+
+test_vie_sect_hide_gui = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = { set_variable = { show_vie_sect_gui = 0 } }
+	}
+}
+
+# Start-of-game sect values (mirrors the VIE on-startup setup block in
+# Vietnam_effects.txt), plus cleared pity counters and conflict prompt.
+test_vie_sect_reset = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { Binh_Xuyen_Loyalty = 80 }
+			set_variable = { Binh_Xuyen_Annihilation = 100 }
+			set_variable = { Cao_Dai_Loyalty = 60 }
+			set_variable = { Cao_Dai_Annihilation = 100 }
+			set_variable = { Harmonism_Loyalty = 100 }
+			set_variable = { Harmonism_Annihilation = 100 }
+			set_variable = { Hoa_Hao_Loyalty = 60 }
+			set_variable = { Hoa_Hao_Annihilation = 100 }
+			set_variable = { UMDC_Loyalty = 90 }
+			set_variable = { UMDC_Annihilation = 100 }
+			set_variable = { VIE_Sect_Pity_1 = 0 }
+			set_variable = { VIE_Sect_Pity_2 = 0 }
+			set_variable = { VIE_Sect_Pity_3 = 0 }
+			set_variable = { VIE_Sect_Pity_4 = 0 }
+			set_variable = { VIE_Sect_Pity_5 = 0 }
+			set_variable = { VIE_Sect_Conflict_Prompt = 0 }
+			set_variable = { show_vie_sect_conflict = 0 }
+			vietnam_faction_ui_update_number = yes
+		}
+	}
+}
+
+# Every sect one step from peaceful integration (loyalty < 3 unlocks the
+# integrate decisions and the X07 faith-recognition checks).
+test_vie_sect_ready_integration = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { Binh_Xuyen_Loyalty = 2 }
+			set_variable = { Cao_Dai_Loyalty = 2 }
+			set_variable = { Harmonism_Loyalty = 2 }
+			set_variable = { Hoa_Hao_Loyalty = 2 }
+			set_variable = { UMDC_Loyalty = 2 }
+			vietnam_faction_ui_update_number = yes
+		}
+	}
+}
+
+# Every sect one step from forced dismantlement (annihilation < 3).
+test_vie_sect_ready_dismantle = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { Binh_Xuyen_Annihilation = 2 }
+			set_variable = { Cao_Dai_Annihilation = 2 }
+			set_variable = { Harmonism_Annihilation = 2 }
+			set_variable = { Hoa_Hao_Annihilation = 2 }
+			set_variable = { UMDC_Annihilation = 2 }
+			vietnam_faction_ui_update_number = yes
+		}
+	}
+}
+
+# Pity counters add straight onto the attack/seize success roll, so 1.0
+# guarantees the next attempt against every sect.
+test_vie_sect_max_pity = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Sect_Pity_1 = 1 }
+			set_variable = { VIE_Sect_Pity_2 = 1 }
+			set_variable = { VIE_Sect_Pity_3 = 1 }
+			set_variable = { VIE_Sect_Pity_4 = 1 }
+			set_variable = { VIE_Sect_Pity_5 = 1 }
+		}
+	}
+}
+
+# Conflict result prompt (VIE_Conflict_Prompt_Display). VIE_Conflict_ID picks
+# the sect (1 BX / 2 CD / 3 Harmonism / 4 HH / 5 UMDC); prompt codes are
+# 1 attack success, 2 attack failure, 3 seize success, 4 seize failure.
+# These display against the Binh-Xuyen; change VIE.VIE_Conflict_ID in the
+# console to preview another sect's text.
+test_vie_sect_prompt_attack_success = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Conflict_ID = 1 }
+			set_variable = { VIE_Sect_Conflict_Prompt = 1 }
+			set_variable = { show_vie_sect_conflict = 1 }
+		}
+	}
+}
+
+test_vie_sect_prompt_attack_failure = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Conflict_ID = 1 }
+			set_variable = { VIE_Sect_Conflict_Prompt = 2 }
+			set_variable = { show_vie_sect_conflict = 1 }
+		}
+	}
+}
+
+test_vie_sect_prompt_seize_success = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Conflict_ID = 1 }
+			set_variable = { VIE_Sect_Conflict_Prompt = 3 }
+			set_variable = { show_vie_sect_conflict = 1 }
+		}
+	}
+}
+
+test_vie_sect_prompt_seize_failure = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Conflict_ID = 1 }
+			set_variable = { VIE_Sect_Conflict_Prompt = 4 }
+			set_variable = { show_vie_sect_conflict = 1 }
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# Struggle gameplay extras
+# ----------------------------------------------------------------------------
+
+# Jump straight into the tension-phase diplomacy layer: phase 6 (High
+# Tension) with enough PP to work the Indochina_Struggle_* decisions
+# (25-50 PP each). Run as VIE, FRA, VIN, or any struggle participant.
+test_indochina_diplomacy_phase = {
+	test_indochina_set_phase_high_tension = yes
+	add_political_power = 300
+}

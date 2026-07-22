@@ -65,13 +65,14 @@ indochina_struggle_ending_southern_victory_trigger = {
 			has_war_with = VIN
 			OR = {
 				owns_state = 1760
-				VIN = {
-					OR = {
-						has_capitulated = yes
-						exists = no
-					}
-				}
+				VIN = { has_capitulated = yes }
 			}
+		}
+		# VIN already annexed: has_war_with can't be true, so accept unification by owning both Hanoi and Saigon.
+		AND = {
+			NOT = { country_exists = VIN }
+			owns_state = 1760
+			owns_state = 286
 		}
 	}
 }
@@ -182,44 +183,40 @@ indochina_struggle_ending_kuomintang_victory_trigger = {
 
 indochina_struggle_ending_geneva_trigger = {
 	NOT = { has_global_flag = Indochina_War_Over }
-	AND = {
-		has_global_flag = Geneva_Conference_Preparations
-		has_global_flag = Geneva_Conference_Negotiations_Complete
-	}
+	has_global_flag = Geneva_Conference_Preparations
+	has_global_flag = Geneva_Conference_Negotiations_Complete
 }
 
 geneva_conference_complete_success_trigger = {
-	AND = {
-		OR = {
-			NOT = { country_exists = FRA }
-			AND = {
-				country_exists = FRA
-				FRA = { has_country_flag = FRA_Accepted_Ceasefire }
-				FRA = { has_country_flag = FRA_Accepted_Reunification }
-			}
+	OR = {
+		NOT = { country_exists = FRA }
+		AND = {
+			country_exists = FRA
+			FRA = { has_country_flag = FRA_Accepted_Ceasefire }
+			FRA = { has_country_flag = FRA_Accepted_Reunification }
 		}
-		OR = {
-			NOT = { country_exists = VIN }
-			AND = {
-				country_exists = VIN
-				VIN = { has_country_flag = VIN_Accepted_Ceasefire }
-				VIN = { has_country_flag = VIN_Accepted_Reunification }
-			}
+	}
+	OR = {
+		NOT = { country_exists = VIN }
+		AND = {
+			country_exists = VIN
+			VIN = { has_country_flag = VIN_Accepted_Ceasefire }
+			VIN = { has_country_flag = VIN_Accepted_Reunification }
 		}
-		OR = {
-			NOT = { country_exists = VIE }
-			AND = {
-				country_exists = VIE
-				VIE = { has_country_flag = VIE_Accepted_Ceasefire }
-				VIE = { has_country_flag = VIE_Accepted_Reunification }
-			}
+	}
+	OR = {
+		NOT = { country_exists = VIE }
+		AND = {
+			country_exists = VIE
+			VIE = { has_country_flag = VIE_Accepted_Ceasefire }
+			VIE = { has_country_flag = VIE_Accepted_Reunification }
 		}
 	}
 }
 
 geneva_conference_otl_success_trigger = {
-    OR = {
-        OR = {
+	OR = {
+		OR = {
 			NOT = { country_exists = FRA }
 			AND = {
 				country_exists = FRA
@@ -273,6 +270,31 @@ geneva_conference_available_trigger = {
 	}
 }
 
+# True once the Geneva Accords are signed (geneva_conf_compile_settlement); gates VIN post-war intervention focuses out of the 1949 First Indochina War.
+geneva_conference_concluded_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = geneva_conference_concluded_trigger_TT
+		has_global_flag = geneva_conference_concluded
+	}
+}
+
+# Charles de Gaulle heads the French government; FRA is not on the character system yet, so match by ruling leader name.
+VIN_de_gaulle_in_power_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = VIN_de_gaulle_in_power_trigger_TT
+		FRA = { has_country_leader = { name = "Charles de Gaulle" ruling_only = yes } }
+	}
+}
+
+# War-balance readers from the daily global.geneva_cache_* snapshot; stay readable after the accords. Dominant = anti-communist camp (French + pro-independence) holds more than double the communist struggle score.
+geneva_vie_side_dominant_trigger = {
+	check_variable = { global.geneva_cache_anticomm_score > global.geneva_cache_comm_x2 }
+}
+
+geneva_vie_side_losing_trigger = {
+	check_variable = { global.geneva_cache_comm_score > global.geneva_cache_anticomm_score }
+}
+
 indochina_struggle_ending_communist_victory_available_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = indochina_struggle_ending_communist_victory_available_trigger_TT
@@ -312,10 +334,6 @@ indochina_struggle_ending_never_ending_available_trigger = {
 			check_variable = { global.Indochina_War_Active_Phase = 9 }
 		}
 	}
-}
-
-geneva_conference_preparations_trigger = {
-	has_global_flag = Geneva_Conference_Preparations
 }
 
 geneva_conference_should_be_available_trigger = {
@@ -411,289 +429,289 @@ indochina_struggle_ending_american_north_vietnam_diplomatic_trigger = {
 }
 
 indochina_comm_victory_cond_is_vietnam = {
-    tag = VIN
+	tag = VIN
 }
 
 indochina_comm_victory_cond_ratio = {
-    set_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
-    multiply_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = 2 }
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest = 2 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > StruggleInvolvedNationsIndochinaTotalAntiCommunistScoreTest }
 }
 
 indochina_comm_victory_cond_threshold = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 1000 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 1000 }
 }
 
 indochina_kmt_victory_cond_is_pqc = {
-    tag = PQC
+	tag = PQC
 }
 
 indochina_kmt_victory_cond_key_states_or_dominance = {
-    PQC = {
-        OR = {
-            AND = {
-                owns_state = 286
-                owns_state = 1760
-            }
-            AND = {
-                OR = {
-                    owns_state = 286
-                    owns_state = 1760
-                }
-                check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaCommunistScore }
-                check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
-                check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
-                check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
-            }
-        }
-    }
+	PQC = {
+		OR = {
+			AND = {
+				owns_state = 286
+				owns_state = 1760
+			}
+			AND = {
+				OR = {
+					owns_state = 286
+					owns_state = 1760
+				}
+				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+			}
+		}
+	}
 }
 
 indochina_kmt_victory_cond_vs_communist = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 }
 
 indochina_kmt_victory_cond_vs_local = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
 }
 
 indochina_kmt_victory_cond_vs_france = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
 }
 
 indochina_kmt_victory_cond_vs_independence = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
 }
 
 indochina_southern_victory_cond_is_vietnam = {
-    tag = VIE
+	tag = VIE
 }
 
 indochina_southern_victory_cond_not_communist = {
-    NOT = { has_government = communism }
+	NOT = { has_government = communism }
 }
 
 indochina_southern_victory_cond_high_tension = {
-    OR = {
-        has_war_with = VIN
-        AND = {
-            has_opinion = {
-                target = VIN
-                value < -50
-            }
-            VIN = {
-                has_opinion = {
-                    target = VIE
-                    value < -50
-                }
-            }
-        }
-    }
+	OR = {
+		has_war_with = VIN
+		AND = {
+			has_opinion = {
+				target = VIN
+				value < -50
+			}
+			VIN = {
+				has_opinion = {
+					target = VIE
+					value < -50
+				}
+			}
+		}
+	}
 }
 
 indochina_southern_victory_cond_phase = {
-    OR = {
-        check_variable = { global.Indochina_War_Active_Phase = 3 }
-        check_variable = { global.Indochina_War_Active_Phase = 4 }
-        check_variable = { global.Indochina_War_Active_Phase = 6 }
-        check_variable = { global.Indochina_War_Active_Phase = 7 }
-    }
+	OR = {
+		check_variable = { global.Indochina_War_Active_Phase = 3 }
+		check_variable = { global.Indochina_War_Active_Phase = 4 }
+		check_variable = { global.Indochina_War_Active_Phase = 6 }
+		check_variable = { global.Indochina_War_Active_Phase = 7 }
+	}
 }
 
 indochina_southern_victory_cond_ratio = {
-    set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
-    multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore > StruggleInvolvedNationsIndochinaCommunistTest }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore > StruggleInvolvedNationsIndochinaCommunistTest }
 }
 
 indochina_southern_victory_cond_vs_france = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
 }
 
 indochina_southern_victory_cond_vs_ethnic = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
 }
 
 indochina_southern_victory_cond_threshold = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > 1000 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > 1000 }
 }
 
 indochina_federal_vietnam_cond_is_france = {
-    tag = FRA
+	tag = FRA
 }
 
 indochina_federal_vietnam_cond_ratio = {
-    set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
-    multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore > StruggleInvolvedNationsIndochinaCommunistTest }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore > StruggleInvolvedNationsIndochinaCommunistTest }
 }
 
 indochina_federal_vietnam_cond_vs_independence = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
 }
 
 indochina_federal_vietnam_cond_ethnic_vs_independence = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
 }
 
 indochina_federal_vietnam_cond_threshold = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > 1000 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > 1000 }
 }
 
 indochina_federal_vietnam_cond_france_vs_ethnic = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
 }
 
 indochina_balkanized_vietnam_cond_tag = {
-    OR = {
-        tag = FUL
-        tag = FRA
-        tag = CCC
-    }
+	OR = {
+		tag = FUL
+		tag = FRA
+		tag = CCC
+	}
 }
 
 indochina_balkanized_vietnam_cond_dismantle_threshold = {
-    set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
-    add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
-    check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > 1000 }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+	check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > 1000 }
 }
 
 indochina_balkanized_vietnam_cond_dismantle_vs_independence = {
-    set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
-    add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
-    set_temp_variable = { StruggleInvolvedNationsIndochinaProIndependenceTest = FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
-    multiply_temp_variable = { StruggleInvolvedNationsIndochinaProIndependenceTest = 2 }
-    check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > StruggleInvolvedNationsIndochinaProIndependenceTest }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaProIndependenceTest = FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaProIndependenceTest = 2 }
+	check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > StruggleInvolvedNationsIndochinaProIndependenceTest }
 }
 
 indochina_balkanized_vietnam_cond_dismantle_vs_communist = {
-    set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
-    add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
-    set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
-    multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
-    check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > StruggleInvolvedNationsIndochinaCommunistTest }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
+	check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > StruggleInvolvedNationsIndochinaCommunistTest }
 }
 
 indochina_balkanized_vietnam_cond_ethnic_vs_france = {
-    NOT = {
-        check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
-    }
+	NOT = {
+		check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	}
 }
 
 indochina_dan_quoc_peace_cond_tag = {
-    OR = {
-        tag = VIN
-        tag = VIE
-    }
-    NOT = { tag = PQC }
+	OR = {
+		tag = VIN
+		tag = VIE
+	}
+	NOT = { tag = PQC }
 }
 
 indochina_dan_quoc_peace_cond_flag = {
-    has_global_flag = dan_quoc_peace
+	has_global_flag = dan_quoc_peace
 }
 
 indochina_dan_quoc_peace_cond_diem = {
-    VIE = {
-        has_country_leader = {
-            character = VIE_Ngo_Dinh_Diem
-            ruling_only = yes
-        }
-    }
+	VIE = {
+		has_country_leader = {
+			character = VIE_Ngo_Dinh_Diem
+			ruling_only = yes
+		}
+	}
 }
 
 indochina_dan_quoc_peace_cond_ho_chi_minh = {
-    VIN = {
-        has_country_leader = {
-            character = VIN_Ho_Chi_Minh
-            ruling_only = yes
-        }
-    }
+	VIN = {
+		has_country_leader = {
+			character = VIN_Ho_Chi_Minh
+			ruling_only = yes
+		}
+	}
 }
 
 indochina_dan_quoc_peace_cond_vs_france = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
 }
 
 indochina_dan_quoc_peace_cond_threshold = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > 499 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > 499 }
 }
 
 indochina_american_north_vietnam_cond_tag = {
-    OR = {
-        tag = USA
-        tag = VIN
-    }
+	OR = {
+		tag = USA
+		tag = VIN
+	}
 }
 
 indochina_american_north_vietnam_cond_ho_chi_minh = {
-    VIN = {
-        has_country_leader = {
-            character = VIN_Ho_Chi_Minh
-            ruling_only = yes
-        }
-    }
+	VIN = {
+		has_country_leader = {
+			character = VIN_Ho_Chi_Minh
+			ruling_only = yes
+		}
+	}
 }
 
 indochina_american_north_vietnam_cond_not_at_war = {
-    VIN = {
-        NOT = { has_war_with = USA }
-    }
+	VIN = {
+		NOT = { has_war_with = USA }
+	}
 }
 
 indochina_american_north_vietnam_cond_opinions = {
-    VIN = {
-        USA = {
-            has_opinion = {
-                target = VIN
-                value > -1
-            }
-        }
-        has_opinion = {
-            target = USA
-            value > -1
-        }
-    }
+	VIN = {
+		USA = {
+			has_opinion = {
+				target = VIN
+				value > -1
+			}
+		}
+		has_opinion = {
+			target = USA
+			value > -1
+		}
+	}
 }
 
 indochina_american_north_vietnam_cond_alignment = {
-    VIN = {
-        OR = {
-            AND = {
-                country_exists = SOV
-                has_opinion = {
-                    target = USA
-                    value > -1
-                }
-                SOV = {
-                    has_opinion = {
-                        target = VIN
-                        value < 51
-                    }
-                }
-            }
-            NOT = { country_exists = SOV }
-            has_opinion = {
-                target = USA
-                value > 49
-            }
-        }
-    }
+	VIN = {
+		OR = {
+			AND = {
+				country_exists = SOV
+				has_opinion = {
+					target = USA
+					value > -1
+				}
+				SOV = {
+					has_opinion = {
+						target = VIN
+						value < 51
+					}
+				}
+			}
+			NOT = { country_exists = SOV }
+			has_opinion = {
+				target = USA
+				value > 49
+			}
+		}
+	}
 }
 
 indochina_american_north_vietnam_cond_focus = {
-    USA = {
-        has_completed_focus = USA_50s_Reestablish_Deer_Team
-    }
+	USA = {
+		has_completed_focus = USA_50s_Reestablish_Deer_Team
+	}
 }
 
 indochina_american_north_vietnam_cond_ratio = {
-    set_temp_variable = { anti_comm_total = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
-    multiply_temp_variable = { anti_comm_total = 2 }
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > anti_comm_total }
+	set_temp_variable = { anti_comm_total = FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore }
+	multiply_temp_variable = { anti_comm_total = 2 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > anti_comm_total }
 }
 
 indochina_american_north_vietnam_cond_threshold = {
-    check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 499 }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore > 499 }
 }
 
 indochina_american_north_vietnam_reunification_complete = {
@@ -720,9 +738,7 @@ indochina_involvement_trigger = {
 	}
 }
 
-# True only when no human controls any country with a stake in the Indochina
-# struggle. Gates the Indochina_Wrapup_Timer so the historical auto-resolution
-# never overrides a player who is playing the minigame.
+# True only when no human controls any Indochina-stake country; gates the Indochina_Wrapup_Timer so auto-resolution never overrides a human playing the minigame.
 indochina_struggle_all_participants_ai_trigger = {
 	FRA = { is_ai = yes }
 	OR = {
@@ -785,4 +801,12 @@ indochina_struggle_all_participants_ai_trigger = {
 		NOT = { country_exists = FRE }
 		FRE = { is_ai = yes }
 	}
+}
+
+# Geneva Conference table actions: shared guard for the action effects and the conference GUI click_enabled triggers. Scope: acting delegation.
+geneva_action_possible_trigger = {
+	has_global_flag = geneva_conference_in_session
+	is_in_array = { global.geneva_delegations = THIS.id }
+	NOT = { has_country_flag = geneva_walked_out }
+	check_variable = { geneva_actions_used < 2 }
 }
