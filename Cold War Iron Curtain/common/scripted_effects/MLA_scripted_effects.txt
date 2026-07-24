@@ -159,13 +159,11 @@ MLA_prepare_emergency_operation = {
 		idea = MLA_prepared_operation
 		days = 75
 	}
-	# Front-load a strike package so the assaulting columns actually field artillery,
-	# support weapons and transport for the border war instead of raw riflemen.
-	add_manpower = 750
-	add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 400 producer = MLA }
-	add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 24 producer = CUM }
-	add_equipment_to_stockpile = { type = support_equipment_1 amount = 40 producer = MLA }
-	add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 30 producer = ENG }
+	add_manpower = 400	# modest strike package so assault columns field some heavy kit, not a full army
+	add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 200 producer = MLA }
+	add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 12 producer = CUM }
+	add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = MLA }
+	add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 15 producer = ENG }
 	set_country_flag = {
 		flag = MLA_operation_cooldown
 		days = 45
@@ -175,136 +173,163 @@ MLA_prepare_emergency_operation = {
 MLA_clamp_emergency_momentum = {
 	clamp_variable = {
 		var = emergency_momentum
-		min = -100
-		max = 100
+		min = -150
+		max = 150
 	}
+}
+
+MLA_register_emergency_operation_win = {	# MLA scope; expects temp emergency_momentum_base
+	set_temp_variable = { emergency_streak_shift = MLA_emergency_win_streak }
+	multiply_temp_variable = { emergency_streak_shift = 3 }	# +3 momentum per consecutive prior win
+	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 12 }
+	add_to_variable = { emergency_momentum = emergency_momentum_base }
+	add_to_variable = { emergency_momentum = emergency_streak_shift }
+	add_to_variable = { MLA_emergency_win_streak = 1 }
+	set_variable = { MLA_emergency_lose_streak = 0 }
+	MLA_clamp_emergency_momentum = yes
+}
+
+MLA_register_emergency_operation_loss = {	# MLA scope; expects temp emergency_momentum_base (positive magnitude)
+	set_temp_variable = { emergency_streak_shift = MLA_emergency_lose_streak }
+	multiply_temp_variable = { emergency_streak_shift = 5 }	# -5 momentum per consecutive prior loss: defeats snowball harder than victories
+	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 20 }
+	subtract_from_variable = { emergency_momentum = emergency_momentum_base }
+	subtract_from_variable = { emergency_momentum = emergency_streak_shift }
+	add_to_variable = { MLA_emergency_lose_streak = 1 }
+	set_variable = { MLA_emergency_win_streak = 0 }
+	MLA_clamp_emergency_momentum = yes
 }
 
 MLA_apply_minor_operation_result = {
 	if = {
 		limit = { tag = MLA }
-		add_to_variable = { emergency_momentum = 10 }
-		add_manpower = 500
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 400
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = ENG }
-		army_experience = 3
-	}
-	else = {
-		MLA = {
-			add_to_variable = { emergency_momentum = -8 }
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 60
-			}
-		}
-	}
-	MLA = { MLA_clamp_emergency_momentum = yes }
-}
-
-MLA_apply_standard_operation_result = {
-	if = {
-		limit = { tag = MLA }
-		add_to_variable = { emergency_momentum = 15 }
-		add_manpower = 700
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 600
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 30 producer = ENG }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 16 producer = ENG }
-		army_experience = 5
-	}
-	else = {
-		MLA = {
-			add_to_variable = { emergency_momentum = -10 }
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 60
-			}
-		}
-	}
-	MLA = { MLA_clamp_emergency_momentum = yes }
-}
-
-MLA_apply_major_operation_result = {
-	if = {
-		limit = { tag = MLA }
-		add_to_variable = { emergency_momentum = 20 }
-		add_manpower = 950
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 900
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 40 producer = ENG }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 24 producer = ENG }
-		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 20 producer = ENG }
-		army_experience = 8
-	}
-	else = {
-		MLA = {
-			add_to_variable = { emergency_momentum = -15 }
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 75
-			}
-		}
-	}
-	MLA = { MLA_clamp_emergency_momentum = yes }
-}
-
-MLA_apply_final_operation_result = {
-	if = {
-		limit = { tag = MLA }
-		add_to_variable = { emergency_momentum = 25 }
-		add_manpower = 1200
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 1200
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 50 producer = ENG }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 30 producer = ENG }
-		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 30 producer = ENG }
-		army_experience = 10
-	}
-	else = {
-		MLA = {
-			add_to_variable = { emergency_momentum = -15 }
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 75
-			}
-		}
-	}
-	MLA = { MLA_clamp_emergency_momentum = yes }
-}
-
-MLA_apply_counterinsurgency_raid_result = {
-	if = {
-		limit = { tag = MLA }
-		add_to_variable = { emergency_momentum = 6 }
+		set_temp_variable = { emergency_momentum_base = 10 }
+		MLA_register_emergency_operation_win = yes
+		add_manpower = 250
 		add_equipment_to_stockpile = {
 			type = infantry_equipment_0
 			amount = 200
 			producer = ENG
 		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 10 producer = ENG }
+		army_experience = 3
 	}
 	else = {
 		MLA = {
-			add_to_variable = { emergency_momentum = -6 }
+			set_temp_variable = { emergency_momentum_base = 8 }
+			MLA_register_emergency_operation_loss = yes
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 60
+			}
+		}
+	}
+}
+
+MLA_apply_standard_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		set_temp_variable = { emergency_momentum_base = 15 }
+		MLA_register_emergency_operation_win = yes
+		add_manpower = 350
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 300
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 15 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 8 producer = ENG }
+		army_experience = 5
+	}
+	else = {
+		MLA = {
+			set_temp_variable = { emergency_momentum_base = 10 }
+			MLA_register_emergency_operation_loss = yes
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 60
+			}
+		}
+	}
+}
+
+MLA_apply_major_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		set_temp_variable = { emergency_momentum_base = 20 }
+		MLA_register_emergency_operation_win = yes
+		add_manpower = 475
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 450
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 12 producer = ENG }
+		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 10 producer = ENG }
+		army_experience = 8
+	}
+	else = {
+		MLA = {
+			set_temp_variable = { emergency_momentum_base = 15 }
+			MLA_register_emergency_operation_loss = yes
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 75
+			}
+		}
+	}
+}
+
+MLA_apply_final_operation_result = {
+	if = {
+		limit = { tag = MLA }
+		set_temp_variable = { emergency_momentum_base = 25 }
+		MLA_register_emergency_operation_win = yes
+		add_manpower = 600
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 600
+			producer = ENG
+		}
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 25 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 15 producer = ENG }
+		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 15 producer = ENG }
+		army_experience = 10
+	}
+	else = {
+		MLA = {
+			set_temp_variable = { emergency_momentum_base = 15 }
+			MLA_register_emergency_operation_loss = yes
+			add_timed_idea = {
+				idea = MLA_operation_exhaustion
+				days = 75
+			}
+		}
+	}
+}
+
+MLA_apply_counterinsurgency_raid_result = {
+	if = {
+		limit = { tag = MLA }
+		set_temp_variable = { emergency_momentum_base = 6 }
+		MLA_register_emergency_operation_win = yes
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_0
+			amount = 100
+			producer = ENG
+		}
+	}
+	else = {
+		MLA = {
+			set_temp_variable = { emergency_momentum_base = 6 }
+			MLA_register_emergency_operation_loss = yes
 			add_timed_idea = {
 				idea = MLA_operation_exhaustion
 				days = 45
 			}
 		}
 	}
-	MLA = { MLA_clamp_emergency_momentum = yes }
 }
 
 MLA_transition_to_postwar_government = {
