@@ -173,26 +173,27 @@ MLA_prepare_emergency_operation = {
 MLA_clamp_emergency_momentum = {
 	clamp_variable = {
 		var = emergency_momentum
-		min = -150
-		max = 150
+		min = -250
+		max = 250
 	}
 }
 
 MLA_register_emergency_operation_win = {	# MLA scope; expects temp emergency_momentum_base
 	set_temp_variable = { emergency_streak_shift = MLA_emergency_win_streak }
-	multiply_temp_variable = { emergency_streak_shift = 3 }	# +3 momentum per consecutive prior win
-	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 12 }
+	multiply_temp_variable = { emergency_streak_shift = 5 }	# +5 momentum per consecutive prior win
+	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 20 }
 	add_to_variable = { emergency_momentum = emergency_momentum_base }
 	add_to_variable = { emergency_momentum = emergency_streak_shift }
 	add_to_variable = { MLA_emergency_win_streak = 1 }
 	set_variable = { MLA_emergency_lose_streak = 0 }
+	add_to_variable = { MLA_operations_won = 1 }	# scales the size of the General Uprising package
 	MLA_clamp_emergency_momentum = yes
 }
 
 MLA_register_emergency_operation_loss = {	# MLA scope; expects temp emergency_momentum_base (positive magnitude)
 	set_temp_variable = { emergency_streak_shift = MLA_emergency_lose_streak }
-	multiply_temp_variable = { emergency_streak_shift = 5 }	# -5 momentum per consecutive prior loss: defeats snowball harder than victories
-	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 20 }
+	multiply_temp_variable = { emergency_streak_shift = 8 }	# -8 momentum per consecutive prior loss: defeats snowball harder than victories
+	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 32 }
 	subtract_from_variable = { emergency_momentum = emergency_momentum_base }
 	subtract_from_variable = { emergency_momentum = emergency_streak_shift }
 	add_to_variable = { MLA_emergency_lose_streak = 1 }
@@ -200,10 +201,15 @@ MLA_register_emergency_operation_loss = {	# MLA scope; expects temp emergency_mo
 	MLA_clamp_emergency_momentum = yes
 }
 
+MLA_shift_emergency_momentum = {	# MLA scope; expects temp emergency_momentum_shift, signed. Diplomatic swings deliberately leave the win/lose streaks alone
+	add_to_variable = { emergency_momentum = emergency_momentum_shift }
+	MLA_clamp_emergency_momentum = yes
+}
+
 MLA_apply_minor_operation_result = {
 	if = {
 		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 10 }
+		set_temp_variable = { emergency_momentum_base = 16 }
 		MLA_register_emergency_operation_win = yes
 		add_manpower = 250
 		add_equipment_to_stockpile = {
@@ -216,7 +222,7 @@ MLA_apply_minor_operation_result = {
 	}
 	else = {
 		MLA = {
-			set_temp_variable = { emergency_momentum_base = 8 }
+			set_temp_variable = { emergency_momentum_base = 13 }
 			MLA_register_emergency_operation_loss = yes
 			add_timed_idea = {
 				idea = MLA_operation_exhaustion
@@ -229,7 +235,7 @@ MLA_apply_minor_operation_result = {
 MLA_apply_standard_operation_result = {
 	if = {
 		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 15 }
+		set_temp_variable = { emergency_momentum_base = 24 }
 		MLA_register_emergency_operation_win = yes
 		add_manpower = 350
 		add_equipment_to_stockpile = {
@@ -243,7 +249,7 @@ MLA_apply_standard_operation_result = {
 	}
 	else = {
 		MLA = {
-			set_temp_variable = { emergency_momentum_base = 10 }
+			set_temp_variable = { emergency_momentum_base = 16 }
 			MLA_register_emergency_operation_loss = yes
 			add_timed_idea = {
 				idea = MLA_operation_exhaustion
@@ -256,7 +262,7 @@ MLA_apply_standard_operation_result = {
 MLA_apply_major_operation_result = {
 	if = {
 		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 20 }
+		set_temp_variable = { emergency_momentum_base = 32 }
 		MLA_register_emergency_operation_win = yes
 		add_manpower = 475
 		add_equipment_to_stockpile = {
@@ -271,7 +277,7 @@ MLA_apply_major_operation_result = {
 	}
 	else = {
 		MLA = {
-			set_temp_variable = { emergency_momentum_base = 15 }
+			set_temp_variable = { emergency_momentum_base = 24 }
 			MLA_register_emergency_operation_loss = yes
 			add_timed_idea = {
 				idea = MLA_operation_exhaustion
@@ -284,7 +290,7 @@ MLA_apply_major_operation_result = {
 MLA_apply_final_operation_result = {
 	if = {
 		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 25 }
+		set_temp_variable = { emergency_momentum_base = 40 }
 		MLA_register_emergency_operation_win = yes
 		add_manpower = 600
 		add_equipment_to_stockpile = {
@@ -299,7 +305,7 @@ MLA_apply_final_operation_result = {
 	}
 	else = {
 		MLA = {
-			set_temp_variable = { emergency_momentum_base = 15 }
+			set_temp_variable = { emergency_momentum_base = 24 }
 			MLA_register_emergency_operation_loss = yes
 			add_timed_idea = {
 				idea = MLA_operation_exhaustion
@@ -312,7 +318,7 @@ MLA_apply_final_operation_result = {
 MLA_apply_counterinsurgency_raid_result = {
 	if = {
 		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 6 }
+		set_temp_variable = { emergency_momentum_base = 10 }
 		MLA_register_emergency_operation_win = yes
 		add_equipment_to_stockpile = {
 			type = infantry_equipment_0
@@ -322,7 +328,7 @@ MLA_apply_counterinsurgency_raid_result = {
 	}
 	else = {
 		MLA = {
-			set_temp_variable = { emergency_momentum_base = 6 }
+			set_temp_variable = { emergency_momentum_base = 10 }
 			MLA_register_emergency_operation_loss = yes
 			add_timed_idea = {
 				idea = MLA_operation_exhaustion
@@ -334,9 +340,17 @@ MLA_apply_counterinsurgency_raid_result = {
 
 MLA_transition_to_postwar_government = {
 	clr_country_flag = active_insurgency
+	clr_country_flag = MLA_general_uprising
+	clr_global_flag = MAL_EMERGENCY_GENERAL_UPRISING
 	remove_ideas = MLA_guerrilla_economy
 	remove_ideas = MLA_prepared_operation
 	remove_ideas = MLA_operation_exhaustion
+	remove_ideas = MLA_general_uprising_idea
+	remove_ideas = MLA_encirclement
+	every_state = {
+		limit = { has_state_flag = MLA_cell_present }
+		clr_state_flag = MLA_cell_present
+	}
 	set_variable = { show_finance = 0 }
 	set_variable = { currentMoney = 5 }
 	set_variable = { currentDebt = 0 }
@@ -377,6 +391,144 @@ MLA_transition_to_postwar_government = {
 	}
 	resource_bonus_script = yes
 	industrial_pulse = yes
+}
+
+MLA_Launch_General_Uprising = {	# +250 momentum no longer annexes MAL outright: it opens the shooting war
+	set_global_flag = MAL_EMERGENCY_GENERAL_UPRISING
+	MLA = {
+		set_country_flag = MLA_general_uprising
+		clr_country_flag = active_insurgency	# retires the momentum/state-decision layer
+		add_ideas = MLA_general_uprising_idea
+		add_manpower = 40000
+		add_to_variable = { currentMoney = 25 }
+		add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 4000 producer = CUM }
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 250 producer = CUM }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = CUM }
+		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 100 producer = CUM }
+		if = {	# every operation won during the Emergency pays out again here
+			limit = { check_variable = { MLA_operations_won > 3 } }
+			add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 2000 producer = CUM }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 50 producer = CUM }
+			add_manpower = 15000
+		}
+		if = {
+			limit = { check_variable = { MLA_operations_won > 7 } }
+			add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 2000 producer = CUM }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 50 producer = CUM }
+			add_manpower = 15000
+		}
+		load_oob = MLA_uprising
+		every_state = {	# the states the Min Yuen already honeycombed rise with the columns
+			limit = {
+				is_core_of = MLA
+				has_state_flag = MLA_cell_present
+				owner = { OR = { tag = MAL tag = ENG } }
+			}
+			set_state_controller = MLA
+		}
+		declare_war_on = {
+			target = MAL
+			type = annex_everything
+		}
+		country_event = { id = MLA_Victory.20 hours = 2 }
+	}
+	MAL = {
+		add_ideas = MAL_emergency_collapse
+		remove_ideas = british_advisors
+		remove_ideas = Anglo_Dominated_Military
+		add_political_power = -150
+		add_war_support = -0.15
+		add_stability = -0.15
+	}
+	MLA_Britain_Withdraws_From_Malaya = yes
+	news_event = { id = MLA_Victory.22 hours = 4 random_hours = 6 }
+}
+
+MLA_Britain_Withdraws_From_Malaya = {	# Whitehall declares the war a Malayan matter; the guarantee is scripted in both directions
+	ENG = {
+		diplomatic_relation = {
+			country = MAL
+			relation = guarantee
+			active = no
+		}
+		country_event = { id = MLA_Victory.21 hours = 6 }
+	}
+	MAL = {
+		diplomatic_relation = {
+			country = ENG
+			relation = guarantee
+			active = no
+		}
+		if = {
+			limit = { is_in_faction_with = ENG }
+			leave_faction = yes
+		}
+	}
+}
+
+MAL_Launch_Final_Sweep = {	# the mirror: -250 momentum opens the government's war of annihilation
+	set_global_flag = MAL_EMERGENCY_GENERAL_UPRISING
+	MAL = {
+		set_country_flag = MAL_final_sweep
+		add_ideas = MAL_final_sweep_idea
+		add_manpower = 25000
+		add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 5000 producer = ENG }
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 300 producer = ENG }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = ENG }
+		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 150 producer = ENG }
+		declare_war_on = {
+			target = MLA
+			type = annex_everything
+		}
+		country_event = { id = MLA_Victory.23 hours = 2 }
+	}
+	MLA = {
+		clr_country_flag = active_insurgency
+		add_ideas = MLA_encirclement
+		remove_ideas = MLA_guerrilla_economy
+		add_political_power = -150
+		add_war_support = -0.10
+		every_state = {	# the cells are rolled up; only the jungle base holds
+			limit = {
+				NOT = { state = 791 }
+				is_controlled_by = MLA
+			}
+			set_state_controller = MAL
+		}
+		every_state = {
+			limit = { has_state_flag = MLA_cell_present }
+			clr_state_flag = MLA_cell_present
+		}
+	}
+	news_event = { id = MLA_Victory.24 hours = 4 random_hours = 6 }
+}
+
+Exile_Of_The_MNLA = {	# counterpart to Fall_Of_Malaya; the MAL victory used to be two inline lines on the decision
+	MAL = {
+		set_country_flag = Victory_in_Malaysian_Emergency
+		remove_ideas = MAL_emergency_collapse
+		remove_ideas = MAL_final_sweep_idea
+		clr_country_flag = MAL_final_sweep
+		annex_country = {
+			target = MLA
+			transfer_troops = no
+		}
+		every_owned_state = {
+			limit = { NOT = { is_core_of = MAL } }
+			add_core_of = MAL
+		}
+		country_event = { id = MLA_Victory.25 hours = 3 }
+		news_event = { id = MLA_Victory.27 hours = 3 random_hours = 6 }	# fired from MAL: the MNLA no longer exists to fire it
+	}
+	every_state = {
+		limit = { has_state_flag = MLA_cell_present }
+		clr_state_flag = MLA_cell_present
+	}
+	SIA = {
+		country_event = { id = MLA_Victory.26 hours = 6 }
+	}
+	clr_global_flag = MAL_EMERGENCY_GENERAL_UPRISING
+	set_global_flag = MAL_EMERGENCY_MAL_Victory
 }
 
 Fall_Of_Malaya = {
@@ -459,7 +611,36 @@ Fall_Of_Malaya = {
 			}
 			set_global_flag = MAL_EMERGENCY_MLA_Victory
 }
+MAL_End_The_Emergency = {	# settlement teardown; the +-250 routes have their own victory effects
+	MLA = {
+		clr_country_flag = active_insurgency
+		remove_ideas = MLA_guerrilla_economy
+		remove_ideas = MLA_prepared_operation
+		remove_ideas = MLA_operation_exhaustion
+		remove_ideas = MLA_encirclement
+		set_variable = { emergency_momentum = 0 }
+		set_variable = { MLA_emergency_win_streak = 0 }
+		set_variable = { MLA_emergency_lose_streak = 0 }
+	}
+	every_state = {
+		limit = { has_state_flag = MLA_cell_present }
+		clr_state_flag = MLA_cell_present
+	}
+	every_state = {	# strip the 1000-series insurgent modifiers so MAL doesn't inherit its own occupation
+		limit = { is_core_of = MLA }
+		remove_dynamic_modifier = { modifier = sabotaged_plantations }
+		remove_dynamic_modifier = { modifier = jungle_cell_present }
+		remove_dynamic_modifier = { modifier = village_soviet_cells }
+		remove_dynamic_modifier = { modifier = undermined_clerical_influence }
+		remove_dynamic_modifier = { modifier = red_guard_militia_present }
+		remove_dynamic_modifier = { modifier = coordinated_insurgency }
+		remove_dynamic_modifier = { modifier = armed_militia_cache }
+	}
+	set_global_flag = MAL_EMERGENCY_NEGOTIATED_PEACE
+}
+
 Baling_Peace_Treaty = {
+	MAL_End_The_Emergency = yes	# must run first, while MLA still exists to be cleaned up
 	ENG = {
 		every_state = {
 			limit = {
