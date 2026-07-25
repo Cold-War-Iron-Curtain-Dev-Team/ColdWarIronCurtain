@@ -352,14 +352,14 @@ soviet_historical_peaceful = {
 	
 	# Defines which national focuses the AI picks first during this plan.
 	ai_national_focuses = {
-		SOV_Stalin_Save_Northwestern_China
-		SOV_Stalin_Military_Bases_in_East_Turkestan
-		SOV_Stalin_Provide_Guns_To_the_Military_Cliques
+		# The six China focuses moved to the SOV_ccw_* side branch
+		# (common/national_focus/SOV_Chinese_Civil_War_Branch.txt), driven by the
+		# soviet_chinese_civil_war / soviet_china_prc / soviet_china_manchuria
+		# plans below.
 		# SOV_Stalin_Expand_the_North_Chinese_Industrial_Base  # Focus exists only in outdated "Trees for 0.35" folder
 		# SOV_Stalin_Send_The_Armed_Forces  # Focus exists only in outdated "Trees for 0.35" folder
 		# SOV_Stalin_Send_Surplus_Tanks_To_the_North_Koreans  # Focus exists only in outdated "Trees for 0.35" folder
 		# SOV_Stalin_Smuggle_Guns_To_the_Vietnamese  # Focus exists only in outdated "Trees for 0.35" folder
-		SOV_Integrate_Asia_into_the_Eastern_Bloc
 		SOV_Stalin_The_Zhdanov_Doctrine
 		SOV_Stalin_The_Percentage_Agreement
 		# The Greek focuses moved to the SOV_gpa_* / SOV_gci_* side branch
@@ -376,8 +376,6 @@ soviet_historical_peaceful = {
 		# (common/national_focus/SOV_Korean_War_Branch.txt), driven by the
 		# soviet_korean_war plan below.
 		# SOV_Stalin_Allow_Kim_to_Invade_the_South  # Focus exists only in outdated "Trees for 0.35" folder
-		SOV_Stalin_Recognize_the_Peoples_Republic_of_China
-		SOV_Stalin_Soviet_Loan_to_China
 		# SOV_Stalin_Soviet_Specialists  # Focus exists only in outdated "Trees for 0.35" folder
 		# SOV_Stalin_Increase_Funding_for_Western_Communist_Parties  # Focus exists only in outdated "Trees for 0.35" folder
 		# SOV_Stalin_Suspend_Claims_on_Turkish_Lands  # Focus exists only in outdated "Trees for 0.35" folder
@@ -534,8 +532,10 @@ soviet_korean_war = {
 		has_country_flag = SOV_korea_question_active
 	}
 
+	# The armistice moved to the post-war branch, so this plan now ends when the
+	# ceasefire does - at which point the wartime branch is hidden anyway.
 	abort = {
-		has_completed_focus = SOV_kw_the_armistice_at_panmunjom
+		has_global_flag = KOREA_CEASEFIRE_UN
 	}
 
 	ai_national_focuses = {
@@ -546,7 +546,6 @@ soviet_korean_war = {
 		SOV_kw_the_64th_fighter_aviation_corps
 		SOV_kw_mig_alley
 		SOV_kw_deniable_volunteers
-		SOV_kw_the_armistice_at_panmunjom
 	}
 
 	weight = {
@@ -622,6 +621,156 @@ soviet_greek_intervention = {
 		SOV_gci_hold_the_albanian_line
 		SOV_gci_the_kke_in_exile
 		SOV_gci_rebuild_the_southern_flank
+	}
+
+	weight = {
+		factor = 1.0
+		modifier = {
+			factor = 1.0
+		}
+	}
+}
+
+# Chinese Civil War side branch (SOV_Chinese_Civil_War_Branch.txt). Visible from
+# game start, so this plan runs from turn one and covers the wartime focuses.
+soviet_chinese_civil_war = {
+	name = "Soviet Support in the Chinese Civil War"
+	desc = "Backing the CCP while the civil war is still being fought"
+	allowed = {
+		original_tag = SOV
+	}
+	enable = {
+		has_global_flag = CCW_Started
+	}
+
+	abort = {
+		has_global_flag = CCW_Over
+	}
+
+	ai_national_focuses = {
+		SOV_ccw_the_chinese_civil_war
+		SOV_ccw_arm_the_peoples_liberation_army
+	}
+
+	weight = {
+		factor = 1.0
+		modifier = {
+			factor = 1.0
+		}
+	}
+}
+
+# The PRC won - historical. Runs to the 1956 Twentieth Congress.
+soviet_china_prc = {
+	name = "Soviet China Policy - The People's Republic"
+	desc = "The alliance with Peking, from recognition to the Twentieth Congress"
+	allowed = {
+		original_tag = SOV
+	}
+	enable = {
+		has_global_flag = CCW_Over
+		NOT = { has_country_flag = SOV_PRC_Losing_CCW }
+	}
+
+	abort = {
+		has_completed_focus = SOV_ccw_the_twentieth_congress_in_peking
+	}
+
+	ai_national_focuses = {
+		SOV_ccw_recognize_the_peoples_republic
+		SOV_Stalin_The_Sino_Soviet_Treaty_of_Friendship_Alliance_and_Mutual_Assistance
+		SOV_ccw_soviet_loan_to_china
+		SOV_ccw_the_156_projects
+		SOV_ccw_soviet_advisors_in_china
+		SOV_krushchev_visit_china
+		SOV_ccw_return_port_arthur
+		SOV_ccw_technical_assistance
+		SOV_ccw_the_twentieth_congress_in_peking
+	}
+
+	weight = {
+		factor = 1.0
+		modifier = {
+			factor = 1.0
+		}
+	}
+}
+
+# The nationalists won - the CCP survives only in Manchuria as a Soviet client.
+soviet_china_manchuria = {
+	name = "Soviet China Policy - The Manchurian Rump"
+	desc = "Salvaging the Chinese revolution after the nationalists win"
+	allowed = {
+		original_tag = SOV
+	}
+	enable = {
+		has_country_flag = SOV_PRC_Losing_CCW
+	}
+
+	abort = {
+		has_completed_focus = SOV_ccw_integrate_asia_into_the_eastern_bloc
+	}
+
+	ai_national_focuses = {
+		SOV_ccw_save_northwestern_china
+		SOV_ccw_military_bases_in_east_turkestan
+		SOV_ccw_provide_guns_to_the_military_cliques
+		SOV_ccw_the_manchurian_redoubt
+		SOV_ccw_rebuild_the_northeast
+		SOV_ccw_shelter_the_chinese_party
+		SOV_ccw_the_manchurian_peoples_army
+		SOV_ccw_the_southern_insurgency
+		SOV_ccw_isolate_the_kuomintang
+		SOV_ccw_integrate_asia_into_the_eastern_bloc
+	}
+
+	weight = {
+		factor = 1.0
+		modifier = {
+			factor = 1.0
+		}
+	}
+}
+
+# Post-war Korea (SOV_Korean_Settlement_Branch.txt). Enabled when the war ends;
+# all three outcome arms are listed, and each arm's allow_branch means the AI can
+# only ever reach the one that actually happened.
+soviet_korean_settlement = {
+	name = "Soviet Korea Policy - After the War"
+	desc = "Handling the peninsula after the armistice, a northern victory or a northern defeat"
+	allowed = {
+		original_tag = SOV
+	}
+	enable = {
+		has_global_flag = korean_war_begun
+		has_global_flag = KOREA_CEASEFIRE_UN
+	}
+
+	abort = {
+		OR = {
+			has_completed_focus = SOV_kwp_two_koreas_one_peninsula
+			has_completed_focus = SOV_kwp_korea_in_the_socialist_camp
+			has_completed_focus = SOV_kwp_lessons_of_the_korean_war
+		}
+	}
+
+	ai_national_focuses = {
+		SOV_kwp_the_korean_settlement
+		# Historical division
+		SOV_kw_the_armistice_at_panmunjom
+		SOV_kwp_rebuild_the_north
+		SOV_kwp_the_frozen_frontier
+		SOV_kwp_two_koreas_one_peninsula
+		# North wins
+		SOV_kwp_a_unified_korea
+		SOV_kwp_rebuild_the_peninsula
+		SOV_kwp_the_government_in_exile
+		SOV_kwp_korea_in_the_socialist_camp
+		# South wins
+		SOV_kwp_the_korean_disaster
+		SOV_kwp_shelter_the_korean_comrades
+		SOV_kwp_fortify_the_maritime_provinces
+		SOV_kwp_lessons_of_the_korean_war
 	}
 
 	weight = {
