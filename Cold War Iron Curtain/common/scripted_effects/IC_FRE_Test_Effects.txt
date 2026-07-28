@@ -1,0 +1,208 @@
+# ============================================================================
+# CEFEO (FRE) QA / testing effects
+# ----------------------------------------------------------------------------
+# Run from the console with:   e <effect_name>
+# Most tests assume you are playing FRE (`tag FRE` first); the war-score tests
+# work from any tag because the struggle scores live on FRA.
+#
+# Companion files: IC_Struggle_Test_Effects.txt (struggle core) and
+# IC_Geneva_Test_Effects.txt (Geneva conference). This file covers the CEFEO
+# rework: Metropole Patience, the FRA lifeline, GCMA/VNA bonuses, the
+# operation gates, the Dien Bien Phu arc, command rotation and dissolution.
+#
+# Quick reference:
+#   -- status / patience --
+#   e test_fre_status            log patience, tier, commander bonus, GCMA, VNA
+#   e test_fre_patience_set_0    patience to 0 (fires the milestone chain)
+#   e test_fre_patience_set_50   patience to 50
+#   e test_fre_patience_set_100  patience to 100
+#   -- lifeline / allies --
+#   e test_fre_request_all       fire all five FRA request events at FRA
+#   e test_fre_gcma_max          GCMA network to 4 (fires Trinquier dilemma)
+#   e test_fre_roll_battle_prep  log a battle-prep success roll with bonuses
+#   -- operations / battles --
+#   e test_fre_ops_unlock        waive date gates, clear cooldowns + activations
+#   e test_fre_dbp_start         jump straight into the Dien Bien Phu arc
+#   e test_fre_command_next      advance the command rotation one step
+#   -- endings / dissolution --
+#   e test_fre_win_war           push FRA scores past the victory trigger
+#   e test_fre_lose_war          push FRA scores past the defeat trigger
+#   e test_fre_winddown_now      start the wind-down chain immediately
+#   e test_fre_dissolve_vie      dissolve the corps into VIE now
+#   e test_fre_dissolve_vin      dissolve the corps into VIN now
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Status / patience
+# ----------------------------------------------------------------------------
+
+test_fre_status = {
+	log = "[FRE TEST] patience=[FRE.?FRE_Metropole_Patience] cmd_bonus=[FRE.?FRE_Commander_Mission_Bonus] gcma=[FRE.?FRE_GCMA_Network] vna=[FRE.?FRE_VNA_Coordination]"
+	log = "[FRE TEST] profrance=[FRA.?StruggleInvolvedNationsIndochinaProFranceScore] anticomm=[FRA.?StruggleInvolvedNationsIndochinaTotalAntiCommunistScore] comm=[FRA.?StruggleInvolvedNationsIndochinaCommunistScore]"
+}
+
+test_fre_patience_set_0 = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_temp_variable = { fre_patience_delta = -200 }
+			fre_metropole_patience_change = yes
+		}
+	}
+}
+
+test_fre_patience_set_50 = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_variable = { FRE_Metropole_Patience = 50 }
+			fre_update_metropole_tier = yes
+		}
+	}
+}
+
+test_fre_patience_set_100 = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_temp_variable = { fre_patience_delta = 200 }
+			fre_metropole_patience_change = yes
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# Lifeline / allies
+# ----------------------------------------------------------------------------
+
+test_fre_request_all = {
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			country_event = { id = FRE_Metropole.1 days = 1 }
+			country_event = { id = FRE_Metropole.2 days = 2 }
+			country_event = { id = FRE_Metropole.3 days = 3 }
+			country_event = { id = FRE_Metropole.4 days = 4 }
+			country_event = { id = FRE_Metropole.5 days = 5 }
+		}
+	}
+}
+
+test_fre_gcma_max = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			fre_gcma_expand_network = yes
+			fre_gcma_expand_network = yes
+			fre_gcma_expand_network = yes
+			fre_gcma_expand_network = yes
+		}
+	}
+}
+
+test_fre_roll_battle_prep = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			fre_mission_calculate_battle_prep_success = yes
+			log = "[FRE TEST] battle_prep success chance = [?mission_success_chance]"
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# Operations / battles
+# ----------------------------------------------------------------------------
+
+test_fre_ops_unlock = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_country_flag = FRE_Operations_Accelerated
+			clr_country_flag = FRE_Operation_Cooldown_Lorraine
+			clr_country_flag = FRE_Operation_Cooldown_Hirondelle
+			clr_country_flag = FRE_Operation_Cooldown_Mouette
+			clr_country_flag = FRE_Operation_Cooldown_Brochet
+			clr_country_flag = FRE_Operation_Cooldown_Castor
+			clr_country_flag = FRE_Mission_Operation_Lorraine_Activated
+			clr_country_flag = FRE_Mission_Operation_Hirondelle_Activated
+			clr_country_flag = FRE_Mission_Operation_Mouette_Activated
+			clr_country_flag = FRE_Mission_Operation_Brochet_Activated
+			clr_country_flag = FRE_Mission_Operation_Castor_Activated
+		}
+	}
+}
+
+test_fre_dbp_start = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_country_flag = FRE_Dien_Bien_Phu_Established
+			country_event = { id = FRE_DBP.1 days = 1 }
+		}
+	}
+}
+
+# Advance the command rotation: Carpentier -> de Lattre -> Salan -> Navarre.
+test_fre_command_next = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			if = {
+				limit = { has_idea = FRE_Command_De_Lattre }
+				country_event = { id = FRE_Command.4 days = 1 }
+			}
+			else_if = {
+				limit = { has_idea = FRE_Command_Salan }
+				country_event = { id = FRE_Command.5 days = 1 }
+			}
+			else = {
+				country_event = { id = FRE_Command.1 days = 1 }
+			}
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# Endings / dissolution
+# ----------------------------------------------------------------------------
+
+test_fre_win_war = {
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			set_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 1500 }
+			set_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 100 }
+			indochina_struggle_recalculate_total_anti_communist_score = yes
+		}
+	}
+}
+
+test_fre_lose_war = {
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			set_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 100 }
+			set_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 1500 }
+			indochina_struggle_recalculate_total_anti_communist_score = yes
+		}
+	}
+}
+
+test_fre_winddown_now = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_country_flag = FRE_Winddown_Started
+			country_event = { id = FRE_Winddown.1 days = 1 }
+		}
+	}
+}
+
+test_fre_dissolve_vie = {
+	fre_dissolve_cefeo_to_vie = yes
+}
+
+test_fre_dissolve_vin = {
+	fre_dissolve_cefeo_to_vin = yes
+}

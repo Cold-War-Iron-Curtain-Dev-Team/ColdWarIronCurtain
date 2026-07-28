@@ -1,0 +1,134 @@
+# =============================================================================
+# CEFEO dissolution
+# =============================================================================
+# The corps must never outlive the Indochina War: every ending path either
+# calls one of these effects directly or lets the FRE_Winddown event chain
+# (started from fre_weekly_pulse) reach fre_dissolve_cefeo_auto.
+# All effects are safe to call when FRE does not exist.
+# =============================================================================
+
+# Scrub CEFEO state so nothing leaks past annexation. FRE scope.
+fre_dissolution_cleanup = {
+	if = {
+		limit = { has_dynamic_modifier = { modifier = War_Exhaustion_Modifier } }
+		remove_dynamic_modifier = { modifier = War_Exhaustion_Modifier }
+	}
+	remove_ideas = FRE_Expeditionary_Command
+	remove_ideas = FRE_Metropole_Subsidies_Full
+	remove_ideas = FRE_Metropole_Subsidies_Reduced
+	remove_ideas = FRE_Metropole_Subsidies_Cut
+	remove_ideas = FRE_Command_Carpentier
+	remove_ideas = FRE_Command_De_Lattre
+	remove_ideas = FRE_Command_Salan
+	remove_ideas = FRE_Command_Navarre
+	set_country_flag = FRE_CEFEO_Dissolved
+	clr_country_flag = FRE_Metropole_Request_Pending
+	clr_country_flag = FRE_VNA_Training_Pending
+	clr_country_flag = FRE_Mission_Operation_Lorraine_Activated
+	clr_country_flag = FRE_Mission_Operation_Hirondelle_Activated
+	clr_country_flag = FRE_Mission_Operation_Mouette_Activated
+	clr_country_flag = FRE_Mission_Operation_Brochet_Activated
+	clr_country_flag = FRE_Mission_Operation_Castor_Activated
+	if = {
+		limit = {
+			country_exists = VIN
+			has_war_with = VIN
+		}
+		white_peace = VIN
+	}
+	if = {
+		limit = {
+			country_exists = NLF
+			has_war_with = NLF
+		}
+		white_peace = NLF
+	}
+}
+
+# The corps hands its ground to the State of Vietnam and sails home. Any scope.
+fre_dissolve_cefeo_to_vie = {
+	if = {
+		limit = {
+			country_exists = FRE
+			country_exists = VIE
+		}
+		FRE = { fre_dissolution_cleanup = yes }
+		VIE = {
+			annex_country = {
+				target = FRE
+				transfer_troops = no
+			}
+			army_experience = 50
+		}
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				add_manpower = 50000
+				country_event = { id = FRE_Winddown.5 days = 2 }
+			}
+		}
+	}
+}
+
+# The corps evacuates under communist guns; the DRV takes the ground. Any scope.
+fre_dissolve_cefeo_to_vin = {
+	if = {
+		limit = {
+			country_exists = FRE
+			country_exists = VIN
+		}
+		FRE = { fre_dissolution_cleanup = yes }
+		VIN = {
+			annex_country = {
+				target = FRE
+				transfer_troops = no
+			}
+		}
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				add_manpower = 30000
+				country_event = { id = FRE_Winddown.5 days = 2 }
+			}
+		}
+	}
+}
+
+# Dispatcher used by the wind-down chain and by ending paths that only need
+# the corps gone: communists get Tonkin if they won, otherwise the State of
+# Vietnam inherits, with FRA as the fallback of last resort. Any scope.
+fre_dissolve_cefeo_auto = {
+	if = {
+		limit = { country_exists = FRE }
+		if = {
+			limit = {
+				country_exists = VIN
+				OR = {
+					has_global_flag = FRE_Defeat_in_Indochina
+					VIN = { has_government = communism }
+				}
+			}
+			fre_dissolve_cefeo_to_vin = yes
+		}
+		else_if = {
+			limit = { country_exists = VIE }
+			fre_dissolve_cefeo_to_vie = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = VIN
+			}
+			fre_dissolve_cefeo_to_vin = yes
+		}
+		else_if = {
+			limit = { country_exists = FRA }
+			FRE = { fre_dissolution_cleanup = yes }
+			FRA = {
+				annex_country = {
+					target = FRE
+					transfer_troops = no
+				}
+			}
+		}
+	}
+}

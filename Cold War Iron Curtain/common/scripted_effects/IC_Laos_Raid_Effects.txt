@@ -1,0 +1,292 @@
+# ============================================================================
+# 1953 Laos Raid mechanic
+# ----------------------------------------------------------------------------
+# The Phase3 block of ic_pulse (IC_scripted_effects.txt) releases the Pathet Lao
+# (LAO) as a VIN satellite and throws them at the Kingdom of Laos (LOS). Left
+# alone, VIN's far larger army simply overruns LOS. This file turns that scripted
+# defeat into the historical over-extended raid: LOS gets a scaled CEFEO relief
+# column, VIN fights under an over-extension penalty, and a timer resolves the
+# raid if Hanoi cannot take a Laotian capital in time.
+#
+# Outcomes (decided at Laos_Raid_Timer expiry, see ic_laos_raid_resolve):
+#   * attacker holds Vientiane/Luang Prabang -> conquest stands (ic_laos_raid_attacker_victory)
+#   * human attacker, no capital -> one last-chance "press vs. call off" prompt (laos_raid.1)
+#   * AI (or lapsed last chance), LAO still holds its zones -> stalemate, rump satellite
+#   * AI (or lapsed last chance), LAO pushed out -> total failure, LOS accepts or goes total war
+# ============================================================================
+
+# --- Launch (called from Phase3, ROOT = VIN; all tags named explicitly) ------
+ic_laos_raid_launch = {
+	set_global_flag = Laos_Raid_Active
+	clr_global_flag = Laos_Raid_Resolved
+	clr_global_flag = Laos_Raid_Last_Chance
+	clr_global_flag = Laos_Raid_Timer_Expired
+
+	LOS = {
+		add_ideas = LOS_French_Airlift
+		# The Kingdom mobilises for the emergency.
+		add_ideas = extensive_conscription
+		# Player-facing "hold the capitals" objective + situation briefing.
+		activate_mission = Laos_Raid_Defence
+		country_event = laos_raid.7
+	}
+	VIN = { add_dynamic_modifier = { modifier = laos_raid_overextension } }
+
+	# Relief column sized by how much fight Paris still has in it.
+	# tier 0 = token garrison, 1 = reduced, 2 = full airlift.
+	set_temp_variable = { laos_relief_tier = 1 }
+	if = {
+		limit = { country_exists = FRE FRE = { check_variable = { FRE_Metropole_Patience > 65 } } }
+		set_temp_variable = { laos_relief_tier = 2 }
+	}
+	else_if = {
+		limit = {
+			OR = {
+				NOT = { country_exists = FRE }
+				FRE = { check_variable = { FRE_Metropole_Patience < 33 } }
+			}
+		}
+		set_temp_variable = { laos_relief_tier = 0 }
+	}
+
+	670 = {
+		create_unit = {
+			division = "name = \"Groupement de Marche du Laos\" division_template = \"Corps Expeditionnaire Francais\" start_experience_factor = 0.4 start_equipment_factor = 1.0"
+			owner = LOS
+			allow_spawning_on_enemy_provs = yes
+			prioritize_location = 1464
+		}
+	}
+	1198 = {
+		create_unit = {
+			division = "name = \"Défense de Luang Prabang\" division_template = \"Corps Expeditionnaire Francais\" start_experience_factor = 0.4 start_equipment_factor = 1.0"
+			owner = LOS
+			allow_spawning_on_enemy_provs = yes
+			prioritize_location = 4613
+		}
+	}
+	if = {
+		limit = { check_variable = { laos_relief_tier > 0 } }
+		670 = {
+			create_unit = {
+				division = "name = \"1er Régiment de Chasseurs Laotiens\" division_template = \"Corps Expeditionnaire Francais\" start_experience_factor = 0.35 start_equipment_factor = 1.0"
+				owner = LOS
+				allow_spawning_on_enemy_provs = yes
+				prioritize_location = 1464
+			}
+		}
+	}
+	if = {
+		limit = { check_variable = { laos_relief_tier > 1 } }
+		1198 = {
+			create_unit = {
+				division = "name = \"2e Groupement Aéroporté\" division_template = \"Corps Expeditionnaire Francais\" start_experience_factor = 0.45 start_equipment_factor = 1.0"
+				owner = LOS
+				allow_spawning_on_enemy_provs = yes
+				prioritize_location = 4613
+			}
+		}
+		670 = {
+			create_unit = {
+				division = "name = \"3e Groupement de Marche\" division_template = \"Corps Expeditionnaire Francais\" start_experience_factor = 0.4 start_equipment_factor = 1.0"
+				owner = LOS
+				allow_spawning_on_enemy_provs = yes
+				prioritize_location = 1464
+			}
+		}
+		LOS = {
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 2000 producer = FRA }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 300 producer = FRA }
+		}
+	}
+
+	# Arm the 90-day resolution timer on FRA (always exists, never vanishes mid-raid).
+	FRA = { activate_mission = Laos_Raid_Timer }
+}
+
+# --- Timer expiry dispatch (called from the mission, FRA scope) --------------
+ic_laos_raid_resolve = {
+	if = {
+		limit = { has_global_flag = Laos_Raid_Active }
+		if = {
+			limit = { laos_raid_attacker_holds_capital = yes }
+			ic_laos_raid_attacker_victory = yes
+		}
+		else_if = {
+			limit = {
+				laos_raid_attacker_is_human = yes
+				NOT = { has_global_flag = Laos_Raid_Last_Chance }
+			}
+			set_global_flag = Laos_Raid_Timer_Expired
+			if = { limit = { country_exists = VIN VIN = { is_ai = no } } VIN = { country_event = laos_raid.1 } }
+			if = { limit = { country_exists = LAO LAO = { is_ai = no } } LAO = { country_event = laos_raid.1 } }
+		}
+		else = {
+			ic_laos_raid_end_raid = yes
+		}
+	}
+}
+
+# --- Human attacker doubles down: deepen the penalty, one short final window --
+ic_laos_raid_press = {
+	if = {
+		limit = { has_global_flag = Laos_Raid_Active NOT = { has_global_flag = Laos_Raid_Last_Chance } }
+		set_global_flag = Laos_Raid_Last_Chance
+		clr_global_flag = Laos_Raid_Timer_Expired
+		VIN = {
+			remove_dynamic_modifier = { modifier = laos_raid_overextension }
+			add_dynamic_modifier = { modifier = laos_raid_overextension_severe }
+		}
+		FRA = { activate_mission = Laos_Raid_LastChance_Timer }
+		if = { limit = { country_exists = LOS } LOS = { activate_mission = Laos_Raid_Defence_LastChance } }
+	}
+}
+
+# --- The raid culminates: stalemate or total failure -------------------------
+ic_laos_raid_end_raid = {
+	if = {
+		limit = { has_global_flag = Laos_Raid_Active }
+		if = {
+			limit = { laos_raid_complete_failure = yes }
+			ic_laos_raid_total_failure = yes
+		}
+		else = {
+			ic_laos_raid_stalemate = yes
+		}
+	}
+}
+
+# Historical outcome: the Pathet Lao regroup into Sam Neua + Phongsaly as a VIN
+# satellite, everything else reverts to the Kingdom on the ceasefire.
+ic_laos_raid_stalemate = {
+	if = {
+		limit = { country_exists = LAO country_exists = VIN }
+		LAO = {
+			transfer_state = 841
+			transfer_state = 1295
+			keep_current_politics = yes
+		}
+		VIN = {
+			set_autonomy = {
+				target = LAO
+				autonomy_state = autonomy_easternbloc
+				end_wars = no
+				end_civil_wars = no
+			}
+		}
+	}
+	ic_laos_raid_ceasefire = yes
+	news_event = laos_raid.2
+	ic_laos_raid_cleanup = yes
+}
+
+# The raid collapsed and the Kingdom overran the Pathet Lao. Hanoi sues for a
+# return to the status quo ante; Vientiane decides whether to take it.
+ic_laos_raid_total_failure = {
+	if = {
+		limit = { country_exists = LOS }
+		LOS = { country_event = laos_raid.3 }
+	}
+	else = {
+		ic_laos_raid_dissolve_lao = yes
+		ic_laos_raid_ceasefire = yes
+		ic_laos_raid_cleanup = yes
+	}
+}
+
+# Attacker seized a capital before the clock ran out: let the conquest play out.
+ic_laos_raid_attacker_victory = {
+	set_global_flag = Laos_Raid_Attacker_Won
+	news_event = laos_raid.6
+	ic_laos_raid_cleanup = yes
+}
+
+# Vientiane refuses the peace and calls in the wider anti-communist world.
+ic_laos_raid_total_war = {
+	set_global_flag = Laos_Total_War
+	ic_laos_raid_dissolve_lao = yes
+	news_event = laos_raid.5
+	ic_laos_raid_cleanup = yes
+}
+
+# --- Shared helpers ----------------------------------------------------------
+ic_laos_raid_ceasefire = {
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			if = { limit = { country_exists = VIN has_war_with = VIN } white_peace = VIN }
+			if = { limit = { country_exists = LAO has_war_with = LAO } white_peace = LAO }
+			if = { limit = { country_exists = NLF has_war_with = NLF } white_peace = NLF }
+		}
+	}
+	# The relief column stands down with the ceasefire.
+	ic_laos_raid_remove_relief = yes
+}
+
+# Disband the CEFEO relief column (and its one-off template) spawned by the raid.
+ic_laos_raid_remove_relief = {
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			delete_unit_template_and_units = { division_template = "Corps Expeditionnaire Francais" }
+		}
+	}
+}
+
+ic_laos_raid_dissolve_lao = {
+	if = {
+		limit = { country_exists = LAO country_exists = LOS }
+		LOS = { annex_country = { target = LAO } }
+	}
+}
+
+# Called (in LAO scope) when the Pathet Lao stop being an insurgency and become
+# the government of Laos - i.e. they win the war and annex the Royal Government.
+# Tears down the insurgency economy and boots up a conventional one, mirroring
+# MLA_transition_to_postwar_government.
+lao_convert_to_normal_economy = {
+	if = {
+		limit = { has_country_flag = active_insurgency }
+		clr_country_flag = active_insurgency
+		remove_ideas = closed_economy
+		set_variable = { show_finance = 0 }
+		set_variable = { currentMoney = 5 }
+		set_variable = { currentDebt = 0 }
+		set_variable = { currentDebtPayments = 0 }
+		clear_current_economic_modifiers = yes
+		set_variable = { economic_x_axis = 22 }
+		startup_economics = yes
+	}
+}
+
+ic_laos_raid_cleanup = {
+	clr_global_flag = Laos_Raid_Active
+	clr_global_flag = Laos_Raid_Timer_Expired
+	set_global_flag = Laos_Raid_Resolved
+	if = {
+		limit = { country_exists = LOS LOS = { has_idea = LOS_French_Airlift } }
+		LOS = { remove_ideas = LOS_French_Airlift }
+	}
+	if = {
+		limit = { country_exists = VIN VIN = { has_dynamic_modifier = { modifier = laos_raid_overextension } } }
+		VIN = { remove_dynamic_modifier = { modifier = laos_raid_overextension } }
+	}
+	if = {
+		limit = { country_exists = VIN VIN = { has_dynamic_modifier = { modifier = laos_raid_overextension_severe } } }
+		VIN = { remove_dynamic_modifier = { modifier = laos_raid_overextension_severe } }
+	}
+}
+
+# ============================================================================
+# Console test harness (mirrors the test_geneva_* effects). Run with `e <name>`.
+#   e test_laos_raid_launch      spawn the relief column + arm the 90-day timer
+#   e test_laos_raid_resolve     run the timer-expiry dispatch now
+#   e test_laos_raid_press       simulate the human "press the offensive" choice
+#   e test_laos_raid_end         force the raid to culminate now
+#   e test_laos_raid_cleanup     tear down modifiers/ideas/flags (rerunnable)
+# ============================================================================
+test_laos_raid_launch = { ic_laos_raid_launch = yes }
+test_laos_raid_resolve = { ic_laos_raid_resolve = yes }
+test_laos_raid_press = { ic_laos_raid_press = yes }
+test_laos_raid_end = { ic_laos_raid_end_raid = yes }
+test_laos_raid_cleanup = { ic_laos_raid_cleanup = yes }

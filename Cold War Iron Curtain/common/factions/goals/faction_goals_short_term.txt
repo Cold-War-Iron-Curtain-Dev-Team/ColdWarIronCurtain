@@ -925,17 +925,12 @@ faction_goal_convoy_sufficiency = {
 		base = 1
 		modifier = {
 			add = -1
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_coastal = yes
-							is_controlled_by_ROOT_or_ally = yes
-						}
-					}
+			NOT = {
+				any_state = {
+					is_coastal = yes
+					is_controlled_by_ROOT_or_ally = yes
+
 				}
-				value < 1
 			}
 		}
 		modifier = {  
@@ -972,88 +967,54 @@ faction_goal_ensure_military_r_d = {
 	description = ensure_military_r_d_goal_desc
 	category = short_term
 	group = FOCUS_FILTER_RESEARCH
+	# PERF: was 6x collection_size over game:all_states (~2000 states) with the
+	# expensive is_controlled_by_ROOT_or_ally checked FIRST on every state
+	# (~3ms per evaluation, one of the hottest triggers in the mod).
+	# any_state short-circuits at the first match, and the cheap facility
+	# check now runs before the controller/faction check.
 	visible = {
 		OR = {
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							land_facility > 0
-						}
-					}
-					name = COLLECTION_FACTION_LAND_FACILITY
+			NOT = {
+				any_state = {
+					land_facility > 0
+					is_controlled_by_ROOT_or_ally = yes
 				}
-				value < 1
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							naval_facility > 0
-						}
-					}
-					name = COLLECTION_FACTION_NAVAL_FACILITY
+			NOT = {
+				any_state = {
+					naval_facility > 0
+					is_controlled_by_ROOT_or_ally = yes
 				}
-				value < 1
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							air_facility > 0
-						}
-					}
-					name = COLLECTION_FACTION_AIR_FACILITY
+			NOT = {
+				any_state = {
+					air_facility > 0
+					is_controlled_by_ROOT_or_ally = yes
 				}
-				value < 1
 			}
 		}
 	}
 	completed = {
-		collection_size = {
-			input = {
-				input = game:all_states
-				operators = {
-					limit = {
-						is_controlled_by_ROOT_or_ally = yes 
-						land_facility > 0
-					}
-				}
-				name = COLLECTION_FACTION_LAND_FACILITY
+		custom_trigger_tooltip = {
+			tooltip = COLLECTION_FACTION_LAND_FACILITY
+			any_state = {
+				land_facility > 0
+				is_controlled_by_ROOT_or_ally = yes
 			}
-			value > 0
 		}
-		collection_size = {
-			input = {
-				input = game:all_states
-				operators = {
-					limit = {
-						is_controlled_by_ROOT_or_ally = yes 
-						naval_facility > 0
-					}
-				}
-				name = COLLECTION_FACTION_NAVAL_FACILITY
+		custom_trigger_tooltip = {
+			tooltip = COLLECTION_FACTION_NAVAL_FACILITY
+			any_state = {
+				naval_facility > 0
+				is_controlled_by_ROOT_or_ally = yes
 			}
-			value > 0
 		}
-		collection_size = {
-			input = {
-				input = game:all_states
-				operators = {
-					limit = {
-						is_controlled_by_ROOT_or_ally = yes 
-						air_facility > 0
-					}
-				}
-				name = COLLECTION_FACTION_AIR_FACILITY
+		custom_trigger_tooltip = {
+			tooltip = COLLECTION_FACTION_AIR_FACILITY
+			any_state = {
+				air_facility > 0
+				is_controlled_by_ROOT_or_ally = yes
 			}
-			value > 0
 		}
 	}
 	complete_effect = {
@@ -1065,12 +1026,12 @@ faction_goal_ensure_military_r_d = {
 				input = game:all_states
 				operators = {
 					limit = {
-						is_controlled_by_ROOT_or_ally = yes
-						OR = {
+												OR = {
 							air_facility > 0
 							land_facility > 0
 							naval_facility > 0
 						}
+						is_controlled_by_ROOT_or_ally = yes
 					}
 				}
 				name = OWNS_LISTED_STATE
@@ -1170,24 +1131,16 @@ faction_goal_military_infrastructure = {
 	category = short_term
 	group = FOCUS_FILTER_CONSOLIDATION
 	visible = {
-		collection_size = {
-			input = {
-				input = game:all_states
-				operators = {
-					limit = {
-						is_core_of = CONTROLLER
-						is_controlled_by_ROOT_or_ally = yes 
-						any_neighbor_state = {
-							controller = {
-								NOT = { is_in_faction_with = ROOT }
-							}
-						}
-						infrastructure < 4
-					}
+		any_state = {
+			is_core_of = CONTROLLER
+			is_controlled_by_ROOT_or_ally = yes 
+			any_neighbor_state = {
+				controller = {
+					NOT = { is_in_faction_with = ROOT }
 				}
-				name = COLLECTION_FACTION_BORDER_STATES_FULL_INFRASTRUCTURE
 			}
-			value > 0
+			infrastructure < 4
+
 		}
 	}
 	completed = {
@@ -3172,31 +3125,15 @@ faction_goal_expand_newfoundland_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -3253,31 +3190,15 @@ faction_goal_expand_bermuda_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -3351,31 +3272,15 @@ faction_goal_expand_bahamas_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -3528,31 +3433,15 @@ faction_goal_expand_trinidad_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -3610,31 +3499,15 @@ faction_goal_expand_azores_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -3691,31 +3564,15 @@ faction_goal_expand_iceland_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -3772,31 +3629,15 @@ faction_goal_expand_faroese_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transatlantic supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -4176,32 +4017,18 @@ faction_goal_expand_maltese_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the mediterranean supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							is_on_continent = europe
-						}
-					}
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							OR = {
-								is_on_continent = middle_east
-								is_on_continent = africa
-							}
-						}
-					}
+			any_state = {
+											OR = {
+					is_on_continent = middle_east
+					is_on_continent = africa
 				}
-				value > 0
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -4258,32 +4085,18 @@ faction_goal_expand_cretan_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the mediterranean supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							is_on_continent = europe
-						}
-					}
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							OR = {
-								is_on_continent = middle_east
-								is_on_continent = africa
-							}
-						}
-					}
+			any_state = {
+											OR = {
+					is_on_continent = middle_east
+					is_on_continent = africa
 				}
-				value > 0
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -4340,32 +4153,18 @@ faction_goal_expand_cypriot_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the mediterranean supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							is_on_continent = europe
-						}
-					}
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							OR = {
-								is_on_continent = middle_east
-								is_on_continent = africa
-							}
-						}
-					}
+			any_state = {
+											OR = {
+					is_on_continent = middle_east
+					is_on_continent = africa
 				}
-				value > 0
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -4805,31 +4604,15 @@ faction_goal_expand_gulf_of_aden_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the suez supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = asia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_ASIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = asia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -4966,34 +4749,18 @@ faction_goal_fortify_strait_of_hormuz = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the suez supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							OR = {
-								is_on_continent = europe
-								is_on_continent = asia
-							}
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE_OR_ASIA
+			any_state = {
+											OR = {
+					is_on_continent = europe
+					is_on_continent = asia
 				}
-				value > 0
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = middle_east
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_MIDDLE_EAST
-				}
-				value > 0
+			any_state = {
+				is_on_continent = middle_east
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -5050,31 +4817,15 @@ faction_goal_expand_ceylonese_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = asia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_ASIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = asia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -5145,31 +4896,15 @@ faction_goal_expand_singapore_naval_base = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = europe
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_EUROPE
-				}
-				value > 0
+			any_state = {
+				is_on_continent = europe
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = asia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_ASIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = asia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -5461,31 +5196,15 @@ faction_goal_expand_caroline_islands_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transpacific supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = asia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_ASIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = asia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -5549,34 +5268,18 @@ faction_goal_expand_guadalcanal_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transpacific supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes
-							OR = {
-								is_on_continent = north_america
-								is_on_continent = asia
-							}
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA_OR_ASIA
+			any_state = {
+											OR = {
+					is_on_continent = north_america
+					is_on_continent = asia
 				}
-				value > 0
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = australia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_AUSTRALIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = australia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -5633,31 +5336,15 @@ faction_goal_expand_wake_island_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transpacific supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = asia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_ASIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = asia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -5714,31 +5401,15 @@ faction_goal_expand_midway_island_bases = {
 		modifier = {
 			add = 2 # If convoys being threatened try to secure the transpacific supply lines better
 			convoy_threat > 0.5
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = north_america
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_NORTH_AMERICA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = north_america
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
-			collection_size = {
-				input = {
-					input = game:all_states
-					operators = {
-						limit = {
-							is_controlled_by_ROOT_or_ally = yes 
-							is_on_continent = asia
-						}
-					}
-					name = COLLECTION_FACTION_STATES_IN_ASIA
-				}
-				value > 0
+			any_state = {
+				is_on_continent = asia
+				is_controlled_by_ROOT_or_ally = yes
+
 			}
 		}
 		modifier = {
@@ -6032,3 +5703,4 @@ faction_goal_destroy_communist_greece = {
 		base = 0
 	}
 }
+                                                                                                                                                                                                                                                                                                                                                             
