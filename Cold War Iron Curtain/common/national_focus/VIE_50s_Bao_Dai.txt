@@ -980,10 +980,9 @@ focus_tree = {
 		x = -1
 		y = 1
 		bypass = {
-			# Reunified Vietnam through Geneva: there is no crisis to deflect onto the French.
 			custom_trigger_tooltip = {
 				tooltip = geneva_conference_reunified_bypass_TT
-				geneva_conference_complete_success_trigger = yes
+				geneva_vietnam_reunified_trigger = yes	# actually one Vietnam: no crisis left to deflect onto the French. A ballot merely scheduled is not reunification - the partition, and the resentment, are still there.
 			}
 		}
 		completion_reward = {
@@ -2277,11 +2276,27 @@ focus_tree = {
 		x = -1
 		y = 1
 		available = {
-			geneva_conference_available_trigger = yes
+			OR = {
+				VIE_geneva_settlement_otl_trigger = yes	# the accords left a communist North standing
+				VIE_geneva_settlement_lost_trigger = yes	# or handed Hanoi the better half outright
+			}
 		}
 		bypass = {
-			# Achieved a southern victory instead: there is no communist North to accept.
-			indochina_struggle_ending_southern_victory_available_trigger = yes
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = VIE_cuongde_no_north_bypass_tt
+					NOT = { country_exists = VIN }	# no communist state left to accept
+				}
+				indochina_struggle_ending_southern_victory_available_trigger = yes
+				VIE_indochina_war_won_trigger = yes	# reunified under Saigon, or Geneva sided with us
+				custom_trigger_tooltip = {
+					tooltip = VIE_no_geneva_settlement_bypass_tt
+					AND = {
+						has_global_flag = Indochina_War_Over
+						NOT = { VIE_geneva_accords_signed_trigger = yes }	# the war ended with no accords at all
+					}
+				}
+			}
 		}
 		completion_reward = {
 			add_stability = -0.20
@@ -2316,12 +2331,24 @@ focus_tree = {
 		x = 1
 		y = 1
 		available = {
-			# Only celebrate a parade if we actually won the war in the south.
-			indochina_struggle_ending_southern_victory_available_trigger = yes
+			OR = {
+				indochina_struggle_ending_southern_victory_available_trigger = yes	# won it in the field
+				VIE_indochina_war_won_trigger = yes	# reunified under Saigon, or Geneva sided with us
+				VIE_geneva_settlement_otl_trigger = yes	# the South survived the accords intact: spinnable as victory
+			}
 		}
 		bypass = {
-			# Fell back to the Geneva partition: there is no victory to parade.
-			geneva_conference_available_trigger = yes
+			OR = {
+				VIE_geneva_settlement_lost_trigger = yes	# Geneva went Hanoi's way: nothing to parade
+				custom_trigger_tooltip = {
+					tooltip = VIE_no_geneva_settlement_bypass_tt
+					AND = {
+						has_global_flag = Indochina_War_Over
+						NOT = { VIE_geneva_accords_signed_trigger = yes }
+						NOT = { VIE_indochina_war_won_trigger = yes }	# the war ended with no accords and no win
+					}
+				}
+			}
 		}
 		completion_reward = {
 			add_stability = 0.20

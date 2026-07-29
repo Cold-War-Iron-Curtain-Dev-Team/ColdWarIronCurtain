@@ -6897,12 +6897,34 @@ country_event = {
 	option = {
 		name = Brevert_Lines.1.a
 
+		ai_chance = {
+			base = 20
+			modifier = {	# a friendly Saigon is worth more than the island
+				factor = 3
+				has_opinion = { target = VIE value > 20 }
+			}
+			modifier = {	# OTL Cambodia never renounced the claim
+				factor = 0.25
+				is_historical_focus_on = yes
+			}
+			modifier = {	# no appetite for a second front
+				factor = 2
+				has_war = yes
+			}
+		}
 		VIE = { country_event = { id = Brevert_Lines.2 days = 1 } }
 	}
 
 	option = {
 		name = Brevert_Lines.1.b
 
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 0.3
+				has_opinion = { target = VIE value > 40 }
+			}
+		}
 		VIE = { country_event = { id = Brevert_Lines.3 days = 1 } }
 	}
 }
@@ -6955,30 +6977,61 @@ country_event = {
 			target = CAM
 			modifier = VIE_Denouced_Brevert_Lines
 		}
+		set_variable = { VIE_brevet_attacker_state = 0 }
+		set_variable = { VIE_brevet_defender_state = 0 }
 		if = {
-			limit = {
-				country_exists = CAM
-				owns_state = 1753
-			}
-			CAM = {
-				start_border_war = {
-					change_state_after_war = yes
-					attacker = {
-						state = 1753
-						num_provinces = 1
-						on_win = Brevert_Lines.5
-						on_lose = Brevert_Lines.4
-						on_cancel = Brevert_Lines.6
-					}
-					defender = {
-						state = 1753
-						num_provinces = 1
-						on_win = Brevert_Lines.4
-						on_lose = Brevert_Lines.5
-						on_cancel = Brevert_Lines.6
+			limit = { country_exists = CAM }
+			random_state = {	# Phu Quoc is a one-province island, so the clash falls on the land border instead
+				limit = {
+					is_owned_by = CAM
+					is_controlled_by = CAM
+					has_border_war = no
+					any_neighbor_state = {
+						is_owned_by = ROOT
+						is_controlled_by = ROOT
 					}
 				}
+				set_variable = { ROOT.VIE_brevet_defender_state = THIS.id }
 			}
+		}
+		if = {
+			limit = { check_variable = { VIE_brevet_defender_state > 0 } }
+			random_state = {
+				limit = {
+					is_owned_by = ROOT
+					is_controlled_by = ROOT
+					has_border_war = no
+					has_ROOT_at_least_1_div_in_current_state_scope = yes
+					any_neighbor_state = { state = var:ROOT.VIE_brevet_defender_state }
+				}
+				set_variable = { ROOT.VIE_brevet_attacker_state = THIS.id }
+			}
+		}
+		if = {
+			limit = {
+				check_variable = { VIE_brevet_attacker_state > 0 }
+				check_variable = { VIE_brevet_defender_state > 0 }
+			}
+			start_border_war = {	# the maritime claim is settled in the outcome events, not by province transfer
+				change_state_after_war = no
+				attacker = {
+					state = var:ROOT.VIE_brevet_attacker_state
+					num_provinces = 1
+					on_win = Brevert_Lines.4
+					on_lose = Brevert_Lines.5
+					on_cancel = Brevert_Lines.6
+				}
+				defender = {
+					state = var:ROOT.VIE_brevet_defender_state
+					num_provinces = 1
+					on_win = Brevert_Lines.7
+					on_lose = Brevert_Lines.8
+					on_cancel = Brevert_Lines.6
+				}
+			}
+		}
+		else = {
+			custom_effect_tooltip = Brevert_Lines_no_clash_tt
 		}
 	}
 }
@@ -6996,10 +7049,12 @@ country_event = {
 	option = {
 		name = Brevert_Lines.4.a
 
+		add_political_power = 50
 		1753 = {
+			remove_claim_by = CAM
 			if = {
-				limit = { NOT = { is_core_of = ROOT } }
-				add_core_of = ROOT
+				limit = { NOT = { is_core_of = VIE } }
+				add_core_of = VIE
 			}
 		}
 	}
@@ -7053,7 +7108,7 @@ country_event = {
 		}
 		if = {
 			limit = {
-				is_in_array = { StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }	# the struggle arrays live on FRA scope
 			}
 			FRA = {
 				add_to_variable = {
@@ -7076,6 +7131,43 @@ country_event = {
 
 	option = {
 		name = Brevert_Lines.6.a
+	}
+}
+
+country_event = {	# fires to CAM when the Khmer side prevails in the border clash
+	id = Brevert_Lines.7
+	immediate = { }
+	title = Brevert_Lines.7.t
+	desc = Brevert_Lines.7.d
+	picture = GFX_Brevert_Lines.3
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Brevert_Lines.7.a
+
+		add_political_power = 50
+		add_stability = 0.05
+		add_war_support = 0.05
+	}
+}
+
+country_event = {	# fires to CAM when the Khmer side is driven off
+	id = Brevert_Lines.8
+	immediate = { }
+	title = Brevert_Lines.8.t
+	desc = Brevert_Lines.8.d
+	picture = GFX_Brevert_Lines.3
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Brevert_Lines.8.a
+
+		add_political_power = -50
+		add_stability = -0.05
 	}
 }
 
@@ -10097,27 +10189,25 @@ country_event = {
 				modifier = large_decrease
 			}
 		}
-		if = {
-			reset_favoritism_minigame = yes
-			load_focus_tree = VIE_CuongDe_50
-			mark_focus_tree_layout_dirty = yes
-			set_country_flag = VIE_CuongDe_Succeeds
-			set_country_flag = VIE_Dealing_with_CuongDe
-			set_country_flag = VIE_CD_Econ_Available
-			VIE_Cuong_De = {
-				add_country_leader_role = {
-					promote_leader = yes
-					country_leader = {
-						ideology = DanVuong_Model
-					}
+		reset_favoritism_minigame = yes
+		load_focus_tree = VIE_CuongDe_50
+		mark_focus_tree_layout_dirty = yes
+		set_country_flag = VIE_CuongDe_Succeeds
+		set_country_flag = VIE_Dealing_with_CuongDe
+		set_country_flag = VIE_CD_Econ_Available
+		VIE_Cuong_De = {
+			add_country_leader_role = {
+				promote_leader = yes
+				country_leader = {
+					ideology = DanVuong_Model
 				}
 			}
-			set_politics = {
-				ruling_party = democratic
-				elections_allowed = no
-			}
-			add_stability = -0.10
 		}
+		set_politics = {
+			ruling_party = democratic
+			elections_allowed = no
+		}
+		add_stability = -0.10
 	}
 }
 
@@ -10137,7 +10227,7 @@ country_event = {
 		USA = {
 			add_opinion_modifier = {
 				target = VIE
-				modifier = VIE_CuongDe_USA
+				modifier = medium_increase	# this is the aid path, not the coup path - both sides gain here
 			}
 			send_equipment = {
 				equipment = infantry_equipment_0
@@ -10152,7 +10242,7 @@ country_event = {
 		}
 		add_opinion_modifier = {
 			target = USA
-			modifier = VIE_CuongDe_USA
+			modifier = medium_increase	# Washington backed a Dan-Quoc that was already standing
 		}
 		add_to_variable = {
 			currentMoney = 15
