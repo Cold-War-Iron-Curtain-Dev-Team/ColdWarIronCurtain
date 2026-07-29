@@ -2037,3 +2037,74 @@ shared_focus = {
 		custom_effect_tooltip = autocompleted_by_event
 	}
 }
+shared_focus = {
+	id = VIE_Indochina_Border_Settlement
+
+	icon = GFX_VIE_Claim_TranNinh	# placeholder art, shares the Tran-Ninh icon for now
+	cost = 2.8
+	relative_position_id = VIE_Regarding_French_Drawn_Borders
+	prerequisite = {
+		focus = VIE_Regarding_French_Drawn_Borders
+	}
+	x = 3
+	y = 1
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
+	}
+	available = {
+		VIE_indochina_war_won_trigger = yes
+		is_subject = no
+	}
+	completion_reward = {
+		add_political_power = 50	# Svay Rieng is already claimed at game start, no claim to grant here
+		clear_array = global.VIE_border_dispute_states
+		1799 = { add_to_array = { array = global.VIE_border_dispute_states value = THIS } }	# state scopes, not bare numbers - a bare number reads back as a Country when the array is scoped into
+		1794 = { add_to_array = { array = global.VIE_border_dispute_states value = THIS } }
+		1295 = { add_to_array = { array = global.VIE_border_dispute_states value = THIS } }
+		841 = { add_to_array = { array = global.VIE_border_dispute_states value = THIS } }
+		set_country_flag = VIE_Border_Settlement_Open
+	}
+}
+shared_focus = {
+	id = VIE_Consolidate_The_Frontier
+
+	icon = GFX_VIE_Regarding_French_Drawn_Borders	# placeholder art
+	cost = 2.8
+	relative_position_id = VIE_Indochina_Border_Settlement
+	prerequisite = {
+		focus = VIE_Indochina_Border_Settlement
+	}
+	x = 0
+	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = VIE_frontier_gained_TT
+			OR = {
+				owns_state = 1799
+				owns_state = 1794
+				owns_state = 1295
+				owns_state = 841
+			}
+		}
+	}
+	completion_reward = {
+		add_stability = 0.05
+		every_owned_state = {
+			limit = {
+				is_in_array = { global.VIE_border_dispute_states = THIS.id }
+				NOT = { is_core_of = VIE }
+			}
+			add_core_of = VIE
+		}
+		if = {
+			limit = { has_idea = VIE_Regional_Aggressor }
+			remove_ideas = VIE_Regional_Aggressor
+		}
+		clr_country_flag = VIE_Border_Settlement_Open
+		set_global_flag = VIE_50s_Border_Settlement_Resolved
+	}
+}
