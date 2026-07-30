@@ -481,13 +481,13 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_prio^2 = 5 }
 		}
 		if = {
-			limit = { has_completed_focus = USA_50s_Block_Unification_Elections }
+			limit = { has_completed_focus = USA_50s_Withhold_American_Assent }
 			set_variable = { geneva_pref^2 = 0 }
 			set_variable = { geneva_prio^2 = 10 }
 		}
-		# Washington softens if it agreed to a reunification vote instead.
+		# Washington softens if it agreed to underwrite a reunification vote instead.
 		if = {
-			limit = { has_completed_focus = USA_50s_Reunification_Election }
+			limit = { has_completed_focus = USA_50s_Endorse_Free_Vietnamese_Vote }
 			set_variable = { geneva_pref^2 = 2 }
 		}
 	}
@@ -746,12 +746,73 @@ geneva_conf_initialize = {
 		if = { limit = { country_exists = LAO } LAO = { geneva_conf_seat_delegation = yes } }
 		if = { limit = { country_exists = PQC } PQC = { geneva_conf_seat_delegation = yes } }
 
+		# Seats are taken, so the national trees can be brought level with them.
+		geneva_conf_catch_up_delegation_focuses = yes
+
 		# Broadcast to every human player: news anchored on FRA is invisible
 		# to everyone else when France is AI (playtest finding).
 		every_country = {
 			limit = { is_ai = no }
 			news_event = Geneva_Conference_Session.1
 		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# Catching the national trees up to the table
+# ----------------------------------------------------------------------------
+# Attendance focuses only: a delegation seated here would otherwise spend the whole session completing the focus that represents showing up to it, and never reach the stance focuses underneath or the ballot branches below those. What it argues for at the table stays a decision. VIE_Accept_Geneva_Conference is deliberately left out - it is mutually exclusive with VIE_BaoDai_Liberator_of_Vietnam, so granting it at the opening gavel would foreclose Saigon's military ending if the conference collapses.
+geneva_conf_catch_up_delegation_focuses = {
+	set_global_flag = geneva_conf_attendance_autogranted	# read by the granted focuses: leverage and weight are the reward for playing the branch, not for the seat geneva_conf_seed_weight already paid for
+	if = {
+		limit = {
+			country_exists = USA
+			USA = {
+				USA_has_1950s_focus_tree_trigger = yes
+				NOT = { has_completed_focus = USA_50s_The_Geneva_Conferece }
+			}
+		}
+		USA = { complete_national_focus = USA_50s_The_Geneva_Conferece }
+	}
+	if = {
+		limit = {
+			country_exists = VIN
+			VIN = {
+				has_focus_tree = VIN_1950s
+				NOT = { has_completed_focus = VIN_The_Geneva_Peace_Conference }
+			}
+		}
+		VIN = { complete_national_focus = VIN_The_Geneva_Peace_Conference }
+	}
+	if = {
+		limit = {
+			country_exists = FRA
+			FRA = {
+				has_focus_tree = FRA_1950s
+				NOT = { has_completed_focus = FRA_Geneva_Peace_Conference }
+			}
+		}
+		FRA = { complete_national_focus = FRA_Geneva_Peace_Conference }
+	}
+	if = {
+		limit = {
+			country_exists = ENG
+			ENG = {
+				has_focus_tree = UK50
+				NOT = { has_completed_focus = UK50_Participate_Geneva_Conference }
+			}
+		}
+		ENG = { complete_national_focus = UK50_Participate_Geneva_Conference }
+	}
+	if = {
+		limit = {
+			country_exists = CAM
+			CAM = {
+				has_focus_tree = 1950s_Cambodia
+				NOT = { has_completed_focus = CAM_The_Geneva_Conference }
+			}
+		}
+		CAM = { complete_national_focus = CAM_The_Geneva_Conference }
 	}
 }
 
@@ -1135,7 +1196,7 @@ geneva_conf_compile_settlement = {
 							limit = {
 								check_variable = { geneva_pref^2 > 1 }
 								country_exists = USA
-								USA = { has_completed_focus = USA_50s_Block_Unification_Elections }
+								USA = { has_completed_focus = USA_50s_Withhold_American_Assent }	# the table-stance focus; the block focus now sits after the accords and cannot be read here
 							}
 							# Saigon wanted the vote; Washington killed it.
 							set_country_flag = VIE_Rejected_Reunification_USA_Intervention
