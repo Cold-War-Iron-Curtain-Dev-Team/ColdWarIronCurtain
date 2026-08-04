@@ -48,11 +48,8 @@ indochina_struggle_starting_idea_setup = {
     }
 }
 
-indochina_struggle_bypass_geneva_conference_focuses = {
-	# The Geneva focuses (USA_50s_The_Geneva_Conferece,
-	# VIN_The_Geneva_Peace_Conference) now bypass themselves once the
-	# conference is available and grant delegation leverage when completed
-	# beforehand, so nothing needs to be force-unlocked here anymore.
+indochina_struggle_invite_countries_to_geneva = {
+	geneva_conf_announce = yes
 }
 
 indochina_tai_federation_collapses = {	# Dien Bien Phu is lost (FRE_DBP.8, either option): nothing stands between Giap and the Tai capital
@@ -290,6 +287,13 @@ indochina_struggle_clamp_scores = {
             set_variable = { StruggleInvolvedNationsIndochinaTotalAntiCommunistScore = 0 }
         }
     }
+    if = {
+        limit = {
+            check_variable = { global.Indochina_War_Active_Phase = 3 }
+            check_variable = { global.Indochina_War_Next_Phase_A_Points > 499 }
+        }
+        set_variable = { global.Indochina_War_Next_Phase_A_Points = 499 }	# the bar reads full and stays there
+    }
 }
 
 indochina_struggle_recalculate_total_anti_communist_score = {
@@ -304,7 +308,16 @@ indochina_struggle_recalculate_total_anti_communist_score = {
 indochina_struggle_update_phase_transitions = {
     if = {
         limit = { check_variable = { global.Indochina_War_Active_Phase = 3 } }
+        set_global_flag = Indochina_War_Escalated
+    }
+    else = {
+        clr_global_flag = Indochina_War_Escalated
+    }
+    if = {
+        limit = { check_variable = { global.Indochina_War_Active_Phase = 3 } }
         if = {
+            # Held open for the test effects, which write the points directly;
+            # in play the daily clamp pins escalation at 499.
             limit = {
                 check_variable = { global.Indochina_War_Next_Phase_A_Points > 499 }
                 NOT = { has_global_flag = Indochina_War_Over }
@@ -654,13 +667,11 @@ indochina_struggle_communist_victory = {
 				set_capital = { state = 1760 }
 			}
 			drop_cosmetic_tag = yes
+			set_cosmetic_tag = DRV	# a victorious Hanoi is still the DRV; the reunification pulse renames it in 1976
 			dismantle_faction = yes
 		}
 	}
 
-	# The CEFEO cannot outlive a communist victory: the corps evacuates and
-	# the DRV takes its ground (previously FRE was left dangling here,
-	# producing orphaned borders).
 	if = {
 		limit = { country_exists = FRE }
 		fre_dissolve_cefeo_to_vin = yes
@@ -855,9 +866,6 @@ indochina_struggle_southern_victory = {
 		}
 	}
 
-	# A unified Vietnam absorbs the French expeditionary zone and the northern
-	# statelets, mirroring the Federal and CuongDe unification paths. Their
-	# capitals (1760/1766/671/1280/1281) are already in the transfer list above.
 	if = {
 		limit = { country_exists = VIE }
 		VIE = {
@@ -1459,8 +1467,6 @@ indochina_struggle_dan_quoc_peace = {
 		}
 	}
 
-	# Hand the expeditionary zone to the unified Vietnamese state so the
-	# CEFEO does not linger as an orphaned enclave.
 	if = {
 		limit = { country_exists = FRE }
 		fre_dissolve_cefeo_auto = yes
@@ -1601,7 +1607,6 @@ indochina_struggle_american_north_vietnam = {
 		USA = {
 		}
 	}
-	# The corps has no place in the American-backed Vietnam either.
 	if = {
 		limit = { country_exists = FRE }
 		fre_dissolve_cefeo_auto = yes
@@ -1750,7 +1755,6 @@ indochina_struggle_kuomintang_victory = {
 			# country_event = PQC_Victory_Over_Vietnam.1
 		}
 	}
-	# Whoever rules Vietnam now, the CEFEO's war is over.
 	if = {
 		limit = { country_exists = FRE }
 		fre_dissolve_cefeo_auto = yes
@@ -1760,6 +1764,22 @@ indochina_struggle_kuomintang_victory = {
 }
 indochina_struggle_unlock_geneva_conference = {
 	set_global_flag = Geneva_Conference
+}
+
+indochina_geneva_panic_force_conference = {
+	set_global_flag = Indochina_Geneva_Panic	# read by the settlement compiler, the outcomes panel and the American delegation
+	set_variable = { global.Indochina_War_Active_Phase = 11 }
+	indochina_struggle_unlock_geneva_conference = yes
+	clr_global_flag = Indochina_Geneva_Pursuit	# the monthly grind toward the table has been overtaken by events
+	if = {
+		limit = { country_exists = USA }
+		USA = { country_event = { id = USA_INDO.4 hours = 6 } }
+	}
+	if = {
+		limit = { country_exists = FRA }
+		FRA = { country_event = { id = USA_INDO.5 days = 1 } }
+	}
+	indochina_struggle_invite_countries_to_geneva = yes
 }
 
 indochina_struggle_run_geneva_ending_effect = {
@@ -1789,17 +1809,12 @@ indochina_struggle_run_geneva_ending_effect = {
 	else = {
 		indochina_struggle_unlock_geneva_conference = yes
 		set_variable = { global.Indochina_War_Active_Phase = 11 }
-		# France's peace-outs and subject releases must run in FRA scope: this
-		# effect can be executed by the wrap-up mission (FRA) or by any player
-		# clicking the ending in the struggle GUI.
 		if = {
 			limit = { country_exists = FRA }
 			FRA = {
 				if = { limit = { country_exists = VIN has_war_with = VIN } white_peace = VIN }
 				if = { limit = { country_exists = NLF has_war_with = NLF } white_peace = NLF }
 				if = { limit = { country_exists = LAO has_war_with = LAO } white_peace = LAO }
-				# Laos and Cambodia stay associated states of the French Union
-				# if the accords kept them there (clause 5 = 0).
 				if = {
 					limit = {
 						country_exists = CAM
@@ -1826,8 +1841,6 @@ indochina_struggle_run_geneva_ending_effect = {
 					limit = { country_exists = LOS }
 					set_autonomy = { target = LOS autonomy_state = autonomy_free }
 				}
-				# A retained French presence (clause 3 = 0) keeps the State of
-				# Vietnam an associated state instead of freeing it outright.
 				if = {
 					limit = {
 						country_exists = VIE
@@ -1851,9 +1864,6 @@ indochina_struggle_run_geneva_ending_effect = {
 				if = { limit = { country_exists = NLF } white_peace = NLF }
 				if = { limit = { country_exists = NLF } annex_country = { target = NLF } }
 				if = { limit = { country_exists = CCC } annex_country = { target = CCC } }
-				# Geneva's minority guarantees (clause 6 = 1): the highland
-				# front survives as an autonomous state instead of being
-				# absorbed into the South.
 				if = {
 					limit = {
 						country_exists = FUL
@@ -1869,12 +1879,6 @@ indochina_struggle_run_geneva_ending_effect = {
 					limit = { country_exists = FUL }
 					annex_country = { target = FUL }
 				}
-				# Which states the South keeps depends on the agreed partition
-				# line (global.geneva_partition_line: 1 = 13th, 3 = 20th,
-				# anything else = the historical 17th parallel). A settlement
-				# with no partition line at all draws no border: both
-				# governments stand where they are until the interim
-				# arrangements decide who rules the single Vietnam.
 				if = {
 					limit = { has_global_flag = geneva_unified_settlement }
 				}
@@ -1904,8 +1908,6 @@ indochina_struggle_run_geneva_ending_effect = {
 					transfer_state = 1287
 					transfer_state = 983
 				}
-				# Enforced neutrality (clause 4 = 1) pulls the South out of
-				# its bloc; a free-alignment settlement lets it keep its ties.
 				if = {
 					limit = {
 						OR = {
@@ -1927,11 +1929,6 @@ indochina_struggle_run_geneva_ending_effect = {
 				leave_faction = yes
 			}
 		}
-		# Pathet Lao keep their OTL regroupment zones (Phongsaly & Sam Neua) as
-		# a VIN satellite - but only if the accords granted communist
-		# regroupment zones in Laos (clause 5 = 2; legacy endings keep the OTL
-		# behaviour). This must run before LOS absorbs LAO, or the rump state
-		# would be annexed away.
 		if = {
 			limit = {
 				country_exists = VIN
@@ -1981,24 +1978,50 @@ indochina_struggle_run_geneva_ending_effect = {
 			}
 		}
 		if = {
+			limit = { country_exists = FRE }
+			FRE = { fre_dissolution_cleanup = yes }
+		}
+		if = {
 			limit = { country_exists = VIN }
 			VIN = {
+				# Hanoi's zone, on every branch: the French holdings, the crown
+				# domains in the north, and its own base areas back from occupation.
+				transfer_state = 786	# Dong Bang Song Hong, the delta
+				transfer_state = 1760	# Hanoi, the CEFEO's seat
+				transfer_state = 671	# Tay Bac Bo
+				transfer_state = 1761	# Hoang Lien Son
+				transfer_state = 1766	# Hoa Binh
+				transfer_state = 1281	# Van Don-Quang Ninh, the Nung marches
+				transfer_state = 881
+				transfer_state = 1280
+				# Ha Giang is named in no partition list. Geneva's minority
+				# guarantees (clause 6 = 1) keep the Meo autonomous; otherwise the
+				# highlands come in with the rest of the north.
+				if = {
+					limit = {
+						country_exists = MEO
+						has_global_flag = geneva_conference_concluded
+						check_variable = { global.geneva_minorities_term = 1 }
+					}
+					set_autonomy = {
+						target = MEO
+						autonomy_state = autonomy_easternbloc
+						end_wars = no
+						end_civil_wars = no
+					}
+				}
+				else = {
+					transfer_state = 1767
+				}
+				# Only the line between the two Vietnams varies.
 				if = {
 					limit = { has_global_flag = geneva_unified_settlement }
-					# No partition line: no transfers either way.
+					transfer_state = 838
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 1 } }
 					# 13th parallel: Hanoi's zone runs down past Hue and Da Nang.
 					transfer_state = 838
-					transfer_state = 786
-					transfer_state = 671
-					transfer_state = 881
-					transfer_state = 1280
-					transfer_state = 1281
-					transfer_state = 1760
-					transfer_state = 1761
-					transfer_state = 1766
 					transfer_state = 1758
 					transfer_state = 757
 					transfer_state = 1287
@@ -2008,29 +2031,11 @@ indochina_struggle_run_geneva_ending_effect = {
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 3 } }
 					# 20th parallel: Quang Binh and Nghe-Tinh stay south.
-					transfer_state = 786
-					transfer_state = 671
-					transfer_state = 881
-					transfer_state = 1280
-					transfer_state = 1281
-					transfer_state = 1760
-					transfer_state = 1761
-					transfer_state = 1766
 				}
 				else = {
 					transfer_state = 838
-					transfer_state = 786
-					transfer_state = 671
-					transfer_state = 881
-					transfer_state = 1280
-					transfer_state = 1281
-					transfer_state = 1760
-					transfer_state = 1761
-					transfer_state = 1766
 				}
 				set_capital = { state = 1760 }
-				# Enforced neutrality (clause 4 = 1) dissolves the Viet Minh
-				# war coalition; free alignment lets Hanoi keep its bloc.
 				if = {
 					limit = {
 						OR = {
@@ -2041,6 +2046,7 @@ indochina_struggle_run_geneva_ending_effect = {
 					dismantle_faction = yes
 				}
 				drop_cosmetic_tag = yes
+				set_cosmetic_tag = DRV	# Hanoi leaves Geneva as the DRV; the Socialist Republic name only comes with reunification in 1976
 			}
 		}
 		if = { limit = { country_exists = NLF } NLF = { drop_cosmetic_tag = yes } }
@@ -2099,8 +2105,8 @@ indochina_struggle_run_geneva_ending_effect = {
 }
 indochina_struggle_geneva_ending_wrapup = {
 	indochina_struggle_ending_cleanup = yes
-	# Broadcast to every human player: news fired only at the caller scope
-	# (usually AI France) was invisible to everyone else.
+	if = {
+		limit = { NOT = { has_global_flag = geneva_conference_concluded } }
 	if = {
 		limit = { geneva_conference_complete_success_trigger = yes }
 		every_country = {
@@ -2131,6 +2137,7 @@ indochina_struggle_geneva_ending_wrapup = {
 		}
 	}
 }
+}
 indochina_struggle_run_geneva_ending_alternate_effect = {
     if = {
         limit = { country_exists = FRA }
@@ -2149,7 +2156,7 @@ indochina_struggle_run_never_ending_conflict_ending_effect = {
 	indochina_struggle_ending_cleanup = yes
 	every_country = {
 		limit = { is_ai = no }
-		news_event = Indochina_Struggle_Ending.9
+		news_event = { id = Indochina_Struggle_Ending.9 days = 3 }	# the Geneva collapse path already fired a headline on the day; let this one land after it rather than on top of it
 	}
 }
 
@@ -2195,7 +2202,27 @@ indochina_struggle_run_failed_state_ending_effect = {
 	indochina_struggle_ending_cleanup = yes
 	every_country = {
 		limit = { is_ai = no }
-		news_event = Indochina_Struggle_Ending.10
+		news_event = { id = Indochina_Struggle_Ending.10 days = 3 }	# same spacing as the never-ending-conflict twin above
+	}
+}
+
+indochina_struggle_escalate = {
+	if = {
+		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		add_to_variable = {
+			global.Indochina_War_Next_Phase_A_Points = indochina_phase_amount
+			tooltip = Add_to_Escalation_Phase_TT
+		}
+	}
+}
+
+indochina_struggle_deescalate = {
+	if = {
+		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		add_to_variable = {
+			global.Indochina_War_Next_Phase_B_Points = indochina_phase_amount
+			tooltip = Add_to_De_Escalation_Phase_TT
+		}
 	}
 }
 
@@ -2312,7 +2339,6 @@ indochina_struggle_add_pro_france_diplomatic_points = {
 }
 
 indochina_struggle_check_vp_captures = {
-	# Disabled until province VP capture logic is rebuilt with a valid iterator.
 	if = {
 		limit = {
 			NOT = { has_global_flag = Indochina_War_Over }

@@ -23,11 +23,30 @@ Indochina_War_Rework = {
 		cancel_trigger = {
 			# A player-driven ending (or hot-joined player) resolved the war
 			# while the timer was running.
+			OR = {
 			has_global_flag = Indochina_War_Over
+				NOT = { indochina_struggle_all_participants_ai_trigger = yes }	# a human took one of the stake countries mid-timer: they play it out themselves
+			}
+		}
+
+		cancel_effect = {
+			clr_global_flag = Indochina_War_Timer_Active	# ic_pulse can re-arm later if the map goes all-AI again
 		}
 
 		timeout_effect = {
 			if = {
+				# A decisive set-piece is still being fought out: give the battle
+				# another 60 days to produce its own result, four times over.
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
+					indochina_war_still_being_fought_trigger = yes
+					check_variable = { global.Indochina_Wrapup_Extensions < 4 }
+				}
+				add_to_variable = { global.Indochina_Wrapup_Extensions = 1 }
+				activate_mission = Indochina_Wrapup_Timer
+				log = "[GetDateText]: Indochina wrap-up timer extended - a campaign, the Laos raid or the Dien Bien Phu siege is still running"
+			}
+			else_if = {
 				limit = {
 					NOT = { has_global_flag = Indochina_War_Over }
 				}
@@ -81,10 +100,18 @@ Indochina_War_Rework = {
 					}
 					indochina_struggle_balkanized_vietnam = yes
 				}
-				else = {
+				else_if = {
 					# No decisive ending earned: convene the Geneva Conference
 					# headlessly and let the delegations settle (or wreck) it.
+					# Re-checked here, not just at arming: a human who joined a stake
+					# country during the 60 days must not have the conference concluded
+					# over their head.
+					limit = { indochina_struggle_all_participants_ai_trigger = yes }
 					geneva_conf_auto_resolve = yes
+				}
+				else = {
+					clr_global_flag = Indochina_War_Timer_Active
+					set_global_flag = Indochina_Geneva_Pursuit	# settle through the normal gated path instead, so the human plays the conference
 				}
 			}
 		}
@@ -120,6 +147,125 @@ Indochina_War_Rework = {
 	}
 
 
+	VIN_Campaign_Clock = { # Player-facing readout: the campaign deadline had no representation anywhere in the UI
+		icon = generic_attack
+
+		allowed = { original_tag = VIN }
+
+		activation = { always = no }
+
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Camp_Clock_tt
+				always = no	# never completable; it exists to show the clock
+			}
+		}
+
+		visible = {
+			NOT = { VIN_no_campaign_running_trigger = yes }
+		}
+
+		is_good = yes
+		selectable_mission = yes
+		days_mission_timeout = 300	# matches the FRA-side backstop; the real deadlines are in the tooltip
+		fire_only_once = no
+		cancel_trigger = {
+			VIN_no_campaign_running_trigger = yes
+		}
+		timeout_effect = {
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	VIN_Campaign_Objective_Timer = { # Viet Minh campaign backstop; hosted on FRA because FRA never vanishes
+		allowed = { always = no }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 300	# outlasts the longest deadline (Dien Bien Phu, 260 days); vin_campaign_objective_tick normally resolves first
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				NOT = { country_exists = VIN }
+				VIN = { VIN_no_campaign_running_trigger = yes }
+			}
+		}
+		timeout_effect = {
+			if = {	# the daily tick stalled somehow: force the failure branch rather than leave a war open forever
+				limit = {
+					country_exists = VIN
+					VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+				}
+				VIN = {
+					set_temp_variable = { vin_camp_outcome = 4 }
+					vin_campaign_resolve = yes
+				}
+			}
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	FRE_Operation_Timer = { # CEFEO operation watchdog; guarantees the operation resolves
+		allowed = { always = no }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 90
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = FRE_Operation_Resolved
+				NOT = { has_global_flag = FRE_Operation_Active }
+			}
+		}
+		timeout_effect = {
+			fre_operation_resolve = yes
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	FRE_Operation_LastChance_Timer = { # Shorter final window granted when a human commander presses on
+		allowed = { always = no }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 45
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = FRE_Operation_Resolved
+				NOT = { has_global_flag = FRE_Operation_Active }
+			}
+		}
+		timeout_effect = {
+			if = {
+				limit = { country_exists = FRE }
+				FRE = { fre_operation_threshold_resolve = yes }
+			}
+			else = { clr_global_flag = FRE_Operation_Active }
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
 	Laos_Raid_LastChance_Timer = { # Shorter final window granted when a human attacker chooses to press
 		allowed = { always = no }
 		available = { always = no }
@@ -152,6 +298,54 @@ Indochina_War_Rework = {
 		is_good = yes
 		selectable_mission = yes
 		days_mission_timeout = 90
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = Laos_Raid_Resolved
+				NOT = { has_global_flag = Laos_Raid_Active }
+			}
+		}
+		timeout_effect = {
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	Laos_Raid_Offensive = { # Attacker-side mirror of Laos_Raid_Defence: Hanoi was racing a clock it could not see
+		icon = generic_prepare_civil_war
+		allowed = { OR = { original_tag = VIN  original_tag = LAO } }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = yes
+		days_mission_timeout = 90
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = Laos_Raid_Resolved
+				NOT = { has_global_flag = Laos_Raid_Active }
+			}
+		}
+		timeout_effect = {
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	Laos_Raid_Offensive_LastChance = { # Attacker-side mirror of the 45-day last-chance window.
+		icon = generic_prepare_civil_war
+		allowed = { OR = { original_tag = VIN  original_tag = LAO } }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = yes
+		days_mission_timeout = 45
 		cancel_trigger = {
 			OR = {
 				has_global_flag = Indochina_War_Over
@@ -397,7 +591,7 @@ Indochina_War_Rework = {
                             defender = {
                                 state = var:ROOT.defender_state
                                 num_provinces = 4
-                                on_win = Indochina_Border_War.100
+                                on_win = Indochina_Border_War.9
                                 on_lose = Indochina_Border_War.10
                                 on_cancel = Indochina_Border_War.100
                             }
@@ -448,6 +642,23 @@ Indochina_War_Rework = {
                 set_variable = { ROOT.defender_state = THIS.id }
                 owner = {
                     set_variable = { ROOT.defender_tag = THIS.id }
+                    set_variable = { ROOT.ic_bw_defender_bloc = 0 }	# ROOT is always Communist here, so the outcome events are chosen by who is being attacked
+                    if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 1 }
+                    }
+                    else_if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 2 }
+                    }
+                    else_if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 3 }
+                    }
+                    else_if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 4 }
+                    }
                 }
             }
             random_state = {
@@ -465,7 +676,7 @@ Indochina_War_Rework = {
                 set_temp_variable = { attacker_state_temp = id }
                 if = {
                     limit = {
-                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 1 }
                     }
                     start_border_war = {
                         change_state_after_war = yes
@@ -488,7 +699,7 @@ Indochina_War_Rework = {
                 }
                 else_if = {
                     limit = {
-                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 2 }
                     }
                     start_border_war = {
                         change_state_after_war = yes
@@ -511,7 +722,7 @@ Indochina_War_Rework = {
                 }
                 else_if = {
                     limit = {
-                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 3 }
                     }
                     start_border_war = {
                         change_state_after_war = yes
@@ -531,9 +742,10 @@ Indochina_War_Rework = {
                             on_cancel = Indochina_Border_War.100
                         }
                     }
+                }
                     else_if = {
                         limit = {
-                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 4 }
                         }
                         start_border_war = {
                             change_state_after_war = yes
@@ -551,7 +763,6 @@ Indochina_War_Rework = {
                                 on_win = Indochina_Border_War.22
                                 on_lose = Indochina_Border_War.23
                                 on_cancel = Indochina_Border_War.100
-                            }
                         }
                     }
                 }

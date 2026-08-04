@@ -205,7 +205,9 @@ focus_tree = {
 			focus = FRE_Send_De_lattre_de_Tassigny
 		}
 		completion_reward = {
-			add_political_power = 175
+			add_political_power = 50
+			set_temp_variable = { fre_credit_amount = 150 }	# American money buys war, not politics
+			fre_change_war_credits = yes
 			if = {
 				limit = {
 					NOT = { has_global_flag = Indochina_War_Over }
@@ -474,10 +476,28 @@ focus_tree = {
 					indochina_struggle_recalculate_total_anti_communist_score = yes
 				}
 			}
+			if = {	# a war still being fought hard cannot be adjourned to a conference table
+				limit = {
+					geneva_conference_should_be_available_trigger = yes
+				}
 			set_global_flag = Geneva_Conference_Preparations
-			# Actually convene the conference: previously this only set the
-			# preparations flag and the negotiations could never complete.
 			indochina_struggle_invite_countries_to_geneva = yes
+			}
+			else = {	# Paris commits to a settlement and works the struggle down; indochina_geneva_pursuit_tick convenes it once the fighting has actually cooled
+				set_global_flag = Indochina_Geneva_Pursuit
+				custom_effect_tooltip = FRE_Geneva_Pursuit_tt
+				if = {
+					limit = {
+						NOT = { has_global_flag = Indochina_War_Over }
+					}
+					FRA = {
+						add_to_variable = {
+							global.Indochina_War_Next_Phase_B_Points = 150
+							tooltip = Add_to_De_Escalation_Phase_TT
+						}
+					}
+				}
+			}
 			if = {
 				limit = { country_exists = VIE }
 				VIE = {
@@ -597,7 +617,9 @@ focus_tree = {
 		completion_reward = {
 			# Subsidies can no longer fall to the Cut tier (floor at Reduced)
 			set_country_flag = FRE_Budget_Secured
-			add_political_power = 50
+			add_political_power = 25
+			set_temp_variable = { fre_credit_amount = 60 }
+			fre_change_war_credits = yes
 		}
 	}
 	focus = {

@@ -751,16 +751,20 @@ ic_pulse = {
 	# never has the minigame bypassed. Started in late May 1954 the 60-day
 	# timer expires ~21 July 1954, the OTL Geneva Accords date. The post-1957
 	# window catches AI-only stalemates that missed the historical window.
+	#
+	# The historical window runs to mid-1955 rather than 10 July 1954: an AI Hanoi
+	# fights Dien Bien Phu months behind the OTL schedule.
 	if = {
 		limit = {
 			tag = FRA
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = { has_global_flag = Indochina_War_Timer_Active }
 			indochina_struggle_all_participants_ai_trigger = yes
+			NOT = { indochina_war_still_being_fought_trigger = yes }	# let the campaign, the raid or the siege produce its own result first
 			OR = {
 				AND = {
 					date > 1954.5.20
-					date < 1954.7.10
+					date < 1955.7.1
 					# Let a human USA finish the VIN reunification event chain
 					# instead of resolving under them; the 1957 fallback still
 					# catches an abandoned chain.
@@ -7444,11 +7448,26 @@ ic_pulse = {
 			}
 		}
 	}
+	if = {	# Viet Minh campaign supply: init, monthly accrual and the stuck-campaign backstop
+		limit = {
+			tag = VIN
+			NOT = { has_global_flag = Indochina_War_Over }
+		}
+		vin_campaign_initialize = yes
+		vin_campaign_watchdog = yes
+		add_to_variable = { VIN_Supply_Accrual_Counter = 1 }
+		if = {
+			limit = { check_variable = { VIN_Supply_Accrual_Counter > 27.9 } }	# ic_pulse is daily
+			set_variable = { VIN_Supply_Accrual_Counter = 0 }
+			vin_accrue_monthly_supply = yes
+		}
+	}
 	if = {
 		limit = {
 			tag = VIN
 			date > 1953.3.01
-			date < 1953.3.30
+			date < 1955.3.30 # 2 year late trigger just in case
+			VIN_no_campaign_running_trigger = yes	# Laos waits its turn; it used to open a second front mid-campaign
 			NOT = {
 				has_global_flag = Phase3
 			}
@@ -7459,36 +7478,7 @@ ic_pulse = {
 				modifier = unplanned_offensive
 			}
 		}
-		LAO = {
-			transfer_state = 1295
-			add_state_core = 1295
-			add_state_core = 841
-			add_state_core = 670
-			add_state_core = 1196
-			add_state_core = 1198
-			add_state_core = 1191
-			add_state_core = 1187
-			set_capital = { state = 1295 }
-			keep_current_politics = yes
-		}
-		VIN = {
-			country_event = VINLAO.1
-			release_autonomy = {
-				target = LAO
-				autonomy_state = autonomy_easternbloc
-			}
-		}
-		LOS = {
-			declare_war_on = {
-				target = LAO
-				type = annex_everything
-			}
-			declare_war_on = {
-				target = VIN
-				type = puppet_wargoal_focus
-			}
-		}
-		ic_laos_raid_launch = yes
+		country_event = { id = VINLAO.10 days = 1 }	# Hanoi decides whether to cross into Laos at all
 	}
 	if = {
 		limit = {
@@ -14035,9 +14025,10 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			date > 1976.1.1	# reunification renamed the state and Saigon in 1976; an earlier conquest is still the DRV
 			VIN = {
 				NOT = {
-					has_cosmetic_tag = VIN_unified
+					has_country_flag = VIN_reunified
 				}
 				controls_state = 757
 				controls_state = 1287
@@ -14049,7 +14040,11 @@ ic_pulse = {
 			}
 		}
 		VIN = {
-			set_cosmetic_tag = VIN_unified
+			set_country_flag = VIN_reunified
+			if = {
+				limit = { has_cosmetic_tag = DRV }
+				drop_cosmetic_tag = yes	# base VIN loc is already the Socialist Republic of Viet Nam
+			}
 			286 = {
 				set_state_name = "Ho Chi Minh City"
 			}
