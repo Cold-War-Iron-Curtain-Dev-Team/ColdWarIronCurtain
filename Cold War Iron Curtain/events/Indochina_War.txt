@@ -643,3 +643,133 @@ news_event = {
  		name = EVT101954_OPTA
  	}
 }
+
+# ============================================================================
+# The Road to Sam Neua (March 1953)
+# ----------------------------------------------------------------------------
+# Replaces the unconditional Pathet Lao invasion that used to sit hardcoded in
+# the Phase3 block of ic_pulse. Hanoi now chooses. The AI always invades, which
+# is the historical outcome; the other two branches are human-only.
+#   .10 the choice
+#   .11 consolidation: no war, no state transfer, leverage instead
+#   .12 the deferred re-offer, mid-1954
+# ============================================================================
+
+country_event = {
+	id = VINLAO.10
+	title = VINLAO.10.t
+	desc = VINLAO.10.d
+	picture = GFX_VINLAO_1
+	is_triggered_only = yes
+
+	option = {	# Historical: release the Pathet Lao and cross the border
+		name = VINLAO.10.a
+		ai_chance = { factor = 100 }
+		if = {
+			ic_laos_raid_release_pathet_lao = yes
+			LOS = {
+				declare_war_on = {
+					target = LAO
+					type = annex_everything
+				}
+				declare_war_on = {
+					target = VIN
+					type = puppet_wargoal_focus
+				}
+			}
+			ic_laos_raid_launch = yes
+		}
+	}
+
+	option = {	# Build the movement inside Laos instead of invading for it
+		name = VINLAO.10.b
+		ai_chance = { factor = 0 }
+		trigger = { is_ai = no }
+		country_event = { id = VINLAO.11 hours = 6 }
+	}
+
+	option = {	# Not yet. Revisit before the conference.
+		name = VINLAO.10.c
+		ai_chance = { factor = 0 }
+		trigger = { is_ai = no }
+		set_country_flag = VIN_Laos_Deferred
+		country_event = { id = VINLAO.12 days = 300 }
+	}
+}
+
+country_event = {
+	id = VINLAO.11 # Consolidation in Laos
+	title = VINLAO.11.t
+	desc = VINLAO.11.d
+	picture = GFX_VINLAO_1
+	is_triggered_only = yes
+
+	option = {
+		name = VINLAO.11.a
+		set_global_flag = Laos_Pathet_Consolidation
+		set_variable = { global.geneva_outcome_pathet_lao = 5 }	# 1-4 are taken; see CWIC_Indochina_Outcomes_Scripted_Loc.txt
+		add_manpower = 15000
+		add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1200 producer = PRC }
+		set_temp_variable = { geneva_lev_amount = 50 }
+		geneva_add_communist_leverage = yes
+		if = {
+			limit = { NOT = { has_global_flag = Indochina_War_Over } }
+			FRA = {
+				add_to_variable = {
+					StruggleInvolvedNationsIndochinaCommunistScore = 60
+					tooltip = Add_to_Communist_Victory_Points_TT
+				}
+				add_to_variable = {
+					global.Indochina_War_Next_Phase_B_Points = 40
+					tooltip = Add_to_De_Escalation_Phase_TT
+				}
+			}
+		}
+		if = {	# the cadres are real even where the state is not
+			limit = { country_exists = LOS }
+			LOS = {
+				add_stability = -0.05
+				add_popularity = { ideology = communism popularity = 0.08 }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VINLAO.12 # The deferred decision comes back before Geneva
+	title = VINLAO.12.t
+	desc = VINLAO.12.d
+	picture = GFX_VINLAO_1
+	is_triggered_only = yes
+
+	option = {	# Go now, before the conference sits
+		name = VINLAO.12.a
+		trigger = {
+			NOT = { has_global_flag = geneva_conference_concluded }
+			NOT = { has_global_flag = Indochina_War_Over }
+			country_exists = LOS
+		}
+		clr_country_flag = VIN_Laos_Deferred
+		if = {
+			limit = { tag = VIN }	# the effects below are all tag-explicit; anyone else taking this option just spawns another CEFEO column for LOS
+			ic_laos_raid_release_pathet_lao = yes
+			LOS = {
+				declare_war_on = {
+					target = LAO
+					type = annex_everything
+				}
+				declare_war_on = {
+					target = VIN
+					type = puppet_wargoal_focus
+				}
+			}
+			ic_laos_raid_launch = yes
+		}
+	}
+
+	option = {	# Let it lapse into the consolidation outcome
+		name = VINLAO.12.b
+		clr_country_flag = VIN_Laos_Deferred
+		country_event = { id = VINLAO.11 hours = 6 }
+	}
+}
