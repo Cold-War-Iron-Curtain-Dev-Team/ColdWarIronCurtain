@@ -1,0 +1,382 @@
+# ============================================================================
+# CEFEO operation wrapper (Lorraine, Hirondelle, Mouette, Brochet, Castor)
+# ----------------------------------------------------------------------------
+# An operation is a commitment: Paris's War Credits buy a tier, the tier spawns
+# real columns and weights the border war, and a watchdog timer guarantees the
+# operation resolves even if the border war stalls or never starts.
+#
+# Same architecture as the 1953 Laos raid (IC_Laos_Raid_Effects.txt): launch ->
+# timer mission on FRA -> objective/threshold -> press-or-withdraw for a human
+# -> outcome. Every exit routes through fre_operation_finish, which keeps
+# FRE_no_operation_running_trigger from jamming the focus tree.
+#
+# Operation ids: 1 Lorraine, 2 Hirondelle, 3 Mouette, 4 Brochet, 5 Castor.
+# Commitment tiers: 0 Light, 1 Standard, 2 Maximum.
+# ============================================================================
+
+# --- Per-operation configuration (reads FRE_op_current) ---------------------
+# Sets the target-state array, the resistance the commitment must beat, and the
+# per-tier credit price. Historical objectives; the engine checks adjacency, so
+# the arrays are preferences rather than hardcoded pairs.
+fre_operation_load_config = {
+	clear_array = FRE_op_target_states
+	set_variable = { FRE_op_resistance = 45 }
+	set_variable = { FRE_op_price_light = 60 }
+	set_variable = { FRE_op_price_standard = 120 }
+	set_variable = { FRE_op_price_maximum = 200 }
+	if = {
+		limit = { check_variable = { FRE_op_current = 1 } }	# Lorraine: Clear River thrust into the Viet Bac
+		add_to_array = { FRE_op_target_states = 1767 }
+		add_to_array = { FRE_op_target_states = 1280 }
+		set_variable = { FRE_op_resistance = 45 }
+		set_variable = { FRE_op_price_light = 50 }
+		set_variable = { FRE_op_price_standard = 100 }
+		set_variable = { FRE_op_price_maximum = 160 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 2 } }	# Hirondelle: airborne raid on Lang Son
+		add_to_array = { FRE_op_target_states = 1768 }
+		set_variable = { FRE_op_resistance = 40 }
+		set_variable = { FRE_op_price_light = 40 }
+		set_variable = { FRE_op_price_standard = 80 }
+		set_variable = { FRE_op_price_maximum = 130 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 3 } }	# Mouette: spoiling attack toward Thanh Hoa
+		add_to_array = { FRE_op_target_states = 1762 }
+		set_variable = { FRE_op_resistance = 40 }
+		set_variable = { FRE_op_price_light = 45 }
+		set_variable = { FRE_op_price_standard = 90 }
+		set_variable = { FRE_op_price_maximum = 145 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 4 } }	# Brochet: southern delta clearing
+		add_to_array = { FRE_op_target_states = 1762 }
+		add_to_array = { FRE_op_target_states = 1766 }
+		set_variable = { FRE_op_resistance = 45 }
+		set_variable = { FRE_op_price_light = 45 }
+		set_variable = { FRE_op_price_standard = 90 }
+		set_variable = { FRE_op_price_maximum = 145 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 5 } }	# Castor: the airhead at Dien Bien Phu
+		add_to_array = { FRE_op_target_states = 671 }
+		add_to_array = { FRE_op_target_states = 1761 }
+		set_variable = { FRE_op_resistance = 60 }
+		set_variable = { FRE_op_price_light = 60 }
+		set_variable = { FRE_op_price_standard = 120 }
+		set_variable = { FRE_op_price_maximum = 200 }
+	}
+}
+
+# --- Entry point, called from the operation mission's complete_effect --------
+# Caller sets temp.fre_op_id first.
+fre_operation_begin = {
+	set_variable = { FRE_op_current = fre_op_id }
+	fre_operation_load_config = yes
+	country_event = { id = FRE_Ops.1 hours = 6 }	# commitment prompt
+}
+
+# --- Commitment: charge the credits, remember the tier ----------------------
+# Caller sets temp.fre_op_tier first.
+fre_operation_commit = {
+	set_variable = { FRE_op_commitment_tier = fre_op_tier }
+	set_temp_variable = { fre_credit_amount = FRE_op_price_light }
+	if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 1 } }
+		set_temp_variable = { fre_credit_amount = FRE_op_price_standard }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 2 } }
+		set_temp_variable = { fre_credit_amount = FRE_op_price_maximum }
+	}
+	if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 0 } }
+		custom_effect_tooltip = FRE_Ops_Commit_Light_tt
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 1 } }
+		custom_effect_tooltip = FRE_Ops_Commit_Standard_tt
+	}
+	else = {
+		custom_effect_tooltip = FRE_Ops_Commit_Maximum_tt
+	}
+	multiply_temp_variable = { fre_credit_amount = -1 }
+	fre_change_war_credits = yes
+	if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 2 } }
+		set_temp_variable = { fre_patience_delta = -8 }	# Paris notices a maximum effort
+		fre_metropole_patience_change = yes
+	}
+	fre_operation_launch = yes
+}
+
+# --- Launch: pick the ground, spawn the columns, open the border war --------
+fre_operation_launch = {
+	set_global_flag = FRE_Operation_Active
+	clr_global_flag = FRE_Operation_Resolved
+	clr_global_flag = FRE_Operation_Last_Chance
+	set_variable = { FRE_op_attacker_state = 0 }
+	set_variable = { FRE_op_defender_state = 0 }
+
+	# Preferred ground first: an FRE-owned state next to one of this operation's
+	# historical objectives. Written with ROOT. so the variables survive the hop
+	# back out to country scope, where start_border_war reads them.
+	random_owned_state = {
+		limit = {
+			any_neighbor_state = {
+				is_owned_by = VIN
+				is_in_array = { ROOT.FRE_op_target_states = THIS.id }
+			}
+		}
+		set_variable = { ROOT.FRE_op_attacker_state = THIS.id }
+		random_neighbor_state = {
+			limit = {
+				is_owned_by = VIN
+				is_in_array = { ROOT.FRE_op_target_states = THIS.id }
+			}
+			set_variable = { ROOT.FRE_op_defender_state = THIS.id }
+		}
+		fre_operation_spawn_columns = yes
+	}
+	# Widened fallback: any FRE-owned state touching Viet Minh ground.
+	if = {
+		limit = { check_variable = { FRE_op_defender_state = 0 } }
+		random_owned_state = {
+			limit = {
+				any_neighbor_state = { is_owned_by = VIN }
+			}
+			set_variable = { ROOT.FRE_op_attacker_state = THIS.id }
+			random_neighbor_state = {
+				limit = { is_owned_by = VIN }
+				set_variable = { ROOT.FRE_op_defender_state = THIS.id }
+			}
+			fre_operation_spawn_columns = yes
+		}
+	}
+
+	# The commitment tier is expressed by the columns and equipment put in the
+	# field above, not by a `modifier` on the border war, which no other border
+	# war here feeds a variable and which would fail to parse silently.
+	if = {
+		limit = { check_variable = { FRE_op_defender_state > 0 } }
+		start_border_war = {
+			change_state_after_war = no
+			combat_width = 80
+			minimum_duration_in_days = 21
+			attacker = {
+				state = var:FRE_op_attacker_state
+				num_provinces = 1	# 1760 Hanoi holds a single province; this is the safe universal value
+				on_win = FRE_Ops.10
+				on_lose = FRE_Ops.11
+				on_cancel = FRE_Ops.12
+			}
+			defender = {
+				state = var:FRE_op_defender_state
+				num_provinces = 1
+				on_win = FRE_Ops.20	# VIN-side flavour; the attacker block already books both FRE outcomes
+				on_lose = FRE_Ops.21
+				on_cancel = FRE_Ops.12
+			}
+		}
+	}
+
+	FRA = { activate_mission = FRE_Operation_Timer }	# FRA always exists and never vanishes mid-operation
+}
+
+# --- Columns bought by the commitment tier (runs in the attacker state) -----
+fre_operation_spawn_columns = {
+	custom_effect_tooltip = FRE_Ops_Spawn_GM_tt
+	create_unit = {
+		division = "name = \"Groupement Mobile\" division_template = \"Division Coloniale\" start_experience_factor = 0.4 start_equipment_factor = 1.0"
+		owner = FRE
+		allow_spawning_on_enemy_provs = yes
+	}
+	if = {
+		limit = { check_variable = { ROOT.FRE_op_commitment_tier > 0 } }
+		custom_effect_tooltip = FRE_Ops_Spawn_Para_tt
+		create_unit = {
+			division = "name = \"Groupement Aeroporte\" division_template = \"Division Coloniale\" start_experience_factor = 0.5 start_equipment_factor = 1.0"	# ASCII template only: create_unit cannot resolve the accented ones
+			owner = FRE
+			allow_spawning_on_enemy_provs = yes
+		}
+	}
+	if = {
+		limit = { check_variable = { ROOT.FRE_op_commitment_tier > 1 } }
+		custom_effect_tooltip = FRE_Ops_Spawn_Legion_tt
+		create_unit = {
+			division = "name = \"Groupement de Marche\" division_template = \"Division Coloniale\" start_experience_factor = 0.6 start_equipment_factor = 1.0"	# ASCII template only: create_unit cannot resolve the accented ones
+			owner = FRE
+			allow_spawning_on_enemy_provs = yes
+		}
+		ROOT = {
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 2000 producer = FRA }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 300 producer = FRA }
+		}
+	}
+}
+
+# --- Watchdog expiry (called from FRE_Operation_Timer, FRA scope) -----------
+fre_operation_resolve = {
+	if = {
+		limit = { NOT = { has_global_flag = FRE_Operation_Active } }
+	}
+	else_if = {
+		limit = {
+			country_exists = FRE
+			FRE = { is_ai = no }
+			NOT = { has_global_flag = FRE_Operation_Last_Chance }
+		}
+		set_global_flag = FRE_Operation_Last_Chance
+		FRE = { country_event = { id = FRE_Ops.2 hours = 6 } }	# press on, or break off
+	}
+	else = {
+		if = {
+			limit = { country_exists = FRE }
+			FRE = { fre_operation_threshold_resolve = yes }
+		}
+		else = { clr_global_flag = FRE_Operation_Active }
+	}
+}
+
+# --- Press on: heavier attrition, one shorter window ------------------------
+fre_operation_press = {
+	add_stability = -0.03
+	add_war_support = -0.02
+	if = {
+		limit = { NOT = { has_idea = FRE_Operation_Overextension } }
+		add_ideas = FRE_Operation_Overextension
+	}
+	FRA = { activate_mission = FRE_Operation_LastChance_Timer }
+}
+
+# --- Deterministic outcome when the border war did not settle it ------------
+# Commitment tier is the dominant term; the standing CEFEO bonuses (commander,
+# GCMA network, VNA coordination) are what the player has banked toward it.
+fre_operation_threshold_resolve = {
+	set_temp_variable = { fre_op_score = 25 }
+	if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 1 } }
+		set_temp_variable = { fre_op_score = 50 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_commitment_tier = 2 } }
+		set_temp_variable = { fre_op_score = 75 }
+	}
+	set_temp_variable = { mission_success_chance = 0 }	# the shared helper adds into this, it does not seed it
+	fre_mission_apply_modifier_bonuses = yes
+	add_to_temp_variable = { fre_op_score = mission_success_chance }
+
+	set_temp_variable = { fre_op_win_at = FRE_op_resistance }
+	add_to_temp_variable = { fre_op_win_at = 15 }
+	set_temp_variable = { fre_op_hold_at = FRE_op_resistance }
+	subtract_from_temp_variable = { fre_op_hold_at = 15 }
+
+	if = {
+		limit = { check_variable = { fre_op_score > fre_op_win_at } }
+		fre_operation_fire_outcome_success = yes
+	}
+	else_if = {
+		limit = { check_variable = { fre_op_score > fre_op_hold_at } }
+		set_country_flag = FRE_Operation_Stalemate
+		if = {
+			limit = { NOT = { has_global_flag = Indochina_War_Over } }
+			FRA = {	# the line held even though the objective did not fall, so half the failure's damage is refunded
+				add_to_variable = {
+					StruggleInvolvedNationsIndochinaProFranceScore = 50
+					tooltip = Add_to_French_Victory_Points_TT
+				}
+				indochina_struggle_recalculate_total_anti_communist_score = yes
+			}
+		}
+		fre_operation_fire_outcome_failure = yes
+	}
+	else = {
+		fre_operation_fire_outcome_failure = yes
+	}
+}
+
+# --- Outcome dispatch (FRE scope) ------------------------------------------
+fre_operation_fire_outcome_success = {
+	fre_operation_finish = yes
+	if = {
+		limit = { check_variable = { FRE_op_current = 1 } }
+		country_event = { id = FRE_Events.24 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 2 } }
+		country_event = { id = FRE_Events.26 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 3 } }
+		country_event = { id = FRE_Events.28 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 4 } }
+		country_event = { id = FRE_Events.30 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 5 } }
+		country_event = { id = FRE_Events.32 hours = 6 }
+	}
+}
+
+fre_operation_fire_outcome_failure = {
+	fre_operation_finish = yes
+	if = {
+		limit = { check_variable = { FRE_op_current = 1 } }
+		country_event = { id = FRE_Events.25 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 2 } }
+		country_event = { id = FRE_Events.27 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 3 } }
+		country_event = { id = FRE_Events.29 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 4 } }
+		country_event = { id = FRE_Events.31 hours = 6 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 5 } }
+		country_event = { id = FRE_Events.33 hours = 6 }
+	}
+}
+
+# --- The invariant: every exit clears the operation state -------------------
+# Nothing may resolve an operation without going through here: a stranded
+# FRE_Mission_Operation_<X>_Activated flag locks FRE_no_operation_running_trigger
+# and with it the focus tree.
+fre_operation_finish = {
+	clr_global_flag = FRE_Operation_Active
+	set_global_flag = FRE_Operation_Resolved
+	clr_global_flag = FRE_Operation_Last_Chance
+	if = {
+		limit = { has_idea = FRE_Operation_Overextension }
+		remove_ideas = FRE_Operation_Overextension
+	}
+	clr_country_flag = FRE_Operation_Stalemate
+	set_variable = { FRE_op_attacker_state = 0 }
+	set_variable = { FRE_op_defender_state = 0 }
+}
+
+# --- Safety net, called from fre_weekly_pulse ------------------------------
+# If an operation flag has been standing for 150 days with no border war and no
+# live timer, force it to resolve rather than let it jam the tree.
+fre_operation_watchdog = {
+	if = {
+		limit = {
+			has_border_war = no
+			OR = {
+				has_country_flag = { flag = FRE_Mission_Operation_Lorraine_Activated days > 150 }
+				has_country_flag = { flag = FRE_Mission_Operation_Hirondelle_Activated days > 150 }
+				has_country_flag = { flag = FRE_Mission_Operation_Mouette_Activated days > 150 }
+				has_country_flag = { flag = FRE_Mission_Operation_Brochet_Activated days > 150 }
+				has_country_flag = { flag = FRE_Mission_Operation_Castor_Activated days > 150 }
+			}
+		}
+		fre_operation_threshold_resolve = yes
+	}
+}

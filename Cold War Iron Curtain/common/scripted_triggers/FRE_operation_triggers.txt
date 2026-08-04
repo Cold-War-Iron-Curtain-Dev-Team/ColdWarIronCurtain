@@ -43,3 +43,56 @@ FRE_operation_cooldown_ready_trigger = {
 		}
 	}
 }
+
+# The AI is banking political power for a pending CEFEO mission.
+#
+# The prep missions activate on one focus flag but only become available on a
+# second one from a later focus, and HOI4's decision AI does not save up. This
+# gate zeroes the competing decisions until the reserve is intact. Keyed on
+# _Activated rather than on availability precisely so the AI banks through that
+# gap; human players are never gated, since the reserve lives in ai_will_do.
+FRE_mission_pp_reserved_trigger = {
+	is_ai = yes
+	check_variable = { political_power < 160 }
+	OR = {
+		AND = {
+			has_country_flag = FRE_Mission_Assess_RC4_Activated
+			NOT = { has_country_flag = FRE_Mission_Assess_RC4_Completed }
+		}
+		AND = {
+			has_country_flag = FRE_Mission_Address_Revers_Report_Activated
+			NOT = { has_country_flag = FRE_Mission_Address_Revers_Report_Completed }
+		}
+		AND = {
+			has_country_flag = FRE_Mission_De_Lattre_Arrival_Activated
+			NOT = { has_country_flag = FRE_Mission_De_Lattre_Arrival_Completed }
+		}
+		AND = {
+			has_country_flag = FRE_Mission_Prepare_Na_San_Activated
+			NOT = { has_country_flag = FRE_Mission_Prepare_Na_San_Completed }
+		}
+		AND = {
+			has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Activated
+			NOT = { has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Completed }
+		}
+		AND = {
+			has_country_flag = FRE_Mission_Prepare_Mao_Khe_Activated
+			NOT = { has_country_flag = FRE_Mission_Prepare_Mao_Khe_Completed }
+		}
+	}
+}
+
+# An operation focus is waiting on a war chest the AI cannot yet afford.
+# Used to push the extraordinary-credits decision up the AI's list, since the
+# operations are paid in War Credits and starving that starves the whole chain.
+FRE_operation_credits_short_trigger = {
+	is_ai = yes
+	check_variable = { FRE_War_Credits < 120 }
+	OR = {
+		has_country_flag = FRE_Operation_Lorraine_Launched
+		has_country_flag = FRE_Operation_Hirondelle_Launched
+		has_country_flag = FRE_Operation_Mouette_Launched
+		has_country_flag = FRE_Operation_Brochet_Launched
+		has_country_flag = FRE_Operation_Castor_Launched
+	}
+}

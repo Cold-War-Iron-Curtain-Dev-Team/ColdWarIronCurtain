@@ -1,0 +1,202 @@
+add_namespace = FRE_Ops
+
+# ============================================================================
+# CEFEO operation commitment and resolution events.
+# Driven by FRE_Operation_Effects.txt; see that file for the tier contract.
+#   .1  commitment prompt (Light / Standard / Maximum)
+#   .2  press-or-break-off prompt when the watchdog expires on a human
+#   .10 .11 .12  border-war callbacks for the attacking CEFEO
+#   .20 .21      border-war callbacks that reach Hanoi
+# ============================================================================
+
+country_event = {
+	id = FRE_Ops.1 # Commit the operation
+	title = FRE_Ops.1.t
+	desc = FRE_Ops.1.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+
+	option = {
+		name = FRE_Ops.1.a	# Light
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 4
+				check_variable = { FRE_War_Credits < 120 }
+			}
+		}
+		trigger = {
+			check_variable = { FRE_War_Credits > FRE_op_price_light }
+		}
+		set_temp_variable = { fre_op_tier = 0 }
+		fre_operation_commit = yes
+	}
+
+	option = {
+		name = FRE_Ops.1.b	# Standard
+		ai_chance = {
+			factor = 6
+			modifier = {
+				factor = 0
+				check_variable = { FRE_War_Credits < FRE_op_price_standard }
+			}
+		}
+		trigger = {
+			check_variable = { FRE_War_Credits > FRE_op_price_standard }
+		}
+		set_temp_variable = { fre_op_tier = 1 }
+		fre_operation_commit = yes
+	}
+
+	option = {
+		name = FRE_Ops.1.c	# Maximum
+		ai_chance = {
+			factor = 3
+			modifier = {
+				factor = 0
+				check_variable = { FRE_War_Credits < FRE_op_price_maximum }
+			}
+			modifier = {
+				factor = 3
+				check_variable = { FRE_op_current = 5 }	# Castor is the operation worth emptying the chest for
+			}
+		}
+		trigger = {
+			check_variable = { FRE_War_Credits > FRE_op_price_maximum }
+		}
+		set_temp_variable = { fre_op_tier = 2 }
+		fre_operation_commit = yes
+	}
+
+	option = {
+		name = FRE_Ops.1.e	# Cannot afford anything: the operation lapses
+		trigger = {
+			NOT = { check_variable = { FRE_War_Credits > FRE_op_price_light } }	# exact complement of option a, so the event always has one valid choice
+		}
+		custom_effect_tooltip = FRE_Ops_Commit_None_tt
+		fre_operation_finish = yes
+		fre_operation_fire_outcome_failure = yes
+	}
+}
+
+country_event = {
+	id = FRE_Ops.2 # The operation has run its course
+	title = FRE_Ops.2.t
+	desc = FRE_Ops.2.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+
+	option = {
+		name = FRE_Ops.2.a	# Press on
+		ai_chance = { factor = 0 }
+		fre_operation_press = yes
+	}
+
+	option = {
+		name = FRE_Ops.2.b	# Break off and bank what was gained
+		ai_chance = { factor = 1 }
+		fre_operation_threshold_resolve = yes
+	}
+}
+
+country_event = {
+	id = FRE_Ops.10 # Border war won
+	title = FRE_Ops.10.t
+	desc = FRE_Ops.10.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+	hidden = yes
+
+	immediate = {
+		remove_all_current_border_war_variables = yes
+		fre_operation_fire_outcome_success = yes
+	}
+
+	option = {
+		name = FRE_Ops.10.a
+	}
+}
+
+country_event = {
+	id = FRE_Ops.11 # Border war lost
+	title = FRE_Ops.11.t
+	desc = FRE_Ops.11.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+	hidden = yes
+
+	immediate = {
+		remove_all_current_border_war_variables = yes
+		fre_operation_fire_outcome_failure = yes
+	}
+
+	option = {
+		name = FRE_Ops.11.a
+	}
+}
+
+country_event = {
+	id = FRE_Ops.12 # Border war cancelled - fall through to the commitment threshold
+	title = FRE_Ops.12.t
+	desc = FRE_Ops.12.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+	hidden = yes
+
+	immediate = {
+		remove_all_current_border_war_variables = yes
+		if = {
+			limit = { tag = FRE }	# the cancel callback reaches the defender too; only Saigon resolves the operation
+			fre_operation_threshold_resolve = yes
+		}
+	}
+
+	option = {
+		name = FRE_Ops.12.a
+	}
+}
+
+country_event = {
+	id = FRE_Ops.20 # Hanoi holds the line
+	title = FRE_Ops.20.t
+	desc = FRE_Ops.20.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+
+	option = {
+		name = FRE_Ops.20.a
+		trigger = { tag = VIN }
+		add_war_support = 0.02
+	}
+
+	option = {
+		name = FRE_Ops.20.b
+		trigger = { NOT = { tag = VIN } }
+	}
+}
+
+country_event = {
+	id = FRE_Ops.21 # Hanoi gives ground
+	title = FRE_Ops.21.t
+	desc = FRE_Ops.21.d
+	picture = GFX_report_event_generic_soldiers
+
+	is_triggered_only = yes
+
+	option = {
+		name = FRE_Ops.21.a
+		trigger = { tag = VIN }
+		add_war_support = -0.02
+	}
+
+	option = {
+		name = FRE_Ops.21.b
+		trigger = { NOT = { tag = VIN } }
+	}
+}

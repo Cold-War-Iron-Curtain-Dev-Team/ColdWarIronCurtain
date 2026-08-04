@@ -109,6 +109,48 @@ fre_cefeo_initialize = {
 		set_variable = { FRE_VNA_Coordination = 0 }
 		fre_update_metropole_tier = yes
 	}
+	if = {
+		limit = { NOT = { has_variable = FRE_War_Credits } }	# separate guard so saves made before the credits existed still pick them up
+		set_variable = { FRE_War_Credits = 150 }
+		set_variable = { FRE_Credit_Accrual_Counter = 0 }
+	}
+	if = {
+		limit = { NOT = { has_idea = FRE_Indochina_War_Credits } }
+		add_ideas = FRE_Indochina_War_Credits
+	}
+	if = {
+		limit = { NOT = { has_idea = FRE_Under_Metropole_Command } }	# the corps stopped being a French puppet; this carries what that used to imply
+		add_ideas = FRE_Under_Metropole_Command
+	}
+}
+
+# --- War Credits ------------------------------------------------------------
+# The corps pays for its own war in Credits; political power is left for
+# politics. Credits accrue monthly at a rate set by the subsidy tier, and can
+# be topped up out of turn by FRE_Request_Extraordinary_Credits at the cost of
+# Metropole Patience. Callers set temp.fre_credit_amount (signed) first.
+fre_change_war_credits = {
+	add_to_variable = { FRE_War_Credits = fre_credit_amount }
+	clamp_variable = {
+		var = FRE_War_Credits
+		min = 0
+		max = 2000
+	}
+	custom_effect_tooltip = FRE_War_Credits_Change_tt
+}
+
+# Monthly accrual, called from fre_weekly_pulse every fourth week.
+fre_accrue_monthly_credits = {
+	set_temp_variable = { fre_credit_amount = 10 }	# Cut tier
+	if = {
+		limit = { check_variable = { FRE_Metropole_Patience > 65.99 } }
+		set_temp_variable = { fre_credit_amount = 40 }
+	}
+	else_if = {
+		limit = { check_variable = { FRE_Metropole_Patience > 32.99 } }
+		set_temp_variable = { fre_credit_amount = 25 }
+	}
+	hidden_effect = { fre_change_war_credits = yes }
 }
 
 # Grow the GCMA auxiliary network by one level (max 4). Each level adds +3 to
@@ -156,6 +198,13 @@ fre_weekly_pulse = {
 	}
 	else_if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		fre_operation_watchdog = yes	# nothing may leave an operation flag standing forever
+		add_to_variable = { FRE_Credit_Accrual_Counter = 1 }
+		if = {
+			limit = { check_variable = { FRE_Credit_Accrual_Counter > 3.9 } }	# monthly
+			set_variable = { FRE_Credit_Accrual_Counter = 0 }
+			fre_accrue_monthly_credits = yes
+		}
 		add_to_variable = { FRE_Patience_Decay_Counter = 1 }
 		# FRE_Manage_the_Press_Corps stretches the decay interval 4 -> 6 weeks
 		set_temp_variable = { fre_decay_interval = 3.9 }
