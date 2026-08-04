@@ -22,7 +22,55 @@ d_ic_reset = {
         set_variable = { global.indochina_border_war_check = 0 }
         set_variable = { show_indochina_end_gui = 0 }
         set_variable = { show_indochina_phase_gui = 0 }
+        set_variable = { show_indochina_outcome_gui = 0 }
+        test_indochina_outcomes_reset = yes
     }
+}
+
+# Shared clears for the Geneva war-outcomes tracker (callable standalone via console)
+test_indochina_outcomes_reset = {
+    clr_global_flag = Laos_Raid_Stalemate
+    clr_global_flag = Laos_Raid_Total_Failure
+    clr_global_flag = Southern_VietMinh_Defeated
+    clr_global_flag = geneva_nlf_outcome_applied
+    clr_global_flag = geneva_dbp_outcome_applied
+    clr_global_flag = geneva_sects_outcome_applied
+    clr_global_flag = geneva_highland_tai_applied
+    clr_global_flag = geneva_highland_meo_applied
+    clr_global_flag = geneva_highland_nun_applied
+    clr_global_flag = geneva_laos_raid_outcome_applied
+    set_variable = { global.geneva_outcome_nlf = 0 }
+    set_variable = { global.geneva_outcome_pathet_lao = 0 }
+    set_variable = { global.geneva_outcome_dbp = 0 }
+    set_variable = { global.geneva_outcome_sects = 0 }
+    set_variable = { global.geneva_outcome_highland = 0 }
+    set_variable = { global.geneva_outcome_highland_done = 0 }
+    set_variable = { global.geneva_outcome_laos_raid = 0 }
+}
+
+# USA_indochina_settlement_window_trigger: the AI-only gate on the American settlement
+# focuses. Opens it via the Dien Bien Phu recorder, which is the cheapest single clause.
+test_usa_settlement_window_open = {
+    set_global_flag = geneva_dbp_outcome_applied    # keep the daily pulse from re-deriving it from the FRE flags
+    set_variable = { global.geneva_outcome_dbp = 2 }
+    log = "[USA TEST] settlement window opened: dbp=[?global.geneva_outcome_dbp] phase=[?global.Indochina_War_Active_Phase] comm=[?global.geneva_cache_comm_score] highland=[?global.geneva_outcome_highland]"
+}
+
+# Shuts every clause the window can open on, so the gate can be re-tested from a save
+# that has already tripped one. The date backstop still applies after 1953.7.1.
+test_usa_settlement_window_close = {
+    test_indochina_outcomes_reset = yes
+    clr_global_flag = Laos_Raid_Attacker_Won
+    clr_global_flag = Laos_Raid_Resolved
+    set_variable = { global.Indochina_War_Active_Phase = 5 }
+    set_variable = { global.geneva_cache_comm_score = 0 }
+    set_variable = { global.geneva_cache_comm_x2 = 0 }
+    set_variable = { global.geneva_cache_anticomm_score = 0 }
+    if = {
+        limit = { country_exists = FRE }
+        FRE = { set_variable = { FRE_Metropole_Patience = 75 } }
+    }
+    log = "[USA TEST] settlement window closed: dbp=[?global.geneva_outcome_dbp] phase=[?global.Indochina_War_Active_Phase] comm=[?global.geneva_cache_comm_score] highland=[?global.geneva_outcome_highland]"
 }
 
 test_indochina_reset = {
@@ -43,6 +91,8 @@ test_indochina_reset = {
     set_variable = { global.indochina_border_war_check = 0 }
     set_variable = { show_indochina_end_gui = 0 }
     set_variable = { show_indochina_phase_gui = 0 }
+    set_variable = { show_indochina_outcome_gui = 0 }
+    test_indochina_outcomes_reset = yes
 }
 
 test_indochina_setup_initial = {
