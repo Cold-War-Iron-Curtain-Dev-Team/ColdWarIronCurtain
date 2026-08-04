@@ -1856,6 +1856,76 @@ country_event = {
 		name = USA_INDO.3.a
 	}
 }
+# Fired by indochina_geneva_panic_force_conference. The conference is already
+# convening by the time this lands: the choice here is what the American
+# delegation is instructed to save, not whether Washington shows up.
+country_event = {
+	id = USA_INDO.4
+	title = USA_INDO.4.t
+	desc = USA_INDO.4.d
+	picture = GFX_USA_INDO_1
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {	# hold the line, kill the ballot
+		name = USA_INDO.4.a
+		set_global_flag = geneva_usa_panic_no_ballot
+		set_temp_variable = { usa_indo_score = 100 }
+		USA_indochina_add_profrance_score = yes	# Washington inherits the position Paris can no longer hold
+		set_temp_variable = { usa_indo_b_points = 250 }
+		USA_indochina_diplomatic_push = yes
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 1.5
+				has_completed_focus = USA_50s_Withhold_American_Assent
+			}
+			modifier = {
+				factor = 0.4
+				has_completed_focus = USA_50s_Endorse_Free_Vietnamese_Vote
+			}
+		}
+	}
+	option = {	# attend, but sign nothing
+		name = USA_INDO.4.b
+		set_global_flag = geneva_usa_panic_disowns_settlement
+		add_stability = -0.05
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_profrance_score = yes
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 2
+				has_completed_focus = USA_50s_Endorse_Free_Vietnamese_Vote
+			}
+		}
+	}
+}
+# The same day, in Paris. FRA scope.
+country_event = {
+	id = USA_INDO.5
+	immediate = { }
+	title = USA_INDO.5.t
+	desc = USA_INDO.5.d
+	picture = GFX_USA_INDO_1
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = USA_INDO.5.a
+		add_stability = -0.05
+		add_war_support = -0.10
+		if = {
+			limit = { country_exists = FRE }
+			FRE = {
+				set_temp_variable = { fre_patience_delta = -20 }
+				fre_metropole_patience_change = yes
+			}
+		}
+	}
+}
 add_namespace = nato_expansion
 country_event = {
 	id = nato_expansion.3
@@ -3790,5 +3860,285 @@ country_event = {
 
 	option = {
 		name = USA_50s_Dip_Desks.11.a
+	}
+}
+add_namespace = USA_DiemRecog
+
+country_event = {
+	id = USA_DiemRecog.1
+	immediate = { }
+	title = USA_DiemRecog.1.t
+	desc = {
+		trigger = { has_global_flag = VIE_Republic_Proclaimed }
+		text = USA_DiemRecog.1.d_referendum
+	}
+	desc = {
+		trigger = { NOT = { has_global_flag = VIE_Republic_Proclaimed } }
+		text = USA_DiemRecog.1.d_premier
+	}
+	picture = GFX_BaoDai.9
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = USA_DiemRecog.1.a
+		add_opinion_modifier = {
+			target = VIE
+			modifier = medium_increase
+		}
+		set_temp_variable = { usa_indo_rapp = -50 }
+		USA_indochina_seed_rapprochement = yes	# recognising one Vietnam is a statement that there are two
+		hidden_effect = {
+			if = {
+				limit = { country_exists = VIE }
+				VIE = { country_event = { id = USA_DiemRecog.2 hours = 12 } }
+			}
+			news_event = { id = USA_DiemRecog.100 hours = 6 }
+		}
+	}
+}
+
+country_event = {
+	id = USA_DiemRecog.2
+	immediate = { }
+	title = USA_DiemRecog.2.t
+	desc = USA_DiemRecog.2.d
+	picture = GFX_BaoDai.9
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = USA_DiemRecog.2.a
+		add_stability = 0.05
+		add_political_power = 50
+		add_opinion_modifier = {
+			target = USA
+			modifier = medium_increase
+		}
+	}
+}
+
+news_event = {
+	id = USA_DiemRecog.100
+	immediate = { }
+	title = USA_DiemRecog.100.t
+	desc = USA_DiemRecog.100.d
+	picture = GFX_BaoDai.100
+
+	is_triggered_only = yes
+	major = yes
+
+	option = {
+		name = USA_DiemRecog.100.a
+	}
+}
+
+add_namespace = USA_DiemCoup
+
+country_event = {
+	id = USA_DiemCoup.1
+	immediate = { }
+	title = USA_DiemCoup.1.t
+	desc = USA_DiemCoup.1.d
+	picture = GFX_French_Coup.1
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = USA_DiemCoup.1.a
+		set_temp_variable = { usa_indo_score = 75 }
+		USA_indochina_add_profrance_score = yes
+		hidden_effect = {
+			if = {
+				limit = { country_exists = VIE }
+				VIE = { country_event = { id = USA_DiemCoup.2 days = 3 } }
+			}
+			else = {
+				USA = { country_event = { id = USA_DiemCoup.3 days = 2 } }	# there is no longer a Saigon to move against
+			}
+		}
+		ai_chance = {
+			base = 60
+			modifier = {
+				factor = 2
+				AND = {
+					country_exists = VIE
+					VIE = { check_variable = { FRA_Influence < 25 } }	# Saigon is already slipping; the officers will not get a better moment
+				}
+			}
+			modifier = {
+				factor = 0
+				has_completed_focus = FRA_Retreat_From_Indochina	# Paris has written Indochina off and will not be dragged back
+			}
+			modifier = {
+				factor = 0
+				has_completed_focus = FRA_Accept_Diems_Regime
+			}
+		}
+	}
+	option = {
+		name = USA_DiemCoup.1.b
+		set_temp_variable = { usa_indo_b_points = 50 }
+		USA_indochina_diplomatic_push = yes
+		hidden_effect = {
+			USA = { country_event = { id = USA_DiemCoup.3 days = 2 } }
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 3
+				has_completed_focus = FRA_Retreat_From_Indochina
+			}
+			modifier = {
+				factor = 3
+				has_completed_focus = FRA_Accept_Diems_Regime
+			}
+		}
+	}
+}
+
+country_event = {
+	id = USA_DiemCoup.2
+	immediate = { }
+	title = USA_DiemCoup.2.t
+	desc = USA_DiemCoup.2.d
+	picture = GFX_French_Coup.2
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = USA_DiemCoup.2.a
+		set_country_flag = VIE_FRA_Coup
+		country_event = { id = French_Coup.2 hours = 3 }
+		hidden_effect = {
+			USA = { country_event = { id = USA_DiemCoup.4 days = 2 } }
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 2
+				check_variable = { FRA_Influence > 24 }	# the palace guard still answers to Paris
+			}
+			modifier = {
+				factor = 0.5
+				has_stability > 0.5
+			}
+		}
+	}
+	option = {
+		name = USA_DiemCoup.2.b
+		add_political_power = -150
+		add_stability = -0.15
+		set_country_flag = VIE_FRA_Coup	# Paris does not get a second attempt, and the standing ProFrench_Coup mission retires with it
+		set_country_flag = VIE_FRA_Coup_Failed
+		add_opinion_modifier = {
+			target = USA
+			modifier = large_decrease
+		}
+		add_opinion_modifier = {
+			target = FRA
+			modifier = large_decrease
+		}
+		hidden_effect = {
+			USA = { country_event = { id = USA_DiemCoup.5 days = 2 } }
+		}
+		ai_chance = {
+			base = 60
+			modifier = {
+				factor = 2
+				has_stability > 0.5
+			}
+			modifier = {
+				factor = 1.5
+				has_war_support > 0.5
+			}
+			modifier = {
+				factor = 0.5
+				check_variable = { FRA_Influence > 24 }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = USA_DiemCoup.3
+	immediate = { }
+	title = USA_DiemCoup.3.t
+	desc = USA_DiemCoup.3.d
+	picture = GFX_USA_INDO_1
+
+	is_triggered_only = yes
+
+	option = {
+		name = USA_DiemCoup.3.a
+		set_temp_variable = { usa_indo_score = 25 }
+		USA_indochina_add_profrance_score = yes
+	}
+}
+
+country_event = {
+	id = USA_DiemCoup.4
+	immediate = { }
+	title = USA_DiemCoup.4.t
+	desc = USA_DiemCoup.4.d
+	picture = GFX_French_Coup.2
+
+	is_triggered_only = yes
+
+	option = {
+		name = USA_DiemCoup.4.a
+		set_temp_variable = { usa_indo_score = 125 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_score = -125 }
+		USA_indochina_add_proindependence_score = yes	# the nationalist government Washington built is gone, and Washington signed for it
+		set_temp_variable = { usa_indo_a_points = 75 }
+		USA_indochina_escalation_push = yes
+		set_temp_variable = { usa_indo_rapp = -75 }
+		USA_indochina_seed_rapprochement = yes
+		set_temp_variable = { geneva_lev_amount = 50 }
+		geneva_add_profrance_leverage = yes
+		hidden_effect = {
+			news_event = { id = USA_DiemCoup.100 hours = 6 }
+		}
+	}
+}
+
+country_event = {
+	id = USA_DiemCoup.5
+	immediate = { }
+	title = USA_DiemCoup.5.t
+	desc = USA_DiemCoup.5.d
+	picture = GFX_USA_INDO_1
+
+	is_triggered_only = yes
+
+	option = {
+		name = USA_DiemCoup.5.a
+		add_political_power = -50
+		set_temp_variable = { usa_indo_score = -100 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_communist_score = yes	# the cadres get to say the Americans tried to sell Saigon back to Paris
+		set_temp_variable = { usa_indo_rapp = -50 }
+		USA_indochina_seed_rapprochement = yes
+	}
+}
+
+news_event = {
+	id = USA_DiemCoup.100
+	immediate = { }
+	title = USA_DiemCoup.100.t
+	desc = USA_DiemCoup.100.d
+	picture = GFX_French_Coup.2
+
+	is_triggered_only = yes
+	major = yes
+
+	option = {
+		name = USA_DiemCoup.100.a
 	}
 }
