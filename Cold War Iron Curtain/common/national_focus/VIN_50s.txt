@@ -66,6 +66,11 @@ focus_tree = {
 			PRC = {
 				country_event = SWF_VIN.2
 			}
+			set_temp_variable = { indochina_phase_amount = 60 }	# two great powers just took a side
+			indochina_struggle_escalate = yes
+			vin_campaign_initialize = yes
+			set_temp_variable = { vin_supply_amount = 40 }
+			vin_change_campaign_supply = yes
 		}
 	}
 	focus = {
@@ -96,6 +101,11 @@ focus_tree = {
 			CHI = {
 				country_event = SWF_VIN.4
 			}
+			set_temp_variable = { indochina_phase_amount = 40 }	# Nanking is a thinner patron than Beijing, and the border is not ours
+			indochina_struggle_escalate = yes
+			vin_campaign_initialize = yes
+			set_temp_variable = { vin_supply_amount = 25 }
+			vin_change_campaign_supply = yes
 		}
 	}
 	focus = {
@@ -2129,8 +2139,8 @@ focus_tree = {
 		y = 1
 		available = {
 			custom_trigger_tooltip = {
-				tooltip = geneva_election_scheduled_avail_TT
-				geneva_election_pending_trigger = yes	# there is no election crisis to open if the accords never scheduled a ballot
+				tooltip = geneva_election_campaign_open_avail_TT
+				geneva_election_campaign_open_trigger = yes	# there is no election crisis to open before anyone is campaigning; this focus is what puts the question to Saigon
 			}
 		}
 		bypass = {
@@ -3146,7 +3156,7 @@ focus_tree = {
 			focus = VIN_First_Phase_Towards_Socialism
 		}
 		x = 0
-		y = 1
+		y = 2
 		completion_reward = {
 			country_event = VIN_Econ.10
 			786 = {
@@ -4661,6 +4671,13 @@ focus_tree = {
 		}
 		cost = 7
 		relative_position_id = VIN_Equip_Cong_Binh
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+		}
 		x = 0
 		y = 1
 		completion_reward = {
@@ -4678,22 +4695,19 @@ focus_tree = {
 		}
 		cost = 7
 		relative_position_id = VIN_Sign_Sac_17
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+		}
 		x = 0
 		y = 1
 		completion_reward = {
-			every_state = {
-				limit = {
-					is_core_of = VIN
-					NOT = {
-						is_core_of = MEO
-					}
-					NOT = { is_owned_by = VIE }
-					NOT = { is_owned_by = CCC }
-					NOT = { is_owned_by = FUL }
-					NOT = { is_owned_by = NLF }
-				}
-				add_resistance = 15
-			}
+			set_country_flag = VIN_Guerilla_Networks_Expanded
+			custom_effect_tooltip = VIN_Guerilla_Networks_tt
+			vin_sync_guerilla_networks = yes
 		}
 	}
 	focus = {
@@ -4706,6 +4720,13 @@ focus_tree = {
 		}
 		cost = 7
 		relative_position_id = VIN_Sign_Sac_17
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+		}
 		x = -1
 		y = 2
 		completion_reward = {
@@ -4723,6 +4744,13 @@ focus_tree = {
 		}
 		cost = 7
 		relative_position_id = VIN_Sign_Sac_17
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+		}
 		x = 1
 		y = 2
 		completion_reward = {
@@ -4743,6 +4771,13 @@ focus_tree = {
 		}
 		cost = 7
 		relative_position_id = VIN_Found_the_Cuc_Quan_Bao_Intelligence_Branch
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+		}
 		x = -1
 		y = 1
 		completion_reward = {
@@ -4929,31 +4964,85 @@ focus_tree = {
 	}
 	focus = {
 		id = VIN_Plan_Large
-		completion_reward = {
-		}
 		icon = GFX_Launch_the_Great_offensive
-
 		cost = 7
 		relative_position_id = VIN_Sign_Sac_17
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+			modifier = {
+				factor = 5
+				NOT = { has_global_flag = Indochina_War_Over }
+			}
+		}
 		x = 0
 		y = 4
+		available = {
+			date > 1949.06.01
+			VIN_indochina_campaign_window_trigger = yes
+		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				geneva_conference_available_trigger = yes
+			}
+		}
 		completion_reward = {
 			set_country_flag = Enable_Larger_Raids
 			custom_effect_tooltip = Enable_Larger_Raids_TT
+			if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
+				}
+				FRA = {
+					add_to_variable = {
+						StruggleInvolvedNationsIndochinaCommunistScore = 40
+						tooltip = Add_to_Communist_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 25
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+				}
+			}
 		}
 	}
 	focus = {
 		id = VIN_Thap_Van_Dai
-		completion_reward = {
-		}
 		icon = GFX_The_battle_of_the_day_river
 		prerequisite = {
 			focus = VIN_Plan_Large
 		}
 		cost = 7
 		relative_position_id = VIN_Plan_Large
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+			modifier = {
+				factor = 5
+				NOT = { has_global_flag = Indochina_War_Over }
+			}
+		}
 		x = -1
 		y = 1
+		continue_if_invalid = yes	# the gate governs selecting the campaign, never finishing one already in the field
+		available = {
+			date > 1949.06.01	# Chien dich Thap Van Dai Son, June - October 1949
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				geneva_conference_available_trigger = yes
+			}
+		}
 		completion_reward = {
 			add_manpower = 10000
 			add_command_power = 50
@@ -4967,120 +5056,211 @@ focus_tree = {
 					modifier = small_increase
 				}
 			}
-
+			set_country_flag = VIN_Campaign_Cooldown_Thap_Van_Dai
+			if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
+				}
+				FRA = {
+					add_to_variable = {
+						StruggleInvolvedNationsIndochinaCommunistScore = 40
+						tooltip = Add_to_Communist_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 25
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+				}
+			}
 		}
 	}
 	focus = {
 		id = VIN_Operation_Cao-Bac
-		completion_reward = {
-		}
 		icon = GFX_Battle_of_Black_River_Valley
 		prerequisite = {
 			focus = VIN_Plan_Large
 		}
 		cost = 7
 		relative_position_id = VIN_Plan_Large
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+			modifier = {
+				factor = 5
+				NOT = { has_global_flag = Indochina_War_Over }
+			}
+		}
 		x = 1
 		y = 1
+		continue_if_invalid = yes
+		available = {
+			OR = {
+				date > 1950.09.01	# Chien dich Bien gioi, 16 September - 17 October 1950
+				has_global_flag = PRC_victory	# an open border with a communist China is what made the campaign worth running
+			}
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				geneva_conference_available_trigger = yes
+			}
+		}
 		completion_reward = {
 			set_country_flag = Enable_Air_Base_Raids
 			custom_effect_tooltip = Enable_Air_Base_Raids_TT
+			set_country_flag = VIN_Campaign_Cooldown_Cao_Bac
+			if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
+				}
+				FRA = {
+					add_to_variable = {
+						StruggleInvolvedNationsIndochinaCommunistScore = 75
+						tooltip = Add_to_Communist_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 50
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+				}
+			}
 		}
 	}
 	focus = {
 		id = VIN_Northwest
-		completion_reward = {
-		}
 		icon = GFX_prepare_operations_against_the_sip_song_tai
 		prerequisite = {
 			focus = VIN_Thap_Van_Dai
 		}
 		cost = 7
 		relative_position_id = VIN_Thap_Van_Dai
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+			modifier = {
+				factor = 5
+				NOT = { has_global_flag = Indochina_War_Over }
+			}
+		}
 		x = 0
 		y = 1
+		continue_if_invalid = yes
+		available = {
+			date > 1952.08.14	# Chien dich Tay Bac, October - December 1952
+			country_exists = TAI
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_no_campaign_running_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+			}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				geneva_conference_available_trigger = yes
+				owns_state = 1761	# the Tai highlands are already ours; there is nothing left to take
+				NOT = { country_exists = TAI }
+				}
+			}
+		will_lead_to_war_with = TAI
 		completion_reward = {
-			set_autonomy = {
-				target = TAM
-				autonomy_state = autonomy_free
+			set_country_flag = VIN_Campaign_Tay_Bac_Active
+			set_temp_variable = { vin_camp_id = 1 }
+			vin_campaign_begin = yes
+			if = {	# CEFEO stands behind the Tai with patience-scaled relief battalions; the guarantee is gone because TAI is a CEFEO subject now and comes to the war on its own
+				limit = {
+					country_exists = FRE
 			}
-			start_border_war = {	#Attack on Muong
-				change_state_after_war = no
-				attacker = {
-					state = 1762
-					num_provinces = 4
-					on_win = SWF_Indochina_War.1
-					on_lose = SWF_Indochina_War.2
-					on_cancel = SWF_Indochina_War.4
+				fre_tai_highlands_relief = yes
 				}
-
-				defender = {
-					state = 1766
-					num_provinces = 4
-					on_win = SWF_Indochina_War.3
-					on_lose = SWF_Indochina_War.4
-					on_cancel = SWF_Indochina_War.4
+			custom_effect_tooltip = VIN_Camp_War_Tay_Bac_tt
+			vin_campaign_declare_war = yes
+			if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
 				}
-			}
-				set_autonomy = {
-				target = TAI
-				autonomy_state = autonomy_free
-			}
-			start_border_war = {	#Attack on Tay Autonomy, VIN winning (the attacker) should annex tag TAI
-				change_state_after_war = no
-				attacker = {
-					state = 881
-					num_provinces = 4
-					on_win = SWF_Indochina_War.5
-					on_lose = SWF_Indochina_War.6
-					on_cancel = SWF_Indochina_War.4
-				}
-
-				defender = {
-					state = 1761
-					num_provinces = 4
-					on_cancel = SWF_Indochina_War.4
+				FRA = {
+					add_to_variable = {
+						StruggleInvolvedNationsIndochinaCommunistScore = 75
+						tooltip = Add_to_Communist_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 50
+						tooltip = Add_to_Escalation_Phase_TT
+					}
 				}
 			}
 		}
 	}
 	focus = {
 		id = VIN_Liberate_Duyen
-		completion_reward = {
-		}
 		icon = GFX_MEO_dig_out_gun_caches
 		prerequisite = {
 			focus = VIN_Operation_Cao-Bac
 		}
 		cost = 7
 		relative_position_id = VIN_Operation_Cao-Bac
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+			modifier = {
+				factor = 5
+				NOT = { has_global_flag = Indochina_War_Over }
+			}
+		}
 		x = 0
 		y = 1
+		continue_if_invalid = yes
+		available = {
+			date > 1951.10.02	# Chien dich Hoa Binh, November 1951 - February 1952
+			country_exists = TAM
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_no_campaign_running_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				geneva_conference_available_trigger = yes
+				owns_state = 1766	# Hoa Binh already flies our flag
+				NOT = { country_exists = TAM }
+			}
+		}
+		will_lead_to_war_with = TAM
 		completion_reward = {
-			start_border_war = {
-				change_state_after_war = yes
-				attacker = {
-					state = 1762
-					num_provinces = 4
-					on_win = SWF_Indochina_War.7
-					on_lose = SWF_Indochina_War.8
-					on_cancel = Indochina_War.4
+			set_country_flag = VIN_Campaign_Hoa_Binh_Active
+			set_temp_variable = { vin_camp_id = 2 }
+			vin_campaign_begin = yes
+			custom_effect_tooltip = VIN_Camp_War_Hoa_Binh_tt
+			vin_campaign_declare_war = yes
+			if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
 				}
-
-				defender = {
-					state = 1766
-					num_provinces = 4
-					on_win = SWF_Indochina_War.9
-					on_lose = SWF_Indochina_War.10
-					on_cancel = Indochina_War.4
+				FRA = {
+					add_to_variable = {
+						StruggleInvolvedNationsIndochinaCommunistScore = 60
+						tooltip = Add_to_Communist_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 40
+						tooltip = Add_to_Escalation_Phase_TT
+					}
 				}
 			}
 		}
 	}
 	focus = {
 		id = VIN_Prepare_Dien
-		completion_reward = {
-		}
 		icon = GFX_usa_50_approaching_a_conclusion
 		prerequisite = {
 			focus = VIN_Liberate_Duyen
@@ -5090,12 +5270,82 @@ focus_tree = {
 		}
 		cost = 7
 		relative_position_id = VIN_Plan_Large
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 25
+				is_historical_focus_on = yes
+			}
+			modifier = {
+				factor = 5
+				NOT = { has_global_flag = Indochina_War_Over }
+			}
+		}
 		x = 0
 		y = 3
+		continue_if_invalid = yes
+		available = {
+			date > 1954.01.18	# the French drop on Dien Bien Phu, 20 November 1953
+			country_exists = TAI
+			owns_state = 1761	# the Northwest campaign has to have delivered the corridor first
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_no_campaign_running_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				geneva_conference_available_trigger = yes
+				controls_province = 4529	# the camp is already ours
+				NOT = { country_exists = TAI }
+			}
+		}
+		will_lead_to_war_with = FRE
 		completion_reward = {
 			add_timed_idea = {
 				idea = PRC_50s_Southwest_Offensive_Spirit
 				days = 365
+			}
+			set_temp_variable = { geneva_lev_amount = 75 }
+			geneva_add_communist_leverage = yes
+			if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
+				}
+				FRA = {
+					add_to_variable = {
+						StruggleInvolvedNationsIndochinaCommunistScore = 200
+						tooltip = Add_to_Communist_Victory_Points_TT
+					}
+					add_to_variable = {
+						global.Indochina_War_Next_Phase_A_Points = 125
+						tooltip = Add_to_Escalation_Phase_TT
+					}
+				}
+			}
+			# The valley is a campaign like Hoa Binh and Tay Bac: the focus opens the
+			# siege itself, on a clock.
+			if = {
+				limit = {
+					VIN_no_campaign_running_trigger = yes
+					VIN_campaign_cooldown_ready_trigger = yes
+				}
+				if = {
+					limit = { country_exists = FRE }
+					fre_tai_highlands_relief = yes
+					fre_dbp_fortify_camp = yes	# something has to be dug in before it can be besieged
+				}
+				set_country_flag = VIN_Campaign_Dien_Bien_Active
+				set_temp_variable = { vin_camp_id = 3 }
+				vin_campaign_begin = yes
+				custom_effect_tooltip = VIN_Camp_War_Dien_Bien_tt
+				vin_campaign_declare_war = yes
+				hidden_effect = { country_event = { id = VIN_Camp.3 hours = 1 } }	# the briefing lands ahead of the commitment prompt
+			}
+			else = {
+				hidden_effect = {
+					country_event = { id = SWF_Indochina_War.14 days = 120 random_days = 30 }	# something else is in the field; the old opportunistic chain picks it up
+				}
 			}
 		}
 	}

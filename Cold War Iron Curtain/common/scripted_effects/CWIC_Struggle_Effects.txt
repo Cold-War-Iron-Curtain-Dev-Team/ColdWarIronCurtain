@@ -55,13 +55,151 @@ indochina_struggle_bypass_geneva_conference_focuses = {
 	# beforehand, so nothing needs to be force-unlocked here anymore.
 }
 
-indochina_struggle_invite_countries_to_geneva = {
-	indochina_struggle_bypass_geneva_conference_focuses = yes
-	# The old per-country invitation/negotiation event chain is retired: the
-	# conference now convenes as a round-based negotiation between seated
-	# delegations. See CWIC_Geneva_Conference_Effects.txt. The announcement
-	# gives players a "Road to Geneva" heads-up before the session opens.
-	geneva_conf_announce = yes
+indochina_tai_federation_collapses = {	# Dien Bien Phu is lost (FRE_DBP.8, either option): nothing stands between Giap and the Tai capital
+	if = {
+		limit = {
+			country_exists = TAI
+		}
+		TAI = {
+			fre_tai_highlands_relief_disband = yes
+		}
+	}
+	fre_dbp_disband_gono = yes	# the camp's own garrison goes with the camp
+	if = {
+		limit = {
+			country_exists = TAI
+			country_exists = VIN
+			NOT = { has_global_flag = Indochina_War_Over }
+			VIN = { NOT = { has_country_flag = VIN_Campaign_Dien_Bien_Active } }	# a live border war for the valley resolves through its own outcome events
+		}
+		VIN = {
+			annex_country = {
+				target = TAI
+				transfer_troops = no
+			}
+			country_event = { id = SWF_Indochina_War.18 days = 1 }	# "The Tai Federation Collapses"
+		}
+	}
+}
+
+fre_tai_highlands_relief = {
+	if = {
+		limit = {
+			country_exists = TAI
+		}
+		TAI = {
+			division_template = {
+				name = "Groupement Mobile du Haut-Tonkin"
+				division_names_group = VIE_INF_01
+				regiments = {
+					militia = { x = 0 y = 0 }
+					militia = { x = 0 y = 1 }
+					infantry = { x = 1 y = 0 }
+					infantry = { x = 1 y = 1 }
+					artillery = { x = 2 y = 0 }
+				}
+				support = {
+					recon = { x = 0 y = 0 }
+				}
+				priority = 0
+			}
+		}
+		set_temp_variable = { tai_relief_tier = 1 }
+		if = {
+			limit = {
+				country_exists = FRE
+				FRE = { check_variable = { FRE_Metropole_Patience > 65 } }
+			}
+			set_temp_variable = { tai_relief_tier = 2 }
+		}
+		else_if = {
+			limit = {
+				OR = {
+					NOT = { country_exists = FRE }
+					FRE = { check_variable = { FRE_Metropole_Patience < 33 } }
+				}
+			}
+			set_temp_variable = { tai_relief_tier = 0 }
+		}
+		if = {
+			limit = {
+				TAI = { owns_state = 1761 }
+			}
+			1761 = {	# Chien dich Tay Bac: the column lands in the Hoang Lien Son highlands
+				create_unit = {
+					division = "name = \"Groupement Mobile 1\" division_template = \"Groupement Mobile du Haut-Tonkin\" start_experience_factor = 0.4 start_equipment_factor = 1.0"
+					owner = TAI
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 10075
+				}
+			}
+			if = {
+				limit = { check_variable = { tai_relief_tier > 0 } }
+				1761 = {
+					create_unit = {
+						division = "name = \"Groupement Mobile 2\" division_template = \"Groupement Mobile du Haut-Tonkin\" start_experience_factor = 0.35 start_equipment_factor = 1.0"
+						owner = TAI
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 10075
+					}
+				}
+			}
+			if = {
+				limit = { check_variable = { tai_relief_tier > 1 } }
+				1761 = {
+					create_unit = {
+						division = "name = \"Bataillon de Marche Thai\" division_template = \"Groupement Mobile du Haut-Tonkin\" start_experience_factor = 0.45 start_equipment_factor = 1.0"
+						owner = TAI
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 10075
+					}
+				}
+			}
+		}
+		else = {
+			671 = {	# the highlands are gone: what is left of the airlift goes into the valley itself
+				create_unit = {
+					division = "name = \"Groupement Mobile 1\" division_template = \"Groupement Mobile du Haut-Tonkin\" start_experience_factor = 0.4 start_equipment_factor = 1.0"
+					owner = TAI
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
+			}
+			if = {
+				limit = { check_variable = { tai_relief_tier > 0 } }
+				671 = {
+					create_unit = {
+						division = "name = \"Groupement Mobile 2\" division_template = \"Groupement Mobile du Haut-Tonkin\" start_experience_factor = 0.35 start_equipment_factor = 1.0"
+						owner = TAI
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 4529
+					}
+				}
+			}
+			if = {
+				limit = { check_variable = { tai_relief_tier > 1 } }
+				671 = {
+					create_unit = {
+						division = "name = \"Bataillon de Marche Thai\" division_template = \"Groupement Mobile du Haut-Tonkin\" start_experience_factor = 0.45 start_equipment_factor = 1.0"
+						owner = TAI
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 4529
+					}
+				}
+			}
+		}
+		if = {
+			limit = { check_variable = { tai_relief_tier > 1 } }
+			TAI = {
+				add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = FRA }
+				add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = FRA }
+			}
+		}
+	}
+}
+
+fre_tai_highlands_relief_disband = {
+	delete_unit_template_and_units = { division_template = "Groupement Mobile du Haut-Tonkin" }
 }
 
 indochina_struggle_check_geneva_negotiations_complete = {

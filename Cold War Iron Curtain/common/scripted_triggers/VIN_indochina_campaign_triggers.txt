@@ -1,0 +1,170 @@
+# Shared gates for the Viet Minh First Indochina War campaign focuses
+# (Thap Van Dai Son, Cao-Bang/Bac-Kan, Hoa Binh, Tay Bac, Dien Bien Phu).
+# Same shape as FRE_operation_triggers.txt on the CEFEO side; keep the two in sync.
+
+# The war is still a live struggle - not settled, not adjourned to Geneva.
+VIN_indochina_campaign_window_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = VIN_indochina_campaign_window_trigger_TT
+		NOT = { has_global_flag = Indochina_War_Over }
+		NOT = { has_global_flag = geneva_conference_concluded }
+		check_variable = { global.Indochina_War_Active_Phase < 9 }
+	}
+}
+
+# No border-war campaign currently in the field. Thap Van Dai Son and Cao-Bang are
+# preparatory focuses with no border war, so they only ever set a cooldown.
+VIN_no_campaign_running_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = VIN_no_campaign_running_trigger_TT
+		NOT = {
+			OR = {
+				has_country_flag = VIN_Campaign_Hoa_Binh_Active
+				has_country_flag = VIN_Campaign_Tay_Bac_Active
+				has_country_flag = VIN_Campaign_Dien_Bien_Active
+			}
+		}
+	}
+}
+
+# No campaign resolved within the last 90 days - the divisions have to walk home first.
+VIN_campaign_cooldown_ready_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = VIN_campaign_cooldown_ready_trigger_TT
+		NOT = {
+			OR = {
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Thap_Van_Dai
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Thap_Van_Dai days > 89 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Cao_Bac
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Cao_Bac days > 89 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Hoa_Binh
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Hoa_Binh days > 89 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Tay_Bac
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Tay_Bac days > 89 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Dien_Bien
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Dien_Bien days > 89 } }
+				}
+			}
+		}
+	}
+}
+
+# The campaign's ground objective is taken. Control, not ownership: ownership
+# only moves at a peace deal. Dien Bien Phu is the one case where the state is
+# not the objective - the camp is province 4529 inside state 671.
+vin_campaign_objective_met_trigger = {
+	OR = {
+		AND = {
+			check_variable = { VIN_camp_current = 1 }
+			# Not the whole state: 12319 is reachable only through Ha Giang, which
+			# is MEO's and which Hanoi is not at war with. These five are the link
+			# between the northern base areas and Thanh Hoa.
+			controls_province = 10075	# the gate from Dong Bac Bo
+			controls_province = 12075
+			controls_province = 13775
+			controls_province = 16526	# the gate onto Hoa Binh
+			controls_province = 16527
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 2 }
+			controls_state = 1766
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 3 }
+			controls_province = 4529
+		}
+	}
+}
+
+# The camp at Dien Bien Phu is invested - the condition vin_dbp_siege_tick runs
+# the scripted siege on. VIN scope. 4529 is the only fenced-off province in 671,
+# so Hanoi holding any of the rest means the valley floor is theirs.
+#
+# The second arm is AI-only on both sides: the AI cannot draw a front across the
+# Tay Bac passes, so after four months in the field the siege is credited anyway
+# - by then it is past VIN_camp_deadline_x, so the AI gets the grinding capture
+# (outcome 2) and never the clean one. A human defender holding the passes has
+# earned the camp holding.
+vin_dbp_valley_invested_trigger = {
+	OR = {
+		controls_province = 13754	# the eastern gate into the state
+		controls_province = 10103	# the northern gate
+		controls_province = 13765	# Lai Chau
+		controls_province = 13757
+		controls_province = 13758
+		controls_province = 13760
+		controls_province = 13762
+		controls_province = 13764
+		AND = {
+			is_ai = yes
+			check_variable = { VIN_camp_days_elapsed > 120 }
+			OR = {
+				NOT = { country_exists = TAI }
+				TAI = { is_ai = yes }
+			}
+			OR = {
+				NOT = { country_exists = FRE }
+				FRE = { is_ai = yes }
+			}
+		}
+	}
+}
+
+# The shooting stopped without the objective changing hands: someone took a white
+# peace. Distinguished from failure, which is the deadline running out mid-war.
+vin_campaign_war_abandoned_trigger = {
+	NOT = { vin_campaign_objective_met_trigger = yes }
+	NOT = {
+		OR = {
+			AND = { country_exists = TAI  has_war_with = TAI }
+			AND = { country_exists = TAM  has_war_with = TAM }
+			AND = { country_exists = FRE  has_war_with = FRE }
+		}
+	}
+	check_variable = { VIN_camp_days_elapsed > 14 }	# grace period: the declaration takes a few days to register as a war
+}
+
+# --- State ownership sides --------------------------------------------------
+# Both the objective modifiers and the guerilla networks bite the occupier and
+# nobody else. One shared pair so the two systems can never disagree.
+indochina_french_held_state_trigger = {	# state scope
+	OR = {
+		is_controlled_by = FRE
+		is_controlled_by = FRA
+		is_controlled_by = TAI
+		is_controlled_by = TAM
+		is_controlled_by = THO
+		is_controlled_by = VIE
+		AND = {
+			is_controlled_by = NUN
+			NOT = { NUN = { vin_aligned_country_trigger = yes } }	# a Nung state that has come over is not enemy ground
+		}
+	}
+}
+
+vin_aligned_country_trigger = {	# country scope
+	OR = {
+		tag = VIN
+		is_subject_of = VIN
+		is_in_faction_with = VIN
+		has_country_flag = NUN_VIN_trigger	# the Nung leadership has thrown in with Hanoi
+	}
+}
+
+# A state whose owner or occupier has come over to Hanoi. The guerilla networks
+# lift here.
+vin_aligned_state_trigger = {	# state scope
+	OR = {
+		owner = { vin_aligned_country_trigger = yes }
+		controller = { vin_aligned_country_trigger = yes }
+	}
+}

@@ -1,3 +1,281 @@
+### Hanoi's war AI ###
+# Two postures. The standing one holds the base areas for as long as the corps
+# is hostile; the campaign one throws everything at the objective for as long as
+# a campaign is in the field. VIN_no_campaign_running_trigger is the switch -
+# the same one the campaign clock and the raid suspension read.
+
+VIN_hold_the_base_areas = {
+	allowed = { tag = VIN }
+	enable = {
+		OR = {
+			has_war_with = FRE
+			has_war_with = TAI
+			has_war_with = TAM
+			has_war_with = FRA
+			has_war_with = VIE
+		}
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		NOT = {
+			OR = {
+				has_war_with = FRE
+				has_war_with = TAI
+				has_war_with = TAM
+				has_war_with = FRA
+				has_war_with = VIE
+			}
+		}
+	}
+
+	# The frontier is a front, not a gap. Dong Bac Bo and Thanh Hoa are the
+	# base areas and are never to be left open.
+	ai_strategy = {
+		type = front_control
+		tag = FRE
+		ordertype = front
+		execution_type = careful
+		priority = 200
+	}
+	ai_strategy = {
+		type = front_control
+		tag = TAI
+		ordertype = front
+		execution_type = careful
+		priority = 200
+	}
+	ai_strategy = {
+		type = front_control
+		tag = TAM
+		ordertype = front
+		execution_type = careful
+		priority = 200
+	}
+	ai_strategy = {
+		type = front_control
+		tag = VIE
+		ordertype = front
+		execution_type = careful
+		priority = 150
+	}
+
+	ai_strategy = {
+		type = garrison
+		value = -40
+	}
+	ai_strategy = {
+		type = dont_defend_ally_borders
+		value = 100
+	}
+
+	ai_strategy = {
+		type = front_unit_request
+		tag = FRE
+		value = 120
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAI
+		value = 120
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAM
+		value = 100
+	}
+}
+
+# A campaign is months of stockpiling spent at once and it has a deadline. For
+# its duration nothing else matters: everything goes to the objective.
+VIN_campaign_all_in = {
+	allowed = { tag = VIN }
+	enable = {
+		NOT = { VIN_no_campaign_running_trigger = yes }
+	}
+	abort_when_not_enabled = yes
+	abort = { VIN_no_campaign_running_trigger = yes }	# an explicit abort: `always = no` left the all-in posture running after the campaign resolved
+
+	ai_strategy = {
+		type = conquer
+		id = "TAI"
+		value = 200
+	}
+	ai_strategy = {
+		type = conquer
+		id = "TAM"
+		value = 200
+	}
+	ai_strategy = {
+		type = conquer
+		id = "FRE"
+		value = 100
+	}
+
+	ai_strategy = {
+		type = front_control
+		tag = TAI
+		ordertype = front
+		execution_type = rush
+		priority = 500
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_control
+		tag = TAM
+		ordertype = front
+		execution_type = rush
+		priority = 500
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_control
+		tag = FRE
+		ordertype = front
+		execution_type = rush
+		priority = 400
+		execute_order = yes
+		manual_attack = yes
+	}
+
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAI
+		value = 500
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAM
+		value = 500
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = FRE
+		value = 300
+	}
+
+	# Nothing stays home and nothing sits in reserve. The campaign either takes
+	# the ground inside the deadline or it has failed.
+	ai_strategy = {
+		type = garrison
+		value = -60
+	}
+	ai_strategy = {
+		type = force_concentration_factor
+		value = 30
+	}
+
+	# The campaign objectives are fortified mountain provinces, which the AI reads
+	# as attacks not worth making. A campaign already paid for does not get to
+	# decide the odds are bad.
+	ai_strategy = {
+		type = ignore_army_incompetence
+		value = 100
+	}
+	ai_strategy = {
+		type = force_concentration_front_factor
+		value = 50
+	}
+}
+
+# Dien Bien Phu specifically. Tay Bac Bo is a dead end behind adjacency-gated
+# passes, which the AI's theatre distribution handles badly.
+VIN_take_the_valley = {
+	allowed = { tag = VIN }
+	enable = {
+		has_country_flag = VIN_Campaign_Dien_Bien_Active
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		NOT = { has_country_flag = VIN_Campaign_Dien_Bien_Active }
+	}
+
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 671	# Tay Bac Bo, the valley itself
+		value = 12
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1761	# Hoang Lien Son, the approach
+		value = 6
+	}
+	ai_strategy = {
+		type = conquer
+		id = "TAI"
+		value = 400
+	}
+	ai_strategy = {
+		type = ignore_army_incompetence
+		value = 200
+	}
+}
+
+# The corps answers to Paris, but Paris is not the enemy in the field and Hanoi
+# has no quarrel it can reach outside Indochina.
+VIN_ignore_the_wider_world = {
+	allowed = { tag = VIN }
+	enable = {
+		NOT = { has_war_with = FRA }
+	}
+	abort_when_not_enabled = yes
+	abort = { has_war_with = FRA }
+
+	ai_strategy = {
+		type = ignore
+		id = "FRA"
+		value = 200
+	}
+	ai_strategy = {
+		type = ignore
+		id = "CAM"
+		value = 200
+	}
+	ai_strategy = {
+		type = ignore
+		id = "ENG"
+		value = 200
+	}
+	ai_strategy = {
+		type = ignore
+		id = "USA"
+		value = 200
+	}
+}
+
+# An army that has to fight the CEFEO is an army that has to exist first.
+VIN_build_the_army = {
+	allowed = { tag = VIN }
+	enable = {
+		date > 1949.1.1
+		NOT = { has_global_flag = Indochina_War_Over }
+		has_army_manpower = { size < 700000 }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			has_global_flag = Indochina_War_Over
+			has_army_manpower = { size > 700000 }
+		}
+	}
+
+	ai_strategy = {
+		type = build_army
+		id = infantry
+		value = 500
+	}
+	ai_strategy = {
+		type = build_army
+		id = artillery
+		value = 200
+	}
+	ai_strategy = {
+		type = force_build_armies
+		value = 250
+	}
+}
+
 ### The Pathet Lao ###
 # The Pathet Lao field their own army (lao_deploy_field_force /
 # lao_deploy_frontier_garrison in IC_Laos_Raid_Effects.txt). The northern
