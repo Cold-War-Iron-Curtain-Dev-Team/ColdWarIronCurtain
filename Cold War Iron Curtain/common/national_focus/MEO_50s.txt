@@ -98,7 +98,7 @@ focus_tree = {
 	focus = {
 		id = MEO_approvethehoangfamilystakeover
 		icon = GFX_Generic_National_Focus_Politics_15
-		x = 4
+		x = 5
 		y = 12
 		cost = 5
 		search_filters = {
@@ -106,12 +106,8 @@ focus_tree = {
 		}
 		prerequisite = { focus = MEO_begin_of_the_duong_tutsi_and_tho_phi_revolt  }
 		mutually_exclusive = {
-		    focus = MEO_accept_the_unification_with_vietnam
-			focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
+			focus = MEO_stay_the_course
 			focus = MEO_struggle_for_meo_independence
-		}
-		available = {
-			MEO_highland_settlement_trigger = yes
 		}
 		ai_will_do = {
             base = 1
@@ -122,6 +118,9 @@ focus_tree = {
         }
 		completion_reward = {
 			country_event = MEO.13
+			set_politics = {
+                ruling_party = monarchism
+            }
 			add_country_leader_role = {
                 character = MEO_hoang_a_tuong
                 promote_leader = yes
@@ -132,11 +131,11 @@ focus_tree = {
 		}
 	}
 
-	#Accept the Unification with Vietnam
+	#Stay the Course
 	focus = {
-		id = MEO_accept_the_unification_with_vietnam
-		icon = GFX_Generic_National_Focus_Politics_17
-		x = 6
+		id = MEO_stay_the_course
+		icon = GFX_usa80_stick_to_guerrilla_approach
+		x = 7
 		y = 12
 		cost = 5
 		search_filters = {
@@ -145,41 +144,7 @@ focus_tree = {
 		prerequisite = { focus = MEO_begin_of_the_duong_tutsi_and_tho_phi_revolt  }
 		mutually_exclusive = {
 		    focus = MEO_approvethehoangfamilystakeover
-			focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
 			focus = MEO_struggle_for_meo_independence
-		}
-		available = {
-			MEO_highland_settlement_trigger = yes
-		}
-		ai_will_do = {
-            base = 1
-            modifier = {
-                factor = 0
-                is_historical_focus_on = yes
-            }
-        }
-		completion_reward = {
-			VIN = { annex_country = { target = MEO transfer_troops = yes }	 }
-		}
-	}
-	#Creation of the Autonomous Zone of Thai-Meo
-	focus = {
-		id = MEO_creation_of_the_autonomous_zone_of_thaimeo
-		icon = GFX_promise_wide_autonomy
-		x = 8
-		y = 12
-		cost = 5
-		search_filters = {
-			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
-		}
-		prerequisite = { focus = MEO_begin_of_the_duong_tutsi_and_tho_phi_revolt  }
-		mutually_exclusive = {
-		    focus = MEO_approvethehoangfamilystakeover
-			focus = MEO_accept_the_unification_with_vietnam
-			focus = MEO_struggle_for_meo_independence
-		}
-		available = {
-			MEO_highland_settlement_trigger = yes
 		}
 		ai_will_do = {
             base = 1
@@ -189,8 +154,109 @@ focus_tree = {
             }
         }
 		completion_reward = {
+			set_country_flag = MEO_stayed_the_course
+			add_stability = 0.05
+			add_political_power = 100
+			add_war_support = 0.03
+			add_opinion_modifier = {
+			    target = VIN
+			    modifier = medium_increase
+			}
+			VIN = {
+				reverse_add_opinion_modifier = {
+					target = MEO
+					modifier = medium_increase
+				}
+			}
+		}
+	}
+
+	#The Question of National Autonomy
+	focus = {
+		id = MEO_question_of_national_autonomy
+		icon = GFX_usa_80_negotiate_with_other_iraqi_minorities
+		x = 7
+		y = 13
+		cost = 5
+		search_filters = {
+			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
+		}
+		prerequisite = {
+			focus = MEO_approvethehoangfamilystakeover
+			focus = MEO_stay_the_course
+			focus = MEO_struggle_for_meo_independence
+		}
+		available = {
+			MEO_highland_settlement_trigger = yes # wait till post geneva
+			country_exists = VIN
+			NOT = { has_war_with = VIN }	# there is nothing to negotiate while the highlands are still contested
+		}
+		completion_reward = {
+			VIN = { country_event = MEO.27 }	# Hanoi answers, and its answer completes one of the two focuses below
+		}
+	}
+	#Accept the Unification with Vietnam
+	focus = {
+		id = MEO_accept_the_unification_with_vietnam
+		icon = GFX_Generic_National_Focus_Politics_17
+		x = 6
+		y = 14
+		cost = 5
+		search_filters = {
+			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
+		}
+		prerequisite = { focus = MEO_question_of_national_autonomy}
+		mutually_exclusive = { focus = MEO_creation_of_the_autonomous_zone_of_thaimeo }
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = MEO_national_autonomy_TT
+				has_country_flag = MEO_hanoi_chose_integration
+			}
+		}
+		completion_reward = {
+			custom_effect_tooltip = autocompleted_by_event
+			VIN = { annex_country = { target = MEO transfer_troops = yes }	 }
+		}
+	}
+	#Creation of the Autonomous Zone of Thai-Meo
+	focus = {
+		id = MEO_creation_of_the_autonomous_zone_of_thaimeo
+		icon = GFX_promise_wide_autonomy
+		x = 8
+		y = 14
+		cost = 5
+		search_filters = {
+			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
+		}
+		prerequisite = { focus = MEO_question_of_national_autonomy }
+		mutually_exclusive = { focus = MEO_accept_the_unification_with_vietnam }
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = MEO_national_autonomy_TT
+				has_country_flag = MEO_hanoi_chose_autonomy
+			}
+		}
+		completion_reward = {
+			custom_effect_tooltip = autocompleted_by_event
 			country_event = MEO.14	# MEO.14 also goes to Hanoi, which picks the zone's chairman there
-			keep_current_politics = yes
+			hidden_effect = { keep_current_politics = yes }
+			if = {
+				limit = { 671 = { is_owned_by = VIN } }
+				transfer_state = 671	# Tay Bac Bo, the Dien Bien Phu valley - the zone's new seat
+				671 = { add_core_of = MEO }
+				set_capital = { state = 671 }
+				if = {	# Ha Giang only leaves once there is somewhere else to govern from
+					limit = { 1767 = { is_owned_by = MEO } }
+					if = {
+						limit = { country_exists = THO }
+						THO = { transfer_state = 1767 }	# Ha Giang joins the Viet Bac Autonomous Region
+					}
+					else = {
+						VIN = { transfer_state = 1767 }
+					}
+				}
+			}
+			set_cosmetic_tag = MEO_VIN_Autonomy_Zone
 			VIN = {
 				country_event = MEO.14
 				set_autonomy = {
@@ -200,17 +266,6 @@ focus_tree = {
                     end_civil_wars = no
                 }
 			}
-			if = {	# the northwest comes into the zone from Hanoi's hands - the Tai Federation is long gone by the time this focus opens
-				limit = { 671 = { is_owned_by = VIN } }
-				transfer_state = 671	# Tay Bac Bo, the Dien Bien Phu valley
-				671 = { add_core_of = MEO }
-			}
-			if = {
-				limit = { 1761 = { is_owned_by = VIN } }
-				transfer_state = 1761	# Hoang Lien Son
-				1761 = { add_core_of = MEO }
-			}
-			set_cosmetic_tag = MEO_VIN_Autonomy_Zone
 		}
 	}
 
@@ -218,7 +273,7 @@ focus_tree = {
 	focus = {
 		id = MEO_struggle_for_meo_independence
 		icon = GFX_Generic_Diplomacy_1
-		x = 10
+		x = 9
 		y = 12
 		cost = 5
 		search_filters = {
@@ -227,11 +282,7 @@ focus_tree = {
 		prerequisite = { focus = MEO_begin_of_the_duong_tutsi_and_tho_phi_revolt  }
 		mutually_exclusive = {
 		    focus = MEO_approvethehoangfamilystakeover
-			focus = MEO_accept_the_unification_with_vietnam
-			focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
-		}
-		available = {
-			MEO_highland_settlement_trigger = yes
+			focus = MEO_stay_the_course
 		}
 		ai_will_do = {
             base = 1
@@ -243,44 +294,85 @@ focus_tree = {
 		completion_reward = {
 			leave_faction = yes
 			country_event = MEO.15
-			VIN = {
-				country_event = MEO.16
-			}
-			FRA = {
-				country_event = MEO.17
-			}
-			remove_from_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
+			set_politics = {
+                ruling_party = nationalist
+            }
+            remove_from_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
 			add_to_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = MEO.id }
-
 			MEO_hoang_a_tuong = {
 			    add_country_leader_role = {
                     promote_leader = yes
                     country_leader = {
-                        ideology = monarchist
+                        ideology = ethnic_nationalism
                     }
                 }
                 promote_character = yes
 			}
+			VIN = {
+				country_event = MEO.16
+				set_autonomy = {
+                    target = MEO
+                    autonomous_state = autonomy_free
+                    end_wars = no
+                    end_civil_wars = no
+                }
+			}
+			FRA = {
+				country_event = MEO.17
+			}
 		}
 	}
 
-	#Combat the Duong Trung Nhan Revolt	#March 1959 fire MEO.18
+	#The Duong Trung Nhan Revolt
+	#March 1959 fire MEO.18
+	focus = {
+		id = MEO_the_duong_trung_nhan_revolt
+		icon = GFX_usa_80_the_iraqi_uprising
+		x = 7
+		y = 15
+		cost = 5
+		search_filters = {
+			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
+		}
+		prerequisite = {
+			focus = MEO_accept_the_unification_with_vietnam
+			focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = MEO_1959_revolt_TT
+				OR = {
+					has_country_flag = MEO_1959_uprising_suppressed
+					has_country_flag = MEO_1959_uprising_joined
+				}
+			}
+		}
+		completion_reward = {
+			custom_effect_tooltip = autocompleted_by_event
+		}
+	}
+
+	#Combat the Duong Trung Nhan Revolt
 	focus = {
 		id = MEO_combat_the_duong_trung_nhan_revolt
 		icon = GFX_Generic_National_Focus_Politics_50
 		x = 5
-		y = 13
+		y = 16
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
 		}
 		mutually_exclusive = { focus = MEO_proclaim_duong_trung_nhan_as_king_of_the_meo }
 		prerequisite = {
-		    focus = MEO_approvethehoangfamilystakeover
-			focus = MEO_accept_the_unification_with_vietnam
-			focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
-			focus = MEO_struggle_for_meo_independence
+		    focus = MEO_the_duong_trung_nhan_revolt
 		}
+		ai_will_do = {
+            base = 1
+            modifier = {
+                factor = 10
+                is_historical_focus_on = yes
+            }
+        }
 		completion_reward = {
 			VIN = {
 				country_event = MEO.19
@@ -293,7 +385,7 @@ focus_tree = {
 		id = MEO_solidify_ho_chi_minh_thought
 		icon = GFX_VIN_The_Face_of_the_Party
 		x = 4
-		y = 14
+		y = 17
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
@@ -313,7 +405,7 @@ focus_tree = {
 		id = MEO_permitpavnsreinforcements
 		icon = GFX_MEO_adapt_pavns_reforms
 		x = 6
-		y = 14
+		y = 17
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
@@ -329,36 +421,53 @@ focus_tree = {
 		id = MEO_proclaim_duong_trung_nhan_as_king_of_the_meo
 		icon = GFX_Generic_National_Focus_Politics_49
 		x = 9
-		y = 13
+		y = 16
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
 		}
 		mutually_exclusive = { focus = MEO_combat_the_duong_trung_nhan_revolt  }
 		prerequisite = {
-		    focus = MEO_approvethehoangfamilystakeover
-			focus = MEO_accept_the_unification_with_vietnam
-			focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
-			focus = MEO_struggle_for_meo_independence
+		    focus = MEO_the_duong_trung_nhan_revolt
 		}
+		ai_will_do = {
+            base = 1
+            modifier = {
+                factor = 0
+                is_historical_focus_on = yes
+            }
+        }
 		completion_reward = {
-			leave_faction = yes
 			country_event = MEO.22
-			VIN = {
-				country_event = MEO.23
+			add_popularity = {
+				ideology = nationalist
+				popularity = 0.25
 			}
-
+			set_politics = {
+                ruling_party = nationalist
+            }
+			leave_faction = yes
 			remove_from_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
-			add_to_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = MEO.id }
-
+			add_to_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = MEO.id }
 			MEO_duong_trung_nhan = {
 			    add_country_leader_role = {
                     promote_leader = yes
                     country_leader = {
-                        ideology = monarchist
+                        ideology = Three_principles_of_people_chiangist
                     }
                 }
                 promote_character = yes
+			}
+			drop_cosmetic_tag = yes
+			hidden_effect = { keep_current_politics = yes }
+			VIN = {
+				country_event = MEO.23
+				set_autonomy = {
+                    target = MEO
+                    autonomous_state = autonomy_free
+                    end_wars = no
+                    end_civil_wars = no
+                }
 			}
 		}
 	}
@@ -367,7 +476,7 @@ focus_tree = {
 		id = MEO_revolt_against_the_vietnamese_communists
 		icon = GFX_usa_80_undermine_pkk_influence
 		x = 8
-		y = 14
+		y = 17
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
@@ -384,7 +493,7 @@ focus_tree = {
 		id = MEO_incorporate_the_kmt_thophi
 		icon = GFX_MEO_accept_donations_from_chinese_warloads
 		x = 10
-		y = 14
+		y = 17
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
@@ -417,7 +526,7 @@ focus_tree = {
 		id = MEO_assassinate_vuong_chi_sinh
 		icon = GFX_Generic_National_Focus_Military_43
 		x = 9
-		y = 15
+		y = 18
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
@@ -1070,9 +1179,14 @@ focus_tree = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
 		}
 		available = {
-			has_global_flag = Duong_Tutsi_and_Tho_Phi_Revolt
+			custom_trigger_tooltip = {
+				tooltip = Duong_Tutsi_and_Tho_Phi_Revolt
+				has_global_flag = Duong_Tutsi_and_Tho_Phi_Revolt
+			}
 		}
 		completion_reward = {
+			custom_effect_tooltip = autocompleted_by_event
+			country_event = MEO.26	# the three factions press their case; the branch itself is chosen from the tree
 		}
 	}
 
@@ -1081,7 +1195,7 @@ focus_tree = {
 		id = MEO_begin_the_resistance_against_kmt_bandits
 		icon = GFX_Generic_National_Focus_Military_24
 		x = 5
-		y = 15
+		y = 18
 		cost = 5
 		search_filters = {
 			FOCUS_FILTER_FRA_POLITICAL_VIOLENCE
