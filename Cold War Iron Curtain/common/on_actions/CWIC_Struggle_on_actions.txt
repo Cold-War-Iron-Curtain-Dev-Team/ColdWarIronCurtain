@@ -161,6 +161,7 @@ on_actions = {
             }
 
             indochina_struggle_recalculate_total_anti_communist_score = yes
+            indochina_failsafe_mirror_scores = yes	# after the recalc: the mirrors are what the failsafe reads once France is gone
             indochina_struggle_update_phase_transitions = yes
 
             # Automatic trigger for Communist Victory preparation
@@ -194,6 +195,9 @@ on_actions = {
                     geneva_conf_round_tick = yes
                 }
             }
+
+            set_temp_variable = { ic_tick_days = 1 }	# France is the primary watchdog carrier; IC_Failsafe_on_actions.txt carries it on VIN/VIE/FRE/USA if France dies
+            indochina_failsafe_watchdog_tick = yes
 		}
 	}
 	on_monthly_FRA = {
@@ -280,6 +284,15 @@ on_actions = {
                 set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
                 set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
                 set_variable = { global.Indochina_Wrapup_Extensions = 0 }	# how many times the wrap-up timer has deferred to a battle still in the field
+                if = {
+                    # Arms the failsafe layer, and only for a scenario that actually has the
+                    # Indochina War in it. The corps is the discriminator: it exists in the
+                    # 1949 setup and in no later bookmark, so a 1980 start leaves the whole
+                    # contingency layer inert instead of trying to settle a war that is
+                    # thirty years finished.
+                    limit = { country_exists = FRE }
+                    set_global_flag = ic_failsafe_theatre_present
+                }
                 every_country = {
                     limit = {
                         OR = {

@@ -634,10 +634,76 @@ indochina_struggle_ending_cleanup = {
 	}
     set_global_flag = Indochina_War_Over
     set_variable = { global.Indochina_War_Active_Phase = 100 }
+    clr_global_flag = geneva_conference_in_session	# the conference GUI must not outlive the war it was called to settle
+    indochina_failsafe_geneva_teardown_gui = yes	# and neither must its political-tab button: only the compiler removes it, and clearing the flag above has just locked the compiler out
+    clr_global_flag = Indochina_Geneva_Pursuit
+    set_variable = { global.indochina_ending_available_check = 0 }
     every_country = {
         set_variable = { View_Indochina_Struggle = 0 }
         set_variable = { View_Indochina_Struggle_Startup = 0 }
     }
+}
+
+# The "resolve with whichever ending the war has already earned" ladder. It used
+# to live inline in Indochina_Wrapup_Timer.timeout_effect; the failsafe router
+# needs the same decision, so it lives here and both callers share it.
+#
+# The rungs test the ic_ending_*_ok mirrors rather than the indochina_struggle_
+# ending_*_trigger originals: the mirrors read the global score copies, so this
+# still decides correctly once France has been annexed and the FRA-scope scores
+# are unreadable. A conference that is genuinely running still outranks every
+# decisive rung, which is what the timer always did; only a dead Geneva latch -
+# the softlock case - is ignored.
+indochina_struggle_resolve_best_available_ending = {
+	if = {
+		limit = { NOT = { ic_failsafe_geneva_live_trigger = yes } }
+		if = {
+			limit = { has_global_flag = USA_VIN_Reunification_Complete }
+			indochina_struggle_american_north_vietnam = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = VIN
+				VIN = { ic_ending_communist_ok = yes }
+			}
+			indochina_struggle_communist_victory = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = VIE
+				VIE = { ic_ending_southern_ok = yes }
+			}
+			indochina_struggle_southern_victory = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = PQC
+				PQC = { ic_ending_kmt_ok = yes }
+			}
+			indochina_struggle_kuomintang_victory = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = VIE
+				VIE = { ic_ending_dan_quoc_ok = yes }
+			}
+			indochina_struggle_dan_quoc_peace = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = FRA
+				FRA = { ic_ending_federal_ok = yes }
+			}
+			indochina_struggle_federal_vietnam = yes
+		}
+		else_if = {
+			limit = {
+				country_exists = FRA
+				FRA = { ic_ending_balkanized_ok = yes }
+			}
+			indochina_struggle_balkanized_vietnam = yes
+		}
+	}
 }
 
 indochina_struggle_communist_victory = {

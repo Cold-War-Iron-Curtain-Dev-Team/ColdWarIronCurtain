@@ -54,62 +54,21 @@ Indochina_War_Rework = {
 				# earned; otherwise default to the historical Geneva Accords
 				# partition. Each ending effect handles cleanup, sets
 				# Indochina_War_Over and fires the (major) news event itself.
+				indochina_struggle_resolve_best_available_ending = yes	# the ladder itself lives in CWIC_Struggle_Effects.txt; the failsafe router shares it
 				if = {
-					limit = { has_global_flag = USA_VIN_Reunification_Complete }
-					indochina_struggle_american_north_vietnam = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = VIN
-						VIN = { indochina_struggle_ending_communist_victory_trigger = yes }
-					}
-					indochina_struggle_communist_victory = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = VIE
-						VIE = { indochina_struggle_ending_southern_victory_trigger = yes }
-					}
-					indochina_struggle_southern_victory = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = PQC
-						PQC = { indochina_struggle_ending_kuomintang_victory_trigger = yes }
-					}
-					indochina_struggle_kuomintang_victory = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = VIE
-						VIE = { indochina_struggle_ending_dan_quoc_peace_trigger = yes }
-					}
-					indochina_struggle_dan_quoc_peace = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = FRA
-						FRA = { indochina_struggle_ending_federal_vietnam_trigger = yes }
-					}
-					indochina_struggle_federal_vietnam = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = FRA
-						FRA = { indochina_struggle_ending_balkanized_vietnam_trigger = yes }
-					}
-					indochina_struggle_balkanized_vietnam = yes
-				}
-				else_if = {
 					# No decisive ending earned: convene the Geneva Conference
 					# headlessly and let the delegations settle (or wreck) it.
 					# Re-checked here, not just at arming: a human who joined a stake
 					# country during the 60 days must not have the conference concluded
 					# over their head.
-					limit = { indochina_struggle_all_participants_ai_trigger = yes }
+					limit = {
+						NOT = { has_global_flag = Indochina_War_Over }	# unset means the ladder found nothing; a decisive ending set it as it ran
+						indochina_struggle_all_participants_ai_trigger = yes
+					}
 					geneva_conf_auto_resolve = yes
 				}
-				else = {
+				else_if = {
+					limit = { NOT = { has_global_flag = Indochina_War_Over } }
 					clr_global_flag = Indochina_War_Timer_Active
 					set_global_flag = Indochina_Geneva_Pursuit	# settle through the normal gated path instead, so the human plays the conference
 				}
