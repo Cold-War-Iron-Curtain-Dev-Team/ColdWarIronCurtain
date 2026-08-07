@@ -244,6 +244,60 @@ test_tai_status = {
 	log = "  siege days [?global.VIN_dbp_siege_days|0], works level [?global.VIN_dbp_fort_level|0]"
 }
 
+test_vin_status = {
+	if = {
+		limit = { NOT = { country_exists = VIN } }
+		log = "VIN STATUS: no Viet Minh"
+	}
+	else = {
+		VIN = {
+			log = "VIN STATUS: political power [?political_power|0], campaign supply [?VIN_Campaign_Supply|0]"
+			if = { limit = { has_idea = extensive_conscription } log = "  conscription: extensive" }
+			else_if = { limit = { has_idea = limited_conscription } log = "  conscription: limited (rebalance did not apply)" }
+			else = { log = "  conscription: other" }
+			if = { limit = { has_idea = VIN_Resistance_War_Economy } log = "  war economy spirit: on" }
+			else = { log = "  war economy spirit: OFF" }
+			if = { limit = { has_idea = VIN_Indochina_AI_Support } log = "  standing AI layer: on" }
+			else = { log = "  standing AI layer: off" }
+			if = { limit = { has_idea = VIN_Campaign_AI_Support } log = "  campaign AI layer: on" }
+			else = { log = "  campaign AI layer: off" }
+			if = { limit = { has_country_flag = VIN_CMAG_Arrived } log = "  CMAG: arrived" }
+			else = { log = "  CMAG: not yet" }
+			log = "  divisions [?num_divisions|0]"
+		}
+	}
+}
+
+test_vin_fence = {
+	if = {
+		limit = { NOT = { country_exists = VIN } }
+		log = "VIN FENCE: no Viet Minh"
+	}
+	else = {
+		VIN = {
+			if = { limit = { has_country_flag = INDOCHINESE_WAR_HIGHLAND_UNLOCKED } log = "VIN FENCE: highland corridor OPEN" }
+			else = { log = "VIN FENCE: highland corridor shut" }
+			if = { limit = { has_country_flag = INDOCHINESE_WAR_HOA_BINH_UNLOCKED } log = "  Hoa Binh approaches OPEN" }
+			else = { log = "  Hoa Binh approaches shut" }
+			if = { limit = { has_country_flag = INDOCHINESE_WAR_DIEN_BIEN_UNLOCKED } log = "  Tay Bac Bo passes and the valley OPEN" }
+			else = { log = "  Tay Bac Bo passes and the valley shut" }
+			if = { limit = { has_country_flag = LAOS_BORDER_UNLOCKED } log = "  Laotian frontier OPEN" }
+			else = { log = "  Laotian frontier shut" }
+			if = { limit = { has_country_flag = VIN_Campaign_Dien_Bien_Active } log = "  valley campaign: in the field" }
+			else_if = { limit = { has_country_flag = VIN_Campaign_Cooldown_Dien_Bien } log = "  valley campaign: fought and resolved" }
+			else = { log = "  valley campaign: not yet run" }
+			if = { limit = { controls_province = 4529 } log = "  4529 Dien Bien Phu: VIN holds it" }
+			else = { log = "  4529 Dien Bien Phu: not ours" }
+		}
+	}
+	if = { limit = { 671 = { is_owned_by = VIN } } log = "  671 Tay Bac Bo owner: VIN" }
+	else_if = { limit = { 671 = { is_owned_by = TAI } } log = "  671 Tay Bac Bo owner: TAI" }
+	else = { log = "  671 Tay Bac Bo owner: other" }
+	if = { limit = { 1761 = { is_owned_by = VIN } } log = "  1761 Hoang Lien Son owner: VIN" }
+	else_if = { limit = { 1761 = { is_owned_by = TAI } } log = "  1761 Hoang Lien Son owner: TAI" }
+	else = { log = "  1761 Hoang Lien Son owner: other" }
+}
+
 # Run the scripted siege forward without waiting out the clock. Sets the day
 # count one short of each threshold and ticks, so the works come down and, on an
 # AI Hanoi, the camp is overrun on the next tick.

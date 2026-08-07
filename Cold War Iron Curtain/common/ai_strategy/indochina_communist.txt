@@ -1,8 +1,4 @@
 ### Hanoi's war AI ###
-# Two postures. The standing one holds the base areas for as long as the corps
-# is hostile; the campaign one throws everything at the objective for as long as
-# a campaign is in the field. VIN_no_campaign_running_trigger is the switch -
-# the same one the campaign clock and the raid suspension read.
 
 VIN_hold_the_base_areas = {
 	allowed = { tag = VIN }
@@ -97,38 +93,10 @@ VIN_campaign_all_in = {
 
 	ai_strategy = {
 		type = conquer
-		id = "TAI"
-		value = 200
-	}
-	ai_strategy = {
-		type = conquer
-		id = "TAM"
-		value = 200
-	}
-	ai_strategy = {
-		type = conquer
 		id = "FRE"
 		value = 100
 	}
 
-	ai_strategy = {
-		type = front_control
-		tag = TAI
-		ordertype = front
-		execution_type = rush
-		priority = 500
-		execute_order = yes
-		manual_attack = yes
-	}
-	ai_strategy = {
-		type = front_control
-		tag = TAM
-		ordertype = front
-		execution_type = rush
-		priority = 500
-		execute_order = yes
-		manual_attack = yes
-	}
 	ai_strategy = {
 		type = front_control
 		tag = FRE
@@ -141,18 +109,19 @@ VIN_campaign_all_in = {
 
 	ai_strategy = {
 		type = front_unit_request
-		tag = TAI
-		value = 500
-	}
-	ai_strategy = {
-		type = front_unit_request
-		tag = TAM
-		value = 500
-	}
-	ai_strategy = {
-		type = front_unit_request
 		tag = FRE
 		value = 300
+	}
+
+	ai_strategy = {
+		type = ignore
+		id = "LOS"
+		value = 200
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = LOS
+		value = -300
 	}
 
 	# Nothing stays home and nothing sits in reserve. The campaign either takes
@@ -163,7 +132,7 @@ VIN_campaign_all_in = {
 	}
 	ai_strategy = {
 		type = force_concentration_factor
-		value = 30
+		value = 50
 	}
 
 	# The campaign objectives are fortified mountain provinces, which the AI reads
@@ -175,7 +144,107 @@ VIN_campaign_all_in = {
 	}
 	ai_strategy = {
 		type = force_concentration_front_factor
-		value = 50
+		value = 80
+	}
+}
+
+VIN_campaign_tay_bac_push = {
+	allowed = { tag = VIN }
+	enable = {
+		has_country_flag = VIN_Campaign_Tay_Bac_Active
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		NOT = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
+	}
+
+	ai_strategy = {
+		type = conquer
+		id = "TAI"
+		value = 300
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1761
+		value = 15
+	}
+	ai_strategy = {
+		type = front_control
+		state = 1761
+		ordertype = front
+		execution_type = rush
+		ratio = 0.9
+		priority = 800
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_control
+		tag = TAI
+		ordertype = front
+		execution_type = rush
+		priority = 500
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAI
+		value = 700
+	}
+	ai_strategy = {
+		type = ignore_army_incompetence
+		value = 200
+	}
+}
+
+VIN_campaign_hoa_binh_push = {
+	allowed = { tag = VIN }
+	enable = {
+		has_country_flag = VIN_Campaign_Hoa_Binh_Active
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		NOT = { has_country_flag = VIN_Campaign_Hoa_Binh_Active }
+	}
+
+	ai_strategy = {
+		type = conquer
+		id = "TAM"
+		value = 400
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1766
+		value = 15
+	}
+	ai_strategy = {
+		type = front_control
+		state = 1766
+		ordertype = front
+		execution_type = rush
+		ratio = 0.9
+		priority = 800
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_control
+		tag = TAM
+		ordertype = front
+		execution_type = rush
+		priority = 500
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAM
+		value = 700
+	}
+	ai_strategy = {
+		type = ignore_army_incompetence
+		value = 200
 	}
 }
 
@@ -194,7 +263,7 @@ VIN_take_the_valley = {
 	ai_strategy = {
 		type = theatre_distribution_demand_increase
 		id = 671	# Tay Bac Bo, the valley itself
-		value = 12
+		value = 20
 	}
 	ai_strategy = {
 		type = theatre_distribution_demand_increase
@@ -205,6 +274,21 @@ VIN_take_the_valley = {
 		type = conquer
 		id = "TAI"
 		value = 400
+	}
+	ai_strategy = {
+		type = front_control
+		state = 671
+		ordertype = front
+		execution_type = rush
+		ratio = 1.0
+		priority = 900
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAI
+		value = 700
 	}
 	ai_strategy = {
 		type = ignore_army_incompetence
@@ -250,13 +334,13 @@ VIN_build_the_army = {
 	enable = {
 		date > 1949.1.1
 		NOT = { has_global_flag = Indochina_War_Over }
-		has_army_manpower = { size < 700000 }
+		has_army_manpower = { size < 1100000 }
 	}
 	abort_when_not_enabled = yes
 	abort = {
 		OR = {
 			has_global_flag = Indochina_War_Over
-			has_army_manpower = { size > 700000 }
+			has_army_manpower = { size > 1100000 }
 		}
 	}
 

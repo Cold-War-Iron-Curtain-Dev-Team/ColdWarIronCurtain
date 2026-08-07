@@ -47,9 +47,20 @@ ic_laos_raid_release_pathet_lao = {
 
 # --- The Pathet Lao's own divisions -----------------------------------------
 
+lao_ensure_templates = {
+	if = {
+		limit = {
+			country_exists = LAO
+			LAO = { NOT = { has_template = "Kong Phan" } }
+		}
+		LAO = { load_oob = "LAO_field_force" }
+	}
+}
+
 lao_deploy_field_force = {
 	if = {
 		limit = { country_exists = LAO }
+		lao_ensure_templates = yes
 		set_temp_variable = { lao_force_tier = 1 }
 		if = {
 			limit = {
@@ -68,23 +79,6 @@ lao_deploy_field_force = {
 			set_temp_variable = { lao_force_tier = 0 }
 		}
 
-		1295 = {	# Sam Neua, the base area and the new capital
-			create_unit = {
-				division = "name = \"Kong Phan 1\" division_template = \"Kong Phan\" start_experience_factor = 0.3 start_equipment_factor = 0.8"
-				owner = LAO
-				allow_spawning_on_enemy_provs = yes
-			}
-			create_unit = {
-				division = "name = \"Kong Phan 2\" division_template = \"Kong Phan\" start_experience_factor = 0.3 start_equipment_factor = 0.8"
-				owner = LAO
-				allow_spawning_on_enemy_provs = yes
-			}
-			create_unit = {
-				division = "name = \"Kong Pathom 1\" division_template = \"Kong Pathom\" start_experience_factor = 0.35 start_equipment_factor = 0.9"
-				owner = LAO
-				allow_spawning_on_enemy_provs = yes
-			}
-		}
 		if = {
 			limit = { check_variable = { lao_force_tier > 0 } }
 			1295 = {
@@ -122,6 +116,7 @@ lao_deploy_field_force = {
 lao_deploy_frontier_garrison = {
 	if = {
 		limit = { country_exists = LAO }
+		lao_ensure_templates = yes
 		if = {
 			limit = { LAO = { controls_state = 841 } }
 			841 = {	# Phongsaly, the frontier facing Dien Bien Phu and the Tai federation
@@ -169,6 +164,104 @@ lao_deploy_frontier_garrison = {
 		LAO = {
 			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 3000 producer = VIN }
 			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 300 producer = VIN }
+		}
+	}
+}
+
+lao_join_the_battle_of_dien_bien_phu = {
+	if = {
+		limit = {
+			country_exists = LAO
+			NOT = { has_global_flag = Laos_Pathet_Lao_At_Dien_Bien }
+			LAO = {
+				is_subject_of = VIN
+				any_owned_state = { is_controlled_by = LAO }
+			}
+		}
+		set_global_flag = Laos_Pathet_Lao_At_Dien_Bien
+		lao_ensure_templates = yes
+
+		set_temp_variable = { lao_dbp_tier = 0 }
+		if = {
+			limit = { LAO = { OR = { controls_state = 670  controls_state = 1198 } } }
+			set_temp_variable = { lao_dbp_tier = 1 }
+		}
+		if = {
+			limit = { NOT = { country_exists = LOS } }
+			set_temp_variable = { lao_dbp_tier = 2 }
+		}
+
+		if = {
+			limit = {
+				country_exists = TAI
+				has_war_with = TAI
+				LAO = { NOT = { has_war_with = TAI } }
+			}
+			LAO = { add_to_war = { targeted_alliance = VIN  enemy = TAI } }
+		}
+		if = {
+			limit = {
+				country_exists = FRE
+				has_war_with = FRE
+				LAO = { NOT = { has_war_with = FRE } }
+			}
+			LAO = { add_to_war = { targeted_alliance = VIN  enemy = FRE } }
+		}
+
+		LAO = {
+			random_owned_controlled_state = {
+				prioritize = { 841 1295 }
+				create_unit = {
+					division = "name = \"Kong Pathom Sop Nao\" division_template = \"Kong Pathom\" start_experience_factor = 0.45 start_equipment_factor = 0.9"
+					owner = LAO
+					allow_spawning_on_enemy_provs = yes
+				}
+				create_unit = {
+					division = "name = \"Kong Phan Muang Khoua\" division_template = \"Kong Phan\" start_experience_factor = 0.4 start_equipment_factor = 0.85"
+					owner = LAO
+					allow_spawning_on_enemy_provs = yes
+				}
+			}
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 2000 producer = VIN }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = VIN }
+			add_manpower = 8000
+		}
+		if = {
+			limit = { check_variable = { lao_dbp_tier > 0 } }
+			LAO = {
+				random_owned_controlled_state = {
+					prioritize = { 841 1295 }
+					create_unit = {
+						division = "name = \"Kong Pathom Nam Bac\" division_template = \"Kong Pathom\" start_experience_factor = 0.45 start_equipment_factor = 0.9"
+						owner = LAO
+						allow_spawning_on_enemy_provs = yes
+					}
+				}
+				add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = VIN }
+			}
+		}
+		if = {
+			limit = { check_variable = { lao_dbp_tier > 1 } }
+			LAO = {
+				random_owned_controlled_state = {
+					prioritize = { 841 1295 }
+					create_unit = {
+						division = "name = \"Kong Phan Ban Namone\" division_template = \"Kong Phan\" start_experience_factor = 0.4 start_equipment_factor = 0.85"
+						owner = LAO
+						allow_spawning_on_enemy_provs = yes
+					}
+				}
+				add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = VIN }
+				add_manpower = 6000
+			}
+		}
+
+		add_manpower = 6000
+		add_command_power = 25
+		country_event = { id = VINLAO.13 hours = 4 }
+		if = {
+			limit = { LAO = { is_ai = no } }
+			LAO = { country_event = { id = VINLAO.13 hours = 4 } }
 		}
 	}
 }
@@ -228,6 +321,29 @@ ic_laos_raid_launch = {
 				}
 			}
 			set_temp_variable = { laos_relief_tier = 0 }
+		}
+
+		670 = {
+			create_unit = {
+				division = "name = \"9e Bataillon de Chasseurs Laotiens\" division_template = \"Bataillon de Chasseurs Laotiens\" start_experience_factor = 0.3 start_equipment_factor = 0.9"
+				owner = LOS
+				allow_spawning_on_enemy_provs = yes
+				prioritize_location = 1464
+			}
+			create_unit = {
+				division = "name = \"3e Forces Terrestres du Laos\" division_template = \"Forces Terrestres du Laos\" start_experience_factor = 0.25 start_equipment_factor = 0.8"
+				owner = LOS
+				allow_spawning_on_enemy_provs = yes
+				prioritize_location = 1464
+			}
+		}
+		1198 = {
+			create_unit = {
+				division = "name = \"10e Bataillon de Chasseurs Laotiens\" division_template = \"Bataillon de Chasseurs Laotiens\" start_experience_factor = 0.3 start_equipment_factor = 0.9"
+				owner = LOS
+				allow_spawning_on_enemy_provs = yes
+				prioritize_location = 4613
+			}
 		}
 
 		670 = {
@@ -318,6 +434,7 @@ ic_laos_raid_daily_check = {
 		}
 		ic_laos_raid_attacker_victory = yes
 	}
+	lao_check_postwar_economy = yes
 }
 
 # --- Human attacker doubles down: deepen the penalty, one short final window --
@@ -371,6 +488,8 @@ ic_laos_raid_stalemate = {
 			}
 		}
 	}
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 50 }
+	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 }
 	ic_laos_raid_ceasefire = yes
 	news_event = laos_raid.2
 	ic_laos_raid_cleanup = yes
@@ -378,6 +497,9 @@ ic_laos_raid_stalemate = {
 
 ic_laos_raid_total_failure = {
 	set_global_flag = Laos_Raid_Total_Failure	# distinguishing outcome flag; Laos_Total_War may be set on top if Vientiane escalates
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 50 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 25 }
+	add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 50 }
 	if = {
 		limit = { country_exists = LOS }
 		LOS = { country_event = laos_raid.3 }
@@ -391,12 +513,16 @@ ic_laos_raid_total_failure = {
 
 ic_laos_raid_attacker_victory = {
 	set_global_flag = Laos_Raid_Attacker_Won
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 100 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 50 }
+	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 100 }
 	news_event = laos_raid.6
 	ic_laos_raid_cleanup = yes
 }
 
 ic_laos_raid_total_war = {
 	set_global_flag = Laos_Total_War
+	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 100 }
 	ic_laos_raid_dissolve_lao = yes
 	news_event = laos_raid.5
 	ic_laos_raid_cleanup = yes
@@ -433,13 +559,13 @@ ic_laos_raid_dissolve_lao = {
 }
 
 
-# Mirrors MLA_transition_to_postwar_government.
 lao_convert_to_normal_economy = {
 	if = {
 		limit = { has_country_flag = active_insurgency }
 		clr_country_flag = active_insurgency
 		drop_cosmetic_tag = yes	# no longer the Pathet Lao insurgency - the LPDR is proclaimed
-		remove_ideas = closed_economy
+		if = { limit = { has_idea = closed_economy } remove_ideas = closed_economy }
+		if = { limit = { has_idea = unrecognized_state } remove_ideas = unrecognized_state }
 		set_variable = { show_finance = 0 }
 		set_variable = { currentMoney = 5 }
 		set_variable = { currentDebt = 0 }
@@ -447,7 +573,43 @@ lao_convert_to_normal_economy = {
 		clear_current_economic_modifiers = yes
 		set_variable = { economic_x_axis = 22 }
 		startup_economics = yes
+
+		cwic_clear_insurgent_conventional_policies = yes
+		set_variable = { army_level_value = 4 }
+		set_variable = { navy_level_value = 0 }
+		set_variable = { air_level_value = 1 }
+		set_variable = { strategic_forces_level_value = 0 }
+		set_variable = { space_level_value = 0 }
+		set_variable = { healthcare_level_value = 2 }
+		set_variable = { welfare_level_value = 2 }
+		set_variable = { education_level_value = 2 }
+		set_variable = { public_services_level_value = 2 }
+		set_variable = { policing_level_value = 4 }
+		refresh_army_policy_rate = yes
+		refresh_navy_policy_rate = yes
+		refresh_air_policy_rate = yes
+		refresh_strategic_forces_policy_rate = yes
+		refresh_space_policy_rate = yes
+		refresh_healthcare_policy_rate = yes
+		refresh_welfare_policy_rate = yes
+		refresh_education_policy_rate = yes
+		refresh_services_policy_rate = yes
+		refresh_policing_policy_rate = yes
+		resource_bonus_script = yes
+		industrial_pulse = yes
+
 		lao_deploy_frontier_garrison = yes	# a government has borders to hold, and the Kingdom's army died winning them
+	}
+}
+
+lao_check_postwar_economy = {
+	if = {
+		limit = {
+			country_exists = LAO
+			NOT = { country_exists = LOS }
+			LAO = { has_country_flag = active_insurgency }
+		}
+		LAO = { lao_convert_to_normal_economy = yes }
 	}
 }
 
@@ -486,6 +648,16 @@ ic_laos_raid_cleanup = {
 test_laos_raid_launch = { ic_laos_raid_launch = yes }
 test_lao_field_force = { lao_deploy_field_force = yes }
 test_lao_frontier = { lao_deploy_frontier_garrison = yes }
+test_lao_dien_bien = {
+	clr_global_flag = Laos_Pathet_Lao_At_Dien_Bien
+	lao_join_the_battle_of_dien_bien_phu = yes
+}
+test_lao_postwar_economy = {
+	if = {
+		limit = { country_exists = LAO }
+		LAO = { lao_convert_to_normal_economy = yes }
+	}
+}
 
 test_lao_status = {
 	if = { limit = { country_exists = LAO } log = "LAO STATUS: Pathet Lao exist" }
@@ -497,7 +669,7 @@ test_lao_status = {
 	if = { limit = { LAO = { controls_state = 670 } } log = "  670 Vientiane: LAO" }
 	if = { limit = { LAO = { controls_state = 1198 } } log = "  1198 Luang Prabang: LAO" }
 	if = { limit = { LAO = { has_template = "Kong Phan" } } log = "  templates: loaded" }
-	else = { log = "  templates: MISSING - history/units/LAO_1949.txt did not load" }
+	else = { log = "  templates: MISSING - lao_ensure_templates never ran, or LAO_field_force.txt failed to load" }
 }
 test_laos_raid_resolve = { ic_laos_raid_resolve = yes }
 test_laos_raid_press = { ic_laos_raid_press = yes }

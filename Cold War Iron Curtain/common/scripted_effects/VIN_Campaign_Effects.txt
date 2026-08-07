@@ -71,6 +71,39 @@ vin_ai_prepare_campaign = {
 		set_variable = { VIN_Campaign_Supply = VIN_camp_price_maximum }
 		add_to_variable = { VIN_Campaign_Supply = 10 }	# the option needs a strict >
 	}
+	if = {
+		limit = { is_ai = yes }
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_1
+			amount = 3000
+			producer = PRC
+		}
+		add_equipment_to_stockpile = {
+			type = artillery_equipment_1
+			amount = 400
+			producer = PRC
+		}
+		add_manpower = 25000
+		add_command_power = 50
+	}
+}
+
+vin_indochina_ai_initialize = {
+	if = {
+		limit = {
+			is_ai = yes
+			NOT = { has_idea = VIN_Indochina_AI_Support }
+			NOT = { has_global_flag = Indochina_War_Over }
+		}
+		add_ideas = VIN_Indochina_AI_Support
+	}
+	if = {
+		limit = {
+			is_ai = no
+			has_idea = VIN_Indochina_AI_Support
+		}
+		remove_ideas = VIN_Indochina_AI_Support
+	}
 }
 
 vin_campaign_commit = {
@@ -313,6 +346,10 @@ vin_campaign_declare_war = {
 		}
 		hidden_effect = { declare_war_on = { target = TAI type = annex_everything } }	# the call site owns the tooltip; a branch here reads a variable the preview has not assigned yet
 	}
+	if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		lao_join_the_battle_of_dien_bien_phu = yes
+	}
 	activate_mission = VIN_Campaign_Clock	# the deadline had no representation in the UI at all
 	FRA = { activate_mission = VIN_Campaign_Objective_Timer }	# FRA always exists; the mission is the hard backstop if the tick ever stalls
 }
@@ -388,15 +425,15 @@ vin_campaign_resolve = {
 	}
 	if = {
 		limit = { check_variable = { VIN_camp_last_outcome = 1 } }
-		set_temp_variable = { indochina_phase_amount = 120 }
+		set_temp_variable = { indochina_phase_amount = 100 }
 		indochina_struggle_escalate = yes
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = 150
+				StruggleInvolvedNationsIndochinaCommunistScore = 100
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = -100
+				StruggleInvolvedNationsIndochinaProFranceScore = -50
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
@@ -410,15 +447,15 @@ vin_campaign_resolve = {
 	}
 	else_if = {
 		limit = { check_variable = { VIN_camp_last_outcome = 2 } }
-		set_temp_variable = { indochina_phase_amount = 70 }
+		set_temp_variable = { indochina_phase_amount = 50 }
 		indochina_struggle_escalate = yes
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = 75
+				StruggleInvolvedNationsIndochinaCommunistScore = 50
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
-			add_to_variable = {	# the corps held for months against the whole main force, and Paris hears about it
-				StruggleInvolvedNationsIndochinaProFranceScore = 50
+			subtract_from_variable = {
+				StruggleInvolvedNationsIndochinaProFranceScore = 25
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
@@ -436,25 +473,25 @@ vin_campaign_resolve = {
 		limit = { check_variable = { VIN_camp_last_outcome = 3 } }
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = -50
+				StruggleInvolvedNationsIndochinaCommunistScore = -25
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = 50
+				StruggleInvolvedNationsIndochinaProFranceScore = 25
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
 	}
 	else = {
-		set_temp_variable = { indochina_phase_amount = 60 }
+		set_temp_variable = { indochina_phase_amount = 50 }
 		indochina_struggle_deescalate = yes	# a broken offensive takes the pressure off
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = -150
+				StruggleInvolvedNationsIndochinaCommunistScore = -50
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = 175
+				StruggleInvolvedNationsIndochinaProFranceScore = 50
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
@@ -512,8 +549,8 @@ vin_campaign_finish = {
 	vin_campaign_remove_war_spirits = yes
 	set_variable = { VIN_camp_days_elapsed = 0 }
 	clr_country_flag = VIN_Campaign_Resolving
-	deactivate_mission = VIN_Campaign_Clock
-	FRA = { deactivate_mission = VIN_Campaign_Objective_Timer }
+	remove_mission = VIN_Campaign_Clock
+	FRA = { remove_mission = VIN_Campaign_Objective_Timer }
 }
 
 # --- Dien Bien Phu ----------------------------------------------------------
@@ -567,7 +604,6 @@ fre_dbp_fortify_camp = {
 			type = anti_air_building
 			level = 2
 			instant_build = yes
-			province = 4529
 		}
 		if = {
 			limit = { NOT = { has_dynamic_modifier = { modifier = dbp_camp_under_siege } } }
@@ -794,7 +830,7 @@ vin_dbp_siege_tick = {
 			set_variable = { global.VIN_dbp_fort_level = 0 }
 			671 = {	# the last works go, and the airstrip with them
 				set_building_level = { type = bunker level = 0 province = { id = 4529 } }
-				set_building_level = { type = anti_air_building level = 0 province = { id = 4529 } }
+				set_building_level = { type = anti_air_building level = 0 }
 			}
 		}
 		if = {
