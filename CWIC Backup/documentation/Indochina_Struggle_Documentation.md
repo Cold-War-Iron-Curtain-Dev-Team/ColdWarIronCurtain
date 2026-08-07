@@ -60,23 +60,24 @@ A battlefield win can raise both; a negotiated win raises score and lowers heat.
 A contested outcome pays the winner T*n*, the loser -T*n*/2, and the opposing faction
 +T*n*/2. **No outcome pays both sides positively for the same result.**
 
-### Repeatable income cap
+### Repeatable score income
 
-Raids and the Struggle Diplomacy decisions are the two grindable channels, so both draw
-from one budget of `FRA.indochina_raid_score_cap` (**30**) per faction per month. Past
-the cap they still pay equipment and A/B points but no score. The accumulators
-(`FRA.ic_income_comm` / `_profr` / `_proind` / `_proeth` / `_kmt`) reset in
-`on_monthly_FRA` via `indochina_struggle_income_reset`.
+Raids and Struggle Diplomacy decisions award their listed score directly. The former
+monthly cap was removed because it silently discarded otherwise successful outcomes,
+required five persistent faction counters plus reset plumbing, and did not reliably
+enforce its nominal ceiling (an award could overshoot it). Raid availability, cost,
+duration, and outcome odds remain the visible limits on repeatable score income.
 
-One-shot content - focuses, named operations, battle outcomes - bypasses the cap through
-the `indochina_struggle_grant_*` helpers and writes the score directly.
+One-shot content - focuses, named operations, and battle outcomes - continues to use the
+`indochina_struggle_grant_*` helpers so its intent remains distinct from repeatable
+content, although both now write score directly.
 
-### Budget target
+### Score target
 
 A faction committed to its historical path lands **1200-1500 by mid-1954**; a
-present-but-passive faction lands **300-500**. Roughly 40% of a committed faction's score
-comes from the capped repeatable channels and 60% from one-shot narrative content. The
-ending thresholds (`> 1000`, `> 499`) are scaled to that.
+present-but-passive faction lands **300-500**. Removing the repeatable cap increases the
+upper bound for unusually raid-heavy play, so these targets should be rechecked in the
+next full AI balance run. The ending thresholds remain (`> 1000`, `> 499`).
 
 ---
 
@@ -111,16 +112,15 @@ All in `common/scripted_effects/CWIC_Struggle_Effects.txt`.
 
 | Helper | Caller sets | Behaviour |
 |---|---|---|
-| `indochina_struggle_award_<faction>` | `temp.ic_award` | capped repeatable income |
+| `indochina_struggle_award_<faction>` | `temp.ic_award` | repeatable score award |
 | `indochina_struggle_grant_<faction>` | `temp.ic_award` | uncapped one-shot grant |
-| `indochina_raid_award_actor` | `temp.ic_award` | dispatches on ROOT's faction array, capped |
-| `indochina_raid_award_victim` | `temp.ic_award` | dispatches on `victim_country`, capped |
-| `indochina_raid_penalise_victim` | `temp.ic_award` | subtracts from the victim's faction, never capped |
+| `indochina_raid_award_actor` | `temp.ic_award` | dispatches on `actor_country`'s faction array |
+| `indochina_raid_award_victim` | `temp.ic_award` | dispatches on `victim_country`'s faction array |
+| `indochina_raid_penalise_victim` | `temp.ic_award` | subtracts from the victim's faction |
 | `indochina_raid_escalate` / `_deescalate` | `temp.ic_phase` | A / B points |
 | `indochina_struggle_escalate` / `_deescalate` | `temp.indochina_phase_amount` | A / B points; the older spelling, used outside the raid file |
 | `indochina_struggle_add_<faction>_military_points` | - | T3 score + P4 to A |
 | `indochina_struggle_add_<faction>_diplomatic_points` | - | T3 score + P4 to B |
-| `indochina_struggle_income_reset` | - | zeroes the monthly accumulators and seeds the cap |
 
 `<faction>` is one of `communist`, `pro_france`, `pro_independence`, `pro_ethnic`,
 `kuomintang`. All five exist for every helper family.
@@ -303,17 +303,15 @@ decisive ending, defaulting to the historical Geneva partition.
 ## Save-load guard
 
 The struggle `on_startup` block is guarded by `indochina_struggle_initialized`; without it
-every reload reset the phase/scores and duplicated the GUI arrays. That block also seeds
-`indochina_raid_score_cap` through `indochina_struggle_income_reset`.
+every reload reset the phase/scores and duplicated the GUI arrays.
 
 ---
 
 ## Testing
 
 `common/scripted_effects/IC_Struggle_Test_Effects.txt`:
-- `e test_ic_score_report` - dumps all five scores, the derived total, the phase, both
-  point pools and each faction's remaining monthly budget to `game.log`
-- `e test_ic_income_reset` - clears the monthly repeatable budget
+- `e test_ic_score_report` - dumps all five scores, the derived total, the phase, and both
+  point pools to `game.log`
 - `e d_ic_reset`, `e test_indochina_set_<faction>_high`, `e test_indochina_set_phase_*`,
   `e test_indochina_trigger_<ending>` - the pre-existing harness
 
