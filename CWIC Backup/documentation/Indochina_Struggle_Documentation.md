@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Indochina Struggle GUI is the core mechanic for the First Indochina War. It uses a phase system (3-8 active, 9-11 endings) and faction scores to determine outcomes. All major decisions, focus trees, and events feed into this GUI system.
+The Indochina Struggle GUI is the core mechanic for the First Indochina War. It uses a
+phase system (3-8 active, 9-11 endings) and five faction scores to determine outcomes.
+All major decisions, focus trees, and events feed into this GUI system.
 
 ## Design Philosophy
 
@@ -17,13 +19,66 @@ The Indochina Struggle GUI is the core mechanic for the First Indochina War. It 
 - Events: Award scores, modify phase points, provide narrative
 - GUI Endings: Handle all state changes, peace treaties, annexations
 
-## To Do
-- Have SV mix of defending and doing raids instead of letting NLF walk over everything
-- Include points in VIE Mil branch
-- Have VIE do Diplo tree focuses when they unlock
-- Maybe start off on medium intensity then have huge boost to high/medium tension when/if they annex NLF
-- Have the Geneva Conference be triggered like we have it already/OR have it triggered when FRA and USA realize costs too high and dip
-- This way other endings are triggered also depending on FRA/USA choices
+---
+
+## The scoring charter
+
+The authoritative copy of this table is the header block above the helper section in
+`common/scripted_effects/CWIC_Struggle_Effects.txt`. Keep the two in step.
+
+**Two currencies, orthogonal.**
+- *Faction score* = a camp's claim to decide the postwar settlement. Stored on FRA.
+- *A / B points* = how hot the war is. Global. A phase flips at > 499.
+
+A battlefield win can raise both; a negotiated win raises score and lowers heat.
+
+### Faction score tiers
+
+| Tier | Value | Used for |
+|---|---|---|
+| T1 | 3 | raid `limited_success` |
+| T2 | 6 | raid `success`, minor event option |
+| T3 | 15 | raid `critical_success`, ordinary focus |
+| T4 | 50 | named operation, campaign phase, diplomacy decision |
+| T5 | 100 | Vinh Yen, Na San, Hoa Binh, Northwest, RC4, Laos raid victory |
+| T6 | 200 | Dien Bien Phu, fall of a capital, Castor failure |
+| T7 | 350 | ending unlock, unification, Geneva accession |
+
+### Phase point tiers
+
+| Tier | Value |
+|---|---|
+| P1 | 5 |
+| P2 | 10 |
+| P3 | 25 |
+| P4 | 50 |
+| P5 | 100 |
+| P6 | 175 |
+
+### Symmetry rule
+
+A contested outcome pays the winner T*n*, the loser -T*n*/2, and the opposing faction
++T*n*/2. **No outcome pays both sides positively for the same result.**
+
+### Repeatable income cap
+
+Raids and the Struggle Diplomacy decisions are the two grindable channels, so both draw
+from one budget of `FRA.indochina_raid_score_cap` (**30**) per faction per month. Past
+the cap they still pay equipment and A/B points but no score. The accumulators
+(`FRA.ic_income_comm` / `_profr` / `_proind` / `_proeth` / `_kmt`) reset in
+`on_monthly_FRA` via `indochina_struggle_income_reset`.
+
+One-shot content - focuses, named operations, battle outcomes - bypasses the cap through
+the `indochina_struggle_grant_*` helpers and writes the score directly.
+
+### Budget target
+
+A faction committed to its historical path lands **1200-1500 by mid-1954**; a
+present-but-passive faction lands **300-500**. Roughly 40% of a committed faction's score
+comes from the capped repeatable channels and 60% from one-shot narrative content. The
+ending thresholds (`> 1000`, `> 499`) are scaled to that.
+
+---
 
 ## Core Components
 
@@ -32,7 +87,8 @@ The Indochina Struggle GUI is the core mechanic for the First Indochina War. It 
 - Pro-France: FRA, CAM, LOS, RCG, SEN, TOG, CMR, TUN, MOR, FRE, AND, SAR
 - Pro-Independence: VIE, CCC
 - Pro-Ethnic: NUN, FUL, TAI, TAM, THO
-- Kuomintang: PQC (added dynamically)
+- Kuomintang: PQC, added by `PRC_Lose_CCW` / `ROC_lose_CCW` when the Chinese Civil War
+  resolves. MEO can move itself into this array (or into Pro-Ethnic) from `MEO_50s`.
 - Interlopers: USA, SOV, PRC, CHI, SIA, KOR, KPA, HUM
 
 ### Score Variables (Stored on FRA)
@@ -41,88 +97,187 @@ The Indochina Struggle GUI is the core mechanic for the First Indochina War. It 
 - `StruggleInvolvedNationsIndochinaProIndependenceScore`
 - `StruggleInvolvedNationsIndochinaProEthnicScore`
 - `StruggleInvolvedNationsIndochinaKuomintangScore`
-- `StruggleInvolvedNationsIndochinaTotalAntiCommunistScore` (sum of ProFrance + ProIndependence + ProEthnic)
+- `StruggleInvolvedNationsIndochinaTotalAntiCommunistScore`
+
+**The anti-communist total is derived**, not accumulated:
+`indochina_struggle_recalculate_total_anti_communist_score` rewrites it every day from
+`on_daily_FRA` as ProFrance + ProIndependence + ProEthnic. **Never add to it directly** -
+the write is erased within a day. Kuomintang is deliberately outside the sum, so KMT
+points neither help nor hinder the anti-communist ratio gates.
+
+### Helper effects
+
+All in `common/scripted_effects/CWIC_Struggle_Effects.txt`.
+
+| Helper | Caller sets | Behaviour |
+|---|---|---|
+| `indochina_struggle_award_<faction>` | `temp.ic_award` | capped repeatable income |
+| `indochina_struggle_grant_<faction>` | `temp.ic_award` | uncapped one-shot grant |
+| `indochina_raid_award_actor` | `temp.ic_award` | dispatches on ROOT's faction array, capped |
+| `indochina_raid_award_victim` | `temp.ic_award` | dispatches on `victim_country`, capped |
+| `indochina_raid_penalise_victim` | `temp.ic_award` | subtracts from the victim's faction, never capped |
+| `indochina_raid_escalate` / `_deescalate` | `temp.ic_phase` | A / B points |
+| `indochina_struggle_escalate` / `_deescalate` | `temp.indochina_phase_amount` | A / B points; the older spelling, used outside the raid file |
+| `indochina_struggle_add_<faction>_military_points` | - | T3 score + P4 to A |
+| `indochina_struggle_add_<faction>_diplomatic_points` | - | T3 score + P4 to B |
+| `indochina_struggle_income_reset` | - | zeroes the monthly accumulators and seeds the cap |
+
+`<faction>` is one of `communist`, `pro_france`, `pro_independence`, `pro_ethnic`,
+`kuomintang`. All five exist for every helper family.
 
 ### Phase System
 
 **Active Phases (3-8):**
 - Phase 3: High Intensity
-- Phase 4: Medium Intensity
-- Phase 5: Low Intensity (Starting)
+- Phase 4: Medium Intensity (campaign start)
+- Phase 5: Low Intensity
 - Phase 6: High Tension
 - Phase 7: Medium Tension
-- Phase 8: Low Tension (Max De-escalation)
+- Phase 8: Low Tension (max de-escalation)
 
-**Ending Phases (9-11):**
-- Phase 9: Never Ending Conflict
-- Phase 10: Failed State
-- Phase 11: Geneva Conference
+**Ending Phases (9-11):** 9 Never Ending Conflict, 10 Failed State, 11 Geneva Conference.
+Phase 100 = struggle over (cleanup).
 
-**Phase Variables:**
-- `global.Indochina_War_Active_Phase` - Current phase
-- `global.Indochina_War_Next_Phase_A_Points` - Escalation points
-- `global.Indochina_War_Next_Phase_B_Points` - De-escalation points
+**Phase Variables:** `global.Indochina_War_Active_Phase`,
+`global.Indochina_War_Next_Phase_A_Points`, `global.Indochina_War_Next_Phase_B_Points`.
 
 **Transition Rules:**
-- 500 points threshold for phase transitions
-- Transitions only when phase < 8
-- Phase 8 cannot transition further via points
-- Ending phases set when endings triggered via GUI
-- Phase 100 = Struggle Over (cleanup)
+- 500-point threshold; the flip zeroes **both** pools
+- Escalation is checked before de-escalation, so it wins a same-day tie
+- Transitions only while phase < 8; `indochina_struggle_clamp_scores` pins A at 499 in phase 3
+- Ending phases are set when endings trigger via the GUI
+
+---
 
 ## Ending Conditions
 
-### 1. Communist Victory
-- Tag: VIN
-- Conditions: Communist > 2x Total Anti-Communist, Communist > 1000
-- Bypass: Full war + VIN owns Saigon (286) OR VIN annexes VIE
-- Effect: VIN annexes VIE/NLF, transfers all Vietnam states, sets capital to Hanoi (1760)
+Shorthand: `C` Communist, `PF` Pro-France, `PI` Pro-Independence, `PE` Pro-Ethnic,
+`KMT` Kuomintang, `AC` = PF + PI + PE.
 
-### 2. Southern Victory
-- Tag: VIE
-- Conditions: Anti-communist government, high tension with VIN, ProIndependence > 2x Communist, > ProFrance, > ProEthnic, > 1000
-- Effect: VIE annexes VIN/NLF, transfers all North Vietnam states, sets capital to Saigon (286), cores Hanoi (1760)
-- Focus Chain: `VIE_BaoDai_Liberator_of_Vietnam` bypass → `BaoDai.13` (revolt in Hoang Lien Son) → `VIE_Why_Revolting` → `BaoDai.14` (crackdown)
+**The settlement window** (`indochina_settlement_window_trigger`): tension phase 6-8 and
+after 1953.1.1. The three negotiated endings - Federal, Balkanized, Dan Quoc - require it.
+Without it a France that banked points through the 1951-52 defensive battles could impose
+a federal settlement in 1952, while the war was still at High Intensity. The military
+endings (Communist, Southern, Kuomintang) are decided on the map and are not gated by it.
+The failsafe mirrors carry the date floor but not the phase gate, so a genuinely stuck war
+can still be routed out of a hot phase.
 
-### 3. Federal Vietnam
-- Tag: FRA
-- Conditions: Total Anti-Communist > 2x Communist, ProFrance > ProIndependence, ProEthnic > ProIndependence, ProFrance > 1000, ProFrance > ProEthnic
-- Effect: VIE annexes VIN/NLF, transfers North Vietnam states to VIE
+### 1. Communist Victory (VIN)
+`C > 2*AC` and `C > 1000`. Map bypass: at war with VIE and owns Saigon (286), or VIE
+capitulated / gone.
+Effect: VIN annexes VIE/NLF, transfers all Vietnam states, capital to Hanoi (1760).
 
-### 4. Balkanized Vietnam
-- Tag: FUL/FRA/CCC
-- Conditions: (ProEthnic + ProFrance) > 1000, > 2x ProIndependence, > 2x Communist, ProEthnic >= ProFrance
-- Effect: Multiple independent states
+### 2. Southern Victory (VIE)
+Non-communist government, high tension with VIN (war or mutual opinion < -50), **any
+active phase**, `AC > 2*C`, `PI > PF`, `PI > PE`, `PI > 1000`. Map bypasses: owns Hanoi
+(1760) while at war, or VIN annexed and VIE holds both capitals.
+Effect: VIE annexes VIN/NLF, capital to Saigon (286), cores Hanoi.
 
-### 5. Dan Quoc Peace
-- Tag: VIN/VIE
-- Conditions: `dan_quoc_peace` flag, Ngo Dinh Diem in VIE, Ho Chi Minh in VIN, ProIndependence > ProFrance, > 500
-- Effect: Reunification under Diem-Ho agreement
+### 3. Federal Vietnam (FRA)
+**Settlement window**, `AC > 2*C`, `PF > PI`, **`PE > 250`**, `PF > 1000`, `PF > PE`.
+The ethnic clause is an absolute floor - the Crown Domains still exist as a political
+fact - rather than a race against Saigon. Tying it to Pro-Independence made it
+unreachable when that score was starved and unreachable again once it earned properly.
 
-### 6. American-North Vietnam Diplomatic
-- Tag: USA/VIN
-- Conditions: Ho Chi Minh in VIN, not at war, positive opinions, VIN favors USA over SOV, USA focus completed, Communist > 2x Total Anti-Communist, > 500
-- Effect: VIN democratizes (Social Democratic), unifies Vietnam, improves USA relations
+### 4. Balkanized Vietnam (FUL / FRA / CCC)
+**Settlement window**, `(PE+PF) > 1000`, `> 2*PI`, `> 2*C`, and **`PE*2 >= PF`**.
+Federal keeps `PF > PE`, so 3 and 4 overlap in the band `PE < PF <= 2*PE`. That overlap
+is deliberate: with a respectable but not dominant ethnic score the player gets a real
+choice between the two, and the daily availability ladder's fixed order (federal before
+balkanized) only decides which the popup surfaces first.
 
-### 7. Kuomintang Victory
-- Tag: PQC
-- Conditions: PQC exists, owns Saigon (286) and Hanoi (1760) OR (owns one + KMT score > all other factions)
-- Effect: PQC unifies Vietnam, sets capital to Saigon (286) or Hanoi (1760)
+### 5. Dan Quoc Peace (VIN / VIE)
+**Settlement window**, `dan_quoc_peace` flag, Diem ruling VIE, Ho ruling VIN, `PI > PF`,
+`PI > 499`.
+Also reachable outright via the `diem_ho_chi_minh_reunified` flag.
 
-### 8. Geneva Conference
-- Tag: Any
-- Conditions: Phase 8 + de-escalation points > 500 OR `Geneva_Conference` flag OR Phase 11
-- Effect: Partition at 17th parallel, VIN gets North, VIE gets South, Laos/Cambodia independent
+### 6. American-North Vietnam Diplomatic (USA / VIN)
+Ho ruling VIN, not at war with USA, positive mutual opinion, VIN favours USA over SOV,
+`USA_50s_Reestablish_Deer_Team` complete, `C > 2*AC`, `C > 499`.
 
-### 9. Never Ending Conflict
-- Tag: Any
-- Conditions: Phase 9 OR (date > 1957.1.1 AND phase >= 3 AND phase < 9)
-- Effect: Conflict continues indefinitely
+### 7. Kuomintang Victory (PQC)
+PQC exists and VIE has warred it. Owns both Saigon and Hanoi, **or** owns one plus
+**`KMT > 500`** and `KMT` greater than every other faction score.
 
-### 10. Failed State
-- Tag: Any
-- Conditions: Phase 10 OR (all faction scores < 500 AND date > 1955.1.1 AND phase < 9)
-- Effect: Complete collapse, no clear winner
+### 8. Geneva Conference (any)
+`Geneva_Conference_Preparations` and `Geneva_Conference_Negotiations_Complete`. The
+conference itself becomes available at phase 8 with B > 499, via the FRA decision, the
+FRE focus, the Pro-Independence proposal decision, or the panic-collapse path.
+Effect: partition at the negotiated line, Laos and Cambodia independent.
+
+### 9. Never Ending Conflict (any)
+Phase 9, or after 1957.1.1 in any active phase with the failed-state test not passing.
+
+### 10. Failed State (any)
+Phase 10, or after 1955.1.1 with **all five** faction scores below 500.
+
+### The unfinished-arc guard
+
+`vin_campaign_finish` white-peaces FRE, TAI and TAM at the end of every VIN campaign, so
+the cooldown between campaigns is a genuine no-war state **by design**. The failsafe's
+no-war watchdog read that lull as the end of the war and terminated the struggle in June
+1952, in a run where VIE had also annexed NLF.
+
+Two guards now stand between a lull and the terminator:
+
+- `ic_failsafe_no_theatre_war_trigger` tests whether VIN, NLF, LAO, MEO, PQC or FRE is at
+  war *at all*. Those tags exist only for this theatre, so any war they are in is this
+  war. The old form enumerated belligerent pairs and went blind the moment one of the
+  named pairs stopped existing.
+- `ic_failsafe_theatre_unfinished_trigger` holds while the scripted arc still has content
+  in front of it: before 1954.7.21 always, while a conference is sitting, or before
+  1955.1.1 while VIN still has a campaign to run (`VIN_Campaign_Cooldown_Tay_Bac` /
+  `_Hoa_Binh` / `_Dien_Bien`) or the Laos raid is live. The no-war watchdog will not route
+  while it holds, the router will not enter its mutating preflight without a genuinely
+  decisive condition, and postflight cannot dissolve CEFEO merely because a normal
+  campaign cooldown currently satisfies `ic_failsafe_no_theatre_war_trigger`.
+  `indochina_failsafe_force_cleanup_if_needed` will not terminate while the guard holds.
+  The 1955 ceiling stops a permanently passive Hanoi from holding the theatre open.
+
+### Failsafe mirrors
+
+`common/scripted_triggers/IC_Failsafe_triggers.txt` carries a score-mirror copy of each
+ending trigger (`ic_ending_federal_ok` etc.) reading `global.ic_score_*` instead of the
+FRA variables, so the contingency layer still works once France is gone. **Every
+threshold change above must be made in both files in the same commit.**
+
+---
+
+## Where score comes from
+
+| Source | Owner | Notes |
+|---|---|---|
+| `common/raids/Indochina_Raids.txt` | all five | 73 raids, T1/T2/T3 by outcome level, dispatched through `indochina_raid_award_actor`. Capped. |
+| Struggle Diplomacy decisions (`common/decisions/Indochina_War.txt`) | all five | 3 de-escalation + 1 escalation per faction. 25 PP, 70-day re-enable, 45-day per-faction lock. Capped. |
+| `events/FRE_Events.txt` | ProFrance / Communist | 6 preparation missions (T3), 5 named operations (T4), 5 set-piece battles (T5 aggressive / T4 cautious), the DBP arc (T6). |
+| `common/national_focus/FRE_50s_Indochina.txt` | ProFrance / ProEthnic | includes `FRE_Proclaim_Victory_in_Indochina` (T7) and its mirror `FRE_The_Fall_of_Saigon` (-T7), plus `FRE_Montagnard_Loyalty` (T5 ethnic). |
+| `common/national_focus/VIN_50s.txt` + `VIN_Campaign_Effects.txt` | Communist | the campaign milestones: border campaign, Northwest, Hoa Binh (T5 each), Dien Bien Phu (T6). |
+| `common/scripted_effects/IC_Laos_Raid_Effects.txt` | Communist / ProFrance | attacker victory T5, stalemate T4, total failure pays France T4. |
+| `common/national_focus/VIE_50s_*.txt` | ProIndependence / ProEthnic | National Army (T5); the traditional-tactics and Territoire Autonome branches pay ethnic. |
+| `common/national_focus/{FUL,NUN,MEO,PQC,CCC}_*.txt` | ProEthnic / KMT / Communist | 69 wired focuses. These trees awarded nothing before. |
+| VIE State Integration Panel (`Vietnam_effects.txt`) | ProIndependence / ProEthnic | integrating a state pays ProIndependence T3 and costs ProEthnic 8; opening diplomacy pays ProEthnic T3. |
+| `USA_FP_50s.txt`, `America_1950s_Expansion.txt` | Communist / ProInd / ProFrance | via the `USA_indochina_add_*_score` helpers. |
+| `Indochina_Border_War.*` (`events/Indochina_War_Rework.txt`) | all five | flat T4 per border-war resolution. |
+
+### The communist victory unlock
+
+`indochina_struggle_auto_trigger_communist_victory_preparation` fires once from
+`on_daily_FRA` when VIE capitulates/vanishes or VIN takes Saigon while at war. It pays
+T7 + P6 as an ending *unlock*, not as the war's reward - the war itself is earned through
+the campaign milestones above.
+
+### Time-Based Drift (on_monthly_FRA)
+
+- 1950-52: +25 A/month while phase > 3
+- 1953: +20 B/month
+- 1954: +30 B/month
+- 1955: +25 B/month
+
+The de-escalation drips are gated on `NOT has_global_flag Indochina_War_Escalated` (a war
+at full intensity does not cool itself) and run in every active phase including Low
+Tension, so progress toward the Geneva threshold does not stall at maximum de-escalation.
+
+---
 
 ## Focus Tree Bypass System
 
@@ -133,66 +288,39 @@ Focuses automatically bypass when their ending becomes available:
 - `VIN_A_Failed_State` - Failed State
 - `VIE_Accept_Geneva_Conference` - Geneva Conference
 
-Bypass triggers check if ending trigger is met OR war is over.
+Bypass triggers check if the ending trigger is met OR the war is over.
 
-## Automatic Triggers
+## Indochina_Wrapup_Timer (AI-only auto-resolution)
 
-**Communist Victory Preparation:**
-- Fires daily in `on_daily_FRA` when VIE capitulates/doesn't exist OR (VIN at war with VIE AND VIN owns Saigon)
-- Awards 1500 Communist score and 200 escalation points
-- Unlocks ending in GUI
+Activated from `ic_pulse` only when `indochina_struggle_all_participants_ai_trigger`
+passes: France and every Indochina participant is AI controlled. A human playing any
+participant keeps full control; interloper players still shape the outcome through scores.
 
-**Indochina_Wrapup_Timer (AI-only auto-resolution):**
-- Activated from `ic_pulse` (IC_scripted_effects.txt) only when `indochina_struggle_all_participants_ai_trigger` passes: France AND every Indochina participant (VIN, VIE, NLF, MEO, CAM, LOS, LAO, CCC, PQC, FUL, TAI, TAM, THO, NUN, FRE) is AI controlled. A human playing any participant keeps full control of the minigame; interloper players (USA/SOV/etc.) still shape the outcome through scores.
-- Historical window: activates 1954.5.20-1954.7.10, and the 60-day timeout lands ~21 July 1954 (OTL Geneva Accords). A post-1957.1.1 window catches AI-only stalemates that missed it. The 1954 window is skipped while a human USA is mid `USA_VIN_Reunification` chain.
-- On timeout it runs the first *earned* decisive ending (USA-VIN reunification complete → Communist Victory → Southern Victory → Kuomintang Victory → Dan Quoc Peace → Federal Vietnam → Balkanized Vietnam), defaulting to the historical Geneva partition otherwise. Each ending effect fires its own `major = yes` news event from FRA scope, so all players see the outcome.
-- Cancelled automatically if `Indochina_War_Over` gets set while the timer runs.
+Historical window 1954.5.20-1954.7.10, with the 60-day timeout landing ~21 July 1954. A
+post-1957.1.1 window catches AI-only stalemates. On timeout it runs the first *earned*
+decisive ending, defaulting to the historical Geneva partition.
 
-**Save-load guard:**
-- The struggle `on_startup` block is guarded by `indochina_struggle_initialized`; without it every save reload reset the phase/scores and duplicated the phase/ending GUI arrays.
+## Save-load guard
 
-## Time-Based Bonuses
+The struggle `on_startup` block is guarded by `indochina_struggle_initialized`; without it
+every reload reset the phase/scores and duplicated the GUI arrays. That block also seeds
+`indochina_raid_score_cap` through `indochina_struggle_income_reset`.
 
-Monthly de-escalation bonuses for 1954 Geneva timing (on_monthly_FRA):
-- 1953: +9/month
-- 1954: +15/month
-- 1955: +12/month
+---
 
-The drip runs in every active phase including Low Tension (gate `phase < 9`), so
-progress toward the Geneva threshold (phase 8 + 500 B points) does not stall
-once maximum de-escalation is reached.
+## Testing
 
-## Struggle Diplomacy Decisions
+`common/scripted_effects/IC_Struggle_Test_Effects.txt`:
+- `e test_ic_score_report` - dumps all five scores, the derived total, the phase, both
+  point pools and each faction's remaining monthly budget to `game.log`
+- `e test_ic_income_reset` - clears the monthly repeatable budget
+- `e d_ic_reset`, `e test_indochina_set_<faction>_high`, `e test_indochina_set_phase_*`,
+  `e test_indochina_trigger_<ending>` - the pre-existing harness
 
-Faction-gated decisions in `Indochina_War_Rework` (common/decisions/Indochina_War.txt),
-visible only during the tension phases (6-8), added because raids progressively
-disable as tension drops and previously left de-escalating players with no actions.
-All point awards go through the shared helpers in CWIC_Struggle_Effects.txt
-(`indochina_struggle_add_<faction>_diplomatic_points` = 75 B + 75 faction score;
-`..._military_points` = 75 A + 75 faction score).
-
-Per faction array (Pro-Independence, Communist, Pro-France):
-- 3 de-escalation decisions (25 PP, 70-day re-enable, ~96 B/month if cycled)
-- 1 escalation decision (50 PP, 90-day re-enable, `ai_will_do = 0` so only
-  players can push tension back up; AI escalation stays raid/border-war driven)
-- AI weight on the de-escalation decisions ramps x10 after 1953.1.1 to support
-  the historical Geneva timeline.
-
-**Pro-Independence path to Geneva:** `Indochina_Struggle_ProInd_Propose_Peace_Conference`
-(phase 8, B > 300, Geneva preparations not yet set) fires
-`Geneva_Conference_Invitation.5` at FRA. Accepting sets `Geneva_Conference_Preparations`,
-adds 150 B + 100 ProIndependence score and runs the normal invitation chain;
-declining costs 100 B (clamped at 0) and the proposal re-enables after 120 days.
-Previously only an FRA decision or FRE focus could initiate Geneva.
-
-**VIE Diplo tree hooks:** `VIE_Negotiate_Brevet_Lines`, `VIE_Beg_Pulo_Condore_Return`
-and `VIE_Beg_Crown_Domain_French_Renouncement` now award pro-independence
-diplomatic points (75 B + 75 score) on completion.
-
-**Raid failure parity fix:** all five `steal_*_INDO_KMT_AGAINST_COM` raids were
-missing the de-escalation award on failure that their `_COMMIE` and
-`_KMT_AGAINST_CAP` siblings have; failure now adds B points (16 small
-arms/armor, 8 artillery/motorized/mechanized) to match.
+Verification passes worth repeating after any change to the ladder:
+1. Brace balance and on-tier values across `Indochina_Raids.txt`
+2. `python3 tools/loc_audit.py --check`
+3. A full AI run from 1949, reading `test_ic_score_report` at 1954.7
 
 ## File Locations
 
@@ -200,8 +328,13 @@ arms/armor, 8 artillery/motorized/mechanized) to match.
 - On Actions: `common/on_actions/CWIC_Struggle_on_actions.txt`
 - Scripted Effects: `common/scripted_effects/CWIC_Struggle_Effects.txt`
 - Scripted Triggers: `common/scripted_triggers/IC_struggle_triggers.txt`
+- Failsafe: `common/scripted_effects/IC_Failsafe_Effects.txt`,
+  `common/scripted_triggers/IC_Failsafe_triggers.txt`,
+  `common/on_actions/IC_Failsafe_on_actions.txt`
 - Test Effects: `common/scripted_effects/IC_Struggle_Test_Effects.txt`
-- Test Guide: `Indochina_Struggle_Test_Guide.md`
 - Decisions: `common/decisions/Indochina_War.txt`, `common/decisions/FRA.txt`
-- Events: `events/VIE_Events.txt` (BaoDai.13, BaoDai.14)
-- Focus Trees: `common/national_focus/VIN_50s.txt`, `common/national_focus/VIE_50s_Bao_Dai.txt`
+- Raids: `common/raids/Indochina_Raids.txt`
+- Events: `events/FRE_Events.txt`, `events/Indochina_War_Rework.txt`, `events/VIE_Events.txt`
+- Focus Trees: `common/national_focus/VIN_50s.txt`, `VIE_50s_Bao_Dai.txt`,
+  `FRE_50s_Indochina.txt`, `FUL_50s.txt`, `NUN_50s.txt`, `MEO_50s.txt`,
+  `PQC_1950s.txt`, `CCC_50s.txt`
