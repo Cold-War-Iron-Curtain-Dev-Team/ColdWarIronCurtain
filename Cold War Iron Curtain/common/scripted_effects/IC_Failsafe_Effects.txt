@@ -348,7 +348,14 @@ indochina_failsafe_preflight = {
 	indochina_failsafe_geneva_abort = yes
 	indochina_failsafe_break_bad_subjects = yes
 	indochina_failsafe_repatriate_theatre_states = yes
-	indochina_failsafe_enforce_minority_homelands = yes
+	# TAI/TAM can legitimately hold captured ground during a VIN campaign. Do
+	# not strip it during the protected arc merely because an eager callback
+	# reached preflight; a completed ending will enforce the allow-list again in
+	# postflight.
+	if = {
+		limit = { NOT = { ic_failsafe_theatre_unfinished_trigger = yes } }
+		indochina_failsafe_enforce_minority_homelands = yes
+	}
 }
 
 # The endings white-peace the FRA/VIN/VIE/LAO/NLF pairs and nothing else, so a
@@ -424,6 +431,13 @@ indochina_failsafe_force_cleanup_if_needed = {
 	if = {
 		limit = {
 			NOT = { has_global_flag = Indochina_War_Over }
+			ic_failsafe_theatre_unfinished_trigger = yes
+		}
+		log = "[GetDateText]: Indochina failsafe - the scripted arc still has content pending, leaving the war running"
+	}
+	else_if = {
+		limit = {
+			NOT = { has_global_flag = Indochina_War_Over }
 			OR = {
 				ic_failsafe_militarily_decided_trigger = yes
 				ic_failsafe_no_theatre_war_trigger = yes
@@ -457,13 +471,22 @@ indochina_failsafe_postflight = {
 
 # The postflight gate. An ending actually landed, or the theatre is past saving
 # by a test taken before anything in the postflight has had a chance to make it
-# true. Anything else and the router backs out having done nothing but the
-# preflight repairs, and the war carries on.
+# true. The unfinished-arc check must precede every fallback predicate: a normal
+# campaign cooldown satisfies no_theatre_war, but that is not permission to
+# white-peace the theatre or dissolve CEFEO. Anything else backs out and the war
+# carries on.
 indochina_failsafe_postflight_if_settled = {
 	if = {
+		limit = { has_global_flag = Indochina_War_Over }
+		indochina_failsafe_postflight = yes
+	}
+	else_if = {
+		limit = { ic_failsafe_theatre_unfinished_trigger = yes }
+		log = "[GetDateText]: Indochina failsafe - no ending landed and the scripted arc is unfinished, backing out before postflight"
+	}
+	else_if = {
 		limit = {
 			OR = {
-				has_global_flag = Indochina_War_Over
 				ic_failsafe_militarily_decided_trigger = yes
 				ic_failsafe_no_theatre_war_trigger = yes
 				has_global_flag = ic_failsafe_geneva_aborted
@@ -506,11 +529,14 @@ indochina_failsafe_route_decisive_result = {
 			NOT = { has_global_flag = ic_failsafe_routing }
 		}
 		set_global_flag = ic_failsafe_routing
-		log = "[GetDateText]: Indochina failsafe - routing a decisive result"
+		log = "[GetDateText]: Indochina failsafe - checking for a decisive result"
 		indochina_failsafe_mirror_scores = yes
-		indochina_failsafe_preflight = yes
+		if = {
+			limit = { ic_failsafe_route_may_mutate_trigger = yes }
+			log = "[GetDateText]: Indochina failsafe - decisive evidence found, entering the mutating route"
+			indochina_failsafe_preflight = yes
 
-		if = {	# R0
+			if = {	# R0
 			limit = {
 				OR = {
 					has_global_flag = USA_VIN_Reunification_Complete
@@ -653,7 +679,11 @@ indochina_failsafe_route_decisive_result = {
 			indochina_struggle_run_failed_state_ending_effect = yes
 		}
 
-		indochina_failsafe_postflight_if_settled = yes
+			indochina_failsafe_postflight_if_settled = yes
+		}
+		else = {
+			log = "[GetDateText]: Indochina failsafe - scripted content is pending and no decisive condition exists, skipping mutating preflight"
+		}
 		clr_global_flag = ic_failsafe_routing
 	}
 }
@@ -788,7 +818,11 @@ indochina_failsafe_watchdog_tick = {
 		}
 
 		if = {	# the shooting stopped without anything settling it
-			limit = { ic_failsafe_no_theatre_war_trigger = yes }
+			limit = {
+				has_global_flag = ic_theatre_war_seen
+				NOT = { ic_failsafe_theatre_unfinished_trigger = yes }
+				ic_failsafe_no_theatre_war_trigger = yes
+			}
 			add_to_variable = { global.ic_stall_nowar_days = ic_tick_days }
 			if = {
 				limit = { check_variable = { global.ic_stall_nowar_days > 89 } }
@@ -797,7 +831,13 @@ indochina_failsafe_watchdog_tick = {
 				indochina_failsafe_route_decisive_result = yes
 			}
 		}
-		else = { set_variable = { global.ic_stall_nowar_days = 0 } }
+		else = {
+			set_variable = { global.ic_stall_nowar_days = 0 }
+			if = {
+				limit = { NOT = { ic_failsafe_no_theatre_war_trigger = yes } }
+				set_global_flag = ic_theatre_war_seen
+			}
+		}
 	}
 }
 

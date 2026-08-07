@@ -223,14 +223,53 @@ ic_failsafe_ending_owner_is_human_trigger = {
 # war is on.
 ic_failsafe_no_theatre_war_trigger = {
 	NOT = { has_global_flag = Indochina_War_Over }
-	NOT = { AND = { country_exists = VIN  country_exists = VIE  VIE = { has_war_with = VIN } } }
-	NOT = { AND = { country_exists = VIN  country_exists = FRE  FRE = { has_war_with = VIN } } }
-	NOT = { AND = { country_exists = VIN  country_exists = FRA  FRA = { has_war_with = VIN } } }
-	NOT = { AND = { country_exists = NLF  country_exists = VIE  VIE = { has_war_with = NLF } } }
-	NOT = { AND = { country_exists = NLF  country_exists = FRE  FRE = { has_war_with = NLF } } }
-	NOT = { AND = { country_exists = NLF  country_exists = FRA  FRA = { has_war_with = NLF } } }
-	NOT = { AND = { country_exists = LAO  country_exists = LOS  LOS = { has_war_with = LAO } } }
-	NOT = { AND = { country_exists = PQC  country_exists = VIE  VIE = { has_war_with = PQC } } }
+	NOT = { AND = { country_exists = VIN  VIN = { has_war = yes } } }
+	NOT = { AND = { country_exists = NLF  NLF = { has_war = yes } } }
+	NOT = { AND = { country_exists = LAO  LAO = { has_war = yes } } }
+	NOT = { AND = { country_exists = MEO  MEO = { has_war = yes } } }
+	NOT = { AND = { country_exists = PQC  PQC = { has_war = yes } } }
+	NOT = { AND = { country_exists = FRE  FRE = { has_war = yes } } }
+}
+
+ic_failsafe_vin_arc_unfinished_trigger = {
+	country_exists = VIN
+	NOT = { VIN = { has_capitulated = yes } }
+	OR = {
+		NOT = { VIN = { has_country_flag = VIN_Campaign_Cooldown_Tay_Bac } }
+		NOT = { VIN = { has_country_flag = VIN_Campaign_Cooldown_Hoa_Binh } }
+		NOT = { VIN = { has_country_flag = VIN_Campaign_Cooldown_Dien_Bien } }
+	}
+}
+
+ic_failsafe_theatre_unfinished_trigger = {
+	NOT = { has_global_flag = Indochina_War_Over }
+	OR = {
+		date < 1954.7.21
+		ic_failsafe_geneva_live_trigger = yes
+		AND = {
+			date < 1955.1.1
+			OR = {
+				ic_failsafe_vin_arc_unfinished_trigger = yes
+				has_global_flag = Laos_Raid_Active
+			}
+		}
+	}
+}
+
+# The router's preflight and postflight both move states and subjects. During a
+# normal campaign lull they must not run merely because an unrelated on_action
+# called the router while no theatre war happened to be live. Exceptional map
+# breaks, earned endings and a dead carrier/conference may still route before
+# the scripted arc's date guard expires.
+ic_failsafe_route_may_mutate_trigger = {
+	OR = {
+		NOT = { ic_failsafe_theatre_unfinished_trigger = yes }
+		ic_failsafe_militarily_decided_trigger = yes
+		ic_failsafe_carrier_lost_trigger = yes
+		ic_failsafe_ending_unclicked_trigger = yes
+		ic_failsafe_geneva_latched_dead_trigger = yes
+		has_global_flag = USA_VIN_Reunification_Complete
+	}
 }
 
 # ----------------------------------------------------------------------------
@@ -278,12 +317,8 @@ ic_ending_southern_ok = {
 					VIN = { has_opinion = { target = VIE  value < -50 } }
 				}
 			}
-			OR = {
-				check_variable = { global.Indochina_War_Active_Phase = 3 }
-				check_variable = { global.Indochina_War_Active_Phase = 4 }
-				check_variable = { global.Indochina_War_Active_Phase = 6 }
-				check_variable = { global.Indochina_War_Active_Phase = 7 }
-			}
+			check_variable = { global.Indochina_War_Active_Phase > 2 }
+			check_variable = { global.Indochina_War_Active_Phase < 9 }
 			set_temp_variable = { ic_comm_x2 = global.ic_score_comm }
 			multiply_temp_variable = { ic_comm_x2 = 2 }
 			check_variable = { global.ic_score_anticomm > ic_comm_x2 }
@@ -308,18 +343,20 @@ ic_ending_southern_ok = {
 
 ic_ending_federal_ok = {
 	NOT = { has_global_flag = Indochina_War_Over }
+	date > 1953.1.1
 	tag = FRA
 	set_temp_variable = { ic_comm_x2 = global.ic_score_comm }
 	multiply_temp_variable = { ic_comm_x2 = 2 }
 	check_variable = { global.ic_score_anticomm > ic_comm_x2 }
 	check_variable = { global.ic_score_profr > global.ic_score_proind }
-	check_variable = { global.ic_score_proeth > global.ic_score_proind }
+	check_variable = { global.ic_score_proeth > 250 }
 	check_variable = { global.ic_score_profr > 1000 }
 	check_variable = { global.ic_score_profr > global.ic_score_proeth }
 }
 
 ic_ending_balkanized_ok = {
 	NOT = { has_global_flag = Indochina_War_Over }
+	date > 1953.1.1
 	OR = {
 		tag = FUL
 		tag = FRA
@@ -334,7 +371,9 @@ ic_ending_balkanized_ok = {
 	multiply_temp_variable = { ic_proind_x2 = 2 }
 	check_variable = { ic_dismantle > ic_proind_x2 }
 	check_variable = { ic_dismantle > ic_comm_x2 }
-	NOT = { check_variable = { global.ic_score_profr > global.ic_score_proeth } }
+	set_temp_variable = { ic_proeth_x2 = global.ic_score_proeth }
+	multiply_temp_variable = { ic_proeth_x2 = 2 }
+	NOT = { check_variable = { global.ic_score_profr > ic_proeth_x2 } }
 }
 
 ic_ending_dan_quoc_ok = {
@@ -390,6 +429,7 @@ ic_ending_kmt_ok = {
 					owns_state = 286
 					owns_state = 1760
 				}
+				check_variable = { global.ic_score_kmt > 500 }
 				check_variable = { global.ic_score_kmt > global.ic_score_comm }
 				check_variable = { global.ic_score_kmt > global.ic_score_proeth }
 				check_variable = { global.ic_score_kmt > global.ic_score_profr }
