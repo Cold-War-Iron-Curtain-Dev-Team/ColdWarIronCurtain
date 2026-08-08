@@ -1,0 +1,899 @@
+# ============================================================================
+# Viet Minh campaign wrapper (Tay Bac, Hoa Binh, Dien Bien Phu)
+# ----------------------------------------------------------------------------
+# A campaign spends VIN_Campaign_Supply to set a commitment tier, and the tier
+# decides how many regular formations march with it. Mirrors the CEFEO side in
+# FRE_Operation_Effects.txt.
+#
+# Campaign flag contract (VIN_indochina_campaign_triggers.txt): the *_Active
+# flag is set before the border war; every outcome event clears it and books the
+# cooldown under a limit = { tag = VIN } guard.
+#
+# Campaign ids: 1 Tay Bac, 2 Hoa Binh, 3 Dien Bien Phu.
+# Commitment tiers: 0 Light, 1 Standard, 2 Maximum.
+# ============================================================================
+
+vin_campaign_initialize = {
+	if = {
+		limit = { NOT = { has_variable = VIN_Campaign_Supply } }
+		set_variable = { VIN_Campaign_Supply = 100 }
+		set_variable = { VIN_Supply_Accrual_Counter = 0 }
+	}
+}
+
+vin_change_campaign_supply = {
+	add_to_variable = { VIN_Campaign_Supply = vin_supply_amount }
+	clamp_variable = {
+		var = VIN_Campaign_Supply
+		min = 0
+		max = 1000
+	}
+	custom_effect_tooltip = VIN_Campaign_Supply_Change_tt
+}
+
+vin_accrue_monthly_supply = {
+	set_temp_variable = { vin_supply_amount = 15 }
+	if = {
+		limit = { has_global_flag = PRC_Victory }
+		set_temp_variable = { vin_supply_amount = 30 }	# the Chinese border is open
+	}
+	if = {
+		limit = { has_country_flag = Enable_Larger_Raids }
+		add_to_temp_variable = { vin_supply_amount = 10 }
+	}
+	hidden_effect = { vin_change_campaign_supply = yes }
+}
+
+# --- Commitment -------------------------------------------------------------
+
+vin_campaign_begin = {
+	vin_campaign_initialize = yes
+	set_variable = { VIN_camp_current = vin_camp_id }
+	set_variable = { VIN_camp_price_light = 40 }
+	set_variable = { VIN_camp_price_standard = 80 }
+	set_variable = { VIN_camp_price_maximum = 140 }
+	if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }	# Dien Bien Phu is the whole army's campaign
+		set_variable = { VIN_camp_price_light = 60 }
+		set_variable = { VIN_camp_price_standard = 120 }
+		set_variable = { VIN_camp_price_maximum = 200 }
+	}
+	vin_ai_prepare_campaign = yes
+	country_event = { id = VIN_Camp.1 hours = 6 }
+}
+
+vin_ai_prepare_campaign = {
+	if = {
+		limit = {
+			is_ai = yes
+			check_variable = { VIN_Campaign_Supply < VIN_camp_price_maximum }
+		}
+		set_variable = { VIN_Campaign_Supply = VIN_camp_price_maximum }
+		add_to_variable = { VIN_Campaign_Supply = 10 }	# the option needs a strict >
+	}
+	if = {
+		limit = { is_ai = yes }
+		add_equipment_to_stockpile = {
+			type = infantry_equipment_1
+			amount = 3000
+			producer = PRC
+		}
+		add_equipment_to_stockpile = {
+			type = artillery_equipment_1
+			amount = 400
+			producer = PRC
+		}
+		add_manpower = 25000
+		add_command_power = 50
+	}
+}
+
+vin_indochina_ai_initialize = {
+	if = {
+		limit = {
+			vin_indochina_ai_support_trigger = yes
+			NOT = { has_idea = VIN_Indochina_AI_Support }
+			NOT = { has_global_flag = Indochina_War_Over }
+		}
+		add_ideas = VIN_Indochina_AI_Support
+	}
+	if = {
+		limit = {
+			NOT = { vin_indochina_ai_support_trigger = yes }
+			has_idea = VIN_Indochina_AI_Support
+		}
+		remove_ideas = VIN_Indochina_AI_Support
+	}
+}
+
+vin_campaign_commit = {
+	set_variable = { VIN_camp_commitment_tier = vin_camp_tier }
+	set_temp_variable = { vin_supply_amount = VIN_camp_price_light }
+	if = {
+		limit = { check_variable = { VIN_camp_commitment_tier = 1 } }
+		set_temp_variable = { vin_supply_amount = VIN_camp_price_standard }
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_commitment_tier = 2 } }
+		set_temp_variable = { vin_supply_amount = VIN_camp_price_maximum }
+	}
+	multiply_temp_variable = { vin_supply_amount = -1 }
+	vin_change_campaign_supply = yes
+	vin_campaign_spawn_columns = yes
+}
+
+vin_campaign_spawn_columns = {
+	if = {
+		limit = { check_variable = { VIN_camp_commitment_tier > 0 } }
+		custom_effect_tooltip = VIN_Camp_Spawn_Regiment_tt
+		random_owned_controlled_state = {
+			limit = { OR = { state = 881  state = 1762  state = 1761 } }
+			create_unit = {
+				division = "name = \"Trung doan Chu luc\" division_template = \"Trung doan Bo binh Infantry\" start_experience_factor = 0.4 start_equipment_factor = 0.9"
+				owner = VIN
+				allow_spawning_on_enemy_provs = yes
+			}
+		}
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_commitment_tier > 1 } }
+		custom_effect_tooltip = VIN_Camp_Spawn_Artillery_tt
+		random_owned_controlled_state = {
+			limit = { OR = { state = 881  state = 1762  state = 1761 } }
+			create_unit = {
+				division = "name = \"Dai doan Cong Phao\" division_template = \"Tieu doan Phao binh Artillery\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
+				owner = VIN
+				allow_spawning_on_enemy_provs = yes
+			}
+		}
+		add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = PRC }
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = PRC }
+	}
+}
+
+# --- Crown domain custody ---------------------------------------------------
+
+vin_restore_tai_to_french_command = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			puppet = { target = TAI }
+			set_autonomy = { target = TAI autonomy_state = autonomy_crown_domain }
+		}
+	}
+	else = {	# the corps is gone; Paris picks the domain back up directly
+		FRA = {
+			puppet = { target = TAI }
+			set_autonomy = { target = TAI autonomy_state = autonomy_indon_union }
+		}
+	}
+}
+
+vin_restore_tam_to_french_command = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			puppet = { target = TAM }
+			set_autonomy = { target = TAM autonomy_state = autonomy_crown_domain }
+		}
+	}
+	else = {
+		FRA = {
+			puppet = { target = TAM }
+			set_autonomy = { target = TAM autonomy_state = autonomy_indon_union }
+		}
+	}
+}
+
+# --- Real wars with an objective clock --------------------------------------
+
+vin_campaign_open_corridors = {
+	set_country_flag = INDOCHINESE_WAR_HIGHLAND_UNLOCKED
+	if = {
+		limit = { check_variable = { VIN_camp_current = 2 } }	# Hoa Binh itself
+		set_country_flag = INDOCHINESE_WAR_HOA_BINH_UNLOCKED
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }	# the valley, and the far northern axis onto it
+		set_country_flag = INDOCHINESE_WAR_HOA_BINH_UNLOCKED
+		set_country_flag = INDOCHINESE_WAR_DIEN_BIEN_UNLOCKED
+	}
+}
+
+vin_campaign_clear_unplanned_offensive = {
+	every_state = {
+		limit = {
+			has_dynamic_modifier = { modifier = unplanned_offensive }
+			OR = {
+				state = 1761
+				state = 1766
+				state = 671
+				state = 881
+				state = 1762
+				state = 1760
+				state = 786
+			}
+		}
+		clr_state_flag = VIN_unplanned_offensive_flag
+		remove_dynamic_modifier = { modifier = unplanned_offensive }
+	}
+}
+
+vin_campaign_sync_objective_modifiers = {
+	every_state = {
+		limit = {
+			has_dynamic_modifier = { modifier = indochina_contested_objective }
+			NOT = { indochina_french_held_state_trigger = yes }	# state scope only: the campaign check cannot live in here
+		}
+		remove_dynamic_modifier = { modifier = indochina_contested_objective }
+	}
+	if = {
+		limit = { VIN_no_campaign_running_trigger = yes }
+		every_state = {
+			limit = { has_dynamic_modifier = { modifier = indochina_contested_objective } }
+			remove_dynamic_modifier = { modifier = indochina_contested_objective }
+		}
+	}
+	if = {
+		limit = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		if = {
+			limit = { check_variable = { VIN_camp_current = 1 } }
+			1761 = { vin_apply_contested_objective = yes }
+		}
+		else_if = {
+			limit = { check_variable = { VIN_camp_current = 2 } }
+			1766 = { vin_apply_contested_objective = yes }
+		}
+		else = {
+			671 = { vin_apply_contested_objective = yes }
+		}
+	}
+	671 = {
+		if = {
+			limit = {
+				has_dynamic_modifier = { modifier = dbp_camp_under_siege }
+				NOT = { indochina_french_held_state_trigger = yes }
+			}
+			remove_dynamic_modifier = { modifier = dbp_camp_under_siege }	# the valley has changed hands; the siege is over either way
+		}
+	}
+}
+
+vin_apply_contested_objective = {	# state scope
+	if = {
+		limit = {
+			indochina_french_held_state_trigger = yes
+			NOT = { has_dynamic_modifier = { modifier = indochina_contested_objective } }
+		}
+		add_dynamic_modifier = { modifier = indochina_contested_objective }
+	}
+}
+
+vin_campaign_apply_war_spirits = {
+	if = {
+		limit = { NOT = { has_idea = VIN_Campaign_Mobilization } }
+		add_ideas = VIN_Campaign_Mobilization
+	}
+	if = {
+		limit = { country_exists = FRE  FRE = { NOT = { has_idea = FRE_Highland_Overextension } } }
+		FRE = { add_ideas = FRE_Highland_Overextension }
+	}
+	if = {
+		limit = { country_exists = TAI  TAI = { NOT = { has_idea = FRE_Highland_Overextension } } }
+		TAI = { add_ideas = FRE_Highland_Overextension }
+	}
+	if = {
+		limit = { country_exists = TAM  TAM = { NOT = { has_idea = FRE_Highland_Overextension } } }
+		TAM = { add_ideas = FRE_Highland_Overextension }
+	}
+	if = {
+		limit = {
+			vin_indochina_ai_support_trigger = yes
+			NOT = { has_idea = VIN_Campaign_AI_Support }
+		}
+		add_ideas = VIN_Campaign_AI_Support
+	}
+}
+
+vin_campaign_remove_war_spirits = {
+	if = {
+		limit = { has_idea = VIN_Campaign_Mobilization }
+		remove_ideas = VIN_Campaign_Mobilization
+	}
+	if = {
+		limit = { country_exists = FRE  FRE = { has_idea = FRE_Highland_Overextension } }
+		FRE = { remove_ideas = FRE_Highland_Overextension }
+	}
+	if = {
+		limit = { country_exists = TAI  TAI = { has_idea = FRE_Highland_Overextension } }
+		TAI = { remove_ideas = FRE_Highland_Overextension }
+	}
+	if = {
+		limit = { country_exists = TAM  TAM = { has_idea = FRE_Highland_Overextension } }
+		TAM = { remove_ideas = FRE_Highland_Overextension }
+	}
+	if = {
+		limit = { has_idea = VIN_Campaign_AI_Support }
+		remove_ideas = VIN_Campaign_AI_Support
+	}
+}
+
+vin_campaign_declare_war = {
+	vin_campaign_open_corridors = yes
+	vin_campaign_clear_unplanned_offensive = yes
+	vin_campaign_sync_objective_modifiers = yes
+	vin_campaign_apply_war_spirits = yes
+	set_variable = { VIN_camp_days_elapsed = 0 }
+	set_variable = { VIN_camp_deadline_x = 120 }	# a clean campaign
+	set_variable = { VIN_camp_deadline_y = 210 }	# past this the offensive has failed
+	if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		set_variable = { VIN_camp_deadline_x = 150 }	# the valley is a siege, not a march
+		set_variable = { VIN_camp_deadline_y = 260 }
+	}
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current = 2 }
+			country_exists = TAM
+			NOT = { has_war_with = TAM }
+		}
+		hidden_effect = { declare_war_on = { target = TAM type = annex_everything } }	# the call site owns the tooltip; a branch here reads a variable the preview has not assigned yet
+	}
+	else_if = {
+		limit = {
+			country_exists = TAI
+			NOT = { has_war_with = TAI }
+		}
+		hidden_effect = { declare_war_on = { target = TAI type = annex_everything } }	# the call site owns the tooltip; a branch here reads a variable the preview has not assigned yet
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		lao_join_the_battle_of_dien_bien_phu = yes
+	}
+	activate_mission = VIN_Campaign_Clock	# the deadline had no representation in the UI at all
+	FRA = { activate_mission = VIN_Campaign_Objective_Timer }	# FRA always exists; the mission is the hard backstop if the tick ever stalls
+}
+
+vin_campaign_objective_tick = {
+	if = {
+		limit = {
+			NOT = { VIN_no_campaign_running_trigger = yes }	# a campaign is in the field
+			NOT = { has_country_flag = VIN_Campaign_Resolving }
+		}
+		add_to_variable = { VIN_camp_days_elapsed = 1 }
+		if = {
+			limit = {
+				NOT = { vin_indochina_ai_support_trigger = yes }
+				has_idea = VIN_Campaign_AI_Support
+			}
+			remove_ideas = VIN_Campaign_AI_Support	# either principal combatant is now human
+		}
+		vin_campaign_sync_objective_modifiers = yes	# the objective can change hands in either direction on any day
+		if = {
+			limit = { vin_campaign_objective_met_trigger = yes }
+			if = {
+				limit = { check_variable = { VIN_camp_days_elapsed < VIN_camp_deadline_x } }
+				set_temp_variable = { vin_camp_outcome = 1 }	# clean success
+			}
+			else = {
+				set_temp_variable = { vin_camp_outcome = 2 }	# ground out, but taken
+			}
+			vin_campaign_resolve = yes
+		}
+		else_if = {
+			limit = { check_variable = { VIN_camp_days_elapsed > VIN_camp_deadline_y } }
+			set_temp_variable = { vin_camp_outcome = 4 }	# the deadline passed with the objective standing
+			vin_campaign_resolve = yes
+		}
+		else_if = {
+			limit = { vin_campaign_war_abandoned_trigger = yes }
+			set_temp_variable = { vin_camp_outcome = 3 }	# peaced out before the deadline
+			vin_campaign_resolve = yes
+		}
+	}
+}
+
+vin_campaign_resolve = {
+	set_country_flag = VIN_Campaign_Resolving	# the tick must not re-enter while the outcome is being paid out
+	set_variable = { VIN_camp_last_outcome = vin_camp_outcome }
+	if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		vin_dbp_record_outcome = yes	# the valley writes the Geneva recorder whatever else happens
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_last_outcome < 3 } }	# clean or ground out, but taken
+		if = {
+			limit = { check_variable = { VIN_camp_current = 1 } }
+			transfer_state = 1761
+			if = {
+				limit = { country_exists = TAI  TAI = { NOT = { owns_state = 671 } } }
+				annex_country = { target = TAI transfer_troops = no }	# Hoang Lien Son was the federation's last state
+			}
+		}
+		else_if = {
+			limit = { check_variable = { VIN_camp_current = 2 } }
+			transfer_state = 1766
+			if = {
+				limit = { country_exists = TAM  TAM = { num_of_controlled_states < 1 } }
+				annex_country = { target = TAM transfer_troops = no }
+			}
+		}
+		else = {
+			transfer_state = 671
+			if = {
+				limit = { country_exists = TAI }
+				annex_country = { target = TAI transfer_troops = no }	# the valley is the federation's last ground
+			}
+		}
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_last_outcome = 1 } }
+		set_temp_variable = { indochina_phase_amount = 100 }
+		indochina_struggle_escalate = yes
+		FRA = {
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaCommunistScore = 100
+				tooltip = Add_to_Communist_Victory_Points_TT
+			}
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaProFranceScore = -50
+				tooltip = Add_to_French_Victory_Points_TT
+			}
+		}
+		if = {
+			limit = { country_exists = FRE }
+			FRE = {
+				set_temp_variable = { fre_patience_delta = -12 }
+				fre_metropole_patience_change = yes
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_last_outcome = 2 } }
+		set_temp_variable = { indochina_phase_amount = 50 }
+		indochina_struggle_escalate = yes
+		FRA = {
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaCommunistScore = 50
+				tooltip = Add_to_Communist_Victory_Points_TT
+			}
+			subtract_from_variable = {
+				StruggleInvolvedNationsIndochinaProFranceScore = 25
+				tooltip = Add_to_French_Victory_Points_TT
+			}
+		}
+		if = {
+			limit = { country_exists = FRE }
+			FRE = {
+				set_temp_variable = { fre_patience_delta = -4 }
+				fre_metropole_patience_change = yes
+				set_temp_variable = { fre_credit_amount = 60 }
+				fre_change_war_credits = yes
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_last_outcome = 3 } }
+		FRA = {
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaCommunistScore = -25
+				tooltip = Add_to_Communist_Victory_Points_TT
+			}
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaProFranceScore = 25
+				tooltip = Add_to_French_Victory_Points_TT
+			}
+		}
+	}
+	else = {
+		set_temp_variable = { indochina_phase_amount = 50 }
+		indochina_struggle_deescalate = yes	# a broken offensive takes the pressure off
+		FRA = {
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaCommunistScore = -50
+				tooltip = Add_to_Communist_Victory_Points_TT
+			}
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaProFranceScore = 50
+				tooltip = Add_to_French_Victory_Points_TT
+			}
+		}
+		if = {
+			limit = { country_exists = FRE }
+			FRE = {
+				set_temp_variable = { fre_patience_delta = 10 }
+				fre_metropole_patience_change = yes
+				set_temp_variable = { fre_credit_amount = 120 }
+				fre_change_war_credits = yes
+			}
+		}
+	}
+	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
+	vin_campaign_finish = yes
+	if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		country_event = { id = VIN_Camp.4 hours = 4 }	# the valley reads differently to a march
+	}
+	else = {
+		country_event = { id = VIN_Camp.2 hours = 4 }	# the campaign never reported its own result
+	}
+}
+
+vin_campaign_finish = {
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
+		clr_country_flag = VIN_Campaign_Tay_Bac_Active
+		set_country_flag = VIN_Campaign_Cooldown_Tay_Bac
+	}
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Hoa_Binh_Active }
+		clr_country_flag = VIN_Campaign_Hoa_Binh_Active
+		set_country_flag = VIN_Campaign_Cooldown_Hoa_Binh
+	}
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Dien_Bien_Active }
+		clr_country_flag = VIN_Campaign_Dien_Bien_Active
+		set_country_flag = VIN_Campaign_Cooldown_Dien_Bien
+	}
+	if = { limit = { country_exists = TAI  has_war_with = TAI } white_peace = TAI }
+	if = { limit = { country_exists = TAM  has_war_with = TAM } white_peace = TAM }
+	if = { limit = { country_exists = FRE  has_war_with = FRE } white_peace = FRE }
+	if = {
+		limit = { country_exists = TAI }
+		TAI = { fre_tai_highlands_relief_disband = yes }
+	}
+	fre_dbp_disband_gono = yes	# the valley is decided; the group stops existing either way
+	set_variable = { global.VIN_dbp_siege_days = 0 }
+	set_variable = { global.VIN_dbp_fort_level = 0 }
+	every_state = {
+		limit = { has_dynamic_modifier = { modifier = indochina_contested_objective } }
+		remove_dynamic_modifier = { modifier = indochina_contested_objective }
+	}
+	vin_campaign_remove_war_spirits = yes
+	set_variable = { VIN_camp_days_elapsed = 0 }
+	clr_country_flag = VIN_Campaign_Resolving
+	remove_mission = VIN_Campaign_Clock
+	FRA = { remove_mission = VIN_Campaign_Objective_Timer }
+}
+
+# --- Dien Bien Phu ----------------------------------------------------------
+
+vin_dbp_record_outcome = {
+	if = {
+		limit = {
+			country_exists = FRE
+			NOT = { has_global_flag = geneva_dbp_outcome_applied }
+			FRE = {
+				NOT = { has_country_flag = FRE_DBP_Result_Victory }
+				NOT = { has_country_flag = FRE_DBP_Result_Fall }
+				NOT = { has_country_flag = FRE_DBP_Result_Breakout }
+			}
+		}
+		if = {
+			limit = { controls_province = 4529 }
+			FRE = { set_country_flag = FRE_DBP_Result_Fall }
+			news_event = { id = SWF_Indochina_War.30 hours = 18 }
+		}
+		else = {
+			FRE = { set_country_flag = FRE_DBP_Result_Victory }
+			news_event = { id = SWF_Indochina_War.31 hours = 18 }
+		}
+	}
+	671 = {
+		if = {
+			limit = { has_dynamic_modifier = { modifier = dbp_camp_under_siege } }
+			remove_dynamic_modifier = { modifier = dbp_camp_under_siege }
+		}
+	}
+}
+
+fre_dbp_fortify_camp = {
+	671 = {
+		set_victory_points = {
+			province = 13765
+			value = 1
+		}
+		set_victory_points = {
+			province = 4529
+			value = 10
+		}
+		add_building_construction = {
+			type = bunker
+			level = 4
+			instant_build = yes
+			province = 4529
+		}
+		add_building_construction = {
+			type = anti_air_building
+			level = 2
+			instant_build = yes
+		}
+		if = {
+			limit = { NOT = { has_dynamic_modifier = { modifier = dbp_camp_under_siege } } }
+			add_dynamic_modifier = { modifier = dbp_camp_under_siege }
+		}
+	}
+	set_variable = { global.VIN_dbp_siege_days = 0 }
+	set_variable = { global.VIN_dbp_fort_level = 4 }
+	fre_dbp_deploy_gono = yes
+}
+
+# --- The garrison in the valley ---------------------------------------------
+
+fre_dbp_deploy_gono = {
+	if = {
+		limit = { has_global_flag = VIN_DBP_Garrison_Deployed }
+		log = "[GetDateText]: fre_dbp_deploy_gono re-entered and refused - the valley already has its garrison"
+	}
+	else = {
+		set_temp_variable = { gono_tier = 1 }	# 2 battalions of the group base, 3 at tier 1, 4 at tier 2
+		if = {
+			limit = { country_exists = FRE  FRE = { check_variable = { FRE_Metropole_Patience > 65 } } }
+			set_temp_variable = { gono_tier = 2 }
+		}
+		else_if = {
+			limit = {
+				OR = {
+					NOT = { country_exists = FRE }
+					FRE = { check_variable = { FRE_Metropole_Patience < 33 } }
+				}
+			}
+			set_temp_variable = { gono_tier = 0 }
+		}
+
+		if = {
+			limit = { country_exists = FRE  FRE = { has_subject = TAI } }
+			set_global_flag = VIN_DBP_Garrison_Deployed
+			set_global_flag = VIN_DBP_Garrison_Is_FRE
+			FRE = { fre_dbp_gono_template_cefeo = yes }
+			671 = {
+				create_unit = {
+					division = "name = \"GONO - 1er Groupement\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
+					owner = FRE
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
+				create_unit = {
+					division = "name = \"GONO - 2e Groupement\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.55 start_equipment_factor = 1.0"
+					owner = FRE
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
+			}
+			if = {
+				limit = { check_variable = { gono_tier > 0 } }
+				671 = {
+					create_unit = {
+						division = "name = \"GONO - Groupement Aeroporte\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.65 start_equipment_factor = 1.0"
+						owner = FRE
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 4529
+					}
+				}
+			}
+			if = {
+				limit = { check_variable = { gono_tier > 1 } }
+				671 = {
+					create_unit = {
+						division = "name = \"GONO - Bataillon de Marche Etranger\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
+						owner = FRE
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 4529
+					}
+				}
+				FRE = {
+					add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = FRA }
+					add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = FRA }
+				}
+			}
+			news_event = { id = SWF_Indochina_War.32 hours = 3 }
+		}
+		else_if = {
+			limit = { country_exists = TAI }
+			set_global_flag = VIN_DBP_Garrison_Deployed
+			TAI = { fre_dbp_gono_template_tai = yes }
+			671 = {
+				create_unit = {
+					division = "name = \"GONO - 1er Groupement\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
+					owner = TAI
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
+				create_unit = {
+					division = "name = \"GONO - 2e Groupement\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.55 start_equipment_factor = 1.0"
+					owner = TAI
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
+			}
+			if = {
+				limit = { check_variable = { gono_tier > 0 } }
+				671 = {
+					create_unit = {
+						division = "name = \"GONO - Groupement Aeroporte\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.65 start_equipment_factor = 1.0"
+						owner = TAI
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 4529
+					}
+				}
+			}
+			if = {
+				limit = { check_variable = { gono_tier > 1 } }
+				671 = {
+					create_unit = {
+						division = "name = \"GONO - Bataillon de Marche Etranger\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
+						owner = TAI
+						allow_spawning_on_enemy_provs = yes
+						prioritize_location = 4529
+					}
+				}
+				TAI = {
+					add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = FRA }
+					add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = FRA }
+				}
+			}
+			news_event = { id = SWF_Indochina_War.32 hours = 3 }
+		}
+	}
+}
+
+fre_dbp_gono_template_cefeo = {
+	division_template = {
+		name = "Groupement Operationnel du Nord-Ouest"
+		regiments = {
+			airborne = { x = 0 y = 0 }
+			airborne = { x = 0 y = 1 }
+			infantry = { x = 1 y = 0 }
+			infantry = { x = 1 y = 1 }
+			artillery = { x = 2 y = 0 }
+		}
+		support = {
+			engineer = { x = 0 y = 0 }
+			field_hospital = { x = 0 y = 1 }
+		}
+		priority = 0
+	}
+}
+
+fre_dbp_gono_template_tai = {
+	division_template = {
+		name = "Groupement Operationnel du Nord-Ouest"
+		regiments = {
+			infantry = { x = 0 y = 0 }
+			infantry = { x = 0 y = 1 }
+			infantry = { x = 1 y = 0 }
+			militia = { x = 1 y = 1 }
+			artillery = { x = 2 y = 0 }
+		}
+		support = {
+			engineer = { x = 0 y = 0 }
+			recon = { x = 0 y = 1 }
+		}
+		priority = 0
+	}
+}
+
+fre_dbp_disband_gono = {
+	if = {
+		limit = { has_global_flag = VIN_DBP_Garrison_Deployed }
+		clr_global_flag = VIN_DBP_Garrison_Deployed
+		clr_global_flag = VIN_DBP_Garrison_Is_FRE
+		if = {
+			limit = { country_exists = FRE }
+			FRE = { delete_unit_template_and_units = { division_template = "Groupement Operationnel du Nord-Ouest" } }
+		}
+		if = {
+			limit = { country_exists = TAI }
+			TAI = { delete_unit_template_and_units = { division_template = "Groupement Operationnel du Nord-Ouest" } }
+		}
+	}
+}
+
+# --- The siege --------------------------------------------------------------
+
+vin_dbp_siege_tick = {
+	if = {
+		limit = {
+			has_country_flag = VIN_Campaign_Dien_Bien_Active
+			NOT = { has_country_flag = VIN_Campaign_Resolving }
+			NOT = { controls_province = 4529 }
+			vin_dbp_valley_invested_trigger = yes
+		}
+		add_to_variable = { global.VIN_dbp_siege_days = 1 }
+
+		if = {
+			limit = {
+				check_variable = { global.VIN_dbp_siege_days > 13 }
+				check_variable = { global.VIN_dbp_fort_level > 3 }
+			}
+			set_variable = { global.VIN_dbp_fort_level = 3 }
+			671 = { set_building_level = { type = bunker level = 3 province = { id = 4529 } } }
+		}
+		if = {
+			limit = {
+				check_variable = { global.VIN_dbp_siege_days > 27 }
+				check_variable = { global.VIN_dbp_fort_level > 2 }
+			}
+			set_variable = { global.VIN_dbp_fort_level = 2 }
+			671 = { set_building_level = { type = bunker level = 2 province = { id = 4529 } } }
+		}
+		if = {
+			limit = {
+				check_variable = { global.VIN_dbp_siege_days > 41 }
+				check_variable = { global.VIN_dbp_fort_level > 1 }
+			}
+			set_variable = { global.VIN_dbp_fort_level = 1 }
+			671 = { set_building_level = { type = bunker level = 1 province = { id = 4529 } } }
+		}
+		if = {
+			limit = {
+				check_variable = { global.VIN_dbp_siege_days > 55 }
+				check_variable = { global.VIN_dbp_fort_level > 0 }
+			}
+			set_variable = { global.VIN_dbp_fort_level = 0 }
+			671 = {	# the last works go, and the airstrip with them
+				set_building_level = { type = bunker level = 0 province = { id = 4529 } }
+				set_building_level = { type = anti_air_building level = 0 }
+			}
+		}
+		if = {
+			limit = {
+				is_ai = yes
+				check_variable = { global.VIN_dbp_siege_days > 55 }
+				check_variable = { global.VIN_dbp_fort_level < 1 }
+			}
+			fre_dbp_disband_gono = yes	# the group is destroyed or taken prisoner where it stands
+			set_province_controller = 4529
+			log = "[GetDateText]: Dien Bien Phu overrun by an AI siege after [?global.VIN_dbp_siege_days|0] days"
+		}
+	}
+}
+
+# --- Guerilla networks ------------------------------------------------------
+
+vin_sync_guerilla_networks = {
+	every_state = {
+		limit = {
+			is_core_of = VIN
+			NOT = { is_core_of = MEO }
+			NOT = { is_owned_by = VIE }
+			NOT = { is_owned_by = CCC }
+			NOT = { is_owned_by = FUL }
+			NOT = { is_owned_by = NLF }
+			NOT = { is_controlled_by = VIN }
+			NOT = { vin_aligned_state_trigger = yes }
+			NOT = { has_dynamic_modifier = { modifier = VIN_guerilla_network } }
+		}
+		add_dynamic_modifier = { modifier = VIN_guerilla_network }
+	}
+	every_state = {
+		limit = {
+			has_dynamic_modifier = { modifier = VIN_guerilla_network }
+			OR = {
+				is_controlled_by = VIN
+				is_owned_by = VIE
+				is_owned_by = CCC
+				is_owned_by = FUL
+				is_owned_by = NLF
+				vin_aligned_state_trigger = yes
+			}
+		}
+		remove_dynamic_modifier = { modifier = VIN_guerilla_network }
+	}
+}
+
+# --- Watchdog ---------------------------------------------------------------
+
+vin_campaign_watchdog = {
+	if = {
+		limit = {
+			has_border_war = no
+			OR = {
+				has_country_flag = { flag = VIN_Campaign_Tay_Bac_Active days > 150 }
+				has_country_flag = { flag = VIN_Campaign_Hoa_Binh_Active days > 150 }
+				has_country_flag = { flag = VIN_Campaign_Dien_Bien_Active days > 150 }
+			}
+		}
+		country_event = { id = SWF_Indochina_War.4 hours = 6 }	# the shared stand-down: clears the flag, books the cooldown
+	}
+}

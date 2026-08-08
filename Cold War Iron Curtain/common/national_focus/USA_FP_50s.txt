@@ -38,6 +38,9 @@ shared_focus = {
 	completion_reward = {
 		add_threat = 0.01
 		add_political_power = 50
+		set_country_flag = USA_Indochina_Desk_Open
+		set_temp_variable = { geneva_lev_amount = 25 }
+		USA_indochina_geneva_pressure = yes
 		country_event = { id = USA_50s_Dip_Desks.3 hours = 6 }
 	}
 }
@@ -75,6 +78,7 @@ shared_focus = {
 		focus = USA_50s_Support_French_Allies
 	}
 	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
 		country_exists = VIN
 		country_exists = VIE
 		VIN = {
@@ -101,7 +105,7 @@ shared_focus = {
 		}
 	}
 	x = -4
-	y = 1
+	y = 2
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -147,16 +151,15 @@ shared_focus = {
 			modifier = FRA_Unconventional_Approach
 		}
 		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_score = -50 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_b_points = 50 }
+		USA_indochina_diplomatic_push = yes
 		country_event = {
 			id = USA_VIE.1
 		}
-		hidden_effect = {
-			country_event = {
-				id = USA_VIE.2
-				days = 1
-			}
-		}
-
 	}
 }
 
@@ -171,21 +174,17 @@ shared_focus = {
 	}
 	x = -1
 	y = 1
-	bypass = {
-		OR = {
-			has_global_flag = Indochina_War_Over
-			AND = {
-				country_exists = VIE
-				VIE = {
-					has_country_leader = {
-						character = VIE_Cuong_De
-						ruling_only = yes
-					}
-				}
-			}
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+		custom_trigger_tooltip = {
+			tooltip = USA_indochina_back_cuongde_TT
+			USA_indochina_back_cuongde_trigger = yes
 		}
 	}
-	bypass_effect = {
+	bypass = {
+		has_global_flag = Indochina_War_Over	# he no longer bypasses on already ruling: that case is now a reachable, and different, completion
+					}
+	completion_reward = {
 		if = {
 			limit = {
 				country_exists = VIE
@@ -196,18 +195,27 @@ shared_focus = {
 					}
 				}
 			}
+			# He is already in Saigon. There is nothing to overthrow: this is
+			# recognition, money and an American guarantee for a government
+			# that got there on its own.
+			set_country_flag = USA_CuongDe_Backed_Incumbent
 			VIE = {
+				add_opinion_modifier = {
+					target = USA
+					modifier = VIE_CuongDe_USA
+				}
 				country_event = { id = USA_VIE_CuongDe_Installation.2 hours = 12 }
 			}
 		}
-	}
-	completion_reward = {
+		else = {
+			set_country_flag = USA_CuongDe_Installed_By_Us	# read by USA_indochina_cuongde_tier: only an American-made regime scores as sponsorship
 		VIE = {
 			add_opinion_modifier = {
 				target = USA
 				modifier = VIE_CuongDe_USA
 			}
 			country_event = { id = USA_VIE_CuongDe_Installation.1 hours = 12 }
+			}
 		}
 		VIN = {
 			add_opinion_modifier = {
@@ -224,7 +232,7 @@ shared_focus = {
 		USA = {
 			add_opinion_modifier = {
 				target = VIE
-				modifier = VIE_CuongDe_USA
+				modifier = medium_increase	# Saigon is our man now; VIE_CuongDe_USA is the resentment the other way
 			}
 			add_opinion_modifier = {
 				target = VIN
@@ -259,6 +267,18 @@ shared_focus = {
 		set_temp_variable = { tag_index = USA.id }
 		set_temp_variable = { influence_target = VIE.id }
 		change_influence_percentage = yes
+		USA_indochina_cuongde_tier = yes
+	}
+	ai_will_do = {
+		base = 5
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
+		modifier = {
+			factor = 3
+			date < 1952.1.1	# the coup is only worth running while it can still shape the war
+		}
 	}
 }
 
@@ -273,6 +293,9 @@ shared_focus = {
 	}
 	x = 0
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -315,8 +338,32 @@ shared_focus = {
 				target = VIE
 			}
 		}
+		set_temp_variable = { usa_indo_score = 100 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_b_points = 50 }
+		USA_indochina_diplomatic_push = yes
+		set_temp_variable = { usa_indo_rapp = 50 }
+		USA_indochina_seed_rapprochement = yes
+		if = {
+			limit = { has_global_flag = USA_CuongDe_Early_Sponsorship }
+			custom_effect_tooltip = USA_50s_Stabilize_DanQuoc_early_bonus_TT
+			set_temp_variable = { usa_indo_score = 100 }
+			USA_indochina_add_proindependence_score = yes
+			set_temp_variable = { usa_indo_rapp = 50 }
+			USA_indochina_seed_rapprochement = yes
+		}
+		set_global_flag = geneva_usa_danquoc_applied	# paid in full here, so the daily pulse must not grant it again
+		set_temp_variable = { geneva_lev_amount = 125 }
+		geneva_add_proindependence_leverage = yes
 		country_event = {
 			id = USA_VIE.4
+		}
+	}
+	ai_will_do = {
+		base = 20
+		modifier = {
+			factor = 2
+			has_global_flag = USA_CuongDe_Early_Sponsorship
 		}
 	}
 }
@@ -332,6 +379,9 @@ shared_focus = {
 	}
 	x = 1
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -343,6 +393,21 @@ shared_focus = {
 		set_temp_variable = { tag_index = USA.id }
 		set_temp_variable = { influence_target = VIN.id }
 		change_influence_percentage = yes
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_communist_score = yes
+		set_temp_variable = { usa_indo_b_points = 50 }
+		USA_indochina_diplomatic_push = yes
+		set_temp_variable = { usa_indo_rapp = 50 }
+		USA_indochina_seed_rapprochement = yes
+		set_temp_variable = { geneva_lev_amount = 25 }
+		geneva_add_communist_leverage = yes
+	}
+	ai_will_do = {
+		base = 5
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes	# Washington never courted Ho
+		}
 	}
 }
 
@@ -357,6 +422,9 @@ shared_focus = {
 	}
 	x = 0
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -400,11 +468,25 @@ shared_focus = {
 					modifier = VIN_Deer_Team_USA
 				}
 				}
+		set_temp_variable = { usa_indo_score = 100 }
+		USA_indochina_add_communist_score = yes
+		set_temp_variable = { usa_indo_score = -50 }
+		USA_indochina_add_profrance_score = yes	# Washington arming Hanoi's rivals-in-name knocks the legs from under the French case
+		set_temp_variable = { usa_indo_b_points = 100 }
+		USA_indochina_diplomatic_push = yes
+		set_temp_variable = { usa_indo_rapp = 50 }
+		USA_indochina_seed_rapprochement = yes
+		set_temp_variable = { geneva_lev_amount = 50 }
+		geneva_add_communist_leverage = yes
 			}
+	ai_will_do = {
+		base = 5
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
+	}
 }
-
-
-
 
 shared_focus = {
 	id = USA_50s_Support_French_Allies
@@ -426,7 +508,10 @@ shared_focus = {
 		}
 	}
 	x = 2
-	y = 1
+	y = 2
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		OR = {
 			has_global_flag = Indochina_War_Over
@@ -469,6 +554,13 @@ shared_focus = {
 			target = VIE
 			modifier = VIE_USA_French
 		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_score = -15 }
+		USA_indochina_add_proindependence_score = yes	# Washington siding with Paris undercuts Saigon's claim to speak for the nation
+		set_temp_variable = { usa_indo_b_points = 25 }
+		USA_indochina_diplomatic_push = yes
+		set_country_flag = USA_Indochina_Backs_France
 	}
 }
 
@@ -486,6 +578,9 @@ shared_focus = {
 	}
 	x = -2
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -503,6 +598,19 @@ shared_focus = {
 				modifier = small_increase
 			}
 		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_b_points = 50 }
+		USA_indochina_diplomatic_push = yes
+		set_temp_variable = { geneva_lev_amount = 25 }
+		geneva_add_profrance_leverage = yes
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 5
+			is_historical_focus_on = yes
+		}
 	}
 }
 
@@ -517,10 +625,16 @@ shared_focus = {
 	}
 	x = -1
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+		custom_trigger_tooltip = {
+			tooltip = USA_indochina_settlement_window_TT
+			USA_indochina_settlement_window_trigger = yes	# Washington turns diplomatic when the war turns, not on a date
+		}
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
-	relative_position_id = USA_50s_Diplomatic_Assurances_to_France
 	completion_reward = {
 		VIN = {
 			add_popularity = {
@@ -538,6 +652,24 @@ shared_focus = {
 				modifier = VIN_USA_Negotiations
 			}
 		}
+		set_global_flag = USA_VietMinh_Channel_Open	# Paris can no longer claim there is nobody to talk to
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_communist_score = yes
+		set_temp_variable = { usa_indo_b_points = 100 }
+		USA_indochina_diplomatic_push = yes
+		set_temp_variable = { usa_indo_rapp = 50 }
+		USA_indochina_seed_rapprochement = yes
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 3
+			is_historical_focus_on = yes
+		}
+		modifier = {
+			factor = 0.25
+			geneva_vie_side_dominant_trigger = yes	# no reason to court Hanoi while our clients are winning
+		}
 	}
 }
 
@@ -552,12 +684,43 @@ shared_focus = {
 	}
 	x = 1
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+		custom_trigger_tooltip = {
+			tooltip = USA_indochina_settlement_window_TT
+			USA_indochina_settlement_window_trigger = yes	# Washington turns diplomatic when the war turns, not on a date
+		}
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
 	completion_reward = {
-		FRA = {
-			country_event = USA_INDO.1
+		add_political_power = -50
+		USA_indochina_negotiating_table_push = yes
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				country_event = USA_INDO.1
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 3
+			is_historical_focus_on = yes
+		}
+		modifier = {
+			factor = 2
+			check_variable = { global.Indochina_War_Active_Phase > 6 }	# worth most near the bottom of the ladder
+		}
+		modifier = {
+			factor = 2
+			has_global_flag = USA_VietMinh_Channel_Open
+		}
+		modifier = {
+			factor = 2
+			check_variable = { global.geneva_outcome_dbp = 2 }	# after the camp falls there is nothing left to argue about
 		}
 	}
 }
@@ -590,7 +753,7 @@ shared_focus = {
 	}
 	available = {
 		custom_trigger_tooltip = {
-			tooltip = USA_50s_The_Geneva_Conferece_avail_tt
+			tooltip = geneva_conference_convened_trigger_TT
 			OR = {
 				has_global_flag = Geneva_Conference_Preparations
 				has_global_flag = geneva_conference_in_session
@@ -598,14 +761,136 @@ shared_focus = {
 		}
 	}
 	completion_reward = {
-		# Sending Dulles to the table strengthens the American delegation.
-		set_temp_variable = { geneva_lev_amount = 75 }
+		if = {
+			limit = { NOT = { has_global_flag = geneva_conf_attendance_autogranted } }	# sending Dulles only pays when Washington walked the branch here; a granted seat is already priced by geneva_conf_seed_weight
+			set_temp_variable = { geneva_lev_amount = 75 }
+			USA_indochina_geneva_pressure = yes
+		}
+	}
+	ai_will_do = {
+		base = 20
+		modifier = {
+			factor = 3
+			geneva_conference_should_be_available_trigger = yes
+		}
+	}
+}
+
+# Washington's stance on the reunification clause at the table. Historically the accords' election clause was accepted by France, the DRV and the State of Vietnam while the United States pointedly declined to associate itself with it - that abstention is this pair, and it is separate from what Washington does about the ballot afterwards (USA_50s_The_All_Vietnam_Ballot).
+shared_focus = {
+	id = USA_50s_Withhold_American_Assent
+	text_icon = USA_focus_style
+	icon = GFX_usa_50_block_unification_elections
+	cost = 2
+	relative_position_id = USA_50s_The_Geneva_Conferece
+	prerequisite = {
+		focus = USA_50s_The_Geneva_Conferece
+	}
+	mutually_exclusive = {
+		focus = USA_50s_Endorse_Free_Vietnamese_Vote
+	}
+	x = -1
+	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = geneva_conference_convened_trigger_TT
+			OR = {
+				has_global_flag = Geneva_Conference_Preparations
+				has_global_flag = geneva_conference_in_session
+			}
+		}
+	}
+	bypass = {
+		OR = {
+			has_global_flag = geneva_conference_concluded
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 2
+			is_historical_focus_on = yes
+		}
+		modifier = {
+			factor = 0.2
+			geneva_vie_side_losing_trigger = yes	# no leverage to spend on a veto when our clients are losing
+		}
+	}
+	completion_reward = {
+		set_temp_variable = { geneva_lev_amount = 50 }
 		geneva_add_usa_leverage = yes
 		if = {
 			limit = { has_global_flag = geneva_conference_in_session }
-			add_to_variable = { geneva_weight = 50 }
-			custom_effect_tooltip = geneva_weight_boost_TT
+			set_variable = { geneva_pref^2 = 0 }
+			set_variable = { geneva_prio^2 = 10 }
+			add_to_variable = { global.geneva_push^8 = 150 }	# clause 2 option 0: no reunification vote
+			custom_effect_tooltip = geneva_usa_hardline_elections_TT
 		}
+	}
+}
+
+shared_focus = {
+	id = USA_50s_Endorse_Free_Vietnamese_Vote
+	text_icon = USA_focus_style
+	icon = GFX_usa_50_allow_unification_elections
+	cost = 2
+	relative_position_id = USA_50s_The_Geneva_Conferece
+	prerequisite = {
+		focus = USA_50s_The_Geneva_Conferece
+	}
+	mutually_exclusive = {
+		focus = USA_50s_Withhold_American_Assent
+	}
+	x = 1
+	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = geneva_conference_convened_trigger_TT
+			OR = {
+				has_global_flag = Geneva_Conference_Preparations
+				has_global_flag = geneva_conference_in_session
+			}
+		}
+	}
+	bypass = {
+		OR = {
+			has_global_flag = geneva_conference_concluded
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
+		modifier = {
+			factor = 3
+			geneva_vie_side_dominant_trigger = yes	# a vote we expect to win is worth underwriting
+		}
+	}
+	completion_reward = {
+		set_temp_variable = { geneva_lev_amount = 50 }
+		geneva_add_usa_leverage = yes
+		if = {
+			limit = { has_global_flag = geneva_conference_in_session }
+			set_variable = { geneva_pref^2 = 2 }
+			if = {
+				limit = { check_variable = { geneva_prio^2 < 8 } }
+				set_variable = { geneva_prio^2 = 8 }
+			}
+			add_to_variable = { global.geneva_push^10 = 150 }	# clause 2 option 2: a vote within two years
+			custom_effect_tooltip = geneva_usa_endorse_elections_TT
+		}
+		set_temp_variable = { usa_indo_rapp = 50 }
+		USA_indochina_seed_rapprochement = yes
 	}
 }
 
@@ -623,6 +908,9 @@ shared_focus = {
 	}
 	x = 2
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		OR = {
 			has_global_flag = Indochina_War_Over
@@ -639,6 +927,23 @@ shared_focus = {
 				level = 5
 			}
 		}
+		set_temp_variable = { usa_indo_score = 100 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_score = 15 }
+		USA_indochina_add_communist_score = yes	# American guns in French hands are a recruiting argument for Hanoi
+		set_temp_variable = { usa_indo_a_points = 50 }
+		USA_indochina_escalation_push = yes
+	}
+	ai_will_do = {
+		base = 5
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes	# Washington paid, but through the diplomatic track
+		}
+		modifier = {
+			factor = 2
+			geneva_vie_side_losing_trigger = yes
+		}
 	}
 }
 
@@ -653,6 +958,9 @@ shared_focus = {
 	}
 	x = -1
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -677,6 +985,17 @@ shared_focus = {
 				producer = CAP
 			}
 		}
+		set_temp_variable = { usa_indo_score = 100 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_a_points = 50 }
+		USA_indochina_escalation_push = yes
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 2
+			geneva_vie_side_losing_trigger = yes
+		}
 	}
 }
 
@@ -691,6 +1010,20 @@ shared_focus = {
 	}
 	x = 1
 	y = 1
+	available = {
+		hidden_trigger = { USA_indochina_bilateral_track_open_trigger = yes }	# Washington's own Indochina policy closes once Geneva convenes
+		custom_trigger_tooltip = {
+			tooltip = USA_indochina_vulture_TT
+			OR = {
+				USA_indochina_direct_action_trigger = yes	# the insurgency is broken and Hanoi is losing: finish it
+				AND = {	# or the historical proposal - air power to save a camp that is going under
+					country_exists = VIN
+					VIN = { has_country_flag = VIN_Campaign_Dien_Bien_Active }
+					NOT = { check_variable = { global.geneva_outcome_dbp > 0 } }	# still undecided
+				}
+			}
+		}
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
@@ -713,7 +1046,47 @@ shared_focus = {
 			target = NLF
 			type = annex_everything
 		}
+		add_threat = 3
+		set_global_flag = USA_Direct_Intervention
+		set_temp_variable = { usa_indo_score = 200 }
+		USA_indochina_add_communist_score = yes	# American bombers are the Viet Minh's best recruiting sergeant
+		set_temp_variable = { usa_indo_score = -100 }
+		USA_indochina_add_proindependence_score = yes	# the war is an American war now; Saigon's nationalists own none of it
+		set_temp_variable = { usa_indo_score = -50 }
+		USA_indochina_add_profrance_score = yes	# and Paris is a passenger in its own colony
+		set_temp_variable = { usa_indo_a_points = 175 }
+		USA_indochina_escalation_push = yes
+		set_temp_variable = { usa_indo_rapp = -75 }
+		USA_indochina_seed_rapprochement = yes
+		set_temp_variable = { geneva_lev_amount = 75 }
+		geneva_add_communist_leverage = yes
+		VIN = {
+			add_war_support = 0.15
+		}
 		news_event = Operation_Vulture.1
+	}
+	ai_will_do = {
+		base = 1
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes	# Eisenhower refused it
+		}
+		modifier = {
+			factor = 0
+			has_global_flag = Geneva_Conference_Preparations
+		}
+		modifier = {
+			factor = 0
+			has_global_flag = Indochina_War_Over
+		}
+		modifier = {
+			factor = 4
+			check_variable = { global.geneva_cache_comm_score > 749 }
+		}
+		modifier = {
+			factor = 0.25
+			check_variable = { global.Indochina_War_Active_Phase > 6 }	# no appetite for escalation once the shooting has died down
+		}
 	}
 }
 
@@ -751,45 +1124,75 @@ shared_focus = {
 	}
 }
 
+# Branch head for what Washington does about the ballot the accords scheduled. Hangs off USA_50s_The_French_Indochina_War rather than the conference focus: that one bypasses on Indochina_War_Over, which a settlement sets at once, so this branch opens within a day of the accords whatever Indochina policy Washington pursued. The conference-table stance lives separately on USA_50s_Withhold_American_Assent / USA_50s_Endorse_Free_Vietnamese_Vote.
 shared_focus = {
-	id = USA_50s_Reunification_Election
+	id = USA_50s_The_All_Vietnam_Ballot
 	text_icon = USA_focus_style
-		icon = GFX_usa_50_france_speeds_up_decolonization
-	cost = 3
-	relative_position_id = USA_50s_The_Geneva_Conferece
+	icon = GFX_usa_50_geneva_conference
+	cost = 1
+	relative_position_id = USA_50s_Withhold_American_Assent
 	prerequisite = {
-		focus = USA_50s_The_Geneva_Conferece
-	}
-	mutually_exclusive = {
-		focus = USA_50s_Block_Unification_Elections
+		focus = USA_50s_Withhold_American_Assent
+		focus = USA_50s_Endorse_Free_Vietnamese_Vote
 	}
 	x = 1
 	y = 1
 	available = {
-		OR = {
-			custom_trigger_tooltip = {
-				tooltip = USA_50s_The_Geneva_Conferece_avail_tt
-				has_global_flag = geneva_conference_in_session
-			}
-			custom_trigger_tooltip = {
-				tooltip = Geneva_Complete_Success_TT
-				geneva_conference_complete_success_trigger = yes
-			}
+		custom_trigger_tooltip = {
+			tooltip = geneva_election_scheduled_avail_TT
+			geneva_election_pending_trigger = yes
 		}
 	}
 	bypass = {
 		OR = {
-			# The accords scheduled immediate elections: the question is settled
-			# and Washington's assent is a formality.
 			custom_trigger_tooltip = {
-				tooltip = geneva_elections_immediate_bypass_TT
+				tooltip = geneva_elections_never_scheduled_TT
 				AND = {
 					has_global_flag = geneva_conference_concluded
-					check_variable = { global.geneva_elections_term = 3 }
+					NOT = { has_global_flag = geneva_unified_settlement }
+					NOT = { check_variable = { global.geneva_elections_term > 1 } }
 				}
 			}
-			# A settlement also sets Indochina_War_Over, so the war-over skip
-			# must not swallow the legitimate post-accords election window.
+			has_global_flag = geneva_election_resolved
+			AND = {
+				has_global_flag = Indochina_War_Over
+				NOT = { has_global_flag = geneva_conference_concluded }	# the war ended with no accords, so no ballot was ever scheduled
+			}
+		}
+	}
+	ai_will_do = {
+		base = 20
+	}
+	completion_reward = {
+		add_political_power = 25
+		set_temp_variable = { geneva_lev_amount = 25 }
+		USA_indochina_geneva_pressure = yes
+	}
+}
+
+shared_focus = {
+	id = USA_50s_Reunification_Election
+	text_icon = USA_focus_style
+		icon = GFX_usa_50_france_speeds_up_decolonization
+	cost = 2
+	relative_position_id = USA_50s_The_All_Vietnam_Ballot
+	prerequisite = {
+		focus = USA_50s_The_All_Vietnam_Ballot
+	}
+	mutually_exclusive = {
+		focus = USA_50s_Block_Unification_Elections
+	}
+	x = 2
+	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = geneva_election_campaign_open_avail_TT
+			geneva_election_campaign_open_trigger = yes	# the run-up, not the signing ceremony
+		}
+	}
+	bypass = {
+		OR = {
+			has_global_flag = geneva_election_resolved
 			AND = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
@@ -802,19 +1205,17 @@ shared_focus = {
 			factor = 0.1
 			geneva_vie_side_dominant_trigger = yes
 		}
+		modifier = {
+			factor = 0.2
+			is_historical_focus_on = yes	# Washington did not underwrite the 1956 ballot
+		}
 	}
 	completion_reward = {
-		# Washington throws its weight behind a supervised all-Vietnam vote.
-		set_temp_variable = { geneva_lev_amount = 50 }
-		geneva_add_usa_leverage = yes
+		# Washington tells Saigon it will not stand in the way of a supervised all-Vietnam vote. Saigon still answers for itself in .7 - it may cancel the ballot over Washington's objection.
+		custom_effect_tooltip = USA_50s_Endorse_Ballot_to_Saigon_tt
 		if = {
-			limit = { has_global_flag = geneva_conference_in_session }
-			set_variable = { geneva_pref^2 = 2 }
-			if = {
-				limit = { check_variable = { geneva_prio^2 < 8 } }
-				set_variable = { geneva_prio^2 = 8 }
-			}
-			custom_effect_tooltip = geneva_usa_endorse_elections_TT
+			limit = { country_exists = VIE }
+			VIE = { country_event = { id = VIE_VIN_Reunification_50s.7 days = 3 } }
 		}
 		if = {
 			limit = { country_exists = VIN }
@@ -829,6 +1230,8 @@ shared_focus = {
 				modifier = medium_increase
 			}
 		}
+		set_temp_variable = { usa_indo_rapp = 50 }
+		USA_indochina_seed_rapprochement = yes
 	}
 }
 
@@ -895,14 +1298,34 @@ shared_focus = {
 			}
 		}
 	}
-}
+		else = {	# both Vietnams still standing: the money goes to our own client
+			VIE = {
+				add_to_variable = {
+					currentMoney = 0.5
+				}
+				set_temp_variable = {
+					x = 500
+					tooltip = adjust_money_mil_tt
+				}
+				add_offsite_building = {
+					type = office_park
+					level = 2
+				}
+			}
+		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+	}
+	ai_will_do = {
+		base = 15
+	}
 }
 
 shared_focus = {
 	id = USA_50s_Allow_Free_Elections
 	text_icon = USA_focus_style
 		icon = GFX_usa_50_allow_free_elections
-	cost = 3
+	cost = 2
 	relative_position_id = USA_50s_Reunification_Election
 	prerequisite = {
 		focus = USA_50s_Reunification_Election
@@ -910,16 +1333,13 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = USA_50s_Rig_the_Vietnamese_Elections
 	}
-	x = 0
+	x = -1
 	y = 1
 	available = {
 		custom_trigger_tooltip = {
-			tooltip = geneva_election_scheduled_avail_TT
-			has_global_flag = geneva_interim_government_period
-			NOT = { has_global_flag = geneva_election_resolved }
+			tooltip = geneva_election_campaign_open_avail_TT
+			geneva_election_campaign_open_trigger = yes	# the run-up, not the signing ceremony
 		}
-		country_exists = VIE
-		country_exists = VIN
 	}
 	bypass = {
 		OR = {
@@ -960,6 +1380,10 @@ shared_focus = {
 			target = VIN
 			modifier = medium_increase
 		}
+		set_temp_variable = { usa_indo_rapp = 75 }
+		USA_indochina_seed_rapprochement = yes
+		set_temp_variable = { usa_indo_score = 15 }
+		USA_indochina_add_communist_score = yes	# a vote Hanoi expects to win is a vote Hanoi campaigns for
 	}
 }
 
@@ -967,7 +1391,7 @@ shared_focus = {
 	id = USA_50s_Rig_the_Vietnamese_Elections
 	text_icon = USA_focus_style
 		icon = GFX_usa_50_rig_vietnamese_elections
-	cost = 3
+	cost = 2
 	relative_position_id = USA_50s_Reunification_Election
 	prerequisite = {
 		focus = USA_50s_Reunification_Election
@@ -975,16 +1399,13 @@ shared_focus = {
 	mutually_exclusive = {
 		focus = USA_50s_Allow_Free_Elections
 	}
-	x = 2
+	x = 1
 	y = 1
 	available = {
 		custom_trigger_tooltip = {
-			tooltip = geneva_election_scheduled_avail_TT
-			has_global_flag = geneva_interim_government_period
-			NOT = { has_global_flag = geneva_election_resolved }
+			tooltip = geneva_election_campaign_open_avail_TT
+			geneva_election_campaign_open_trigger = yes	# the run-up, not the signing ceremony
 		}
-		country_exists = VIE
-		country_exists = VIN
 	}
 	bypass = {
 		OR = {
@@ -1016,12 +1437,22 @@ shared_focus = {
 		# (and away from Ho Chi Minh's list) when the vote is resolved.
 		custom_effect_tooltip = geneva_usa_rig_elections_TT
 		set_country_flag = USA_Tampered_With_VIE
+		if = {
+			limit = { country_exists = VIE }
+			VIE = { country_event = { id = VIE_VIN_Reunification_50s.10 days = 5 } }	# Saigon is told, not asked - rigging is not put to the client
+		}
 		VIN = {
 			add_opinion_modifier = {
 				target = USA
 				modifier = medium_decrease
 			}
 		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_communist_score = yes	# a stolen ballot is the best argument the cadres ever had
+		set_temp_variable = { usa_indo_rapp = -75 }
+		USA_indochina_seed_rapprochement = yes
 	}
 }
 
@@ -1029,35 +1460,25 @@ shared_focus = {
 	id = USA_50s_Block_Unification_Elections
 	text_icon = USA_focus_style
 	icon = GFX_usa_50_block_unification_elections
-	cost = 3
-	relative_position_id = USA_50s_The_Geneva_Conferece
+	cost = 2
+	relative_position_id = USA_50s_The_All_Vietnam_Ballot
 	prerequisite = {
-		focus = USA_50s_The_Geneva_Conferece
+		focus = USA_50s_The_All_Vietnam_Ballot
 	}
 	mutually_exclusive = {
 		focus = USA_50s_Reunification_Election
 	}
-	x = -1
+	x = -2
 	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = geneva_election_campaign_open_avail_TT
+			geneva_election_campaign_open_trigger = yes	# the run-up, not the signing ceremony
+		}
+	}
 	bypass = {
 		OR = {
-			# The accords scheduled no elections at all: nothing left to block.
-			custom_trigger_tooltip = {
-				tooltip = geneva_elections_never_scheduled_TT
-				AND = {
-					has_global_flag = geneva_conference_concluded
-					NOT = { check_variable = { global.geneva_elections_term > 1 } }
-				}
-			}
-			custom_trigger_tooltip = {
-				tooltip = "The §YReunification Election§! deal wasn't passed."
-				OR = {
-					geneva_conference_otl_success_trigger = yes
-					NOT = { country_exists = VIE }
-				}
-			}
-			# A settlement also sets Indochina_War_Over, so the war-over skip
-			# must not swallow the legitimate post-accords blocking window.
+			has_global_flag = geneva_election_resolved
 			AND = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
@@ -1068,63 +1489,33 @@ shared_focus = {
 		base = 10
 		modifier = {
 			factor = 0.1
-			NOT = { geneva_vie_side_dominant_trigger = yes }
+			geneva_vie_side_losing_trigger = yes	# a veto Saigon cannot survive is not worth pressing
 		}
 		modifier = {
-			factor = 0
-			geneva_vie_side_losing_trigger = yes
-		}
-		modifier = {
-			factor = 2
+			factor = 3
 			is_historical_focus_on = yes
-			geneva_vie_side_dominant_trigger = yes
 		}
 	}
 	completion_reward = {
-		# Washington digs in against an all-Vietnam vote: this hardens the
-		# American delegation's election stance at the conference table.
-		set_temp_variable = { geneva_lev_amount = 50 }
-		geneva_add_usa_leverage = yes
+		# Washington asks Saigon to refuse the ballot. It does not cancel the vote itself: the flags the Session.21 arbiter stands down on are set by Saigon's own answer in .6, because in 1956 it was Diem's decision to go along with the American position.
+		set_country_flag = USA_Tampered_With_VIE
+		custom_effect_tooltip = USA_50s_Block_Ballot_to_Saigon_tt
 		if = {
-			limit = { has_global_flag = geneva_conference_in_session }
-			set_variable = { geneva_pref^2 = 0 }
-			set_variable = { geneva_prio^2 = 10 }
-			custom_effect_tooltip = geneva_usa_hardline_elections_TT
-		}
-		# Taken after the accords scheduled a vote (the two-year window): the
-		# election dies in Saigon under American pressure, OTL-1956 style. The
-		# Session.21 arbiter stands down on these flags.
-		if = {
-			limit = {
-				has_global_flag = geneva_interim_government_period
-				NOT = { has_global_flag = geneva_election_resolved }
-				country_exists = VIE
-			}
-			set_country_flag = USA_Tampered_With_VIE
-			custom_effect_tooltip = geneva_usa_block_interim_TT
-			VIE = { set_country_flag = VIE_reunification_election_refused }
-			if = {
-				limit = { country_exists = VIN }
-				VIN = {
-					set_country_flag = VIN_reunification_election_cancelled
-					country_event = { id = VIE_VIN_Reunification_50s.3 days = 3 }
-				}
-			}
+			limit = { country_exists = VIE }
+			VIE = { country_event = { id = VIE_VIN_Reunification_50s.6 days = 3 } }
 		}
 		VIN = {
 			add_stability = -0.05
 			add_war_support = -0.05
 		}
-		add_opinion_modifier = {
-			target = VIE
-			modifier = medium_increase
-		}
-		VIE = {
-			add_opinion_modifier = {
-				target = USA
-				modifier = medium_increase
-			}
-		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_communist_score = yes	# denying Hanoi the ballot hands it back the argument for the gun
+		set_temp_variable = { usa_indo_a_points = 50 }
+		USA_indochina_escalation_push = yes
+		set_temp_variable = { usa_indo_rapp = -75 }
+		USA_indochina_seed_rapprochement = yes
 	}
 }
 
@@ -1156,6 +1547,17 @@ shared_focus = {
 				target = USA
 				modifier = medium_increase
 			}
+		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_a_points = 50 }
+		USA_indochina_escalation_push = yes
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 2
+			is_historical_focus_on = yes
 		}
 	}
 }
@@ -1190,6 +1592,17 @@ shared_focus = {
 				}
 			}
 		}
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_rapp = -50 }
+		USA_indochina_seed_rapprochement = yes
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 2
+			is_historical_focus_on = yes
+		}
 	}
 }
 
@@ -1204,13 +1617,31 @@ shared_focus = {
 		focus = USA_50s_Military_Aid_to_France
 	}
 	x = 0
-	y = 3
+	y = 4
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = USA_indochina_settlement_window_TT
+			USA_indochina_settlement_window_trigger = yes	# Washington turns diplomatic when the war turns, not on a date
+		}
+	}
 	bypass = {
 		has_global_flag = Indochina_War_Over
 	}
 	completion_reward = {
-		FRA = {
-			country_event = USA_FRAIND.1
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_proindependence_score = yes
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				country_event = USA_FRAIND.1
+			}
+		}
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 3
+			is_historical_focus_on = yes
 		}
 	}
 }
@@ -1232,8 +1663,34 @@ shared_focus = {
 	}
 	x = -1
 	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = USA_50s_Fund_French_Coup_avail_TT
+			AND = {
+				USA_indochina_diem_governs_trigger = yes
+				USA_indochina_french_coup_possible_trigger = yes
+				NOT = { has_global_flag = VIE_Republic_Proclaimed }	# the October referendum settles the question; after it there is nothing left to pre-empt
+					}
+				}
+			}
 	completion_reward = {
-
+		add_political_power = -50
+		set_temp_variable = { usa_indo_score = 50 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { usa_indo_score = -50 }
+		USA_indochina_add_proindependence_score = yes	# Saigon's own government undone with American money
+		set_global_flag = USA_Backs_French_Coup
+		if = {
+			limit = { country_exists = FRA }
+			FRA = { country_event = { id = USA_DiemCoup.1 days = 2 } }
+		}
+	}
+	ai_will_do = {
+		base = 5
+		modifier = {
+			factor = 0
+			is_historical_focus_on = yes
+		}
 	}
 }
 
@@ -1254,6 +1711,22 @@ shared_focus = {
 	}
 	x = 1
 	y = 1
+	available = {
+		custom_trigger_tooltip = {
+			tooltip = USA_50s_Permit_Diem_avail_TT
+			USA_indochina_diem_governs_trigger = yes
+		}
+	}
+	bypass = {	# only this half of the pair carries the bypass: bypassing one locks its mutually exclusive sibling, so keeping it in one place makes the no-Diem case resolve the same way every time
+		OR = {
+			NOT = { country_exists = VIE }
+			VIE = { has_country_flag = VIE_Hinh_Coup }	# the generals moved without us
+			AND = {
+				date > 1957.1.1
+				NOT = { USA_indochina_diem_governs_trigger = yes }	# Saigon is somebody else's problem now
+			}
+		}
+	}
 	completion_reward = {
 		USA = {
 			add_opinion_modifier = {
@@ -1280,6 +1753,8 @@ shared_focus = {
 				x = 250
 				tooltip = adjust_money_mil_tt
 			}
+			if = {
+				limit = { owns_state = 286 }	# Saigon may have changed hands by the time Washington gets here
 			286 = {
 				add_extra_state_shared_building_slots = 1
 				add_building_construction = {
@@ -1293,6 +1768,21 @@ shared_focus = {
 					instant_build = yes
 				}
 			}
+		}
+		}
+		set_temp_variable = { usa_indo_score = 100 }
+		USA_indochina_add_proindependence_score = yes
+		set_temp_variable = { usa_indo_score = -50 }
+		USA_indochina_add_profrance_score = yes
+		set_temp_variable = { geneva_lev_amount = 50 }
+		geneva_add_proindependence_leverage = yes
+		country_event = { id = USA_DiemRecog.1 hours = 6 }
+	}
+	ai_will_do = {
+		base = 10
+		modifier = {
+			factor = 5
+			is_historical_focus_on = yes
 		}
 	}
 }
@@ -6703,7 +7193,7 @@ shared_focus = {
 		x = 1
 		y = 7
 		available = {
-			has_global_flag = PRC_victory
+			has_global_flag = PRC_Victory
 		}
 		relative_position_id = USA_50s_The_Chinese_Civil_War
 		completion_reward = {

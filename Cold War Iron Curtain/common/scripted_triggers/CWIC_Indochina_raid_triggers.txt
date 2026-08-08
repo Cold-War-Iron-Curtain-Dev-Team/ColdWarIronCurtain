@@ -27,3 +27,31 @@ INDO_raid_valid_target_allegiance_trigger = {
 		}
 	}
 }
+
+# The floor under every Indochina raid, whichever side is running it: the target
+# has to belong to somebody else's war effort.
+#
+# The allegiance trigger above says the same thing, but only reaches fifteen of
+# the seventy-three raid types. Written with every clause explicitly scoped so it
+# holds wherever it is dropped into a show_target block: ROOT is the raider,
+# FROM is the target's owner.
+INDO_raid_not_own_side_trigger = {
+	NOT = { FROM = { tag = ROOT } }
+	NOT = { FROM = { is_subject_of = ROOT } }
+	NOT = { ROOT = { is_subject_of = FROM } }
+	NOT = { ROOT = { is_in_faction_with = FROM } }
+	NOT = { ROOT = { has_war_together_with = FROM } }	# co-belligerents in the same war
+	NOT = {
+		AND = {
+			ROOT = { tag = VIN }
+			FROM = { vin_aligned_country_trigger = yes }	# the Nung path brings NUN over to Hanoi without a formal subject relationship
+		}
+	}
+}
+
+# Raids cost divisions and command power that a declared campaign needs in the
+# line. Suspends new AI raids for as long as a campaign is running.
+VIN_ai_raids_suspended_trigger = {
+	tag = VIN
+	NOT = { VIN_no_campaign_running_trigger = yes }
+}

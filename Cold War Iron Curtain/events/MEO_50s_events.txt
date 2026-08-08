@@ -90,8 +90,24 @@ country_event = {
     option = {
         name = MEO.12.a
         set_country_flag = MEO_1950_hoang_uprising
+        set_global_flag = Duong_Tutsi_and_Tho_Phi_Revolt
         add_war_support = 0.03
         complete_national_focus = MEO_begin_of_the_duong_tutsi_and_tho_phi_revolt
+    }
+}
+
+# Fired by the revolt focus once the 1950 uprising has broken out.
+# Pure flavour - the three factions state their case and the player answers from the tree.
+country_event = {
+    id = MEO.26
+    title = MEO.26.t
+    desc = MEO.26.d
+    is_triggered_only = yes
+    fire_only_once = yes
+
+    option = {
+        name = MEO.26.a
+        add_political_power = 25
     }
 }
 
@@ -108,8 +124,6 @@ country_event = {
     }
 }
 
-# This event is fired for both MEO and VIN by the autonomy focus.
-# Its effects are only hook flags: keep the sovereignty/puppet logic in the focus or its parent event.
 country_event = {
     id = MEO.14
     title = MEO.14.t
@@ -133,9 +147,37 @@ country_event = {
         set_country_flag = MEO_thai_meo_autonomy_accepted
     }
     option = {
-        name = MEO.14.b
+        name = MEO.14.b	# Lo Van Hac chairs the zone - the OTL appointment
         trigger = { tag = VIN }
+        ai_chance = { factor = 90 }
         set_country_flag = VIN_thai_meo_autonomy_granted
+        MEO = {
+            set_country_flag = MEO_zone_led_by_lo_van_hac
+            MEO_lo_van_hac = {
+                promote_character = yes
+            }
+        }
+    }
+    option = {
+        name = MEO.14.c	# the Meo King keeps the seat, and the zone keeps its crown
+        trigger = { tag = VIN }
+        ai_chance = { factor = 10 }
+        set_country_flag = VIN_thai_meo_autonomy_granted
+        MEO = {
+            set_country_flag = MEO_zone_led_by_vuong_chi_sinh
+            MEO_vuong_chi_sinh = {
+                add_country_leader_role = {
+                    promote_leader = yes
+                    country_leader = {
+                        ideology = monarchist
+                    }
+                }
+            }
+            set_politics = {
+                ruling_party = monarchism
+                elections_allowed = no
+            }
+        }
     }
 }
 
@@ -162,11 +204,17 @@ country_event = {
 
     option = {
         name = MEO.16.a
+        ai_chance = { factor = 76 }
         set_country_flag = VIN_meo_rebellion_to_be_crushed
-        add_war_support = 0.03
+        add_war_support = 0.05
+        declare_war_on = {
+            target = MEO
+            type = annex_everything
+        }
     }
     option = {
         name = MEO.16.b
+        ai_chance = { factor = 24 }
         set_country_flag = VIN_meo_negotiations_considered
         add_political_power = 15
     }
@@ -200,13 +248,40 @@ country_event = {
 
     option = {
         name = MEO.18.a
+        ai_chance = { factor = 90 }
         set_country_flag = MEO_1959_uprising_suppressed
         complete_national_focus = MEO_combat_the_duong_trung_nhan_revolt
     }
     option = {
         name = MEO.18.b
+        ai_chance = { factor = 10 }
         set_country_flag = MEO_1959_uprising_joined
         complete_national_focus = MEO_proclaim_duong_trung_nhan_as_king_of_the_meo
+    }
+}
+
+# Fired in VIN by MEO_question_of_national_autonomy. Hanoi's answer completes the matching MEO focus.
+country_event = {
+    id = MEO.27
+    title = MEO.27.t
+    desc = MEO.27.d
+    is_triggered_only = yes
+
+    option = {
+        name = MEO.27.a	# the historical answer - an autonomous zone under Hanoi's supervision
+        ai_chance = { factor = 90 }
+        MEO = {
+            set_country_flag = MEO_hanoi_chose_autonomy
+            complete_national_focus = MEO_creation_of_the_autonomous_zone_of_thaimeo
+        }
+    }
+    option = {
+        name = MEO.27.b	# fold the highlands straight into the republic
+        ai_chance = { factor = 10 }
+        MEO = {
+            set_country_flag = MEO_hanoi_chose_integration
+            complete_national_focus = MEO_accept_the_unification_with_vietnam
+        }
     }
 }
 
@@ -275,11 +350,17 @@ country_event = {
 
     option = {
         name = MEO.23.a
+        ai_chance = { factor = 80 }
         set_country_flag = VIN_1959_meo_rebellion_to_be_crushed
-        add_war_support = 0.04
+        add_war_support = 0.1
+        declare_war_on = {
+            target = MEO
+            type = annex_everything
+        }
     }
     option = {
         name = MEO.23.b
+        ai_chance = { factor = 20 }
         set_country_flag = VIN_1959_meo_negotiations_considered
         add_political_power = 15
     }
@@ -295,6 +376,7 @@ country_event = {
         name = MEO.24.a
         set_country_flag = MEO_vuong_chi_sinh_assassinated
         add_war_support = 0.05
+        MEO_vuong_chi_sinh = { retire = yes }
     }
 }
 

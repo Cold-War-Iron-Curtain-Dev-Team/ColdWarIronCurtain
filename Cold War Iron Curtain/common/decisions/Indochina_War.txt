@@ -23,11 +23,30 @@ Indochina_War_Rework = {
 		cancel_trigger = {
 			# A player-driven ending (or hot-joined player) resolved the war
 			# while the timer was running.
+			OR = {
 			has_global_flag = Indochina_War_Over
+				NOT = { indochina_struggle_all_participants_ai_trigger = yes }	# a human took one of the stake countries mid-timer: they play it out themselves
+			}
+		}
+
+		cancel_effect = {
+			clr_global_flag = Indochina_War_Timer_Active	# ic_pulse can re-arm later if the map goes all-AI again
 		}
 
 		timeout_effect = {
 			if = {
+				# A decisive set-piece is still being fought out: give the battle
+				# another 60 days to produce its own result, four times over.
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
+					indochina_war_still_being_fought_trigger = yes
+					check_variable = { global.Indochina_Wrapup_Extensions < 4 }
+				}
+				add_to_variable = { global.Indochina_Wrapup_Extensions = 1 }
+				activate_mission = Indochina_Wrapup_Timer
+				log = "[GetDateText]: Indochina wrap-up timer extended - a campaign, the Laos raid or the Dien Bien Phu siege is still running"
+			}
+			else_if = {
 				limit = {
 					NOT = { has_global_flag = Indochina_War_Over }
 				}
@@ -35,56 +54,23 @@ Indochina_War_Rework = {
 				# earned; otherwise default to the historical Geneva Accords
 				# partition. Each ending effect handles cleanup, sets
 				# Indochina_War_Over and fires the (major) news event itself.
+				indochina_struggle_resolve_best_available_ending = yes	# the ladder itself lives in CWIC_Struggle_Effects.txt; the failsafe router shares it
 				if = {
-					limit = { has_global_flag = USA_VIN_Reunification_Complete }
-					indochina_struggle_american_north_vietnam = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = VIN
-						VIN = { indochina_struggle_ending_communist_victory_trigger = yes }
-					}
-					indochina_struggle_communist_victory = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = VIE
-						VIE = { indochina_struggle_ending_southern_victory_trigger = yes }
-					}
-					indochina_struggle_southern_victory = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = PQC
-						PQC = { indochina_struggle_ending_kuomintang_victory_trigger = yes }
-					}
-					indochina_struggle_kuomintang_victory = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = VIE
-						VIE = { indochina_struggle_ending_dan_quoc_peace_trigger = yes }
-					}
-					indochina_struggle_dan_quoc_peace = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = FRA
-						FRA = { indochina_struggle_ending_federal_vietnam_trigger = yes }
-					}
-					indochina_struggle_federal_vietnam = yes
-				}
-				else_if = {
-					limit = {
-						country_exists = FRA
-						FRA = { indochina_struggle_ending_balkanized_vietnam_trigger = yes }
-					}
-					indochina_struggle_balkanized_vietnam = yes
-				}
-				else = {
 					# No decisive ending earned: convene the Geneva Conference
 					# headlessly and let the delegations settle (or wreck) it.
+					# Re-checked here, not just at arming: a human who joined a stake
+					# country during the 60 days must not have the conference concluded
+					# over their head.
+					limit = {
+						NOT = { has_global_flag = Indochina_War_Over }	# unset means the ladder found nothing; a decisive ending set it as it ran
+						indochina_struggle_all_participants_ai_trigger = yes
+					}
 					geneva_conf_auto_resolve = yes
+				}
+				else_if = {
+					limit = { NOT = { has_global_flag = Indochina_War_Over } }
+					clr_global_flag = Indochina_War_Timer_Active
+					set_global_flag = Indochina_Geneva_Pursuit	# settle through the normal gated path instead, so the human plays the conference
 				}
 			}
 		}
@@ -95,8 +81,7 @@ Indochina_War_Rework = {
 		}
 	}
 
-	# 1953 Laos raid resolution timer
-	Laos_Raid_Timer = {
+	Laos_Raid_Timer = { # 1953 Laos raid resolution timer
 		allowed = { always = no }
 		available = { always = no }
 		activation = { always = no }
@@ -120,8 +105,127 @@ Indochina_War_Rework = {
 		}
 	}
 
-	# Shorter final window granted when a human attacker chooses to press
-	Laos_Raid_LastChance_Timer = {
+
+	VIN_Campaign_Clock = { # Player-facing readout: the campaign deadline had no representation anywhere in the UI
+		icon = generic_attack
+
+		allowed = { original_tag = VIN }
+
+		activation = { always = no }
+
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Camp_Clock_tt
+				always = no	# never completable; it exists to show the clock
+			}
+		}
+
+		visible = {
+			NOT = { VIN_no_campaign_running_trigger = yes }
+		}
+
+		is_good = yes
+		selectable_mission = yes
+		days_mission_timeout = 300	# matches the FRA-side backstop; the real deadlines are in the tooltip
+		fire_only_once = no
+		cancel_trigger = {
+			VIN_no_campaign_running_trigger = yes
+		}
+		timeout_effect = {
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	VIN_Campaign_Objective_Timer = { # Viet Minh campaign backstop; hosted on FRA because FRA never vanishes
+		allowed = { always = no }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 300	# outlasts the longest deadline (Dien Bien Phu, 260 days); vin_campaign_objective_tick normally resolves first
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				NOT = { country_exists = VIN }
+				VIN = { VIN_no_campaign_running_trigger = yes }
+			}
+		}
+		timeout_effect = {
+			if = {	# the daily tick stalled somehow: force the failure branch rather than leave a war open forever
+				limit = {
+					country_exists = VIN
+					VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+				}
+				VIN = {
+					set_temp_variable = { vin_camp_outcome = 4 }
+					vin_campaign_resolve = yes
+				}
+			}
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	FRE_Operation_Timer = { # CEFEO operation watchdog; guarantees the operation resolves
+		allowed = { always = no }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 90
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = FRE_Operation_Resolved
+				NOT = { has_global_flag = FRE_Operation_Active }
+			}
+		}
+		timeout_effect = {
+			fre_operation_resolve = yes
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	FRE_Operation_LastChance_Timer = { # Shorter final window granted when a human commander presses on
+		allowed = { always = no }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = no
+		days_mission_timeout = 45
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = FRE_Operation_Resolved
+				NOT = { has_global_flag = FRE_Operation_Active }
+			}
+		}
+		timeout_effect = {
+			if = {
+				limit = { country_exists = FRE }
+				FRE = { fre_operation_threshold_resolve = yes }
+			}
+			else = { clr_global_flag = FRE_Operation_Active }
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	Laos_Raid_LastChance_Timer = { # Shorter final window granted when a human attacker chooses to press
 		allowed = { always = no }
 		available = { always = no }
 		activation = { always = no }
@@ -145,10 +249,7 @@ Indochina_War_Rework = {
 		}
 	}
 
-	# Player-facing "hold the capitals" countdown shown to LOS. Cosmetic: the FRA
-	# Laos_Raid_Timer does the real resolution; this just gives the Kingdom a
-	# visible clock and objective. Cancelled the moment the raid resolves.
-	Laos_Raid_Defence = {
+	Laos_Raid_Defence = { # Purely cosmetic
 		icon = generic_prepare_civil_war
 		allowed = { original_tag = LOS }
 		available = { always = no }
@@ -172,8 +273,55 @@ Indochina_War_Rework = {
 		}
 	}
 
-	# LOS-side mirror of the 45-day last-chance window.
-	Laos_Raid_Defence_LastChance = {
+	Laos_Raid_Offensive = { # Attacker-side mirror of Laos_Raid_Defence: Hanoi was racing a clock it could not see
+		icon = generic_prepare_civil_war
+		allowed = { OR = { original_tag = VIN  original_tag = LAO } }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = yes
+		days_mission_timeout = 90
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = Laos_Raid_Resolved
+				NOT = { has_global_flag = Laos_Raid_Active }
+			}
+		}
+		timeout_effect = {
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	Laos_Raid_Offensive_LastChance = { # Attacker-side mirror of the 45-day last-chance window.
+		icon = generic_prepare_civil_war
+		allowed = { OR = { original_tag = VIN  original_tag = LAO } }
+		available = { always = no }
+		activation = { always = no }
+		is_good = no
+		selectable_mission = yes
+		days_mission_timeout = 45
+		cancel_trigger = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = Laos_Raid_Resolved
+				NOT = { has_global_flag = Laos_Raid_Active }
+			}
+		}
+		timeout_effect = {
+		}
+		complete_effect = {
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	Laos_Raid_Defence_LastChance = { # LOS-side mirror of the 45-day last-chance window.
 		icon = generic_prepare_civil_war
 		allowed = { original_tag = LOS }
 		available = { always = no }
@@ -402,7 +550,7 @@ Indochina_War_Rework = {
                             defender = {
                                 state = var:ROOT.defender_state
                                 num_provinces = 4
-                                on_win = Indochina_Border_War.100
+                                on_win = Indochina_Border_War.9
                                 on_lose = Indochina_Border_War.10
                                 on_cancel = Indochina_Border_War.100
                             }
@@ -414,6 +562,7 @@ Indochina_War_Rework = {
             }
         }
     }
+
 	Indochina_Struggle_Border_Conflict_Commie = {
 		icon = border_war
         state_target = yes
@@ -452,6 +601,23 @@ Indochina_War_Rework = {
                 set_variable = { ROOT.defender_state = THIS.id }
                 owner = {
                     set_variable = { ROOT.defender_tag = THIS.id }
+                    set_variable = { ROOT.ic_bw_defender_bloc = 0 }	# ROOT is always Communist here, so the outcome events are chosen by who is being attacked
+                    if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 1 }
+                    }
+                    else_if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 2 }
+                    }
+                    else_if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 3 }
+                    }
+                    else_if = {
+                        limit = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id } }
+                        set_variable = { ROOT.ic_bw_defender_bloc = 4 }
+                    }
                 }
             }
             random_state = {
@@ -469,7 +635,7 @@ Indochina_War_Rework = {
                 set_temp_variable = { attacker_state_temp = id }
                 if = {
                     limit = {
-                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 1 }
                     }
                     start_border_war = {
                         change_state_after_war = yes
@@ -492,7 +658,7 @@ Indochina_War_Rework = {
                 }
                 else_if = {
                     limit = {
-                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 2 }
                     }
                     start_border_war = {
                         change_state_after_war = yes
@@ -515,7 +681,7 @@ Indochina_War_Rework = {
                 }
                 else_if = {
                     limit = {
-                        is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 3 }
                     }
                     start_border_war = {
                         change_state_after_war = yes
@@ -535,9 +701,10 @@ Indochina_War_Rework = {
                             on_cancel = Indochina_Border_War.100
                         }
                     }
+                }
                     else_if = {
                         limit = {
-                            is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+                        check_variable = { ROOT.ic_bw_defender_bloc = 4 }
                         }
                         start_border_war = {
                             change_state_after_war = yes
@@ -555,7 +722,6 @@ Indochina_War_Rework = {
                                 on_win = Indochina_Border_War.22
                                 on_lose = Indochina_Border_War.23
                                 on_cancel = Indochina_Border_War.100
-                            }
                         }
                     }
                 }
@@ -563,6 +729,7 @@ Indochina_War_Rework = {
             }
         }
     }
+
 	Indochina_Struggle_Border_Conflict_Kuomintang = {
 		icon = border_war
         state_target = yes
@@ -735,7 +902,6 @@ Indochina_War_Rework = {
     # de-escalation is a playable strategy rather than something
     # that only happens through raid failures and the time drip.
     # Point awards go through the shared helpers in
-    # CWIC_Struggle_Effects.txt (75 phase points + 75 faction score).
     ############################################################
 
     #Pro-Independence (VIE, CCC)
@@ -743,14 +909,22 @@ Indochina_War_Rework = {
         icon = generic_civil_support
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_proindependence }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_pro_independence_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_proindependence value = 1 days = 45 }
+            add_stability = 0.01
+            add_war_support = -0.01
         }
         ai_will_do = {
             base = 1
@@ -760,18 +934,27 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_ProInd_International_Appeal = {
         icon = generic_propaganda
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_proindependence }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_pro_independence_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_proindependence value = 1 days = 45 }
+            add_stability = 0.01
+            add_war_support = -0.02
         }
         ai_will_do = {
             base = 1
@@ -781,18 +964,27 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_ProInd_Prisoner_Exchange = {
         icon = generic_trade
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_proindependence }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_pro_independence_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_proindependence value = 1 days = 45 }
+            add_stability = 0.02
+            add_manpower = 500	# our own men come home with the exchange
         }
         ai_will_do = {
             base = 1
@@ -802,27 +994,31 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_ProInd_Denounce_Infiltration = {
         icon = generic_prepare_civil_war
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
         }
         cost = 50
         days_re_enable = 90
         complete_effect = {
             indochina_struggle_add_pro_independence_military_points = yes
+            add_war_support = 0.02
+            add_stability = -0.01
+            army_experience = 5
         }
         ai_will_do = {
             factor = 0
         }
     }
+
     Indochina_Struggle_ProInd_Propose_Peace_Conference = {
         icon = generic_prepare_civil_war
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+            indochina_struggle_diplomacy_actor_trigger = yes
             check_variable = { global.Indochina_War_Active_Phase = 8 }
             NOT = { has_global_flag = Geneva_Conference_Preparations }
             NOT = { has_global_flag = Indochina_War_Over }
@@ -841,6 +1037,8 @@ Indochina_War_Rework = {
             FRA = {
                 country_event = { id = Geneva_Conference_Invitation.5 days = 3 }
             }
+            add_stability = 0.02
+            add_war_support = -0.02
         }
         ai_will_do = {
             base = 1
@@ -856,14 +1054,22 @@ Indochina_War_Rework = {
         icon = generic_civil_support
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_communist }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_communist_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_communist value = 1 days = 45 }
+            add_stability = 0.01
+            add_war_support = -0.01
         }
         ai_will_do = {
             base = 1
@@ -873,18 +1079,27 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_Com_Call_For_Elections = {
         icon = generic_propaganda
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_communist }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_communist_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_communist value = 1 days = 45 }
+            add_stability = 0.02
+            add_war_support = -0.01
         }
         ai_will_do = {
             base = 1
@@ -894,18 +1109,27 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_Com_Release_Prisoners = {
         icon = generic_trade
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_communist }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_communist_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_communist value = 1 days = 45 }
+            add_stability = 0.02
+            add_war_support = -0.02
         }
         ai_will_do = {
             base = 1
@@ -915,18 +1139,20 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_Com_Intensify_Struggle = {
         icon = generic_operation
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
         }
         cost = 50
         days_re_enable = 90
         complete_effect = {
             indochina_struggle_add_communist_military_points = yes
+            add_war_support = 0.02
+            add_stability = -0.01
+            army_experience = 5
         }
         ai_will_do = {
             factor = 0
@@ -938,14 +1164,22 @@ Indochina_War_Rework = {
         icon = generic_civil_support
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_profrance }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_pro_france_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_profrance value = 1 days = 45 }
+            add_stability = 0.01
+            add_war_support = -0.01
         }
         ai_will_do = {
             base = 1
@@ -955,18 +1189,27 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_ProFra_Court_Opinion = {
         icon = generic_propaganda
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_profrance }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_pro_france_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_profrance value = 1 days = 45 }
+            add_stability = 0.02
+            add_war_support = -0.01
         }
         ai_will_do = {
             base = 1
@@ -976,18 +1219,27 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_ProFra_Amnesty_Programme = {
         icon = generic_trade
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
+        }
+        available = {
+            date > 1953.1.1
+            custom_trigger_tooltip = {
+                tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+                NOT = { has_global_flag = indochina_diplomacy_lock_profrance }
+            }
         }
         cost = 25
         days_re_enable = 70
         complete_effect = {
             indochina_struggle_add_pro_france_diplomatic_points = yes
+            set_global_flag = { flag = indochina_diplomacy_lock_profrance value = 1 days = 45 }
+            add_stability = 0.02
+            add_war_support = -0.02
         }
         ai_will_do = {
             base = 1
@@ -997,21 +1249,240 @@ Indochina_War_Rework = {
             }
         }
     }
+
     Indochina_Struggle_ProFra_Show_Of_Force = {
         icon = generic_operation
         visible = {
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
-            check_variable = { global.Indochina_War_Active_Phase > 5 }
-            check_variable = { global.Indochina_War_Active_Phase < 9 }
-            NOT = { has_global_flag = Indochina_War_Over }
+            indochina_struggle_diplomacy_window_trigger = yes
         }
         cost = 50
         days_re_enable = 90
         complete_effect = {
             indochina_struggle_add_pro_france_military_points = yes
+            add_war_support = 0.02
+            add_stability = -0.01
+            army_experience = 5
         }
         ai_will_do = {
             factor = 0
         }
     }
+
+	Indochina_Struggle_ProEth_Petition_The_Crown = {
+		icon = generic_civil_support
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		available = {
+			date > 1953.1.1
+			custom_trigger_tooltip = {
+				tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+				NOT = { has_global_flag = indochina_diplomacy_lock_proethnic }
+			}
+		}
+		cost = 25
+		days_re_enable = 70
+		complete_effect = {
+			indochina_struggle_add_pro_ethnic_diplomatic_points = yes
+			set_global_flag = { flag = indochina_diplomacy_lock_proethnic value = 1 days = 45 }
+			add_stability = 0.01
+			add_war_support = -0.01
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 10
+				date > 1953.1.1
+			}
+		}
+	}
+
+	Indochina_Struggle_ProEth_Assert_Customary_Law = {
+		icon = generic_propaganda
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		available = {
+			date > 1953.1.1
+			custom_trigger_tooltip = {
+				tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+				NOT = { has_global_flag = indochina_diplomacy_lock_proethnic }
+			}
+		}
+		cost = 25
+		days_re_enable = 70
+		complete_effect = {
+			indochina_struggle_add_pro_ethnic_diplomatic_points = yes
+			set_global_flag = { flag = indochina_diplomacy_lock_proethnic value = 1 days = 45 }
+			add_stability = 0.02
+			add_war_support = -0.01
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 10
+				date > 1953.1.1
+			}
+		}
+	}
+
+	Indochina_Struggle_ProEth_Highland_Truce = {
+		icon = generic_trade
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		available = {
+			date > 1953.1.1
+			custom_trigger_tooltip = {
+				tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+				NOT = { has_global_flag = indochina_diplomacy_lock_proethnic }
+			}
+		}
+		cost = 25
+		days_re_enable = 70
+		complete_effect = {
+			indochina_struggle_add_pro_ethnic_diplomatic_points = yes
+			set_global_flag = { flag = indochina_diplomacy_lock_proethnic value = 1 days = 45 }
+			add_stability = 0.02
+			add_manpower = 300
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 10
+				date > 1953.1.1
+			}
+		}
+	}
+
+	Indochina_Struggle_ProEth_Levy_The_Villages = {
+		icon = generic_prepare_civil_war
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		cost = 50
+		days_re_enable = 90
+		complete_effect = {
+			indochina_struggle_add_pro_ethnic_military_points = yes
+			add_war_support = 0.02
+			add_stability = -0.01
+			army_experience = 5
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	Indochina_Struggle_KMT_Court_The_Chinese_Quarter = {
+		icon = generic_civil_support
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		available = {
+			date > 1953.1.1
+			custom_trigger_tooltip = {
+				tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+				NOT = { has_global_flag = indochina_diplomacy_lock_kuomintang }
+			}
+		}
+		cost = 25
+		days_re_enable = 70
+		complete_effect = {
+			indochina_struggle_add_kuomintang_diplomatic_points = yes
+			set_global_flag = { flag = indochina_diplomacy_lock_kuomintang value = 1 days = 45 }
+			add_stability = 0.01
+			add_political_power = 10
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 10
+				date > 1953.1.1
+			}
+		}
+	}
+
+	Indochina_Struggle_KMT_Appeal_To_Taipei = {
+		icon = generic_propaganda
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		available = {
+			date > 1953.1.1
+			custom_trigger_tooltip = {
+				tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+				NOT = { has_global_flag = indochina_diplomacy_lock_kuomintang }
+			}
+		}
+		cost = 25
+		days_re_enable = 70
+		complete_effect = {
+			indochina_struggle_add_kuomintang_diplomatic_points = yes
+			set_global_flag = { flag = indochina_diplomacy_lock_kuomintang value = 1 days = 45 }
+			add_stability = 0.01
+			add_war_support = -0.01
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 10
+				date > 1953.1.1
+			}
+		}
+	}
+
+	Indochina_Struggle_KMT_Tax_The_River_Trade = {
+		icon = generic_trade
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		available = {
+			date > 1953.1.1
+			custom_trigger_tooltip = {
+				tooltip = Indochina_Struggle_Diplomacy_Cooldown_TT
+				NOT = { has_global_flag = indochina_diplomacy_lock_kuomintang }
+			}
+		}
+		cost = 25
+		days_re_enable = 70
+		complete_effect = {
+			indochina_struggle_add_kuomintang_diplomatic_points = yes
+			set_global_flag = { flag = indochina_diplomacy_lock_kuomintang value = 1 days = 45 }
+			add_political_power = 25
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 10
+				date > 1953.1.1
+			}
+		}
+	}
+
+	Indochina_Struggle_KMT_Requisition_The_Delta = {
+		icon = generic_operation
+		visible = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+			indochina_struggle_diplomacy_window_trigger = yes
+		}
+		cost = 50
+		days_re_enable = 90
+		complete_effect = {
+			indochina_struggle_add_kuomintang_military_points = yes
+			add_war_support = 0.02
+			add_stability = -0.01
+			army_experience = 5
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
 }

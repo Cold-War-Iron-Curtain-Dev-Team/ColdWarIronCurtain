@@ -751,16 +751,20 @@ ic_pulse = {
 	# never has the minigame bypassed. Started in late May 1954 the 60-day
 	# timer expires ~21 July 1954, the OTL Geneva Accords date. The post-1957
 	# window catches AI-only stalemates that missed the historical window.
+	#
+	# The historical window runs to mid-1955 rather than 10 July 1954: an AI Hanoi
+	# fights Dien Bien Phu months behind the OTL schedule.
 	if = {
 		limit = {
 			tag = FRA
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = { has_global_flag = Indochina_War_Timer_Active }
 			indochina_struggle_all_participants_ai_trigger = yes
+			NOT = { indochina_war_still_being_fought_trigger = yes }	# let the campaign, the raid or the siege produce its own result first
 			OR = {
 				AND = {
 					date > 1954.5.20
-					date < 1954.7.10
+					date < 1955.7.1
 					# Let a human USA finish the VIN reunification event chain
 					# instead of resolving under them; the 1957 fallback still
 					# catches an abandoned chain.
@@ -3812,11 +3816,14 @@ ic_pulse = {
 		limit = {
 			tag = MEO
 			date > 1959.10.01
-			date < 1952.11.01
+			date < 1959.11.01
+			has_completed_focus = MEO_creation_of_the_autonomous_zone_of_thaimeo	# only the zone has a 1959 row to revolt against
+			NOT = { has_country_flag = MEO_1959_revolt_opened }	# the pulse ticks daily; open the row once
 		}
+		set_country_flag = MEO_1959_revolt_opened
+		complete_national_focus = MEO_the_duong_trung_nhan_revolt
 		country_event = MEO.18
 	}
-
 
 	#Chile Events
 	if = {
@@ -7444,11 +7451,40 @@ ic_pulse = {
 			}
 		}
 	}
+	if = {	# Viet Minh campaign supply: init, monthly accrual and the stuck-campaign backstop
+		limit = {
+			tag = VIN
+			NOT = { has_global_flag = Indochina_War_Over }
+		}
+		vin_campaign_initialize = yes
+		vin_indochina_ai_initialize = yes
+		vin_campaign_watchdog = yes
+		add_to_variable = { VIN_Supply_Accrual_Counter = 1 }
+		if = {
+			limit = { check_variable = { VIN_Supply_Accrual_Counter > 27.9 } }	# ic_pulse is daily
+			set_variable = { VIN_Supply_Accrual_Counter = 0 }
+			vin_accrue_monthly_supply = yes
+			if = {
+				limit = { is_ai = yes }
+				set_temp_variable = { vin_ai_rifles = 600 }
+				if = {
+					limit = { has_global_flag = PRC_Victory }
+					set_temp_variable = { vin_ai_rifles = 1200 }
+				}
+				add_equipment_to_stockpile = {
+					type = infantry_equipment_1
+					amount = vin_ai_rifles
+					producer = PRC
+				}
+			}
+		}
+	}
 	if = {
 		limit = {
 			tag = VIN
 			date > 1953.3.01
-			date < 1953.3.30
+			date < 1955.3.30 # 2 year late trigger just in case
+			VIN_no_campaign_running_trigger = yes	# Laos waits its turn; it used to open a second front mid-campaign
 			NOT = {
 				has_global_flag = Phase3
 			}
@@ -7459,36 +7495,7 @@ ic_pulse = {
 				modifier = unplanned_offensive
 			}
 		}
-		LAO = {
-			transfer_state = 1295
-			add_state_core = 1295
-			add_state_core = 841
-			add_state_core = 670
-			add_state_core = 1196
-			add_state_core = 1198
-			add_state_core = 1191
-			add_state_core = 1187
-			set_capital = { state = 1295 }
-			keep_current_politics = yes
-		}
-		VIN = {
-			country_event = VINLAO.1
-			release_autonomy = {
-				target = LAO
-				autonomy_state = autonomy_easternbloc
-			}
-		}
-		LOS = {
-			declare_war_on = {
-				target = LAO
-				type = annex_everything
-			}
-			declare_war_on = {
-				target = VIN
-				type = puppet_wargoal_focus
-			}
-		}
-		ic_laos_raid_launch = yes
+		country_event = { id = VINLAO.10 days = 1 }	# Hanoi decides whether to cross into Laos at all
 	}
 	if = {
 		limit = {
@@ -14035,9 +14042,10 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			date > 1976.1.1	# reunification renamed the state and Saigon in 1976; an earlier conquest is still the DRV
 			VIN = {
 				NOT = {
-					has_cosmetic_tag = VIN_unified
+					has_country_flag = VIN_reunified
 				}
 				controls_state = 757
 				controls_state = 1287
@@ -14049,7 +14057,11 @@ ic_pulse = {
 			}
 		}
 		VIN = {
-			set_cosmetic_tag = VIN_unified
+			set_country_flag = VIN_reunified
+			if = {
+				limit = { has_cosmetic_tag = DRV }
+				drop_cosmetic_tag = yes	# base VIN loc is already the Socialist Republic of Viet Nam
+			}
 			286 = {
 				set_state_name = "Ho Chi Minh City"
 			}
@@ -16099,7 +16111,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1950.6.1
 				date < 1950.6.30
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 			}
 			country_event = { id = jap_yoshida.3 }
 			set_country_flag = JAP_Yoshida_3_Done
@@ -16109,7 +16121,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1950.7.1
 				date < 1950.7.31
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 				NOT = { has_country_flag = JAP_Yoshida_3_Done }
 			}
 			country_event = { id = jap_yoshida.3 }
@@ -16120,7 +16132,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1951.1.1
 				date < 1951.1.31
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 			}
 			country_event = { id = jap_yoshida.10 }
 			set_country_flag = JAP_Yoshida_10_Done
@@ -16130,7 +16142,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1951.2.1
 				date < 1951.2.28
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 				NOT = { has_country_flag = JAP_Yoshida_10_Done }
 			}
 			country_event = { id = jap_yoshida.10 }
@@ -18507,5 +18519,13 @@ ic_pulse = {
 			ideology = socialist
 			portrait = "gfx/leaders/ZIM/Robert_Mugabe_00s.dds"
 		}
+	}
+	if = {
+		limit = {
+			original_tag = SOV
+			date > 1969.1.01
+			date < 1969.2.01
+		}
+		news_event = ARM_SOV.1
 	}
 }

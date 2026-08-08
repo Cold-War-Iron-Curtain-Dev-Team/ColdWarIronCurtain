@@ -39,6 +39,15 @@
 #   e test_geneva_election_favor_ho   stack the election snapshot for Hanoi
 #   e test_geneva_election_favor_saigon   stack it for Saigon
 #   e test_geneva_debug               branch-check the conference flags
+#   -- Geneva hardening regressions --
+#   e test_geneva_runoff              13th wins a split vote -> must resolve to the 17th
+#   e test_geneva_runoff_20th         20th wins a split vote -> must resolve to the 17th
+#   e test_geneva_fre_pursuit         de-escalation pursuit: defers below the gate, convenes above it
+#   e test_geneva_stale_hollow        in-session save with no delegations + stale round
+#   e test_geneva_panic               force the Dien Bien Phu collapse path to the table
+#   e test_geneva_panic_ballot        Washington's delegation must refuse the vote
+#   e test_geneva_campaign_window     ballot focuses shut until the run-up opens
+#   e test_geneva_unified_liquidation a no-line settlement must still end the French presence
 #   -- VIE sectarian GUI --
 #   e test_vie_sect_show_gui          open the sect window (as VIE)
 #   e test_vie_sect_hide_gui          close it
@@ -51,6 +60,19 @@
 #   -- Struggle gameplay extras --
 #   e test_indochina_diplomacy_phase  jump to tension phase 6 + 300 PP for the
 #                                     de-escalation decision layer
+#   -- War Outcomes panel --
+#   e test_outcomes_show_gui / _hide_gui   toggle the panel for your country
+#   e test_outcomes_reset             re-arm all scenario detectors + recorders
+#   e test_outcomes_pulse             run the daily world detector once
+#   e test_outcomes_nlf_kill          annex NLF (then pulse to record the tier)
+#   e test_outcomes_dbp_victory / _fall / _breakout   plant the DBP result flag
+#   e test_outcomes_sects_all         integrate all five sects on VIE
+#   e test_outcomes_highlands_all     VIN annexes TAI, MEO and NUN
+#   e test_outcomes_laos_victory / _stalemate / _failure   plant raid flags
+#   -- Negotiation pipeline --
+#   e test_geneva_neg_debug           dump the negotiation arrays to game.log
+#   e test_geneva_neg_tick            run the daily maturation sweep once
+#   e test_geneva_neg_flush           bank every in-flight stake now
 # ============================================================================
 
 # ----------------------------------------------------------------------------
@@ -72,6 +94,11 @@ test_geneva_reset = {
 	clr_global_flag = Geneva_Conference_Preparations
 	clr_global_flag = Geneva_Conference_Negotiations_Complete
 	clr_global_flag = Geneva_Conference
+	clr_global_flag = geneva_conf_attendance_autogranted	# otherwise a re-convened conference silently pays no delegation payload
+	clr_global_flag = Indochina_Geneva_Pursuit	# a pending de-escalation pursuit would re-announce the conference behind the test
+	clr_global_flag = Indochina_Geneva_Panic	# else the collapse path is one-shot across the whole session
+	clr_global_flag = geneva_usa_panic_no_ballot
+	clr_global_flag = geneva_election_campaign_open
 	clr_global_flag = Indochina_War_Over
 	set_variable = { global.geneva_round = 0 }
 	set_variable = { global.geneva_tick_days = 0 }
@@ -88,6 +115,13 @@ test_geneva_reset = {
 	clear_array = global.geneva_delegations
 	clear_array = global.geneva_clause_current
 	clear_array = global.geneva_push
+	clear_array = global.geneva_severity
+	clear_array = global.geneva_neg_country
+	clear_array = global.geneva_neg_clause
+	clear_array = global.geneva_neg_option
+	clear_array = global.geneva_neg_amount
+	clear_array = global.geneva_neg_days
+	clear_array = global.geneva_neg_clause_count
 	every_country = {
 		limit = {
 			OR = {
@@ -107,6 +141,14 @@ test_geneva_reset = {
 		clr_country_flag = geneva_walked_out
 		clr_country_flag = geneva_core_delegation
 		set_variable = { View_Geneva_Conference = 0 }
+		set_variable = { geneva_grievance = 0 }
+		set_variable = { geneva_neg_display_clause = 0 }
+		set_variable = { geneva_neg_display_days = 0 }
+		clear_array = geneva_neg_mine
+	}
+	every_country = {	# reseating re-adds it; a mid-session reset must not leave the button behind
+		limit = { is_in_array = { array = country_politics_list value = 29 } }
+		remove_from_array = { array = country_politics_list value = 29 }
 	}
 	# Legacy outcome vocabulary from a previous compile.
 	if = {
@@ -251,6 +293,9 @@ test_geneva_buff_me = {
 	set_variable = { geneva_pressured_until = 0 }
 	set_variable = { geneva_backchannel_next = 0 }
 	set_variable = { geneva_threat_next = 0 }
+	set_variable = { geneva_threats_used = 0 }
+	set_variable = { geneva_grievance = 0 }
+	set_variable = { geneva_provocation = 0 }
 	clr_country_flag = geneva_walked_out
 }
 
@@ -259,6 +304,7 @@ test_geneva_refresh_actions = {
 	set_variable = { geneva_pressured_until = 0 }
 	set_variable = { geneva_backchannel_next = 0 }
 	set_variable = { geneva_threat_next = 0 }
+	set_variable = { geneva_threats_used = 0 }
 }
 
 # Push the VIE-VIN back-channel over the 100 threshold and re-derive both
@@ -657,4 +703,295 @@ test_vie_sect_prompt_seize_failure = {
 test_indochina_diplomacy_phase = {
 	test_indochina_set_phase_high_tension = yes
 	add_political_power = 300
+}
+
+# ----------------------------------------------------------------------------
+# War Outcomes panel: scenario QA
+# ----------------------------------------------------------------------------
+
+test_outcomes_show_gui = {
+	set_variable = { show_indochina_outcome_gui = 1 }
+}
+test_outcomes_hide_gui = {
+	set_variable = { show_indochina_outcome_gui = 0 }
+}
+
+# Re-arms every scenario detector (shared clears live with the struggle file).
+test_outcomes_reset = {
+	test_indochina_outcomes_reset = yes
+}
+
+# One manual run of the daily detector (normally on_daily_FRA).
+test_outcomes_pulse = {
+	geneva_conf_world_leverage_pulse = yes
+}
+
+# Kill the southern insurgency; run test_outcomes_pulse afterwards and the
+# current game date decides which reward tier is recorded.
+test_outcomes_nlf_kill = {
+	if = {
+		limit = { country_exists = NLF country_exists = VIE }
+		VIE = { annex_country = { target = NLF transfer_troops = no } }
+	}
+	else_if = {
+		limit = { country_exists = NLF country_exists = FRA }
+		FRA = { annex_country = { target = NLF transfer_troops = no } }
+	}
+}
+
+test_outcomes_dbp_victory = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { set_country_flag = FRE_DBP_Result_Victory }
+	}
+}
+test_outcomes_dbp_fall = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { set_country_flag = FRE_DBP_Result_Fall }
+	}
+}
+test_outcomes_dbp_breakout = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { set_country_flag = FRE_DBP_Result_Breakout }
+	}
+}
+
+test_outcomes_sects_all = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_country_flag = integrated_binh_xuyen
+			set_country_flag = integrated_cao_dai
+			set_country_flag = integrated_harmonism
+			set_country_flag = integrated_hoa_hao
+			set_country_flag = integrated_umdc
+		}
+	}
+}
+
+test_outcomes_highlands_all = {
+	if = {
+		limit = { country_exists = VIN }
+		if = {
+			limit = { country_exists = TAI }
+			VIN = { annex_country = { target = TAI transfer_troops = no } }
+		}
+		if = {
+			limit = { country_exists = MEO }
+			VIN = { annex_country = { target = MEO transfer_troops = no } }
+		}
+		if = {
+			limit = { country_exists = NUN }
+			VIN = { annex_country = { target = NUN transfer_troops = no } }
+		}
+	}
+}
+
+test_outcomes_laos_victory = {
+	set_global_flag = Laos_Raid_Resolved
+	set_global_flag = Laos_Raid_Attacker_Won
+}
+test_outcomes_laos_stalemate = {
+	set_global_flag = Laos_Raid_Resolved
+	set_global_flag = Laos_Raid_Stalemate
+}
+test_outcomes_laos_failure = {
+	set_global_flag = Laos_Raid_Resolved
+	set_global_flag = Laos_Raid_Total_Failure
+}
+
+# ----------------------------------------------------------------------------
+# Negotiation pipeline: QA
+# ----------------------------------------------------------------------------
+
+# Dump the negotiation arrays to game.log (Documents/Paradox/HOI4/logs).
+test_geneva_neg_debug = {
+	log = "GENEVA NEG: entries=[?global.geneva_neg_country^num]"
+	set_temp_variable = { g_dbg_i = 0 }
+	set_temp_variable = { g_dbg_sz = global.geneva_neg_country^num }
+	while_loop_effect = {
+		limit = { check_variable = { g_dbg_i < g_dbg_sz } }
+		log = "GENEVA NEG [?g_dbg_i|0]: country=[?global.geneva_neg_country^g_dbg_i|0] clause=[?global.geneva_neg_clause^g_dbg_i|0] option=[?global.geneva_neg_option^g_dbg_i|0] amount=[?global.geneva_neg_amount^g_dbg_i|0] days=[?global.geneva_neg_days^g_dbg_i|0]"
+		add_to_temp_variable = { g_dbg_i = 1 }
+	}
+}
+
+# One manual maturation day (normally on_daily_FRA while in session).
+test_geneva_neg_tick = {
+	geneva_neg_daily_tick = yes
+}
+
+test_geneva_neg_flush = {
+	geneva_neg_flush_all = yes
+}
+
+# ----------------------------------------------------------------------------
+# Hardening regressions (partition runoff, pursuit path, hollow-session guard)
+# ----------------------------------------------------------------------------
+# Clause 1 is the only ordinal clause: options 1/2/3 are the 13th, 17th and 20th
+# parallels. A bare plurality let a concentrated bloc take an extreme line, so the
+# vote falls back to the 17th whenever the majority sits on the far side of the
+# winner. Both tests zero every delegation's clause-1 priority so only the staked
+# pushes count and the arithmetic is deterministic.
+
+test_geneva_runoff = {
+	test_geneva_force_session = yes
+	every_country = {
+		limit = { is_in_array = { global.geneva_delegations = THIS.id } }
+		set_variable = { geneva_prio^1 = 0 }
+	}
+	set_variable = { global.geneva_round = 0 }	# keep the tick from tripping the round-10 compile
+	set_variable = { global.geneva_clause_current^1 = 2 }
+	set_variable = { global.geneva_push^5 = 1000 }	# clause 1, option 1 (13th parallel): the plurality
+	set_variable = { global.geneva_push^6 = 600 }	# clause 1, option 2 (17th parallel)
+	set_variable = { global.geneva_push^7 = 500 }	# clause 1, option 3 (20th parallel)
+	geneva_conf_round_tick = yes
+	log = "GENEVA RUNOFF: 13th=1000 vs 17th+20th=1100 -> line=[?global.geneva_clause_current^1|0] (expect 2)"
+}
+
+test_geneva_runoff_20th = {
+	test_geneva_force_session = yes
+	every_country = {
+		limit = { is_in_array = { global.geneva_delegations = THIS.id } }
+		set_variable = { geneva_prio^1 = 0 }
+	}
+	set_variable = { global.geneva_round = 0 }	# keep the tick from tripping the round-10 compile
+	set_variable = { global.geneva_clause_current^1 = 2 }
+	set_variable = { global.geneva_push^5 = 500 }	# clause 1, option 1 (13th parallel)
+	set_variable = { global.geneva_push^6 = 600 }	# clause 1, option 2 (17th parallel)
+	set_variable = { global.geneva_push^7 = 1000 }	# clause 1, option 3 (20th parallel): the plurality
+	geneva_conf_round_tick = yes
+	log = "GENEVA RUNOFF 20TH: 20th=1000 vs 13th+17th=1100 -> line=[?global.geneva_clause_current^1|0] (expect 2)"
+}
+
+# FRE_The_Geneva_Accords taken below the tension gate must not convene: it sets
+# Indochina_Geneva_Pursuit and works the struggle down until the gate opens.
+test_geneva_fre_pursuit = {
+	test_geneva_reset = yes
+	set_global_flag = Indochina_Geneva_Pursuit
+	set_variable = { global.Indochina_War_Active_Phase = 5 }
+	set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+	indochina_geneva_pursuit_tick = yes
+	if = {
+		limit = { has_global_flag = geneva_conference_announced }
+		log = "GENEVA PURSUIT: FAIL - convened at phase 5"
+	}
+	else = {
+		log = "GENEVA PURSUIT: deferred at phase 5, B=[?global.Indochina_War_Next_Phase_B_Points|0] (expect 200)"
+	}
+	set_variable = { global.Indochina_War_Active_Phase = 8 }
+	set_variable = { global.Indochina_War_Next_Phase_B_Points = 600 }
+	indochina_geneva_pursuit_tick = yes
+	if = {
+		limit = { has_global_flag = geneva_conference_announced }
+		log = "GENEVA PURSUIT: convened at phase 8 as expected, pursuit flag cleared"
+	}
+	else = {
+		log = "GENEVA PURSUIT: FAIL - still deferred at phase 8 with B=600"
+	}
+}
+
+# In session with an empty delegations array and a garbage round counter: the
+# tick must rebuild the session rather than compile a settlement.
+test_geneva_stale_hollow = {
+	test_geneva_reset = yes
+	set_global_flag = geneva_conference_in_session
+	clear_array = global.geneva_delegations
+	set_variable = { global.geneva_round = 11 }
+	geneva_conf_round_tick = yes
+	log = "GENEVA STALE HOLLOW: delegations=[?global.geneva_delegations^num|0] (expect >0) round=[?global.geneva_round|0] (expect 0) concluded flag must be absent"
+	if = {
+		limit = { has_global_flag = geneva_conference_concluded }
+		log = "GENEVA STALE HOLLOW: FAIL - compiled a settlement instead of rebuilding"
+	}
+}
+
+# `e test_geneva_panic` - drive the Dien Bien Phu collapse path end to end
+# without fighting the campaign. Records the camp as fallen, hands Hanoi the
+# highlands, then runs the daily check exactly as on_daily_FRA would.
+test_geneva_panic = {
+	clr_global_flag = Indochina_Geneva_Panic
+	clr_global_flag = geneva_conference_announced
+	clr_global_flag = geneva_conference_in_session
+	clr_global_flag = geneva_conference_concluded
+	clr_global_flag = Geneva_Conference_Preparations
+	clr_global_flag = Indochina_War_Over
+	set_variable = { global.geneva_outcome_dbp = 2 }	# the camp fell
+	set_variable = { global.geneva_outcome_highland = 2 }
+	1761 = { set_state_owner_to = VIN }
+	1766 = { set_state_owner_to = VIN }
+	log = "GENEVA PANIC: preconditions set, phase=[?global.Indochina_War_Active_Phase|0]"
+	if = {
+		limit = { geneva_panic_collapse_trigger = yes }
+		indochina_geneva_panic_force_conference = yes
+		log = "GENEVA PANIC: convened - phase=[?global.Indochina_War_Active_Phase|0] (expect 11)"
+	}
+	else = {
+		log = "GENEVA PANIC: FAIL - trigger did not fire"
+	}
+}
+
+# The other half of the payoff: Washington's delegation must refuse the ballot.
+test_geneva_panic_ballot = {
+	set_global_flag = geneva_usa_panic_no_ballot
+	if = {
+		limit = { country_exists = USA }
+		USA = {
+			geneva_conf_refresh_prefs = yes
+			log = "GENEVA PANIC BALLOT: elections pref=[?geneva_pref^2|0] (expect 0) prio=[?geneva_prio^2|0] (expect 10)"
+		}
+	}
+}
+
+# `e test_geneva_campaign_window` - the ballot focuses must be shut until the
+# run-up opens and live afterwards. Run it straight after a settlement that
+# scheduled a vote.
+test_geneva_campaign_window = {
+	log = "GENEVA CAMPAIGN WINDOW: term=[?global.geneva_elections_term|0] interim=[?global.geneva_tick_days|0]"
+	if = {
+		limit = { geneva_election_campaign_open_trigger = yes }
+		log = "GENEVA CAMPAIGN WINDOW: already open"
+	}
+	else = {
+		log = "GENEVA CAMPAIGN WINDOW: shut (expected until the run-up) - opening it now"
+	}
+	set_global_flag = geneva_election_campaign_open
+	if = {
+		limit = { geneva_election_campaign_open_trigger = yes }
+		log = "GENEVA CAMPAIGN WINDOW: open - the ballot focuses should now be selectable"
+	}
+	else = {
+		log = "GENEVA CAMPAIGN WINDOW: FAIL - still shut with the flag set, so the pending half is false"
+	}
+}
+
+# `e test_geneva_unified_liquidation` - a settlement that draws no line must
+# still end the French presence. Checks the tags that used to survive it.
+test_geneva_unified_liquidation = {
+	if = {
+		limit = { country_exists = FRE }
+		log = "GENEVA UNIFIED: FAIL - FRE still exists"
+	}
+	if = {
+		limit = { country_exists = NUN }
+		log = "GENEVA UNIFIED: FAIL - NUN still exists"
+	}
+	if = {
+		limit = { country_exists = TAI }
+		log = "GENEVA UNIFIED: FAIL - TAI still exists"
+	}
+	if = {
+		limit = { country_exists = TAM }
+		log = "GENEVA UNIFIED: FAIL - TAM still exists"
+	}
+	if = {
+		limit = {
+			country_exists = MEO
+			NOT = { check_variable = { global.geneva_minorities_term = 1 } }
+		}
+		log = "GENEVA UNIFIED: FAIL - MEO survived without a minorities clause"
+	}
+	log = "GENEVA UNIFIED: liquidation check complete"
 }

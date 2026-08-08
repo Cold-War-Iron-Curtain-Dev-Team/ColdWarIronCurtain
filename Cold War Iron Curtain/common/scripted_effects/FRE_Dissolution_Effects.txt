@@ -7,6 +7,45 @@
 # All effects are safe to call when FRE does not exist.
 # =============================================================================
 
+# The corps commands TAI, TAM, NUN and THO instead of Paris (see the FRE history
+# file). When the corps goes, Paris takes them back if it is still there,
+# otherwise they stand on their own rather than being annexed alongside FRE.
+fre_hand_back_crown_domains = {
+	every_subject_country = {
+		limit = {
+			OR = {
+				tag = TAI
+				tag = TAM
+				tag = NUN
+				tag = THO
+			}
+		}
+		save_event_target_as = fre_departing_domain	# named target: PREV through two scope changes is too fragile to rely on
+		if = {
+			limit = { FRA = { exists = yes } }
+			FRA = {
+				puppet = { target = event_target:fre_departing_domain }
+				set_autonomy = {
+					target = event_target:fre_departing_domain
+					autonomy_state = autonomy_indon_union
+					end_wars = no
+					end_civil_wars = no
+				}
+			}
+		}
+		else = {
+			FRE = {
+				set_autonomy = {
+					target = event_target:fre_departing_domain
+					autonomy_state = autonomy_free
+					end_wars = no
+					end_civil_wars = no
+				}
+			}
+		}
+	}
+}
+
 # Scrub CEFEO state so nothing leaks past annexation. FRE scope.
 fre_dissolution_cleanup = {
 	if = {
@@ -14,6 +53,11 @@ fre_dissolution_cleanup = {
 		remove_dynamic_modifier = { modifier = War_Exhaustion_Modifier }
 	}
 	remove_ideas = FRE_Expeditionary_Command
+	remove_ideas = FRE_Under_Metropole_Command
+	remove_ideas = FRE_Indochina_War_Credits
+	# The corps holds the northern crown domains. Hand them back to Paris on the
+	# way out rather than letting them ride along into whatever annexes FRE.
+	fre_hand_back_crown_domains = yes
 	remove_ideas = FRE_Metropole_Subsidies_Full
 	remove_ideas = FRE_Metropole_Subsidies_Reduced
 	remove_ideas = FRE_Metropole_Subsidies_Cut

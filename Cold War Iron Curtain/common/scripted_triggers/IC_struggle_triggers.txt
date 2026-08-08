@@ -48,12 +48,8 @@ indochina_struggle_ending_southern_victory_trigger = {
 					}
 				}
 			}
-			OR = {
-				check_variable = { global.Indochina_War_Active_Phase = 3 }
-				check_variable = { global.Indochina_War_Active_Phase = 4 }
-				check_variable = { global.Indochina_War_Active_Phase = 6 }
-				check_variable = { global.Indochina_War_Active_Phase = 7 }
-			}
+			check_variable = { global.Indochina_War_Active_Phase > 2 }
+			check_variable = { global.Indochina_War_Active_Phase < 9 }
 			set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 			multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
 			check_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore > StruggleInvolvedNationsIndochinaCommunistTest }
@@ -77,15 +73,22 @@ indochina_struggle_ending_southern_victory_trigger = {
 	}
 }
 
+indochina_settlement_window_trigger = {
+	check_variable = { global.Indochina_War_Active_Phase > 5 }
+	check_variable = { global.Indochina_War_Active_Phase < 9 }
+	date > 1953.1.1
+}
+
 indochina_struggle_ending_federal_vietnam_trigger = {
 	NOT = { has_global_flag = Indochina_War_Over }
 	NOT = { has_global_flag = Geneva_Conference }
 	tag = FRA
+	indochina_settlement_window_trigger = yes
 	set_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 	multiply_temp_variable = { StruggleInvolvedNationsIndochinaCommunistTest = 2 }
 	check_variable = { FRA.StruggleInvolvedNationsIndochinaTotalAntiCommunistScore > StruggleInvolvedNationsIndochinaCommunistTest }
 	check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
-	check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore > 250 }
 	check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > 1000 }
 	check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
 }
@@ -98,6 +101,7 @@ indochina_struggle_ending_balkanized_vietnam_trigger = {
 		tag = FRA
 		tag = CCC
 	}
+	indochina_settlement_window_trigger = yes
 	set_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
 	add_to_temp_variable = { StruggleInvolvedNationsIndochinaProDismantleTest = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
 	check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > 1000 }
@@ -107,8 +111,10 @@ indochina_struggle_ending_balkanized_vietnam_trigger = {
 	multiply_temp_variable = { StruggleInvolvedNationsIndochinaProIndependenceTest = 2 }
 	check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > StruggleInvolvedNationsIndochinaProIndependenceTest }
 	check_variable = { StruggleInvolvedNationsIndochinaProDismantleTest > StruggleInvolvedNationsIndochinaCommunistTest }
+	set_temp_variable = { StruggleInvolvedNationsIndochinaProEthnicTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaProEthnicTest = 2 }
 	NOT = {
-		check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+		check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > StruggleInvolvedNationsIndochinaProEthnicTest }
 	}
 }
 
@@ -121,6 +127,7 @@ indochina_struggle_ending_dan_quoc_peace_trigger = {
 		AND = {
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = { has_global_flag = Geneva_Conference }
+			indochina_settlement_window_trigger = yes
 			has_global_flag = dan_quoc_peace
 			OR = {
 				tag = VIN
@@ -172,6 +179,7 @@ indochina_struggle_ending_kuomintang_victory_trigger = {
 					owns_state = 286
 					owns_state = 1760
 				}
+				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > 500 }
 				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
 				check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaProFranceScore }
@@ -278,6 +286,64 @@ geneva_conference_concluded_trigger = {
 	}
 }
 
+MEO_highland_settlement_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = MEO_highland_settlement_trigger_TT
+		OR = {
+			has_global_flag = geneva_conference_concluded
+			has_global_flag = Indochina_War_Over
+			VIN = { owns_state = 1760 }	# Hanoi, held by the CEFEO at the 1949 start
+		}
+	}
+}
+
+# The northern frontier is settled enough for Hanoi to reorganise it. Unlike the Meo trigger this does not accept merely holding Hanoi - a Viet Bac region carved out mid-war would be undone by the next partition.
+VIN_viet_bac_settlement_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = VIN_viet_bac_settlement_trigger_TT
+		OR = {
+			has_global_flag = geneva_conference_concluded
+			has_global_flag = Indochina_War_Over
+		}
+	}
+}
+
+# Vietnam is genuinely one state again through the Geneva track. Not to be confused with geneva_conference_complete_success_trigger, which only records that the accords agreed to hold a vote - a ballot merely scheduled leaves the country partitioned while the clock runs.
+geneva_vietnam_reunified_trigger = {
+	has_global_flag = geneva_conference_concluded
+	OR = {
+		has_global_flag = geneva_unified_settlement	# the accords drew no partition line at all
+		AND = {
+			has_global_flag = geneva_election_resolved	# the all-Vietnam ballot has been counted
+			OR = {
+				NOT = { country_exists = VIN }	# Saigon's list carried it (Session.25)
+				NOT = { country_exists = VIE }	# Hanoi's list carried it (Session.24)
+			}
+		}
+	}
+}
+
+# The accords scheduled an all-Vietnam ballot and it has not been held yet. Mirrors the guard set re-checked by the Session.21 arbiter and its Session.26 campaign report.
+geneva_election_pending_trigger = {
+	has_global_flag = geneva_interim_government_period
+	NOT = { has_global_flag = geneva_election_resolved }
+	country_exists = VIE
+	country_exists = VIN
+	VIN = { NOT = { has_country_flag = VIN_reunification_election_cancelled } }
+	VIN = { NOT = { has_country_flag = VIN_liberation_of_the_south_prepared } }
+	VIE = { NOT = { has_country_flag = VIE_reunification_election_refused } }
+}
+
+# A ballot that is scheduled is not a ballot that is being fought. Everything
+# that shapes, rigs or refuses the vote hangs off this rather than off the
+# signing, via the hidden Session.27 on a schedule derived from the agreed
+# election term. The pending trigger above is deliberately left alone -
+# VIE_scripted_triggers reads it for the whole interim period.
+geneva_election_campaign_open_trigger = {
+	geneva_election_pending_trigger = yes
+	has_global_flag = geneva_election_campaign_open
+}
+
 # Charles de Gaulle heads the French government; FRA is not on the character system yet, so match by ruling leader name.
 VIN_de_gaulle_in_power_trigger = {
 	custom_trigger_tooltip = {
@@ -336,12 +402,55 @@ indochina_struggle_ending_never_ending_available_trigger = {
 	}
 }
 
+geneva_conference_vietnam_at_peace_trigger = {
+	OR = {
+		NOT = { country_exists = VIN }
+		VIN = { has_war = no }
+	}
+	OR = {
+		NOT = { country_exists = VIE }
+		VIE = { has_war = no }
+	}
+}
+
 geneva_conference_should_be_available_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = geneva_conference_should_be_available_trigger_TT
 		NOT = { has_global_flag = Indochina_War_Over }
+		geneva_conference_vietnam_at_peace_trigger = yes
 		check_variable = { global.Indochina_War_Active_Phase = 8 }
 		check_variable = { global.Indochina_War_Next_Phase_B_Points > 499 }
+	}
+}
+
+# The road above is the negotiated one: eight phases of cooling and then five
+# hundred more points of it. This is the other road, for a war that ended in a
+# military catastrophe. The camp has to have fallen and the collapse has to be
+# general rather than one lost battle. Checked daily from on_daily_FRA and
+# one-shot behind Indochina_Geneva_Panic.
+geneva_panic_collapse_trigger = {
+	NOT = { has_global_flag = Indochina_War_Over }
+	NOT = { has_global_flag = Indochina_Geneva_Panic }
+	NOT = { has_global_flag = geneva_conference_announced }
+	NOT = { has_global_flag = geneva_conference_in_session }
+	NOT = { has_global_flag = geneva_conference_concluded }
+	NOT = { has_global_flag = Geneva_Conference_Preparations }
+	geneva_conference_vietnam_at_peace_trigger = yes
+	check_variable = { global.geneva_outcome_dbp = 2 }	# Dien Bien Phu fell
+	OR = {
+		AND = {
+			check_variable = { global.geneva_outcome_highland > 1 }	# the highland recorder has gone against the federation
+			1761 = { is_owned_by = VIN }
+		}
+		AND = {
+			1761 = { is_owned_by = VIN }	# Hoang Lien Son and Hoa Binh both gone: there is no northern position left
+			1766 = { is_owned_by = VIN }
+		}
+		AND = {
+			country_exists = FRE
+			FRE = { check_variable = { FRE_Metropole_Patience < 25 } }	# and Paris has stopped paying for it
+			check_variable = { global.geneva_cache_comm_score > global.geneva_cache_anticomm_score }
+		}
 	}
 }
 
@@ -368,6 +477,7 @@ indochina_struggle_ending_failed_state_trigger = {
 			check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore < 500 }
 			check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore < 500 }
 			check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore < 500 }
+			check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore < 500 }
 			date > 1955.1.1
 			check_variable = { global.Indochina_War_Active_Phase < 9 }
 			NOT = { has_global_flag = Geneva_Conference }
@@ -467,6 +577,10 @@ indochina_kmt_victory_cond_key_states_or_dominance = {
 	}
 }
 
+indochina_kmt_victory_cond_threshold = {
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > 500 }
+}
+
 indochina_kmt_victory_cond_vs_communist = {
 	check_variable = { FRA.StruggleInvolvedNationsIndochinaKuomintangScore > FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 }
@@ -510,12 +624,8 @@ indochina_southern_victory_cond_high_tension = {
 }
 
 indochina_southern_victory_cond_phase = {
-	OR = {
-		check_variable = { global.Indochina_War_Active_Phase = 3 }
-		check_variable = { global.Indochina_War_Active_Phase = 4 }
-		check_variable = { global.Indochina_War_Active_Phase = 6 }
-		check_variable = { global.Indochina_War_Active_Phase = 7 }
-	}
+	check_variable = { global.Indochina_War_Active_Phase > 2 }
+	check_variable = { global.Indochina_War_Active_Phase < 9 }
 }
 
 indochina_southern_victory_cond_ratio = {
@@ -536,6 +646,10 @@ indochina_southern_victory_cond_threshold = {
 	check_variable = { FRA.StruggleInvolvedNationsIndochinaProIndependenceScore > 1000 }
 }
 
+indochina_settlement_cond_window = {
+	indochina_settlement_window_trigger = yes
+}
+
 indochina_federal_vietnam_cond_is_france = {
 	tag = FRA
 }
@@ -551,7 +665,7 @@ indochina_federal_vietnam_cond_vs_independence = {
 }
 
 indochina_federal_vietnam_cond_ethnic_vs_independence = {
-	check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore > FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+	check_variable = { FRA.StruggleInvolvedNationsIndochinaProEthnicScore > 250 }
 }
 
 indochina_federal_vietnam_cond_threshold = {
@@ -593,8 +707,10 @@ indochina_balkanized_vietnam_cond_dismantle_vs_communist = {
 }
 
 indochina_balkanized_vietnam_cond_ethnic_vs_france = {
+	set_temp_variable = { StruggleInvolvedNationsIndochinaProEthnicTest = FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+	multiply_temp_variable = { StruggleInvolvedNationsIndochinaProEthnicTest = 2 }
 	NOT = {
-		check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > FRA.StruggleInvolvedNationsIndochinaProEthnicScore }
+		check_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore > StruggleInvolvedNationsIndochinaProEthnicTest }
 	}
 }
 
@@ -738,6 +854,57 @@ indochina_involvement_trigger = {
 	}
 }
 
+indochina_struggle_diplomacy_actor_trigger = { # the ProFrance array also holds African and European subjects with no Indochina stake
+	OR = {
+		tag = FRA
+		tag = FRE
+		tag = CAM
+		tag = LOS
+		tag = LAO
+		tag = VIE
+		tag = CCC
+		tag = VIN
+		tag = NLF
+		tag = MEO
+		tag = PQC
+		tag = FUL
+		tag = TAI
+		tag = TAM
+		tag = THO
+		tag = NUN
+	}
+}
+
+indochina_struggle_diplomacy_window_trigger = { # shared visibility window for the Struggle Diplomacy decisions
+	NOT = { has_global_flag = Indochina_War_Over }
+	check_variable = { global.Indochina_War_Active_Phase > 5 }
+	check_variable = { global.Indochina_War_Active_Phase < 9 }
+	indochina_struggle_diplomacy_actor_trigger = yes
+}
+
+# A decisive set-piece is currently being fought out on the map: the wrap-up
+# timer must not arm or expire on top of one. Deliberately narrow - the Indochina
+# War is a standing low-level war, so only the three arcs that own a result of
+# their own are tested here.
+indochina_war_still_being_fought_trigger = {
+	OR = {
+		AND = {	# a VIN border-war campaign is in the field (Tay Bac, Hoa Binh, Dien Bien Phu)
+			country_exists = VIN
+			VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		}
+		has_global_flag = Laos_Raid_Active
+		AND = {	# the French Castor arc has established the camp and not yet resolved the siege
+			country_exists = FRE
+			FRE = {
+				has_country_flag = FRE_Dien_Bien_Phu_Established
+				NOT = { has_country_flag = FRE_DBP_Result_Victory }
+				NOT = { has_country_flag = FRE_DBP_Result_Fall }
+				NOT = { has_country_flag = FRE_DBP_Result_Breakout }
+			}
+		}
+	}
+}
+
 # True only when no human controls any Indochina-stake country; gates the Indochina_Wrapup_Timer so auto-resolution never overrides a human playing the minigame.
 indochina_struggle_all_participants_ai_trigger = {
 	FRA = { is_ai = yes }
@@ -801,6 +968,22 @@ indochina_struggle_all_participants_ai_trigger = {
 		NOT = { country_exists = FRE }
 		FRE = { is_ai = yes }
 	}
+	OR = {	# the great powers hold seats at Geneva, so a human in any of them must never have the conference resolved over their head
+		NOT = { country_exists = USA }
+		USA = { is_ai = yes }
+	}
+	OR = {
+		NOT = { country_exists = SOV }
+		SOV = { is_ai = yes }
+	}
+	OR = {
+		NOT = { country_exists = PRC }
+		PRC = { is_ai = yes }
+	}
+	OR = {
+		NOT = { country_exists = ENG }
+		ENG = { is_ai = yes }
+	}
 }
 
 # Geneva Conference table actions: shared guard for the action effects and the conference GUI click_enabled triggers. Scope: acting delegation.
@@ -837,9 +1020,200 @@ laos_raid_complete_failure = {
 	841 = { is_controlled_by = LOS }
 }
 
+# Checked daily rather than only at the timer, so the Kingdom collapsing is
+# recognised the day it happens.
+laos_raid_attacker_victory_now_trigger = {
+	OR = {
+		laos_raid_attacker_holds_capital = yes
+		NOT = { country_exists = LOS }
+		AND = {
+			country_exists = LOS
+			LOS = { has_capitulated = yes }
+		}
+	}
+}
+
 laos_raid_attacker_is_human = {
 	OR = {
 		AND = { country_exists = VIN VIN = { is_ai = no } }
 		AND = { country_exists = LAO LAO = { is_ai = no } }
+	}
+}
+
+# ============================================================================
+# Geneva Conference focus gating
+# ============================================================================
+
+# The great powers are sitting down over Indochina right now: same flag pair USA_50s_The_Geneva_Conferece reads, so every delegation's conference focus opens and closes together.
+geneva_conference_convened_trigger = {
+	custom_trigger_tooltip = {
+		tooltip = geneva_conference_convened_trigger_TT
+		OR = {
+			has_global_flag = Geneva_Conference_Preparations
+			has_global_flag = geneva_conference_in_session
+		}
+	}
+}
+
+# Washington's bilateral Indochina tracks (back Paris, back Saigon, court Hanoi, install Cuong De, bomb the Viet Minh) are only on the table while the war is still Washington's to shape. The post-accords ballot branch is deliberately not covered.
+USA_indochina_bilateral_track_open_trigger = {
+	NOT = { has_global_flag = geneva_conference_announced }
+	NOT = { has_global_flag = Geneva_Conference_Preparations }	# the conference is being convened
+	NOT = { has_global_flag = geneva_conference_in_session }
+	NOT = { has_global_flag = geneva_conference_concluded }
+	NOT = { has_global_flag = Geneva_Conference }	# the accords have reported
+	NOT = { has_global_flag = Indochina_War_Over }
+}
+
+# =============================================================================
+# Washington's three Indochina policies
+# -----------------------------------------------------------------------------
+# Three genuinely different American policies, each belonging to a different
+# military situation. Each trigger below is a conjunction, not a grab-bag, and
+# each applies to the AI and the player alike.
+#
+# Every clause reads a recorder that geneva_conf_world_leverage_pulse refreshes
+# daily, so all three are safe in trigger context.
+# =============================================================================
+
+# --- Policy one: install our own man in Saigon -------------------------------
+# Only worth doing while Cuong De is a live proposition: either he already sits
+# in Saigon (the focus is recognition and money rather than a coup, and its
+# payload branches accordingly) or his tree is running and Diem has not taken
+# the succession.
+USA_indochina_back_cuongde_trigger = {
+	country_exists = VIE
+	OR = {
+		VIE = {
+			has_country_leader = {
+				character = VIE_Cuong_De
+				ruling_only = yes
+			}
+		}
+		AND = {
+			VIE = { has_focus_tree = VIE_CuongDe_50 }
+			NOT = { USA_indochina_diem_governs_trigger = yes }
+		}
+	}
+}
+
+# --- Policy two: back the war and press it harder ----------------------------
+# Washington escalates when the war looks winnable: the southern insurgency is
+# broken and Hanoi has taken nothing that matters. Deliberately the mirror of the
+# settlement window - the two must never be true at the same time.
+USA_indochina_direct_action_trigger = {
+	OR = {
+		has_global_flag = Southern_VietMinh_Defeated	# set by the NLF recorder in geneva_conf_world_leverage_pulse
+		NOT = { country_exists = NLF }
+		NLF = { num_of_controlled_states < 2 }
+	}
+	NOT = { check_variable = { global.geneva_outcome_dbp = 2 } }	# the camp has not fallen
+	NOT = { check_variable = { global.geneva_outcome_highland > 0 } }	# no highland polity has gone over to Hanoi
+	NOT = { 1766 = { is_owned_by = VIN } }	# Hoa Binh still stands
+	NOT = { geneva_vie_side_losing_trigger = yes }	# and Saigon's camp is still ahead on points
+}
+
+# --- Policy three: cut the losses and get everyone to the table --------------
+# Historically this followed a military catastrophe rather than a calendar.
+# Dien Bien Phu alone is enough; short of that the collapse has to be general,
+# so it takes two independent signals.
+USA_indochina_settlement_window_trigger = {
+	OR = {
+		check_variable = { global.geneva_outcome_dbp = 2 }	# the camp at Dien Bien Phu fell - on its own, decisive, at any date
+		AND = {
+			date > 1953.1.1
+			indochina_collapse_signal_count_trigger = yes
+			indochina_collapse_second_signal_trigger = yes
+		}
+	}
+}
+
+# The two halves of the "at least two independent signals" test. Split so no
+# single signal can satisfy both: the first covers what Hanoi has taken on the
+# ground, the second covers whether the war itself is lost.
+indochina_collapse_signal_count_trigger = {
+	OR = {
+		check_variable = { global.geneva_outcome_highland > 0 }	# Tai, Meo or Nung folded into Hanoi's orbit
+		1766 = { is_owned_by = VIN }	# Hoa Binh in Hanoi's hands: the Muong federation has been overrun
+		1761 = { is_owned_by = VIN }	# the Tai highlands are gone
+		has_global_flag = Laos_Raid_Attacker_Won
+		check_variable = { global.geneva_outcome_pathet_lao = 1 }	# the Pathet Lao overran the Kingdom outright
+	}
+}
+
+indochina_collapse_second_signal_trigger = {
+	OR = {
+		AND = {
+			country_exists = FRE
+			FRE = { check_variable = { FRE_Metropole_Patience < 25 } }	# Paris has lost its appetite for the war
+		}
+		NOT = { country_exists = FRE }	# or the corps is simply gone
+		AND = {
+			geneva_vie_side_losing_trigger = yes
+			check_variable = { global.geneva_cache_comm_score > 749 }	# behind, and by a margin that means something
+		}
+		has_global_flag = Laos_Pathet_Consolidation	# the movement is entrenched inside the Kingdom
+		has_global_flag = Laos_Raid_Stalemate	# the Pathet Lao kept the two regroupment zones
+	}
+}
+
+# Every 1950s USA administration tree carries the USA_50s_The_State_Department shared branch, and with it the Indochina and Geneva focuses. Guards complete_national_focus calls on those focuses: the old guards named a tree id (USA_50s) that does not exist.
+USA_has_1950s_focus_tree_trigger = {
+	OR = {
+		has_focus_tree = USA_Truman_1948
+		has_focus_tree = USA_Truman_1952
+		has_focus_tree = USA_Eisenhower_1952
+		has_focus_tree = USA_Eisenhower_1956
+		has_focus_tree = USA_Eisenhower_DEM_1952
+		has_focus_tree = USA_Eisenhower_DEM_1956
+		has_focus_tree = USA_Dewey_1952
+		has_focus_tree = USA_Dewey_1956
+		has_focus_tree = USA_Warren_1952
+		has_focus_tree = USA_Warren_1956
+		has_focus_tree = USA_Stassen_1952
+		has_focus_tree = USA_Stassen_1956
+		has_focus_tree = USA_MacArthur_1952
+		has_focus_tree = USA_MacArthur_1956
+		has_focus_tree = USA_Stevenson_1952
+		has_focus_tree = USA_Stevenson_1956
+		has_focus_tree = USA_Kefauver_1952
+		has_focus_tree = USA_Kefauver_1956
+		has_focus_tree = USA_Harriman_1952
+		has_focus_tree = USA_Harriman_1956
+		has_focus_tree = USA_Russell_1952
+		has_focus_tree = USA_Russell_1956
+		has_focus_tree = USA_Halleck_1956
+		has_focus_tree = USA_Martin_1956
+		has_focus_tree = USA_Nixon_1956
+	}
+}
+
+# Diem is actually running Saigon: after VIE_Recall_Diem promotes him, or after
+# the Cuong De tree hands him the succession. Gates the USA focuses that are
+# about him rather than about Vietnam in general.
+USA_indochina_diem_governs_trigger = {
+	country_exists = VIE
+	VIE = {
+		has_country_leader = {
+			character = VIE_Ngo_Dinh_Diem
+			ruling_only = yes
+		}
+	}
+}
+
+# The pro-French coup the ProFrench_Coup mission models is still possible: Paris
+# exists, Saigon has not bought its way out with the Matignon Treaty, nobody has
+# moved, and at least one officer French_Coup.1/.2 promotes is still alive.
+USA_indochina_french_coup_possible_trigger = {
+	country_exists = FRA
+	country_exists = VIE
+	VIE = {
+		has_focus_tree = VIE_Bao_Dai_50	# French_Coup.2 completes VIE_Hinh_Coup and swaps the tree; only this one carries that focus
+		NOT = { has_country_flag = VIE_Matignon_Treaty_Signed }	# independence retires the coup for good
+		NOT = { has_country_flag = VIE_FRA_Coup }
+		OR = {
+			has_character = VIE_Nguyen_Van_Hinh
+			has_character = CCC_Jean_Leroy
+		}
 	}
 }

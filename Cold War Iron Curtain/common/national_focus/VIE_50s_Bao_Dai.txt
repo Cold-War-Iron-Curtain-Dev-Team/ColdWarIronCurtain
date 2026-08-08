@@ -177,6 +177,11 @@ focus_tree = {
 	focus = {
 		id = VIE_Form_CongXa_BietDien
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 15 }
+				indochina_struggle_grant_pro_independence = yes
+			}
 		}
 		icon = GFX_VIE_Form_CongXa_BietDien
 		cost = 5
@@ -237,11 +242,21 @@ focus_tree = {
 		y = 1
 		completion_reward = {
 			custom_effect_tooltip = VIE_Using_Sect_tt
+			set_country_flag = VIE_Sect_Resources_Unlocked # persists across focus tree swaps, unlike has_completed_focus
 		}
 	}
 	focus = {
 		id = VIE_Pacifying_NamPhan_Countryside
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_communist = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_escalate = yes
+			}
 		}
 		icon = GFX_VIE_Pacifying_NamPhan_Countryside
 		cost = 10
@@ -271,6 +286,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Request_Control_Over_Crown_Domains
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_pro_ethnic = yes
+			}
 		}
 		icon = GFX_VIE_Request_Control_Over_Crown_Domains
 		cost = 2.8
@@ -954,7 +976,20 @@ focus_tree = {
 		x = -3
 		y = 1
 		bypass = {
+			OR = {
 			geneva_conference_available_trigger = yes
+				custom_trigger_tooltip = {
+					tooltip = VIE_geneva_conference_moot_bypass_TT
+					NOT = { has_completed_focus = VIE_BaoDai_Liberator_of_Vietnam }	# Saigon chose the military ending instead; this branch stays shut
+					OR = {
+						has_global_flag = Indochina_War_Over
+						AND = {
+							has_global_flag = geneva_conference_concluded
+							NOT = { VIE_geneva_accords_signed_trigger = yes }	# the delegations went home without accords, so there is nothing left to accept
+						}
+					}
+				}
+			}
 		}
 		available = {
 			always = no
@@ -980,10 +1015,9 @@ focus_tree = {
 		x = -1
 		y = 1
 		bypass = {
-			# Reunified Vietnam through Geneva: there is no crisis to deflect onto the French.
 			custom_trigger_tooltip = {
 				tooltip = geneva_conference_reunified_bypass_TT
-				geneva_conference_complete_success_trigger = yes
+				geneva_vietnam_reunified_trigger = yes	# actually one Vietnam: no crisis left to deflect onto the French. A ballot merely scheduled is not reunification - the partition, and the resentment, are still there.
 			}
 		}
 		completion_reward = {
@@ -1046,6 +1080,13 @@ focus_tree = {
 	focus = {
 		id = VIE_1955_Grand_Election
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 100 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 50 }
+				indochina_struggle_deescalate = yes
+			}
 		}
 		icon = GFX_VIE_1955_Grand_Election
 		cost = 7
@@ -1133,8 +1174,18 @@ focus_tree = {
 			add_stability = 0.20
 			set_temp_variable = { influence_change = 10 }
 			VIE_Change_Domestic_Influence = yes
-			set_country_flag = VIE_Can_Integrate_VIN
-			custom_effect_tooltip = VIE_Can_Integrate_VIN_tt
+			every_owned_state = {
+				limit = {
+					is_core_of = VIN
+					NOT = { is_core_of = VIE }
+				}
+				add_compliance = 30
+				add_resistance_target = {
+					id = 124
+					amount = -50
+					tooltip = VIE_Pacifying_BacPhan_tt
+				}
+			}
 			effect_tooltip = {
 				news_event = { id = Indochina_Struggle_Ending.2 }
 			}
@@ -1163,6 +1214,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Stabilize_Urban_Areas
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 15 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_deescalate = yes
+			}
 		}
 		icon = GFX_VIE_Stabilize_Urban_Areas
 		cost = 10
@@ -1193,10 +1251,10 @@ focus_tree = {
 			focus = VIE_Stabilize_Urban_Areas
 		}
 		ai_will_do = {
-			base = 1
+			base = 1 # last resort: every other focus in this tree scores 100, so the AI drains them first
 			modifier = {
-				factor = 100
-				is_historical_focus_on = yes
+				factor = 0 # BaoDai.11 wipes the tree, so never fly out before the 50s content has had its window
+				date < 1956.1.1
 			}
 		}
 		x = 3
@@ -1354,6 +1412,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Long_Accept_French_Rulership
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_france = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_pro_independence = yes
+			}
 		}
 		icon = GFX_VIE_Long_Accept_French_Rulership
 		cost = 1.4
@@ -1457,6 +1522,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Huu_Officer_Corp_Vietnamization
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_pro_france = yes
+			}
 		}
 		icon = GFX_VIE_Huu_Officer_Corp_Vietnamization
 		cost = 1.4
@@ -1508,6 +1580,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Huu_Modernize_National_Army
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_escalate = yes
+			}
 		}
 		icon = GFX_VIE_Huu_Modernize_National_Army
 		cost = 1.4
@@ -1547,6 +1626,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Huu_Attend_1951_SF_Conference
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_deescalate = yes
+			}
 		}
 		icon = GFX_VIE_Huu_Attend_1951_SF_Conference
 		cost = 1.4
@@ -1697,6 +1783,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Huu_Open_UK_USA_Embassies
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_deescalate = yes
+			}
 		}
 		icon = GFX_VIE_Huu_Open_UK_USA_Embassies
 		cost = 1.4
@@ -1870,6 +1963,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Huu_Accept_French_Dismissal
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_france = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_pro_independence = yes
+			}
 		}
 		icon = GFX_VIE_Huu_Accept_French_Dismissal
 		cost = 1.4
@@ -1974,6 +2074,11 @@ focus_tree = {
 	focus = {
 		id = VIE_Huu_Winning_French_Favoritism
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 15 }
+				indochina_struggle_grant_pro_france = yes
+			}
 		}
 		icon = GFX_VIE_Winning_French_Favoritism
 		cost = 1.4
@@ -2034,6 +2139,15 @@ focus_tree = {
 	focus = {
 		id = VIE_Tam_Expand_AntiCommunist_Security
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 15 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -8 }
+				indochina_struggle_grant_communist = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_escalate = yes
+			}
 		}
 		icon = GFX_VIE_Tam_Expand_AntiCommunist_Security
 		cost = 1.4
@@ -2111,6 +2225,15 @@ focus_tree = {
 	focus = {
 		id = VIE_Tam_Intensify_Counter_Northern_VietMinh
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_communist = yes
+				set_temp_variable = { indochina_phase_amount = 50 }
+				indochina_struggle_escalate = yes
+			}
 		}
 		icon = GFX_VIE_Tam_Intensify_Counter_Northern_VietMinh
 		cost = 1.4
@@ -2267,11 +2390,27 @@ focus_tree = {
 		x = -1
 		y = 1
 		available = {
-			geneva_conference_available_trigger = yes
+			OR = {
+				VIE_geneva_settlement_otl_trigger = yes	# the accords left a communist North standing
+				VIE_geneva_settlement_lost_trigger = yes	# or handed Hanoi the better half outright
+			}
 		}
 		bypass = {
-			# Achieved a southern victory instead: there is no communist North to accept.
-			indochina_struggle_ending_southern_victory_available_trigger = yes
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = VIE_cuongde_no_north_bypass_tt
+					NOT = { country_exists = VIN }	# no communist state left to accept
+				}
+				indochina_struggle_ending_southern_victory_available_trigger = yes
+				VIE_indochina_war_won_trigger = yes	# reunified under Saigon, or Geneva sided with us
+				custom_trigger_tooltip = {
+					tooltip = VIE_no_geneva_settlement_bypass_tt
+					AND = {
+						has_global_flag = Indochina_War_Over
+						NOT = { VIE_geneva_accords_signed_trigger = yes }	# the war ended with no accords at all
+					}
+				}
+			}
 		}
 		completion_reward = {
 			add_stability = -0.20
@@ -2306,12 +2445,24 @@ focus_tree = {
 		x = 1
 		y = 1
 		available = {
-			# Only celebrate a parade if we actually won the war in the south.
-			indochina_struggle_ending_southern_victory_available_trigger = yes
+			OR = {
+				indochina_struggle_ending_southern_victory_available_trigger = yes	# won it in the field
+				VIE_indochina_war_won_trigger = yes	# reunified under Saigon, or Geneva sided with us
+				VIE_geneva_settlement_otl_trigger = yes	# the South survived the accords intact: spinnable as victory
+			}
 		}
 		bypass = {
-			# Fell back to the Geneva partition: there is no victory to parade.
-			geneva_conference_available_trigger = yes
+			OR = {
+				VIE_geneva_settlement_lost_trigger = yes	# Geneva went Hanoi's way: nothing to parade
+				custom_trigger_tooltip = {
+					tooltip = VIE_no_geneva_settlement_bypass_tt
+					AND = {
+						has_global_flag = Indochina_War_Over
+						NOT = { VIE_geneva_accords_signed_trigger = yes }
+						NOT = { VIE_indochina_war_won_trigger = yes }	# the war ended with no accords and no win
+					}
+				}
+			}
 		}
 		completion_reward = {
 			add_stability = 0.20
@@ -2385,6 +2536,11 @@ focus_tree = {
 	focus = {
 		id = VIE_Vinh_Incorporate_CaoDai_Nat_Armies
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+			}
 		}
 		icon = GFX_VIE_Vinh_Incorporate_CaoDai_Nat_Armies
 		cost = 1.4
@@ -2450,6 +2606,11 @@ focus_tree = {
 	focus = {
 		id = VIE_Vinh_Incorporate_Sect_Assets
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 15 }
+				indochina_struggle_grant_pro_independence = yes
+			}
 		}
 		icon = GFX_VIE_Vinh_Incorporate_Sect_Assets
 		cost = 1.4
@@ -2895,6 +3056,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Toan_Gathering_AntiFrench_Forces
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_pro_france = yes
+			}
 		}
 		icon = GFX_VIE_Toan_Gathering_AntiFrench_Forces
 		cost = 1.4
@@ -3026,6 +3194,17 @@ focus_tree = {
 	focus = {
 		id = VIE_Toan_Launch_AntiFrench_AntiCommie
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 100 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { ic_award = -50 }
+				indochina_struggle_grant_pro_france = yes
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_communist = yes
+				set_temp_variable = { indochina_phase_amount = 50 }
+				indochina_struggle_escalate = yes
+			}
 		}
 		icon = GFX_VIE_Toan_Launch_AntiFrench_AntiCommie
 		cost = 1.4
@@ -3328,6 +3507,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Quang_Stablize_BaoDai_Regime
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_deescalate = yes
+			}
 		}
 		icon = GFX_VIE_Quang_Stablize_BaoDai_Regime
 		cost = 1.4
@@ -3347,6 +3533,13 @@ focus_tree = {
 	focus = {
 		id = VIE_Quang_Propose_QuocGia_Solution
 		completion_reward = {
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 100 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 50 }
+				indochina_struggle_deescalate = yes
+			}
 		}
 		icon = GFX_VIE_Quang_Propose_QuocGia_Solution
 		cost = 1.4
