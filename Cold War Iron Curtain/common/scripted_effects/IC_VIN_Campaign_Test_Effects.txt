@@ -1,0 +1,278 @@
+# ============================================================================
+
+test_tho_startup_check = {
+	if = { limit = { NOT = { country_exists = THO } } log = "THO STARTUP: FAIL - THO does not exist" }
+	if = { limit = { NOT = { 1280 = { is_owned_by = THO } } } log = "THO STARTUP: FAIL - Cao Bang is not THO-owned" }
+	if = { limit = { NOT = { 1768 = { is_owned_by = THO } } } log = "THO STARTUP: FAIL - Lang Son is not THO-owned" }
+	if = { limit = { NOT = { 881 = { is_owned_by = VIN } } } log = "THO STARTUP: FAIL - Dong Bac Bo is not VIN-owned" }
+	if = { limit = { NOT = { capital_scope = { state = 881 } } } log = "THO STARTUP: FAIL - VIN capital is not Dong Bac Bo" }
+	if = {
+		limit = {
+			country_exists = FRE
+			NOT = { THO = { is_subject_of = FRE } }
+		}
+		log = "THO STARTUP: FAIL - THO is not a CEFEO subject"
+	}
+	if = {
+		limit = {
+			has_dlc = "Together for Victory"
+			THO = { NOT = { has_autonomy_state = autonomy_crown_domain } }
+		}
+		log = "THO STARTUP: FAIL - THO is not a crown domain with Together for Victory"
+	}
+	if = { limit = { THO = { NOT = { has_cosmetic_tag = THO_FRA } } } log = "THO STARTUP: FAIL - colonial cosmetic tag missing" }
+	if = { limit = { THO = { check_variable = { num_divisions < 2 } } } log = "THO STARTUP: FAIL - fewer than two defensive units" }
+	if = { limit = { THO = { check_variable = { num_divisions > 2 } } } log = "THO STARTUP: FAIL - more than two starting units" }
+	log = "THO STARTUP: check complete"
+}
+# VIN campaign lifecycle QA effects
+# ----------------------------------------------------------------------------
+# Console use: tag VIN, then `e <effect_name>`. Boundary effects classify the
+# current map state without advancing a day; arrange objective control first.
+# ============================================================================
+
+test_vin_campaign_status = {
+	log = "VIN CAMPAIGN: id [?VIN_camp_current|0], day [?VIN_camp_days_elapsed|0], clean [?VIN_camp_deadline_x|0], final [?VIN_camp_deadline_y|0], last outcome [?VIN_camp_last_outcome|0]"
+	if = { limit = { VIN_no_campaign_running_trigger = yes } log = "VIN CAMPAIGN: no active campaign" }
+	else = { log = "VIN CAMPAIGN: active campaign found" }
+	if = { limit = { vin_campaign_objective_met_trigger = yes } log = "VIN CAMPAIGN: objective met" }
+	else = { log = "VIN CAMPAIGN: objective not met" }
+	if = { limit = { vin_campaign_superseded_trigger = yes } log = "VIN CAMPAIGN: theatre/target supersession detected" }
+	if = { limit = { vin_campaign_war_abandoned_trigger = yes } log = "VIN CAMPAIGN: absent-war abort detected" }
+}
+
+test_vin_campaign_overextension_status = {
+	vin_campaign_update_overextension = yes
+	if = {
+		limit = { vin_campaign_vin_overextended_trigger = yes }
+		log = "VIN OVEREXTENSION: off-envelope foreign ground detected"
+		if = { limit = { NOT = { has_idea = VIN_Campaign_Overextension } } log = "VIN OVEREXTENSION: FAIL - VIN penalty missing" }
+	}
+	else = {
+		log = "VIN OVEREXTENSION: VIN remains inside its operational envelope"
+		if = { limit = { has_idea = VIN_Campaign_Overextension } log = "VIN OVEREXTENSION: FAIL - VIN penalty did not clear" }
+	}
+	if = {
+		limit = { vin_campaign_french_overextended_trigger = yes }
+		log = "FRENCH OVEREXTENSION: a CEFEO-aligned tag controls VIN rear-area ground"
+		if = { limit = { country_exists = FRE  FRE = { NOT = { has_idea = FRE_Campaign_Overextension } } } log = "FRENCH OVEREXTENSION: FAIL - shared FRE penalty missing" }
+	}
+	else = {
+		log = "FRENCH OVEREXTENSION: defensive side remains inside its envelope"
+		if = { limit = { country_exists = FRE  FRE = { has_idea = FRE_Campaign_Overextension } } log = "FRENCH OVEREXTENSION: FAIL - shared FRE penalty did not clear" }
+	}
+}
+
+# Repairs old saves, reapplies the current operation's planned ground, and then
+# reports the state-policy invariants which caused the 2026-08-09 playtest
+# failure. Run once immediately after every campaign starts.
+test_vin_campaign_state_policy_status = {
+	vin_campaign_sync_objective_modifiers = yes
+	if = {
+		limit = { VIN_no_campaign_running_trigger = yes }
+		log = "VIN STATE POLICY: no campaign; checking restored theatre baseline"
+		every_state = {
+			limit = {
+				has_state_flag = VIN_unplanned_offensive_flag
+				NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } }
+			}
+			log = "VIN STATE POLICY: FAIL - a marked theatre state is missing unplanned_offensive"
+		}
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 1 } }
+		if = { limit = { 1761 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Tay Bac objective 1761 is still unplanned" }
+		if = { limit = { 671 = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } } } log = "VIN STATE POLICY: FAIL - Tay Bac exterior 671 is open" }
+		log = "VIN STATE POLICY: Tay Bac planned=1761; protected exterior includes 671"
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 2 } }
+		if = { limit = { 1761 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Hoa Binh approach 1761 is still unplanned" }
+		if = { limit = { 1766 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Hoa Binh objective 1766 is still unplanned" }
+		if = { limit = { 671 = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } } } log = "VIN STATE POLICY: FAIL - Hoa Binh exterior 671 is open" }
+		log = "VIN STATE POLICY: Hoa Binh planned=1761/1766; protected exterior includes 671"
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		if = { limit = { 1761 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Dien Bien approach 1761 is still unplanned" }
+		if = { limit = { 671 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Dien Bien objective 671 is still unplanned" }
+		log = "VIN STATE POLICY: Dien Bien planned=1761/671"
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 4 } }
+		if = { limit = { 1280 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Cao Bang 1280 is still unplanned" }
+		if = { limit = { 1768 = { has_dynamic_modifier = { modifier = unplanned_offensive } } } log = "VIN STATE POLICY: FAIL - Lang Son 1768 is still unplanned" }
+		if = { limit = { 881 = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } } } log = "VIN STATE POLICY: FAIL - Dong Bac Bo 881 is open" }
+		if = { limit = { 1761 = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } } } log = "VIN STATE POLICY: FAIL - TAI state 1761 is open during Cao-Bac" }
+		if = { limit = { 1766 = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } } } log = "VIN STATE POLICY: FAIL - Hoa Binh 1766 is open during Cao-Bac" }
+		log = "VIN STATE POLICY: Cao-Bac planned=1280/1768; Dong Bac/TAI/Hoa Binh protected"
+	}
+	if = { limit = { 1762 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Thanh Hoa lacks dispersed supply" }
+	if = { limit = { 838 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Quang Binh lacks dispersed supply" }
+	log = "VIN STATE POLICY: check complete"
+}
+
+test_vin_campaign_front_restoration = {
+	if = {
+		limit = { VIN_no_campaign_running_trigger = yes }
+		vin_campaign_restore_unplanned_offensive = yes
+		every_state = {
+			limit = {
+				has_state_flag = VIN_unplanned_offensive_flag
+				NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } }
+			}
+			log = "VIN FRONT RESTORATION: FAIL - a marked theatre state remains open"
+		}
+		log = "VIN FRONT RESTORATION: baseline check complete"
+	}
+	else = { log = "VIN FRONT RESTORATION: refused - run this only after campaign cleanup" }
+}
+
+test_vin_campaign_dbp_investment_status = {
+	if = { limit = { vin_dbp_valley_invested_trigger = yes } log = "DIEN BIEN PHU: valid approach-plus-ring investment established" }
+	else = { log = "DIEN BIEN PHU: siege investment incomplete (requires an eastern/northern approach plus a separate ring province)" }
+}
+
+test_vin_campaign_overextension_cleanup_check = {
+	if = { limit = { has_idea = VIN_Campaign_Overextension } log = "OVEREXTENSION CLEANUP: FAIL - VIN penalty remains" }
+	if = { limit = { country_exists = FRE  FRE = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - FRE penalty remains" }
+	if = { limit = { country_exists = TAI  TAI = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAI penalty remains" }
+	if = { limit = { country_exists = TAM  TAM = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAM penalty remains" }
+	if = { limit = { country_exists = NUN  NUN = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - NUN penalty remains" }
+	if = { limit = { country_exists = THO  THO = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - THO penalty remains" }
+	if = { limit = { country_exists = FRE  FRE = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - FRE campaign-command spirit remains" }
+	if = { limit = { country_exists = TAI  TAI = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAI campaign-command spirit remains" }
+	if = { limit = { country_exists = TAM  TAM = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAM campaign-command spirit remains" }
+	if = { limit = { country_exists = NUN  NUN = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - NUN campaign-command spirit remains" }
+	if = { limit = { country_exists = THO  THO = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - THO campaign-command spirit remains" }
+	log = "OVEREXTENSION CLEANUP: check complete"
+}
+
+test_vin_campaign_cao_bac_start = {
+	if = {
+		limit = {
+			country_exists = THO
+			VIN_no_campaign_running_trigger = yes
+		}
+		set_country_flag = VIN_Campaign_Cao_Bac_Active
+		set_temp_variable = { vin_camp_id = 4 }
+		vin_campaign_begin = yes
+		vin_campaign_declare_war = yes
+		log = "VIN CAMPAIGN: Cao-Bac started; save now for the save/load test"
+	}
+	else = { log = "VIN CAMPAIGN: FAIL - Cao-Bac needs a living THO and no active campaign" }
+}
+
+test_vin_campaign_boundary_clean = {
+	set_variable = { VIN_camp_days_elapsed = VIN_camp_deadline_x }
+	vin_campaign_check_resolution = yes
+}
+
+test_vin_campaign_boundary_costly = {
+	set_variable = { VIN_camp_days_elapsed = VIN_camp_deadline_x }
+	add_to_variable = { VIN_camp_days_elapsed = 1 }
+	vin_campaign_check_resolution = yes
+}
+
+test_vin_campaign_boundary_final = {
+	set_variable = { VIN_camp_days_elapsed = VIN_camp_deadline_y }
+	vin_campaign_check_resolution = yes
+	log = "VIN CAMPAIGN: final inclusive day checked; an unmet objective should remain active"
+}
+
+test_vin_campaign_boundary_failure = {
+	set_variable = { VIN_camp_days_elapsed = VIN_camp_deadline_y }
+	add_to_variable = { VIN_camp_days_elapsed = 1 }
+	vin_campaign_check_resolution = yes
+}
+
+test_vin_campaign_abort = {
+	if = {
+		limit = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		set_temp_variable = { vin_camp_outcome = 3 }
+		vin_campaign_resolve = yes
+	}
+}
+
+test_vin_campaign_supersede = {
+	if = {
+		limit = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		set_temp_variable = { vin_camp_outcome = 5 }
+		vin_campaign_resolve = yes
+	}
+}
+
+test_vin_campaign_cleanup = {
+	vin_campaign_finish = yes
+	log = "VIN CAMPAIGN: forced cleanup complete; no result flag was created"
+}
+
+test_vin_campaign_save_checkpoint = {
+	set_country_flag = VIN_Campaign_Save_Load_Checkpoint
+	set_variable = { VIN_camp_save_id = VIN_camp_current }
+	set_variable = { VIN_camp_save_day = VIN_camp_days_elapsed }
+	log = "VIN CAMPAIGN: checkpoint stored at id [?VIN_camp_save_id|0], day [?VIN_camp_save_day|0]; save and reload"
+}
+
+test_vin_campaign_save_verify = {
+	if = {
+		limit = { NOT = { has_country_flag = VIN_Campaign_Save_Load_Checkpoint } }
+		log = "VIN CAMPAIGN: FAIL - save/load checkpoint flag missing"
+	}
+	if = {
+		limit = { NOT = { check_variable = { VIN_camp_current = VIN_camp_save_id } } }
+		log = "VIN CAMPAIGN: FAIL - campaign id changed across save/load"
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_days_elapsed < VIN_camp_save_day } }
+		log = "VIN CAMPAIGN: FAIL - elapsed day moved backward across save/load"
+	}
+	log = "VIN CAMPAIGN: save/load verification complete"
+}
+
+test_vin_campaign_cao_bac_check = {
+	set_temp_variable = { vin_test_result_count = 0 }
+	if = { limit = { has_country_flag = VIN_Campaign_Cao_Bac_Result_Clean } add_to_temp_variable = { vin_test_result_count = 1 } }
+	if = { limit = { has_country_flag = VIN_Campaign_Cao_Bac_Result_Costly } add_to_temp_variable = { vin_test_result_count = 1 } }
+	if = { limit = { has_country_flag = VIN_Campaign_Cao_Bac_Result_Aborted } add_to_temp_variable = { vin_test_result_count = 1 } }
+	if = { limit = { has_country_flag = VIN_Campaign_Cao_Bac_Result_Failure } add_to_temp_variable = { vin_test_result_count = 1 } }
+	if = { limit = { has_country_flag = VIN_Campaign_Cao_Bac_Result_Superseded } add_to_temp_variable = { vin_test_result_count = 1 } }
+	if = { limit = { NOT = { check_variable = { vin_test_result_count = 1 } } } log = "VIN CAO-BAC: FAIL - expected exactly one result flag" }
+	if = { limit = { has_country_flag = VIN_Campaign_Cao_Bac_Active } log = "VIN CAO-BAC: FAIL - active flag remains" }
+	if = { limit = { NOT = { has_country_flag = VIN_Campaign_Cooldown_Cao_Bac } } log = "VIN CAO-BAC: FAIL - cooldown missing" }
+	if = { limit = { has_country_flag = VIN_Campaign_Resolving } log = "VIN CAO-BAC: FAIL - resolver lock remains" }
+	if = { limit = { has_idea = VIN_Campaign_Mobilization } log = "VIN CAO-BAC: FAIL - VIN campaign spirit remains" }
+	if = { limit = { has_idea = VIN_Campaign_Overextension } log = "VIN CAO-BAC: FAIL - VIN overextension remains" }
+	if = { limit = { country_exists = FRE  FRE = { has_idea = FRE_Campaign_Overextension } } log = "VIN CAO-BAC: FAIL - FRE overextension remains" }
+	if = { limit = { country_exists = FRE  FRE = { has_idea = FRE_Highland_Overextension } } log = "VIN CAO-BAC: FAIL - FRE campaign-command spirit remains" }
+	if = { limit = { country_exists = THO  THO = { has_idea = FRE_Campaign_Overextension } } log = "VIN CAO-BAC: FAIL - THO overextension remains" }
+	if = { limit = { country_exists = THO  THO = { has_idea = FRE_Highland_Overextension } } log = "VIN CAO-BAC: FAIL - THO campaign-command spirit remains" }
+	if = {
+		limit = {
+			OR = {
+				AND = { country_exists = THO  has_war_with = THO }
+				AND = { country_exists = FRE  has_war_with = FRE }
+			}
+		}
+		log = "VIN CAO-BAC: FAIL - campaign war remains"
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_last_outcome < 3 } }
+		if = { limit = { country_exists = THO } log = "VIN CAO-BAC: FAIL - THO survived a successful campaign" }
+		if = { limit = { NOT = { owns_state = 1280 } } log = "VIN CAO-BAC: FAIL - VIN does not own Cao Bang" }
+		if = { limit = { NOT = { owns_state = 1768 } } log = "VIN CAO-BAC: FAIL - VIN does not own Lang Son" }
+		if = { limit = { NOT = { has_country_flag = Enable_Air_Base_Raids } } log = "VIN CAO-BAC: FAIL - air-base raids were not unlocked" }
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { VIN_camp_last_outcome = 3 }
+				check_variable = { VIN_camp_last_outcome = 4 }
+			}
+		}
+		if = { limit = { NOT = { country_exists = THO } } log = "VIN CAO-BAC: FAIL - THO vanished after abort/failure" }
+		if = { limit = { NOT = { 1280 = { is_owned_by = THO } } } log = "VIN CAO-BAC: FAIL - abort/failure changed Cao Bang ownership" }
+		if = { limit = { NOT = { 1768 = { is_owned_by = THO } } } log = "VIN CAO-BAC: FAIL - abort/failure changed Lang Son ownership" }
+	}
+	log = "VIN CAO-BAC: result check complete"
+}

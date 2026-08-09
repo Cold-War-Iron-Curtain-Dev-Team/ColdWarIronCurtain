@@ -1,5 +1,5 @@
 # Shared gates for the Viet Minh First Indochina War campaign focuses
-# (Thap Van Dai Son, Cao-Bang/Bac-Kan, Hoa Binh, Tay Bac, Dien Bien Phu).
+# (Thap Van Dai Son, Cao-Bac, Hoa Binh, Tay Bac, Dien Bien Phu).
 # Same shape as FRE_operation_triggers.txt on the CEFEO side; keep the two in sync.
 
 vin_indochina_ai_support_trigger = {
@@ -18,13 +18,14 @@ VIN_indochina_campaign_window_trigger = {
 	}
 }
 
-# No border-war campaign currently in the field. Thap Van Dai Son and Cao-Bang are
-# preparatory focuses with no border war, so they only ever set a cooldown.
+# No primary campaign currently in the field. Thap Van Dai Son remains a
+# preparatory focus; Cao-Bac is campaign id 4.
 VIN_no_campaign_running_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIN_no_campaign_running_trigger_TT
 		NOT = {
 			OR = {
+				has_country_flag = VIN_Campaign_Cao_Bac_Active
 				has_country_flag = VIN_Campaign_Hoa_Binh_Active
 				has_country_flag = VIN_Campaign_Tay_Bac_Active
 				has_country_flag = VIN_Campaign_Dien_Bien_Active
@@ -88,40 +89,276 @@ vin_campaign_objective_met_trigger = {
 			check_variable = { VIN_camp_current = 3 }
 			controls_province = 4529
 		}
+		AND = {
+			check_variable = { VIN_camp_current = 4 }
+			controls_state = 1280
+			controls_state = 1768
+		}
 	}
 }
 
-# The camp at Dien Bien Phu is invested - the condition vin_dbp_siege_tick runs
-# the scripted siege on. VIN scope. 4529 is the only fenced-off province in 671,
-# so Hanoi holding any of the rest means the valley floor is theirs.
-#
-# The second arm is AI-only on both sides: the AI cannot draw a front across the
-# Tay Bac passes, so after four months in the field the siege is credited anyway
-# - by then it is past VIN_camp_deadline_x, so the AI gets the grinding capture
-# (outcome 2) and never the clean one. A human defender holding the passes has
-# earned the camp holding.
-vin_dbp_valley_invested_trigger = {
+# A settlement or an external annexation can make a live campaign irrelevant.
+# This is checked after the objective, so taking the last target state still
+# records a victory rather than a supersession.
+vin_campaign_theatre_closed_trigger = {
 	OR = {
-		controls_province = 13754	# the eastern gate into the state
-		controls_province = 10103	# the northern gate
-		controls_province = 13765	# Lai Chau
+		has_global_flag = Indochina_War_Over
+		has_global_flag = geneva_conference_concluded
+		check_variable = { global.Indochina_War_Active_Phase > 8 }
+	}
+}
+
+vin_campaign_target_disappeared_trigger = {
+	OR = {
+		AND = {
+			check_variable = { VIN_camp_current = 1 }
+			NOT = { country_exists = TAI }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 2 }
+			NOT = { country_exists = TAM }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 3 }
+			NOT = {
+				OR = {
+					country_exists = TAI
+					country_exists = FRE
+				}
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 4 }
+			NOT = { country_exists = THO }
+		}
+	}
+}
+
+vin_campaign_superseded_trigger = {
+	OR = {
+		vin_campaign_theatre_closed_trigger = yes
+		vin_campaign_target_disappeared_trigger = yes
+	}
+}
+
+# --- Operational envelopes and overextension -------------------------------
+# These geography helpers are the canonical campaign-envelope data. A state
+# already owned by VIN is home territory and never counts as overextension in a
+# later campaign; only control of still-foreign ground is tested.
+
+vin_controls_foreign_cao_bac_ground_trigger = {
+	OR = {
+		AND = {
+			1280 = { NOT = { is_owned_by = VIN } }
+			OR = {
+				controls_province = 7518
+				controls_province = 12065
+				controls_province = 13767
+			}
+		}
+		AND = {
+			1768 = { NOT = { is_owned_by = VIN } }
+			OR = {
+				controls_province = 9948
+				controls_province = 13761
+				controls_province = 13766
+			}
+		}
+	}
+}
+
+vin_controls_foreign_nung_ground_trigger = {
+	1281 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 7093
+		controls_province = 13759
+	}
+}
+
+vin_controls_foreign_ha_giang_ground_trigger = {
+	1767 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 12008
+		controls_province = 13768
+		controls_province = 13771
+	}
+}
+
+vin_controls_foreign_northwest_corridor_trigger = {
+	1761 = { NOT = { is_owned_by = VIN } }
+	# 12075 and 16526 begin under VIN control and are rear-area bridgeheads,
+	# so merely retaining them never counts as an off-theatre advance.
+	OR = {
+		controls_province = 10075
+		controls_province = 13773
+		controls_province = 13774
+		controls_province = 13775
+		controls_province = 16527
+	}
+}
+
+vin_controls_foreign_northwest_outlier_trigger = {
+	1761 = { NOT = { is_owned_by = VIN } }
+	controls_province = 12319
+}
+
+vin_controls_foreign_hoa_binh_ground_trigger = {
+	1766 = { NOT = { is_owned_by = VIN } }
+	controls_province = 10129
+}
+
+vin_controls_foreign_dien_bien_ground_trigger = {
+	671 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 4529
+		controls_province = 10103
+		controls_province = 13754
 		controls_province = 13757
 		controls_province = 13758
 		controls_province = 13760
 		controls_province = 13762
 		controls_province = 13764
+		controls_province = 13765
+	}
+}
+
+vin_controls_foreign_delta_ground_trigger = {
+	OR = {
 		AND = {
-			is_ai = yes
-			check_variable = { VIN_camp_days_elapsed > 120 }
+			1760 = { NOT = { is_owned_by = VIN } }
+			controls_province = 4075
+		}
+		AND = {
+			786 = { NOT = { is_owned_by = VIN } }
 			OR = {
-				NOT = { country_exists = TAI }
-				TAI = { is_ai = yes }
-			}
-			OR = {
-				NOT = { country_exists = FRE }
-				FRE = { is_ai = yes }
+				controls_province = 1185
+				controls_province = 4119
+				controls_province = 13753
+				controls_province = 13755
+				controls_province = 13756
+				controls_province = 13770
+				controls_province = 13772
 			}
 		}
+	}
+}
+
+# One tier for the first replacement patch. The helpers above keep the envelope
+# data split cleanly enough for an ordinary/severe band to be added later.
+vin_campaign_vin_overextended_trigger = {
+	NOT = { VIN_no_campaign_running_trigger = yes }
+	OR = {
+		AND = {
+			check_variable = { VIN_camp_current = 1 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 2 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 3 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 4 }
+			OR = {
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+	}
+}
+
+# Called in the scope of FRE or one of its northern crown domains. These are
+# VIN's ordinary rear areas, not valid objectives for a French counteroffensive.
+indochina_french_aligned_controls_vin_rear_trigger = {
+	OR = {
+		AND = {
+			881 = { is_owned_by = VIN }
+			OR = {
+				controls_province = 1073
+				controls_province = 1157
+				controls_province = 7015
+				controls_province = 12048
+				controls_province = 13763
+				controls_province = 13769
+			}
+		}
+		AND = {
+			1762 = { is_owned_by = VIN }
+			OR = {
+				controls_province = 11909
+				controls_province = 11936
+			}
+		}
+		AND = {
+			838 = { is_owned_by = VIN }
+			OR = {
+				controls_province = 7280
+				controls_province = 12297
+				controls_province = 16447
+				controls_province = 16525
+			}
+		}
+	}
+}
+
+vin_campaign_french_overextended_trigger = {
+	NOT = { VIN_no_campaign_running_trigger = yes }
+	OR = {
+		AND = { country_exists = FRE  FRE = { indochina_french_aligned_controls_vin_rear_trigger = yes } }
+		AND = { country_exists = TAI  TAI = { indochina_french_aligned_controls_vin_rear_trigger = yes } }
+		AND = { country_exists = TAM  TAM = { indochina_french_aligned_controls_vin_rear_trigger = yes } }
+		AND = { country_exists = NUN  NUN = { indochina_french_aligned_controls_vin_rear_trigger = yes } }
+		AND = { country_exists = THO  THO = { indochina_french_aligned_controls_vin_rear_trigger = yes } }
+	}
+}
+
+# The camp at Dien Bien Phu is invested - the condition vin_dbp_siege_tick runs
+# the scripted siege on. With the artificial movement gates retired, Hanoi must
+# hold an eastern/northern approach and at least one separate valley-ring
+# province. AI assistance may finish an established siege, but cannot invent it.
+vin_dbp_valley_invested_trigger = {
+	OR = {
+		controls_province = 13754	# eastern approach
+		controls_province = 10103	# northern approach
+	}
+	OR = {
+		controls_province = 13765	# Lai Chau / outer ring
+		controls_province = 13757
+		controls_province = 13758
+		controls_province = 13760
+		controls_province = 13762
+		controls_province = 13764
 	}
 }
 
@@ -133,6 +370,7 @@ vin_campaign_war_abandoned_trigger = {
 		OR = {
 			AND = { country_exists = TAI  has_war_with = TAI }
 			AND = { country_exists = TAM  has_war_with = TAM }
+			AND = { country_exists = THO  has_war_with = THO }
 			AND = { country_exists = FRE  has_war_with = FRE }
 		}
 	}

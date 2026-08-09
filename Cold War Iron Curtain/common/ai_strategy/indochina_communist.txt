@@ -5,6 +5,7 @@ VIN_hold_the_base_areas = {
 	enable = {
 		OR = {
 			has_war_with = FRE
+			has_war_with = THO
 			has_war_with = TAI
 			has_war_with = TAM
 			has_war_with = FRA
@@ -16,6 +17,7 @@ VIN_hold_the_base_areas = {
 		NOT = {
 			OR = {
 				has_war_with = FRE
+				has_war_with = THO
 				has_war_with = TAI
 				has_war_with = TAM
 				has_war_with = FRA
@@ -29,6 +31,13 @@ VIN_hold_the_base_areas = {
 	ai_strategy = {
 		type = front_control
 		tag = FRE
+		ordertype = front
+		execution_type = careful
+		priority = 200
+	}
+	ai_strategy = {
+		type = front_control
+		tag = THO
 		ordertype = front
 		execution_type = careful
 		priority = 200
@@ -71,6 +80,11 @@ VIN_hold_the_base_areas = {
 	}
 	ai_strategy = {
 		type = front_unit_request
+		tag = THO
+		value = 120
+	}
+	ai_strategy = {
+		type = front_unit_request
 		tag = TAI
 		value = 120
 	}
@@ -92,28 +106,6 @@ VIN_campaign_all_in = {
 	abort = { VIN_no_campaign_running_trigger = yes }	# an explicit abort: `always = no` left the all-in posture running after the campaign resolved
 
 	ai_strategy = {
-		type = conquer
-		id = "FRE"
-		value = 100
-	}
-
-	ai_strategy = {
-		type = front_control
-		tag = FRE
-		ordertype = front
-		execution_type = rush
-		priority = 400
-		execute_order = yes
-		manual_attack = yes
-	}
-
-	ai_strategy = {
-		type = front_unit_request
-		tag = FRE
-		value = 300
-	}
-
-	ai_strategy = {
 		type = ignore
 		id = "LOS"
 		value = 200
@@ -124,15 +116,25 @@ VIN_campaign_all_in = {
 		value = -300
 	}
 
-	# Nothing stays home and nothing sits in reserve. The campaign either takes
-	# the ground inside the deadline or it has failed.
+	# Concentrate for the operation without stripping the two disconnected base
+	# areas. Losing either base to a secondary front is not a campaign success.
 	ai_strategy = {
 		type = garrison
-		value = -60
+		value = 20
 	}
 	ai_strategy = {
 		type = force_concentration_factor
-		value = 50
+		value = 20
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 881
+		value = 12
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1762
+		value = 12
 	}
 
 	# The campaign objectives are fortified mountain provinces, which the AI reads
@@ -148,6 +150,62 @@ VIN_campaign_all_in = {
 	}
 }
 
+VIN_campaign_cao_bac_push = {
+	allowed = { tag = VIN }
+	enable = { has_country_flag = VIN_Campaign_Cao_Bac_Active }
+	abort_when_not_enabled = yes
+	abort = { NOT = { has_country_flag = VIN_Campaign_Cao_Bac_Active } }
+
+	ai_strategy = {
+		type = conquer
+		id = "THO"
+		value = 500
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1280
+		value = 15
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1768
+		value = 15
+	}
+	ai_strategy = {
+		type = front_control
+		tag = THO
+		ordertype = front
+		execution_type = rush
+		priority = 800
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = THO
+		value = 700
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAI
+		value = -500
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAM
+		value = -500
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = FRE
+		value = -500
+	}
+	ai_strategy = {
+		type = ignore_army_incompetence
+		value = 200
+	}
+}
+
 VIN_campaign_tay_bac_push = {
 	allowed = { tag = VIN }
 	enable = {
@@ -158,11 +216,6 @@ VIN_campaign_tay_bac_push = {
 		NOT = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
 	}
 
-	ai_strategy = {
-		type = conquer
-		id = "TAI"
-		value = 300
-	}
 	ai_strategy = {
 		type = theatre_distribution_demand_increase
 		id = 1761
@@ -179,18 +232,14 @@ VIN_campaign_tay_bac_push = {
 		manual_attack = yes
 	}
 	ai_strategy = {
-		type = front_control
-		tag = TAI
-		ordertype = front
-		execution_type = rush
-		priority = 500
-		execute_order = yes
-		manual_attack = yes
+		type = front_unit_request
+		state = 1761
+		value = 700
 	}
 	ai_strategy = {
 		type = front_unit_request
-		tag = TAI
-		value = 700
+		state = 671
+		value = -300
 	}
 	ai_strategy = {
 		type = ignore_army_incompetence
@@ -219,6 +268,11 @@ VIN_campaign_hoa_binh_push = {
 		value = 15
 	}
 	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1761
+		value = 10
+	}
+	ai_strategy = {
 		type = front_control
 		state = 1766
 		ordertype = front
@@ -238,9 +292,29 @@ VIN_campaign_hoa_binh_push = {
 		manual_attack = yes
 	}
 	ai_strategy = {
+		type = front_control
+		state = 1761
+		ordertype = front
+		execution_type = careful
+		ratio = 0.65
+		priority = 600
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = {
 		type = front_unit_request
 		tag = TAM
 		value = 700
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = TAI
+		value = -350
+	}
+	ai_strategy = {
+		type = front_unit_request
+		tag = FRE
+		value = -350
 	}
 	ai_strategy = {
 		type = ignore_army_incompetence
@@ -248,8 +322,8 @@ VIN_campaign_hoa_binh_push = {
 	}
 }
 
-# Dien Bien Phu specifically. Tay Bac Bo is a dead end behind adjacency-gated
-# passes, which the AI's theatre distribution handles badly.
+# Dien Bien Phu specifically. The passes are now ordinary connections, but the
+# AI still needs to concentrate on the valley rather than the open delta front.
 VIN_take_the_valley = {
 	allowed = { tag = VIN }
 	enable = {
@@ -271,11 +345,6 @@ VIN_take_the_valley = {
 		value = 6
 	}
 	ai_strategy = {
-		type = conquer
-		id = "TAI"
-		value = 400
-	}
-	ai_strategy = {
 		type = front_control
 		state = 671
 		ordertype = front
@@ -287,7 +356,7 @@ VIN_take_the_valley = {
 	}
 	ai_strategy = {
 		type = front_unit_request
-		tag = TAI
+		state = 671
 		value = 700
 	}
 	ai_strategy = {

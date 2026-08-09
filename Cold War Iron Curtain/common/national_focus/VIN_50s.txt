@@ -2369,11 +2369,24 @@ focus_tree = {
 			every_owned_state = {
 				add_extra_state_shared_building_slots = 1
 			}
-			1280 = {
-				add_building_construction = {
-					type = agri_industrial_complex
-					level = 1
-					instant_build = yes
+			if = {
+				limit = { owns_state = 1280 }
+				1280 = {
+					add_building_construction = {
+						type = agri_industrial_complex
+						level = 1
+						instant_build = yes
+					}
+				}
+			}
+			else_if = {
+				limit = { owns_state = 881 }
+				881 = {
+					add_building_construction = {
+						type = agri_industrial_complex
+						level = 1
+						instant_build = yes
+					}
 				}
 			}
 		}
@@ -2422,11 +2435,24 @@ focus_tree = {
 		y = 2
 		completion_reward = {
 			country_event = VIN_Econ.1
-			1280 = {
-				add_building_construction = {
-					type = agri_industrial_complex
-					level = 1
-					instant_build = yes
+			if = {
+				limit = { owns_state = 1280 }
+				1280 = {
+					add_building_construction = {
+						type = agri_industrial_complex
+						level = 1
+						instant_build = yes
+					}
+				}
+			}
+			else_if = {
+				limit = { owns_state = 881 }
+				881 = {
+					add_building_construction = {
+						type = agri_industrial_complex
+						level = 1
+						instant_build = yes
+					}
 				}
 			}
 			add_tech_bonus = {
@@ -2450,13 +2476,27 @@ focus_tree = {
 		y = 1
 		completion_reward = {
 			country_event = VIN_Econ.3
-			1280 = {
-				add_building_construction = {
-					type = industrial_complex
-					level = 2
-					instant_build = yes
+			if = {
+				limit = { owns_state = 1280 }
+				1280 = {
+					add_building_construction = {
+						type = industrial_complex
+						level = 2
+						instant_build = yes
+					}
+					add_extra_state_shared_building_slots = 2
 				}
-				add_extra_state_shared_building_slots = 2
+			}
+			else_if = {
+				limit = { owns_state = 881 }
+				881 = {
+					add_building_construction = {
+						type = industrial_complex
+						level = 2
+						instant_build = yes
+					}
+					add_extra_state_shared_building_slots = 2
+				}
 			}
 		}
 	}
@@ -2816,16 +2856,36 @@ focus_tree = {
 		x = 0
 		y = 1
 		completion_reward = {
-			1280 = {
-				set_temp_variable = { CaoBang_mils = building_level@arms_factory }
-				set_temp_variable = { CaoBang_civs = building_level@industrial_complex }
-				remove_building = {
-					type = arms_factory
-					level = building_level@arms_factory
+			set_temp_variable = { CaoBang_mils = 0 }
+			set_temp_variable = { CaoBang_civs = 0 }
+			if = {
+				limit = { owns_state = 1280 }
+				1280 = {
+					set_temp_variable = { CaoBang_mils = building_level@arms_factory }
+					set_temp_variable = { CaoBang_civs = building_level@industrial_complex }
+					remove_building = {
+						type = arms_factory
+						level = building_level@arms_factory
+					}
+					remove_building = {
+						type = industrial_complex
+						level = building_level@industrial_complex
+					}
 				}
-				remove_building = {
-					type = industrial_complex
-					level = building_level@industrial_complex
+			}
+			else_if = {
+				limit = { owns_state = 881 }
+				881 = {
+					set_temp_variable = { CaoBang_mils = building_level@arms_factory }
+					set_temp_variable = { CaoBang_civs = building_level@industrial_complex }
+					remove_building = {
+						type = arms_factory
+						level = building_level@arms_factory
+					}
+					remove_building = {
+						type = industrial_complex
+						level = building_level@industrial_complex
+					}
 				}
 			}
 			1760 = {
@@ -5108,34 +5168,29 @@ focus_tree = {
 				date > 1950.09.01	# Chien dich Bien gioi, 16 September - 17 October 1950
 				has_global_flag = PRC_Victory	# an open border with a communist China is what made the campaign worth running
 			}
+			country_exists = THO
 			VIN_indochina_campaign_window_trigger = yes
+			VIN_no_campaign_running_trigger = yes
 			VIN_campaign_cooldown_ready_trigger = yes
 		}
 		bypass = {
 			OR = {
 				has_global_flag = Indochina_War_Over
 				geneva_conference_available_trigger = yes
+				AND = {
+					owns_state = 1280
+					owns_state = 1768
+				}
+				NOT = { country_exists = THO }
 			}
 		}
+		will_lead_to_war_with = THO
 		completion_reward = {
-			set_country_flag = Enable_Air_Base_Raids
-			custom_effect_tooltip = Enable_Air_Base_Raids_TT
-			set_country_flag = VIN_Campaign_Cooldown_Cao_Bac
-			if = {
-				limit = {
-					NOT = { has_global_flag = Indochina_War_Over }
-				}
-				FRA = {
-					add_to_variable = {
-						StruggleInvolvedNationsIndochinaCommunistScore = 100
-						tooltip = Add_to_Communist_Victory_Points_TT
-					}
-					add_to_variable = {
-						global.Indochina_War_Next_Phase_A_Points = 100
-						tooltip = Add_to_Escalation_Phase_TT
-					}
-				}
-			}
+			set_country_flag = VIN_Campaign_Cao_Bac_Active
+			set_temp_variable = { vin_camp_id = 4 }
+			vin_campaign_begin = yes
+			custom_effect_tooltip = VIN_Camp_War_Cao_Bac_tt
+			hidden_effect = { vin_campaign_declare_war = yes }
 		}
 	}
 	focus = {
