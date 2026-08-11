@@ -287,16 +287,57 @@ test_vin_campaign_cao_bac_check = {
 	log = "VIN CAO-BAC: result check complete"
 }
 
+# Post-DBP QA: status is read-only; auto_geneva_check advances the live checks;
+# response_reset preserves the Dien Bien Phu recorder and current map state.
 test_vin_post_dbp_southern_war_status = {
-	log = "[VIN SOUTH] dbp=[?global.geneva_outcome_dbp|0]"
+	log = "[VIN SOUTH] dbp=[?global.geneva_outcome_dbp|0] phase=[?global.Indochina_War_Active_Phase|0] A=[?global.Indochina_War_Next_Phase_A_Points|0] B=[?global.Indochina_War_Next_Phase_B_Points|0]"
+	if = { limit = { has_global_flag = geneva_dbp_outcome_applied } log = "[VIN SOUTH] Dien Bien Phu outcome recorded" }
+	else = { log = "[VIN SOUTH] BLOCKED - Dien Bien Phu outcome not recorded" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Southern_War_Recognized } log = "[VIN SOUTH] Continued southern war recognized" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Funded_NLF } log = "[VIN SOUTH] Funding response chosen" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Pressed_For_Geneva } log = "[VIN SOUTH] Geneva response chosen" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Southern_War_Ended } log = "[VIN SOUTH] Southern response ended" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Funded_NLF_Defeated } log = "[VIN SOUTH] Funded resistance was defeated" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Funded_NLF_Ceasefire } log = "[VIN SOUTH] Funded resistance reached a ceasefire" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued } log = "[VIN SOUTH] Automatic Geneva is queued behind the peace gate" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Launched } log = "[VIN SOUTH] Automatic Geneva invitation launched" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice } log = "[VIN SOUTH] A disarmed southern resistance received the automatic armistice" }
+	if = { limit = { has_global_flag = Indochina_Geneva_Pursuit } log = "[VIN SOUTH] Geneva pursuit is active" }
+	if = {
+		limit = { country_exists = NLF }
+		log = "[VIN SOUTH] Southern resistance country exists"
+		if = { limit = { NLF = { has_capitulated = yes } } log = "[VIN SOUTH] Southern resistance has capitulated" }
+		else = { log = "[VIN SOUTH] Southern resistance has not capitulated" }
+		if = { limit = { NLF = { num_of_controlled_states > 0 } } log = "[VIN SOUTH] Southern resistance still controls at least one state" }
+		else = { log = "[VIN SOUTH] Southern resistance controls no states" }
+		if = { limit = { NLF = { num_divisions > 0 } } log = "[VIN SOUTH] Southern resistance still fields divisions" }
+		else = { log = "[VIN SOUTH] Southern resistance fields no divisions" }
+		if = { limit = { country_exists = VIE VIE = { has_war_with = NLF } } log = "[VIN SOUTH] Saigon remains at war with the southern resistance" }
+		if = { limit = { country_exists = FRE FRE = { has_war_with = NLF } } log = "[VIN SOUTH] CEFEO remains at war with the southern resistance" }
+		if = { limit = { country_exists = FRA FRA = { has_war_with = NLF } } log = "[VIN SOUTH] France remains at war with the southern resistance" }
+	}
+	else = { log = "[VIN SOUTH] Southern resistance country no longer exists" }
 	if = {
 		limit = { vin_post_dbp_southern_war_active_trigger = yes }
 		log = "[VIN SOUTH] The NLF is alive in a post-DBP war; the response category should be visible"
 	}
 	else = { log = "[VIN SOUTH] No live post-DBP NLF war is currently detected" }
+	if = { limit = { has_war = yes } log = "[VIN SOUTH] BLOCKED - Hanoi is still at war" }
+	else = { log = "[VIN SOUTH] Hanoi is at peace" }
+	if = {
+		limit = { country_exists = VIE }
+		if = { limit = { VIE = { has_war = yes } } log = "[VIN SOUTH] BLOCKED - Saigon is still at war" }
+		else = { log = "[VIN SOUTH] Saigon is at peace" }
+	}
+	else = { log = "[VIN SOUTH] Saigon no longer exists; its peace clause passes" }
+	if = { limit = { geneva_conference_vietnam_at_peace_trigger = yes } log = "[VIN SOUTH] Vietnamese peace gate passes" }
+	else = { log = "[VIN SOUTH] BLOCKED - Vietnamese peace gate fails" }
+	if = { limit = { vin_post_dbp_southern_resistance_defeated_trigger = yes } log = "[VIN SOUTH] Southern resistance defeat predicate passes" }
+	if = { limit = { vin_post_dbp_auto_geneva_eligible_trigger = yes } log = "[VIN SOUTH] Automatic post-DBP Geneva predicate passes" }
+	if = { limit = { has_global_flag = geneva_conference_announced } log = "[VIN SOUTH] Geneva has been announced" }
+	if = { limit = { has_global_flag = Geneva_Conference_Preparations } log = "[VIN SOUTH] Geneva preparations are active" }
+	if = { limit = { has_global_flag = geneva_conference_in_session } log = "[VIN SOUTH] Geneva is in session" }
+	if = { limit = { has_global_flag = geneva_conference_concluded } log = "[VIN SOUTH] Geneva has concluded" }
 	if = {
 		limit = {
 			has_country_flag = VIN_Post_DBP_Funded_NLF
@@ -306,4 +347,31 @@ test_vin_post_dbp_southern_war_status = {
 		}
 		log = "[VIN SOUTH] FAIL - funding chosen but the live NLF lacks Northern Supply Line"
 	}
+}
+
+test_vin_post_dbp_auto_geneva_check = {
+	vin_post_dbp_southern_war_check = yes
+	vin_post_dbp_auto_geneva_check = yes
+	test_vin_post_dbp_southern_war_status = yes
+}
+
+test_vin_post_dbp_response_reset = {
+	clr_country_flag = VIN_Post_DBP_Southern_War_Recognized
+	clr_country_flag = VIN_Post_DBP_Southern_War_Ended
+	clr_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+	clr_country_flag = VIN_Post_DBP_Funded_NLF
+	clr_country_flag = VIN_Post_DBP_Pressed_For_Geneva
+	clr_country_flag = VIN_Post_DBP_Funded_NLF_Defeated
+	clr_country_flag = VIN_Post_DBP_Funded_NLF_Ceasefire
+	clr_country_flag = VIN_Post_DBP_Settlement_After_South
+	clr_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported
+	clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+	clr_country_flag = VIN_Post_DBP_Auto_Geneva_Launched
+	clr_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice
+	clr_global_flag = Indochina_Geneva_Pursuit
+	if = {
+		limit = { country_exists = NLF }
+		NLF = { remove_ideas = NLF_Northern_Supply_Line }
+	}
+	log = "[VIN SOUTH] Response flags reset; the Dien Bien Phu recorder and map state were preserved"
 }

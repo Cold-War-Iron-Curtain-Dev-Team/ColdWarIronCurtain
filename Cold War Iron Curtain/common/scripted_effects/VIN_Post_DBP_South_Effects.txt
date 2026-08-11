@@ -20,6 +20,97 @@ vin_post_dbp_southern_war_check = {
 			limit = { country_exists = NLF }
 			NLF = { remove_ideas = NLF_Northern_Supply_Line }
 		}
+		if = {
+			limit = {
+				has_country_flag = VIN_Post_DBP_Funded_NLF
+				NOT = { has_global_flag = Indochina_War_Over }
+				NOT = { has_global_flag = geneva_conference_announced }
+				NOT = { has_global_flag = geneva_conference_in_session }
+				NOT = { has_global_flag = geneva_conference_concluded }
+			}
+			if = {
+				limit = { vin_post_dbp_southern_resistance_defeated_trigger = yes }
+				set_country_flag = VIN_Post_DBP_Funded_NLF_Defeated
+			}
+			else = { set_country_flag = VIN_Post_DBP_Funded_NLF_Ceasefire }
+			vin_post_dbp_begin_settlement_after_southern_end = yes
+			set_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported
+			country_event = { id = VIN_South.2 hours = 6 }
+		}
+	}
+}
+
+vin_post_dbp_begin_settlement_after_southern_end = {
+	set_global_flag = Indochina_Geneva_Pursuit
+	if = {
+		limit = { NOT = { has_country_flag = VIN_Post_DBP_Settlement_After_South } }
+		set_country_flag = VIN_Post_DBP_Settlement_After_South
+		FRA = {
+			add_to_variable = {
+				global.Indochina_War_Next_Phase_B_Points = 100
+				tooltip = Add_to_De_Escalation_Phase_TT
+			}
+		}
+	}
+}
+
+# A fallen camp plus a defeated southern resistance bypasses the phase grind.
+# A disarmed NLF gets a narrow armistice; the Hanoi/Saigon peace gate then owns the invitation.
+vin_post_dbp_auto_geneva_check = {
+	if = {
+		limit = {
+			vin_post_dbp_auto_geneva_eligible_trigger = yes
+			NOT = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued }
+		}
+		set_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+		set_global_flag = Indochina_Geneva_Pursuit
+		if = {
+			limit = { country_exists = NLF }
+			NLF = { remove_ideas = NLF_Northern_Supply_Line }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported } }
+			set_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported
+			country_event = { id = VIN_South.2 hours = 6 }
+		}
+	}
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			has_war = no
+			country_exists = VIE
+			country_exists = NLF
+			NLF = { num_divisions < 1 }
+			VIE = { has_war_with = NLF }
+		}
+		set_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice
+		VIE = { white_peace = NLF }
+	}
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			geneva_conference_vietnam_at_peace_trigger = yes
+			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = geneva_conference_announced }
+			NOT = { has_global_flag = geneva_conference_in_session }
+			NOT = { has_global_flag = geneva_conference_concluded }
+		}
+		clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+		set_country_flag = VIN_Post_DBP_Auto_Geneva_Launched
+		clr_global_flag = Indochina_Geneva_Pursuit
+		indochina_struggle_invite_countries_to_geneva = yes
+	}
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = geneva_conference_announced
+				has_global_flag = geneva_conference_in_session
+				has_global_flag = geneva_conference_concluded
+			}
+		}
+		clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
 	}
 }
 
