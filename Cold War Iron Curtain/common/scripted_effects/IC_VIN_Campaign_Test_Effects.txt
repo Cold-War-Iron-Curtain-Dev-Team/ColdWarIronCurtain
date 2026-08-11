@@ -107,8 +107,17 @@ test_vin_campaign_state_policy_status = {
 		if = { limit = { 1766 = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } } } log = "VIN STATE POLICY: FAIL - Hoa Binh 1766 is open during Cao-Bac" }
 		log = "VIN STATE POLICY: Cao-Bac planned=1280/1768; Dong Bac/TAI/Hoa Binh protected"
 	}
-	if = { limit = { 1762 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Thanh Hoa lacks dispersed supply" }
-	if = { limit = { 838 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Quang Binh lacks dispersed supply" }
+	if = {
+		limit = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		if = { limit = { 1762 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Thanh Hoa lacks dispersed supply" }
+		if = { limit = { 1763 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Nghe-Tinh lacks dispersed supply" }
+		if = { limit = { 838 = { is_controlled_by = VIN NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } } log = "VIN STATE POLICY: FAIL - VIN-controlled Quang Binh lacks dispersed supply" }
+	}
+	else = {
+		if = { limit = { 1762 = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } log = "VIN STATE POLICY: FAIL - Thanh Hoa supply leaked past campaign cleanup" }
+		if = { limit = { 1763 = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } log = "VIN STATE POLICY: FAIL - Nghe-Tinh supply leaked past campaign cleanup" }
+		if = { limit = { 838 = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } } log = "VIN STATE POLICY: FAIL - Quang Binh supply leaked past campaign cleanup" }
+	}
 	log = "VIN STATE POLICY: check complete"
 }
 
@@ -140,6 +149,7 @@ test_vin_campaign_overextension_cleanup_check = {
 	if = { limit = { country_exists = TAM  TAM = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAM penalty remains" }
 	if = { limit = { country_exists = NUN  NUN = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - NUN penalty remains" }
 	if = { limit = { country_exists = THO  THO = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - THO penalty remains" }
+	if = { limit = { country_exists = VIE  VIE = { has_idea = FRE_Campaign_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - VIE penalty remains" }
 	if = { limit = { country_exists = FRE  FRE = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - FRE campaign-command spirit remains" }
 	if = { limit = { country_exists = TAI  TAI = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAI campaign-command spirit remains" }
 	if = { limit = { country_exists = TAM  TAM = { has_idea = FRE_Highland_Overextension } } log = "OVEREXTENSION CLEANUP: FAIL - TAM campaign-command spirit remains" }
@@ -275,4 +285,25 @@ test_vin_campaign_cao_bac_check = {
 		if = { limit = { NOT = { 1768 = { is_owned_by = THO } } } log = "VIN CAO-BAC: FAIL - abort/failure changed Lang Son ownership" }
 	}
 	log = "VIN CAO-BAC: result check complete"
+}
+
+test_vin_post_dbp_southern_war_status = {
+	log = "[VIN SOUTH] dbp=[?global.geneva_outcome_dbp|0]"
+	if = { limit = { has_country_flag = VIN_Post_DBP_Southern_War_Recognized } log = "[VIN SOUTH] Continued southern war recognized" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Funded_NLF } log = "[VIN SOUTH] Funding response chosen" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Pressed_For_Geneva } log = "[VIN SOUTH] Geneva response chosen" }
+	if = {
+		limit = { vin_post_dbp_southern_war_active_trigger = yes }
+		log = "[VIN SOUTH] The NLF is alive in a post-DBP war; the response category should be visible"
+	}
+	else = { log = "[VIN SOUTH] No live post-DBP NLF war is currently detected" }
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Funded_NLF
+			country_exists = NLF
+			NLF = { NOT = { has_idea = NLF_Northern_Supply_Line } }
+			vin_post_dbp_southern_war_active_trigger = yes
+		}
+		log = "[VIN SOUTH] FAIL - funding chosen but the live NLF lacks Northern Supply Line"
+	}
 }

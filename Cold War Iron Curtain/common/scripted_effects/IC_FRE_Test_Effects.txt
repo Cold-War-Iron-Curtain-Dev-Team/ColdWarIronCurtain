@@ -28,6 +28,9 @@
 #   e test_fre_operation_threshold  force the deterministic outcome
 #   e test_fre_operation_finish  clear all operation state, fire no outcome
 #   e test_fre_operation_status  log current op, tier, states and credits
+#   e test_fre_lorraine_status   log Lorraine posture and exclusive result
+#   e test_fre_hoa_binh_status   log phase-two posture and exclusive result
+#   e test_fre_hoa_binh_day_105  force a planned Amarante request at day 105
 #   e test_fre_dbp_start         jump straight into the Dien Bien Phu arc
 #   e test_fre_command_next      advance the command rotation one step
 #   -- Tai highlands / Dien Bien Phu ownership --
@@ -416,4 +419,70 @@ test_fre_operation_finish = {
 
 test_fre_operation_status = {
 	log = "[FRE OPS] current=[?FRE.FRE_op_current|0] tier=[?FRE.FRE_op_commitment_tier|0] atk=[?FRE.FRE_op_attacker_state|0] def=[?FRE.FRE_op_defender_state|0] credits=[?FRE.FRE_War_Credits|0]"
+}
+
+test_fre_lorraine_status = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			log = "[LORRAINE] credits=[?FRE_War_Credits|0] hold_days=[?FRE_Lorraine_Objective_Hold_Days|0]"
+			if = { limit = { has_country_flag = FRE_Lorraine_Response_Active } log = "[LORRAINE] Response active" }
+			if = { limit = { has_country_flag = FRE_Lorraine_Response_Deep } log = "[LORRAINE] Deep-thrust posture" }
+			if = { limit = { has_country_flag = FRE_Lorraine_Objective_Achieved } log = "[LORRAINE] Rear-depot objective achieved" }
+			set_temp_variable = { fre_lorraine_test_results = 0 }
+			if = { limit = { has_country_flag = FRE_Lorraine_Result_Success } add_to_temp_variable = { fre_lorraine_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Lorraine_Result_Limited } add_to_temp_variable = { fre_lorraine_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Lorraine_Result_Failure } add_to_temp_variable = { fre_lorraine_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Lorraine_Result_Withheld } add_to_temp_variable = { fre_lorraine_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Lorraine_Result_Superseded } add_to_temp_variable = { fre_lorraine_test_results = 1 } }
+			if = {
+				limit = {
+					has_country_flag = FRE_Lorraine_Response_Resolved
+					NOT = { has_country_flag = FRE_Lorraine_Response_Active }
+					NOT = { check_variable = { fre_lorraine_test_results = 1 } }
+				}
+				log = "[LORRAINE] FAIL - resolved response does not have exactly one result flag"
+			}
+		}
+	}
+}
+
+test_fre_hoa_binh_status = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			log = "[HOA BINH] credits=[?FRE_War_Credits|0] withdrawal_day=[?FRE_Hoa_Binh_Withdrawal_Day|0] vin_day=[?VIN.VIN_camp_days_elapsed|0]"
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Response_Active } log = "[HOA BINH] Phase two response active" }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Response_Choice_Pending } log = "[HOA BINH] FAIL - response choice still pending" }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Amarante_Planned } log = "[HOA BINH] Operation Amarante planned" }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Amarante_Executed } log = "[HOA BINH] Operation Amarante executed" }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Hold_Committed } log = "[HOA BINH] Holdout committed" }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Mobile_Groups_Preserved } log = "[HOA BINH] Amarante mobile groups preserved for Na San" }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Result_Hold_Wager_Lost } log = "[HOA BINH] Hold wager paid the additional loss package" }
+			set_temp_variable = { fre_hoa_binh_test_results = 0 }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Result_Withdrawal } add_to_temp_variable = { fre_hoa_binh_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Result_Held } add_to_temp_variable = { fre_hoa_binh_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Result_Lost } add_to_temp_variable = { fre_hoa_binh_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Result_Inconclusive } add_to_temp_variable = { fre_hoa_binh_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Hoa_Binh_Result_Superseded } add_to_temp_variable = { fre_hoa_binh_test_results = 1 } }
+			if = {
+				limit = { check_variable = { fre_hoa_binh_test_results > 1 } }
+				log = "[HOA BINH] FAIL - more than one permanent response result"
+			}
+		}
+	}
+}
+
+# Advance a planned Amarante to its ordinary day-105 classifier.
+test_fre_hoa_binh_day_105 = {
+	if = {
+		limit = {
+			country_exists = VIN
+			country_exists = FRE
+			VIN = { has_country_flag = VIN_Campaign_Hoa_Binh_Active }
+			FRE = { has_country_flag = FRE_Hoa_Binh_Amarante_Planned }
+		}
+		VIN = { set_variable = { VIN_camp_days_elapsed = 105 } }
+		FRE = { fre_hoa_binh_response_daily_tick = yes }
+	}
 }

@@ -134,6 +134,56 @@ FRE_Protect_vietnam = {
 		value = 20
 	}
 }
+
+# Keep CEFEO off secondary fronts during named campaigns.
+FRE_contain_secondary_campaign_fronts = {
+	allowed = { tag = FRE }
+	enable = {
+		has_war_with = VIN
+		VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			NOT = { has_war_with = VIN }
+			VIN = { VIN_no_campaign_running_trigger = yes }
+		}
+	}
+	ai_strategy = { type = theatre_distribution_demand_increase id = 1760 value = 18 }
+	ai_strategy = { type = theatre_distribution_demand_increase id = 786 value = 15 }
+	ai_strategy = { type = front_unit_request state = 1760 value = 400 }
+	ai_strategy = { type = front_unit_request state = 786 value = 300 }
+	ai_strategy = { type = front_unit_request state = 1762 value = -700 }
+	ai_strategy = { type = front_unit_request state = 1763 value = -700 }
+	ai_strategy = { type = front_unit_request state = 838 value = -700 }
+}
+
+# Deep Lorraine is the only campaign order that opens Dong Bac Bo.
+FRE_avoid_dong_bac_outside_lorraine = {
+	allowed = { tag = FRE }
+	enable = {
+		has_war_with = VIN
+		VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		NOT = {
+			AND = {
+				has_country_flag = FRE_Lorraine_Response_Active
+				has_country_flag = FRE_Lorraine_Response_Deep
+			}
+		}
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			NOT = { has_war_with = VIN }
+			VIN = { VIN_no_campaign_running_trigger = yes }
+			AND = {
+				has_country_flag = FRE_Lorraine_Response_Active
+				has_country_flag = FRE_Lorraine_Response_Deep
+			}
+		}
+	}
+	ai_strategy = { type = front_unit_request state = 881 value = -700 }
+}
 FRE_defend_cao_bac = {
 	allowed = {
 		tag = FRE
@@ -148,10 +198,23 @@ FRE_defend_cao_bac = {
 
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 1280
 		ordertype = front
 		execution_type = careful
-		priority = 300
+		ratio = 0.45
+		priority = 700
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = {
+		type = front_control
+		state = 1768
+		ordertype = front
+		execution_type = careful
+		ratio = 0.45
+		priority = 700
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = {
 		type = front_unit_request
@@ -174,10 +237,23 @@ FRE_defend_tay_bac = {
 	abort = { always = no }
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 1761
 		ordertype = front
 		execution_type = careful
-		priority = 300
+		ratio = 0.60
+		priority = 700
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = {
+		type = front_control
+		state = 671
+		ordertype = front
+		execution_type = careful
+		ratio = 0.30
+		priority = 650
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = {
 		type = front_unit_request
@@ -190,6 +266,34 @@ FRE_defend_tay_bac = {
 		value = 275
 	}
 }
+
+# Deep Lorraine targets Dong Bac Bo without opening a tag-wide front.
+FRE_operation_lorraine_deep_raid = {
+	allowed = { tag = FRE }
+	enable = {
+		has_country_flag = FRE_Lorraine_Response_Active
+		has_country_flag = FRE_Lorraine_Response_Deep
+		VIN = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			NOT = { has_country_flag = FRE_Lorraine_Response_Active }
+			NOT = { has_country_flag = FRE_Lorraine_Response_Deep }
+		}
+	}
+	ai_strategy = {
+		type = front_control
+		state = 881
+		ordertype = front
+		execution_type = rush
+		ratio = 0.25
+		priority = 450
+		execute_order = yes
+		manual_attack = yes
+	}
+	ai_strategy = { type = front_unit_request state = 881 value = 225 }
+}
 FRE_defend_hoa_binh = {
 	allowed = { tag = FRE }
 	enable = {
@@ -200,10 +304,23 @@ FRE_defend_hoa_binh = {
 	abort = { always = no }
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 1766
 		ordertype = front
 		execution_type = careful
-		priority = 300
+		ratio = 0.65
+		priority = 700
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = {
+		type = front_control
+		state = 671
+		ordertype = front
+		execution_type = careful
+		ratio = 0.20
+		priority = 500
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = {
 		type = front_unit_request
@@ -216,6 +333,27 @@ FRE_defend_hoa_binh = {
 		value = 250
 	}
 }
+FRE_hoa_binh_holdout_commitment = {
+	allowed = { tag = FRE }
+	enable = {
+		has_country_flag = FRE_Hoa_Binh_Hold_Committed
+		has_war_with = VIN
+		VIN = { has_country_flag = VIN_Campaign_Hoa_Binh_Active }
+	}
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = {
+		type = front_control
+		state = 1766
+		ordertype = front
+		execution_type = careful
+		ratio = 1.0
+		priority = 900
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = { type = front_unit_request state = 1766 value = 500 }
+}
 FRE_defend_dien_bien = {
 	allowed = { tag = FRE }
 	enable = {
@@ -226,10 +364,13 @@ FRE_defend_dien_bien = {
 	abort = { always = no }
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 671
 		ordertype = front
 		execution_type = careful
-		priority = 350
+		ratio = 0.80
+		priority = 750
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = {
 		type = front_unit_request
@@ -248,13 +389,27 @@ THO_hold_cao_bac = {
 	abort = { NOT = { has_war_with = VIN } }
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 1280
 		ordertype = front
 		execution_type = careful
-		priority = 600
+		ratio = 0.50
+		priority = 800
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = {
+		type = front_control
+		state = 1768
+		ordertype = front
+		execution_type = careful
+		ratio = 0.50
+		priority = 800
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = { type = front_unit_request state = 1280 value = 300 }
 	ai_strategy = { type = front_unit_request state = 1768 value = 300 }
+	ai_strategy = { type = front_unit_request state = 881 value = -600 }
 }
 
 TAI_hold_the_highlands = {
@@ -264,15 +419,32 @@ TAI_hold_the_highlands = {
 	abort = { NOT = { has_war_with = VIN } }
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 1761
 		ordertype = front
 		execution_type = careful
-		priority = 600
+		ratio = 0.55
+		priority = 800
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = {
+		type = front_control
+		state = 671
+		ordertype = front
+		execution_type = careful
+		ratio = 0.45
+		priority = 800
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = { type = theatre_distribution_demand_increase id = 1761 value = 20 }
 	ai_strategy = { type = theatre_distribution_demand_increase id = 671 value = 20 }
 	ai_strategy = { type = front_unit_request state = 1761 value = 350 }
 	ai_strategy = { type = front_unit_request state = 671 value = 350 }
+	ai_strategy = { type = front_unit_request state = 881 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1762 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1763 value = -600 }
+	ai_strategy = { type = front_unit_request state = 838 value = -600 }
 }
 
 TAM_hold_hoa_binh = {
@@ -282,12 +454,81 @@ TAM_hold_hoa_binh = {
 	abort = { NOT = { has_war_with = VIN } }
 	ai_strategy = {
 		type = front_control
-		tag = VIN
+		state = 1766
 		ordertype = front
 		execution_type = careful
-		priority = 600
+		ratio = 1.0
+		priority = 800
+		execute_order = yes
+		manual_attack = no
 	}
 	ai_strategy = { type = front_unit_request state = 1766 value = 400 }
+	ai_strategy = { type = front_unit_request state = 881 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1762 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1763 value = -600 }
+	ai_strategy = { type = front_unit_request state = 838 value = -600 }
+}
+
+TAM_hoa_binh_holdout_commitment = {
+	allowed = { tag = TAM }
+	enable = {
+		country_exists = FRE
+		FRE = { has_country_flag = FRE_Hoa_Binh_Hold_Committed }
+		has_war_with = VIN
+		VIN = { has_country_flag = VIN_Campaign_Hoa_Binh_Active }
+	}
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = {
+		type = front_control
+		state = 1766
+		ordertype = front
+		execution_type = careful
+		ratio = 1.0
+		priority = 950
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = { type = front_unit_request state = 1766 value = 600 }
+}
+
+NUN_hold_the_nung_marches = {
+	allowed = { tag = NUN }
+	enable = { has_war_with = VIN }
+	abort_when_not_enabled = yes
+	abort = { NOT = { has_war_with = VIN } }
+	ai_strategy = {
+		type = front_control
+		state = 1281
+		ordertype = front
+		execution_type = careful
+		ratio = 1.0
+		priority = 800
+		execute_order = yes
+		manual_attack = no
+	}
+	ai_strategy = { type = front_unit_request state = 1281 value = 500 }
+	ai_strategy = { type = front_unit_request state = 881 value = -600 }
+}
+
+# Keep State of Vietnam formations off Viet Minh rear areas during campaigns.
+VIE_contain_viet_minh_campaign_fronts = {
+	allowed = { tag = VIE }
+	enable = {
+		has_war_with = VIN
+		VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			NOT = { has_war_with = VIN }
+			VIN = { VIN_no_campaign_running_trigger = yes }
+		}
+	}
+	ai_strategy = { type = front_unit_request state = 881 value = -700 }
+	ai_strategy = { type = front_unit_request state = 1762 value = -700 }
+	ai_strategy = { type = front_unit_request state = 1763 value = -700 }
+	ai_strategy = { type = front_unit_request state = 838 value = -700 }
 }
 FRE_unit_buffer_for_Indochina = {
 	allowed = {

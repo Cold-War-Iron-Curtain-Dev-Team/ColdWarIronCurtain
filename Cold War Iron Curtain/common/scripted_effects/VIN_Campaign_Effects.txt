@@ -264,6 +264,7 @@ vin_campaign_restore_northern_front = {
 	671 = { vin_campaign_restore_unplanned_state = yes }
 	881 = { vin_campaign_restore_unplanned_state = yes }
 	1762 = { vin_campaign_restore_unplanned_state = yes }
+	1763 = { vin_campaign_restore_unplanned_state = yes }
 	1760 = { vin_campaign_restore_unplanned_state = yes }
 	786 = { vin_campaign_restore_unplanned_state = yes }
 	1280 = { vin_campaign_restore_unplanned_state = yes }
@@ -299,47 +300,34 @@ vin_campaign_apply_planned_offensive = {
 	}
 }
 
+vin_campaign_sync_rear_supply_state = { # state scope
+	if = {
+		limit = {
+			is_controlled_by = VIN
+			VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+		}
+		if = {
+			limit = { NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } }
+			add_dynamic_modifier = {
+				modifier = VIN_campaign_rear_supply_network
+				days = -1
+			}
+		}
+		force_update_dynamic_modifier = yes
+	}
+	else = {
+		if = {
+			limit = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } }
+			remove_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network }
+		}
+	}
+}
+
 vin_campaign_sync_rear_supply = {
-	if = {
-		limit = {
-			NOT = { VIN_no_campaign_running_trigger = yes }
-			1762 = { is_controlled_by = VIN }
-		}
-		1762 = {
-			if = {
-				limit = { NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } }
-				add_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network }
-			}
-		}
-	}
-	else = {
-		1762 = {
-			if = {
-				limit = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } }
-				remove_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network }
-			}
-		}
-	}
-	if = {
-		limit = {
-			NOT = { VIN_no_campaign_running_trigger = yes }
-			838 = { is_controlled_by = VIN }
-		}
-		838 = {
-			if = {
-				limit = { NOT = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } } }
-				add_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network }
-			}
-		}
-	}
-	else = {
-		838 = {
-			if = {
-				limit = { has_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network } }
-				remove_dynamic_modifier = { modifier = VIN_campaign_rear_supply_network }
-			}
-		}
-	}
+	# State scope is required for dynamic-modifier attachment.
+	1762 = { vin_campaign_sync_rear_supply_state = yes }
+	1763 = { vin_campaign_sync_rear_supply_state = yes }
+	838 = { vin_campaign_sync_rear_supply_state = yes }
 }
 
 vin_campaign_sync_objective_modifiers = {
@@ -416,6 +404,10 @@ vin_campaign_apply_french_overextension = {
 		limit = { country_exists = THO  THO = { NOT = { has_idea = FRE_Campaign_Overextension } } }
 		THO = { add_ideas = FRE_Campaign_Overextension }
 	}
+	if = {
+		limit = { country_exists = VIE  VIE = { NOT = { has_idea = FRE_Campaign_Overextension } } }
+		VIE = { add_ideas = FRE_Campaign_Overextension }
+	}
 }
 
 vin_campaign_clear_french_overextension = {
@@ -438,6 +430,10 @@ vin_campaign_clear_french_overextension = {
 	if = {
 		limit = { country_exists = THO  THO = { has_idea = FRE_Campaign_Overextension } }
 		THO = { remove_ideas = FRE_Campaign_Overextension }
+	}
+	if = {
+		limit = { country_exists = VIE  VIE = { has_idea = FRE_Campaign_Overextension } }
+		VIE = { remove_ideas = FRE_Campaign_Overextension }
 	}
 }
 
@@ -579,6 +575,14 @@ vin_campaign_declare_war = {
 	}
 	activate_mission = VIN_Campaign_Clock	# the deadline had no representation in the UI at all
 	FRA = { activate_mission = VIN_Campaign_Objective_Timer }	# FRA always exists; the mission is the hard backstop if the tick ever stalls
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current = 2 }
+			country_exists = FRE
+			1766 = { indochina_french_held_state_trigger = yes }
+		}
+		FRE = { fre_hoa_binh_response_begin = yes }
+	}
 }
 
 vin_campaign_objective_tick = {
@@ -597,6 +601,13 @@ vin_campaign_objective_tick = {
 		}
 		vin_campaign_sync_objective_modifiers = yes	# the objective can change hands in either direction on any day
 		vin_campaign_update_overextension = yes
+		if = {
+			limit = { country_exists = FRE }
+			FRE = {
+				fre_lorraine_response_daily_tick = yes
+				fre_hoa_binh_response_daily_tick = yes
+			}
+		}
 		vin_campaign_check_resolution = yes
 	}
 }
@@ -621,6 +632,15 @@ vin_campaign_check_resolution = {
 	else_if = {
 		limit = { vin_campaign_superseded_trigger = yes }
 		set_temp_variable = { vin_camp_outcome = 5 }
+		vin_campaign_resolve = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { VIN_camp_current = 2 }
+			has_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
+		}
+		clr_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
+		set_temp_variable = { vin_camp_outcome = 1 }	# the parent owns Amarante's voluntary withdrawal result
 		vin_campaign_resolve = yes
 	}
 	else_if = {
@@ -653,6 +673,14 @@ vin_campaign_backstop_resolve = {
 	else_if = {
 		limit = { vin_campaign_superseded_trigger = yes }
 		set_temp_variable = { vin_camp_outcome = 5 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { VIN_camp_current = 2 }
+			has_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
+		}
+		clr_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
+		set_temp_variable = { vin_camp_outcome = 1 }
 	}
 	else = { set_temp_variable = { vin_camp_outcome = 4 } }
 	vin_campaign_resolve = yes
@@ -718,6 +746,20 @@ vin_campaign_resolve = {
 	set_country_flag = VIN_Campaign_Resolving	# the tick must not re-enter while the outcome is being paid out
 	set_variable = { VIN_camp_last_outcome = vin_camp_outcome }
 	vin_campaign_record_result = yes
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current = 1 }
+			country_exists = FRE
+		}
+		FRE = { fre_lorraine_resolve_from_northwest = yes }
+	}
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current = 2 }
+			country_exists = FRE
+		}
+		FRE = { fre_hoa_binh_resolve_from_campaign = yes }
+	}
 	vin_campaign_remove_war_spirits = yes	# clear target-side ideas before a successful resolution can annex that tag
 	if = {
 		limit = {
@@ -779,8 +821,19 @@ vin_campaign_resolve = {
 		if = {
 			limit = { country_exists = FRE }
 			FRE = {
-				set_temp_variable = { fre_patience_delta = -12 }
-				fre_metropole_patience_change = yes
+				if = {
+					limit = {
+						NOT = {
+							AND = {
+								has_country_flag = FRE_Hoa_Binh_Result_Withdrawal
+								VIN = { check_variable = { VIN_camp_current = 2 } }
+							}
+						}
+					}
+					set_temp_variable = { fre_patience_delta = -12 }
+					fre_metropole_patience_change = yes
+				}
+				# Amarante waives only the Patience shock; battlefield scoring remains.
 			}
 		}
 	}
@@ -857,6 +910,14 @@ vin_campaign_resolve = {
 }
 
 vin_campaign_finish = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			fre_lorraine_response_cleanup = yes
+			fre_hoa_binh_response_cleanup = yes
+		}
+	}
+	clr_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
 	if = {
 		limit = { has_country_flag = VIN_Campaign_Cao_Bac_Active }
 		clr_country_flag = VIN_Campaign_Cao_Bac_Active

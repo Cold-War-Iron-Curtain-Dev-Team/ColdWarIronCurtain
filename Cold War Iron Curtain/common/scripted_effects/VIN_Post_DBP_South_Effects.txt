@@ -1,0 +1,72 @@
+# Post-Dien Bien Phu policy choice; Geneva's Vietnamese peace gate is unchanged.
+
+vin_post_dbp_southern_war_check = {
+	if = {
+		limit = {
+			vin_post_dbp_southern_war_active_trigger = yes
+			NOT = { has_country_flag = VIN_Post_DBP_Southern_War_Recognized }
+		}
+		set_country_flag = VIN_Post_DBP_Southern_War_Recognized
+		country_event = { id = VIN_South.1 hours = 6 }
+	}
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Southern_War_Recognized
+			NOT = { vin_post_dbp_southern_war_active_trigger = yes }
+			NOT = { has_country_flag = VIN_Post_DBP_Southern_War_Ended }
+		}
+		set_country_flag = VIN_Post_DBP_Southern_War_Ended
+		if = {
+			limit = { country_exists = NLF }
+			NLF = { remove_ideas = NLF_Northern_Supply_Line }
+		}
+	}
+}
+
+vin_post_dbp_fund_southern_war = {
+	set_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+	set_country_flag = VIN_Post_DBP_Funded_NLF
+	set_temp_variable = { vin_supply_amount = -75 }
+	vin_change_campaign_supply = yes
+	if = {
+		limit = { country_exists = NLF }
+		NLF = {
+			add_ideas = NLF_Northern_Supply_Line
+			add_manpower = 15000
+			add_command_power = 25
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 4000 producer = VIN }
+			add_equipment_to_stockpile = { type = support_equipment amount = 500 producer = VIN }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = VIN }
+		}
+	}
+	if = {
+		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		FRA = {
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaCommunistScore = 25
+				tooltip = Add_to_Communist_Victory_Points_TT
+			}
+			add_to_variable = {
+				global.Indochina_War_Next_Phase_A_Points = 50
+				tooltip = Add_to_Escalation_Phase_TT
+			}
+		}
+	}
+}
+
+vin_post_dbp_press_for_geneva = {
+	set_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+	set_country_flag = VIN_Post_DBP_Pressed_For_Geneva
+	set_global_flag = Indochina_Geneva_Pursuit
+	set_temp_variable = { geneva_lev_amount = 75 }
+	geneva_outcome_award_communist = yes
+	if = {
+		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		FRA = {
+			add_to_variable = {
+				global.Indochina_War_Next_Phase_B_Points = 150
+				tooltip = Add_to_De_Escalation_Phase_TT
+			}
+		}
+	}
+}

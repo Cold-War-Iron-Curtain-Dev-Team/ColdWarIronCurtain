@@ -3,6 +3,7 @@
 VIN_hold_the_base_areas = {
 	allowed = { tag = VIN }
 	enable = {
+		VIN_no_campaign_running_trigger = yes
 		OR = {
 			has_war_with = FRE
 			has_war_with = THO
@@ -14,14 +15,17 @@ VIN_hold_the_base_areas = {
 	}
 	abort_when_not_enabled = yes
 	abort = {
-		NOT = {
-			OR = {
-				has_war_with = FRE
-				has_war_with = THO
-				has_war_with = TAI
-				has_war_with = TAM
-				has_war_with = FRA
-				has_war_with = VIE
+		OR = {
+			NOT = { VIN_no_campaign_running_trigger = yes }
+			NOT = {
+				OR = {
+					has_war_with = FRE
+					has_war_with = THO
+					has_war_with = TAI
+					has_war_with = TAM
+					has_war_with = FRA
+					has_war_with = VIE
+				}
 			}
 		}
 	}
@@ -115,6 +119,10 @@ VIN_campaign_all_in = {
 		tag = LOS
 		value = -300
 	}
+	ai_strategy = {
+		type = dont_defend_ally_borders
+		value = 100
+	}
 
 	# Concentrate for the operation without stripping the two disconnected base
 	# areas. Losing either base to a secondary front is not a campaign success.
@@ -136,13 +144,27 @@ VIN_campaign_all_in = {
 		id = 1762
 		value = 12
 	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 1763
+		value = 10
+	}
+	ai_strategy = {
+		type = theatre_distribution_demand_increase
+		id = 838
+		value = 10
+	}
+	ai_strategy = { type = front_unit_request state = 881 value = 180 }
+	ai_strategy = { type = front_unit_request state = 1762 value = 180 }
+	ai_strategy = { type = front_unit_request state = 1763 value = 180 }
+	ai_strategy = { type = front_unit_request state = 838 value = 160 }
 
 	# The campaign objectives are fortified mountain provinces, which the AI reads
 	# as attacks not worth making. A campaign already paid for does not get to
 	# decide the odds are bad.
 	ai_strategy = {
 		type = ignore_army_incompetence
-		value = 100
+		value = 50
 	}
 	ai_strategy = {
 		type = force_concentration_front_factor
@@ -200,10 +222,14 @@ VIN_campaign_cao_bac_push = {
 		tag = FRE
 		value = -500
 	}
-	ai_strategy = {
-		type = ignore_army_incompetence
-		value = 200
-	}
+	ai_strategy = { type = front_unit_request tag = VIE value = -500 }
+	ai_strategy = { type = front_unit_request tag = NUN value = -500 }
+	ai_strategy = { type = front_unit_request state = 1281 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1761 value = -600 }
+	ai_strategy = { type = front_unit_request state = 671 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1766 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -600 }
+	ai_strategy = { type = front_unit_request state = 786 value = -600 }
 }
 
 VIN_campaign_tay_bac_push = {
@@ -239,12 +265,48 @@ VIN_campaign_tay_bac_push = {
 	ai_strategy = {
 		type = front_unit_request
 		state = 671
-		value = -300
+		value = -600
+	}
+	ai_strategy = { type = front_unit_request tag = THO value = -500 }
+	ai_strategy = { type = front_unit_request tag = TAM value = -500 }
+	ai_strategy = { type = front_unit_request tag = FRE value = -450 }
+	ai_strategy = { type = front_unit_request tag = VIE value = -500 }
+	ai_strategy = { type = front_unit_request tag = NUN value = -500 }
+	ai_strategy = { type = front_unit_request state = 1281 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1280 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1768 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1766 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -600 }
+	ai_strategy = { type = front_unit_request state = 786 value = -600 }
+}
+
+VIN_counter_operation_lorraine = {
+	allowed = { tag = VIN }
+	enable = {
+		has_country_flag = VIN_Campaign_Tay_Bac_Active
+		FRE = {
+			has_country_flag = FRE_Lorraine_Response_Active
+			has_country_flag = FRE_Lorraine_Response_Deep
+		}
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			NOT = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
+			FRE = { NOT = { has_country_flag = FRE_Lorraine_Response_Deep } }
+		}
 	}
 	ai_strategy = {
-		type = ignore_army_incompetence
-		value = 200
+		type = front_control
+		state = 881
+		ordertype = front
+		execution_type = careful
+		ratio = 0.20
+		priority = 425
+		execute_order = yes
+		manual_attack = yes
 	}
+	ai_strategy = { type = front_unit_request state = 881 value = 200 }
 }
 
 VIN_campaign_hoa_binh_push = {
@@ -316,10 +378,15 @@ VIN_campaign_hoa_binh_push = {
 		tag = FRE
 		value = -350
 	}
-	ai_strategy = {
-		type = ignore_army_incompetence
-		value = 200
-	}
+	ai_strategy = { type = front_unit_request tag = THO value = -450 }
+	ai_strategy = { type = front_unit_request tag = VIE value = -450 }
+	ai_strategy = { type = front_unit_request tag = NUN value = -450 }
+	ai_strategy = { type = front_unit_request state = 1281 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1280 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1768 value = -600 }
+	ai_strategy = { type = front_unit_request state = 671 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -600 }
+	ai_strategy = { type = front_unit_request state = 786 value = -600 }
 }
 
 # Dien Bien Phu specifically. The passes are now ordinary connections, but the
@@ -359,10 +426,40 @@ VIN_take_the_valley = {
 		state = 671
 		value = 700
 	}
+	ai_strategy = { type = front_unit_request tag = THO value = -500 }
+	ai_strategy = { type = front_unit_request tag = TAM value = -500 }
+	ai_strategy = { type = front_unit_request tag = FRE value = -500 }
+	ai_strategy = { type = front_unit_request tag = VIE value = -500 }
+	ai_strategy = { type = front_unit_request tag = NUN value = -500 }
+	ai_strategy = { type = front_unit_request state = 1281 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1280 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1768 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1766 value = -600 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -600 }
+	ai_strategy = { type = front_unit_request state = 786 value = -600 }
+}
+
+# Keep Dong Van's army concentrated in Ha Giang; VIN receives no matching request.
+MEO_hold_ha_giang = {
+	allowed = { tag = MEO }
+	enable = { has_war = yes }
+	abort_when_not_enabled = yes
+	abort = { has_war = no }
+
 	ai_strategy = {
-		type = ignore_army_incompetence
-		value = 200
+		type = front_control
+		state = 1767
+		ordertype = front
+		execution_type = careful
+		ratio = 1.0
+		priority = 900
+		execute_order = yes
+		manual_attack = no
 	}
+	ai_strategy = { type = theatre_distribution_demand_increase id = 1767 value = 30 }
+	ai_strategy = { type = front_unit_request state = 1767 value = 1000 }
+	ai_strategy = { type = garrison value = -200 }
+	ai_strategy = { type = dont_defend_ally_borders value = 100 }
 }
 
 # The corps answers to Paris, but Paris is not the enemy in the field and Hanoi

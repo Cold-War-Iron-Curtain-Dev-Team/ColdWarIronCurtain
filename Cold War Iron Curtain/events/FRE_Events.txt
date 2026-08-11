@@ -1304,8 +1304,9 @@ country_event = {
 # FRE_Battles: multi-option battles chained from the preparation mission
 # successes in FRE_Events.txt:
 #   .1 Vinh Yen   (from FRE_Events.15)  -> .3 Day River
-#   .2 Mao Khe    (from FRE_Events.17)  -> .5 Hoa Binh
+#   .2 Mao Khe    (from FRE_Events.17)
 #   .4 Na San     (from FRE_Events.13)
+#   .5 Hoa Binh is now owned by the live VIN campaign-id-2 response package.
 #
 # FRE_DBP: the Dien Bien Phu siege, chained from Operation Castor success
 # (FRE_Events.32). A running weight variable FRE_DBP_Weight (init 50) is
@@ -1402,9 +1403,6 @@ country_event = {
 				indochina_struggle_recalculate_total_anti_communist_score = yes
 			}
 		}
-		hidden_effect = {
-			country_event = { id = FRE_Battles.5 days = 200 random_days = 45 }
-		}
 	}
 
 	option = {
@@ -1424,9 +1422,6 @@ country_event = {
 				}
 				indochina_struggle_recalculate_total_anti_communist_score = yes
 			}
-		}
-		hidden_effect = {
-			country_event = { id = FRE_Battles.5 days = 200 random_days = 45 }
 		}
 	}
 }
@@ -1554,51 +1549,43 @@ country_event = {
 	is_triggered_only = yes
 
 	option = {
-		# Hold Hoa Binh
-		name = FRE_Battles.5.a
-		ai_chance = { base = 40 }
-		add_manpower = -4000
-		add_war_support = -0.02
-		if = {
-			limit = {
-				NOT = { has_global_flag = Indochina_War_Over }
-			}
-			FRA = {
-				add_to_variable = {
-					StruggleInvolvedNationsIndochinaProFranceScore = 50
-					tooltip = Add_to_French_Victory_Points_TT
-				}
-				add_to_variable = {
-					global.Indochina_War_Next_Phase_A_Points = 50
-					tooltip = Add_to_Escalation_Phase_TT
-				}
-				indochina_struggle_recalculate_total_anti_communist_score = yes
+		# Salan's historical decision: prepare the February fighting withdrawal.
+		name = FRE_Battles.5.b
+		trigger = { has_country_flag = FRE_Hoa_Binh_Response_Choice_Pending }
+		ai_chance = {
+			base = 80
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
 			}
 		}
+		custom_effect_tooltip = FRE_Hoa_Binh_Amarante_tt
+		fre_hoa_binh_plan_amarante = yes
 	}
 
 	option = {
-		# Withdraw in good order
-		name = FRE_Battles.5.b
-		ai_chance = { base = 60 }
-		set_temp_variable = { fre_patience_delta = 3 }
-		fre_metropole_patience_change = yes
-		if = {
-			limit = {
-				NOT = { has_global_flag = Indochina_War_Over }
-			}
-			FRA = {
-				add_to_variable = {
-					StruggleInvolvedNationsIndochinaProFranceScore = -25
-					tooltip = Add_to_French_Victory_Points_TT
-				}
-				add_to_variable = {
-					global.Indochina_War_Next_Phase_B_Points = 25
-					tooltip = Add_to_De_Escalation_Phase_TT
-				}
-				indochina_struggle_recalculate_total_anti_communist_score = yes
+		# Counterfactual: accept the continuing cost and try to keep the salient.
+		name = FRE_Battles.5.a
+		trigger = {
+			has_country_flag = FRE_Hoa_Binh_Response_Choice_Pending
+			check_variable = { FRE_War_Credits > 79 }
+		}
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
 			}
 		}
+		custom_effect_tooltip = FRE_Hoa_Binh_Hold_tt
+		fre_hoa_binh_commit_hold = yes
+	}
+
+	# Save compatibility: an old delayed copy cannot create a new response.
+	option = {
+		name = FRE_Battles.5.c
+		trigger = { NOT = { has_country_flag = FRE_Hoa_Binh_Response_Choice_Pending } }
+		ai_chance = { base = 100 }
 	}
 }
 

@@ -74,7 +74,7 @@ focus_tree = {
 	focus = {
 		id = FRE_Operation_Lorraine
 		icon = GFX_Generic_National_Focus_Military_12
-		cost = 3.4
+		cost = 1.4	# a ten-day response focus; it must finish while the parent campaign is still live
 		x = -2
 		y = 2
 		relative_position_id = FRE_The_Situation_in_Route_Coloniale_4
@@ -84,26 +84,32 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_Send_De_lattre_de_Tassigny
 		}
-		# Sequencing/cooldown gate applies to SELECTING the focus; once started it must
-		# always be able to finish, so it never pauses or gets cancelled mid-progress.
+		# The date fallback permits early planning; the live campaign raises the offer.
 		continue_if_invalid = yes
 		available = {
-			# Historical date: Operation Lorraine (October 29 - November 8, 1952)
-			# The Navarre Plan (FRE_Operations_Accelerated) waives the date gate.
 			OR = {
+				VIN = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
 				date > 1952.10.15
 				has_country_flag = FRE_Operations_Accelerated
 			}
-			FRE_no_operation_running_trigger = yes
-			FRE_operation_cooldown_ready_trigger = yes
+			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = geneva_conference_concluded }
+			check_variable = { global.Indochina_War_Active_Phase < 9 }
 			custom_trigger_tooltip = {
 				tooltip = FRE_Operation_Lorraine_Available_tt
 				always = yes
 			}
 		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = geneva_conference_concluded
+			}
+		}
 		completion_reward = {
 			set_country_flag = FRE_Operation_Lorraine_Launched
-			country_event = { id = FRE_Events.19 days = 1 }
+			set_country_flag = FRE_Lorraine_Response_Unlocked
+			fre_lorraine_focus_complete = yes
 		}
 	}
 	focus = {
