@@ -375,3 +375,69 @@ test_vin_post_dbp_response_reset = {
 	}
 	log = "[VIN SOUTH] Response flags reset; the Dien Bien Phu recorder and map state were preserved"
 }
+
+# ---------------------------------------------------------------------------
+# Dien Bien Phu defensive-response diagnostics (run from FRE scope).
+# These report or advance only the attached response; the primary VIN campaign
+# remains responsible for its own objective, outcome, transfer, and peace.
+
+test_fre_dbp_response_status = {
+	log = "[FRE DBP] credits=[?FRE_War_Credits|0] patience=[?FRE_Metropole_Patience|0] condor_days=[?FRE_DBP_Condor_Hold_Days|0] siege_days=[?global.VIN_dbp_siege_days|0] fort_level=[?global.VIN_dbp_fort_level|0]"
+	if = { limit = { has_country_flag = FRE_DBP_Response_Active } log = "[FRE DBP] response active" }
+	else = { log = "[FRE DBP] response inactive" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Choice_Pending } log = "[FRE DBP] response choice pending" }
+	if = { limit = { has_country_flag = FRE_DBP_Posture_Standard } log = "[FRE DBP] posture: standard hold" }
+	if = { limit = { has_country_flag = FRE_DBP_Posture_Maximum } log = "[FRE DBP] posture: maximum reinforcement" }
+	if = { limit = { has_country_flag = FRE_DBP_Posture_Condor } log = "[FRE DBP] posture: Operation Condor" }
+	if = { limit = { has_country_flag = FRE_DBP_Posture_Vulture } log = "[FRE DBP] posture: Operation Vulture request" }
+	if = { limit = { has_country_flag = FRE_DBP_Condor_Window_Open } log = "[FRE DBP] Condor window is open after a recorded investment" }
+	if = { limit = { fre_dbp_condor_corridor_open_trigger = yes } log = "[FRE DBP] Condor map corridor currently passes" }
+	else = { log = "[FRE DBP] Condor map corridor currently fails" }
+	if = { limit = { has_country_flag = FRE_DBP_Condor_Objective_Achieved } log = "[FRE DBP] Condor seven-day objective achieved" }
+	if = { limit = { has_country_flag = FRE_DBP_Vulture_Request_Pending } log = "[FRE DBP] Vulture request pending in Washington" }
+	if = { limit = { has_country_flag = FRE_DBP_Vulture_Support_Approved } log = "[FRE DBP] Vulture air support approved/applied" }
+	if = { limit = { has_country_flag = FRE_DBP_Vulture_Support_Refused } log = "[FRE DBP] Vulture request refused" }
+	if = { limit = { has_country_flag = FRE_DBP_Vulture_Direct_Intervention } log = "[FRE DBP] USA focus produced direct intervention" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Held } log = "[FRE DBP] permanent result: standard/unsupported hold" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Reinforced } log = "[FRE DBP] permanent result: reinforced hold" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Condor } log = "[FRE DBP] permanent result: Condor-backed hold" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Vulture } log = "[FRE DBP] permanent result: Vulture-backed hold" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Fall } log = "[FRE DBP] permanent result: camp lost" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Inconclusive } log = "[FRE DBP] permanent result: inconclusive/aborted" }
+	if = { limit = { has_country_flag = FRE_DBP_Response_Result_Superseded } log = "[FRE DBP] permanent result: theatre superseded" }
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			if = { limit = { has_country_flag = VIN_Campaign_Dien_Bien_Active } log = "[FRE DBP] parent campaign is live" }
+			else = { log = "[FRE DBP] parent campaign is not live" }
+			if = { limit = { vin_dbp_valley_invested_trigger = yes } log = "[FRE DBP] Viet Minh investment prerequisite passes" }
+			else = { log = "[FRE DBP] Viet Minh investment prerequisite fails" }
+			if = { limit = { controls_province = 4529 } log = "[FRE DBP] WARNING - Viet Minh currently control the camp objective" }
+		}
+	}
+}
+
+test_fre_dbp_response_daily_check = {
+	fre_dbp_response_daily_tick = yes
+	test_fre_dbp_response_status = yes
+}
+
+test_fre_dbp_response_reset = {
+	fre_dbp_response_cleanup = yes
+	clr_country_flag = FRE_DBP_Response_Resolved
+	clr_country_flag = FRE_DBP_Response_Result_Held
+	clr_country_flag = FRE_DBP_Response_Result_Reinforced
+	clr_country_flag = FRE_DBP_Response_Result_Condor
+	clr_country_flag = FRE_DBP_Response_Result_Vulture
+	clr_country_flag = FRE_DBP_Response_Result_Fall
+	clr_country_flag = FRE_DBP_Response_Result_Inconclusive
+	clr_country_flag = FRE_DBP_Response_Result_Superseded
+	clr_country_flag = FRE_DBP_Response_Loss_Standard
+	clr_country_flag = FRE_DBP_Response_Loss_Maximum
+	clr_country_flag = FRE_DBP_Response_Loss_Condor
+	clr_country_flag = FRE_DBP_Response_Loss_Vulture
+	clr_country_flag = FRE_DBP_Condor_Result_Failed
+	clr_country_flag = FRE_DBP_Vulture_Result_Refused
+	clr_country_flag = FRE_DBP_Garrison_Preserved
+	log = "[FRE DBP] response-only state reset; parent campaign, map, and Geneva recorder preserved"
+}

@@ -60,7 +60,8 @@ THEATRES = OrderedDict([
     ("SEA Audit - French Indochina.csv", [
         "FRE_Events.txt", "FRE_Operation_Events.txt", "Indochina_War.txt",
         "Indochina_War_Rework.txt", "Indochina_Flavor_Events.txt",
-        "IC_Laos_Raid.txt", "SWF_Indochina_War_events.txt",
+        "IC_Laos_Raid.txt", "FRE_Dien_Bien_Response_Events.txt",
+        "SWF_Indochina_War_events.txt",
     ]),
     ("SEA Audit - Geneva and Settlement.csv", [
         "Geneva_Conference_Invitations.txt", "Geneva_Conference_Session.txt",
@@ -97,6 +98,7 @@ SEA_LOC_FILES = [
     "VIN_parties_l_english.yml", "VIN_custom_effect_tooltips_l_english.yml",
     "VIN_Post_DBP_South_l_english.yml",
     "French_Indochina_l_english.yml", "FRE_CEFEO_l_english.yml",
+    "FRE_Dien_Bien_Response_l_english.yml",
     "IC_Laos_Raid_l_english.yml", "CWIC_Geneva_Conference_l_english.yml",
     "CWIC_Indochina_Outcomes_l_english.yml", "CWIC_Struggle_l_english.yml",
     "MEO_events_l_english .yml", "MEO_focus_50s_l_english.yml",

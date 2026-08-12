@@ -713,8 +713,53 @@ country_event = {
 
 	option = {
 		name = FRE_Events.23.a
-		set_country_flag = FRE_Mission_Operation_Castor_Activated
-		activate_mission = FRE_Mission_Operation_Castor
+		trigger = {
+			check_variable = { FRE_War_Credits > 99 }
+			OR = {
+				has_equipment = { transport_plane_equipment > 5 }
+				has_country_flag = FRE_Air_Assets_Delivered
+			}
+		}
+		ai_chance = {
+			base = 80
+			modifier = { factor = 2  is_historical_focus_on = yes }
+			modifier = { factor = 0.25  check_variable = { FRE_Metropole_Patience < 33 } }
+		}
+		custom_effect_tooltip = FRE_Castor_Full_Drop_tt
+		fre_castor_begin_full_drop = yes
+	}
+
+	option = {
+		name = FRE_Events.23.b
+		trigger = {
+			check_variable = { FRE_War_Credits > 59 }
+			OR = {
+				has_equipment = { transport_plane_equipment > 3 }
+				has_country_flag = FRE_Air_Assets_Delivered
+			}
+		}
+		ai_chance = {
+			base = 20
+			modifier = { factor = 4  check_variable = { FRE_War_Credits < 100 } }
+		}
+		custom_effect_tooltip = FRE_Castor_Limited_Drop_tt
+		fre_castor_begin_limited_drop = yes
+	}
+
+	option = {
+		name = FRE_Events.23.c
+		trigger = {
+			OR = {
+				check_variable = { FRE_War_Credits < 60 }
+				AND = {
+					NOT = { has_equipment = { transport_plane_equipment > 3 } }
+					NOT = { has_country_flag = FRE_Air_Assets_Delivered }
+				}
+			}
+		}
+		ai_chance = { base = 100 }
+		custom_effect_tooltip = FRE_Castor_Unfunded_tt
+		fre_castor_abort_unfunded = yes
 	}
 }
 
@@ -1088,38 +1133,6 @@ country_event = {
 
 	option = {
 		name = FRE_Events.32.a
-		add_stability = -0.04
-		add_equipment_to_stockpile = {
-			type = transport_plane_equipment
-			amount = -6
-		}
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_1
-			amount = -9000
-		}
-		add_equipment_to_stockpile = {
-			type = support_equipment
-			amount = -1600
-		}
-		air_experience = 125
-		if = {
-			limit = {
-				NOT = { has_global_flag = Indochina_War_Over }
-			}
-			# Establishing the base is only the beginning: the real payoff
-			# (or catastrophe) comes from the FRE_DBP siege arc.
-			FRA = {
-				add_to_variable = {
-					StruggleInvolvedNationsIndochinaProFranceScore = 50
-					tooltip = Add_to_French_Victory_Points_TT
-				}
-				add_to_variable = {
-					global.Indochina_War_Next_Phase_A_Points = 50
-					tooltip = Add_to_Escalation_Phase_TT
-				}
-				indochina_struggle_recalculate_total_anti_communist_score = yes
-			}
-		}
 		if = {
 			limit = { country_exists = VIE }
 			VIE = {
@@ -1129,67 +1142,38 @@ country_event = {
 				}
 			}
 		}
-		set_country_flag = FRE_Dien_Bien_Phu_Established
-		set_country_flag = FRE_Operation_Castor_Success
-		set_country_flag = FRE_Mission_Operation_Castor_Completed
-		set_country_flag = FRE_Operation_Cooldown_Castor
-		fre_operation_finish = yes
-		clr_country_flag = FRE_Mission_Operation_Castor_Activated
-		hidden_effect = {
-			country_event = { id = FRE_DBP.1 days = 21 random_days = 7 }
-		}
 	}
 }
 
 country_event = {
 	id = FRE_Events.33 # Operation Castor Failure
 	title = FRE_Events.33.t
-	desc = FRE_Events.33.d
+	desc = {
+		trigger = {
+			has_country_flag = FRE_Operation_Castor_Result_Failure
+			NOT = { has_country_flag = FRE_Operation_Castor_Result_Unfunded }
+			NOT = { has_country_flag = FRE_Operation_Castor_Result_Landing_Ground_Lost }
+		}
+		text = FRE_Events.33.d
+	}
+	desc = {
+		trigger = { has_country_flag = FRE_Operation_Castor_Result_Unfunded }
+		text = FRE_Events.33.d_unfunded
+	}
+	desc = {
+		trigger = { has_country_flag = FRE_Operation_Castor_Result_Landing_Ground_Lost }
+		text = FRE_Events.33.d_landing_lost
+	}
+	desc = {
+		trigger = { has_country_flag = FRE_Operation_Castor_Result_Superseded }
+		text = FRE_Events.33.d_superseded
+	}
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
 
 	option = {
 		name = FRE_Events.33.a
-		add_stability = -0.12
-		add_war_support = -0.08
-		add_equipment_to_stockpile = {
-			type = transport_plane_equipment
-			amount = -4
-		}
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_1
-			amount = -6500
-		}
-		add_equipment_to_stockpile = {
-			type = support_equipment
-			amount = -1000
-		}
-		if = {
-			limit = {
-				NOT = { has_global_flag = Indochina_War_Over }
-			}
-			FRA = {
-				add_to_variable = {
-					StruggleInvolvedNationsIndochinaProFranceScore = -100
-					tooltip = Add_to_French_Victory_Points_TT
-				}
-				add_to_variable = {
-					FRA.StruggleInvolvedNationsIndochinaCommunistScore = 200
-					tooltip = Add_to_Communist_Victory_Points_TT
-				}
-				add_to_variable = {
-					global.Indochina_War_Next_Phase_A_Points = 175
-					tooltip = Add_to_Escalation_Phase_TT
-				}
-				indochina_struggle_recalculate_total_anti_communist_score = yes
-			}
-		}
-		set_country_flag = FRE_Operation_Castor_Failure
-		set_country_flag = FRE_Mission_Operation_Castor_Failed
-		set_country_flag = FRE_Operation_Cooldown_Castor
-		fre_operation_finish = yes
-		clr_country_flag = FRE_Mission_Operation_Castor_Activated
 	}
 }
 
@@ -1308,9 +1292,10 @@ country_event = {
 #   .4 Na San     (from FRE_Events.13)
 #   .5 Hoa Binh is now owned by the live VIN campaign-id-2 response package.
 #
-# FRE_DBP: the Dien Bien Phu siege, chained from Operation Castor success
-# (FRE_Events.32). A running weight variable FRE_DBP_Weight (init 50) is
-# shifted by every choice and resolves the final assault in .6:
+# FRE_DBP: the legacy Dien Bien Phu event study. Its production entry point was
+# retired when the live campaign-id-3 response took ownership of the defense;
+# the blocks remain gated for old saves and console compatibility. A running
+# weight variable FRE_DBP_Weight (init 50) was shifted by every choice:
 #   .1 garrison command -> .2 Beatrice/Gabrielle -> .3 artillery crisis
 #   -> .4 the airbridge -> .5 Washington's answer (-> .10 USA-side)
 #   -> .6 final assault -> .7 victory / .8 the camp falls (Albatross option)
@@ -1600,6 +1585,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	immediate = {
 		hidden_effect = {
@@ -1635,6 +1624,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	option = {
 		# Counter-attack at once
@@ -1664,6 +1657,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	option = {
 		# Improvise counter-battery tactics
@@ -1697,6 +1694,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	option = {
 		# Commit every transport we have
@@ -1733,6 +1734,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	option = {
 		# Request Operation Vulture
@@ -1782,7 +1787,14 @@ country_event = {
 		if = {
 			limit = { country_exists = FRE }
 			FRE = {
-				add_to_variable = { FRE_DBP_Weight = 25 }
+				if = {
+					limit = { has_country_flag = FRE_DBP_Response_Active }
+					fre_dbp_vulture_approved = yes
+				}
+				else_if = {
+					limit = { NOT = { has_country_flag = FRE_DBP_Response_Resolved } }
+					add_to_variable = { FRE_DBP_Weight = 25 }
+				}
 				custom_effect_tooltip = FRE_DBP_Vulture_Approved_tt
 			}
 		}
@@ -1806,7 +1818,14 @@ country_event = {
 		if = {
 			limit = { country_exists = FRE }
 			FRE = {
-				add_war_support = -0.02
+				if = {
+					limit = { has_country_flag = FRE_DBP_Response_Active }
+					fre_dbp_vulture_refused = yes
+				}
+				else_if = {
+					limit = { NOT = { has_country_flag = FRE_DBP_Response_Resolved } }
+					add_war_support = -0.02
+				}
 			}
 		}
 	}
@@ -1819,6 +1838,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	immediate = {
 		hidden_effect = {
@@ -1854,6 +1877,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	option = {
 		name = FRE_DBP.7.a
@@ -1900,6 +1927,10 @@ country_event = {
 	picture = GFX_report_event_generic_soldiers
 
 	is_triggered_only = yes
+	trigger = {
+		NOT = { has_country_flag = FRE_DBP_Response_Active }
+		NOT = { has_country_flag = FRE_DBP_Response_Resolved }
+	}
 
 	option = {
 		# Fight to the last

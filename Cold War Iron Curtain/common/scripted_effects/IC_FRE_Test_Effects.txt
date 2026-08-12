@@ -8,7 +8,8 @@
 # Companion files: IC_Struggle_Test_Effects.txt (struggle core) and
 # IC_Geneva_Test_Effects.txt (Geneva conference). This file covers the CEFEO
 # rework: Metropole Patience, the FRA lifeline, GCMA/VNA bonuses, the
-# operation gates, the Dien Bien Phu arc, command rotation and dissolution.
+# operation gates, Operation Castor, the Dien Bien Phu arc, command rotation
+# and dissolution.
 #
 # Quick reference:
 #   -- status / patience --
@@ -23,11 +24,18 @@
 #   -- operations / battles --
 #   e test_fre_ops_unlock        waive date gates, clear cooldowns + activations
 #   e test_fre_credits_grant     +500 War Credits so every tier is affordable
-#   e test_fre_operation_launch  open the commitment prompt (Castor by default)
+#   e test_fre_operation_launch  open the generic commitment prompt (Brochet by default)
 #   e test_fre_operation_resolve fire the watchdog as if the 90-day timer expired
 #   e test_fre_operation_threshold  force the deterministic outcome
 #   e test_fre_operation_finish  clear all operation state, fire no outcome
 #   e test_fre_operation_status  log current op, tier, states and credits
+#   e test_fre_castor_start_full start the exact-province full Castor deployment
+#   e test_fre_castor_advance    move an active Castor to its next daily check
+#   e test_fre_castor_day_14     exercise the exact objective-completion edge
+#   e test_fre_castor_fail       force an active Castor failure
+#   e test_fre_castor_supersede  force an active Castor supersession
+#   e test_fre_castor_status     log Castor lifecycle and hold counters
+#   e test_fre_castor_reset      clear Castor test state and its camp formation
 #   e test_fre_lorraine_status   log Lorraine posture and exclusive result
 #   e test_fre_hoa_binh_status   log phase-two posture and exclusive result
 #   e test_fre_hoa_binh_day_105  force a planned Amarante request at day 105
@@ -142,7 +150,7 @@ test_fre_ops_unlock = {
 			clr_country_flag = FRE_Mission_Operation_Hirondelle_Activated
 			clr_country_flag = FRE_Mission_Operation_Mouette_Activated
 			clr_country_flag = FRE_Mission_Operation_Brochet_Activated
-			clr_country_flag = FRE_Mission_Operation_Castor_Activated
+			fre_castor_force_superseded_cleanup = yes
 		}
 	}
 }
@@ -225,9 +233,9 @@ test_fre_dissolve_vin = {
 # Tai highlands / Dien Bien Phu ownership
 # ----------------------------------------------------------------------------
 # The Northwest campaign now takes only Hoang Lien Son (1761). The Dien Bien Phu
-# valley (671, province 4529) changes hands with the French arc: FRE_DBP.8 hands
-# it to Hanoi, FRE_DBP.7 leaves the rump federation standing. SWF_Indochina_War.14
-# is the fallback for a game where the CEFEO never fortified the valley at all.
+# valley (671, province 4529) changes hands only through the VIN map campaign;
+# its objective decides whether the rump federation survives. SWF_Indochina_War.14
+# remains the fallback for a game where the CEFEO never fortified the valley.
 
 test_tai_status = {
 	if = { limit = { country_exists = TAI } log = "TAI STATUS: federation still exists" }
@@ -378,12 +386,13 @@ test_fre_credits_grant = {
 }
 
 # Open the commitment prompt for an operation without taking the focus.
-# Defaults to Castor; edit fre_op_id for the others (1-5).
+# Defaults to Brochet; edit fre_op_id for the others (1-4). Castor has its own
+# exact-province lifecycle and test effects below.
 test_fre_operation_launch = {
 	if = {
 		limit = { country_exists = FRE }
 		FRE = {
-			set_temp_variable = { fre_op_id = 5 }
+			set_temp_variable = { fre_op_id = 4 }
 			fre_operation_begin = yes
 		}
 	}
@@ -412,13 +421,121 @@ test_fre_operation_finish = {
 			clr_country_flag = FRE_Mission_Operation_Hirondelle_Activated
 			clr_country_flag = FRE_Mission_Operation_Mouette_Activated
 			clr_country_flag = FRE_Mission_Operation_Brochet_Activated
-			clr_country_flag = FRE_Mission_Operation_Castor_Activated
 		}
 	}
 }
 
 test_fre_operation_status = {
 	log = "[FRE OPS] current=[?FRE.FRE_op_current|0] tier=[?FRE.FRE_op_commitment_tier|0] atk=[?FRE.FRE_op_attacker_state|0] def=[?FRE.FRE_op_defender_state|0] credits=[?FRE.FRE_War_Credits|0]"
+}
+
+# Start Castor at full commitment. The camp must already be under
+# French-aligned control, matching the production focus gate.
+test_fre_castor_start_full = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_temp_variable = { fre_credit_amount = 500 }
+			fre_change_war_credits = yes
+			add_manpower = 10000
+			add_equipment_to_stockpile = { type = transport_plane_equipment amount = 20 producer = FRA }
+			set_country_flag = FRE_Operation_Castor_Launched
+			if = {
+				limit = { fre_dbp_french_aligned_controls_camp_trigger = yes }
+				fre_castor_begin_full_drop = yes
+			}
+			else = { log = "[CASTOR] BLOCKED - French-aligned forces do not control the camp province" }
+		}
+	}
+}
+
+# Advance one daily check. Set FRE_Castor_Hold_Days to 13 first to exercise
+# the objective-complete edge while French-aligned forces control the camp.
+test_fre_castor_advance = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_castor_daily_tick = yes }
+	}
+}
+
+test_fre_castor_day_14 = {
+	if = {
+		limit = {
+			country_exists = FRE
+			FRE = {
+				has_country_flag = FRE_Castor_Airhead_Active
+				fre_dbp_french_aligned_controls_camp_trigger = yes
+			}
+		}
+		FRE = {
+			set_variable = { FRE_Castor_Hold_Days = 13 }
+			set_variable = { FRE_Castor_Days_Elapsed = 13 }
+			fre_castor_daily_tick = yes
+		}
+	}
+}
+
+test_fre_castor_fail = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_castor_resolve_failure = yes }
+	}
+}
+
+test_fre_castor_supersede = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_castor_resolve_superseded = yes }
+	}
+}
+
+test_fre_castor_status = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			log = "[CASTOR] hold=[?FRE_Castor_Hold_Days|0]/[?FRE_Castor_Hold_Required|0] elapsed=[?FRE_Castor_Days_Elapsed|0] credits=[?FRE_War_Credits|0]"
+			if = { limit = { has_country_flag = FRE_Castor_Airhead_Active } log = "[CASTOR] Airhead establishment active" }
+			if = { limit = { has_country_flag = FRE_Operation_Castor_Result_Success } log = "[CASTOR] Result: airhead established" }
+			if = { limit = { has_country_flag = FRE_Operation_Castor_Result_Failure } log = "[CASTOR] Result: establishment failed" }
+			if = { limit = { has_country_flag = FRE_Operation_Castor_Result_Superseded } log = "[CASTOR] Result: theatre-superseded" }
+			set_temp_variable = { fre_castor_test_results = 0 }
+			if = { limit = { has_country_flag = FRE_Operation_Castor_Result_Success } add_to_temp_variable = { fre_castor_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Castor_Result_Failure } add_to_temp_variable = { fre_castor_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Castor_Result_Superseded } add_to_temp_variable = { fre_castor_test_results = 1 } }
+			if = { limit = { check_variable = { fre_castor_test_results > 1 } } log = "[CASTOR] FAIL - more than one permanent result" }
+			if = {
+				limit = {
+					has_country_flag = FRE_Castor_Airhead_Active
+					NOT = { has_country_flag = FRE_Mission_Operation_Castor_Activated }
+				}
+				log = "[CASTOR] FAIL - active airhead has no active mission flag"
+			}
+		}
+	}
+}
+
+test_fre_castor_reset = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			fre_castor_force_superseded_cleanup = yes
+			fre_dbp_disband_gono = yes
+			clr_country_flag = FRE_Operation_Castor_Result_Success
+			clr_country_flag = FRE_Operation_Castor_Result_Failure
+			clr_country_flag = FRE_Operation_Castor_Result_Superseded
+			clr_country_flag = FRE_Operation_Castor_Result_Failure_Full
+			clr_country_flag = FRE_Operation_Castor_Result_Failure_Limited
+			clr_country_flag = FRE_Operation_Castor_Result_Unfunded
+			clr_country_flag = FRE_Operation_Castor_Result_Landing_Ground_Lost
+			clr_country_flag = FRE_Operation_Castor_Success
+			clr_country_flag = FRE_Operation_Castor_Failure
+			clr_country_flag = FRE_Mission_Operation_Castor_Completed
+			clr_country_flag = FRE_Mission_Operation_Castor_Failed
+			clr_country_flag = FRE_Operation_Castor_Launched
+			clr_country_flag = FRE_Operation_Cooldown_Castor
+			clr_country_flag = FRE_Dien_Bien_Phu_Established
+		}
+	}
 }
 
 test_fre_lorraine_status = {
