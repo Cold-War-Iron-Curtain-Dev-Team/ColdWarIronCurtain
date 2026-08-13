@@ -14,6 +14,8 @@
 # Quick reference:
 #   -- status / patience --
 #   e test_fre_status            log patience, tier, commander bonus, GCMA, VNA
+#   e test_indochina_command_status  verify the CEFEO faction, both commands, crown-domain custody, and separate wars
+#   e test_indochina_command_repair  rebuild the early command model after a test/save migration
 #   e test_fre_patience_set_0    patience to 0 (fires the milestone chain)
 #   e test_fre_patience_set_50   patience to 50
 #   e test_fre_patience_set_100  patience to 100
@@ -36,6 +38,21 @@
 #   e test_fre_castor_supersede  force an active Castor supersession
 #   e test_fre_castor_status     log Castor lifecycle and hold counters
 #   e test_fre_castor_reset      clear Castor test state and its camp formation
+#   e test_fre_pollux_start_historical  start the historical split evacuation
+#   e test_fre_pollux_start_escort      start the protected Route Pavie withdrawal
+#   e test_fre_pollux_day_7      exercise the escorted/airlift completion edge
+#   e test_fre_pollux_fail       force the active evacuation's column-loss result
+#   e test_fre_pollux_supersede  force the theatre-superseded result
+#   e test_fre_pollux_status     log posture, route, counters, and exclusive result
+#   e test_fre_pollux_reset      clear Pollux test state and rebuild no formation
+#   e test_fre_atlante_start_full       start the full central-Vietnam commitment
+#   e test_fre_atlante_start_vietnamese start the Vietnamese-led coastal plan
+#   e test_fre_atlante_choose_north     cancel Atlante and bank the northern reserve
+#   e test_fre_atlante_day_14           exercise the selected objective's completion edge
+#   e test_fre_atlante_fail             force the active offensive's stalled result
+#   e test_fre_atlante_supersede        force the theatre-superseded result
+#   e test_fre_atlante_status           log posture, objectives, counters, and result exclusivity
+#   e test_fre_atlante_reset            clear Atlante test state
 #   e test_fre_lorraine_status   log Lorraine posture and exclusive result
 #   e test_fre_hoa_binh_status   log phase-two posture and exclusive result
 #   e test_fre_hoa_binh_day_105  force a planned Amarante request at day 105
@@ -146,11 +163,15 @@ test_fre_ops_unlock = {
 			clr_country_flag = FRE_Operation_Cooldown_Mouette
 			clr_country_flag = FRE_Operation_Cooldown_Brochet
 			clr_country_flag = FRE_Operation_Cooldown_Castor
+			clr_country_flag = FRE_Operation_Cooldown_Pollux
+			clr_country_flag = FRE_Operation_Cooldown_Atlante
 			clr_country_flag = FRE_Mission_Operation_Lorraine_Activated
 			clr_country_flag = FRE_Mission_Operation_Hirondelle_Activated
 			clr_country_flag = FRE_Mission_Operation_Mouette_Activated
 			clr_country_flag = FRE_Mission_Operation_Brochet_Activated
 			fre_castor_force_superseded_cleanup = yes
+			fre_pollux_force_superseded_cleanup = yes
+			fre_atlante_force_superseded_cleanup = yes
 		}
 	}
 }
@@ -534,6 +555,275 @@ test_fre_castor_reset = {
 			clr_country_flag = FRE_Operation_Castor_Launched
 			clr_country_flag = FRE_Operation_Cooldown_Castor
 			clr_country_flag = FRE_Dien_Bien_Phu_Established
+		}
+	}
+}
+
+test_fre_pollux_prepare = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_temp_variable = { fre_credit_amount = 500 }
+			fre_change_war_credits = yes
+			add_manpower = 10000
+			add_equipment_to_stockpile = { type = transport_plane_equipment amount = 20 producer = FRA }
+			set_country_flag = FRE_Dien_Bien_Phu_Established
+			set_country_flag = FRE_Operation_Pollux_Launched
+			if = {
+				limit = {
+					NOT = { has_global_flag = VIN_DBP_Garrison_Deployed }
+					fre_dbp_french_aligned_controls_camp_trigger = yes
+				}
+				fre_dbp_fortify_camp = yes
+			}
+		}
+	}
+}
+
+test_fre_pollux_start_historical = {
+	test_fre_pollux_prepare = yes
+	if = {
+		limit = {
+			country_exists = FRE
+			FRE = {
+				fre_pollux_live_window_trigger = yes
+				fre_pollux_french_aligned_controls_lai_chau_trigger = yes
+			}
+		}
+		FRE = { fre_pollux_begin_historical = yes }
+	}
+	else = { log = "[POLLUX] BLOCKED - camp or Lai Chau is not under French-aligned control" }
+}
+
+test_fre_pollux_start_escort = {
+	test_fre_pollux_prepare = yes
+	if = {
+		limit = {
+			country_exists = FRE
+			FRE = {
+				fre_pollux_live_window_trigger = yes
+				fre_pollux_french_aligned_controls_lai_chau_trigger = yes
+			}
+		}
+		FRE = { fre_pollux_begin_escort = yes }
+	}
+	else = { log = "[POLLUX] BLOCKED - camp or Lai Chau is not under French-aligned control" }
+}
+
+test_fre_pollux_day_7 = {
+	if = {
+		limit = {
+			country_exists = FRE
+			FRE = {
+				has_country_flag = FRE_Pollux_Evacuation_Active
+				OR = {
+					AND = { has_country_flag = FRE_Pollux_Posture_Escort  fre_pollux_corridor_open_trigger = yes }
+					AND = { has_country_flag = FRE_Pollux_Posture_Airlift  fre_dbp_french_aligned_controls_camp_trigger = yes }
+				}
+			}
+		}
+		FRE = {
+			set_variable = { FRE_Pollux_Hold_Days = 6 }
+			set_variable = { FRE_Pollux_Days_Elapsed = 6 }
+			fre_pollux_daily_tick = yes
+		}
+	}
+	else = { log = "[POLLUX] BLOCKED - selected evacuation objective is not controlled" }
+}
+
+test_fre_pollux_fail = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_pollux_resolve_column_loss = yes }
+	}
+}
+
+test_fre_pollux_supersede = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_pollux_resolve_superseded = yes }
+	}
+}
+
+test_fre_pollux_status = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			log = "[POLLUX] hold=[?FRE_Pollux_Hold_Days|0]/7 elapsed=[?FRE_Pollux_Days_Elapsed|0]/21 credits=[?FRE_War_Credits|0]"
+			if = { limit = { has_country_flag = FRE_Pollux_Evacuation_Active } log = "[POLLUX] Evacuation active" }
+			if = { limit = { has_country_flag = FRE_Pollux_Posture_Historical } log = "[POLLUX] Historical split evacuation" }
+			if = { limit = { has_country_flag = FRE_Pollux_Posture_Escort } log = "[POLLUX] Route Pavie escort" }
+			if = { limit = { has_country_flag = FRE_Pollux_Posture_Airlift } log = "[POLLUX] Expanded airlift" }
+			if = { limit = { fre_pollux_french_aligned_controls_lai_chau_trigger = yes } log = "[POLLUX] Lai Chau controlled" }
+			if = { limit = { fre_pollux_french_aligned_controls_route_pavie_trigger = yes } log = "[POLLUX] Route Pavie approach controlled" }
+			if = { limit = { fre_dbp_french_aligned_controls_camp_trigger = yes } log = "[POLLUX] Dien Bien Phu camp controlled" }
+			set_temp_variable = { fre_pollux_test_results = 0 }
+			if = { limit = { has_country_flag = FRE_Operation_Pollux_Result_Preserved } add_to_temp_variable = { fre_pollux_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Pollux_Result_Column_Loss } add_to_temp_variable = { fre_pollux_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Pollux_Result_Superseded } add_to_temp_variable = { fre_pollux_test_results = 1 } }
+			if = { limit = { check_variable = { fre_pollux_test_results > 1 } } log = "[POLLUX] FAIL - more than one permanent result" }
+			if = {
+				limit = {
+					has_country_flag = FRE_Pollux_Evacuation_Active
+					NOT = { has_country_flag = FRE_Mission_Operation_Pollux_Activated }
+				}
+				log = "[POLLUX] FAIL - active evacuation has no mission flag"
+			}
+		}
+	}
+}
+
+test_fre_pollux_reset = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			fre_pollux_force_superseded_cleanup = yes
+			fre_dbp_disband_gono = yes
+			clr_country_flag = FRE_Operation_Pollux_Result_Preserved
+			clr_country_flag = FRE_Operation_Pollux_Result_Column_Loss
+			clr_country_flag = FRE_Operation_Pollux_Result_Superseded
+			clr_country_flag = FRE_Pollux_Result_Preserved_Escort
+			clr_country_flag = FRE_Pollux_Result_Preserved_Airlift
+			clr_country_flag = FRE_Pollux_Result_Column_Loss_Historical
+			clr_country_flag = FRE_Pollux_Result_Column_Loss_Escort
+			clr_country_flag = FRE_Pollux_Result_Column_Loss_Airlift
+			clr_country_flag = FRE_Pollux_Result_Column_Loss_Origin
+			clr_country_flag = FRE_Pollux_Result_Column_Loss_Unfunded
+			clr_country_flag = FRE_Mission_Operation_Pollux_Completed
+			clr_country_flag = FRE_Mission_Operation_Pollux_Failed
+			clr_country_flag = FRE_Operation_Pollux_Launched
+			clr_country_flag = FRE_Operation_Cooldown_Pollux
+			clr_country_flag = FRE_Pollux_Garrison_Reinforced
+			clr_country_flag = FRE_Pollux_Survivor_Group_Deployed
+		}
+	}
+}
+
+test_fre_atlante_prepare = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_temp_variable = { fre_credit_amount = 500 }
+			fre_change_war_credits = yes
+			add_manpower = 10000
+			set_country_flag = FRE_Operation_Atlante_Launched
+		}
+	}
+}
+
+test_fre_atlante_start_full = {
+	test_fre_atlante_prepare = yes
+	if = {
+		limit = { country_exists = FRE  FRE = { fre_atlante_live_window_trigger = yes } }
+		FRE = { fre_atlante_begin_full = yes }
+	}
+	else = { log = "[ATLANTE] BLOCKED - State of Vietnam and the southern Viet Minh must exist and remain at war" }
+}
+
+test_fre_atlante_start_vietnamese = {
+	test_fre_atlante_prepare = yes
+	if = {
+		limit = { country_exists = FRE  FRE = { fre_atlante_live_window_trigger = yes } }
+		FRE = { fre_atlante_begin_vietnamese = yes }
+	}
+	else = { log = "[ATLANTE] BLOCKED - State of Vietnam and the southern Viet Minh must exist and remain at war" }
+}
+
+test_fre_atlante_choose_north = {
+	test_fre_atlante_prepare = yes
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_atlante_choose_northern_priority = yes }
+	}
+}
+
+test_fre_atlante_day_14 = {
+	if = {
+		limit = {
+			country_exists = FRE
+			FRE = {
+				has_country_flag = FRE_Atlante_Offensive_Active
+				OR = {
+					AND = { has_country_flag = FRE_Atlante_Posture_Full  fre_atlante_full_objective_trigger = yes }
+					AND = { has_country_flag = FRE_Atlante_Posture_Vietnamese  fre_atlante_vietnamese_objective_trigger = yes }
+				}
+			}
+		}
+		FRE = {
+			set_variable = { FRE_Atlante_Hold_Days = 13 }
+			fre_atlante_daily_tick = yes
+		}
+	}
+	else = { log = "[ATLANTE] BLOCKED - selected operational objective is not controlled" }
+}
+
+test_fre_atlante_fail = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_atlante_resolve_stalled = yes }
+	}
+}
+
+test_fre_atlante_supersede = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_atlante_resolve_superseded = yes }
+	}
+}
+
+test_fre_atlante_status = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			log = "[ATLANTE] hold=[?FRE_Atlante_Hold_Days|0]/14 elapsed=[?FRE_Atlante_Days_Elapsed|0]/90 credits=[?FRE_War_Credits|0] dbp_siege=[?global.VIN_dbp_siege_days|0]"
+			if = { limit = { has_country_flag = FRE_Atlante_Offensive_Active } log = "[ATLANTE] Offensive active" }
+			if = { limit = { has_country_flag = FRE_Atlante_Posture_Full } log = "[ATLANTE] Full CEFEO commitment" }
+			if = { limit = { has_country_flag = FRE_Atlante_Posture_Vietnamese } log = "[ATLANTE] Vietnamese-led commitment" }
+			if = { limit = { has_country_flag = FRE_Atlante_Strategy_Northern_Priority } log = "[ATLANTE] Northern priority selected" }
+			if = { limit = { fre_atlante_french_aligned_controls_north_objective_trigger = yes } log = "[ATLANTE] Northern Interzone V objective controlled" }
+			if = { limit = { fre_atlante_french_aligned_controls_south_objective_trigger = yes } log = "[ATLANTE] Southern Interzone V objective controlled" }
+			if = { limit = { fre_atlante_vietnamese_objective_trigger = yes } log = "[ATLANTE] Vietnamese coastal objective controlled" }
+			if = { limit = { has_country_flag = FRE_Atlante_Northern_Reserve_Available } log = "[ATLANTE] Northern reserve available" }
+			if = { limit = { has_country_flag = FRE_Atlante_Northern_Reserve_Committed } log = "[ATLANTE] Northern reserve committed at Dien Bien Phu" }
+			set_temp_variable = { fre_atlante_test_results = 0 }
+			if = { limit = { has_country_flag = FRE_Operation_Atlante_Result_Central_Success } add_to_temp_variable = { fre_atlante_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Atlante_Result_Vietnamese_Foothold } add_to_temp_variable = { fre_atlante_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Atlante_Result_Stalled } add_to_temp_variable = { fre_atlante_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Atlante_Result_Northern_Priority } add_to_temp_variable = { fre_atlante_test_results = 1 } }
+			if = { limit = { has_country_flag = FRE_Operation_Atlante_Result_Superseded } add_to_temp_variable = { fre_atlante_test_results = 1 } }
+			if = { limit = { check_variable = { fre_atlante_test_results > 1 } } log = "[ATLANTE] FAIL - more than one permanent result" }
+			if = {
+				limit = {
+					has_country_flag = FRE_Atlante_Offensive_Active
+					NOT = { has_country_flag = FRE_Mission_Operation_Atlante_Activated }
+				}
+				log = "[ATLANTE] FAIL - active offensive has no mission flag"
+			}
+		}
+	}
+}
+
+test_fre_atlante_reset = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			fre_atlante_force_superseded_cleanup = yes
+			clr_country_flag = FRE_Operation_Atlante_Result_Central_Success
+			clr_country_flag = FRE_Operation_Atlante_Result_Vietnamese_Foothold
+			clr_country_flag = FRE_Operation_Atlante_Result_Stalled
+			clr_country_flag = FRE_Operation_Atlante_Result_Northern_Priority
+			clr_country_flag = FRE_Operation_Atlante_Result_Superseded
+			clr_country_flag = FRE_Atlante_Result_Stalled_Full
+			clr_country_flag = FRE_Atlante_Result_Stalled_Vietnamese
+			clr_country_flag = FRE_Atlante_Strategy_Central_Commitment
+			clr_country_flag = FRE_Atlante_Strategy_Vietnamese_Lead
+			clr_country_flag = FRE_Atlante_Strategy_Northern_Priority
+			clr_country_flag = FRE_Atlante_Northern_Reserve_Available
+			clr_country_flag = FRE_Atlante_Northern_Reserve_Committed
+			clr_country_flag = FRE_Mission_Operation_Atlante_Completed
+			clr_country_flag = FRE_Mission_Operation_Atlante_Failed
+			clr_country_flag = FRE_Operation_Atlante_Launched
+			clr_country_flag = FRE_Operation_Cooldown_Atlante
 		}
 	}
 }
