@@ -57,6 +57,12 @@
 #   e test_vie_sect_max_pity          guarantee the next attack/seize rolls
 #   e test_vie_sect_prompt_attack_success / _attack_failure /
 #     _seize_success / _seize_failure   show the conflict result prompt
+#   -- Diem premiership and the 1955 referendum --
+#   e test_vie_diem_pm                install Diem as premier with his branch unlocked
+#   e test_vie_referendum_high        stack the score for the historical landslide
+#   e test_vie_referendum_mid         stack it for a contested win
+#   e test_vie_referendum_low         stack it so Bao-Dai survives and Diem is dismissed
+#   e test_vie_referendum_debug       print the current score and its inputs
 #   -- Struggle gameplay extras --
 #   e test_indochina_diplomacy_phase  jump to tension phase 6 + 300 PP for the
 #                                     de-escalation decision layer
@@ -994,4 +1000,115 @@ test_geneva_unified_liquidation = {
 		log = "GENEVA UNIFIED: FAIL - MEO survived without a minorities clause"
 	}
 	log = "GENEVA UNIFIED: liquidation check complete"
+}
+
+# --- Diem premiership and the 1955 referendum -------------------------------------------
+# Installs Diem in the premier's seat exactly as VIE_Recall_Diem does, so the mini-tree
+# and the favoritism panel come up without having to play the Geneva chain first.
+test_vie_diem_pm = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			unlock_national_focus = VIE_PM_Diem
+			set_party_name = {
+				ideology = neutrality
+				long_name = VIE_PARTY_MTTNTLQG_long
+				name = VIE_PARTY_MTTNTLQG
+			}
+			promote_character = {
+				character = VIE_Ngo_Dinh_Diem
+				ideology = oriental_personalism
+			}
+			set_politics = {
+				ruling_party = socialist
+				elections_allowed = no
+				last_election = "1954.06.01"
+			}
+			clr_country_flag = VIE_No_Initial_PM
+			set_country_flag = VIE_PM_Ngo_Dinh_Diem
+			reset_favoritism_minigame = yes
+			set_country_flag = VIE_Opposition_Diem
+			set_country_flag = {
+				flag = VIE_PM_Open
+				value = 1
+			}
+			refresh_favoritism_minigame = yes
+			mark_focus_tree_layout_dirty = yes
+			log = "VIE DIEM: premiership installed"
+		}
+	}
+}
+
+# Score >119 is the landslide band. Everything below is set on the raw inputs rather than
+# on VIE_Referendum_Score itself, so the scoring effect is what is actually under test.
+test_vie_referendum_high = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { Alt_Favoritism = 90 }
+			set_variable = { Main_Favoritism = 10 }
+			set_variable = { VIE_Influence = 90 }
+			set_variable = { FRA_Influence = 10 }
+			set_variable = { Cao_Dai_Loyalty = 10 }
+			set_variable = { Hoa_Hao_Loyalty = 10 }
+			set_country_flag = crushed_binh_xuyen
+			set_country_flag = VIE_Diem_Controls_Army
+			set_country_flag = VIE_Diem_Refugees_Settled
+			set_country_flag = VIE_Diem_NRC_Formed
+			VIE_calculate_referendum_score = yes
+			log = "VIE REFERENDUM: high band, score=[?VIE_Referendum_Score|0] (expect >119)"
+		}
+	}
+}
+
+test_vie_referendum_mid = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { Alt_Favoritism = 55 }
+			set_variable = { Main_Favoritism = 45 }
+			set_variable = { VIE_Influence = 50 }
+			set_variable = { FRA_Influence = 50 }
+			set_variable = { Cao_Dai_Loyalty = 50 }
+			set_variable = { Hoa_Hao_Loyalty = 50 }
+			clr_country_flag = crushed_binh_xuyen
+			clr_country_flag = integrated_binh_xuyen
+			set_country_flag = VIE_Diem_Controls_Army
+			clr_country_flag = VIE_Diem_Refugees_Settled
+			set_country_flag = VIE_Diem_NRC_Formed
+			VIE_calculate_referendum_score = yes
+			log = "VIE REFERENDUM: mid band, score=[?VIE_Referendum_Score|0] (expect 70-119)"
+		}
+	}
+}
+
+test_vie_referendum_low = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { Alt_Favoritism = 10 }
+			set_variable = { Main_Favoritism = 80 }
+			set_variable = { VIE_Influence = 20 }
+			set_variable = { FRA_Influence = 80 }
+			set_variable = { Cao_Dai_Loyalty = 90 }
+			set_variable = { Hoa_Hao_Loyalty = 90 }
+			clr_country_flag = crushed_binh_xuyen
+			clr_country_flag = integrated_binh_xuyen
+			clr_country_flag = VIE_Diem_Controls_Army
+			clr_country_flag = VIE_Diem_Refugees_Settled
+			clr_country_flag = VIE_Diem_NRC_Formed
+			VIE_calculate_referendum_score = yes
+			log = "VIE REFERENDUM: low band, score=[?VIE_Referendum_Score|0] (expect <70)"
+		}
+	}
+}
+
+test_vie_referendum_debug = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			VIE_calculate_referendum_score = yes
+			log = "VIE REFERENDUM: score=[?VIE_Referendum_Score|0] alt=[?Alt_Favoritism|0] main=[?Main_Favoritism|0] influence=[?VIE_Influence|0] caodai=[?Cao_Dai_Loyalty|0] hoahao=[?Hoa_Hao_Loyalty|0]"
+		}
+	}
 }

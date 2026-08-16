@@ -265,6 +265,7 @@ reset_CD_favoritism_minigame = {
 reset_JL_favoritism_minigame = {
 	VIE = {
 		set_variable = { Main_Favoritism = 70 }
+		clr_country_flag = CWIC_HOG_UI_ENABLED
 		set_variable = { Alt_Favoritism = 5 }
 		set_variable = { FRA_Influence = 80 }
 		set_variable = { VIE_Influence = 20 }
@@ -344,6 +345,7 @@ reset_JL_favoritism_minigame = {
 reset_Hinh_favoritism_minigame = {
 	VIE = {
 		set_variable = { Main_Favoritism = 70 }
+		clr_country_flag = CWIC_HOG_UI_ENABLED
 		set_variable = { Alt_Favoritism = 5 }
 		set_variable = { FRA_Influence = 80 }
 		set_variable = { VIE_Influence = 20 }
@@ -1018,6 +1020,21 @@ vietnam_sect_conditions_met_check = {
 	}
 }
 
+VIE_dismantle_binh_xuyen = {
+	set_variable = { VIE_Warlord_Status_2 = 3 }
+	set_variable = { VIE_Region_16_Faction = 1 } #16 - Long An
+	every_state = {
+		limit = {
+			has_dynamic_modifier = { modifier = Binh_Xuyen_warlord_modifier }
+		}
+		remove_dynamic_modifier = {
+			modifier = Binh_Xuyen_warlord_modifier
+		}
+	}
+	set_country_flag = crushed_binh_xuyen
+	custom_effect_tooltip = eliminate_binh_xuyen_TT
+}
+
 # Vietnam Factionalism Tooltips
 binh_xuyen_loyalty_change_tt = {
 	set_temp_variable = { inverse_number = binh_xuyen_loyalty_change }
@@ -1407,19 +1424,8 @@ vietnam_faction_ui_decision_click = {
 		limit = {
 			check_variable = { vietnam_factionalism_decisions_list^i = 112 }	#Dismantle the Binh-Xuyen
 		}
-		set_variable = { VIE_Warlord_Status_2 = 3 }
-		set_variable = { VIE_Region_16_Faction = 1 } #16 - Long An
 		add_political_power = -50
-		every_state = {
-			limit = {
-				has_dynamic_modifier = { modifier = Binh_Xuyen_warlord_modifier }
-			}
-			remove_dynamic_modifier = {
-				modifier = Binh_Xuyen_warlord_modifier
-			}
-		}
-		set_country_flag = crushed_binh_xuyen
-		custom_effect_tooltip = eliminate_binh_xuyen_TT
+		VIE_dismantle_binh_xuyen = yes
 	}
 	else_if = {
 		limit = {
@@ -16083,4 +16089,111 @@ VIE_create_CEFEO_FFL_templates = {
 			}
 		}
 	}
+}
+
+VIE_vacate_premiership = {
+	promote_character = VIE_Chanh_Quyen_Quoc_Gia
+	set_party_name = {
+		ideology = neutrality
+		long_name = VIE_PARTY_NATIONAL_GOV_long
+		name = VIE_PARTY_NATIONAL_GOV
+	}
+	set_country_flag = VIE_No_Initial_PM
+	set_country_flag = {
+		flag = VIE_PM_Open
+		value = 2
+	}
+	mark_focus_tree_layout_dirty = yes
+	reset_favoritism_minigame = yes
+}
+
+# --- The October 1955 referendum -------------------------------------------------------
+# Scores Diem's premiership against Bao Dai's throne and stores the result in
+# VIE_Referendum_Score. Read by VIE_1955_Grand_Election, which routes to one of three
+# outcomes. Historically the ballot was rigged 98.2 per cent, so a Diem who actually did
+# the work cannot lose; a Diem who skipped the branch can.
+# No >= in check_variable - the engine does not accept it. Compare against one less.
+VIE_calculate_referendum_score = {
+	set_variable = { VIE_Referendum_Score = 0 }
+	# Standing against the throne. Alt is the premier's seat, Main is Bao Dai's.
+	add_to_variable = { VIE_Referendum_Score = Alt_Favoritism }
+	subtract_from_variable = { VIE_Referendum_Score = Main_Favoritism }
+	# National autonomy: a government still run from Paris cannot claim a mandate.
+	set_temp_variable = { vie_ref_tmp = VIE_Influence }
+	multiply_temp_variable = { vie_ref_tmp = 0.5 }
+	add_to_variable = { VIE_Referendum_Score = vie_ref_tmp }
+	# The sects. Stored loyalty is inverted, so displayed loyalty is 100 minus the variable.
+	set_temp_variable = { vie_ref_tmp = 100 }
+	subtract_from_temp_variable = { vie_ref_tmp = Cao_Dai_Loyalty }
+	multiply_temp_variable = { vie_ref_tmp = 0.15 }
+	add_to_variable = { VIE_Referendum_Score = vie_ref_tmp }
+	set_temp_variable = { vie_ref_tmp = 100 }
+	subtract_from_temp_variable = { vie_ref_tmp = Hoa_Hao_Loyalty }
+	multiply_temp_variable = { vie_ref_tmp = 0.15 }
+	add_to_variable = { VIE_Referendum_Score = vie_ref_tmp }
+	# A broken Binh-Xuyen is worth more than a loyal one - it is the proof of control.
+	if = {
+		limit = { has_country_flag = crushed_binh_xuyen }
+		add_to_variable = { VIE_Referendum_Score = 30 }
+	}
+	else_if = {
+		limit = { has_country_flag = integrated_binh_xuyen }
+		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	# The army, the refugee base, and the civilian mandate.
+	if = {
+		limit = { has_country_flag = VIE_Diem_Controls_Army }
+		add_to_variable = { VIE_Referendum_Score = 25 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Diem_Refugees_Settled }
+		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Diem_NRC_Formed }
+		add_to_variable = { VIE_Referendum_Score = 25 }
+	}
+	# Washington.
+	if = {
+		limit = {
+			USA = { has_completed_focus = USA_50s_Permit_Diem_Regime }
+		}
+		add_to_variable = { VIE_Referendum_Score = 20 }
+	}
+	if = {
+		limit = { has_global_flag = USA_Backs_French_Coup }
+		subtract_from_variable = { VIE_Referendum_Score = 30 }
+	}
+	# Historical AI must still deliver the landslide it delivered in 1955.
+	if = {
+		limit = {
+			is_ai = yes
+			is_historical_focus_on = yes
+			check_variable = { VIE_Referendum_Score < 120 }
+		}
+		set_variable = { VIE_Referendum_Score = 120 }
+	}
+	clamp_variable = {
+		var = VIE_Referendum_Score
+		min = 0
+		max = 200
+	}
+}
+
+# Seats the National Revolution Committee as the interim government. The referendum
+# deposes Bao Dai; the Republic is not proclaimed until BaoDai.9 fires days later.
+VIE_seat_national_revolution_committee = {
+	promote_character = VIE_National_Revolution_Committee
+	set_party_name = {
+		ideology = neutrality
+		long_name = VIE_PARTY_UBCMQG_long
+		name = VIE_PARTY_UBCMQG
+	}
+	set_politics = {
+		ruling_party = neutrality
+		elections_allowed = no
+		last_election = "1955.10.23"
+	}
+	set_country_flag = VIE_NRC_Interim
+	mark_focus_tree_layout_dirty = yes
 }
