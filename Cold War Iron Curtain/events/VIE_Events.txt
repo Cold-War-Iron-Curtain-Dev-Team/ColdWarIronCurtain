@@ -6988,7 +6988,7 @@ country_event = {
 			base = 20
 			modifier = {	# a friendly Saigon is worth more than the island
 				factor = 3
-				has_opinion = { target = VIE value > 20 }
+				has_opinion = { target = VIE value > 0 }
 			}
 			modifier = {	# OTL Cambodia never renounced the claim
 				factor = 0.25
@@ -7009,7 +7009,7 @@ country_event = {
 			base = 80
 			modifier = {
 				factor = 0.3
-				has_opinion = { target = VIE value > 40 }
+				has_opinion = { target = VIE value > -20 }
 			}
 		}
 		VIE = { country_event = { id = Brevert_Lines.3 days = 1 } }
@@ -7068,25 +7068,23 @@ country_event = {
 		set_variable = { VIE_brevet_defender_state = 0 }
 		if = {
 			limit = { country_exists = CAM }
-			random_state = {	# Phu Quoc is a one-province island, so the clash falls on the land border instead
-				limit = {
-					is_owned_by = CAM
-					is_controlled_by = CAM
-					has_border_war = no
-					any_neighbor_state = {
-						is_owned_by = ROOT
-						is_controlled_by = ROOT
+			CAM = {	# Phu Quoc is a one-province island, so the clash falls on the land border instead
+				random_owned_controlled_state = {
+					limit = {
+						has_border_war = no
+						any_neighbor_state = {
+							is_owned_by = ROOT
+							is_controlled_by = ROOT
+						}
 					}
+					set_variable = { ROOT.VIE_brevet_defender_state = THIS.id }
 				}
-				set_variable = { ROOT.VIE_brevet_defender_state = THIS.id }
 			}
 		}
 		if = {
-			limit = { check_variable = { VIE_brevet_defender_state > 0 } }
-			random_state = {
+			limit = { NOT = { check_variable = { VIE_brevet_defender_state = 0 } } }
+			random_owned_controlled_state = {
 				limit = {
-					is_owned_by = ROOT
-					is_controlled_by = ROOT
 					has_border_war = no
 					has_ROOT_at_least_1_div_in_current_state_scope = yes
 					any_neighbor_state = { state = var:ROOT.VIE_brevet_defender_state }
@@ -7096,8 +7094,8 @@ country_event = {
 		}
 		if = {
 			limit = {
-				check_variable = { VIE_brevet_attacker_state > 0 }
-				check_variable = { VIE_brevet_defender_state > 0 }
+				NOT = { check_variable = { VIE_brevet_attacker_state = 0 } }
+				NOT = { check_variable = { VIE_brevet_defender_state = 0 } }
 			}
 			start_border_war = {	# the maritime claim is settled in the outcome events, not by province transfer
 				change_state_after_war = no
