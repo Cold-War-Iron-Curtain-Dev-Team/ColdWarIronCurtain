@@ -7,6 +7,8 @@
 FRE_no_operation_running_trigger = {
 	NOT = {
 		OR = {
+			has_country_flag = FRE_Limited_Operation_Pending
+			has_country_flag = FRE_Limited_Operation_Active
 			has_country_flag = FRE_Mission_Operation_Lorraine_Activated
 			has_country_flag = FRE_Mission_Operation_Hirondelle_Activated
 			has_country_flag = FRE_Mission_Operation_Mouette_Activated
@@ -15,6 +17,50 @@ FRE_no_operation_running_trigger = {
 			has_country_flag = FRE_Mission_Operation_Pollux_Activated
 			has_country_flag = FRE_Mission_Operation_Atlante_Activated
 		}
+	}
+}
+
+FRE_hirondelle_terminal_trigger = { OR = { has_country_flag = FRE_Operation_Hirondelle_Result_Clean has_country_flag = FRE_Operation_Hirondelle_Result_Costly has_country_flag = FRE_Operation_Hirondelle_Result_Aborted has_country_flag = FRE_Operation_Hirondelle_Result_Failure has_country_flag = FRE_Operation_Hirondelle_Result_Superseded } }
+FRE_mouette_terminal_trigger = { OR = { has_country_flag = FRE_Operation_Mouette_Result_Clean has_country_flag = FRE_Operation_Mouette_Result_Costly has_country_flag = FRE_Operation_Mouette_Result_Aborted has_country_flag = FRE_Operation_Mouette_Result_Failure has_country_flag = FRE_Operation_Mouette_Result_Superseded } }
+FRE_brochet_terminal_trigger = { OR = { has_country_flag = FRE_Operation_Brochet_Result_Clean has_country_flag = FRE_Operation_Brochet_Result_Costly has_country_flag = FRE_Operation_Brochet_Result_Aborted has_country_flag = FRE_Operation_Brochet_Result_Failure has_country_flag = FRE_Operation_Brochet_Result_Superseded } }
+
+FRE_limited_operation_window_trigger = {
+	NOT = { has_global_flag = Indochina_War_Over }
+	NOT = { has_global_flag = geneva_conference_concluded }
+	check_variable = { global.Indochina_War_Active_Phase < 9 }
+	country_exists = VIN
+	NOT = { has_war_with = VIN }	# each renovated operation must own a fresh, isolated war
+	VIN = { VIN_no_campaign_running_trigger = yes }
+}
+
+# Exact-objective operation predicates. These are triggers, not effects: they
+# are consumed inside `limit` blocks by the daily operation resolver.
+fre_operation_raw_objective_met = {
+	OR = {
+		AND = {
+			check_variable = { FRE_op_current = 2 }
+			OR = { controls_province = 9948 FRA = { controls_province = 9948 } AND = { country_exists = TAI TAI = { controls_province = 9948 } } AND = { country_exists = VIE VIE = { controls_province = 9948 } } }
+			OR = { controls_province = 13761 FRA = { controls_province = 13761 } AND = { country_exists = TAI TAI = { controls_province = 13761 } } AND = { country_exists = VIE VIE = { controls_province = 13761 } } }
+		}
+		AND = { check_variable = { FRE_op_current = 3 } OR = { controls_province = 11909 FRA = { controls_province = 11909 } AND = { country_exists = TAI TAI = { controls_province = 11909 } } AND = { country_exists = VIE VIE = { controls_province = 11909 } } } }
+		AND = { check_variable = { FRE_op_current = 4 } OR = { controls_province = 13755 FRA = { controls_province = 13755 } AND = { country_exists = TAI TAI = { controls_province = 13755 } } AND = { country_exists = VIE VIE = { controls_province = 13755 } } } }
+	}
+}
+
+fre_operation_objective_met = {
+	OR = {
+		AND = { check_variable = { FRE_op_current = 2 } check_variable = { FRE_op_objective_hold_days > 2 } }
+		AND = { check_variable = { FRE_op_current = 3 } check_variable = { FRE_op_objective_hold_days > 4 } }
+		AND = { check_variable = { FRE_op_current = 4 } check_variable = { FRE_op_days_elapsed > 34 } fre_operation_raw_objective_met = yes }
+	}
+}
+
+fre_operation_theatre_closed = {
+	OR = {
+		has_global_flag = Indochina_War_Over
+		has_global_flag = geneva_conference_concluded
+		check_variable = { global.Indochina_War_Active_Phase > 8 }
+		NOT = { country_exists = VIN }
 	}
 }
 
@@ -95,8 +141,8 @@ FRE_operation_credits_short_trigger = {
 	is_ai = yes
 	check_variable = { FRE_War_Credits < 120 }
 	OR = {
-		has_country_flag = FRE_Operation_Hirondelle_Launched
-		has_country_flag = FRE_Operation_Mouette_Launched
-		has_country_flag = FRE_Operation_Brochet_Launched
+		AND = { has_country_flag = FRE_Operation_Hirondelle_Launched NOT = { FRE_hirondelle_terminal_trigger = yes } }
+		AND = { has_country_flag = FRE_Operation_Mouette_Launched NOT = { FRE_mouette_terminal_trigger = yes } }
+		AND = { has_country_flag = FRE_Operation_Brochet_Launched NOT = { FRE_brochet_terminal_trigger = yes } }
 	}
 }

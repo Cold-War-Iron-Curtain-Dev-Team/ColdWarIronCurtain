@@ -893,3 +893,46 @@ test_fre_hoa_binh_day_105 = {
 		FRE = { fre_hoa_binh_response_daily_tick = yes }
 	}
 }
+
+test_fre_limited_operation_status = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			log = "[FRE LIMITED] active=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0] outcome=[?FRE_op_last_outcome|0]"
+			if = {
+				limit = {
+					has_country_flag = FRE_Limited_Operation_Active
+					country_exists = VIN
+					VIN = { has_country_flag = VIN_Limited_Campaign_Armistice_Pending }
+				}
+				log = "[FRE LIMITED] FAIL - VIN campaign armistice retry overlaps the live operation"
+			}
+			if = {
+				limit = {
+					NOT = { has_country_flag = FRE_Limited_Operation_Active }
+					OR = { has_idea = FRE_Limited_Operation_Light has_idea = FRE_Limited_Operation_Standard has_idea = FRE_Limited_Operation_Maximum }
+				}
+				log = "[FRE LIMITED] FAIL - commitment idea survived cleanup"
+			}
+			if = {
+				limit = { has_country_flag = FRE_Limited_Operation_Active FRE_no_operation_running_trigger = yes }
+				log = "[FRE LIMITED] FAIL - shared operation gate does not see the live operation"
+			}
+		}
+	}
+}
+
+test_fre_limited_operation_superseded_cleanup = {
+	if = {
+		limit = { country_exists = FRE }
+		FRE = {
+			set_variable = { FRE_op_current = 2 }
+			set_country_flag = FRE_Limited_Operation_Active
+			set_global_flag = FRE_Operation_Active
+			add_ideas = FRE_Limited_Operation_Standard
+			set_temp_variable = { fre_op_outcome = 5 }
+			fre_operation_resolve_outcome = yes
+			test_fre_limited_operation_status = yes
+		}
+	}
+}

@@ -4,6 +4,8 @@
 
 fre_castor_focus_complete = {
 	set_country_flag = FRE_Operation_Castor_Launched
+	set_country_flag = FRE_Mission_Operation_Castor_Activated
+	fre_castor_load_callback_prices = yes
 	if = {
 		limit = {
 			NOT = { has_global_flag = Indochina_War_Over }
@@ -70,6 +72,18 @@ fre_castor_begin_common = {
 	activate_mission = FRE_Mission_Operation_Castor
 }
 
+fre_castor_load_callback_prices = {
+	set_variable = { FRE_Castor_Full_Price = 100 }
+	set_variable = { FRE_Castor_Limited_Price = 60 }
+	if = { limit = { has_country_flag = FRE_Operation_Brochet_Result_Clean } add_to_variable = { FRE_Castor_Full_Price = -15 } add_to_variable = { FRE_Castor_Limited_Price = -15 } }
+	else_if = { limit = { has_country_flag = FRE_Operation_Brochet_Result_Costly } add_to_variable = { FRE_Castor_Full_Price = -5 } add_to_variable = { FRE_Castor_Limited_Price = -5 } }
+	if = { limit = { has_country_flag = FRE_Na_San_Result_Clean } add_to_variable = { FRE_Castor_Full_Price = -15 } add_to_variable = { FRE_Castor_Limited_Price = -15 } }
+	else_if = { limit = { has_country_flag = FRE_Na_San_Result_Costly } add_to_variable = { FRE_Castor_Full_Price = -5 } add_to_variable = { FRE_Castor_Limited_Price = -5 } }
+	else_if = { limit = { has_country_flag = FRE_Na_San_Result_Failure } add_to_variable = { FRE_Castor_Full_Price = 15 } add_to_variable = { FRE_Castor_Limited_Price = 15 } }
+	clamp_variable = { var = FRE_Castor_Full_Price min = 50 max = 140 }
+	clamp_variable = { var = FRE_Castor_Limited_Price min = 25 max = 100 }
+}
+
 fre_castor_begin_full_drop = {
 	if = {
 		limit = {
@@ -83,7 +97,9 @@ fre_castor_begin_full_drop = {
 		}
 		fre_castor_prepare_new_operation = yes
 		set_country_flag = FRE_Castor_Full_Drop
-		set_temp_variable = { fre_credit_amount = -100 }
+		fre_castor_load_callback_prices = yes
+		set_temp_variable = { fre_credit_amount = FRE_Castor_Full_Price }
+		multiply_temp_variable = { fre_credit_amount = -1 }
 		fre_change_war_credits = yes
 		add_manpower = -4000
 		add_equipment_to_stockpile = { type = transport_plane_equipment amount = -6 }
@@ -109,7 +125,9 @@ fre_castor_begin_limited_drop = {
 		}
 		fre_castor_prepare_new_operation = yes
 		set_country_flag = FRE_Castor_Limited_Drop
-		set_temp_variable = { fre_credit_amount = -60 }
+		fre_castor_load_callback_prices = yes
+		set_temp_variable = { fre_credit_amount = FRE_Castor_Limited_Price }
+		multiply_temp_variable = { fre_credit_amount = -1 }
 		fre_change_war_credits = yes
 		add_manpower = -2500
 		add_equipment_to_stockpile = { type = transport_plane_equipment amount = -4 }

@@ -15,6 +15,10 @@ VIN_indochina_campaign_window_trigger = {
 		NOT = { has_global_flag = Indochina_War_Over }
 		NOT = { has_global_flag = geneva_conference_concluded }
 		check_variable = { global.Indochina_War_Active_Phase < 9 }
+		OR = {
+			NOT = { country_exists = FRE }
+			FRE = { NOT = { has_country_flag = FRE_Limited_Operation_Active } }
+		}
 	}
 }
 
@@ -29,12 +33,16 @@ VIN_no_campaign_running_trigger = {
 				has_country_flag = VIN_Campaign_Hoa_Binh_Active
 				has_country_flag = VIN_Campaign_Tay_Bac_Active
 				has_country_flag = VIN_Campaign_Dien_Bien_Active
+					has_country_flag = VIN_Campaign_Vinh_Yen_Active
+					has_country_flag = VIN_Campaign_Mao_Khe_Active
+					has_country_flag = VIN_Campaign_Day_River_Active
+					has_country_flag = VIN_Campaign_Na_San_Active
 			}
 		}
 	}
 }
 
-# No campaign resolved within the last 90 days - the divisions have to walk home first.
+# Major campaigns regroup for 90 days; the limited offensives regroup for 30.
 VIN_campaign_cooldown_ready_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIN_campaign_cooldown_ready_trigger_TT
@@ -59,6 +67,22 @@ VIN_campaign_cooldown_ready_trigger = {
 				AND = {
 					has_country_flag = VIN_Campaign_Cooldown_Dien_Bien
 					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Dien_Bien days > 89 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Vinh_Yen
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Vinh_Yen days > 29 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Mao_Khe
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Mao_Khe days > 29 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Day_River
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Day_River days > 29 } }
+				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Na_San
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Na_San days > 29 } }
 				}
 			}
 		}
@@ -94,8 +118,44 @@ vin_campaign_objective_met_trigger = {
 			controls_state = 1280
 			controls_state = 1768
 		}
+		AND = {
+			check_variable = { VIN_camp_current = 5 }
+			check_variable = { VIN_camp_objective_hold_days > 4 }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 6 }
+			check_variable = { VIN_camp_objective_hold_days > 4 }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 7 }
+			check_variable = { VIN_camp_objective_hold_days > 4 }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 8 }
+			check_variable = { VIN_camp_objective_hold_days > 4 }
 	}
 }
+}
+
+# Raw limited-campaign objectives, feeding the five-consecutive-day counter.
+vin_limited_campaign_raw_objective_trigger = {
+	OR = {
+		AND = { check_variable = { VIN_camp_current = 5 } controls_province = 12075 }
+		AND = { check_variable = { VIN_camp_current = 6 } controls_province = 13772 }
+		AND = {
+			check_variable = { VIN_camp_current = 7 }
+			controls_province = 1185
+			controls_province = 13753
+			controls_province = 13755
+		}
+		AND = { check_variable = { VIN_camp_current = 8 } controls_province = 13757 }
+	}
+}
+
+VIN_vinh_yen_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Vinh_Yen_Result_Clean has_country_flag = VIN_Campaign_Vinh_Yen_Result_Costly has_country_flag = VIN_Campaign_Vinh_Yen_Result_Aborted has_country_flag = VIN_Campaign_Vinh_Yen_Result_Failure has_country_flag = VIN_Campaign_Vinh_Yen_Result_Superseded } }
+VIN_mao_khe_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Mao_Khe_Result_Clean has_country_flag = VIN_Campaign_Mao_Khe_Result_Costly has_country_flag = VIN_Campaign_Mao_Khe_Result_Aborted has_country_flag = VIN_Campaign_Mao_Khe_Result_Failure has_country_flag = VIN_Campaign_Mao_Khe_Result_Superseded } }
+VIN_day_river_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Day_River_Result_Clean has_country_flag = VIN_Campaign_Day_River_Result_Costly has_country_flag = VIN_Campaign_Day_River_Result_Aborted has_country_flag = VIN_Campaign_Day_River_Result_Failure has_country_flag = VIN_Campaign_Day_River_Result_Superseded } }
+VIN_na_san_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Na_San_Result_Clean has_country_flag = VIN_Campaign_Na_San_Result_Costly has_country_flag = VIN_Campaign_Na_San_Result_Aborted has_country_flag = VIN_Campaign_Na_San_Result_Failure has_country_flag = VIN_Campaign_Na_San_Result_Superseded } }
 
 # A settlement or an external annexation can make a live campaign irrelevant.
 # This is checked after the objective, so taking the last target state still
@@ -130,6 +190,20 @@ vin_campaign_target_disappeared_trigger = {
 		AND = {
 			check_variable = { VIN_camp_current = 4 }
 			NOT = { country_exists = THO }
+		}
+		AND = {
+			OR = {
+				check_variable = { VIN_camp_current = 5 }
+				check_variable = { VIN_camp_current = 8 }
+			}
+			NOT = { country_exists = TAI }
+		}
+		AND = {
+			OR = {
+				check_variable = { VIN_camp_current = 6 }
+				check_variable = { VIN_camp_current = 7 }
+			}
+			NOT = { country_exists = FRE }
 		}
 	}
 }
@@ -186,8 +260,7 @@ vin_controls_foreign_ha_giang_ground_trigger = {
 
 vin_controls_foreign_northwest_corridor_trigger = {
 	1761 = { NOT = { is_owned_by = VIN } }
-	# 12075 and 16526 begin under VIN control and are rear-area bridgeheads,
-	# so merely retaining them never counts as an off-theatre advance.
+	# 16526 is the VIN rear-area bridgehead; 12075 is French-aligned Vinh Yen.
 	OR = {
 		controls_province = 10075
 		controls_province = 13773
