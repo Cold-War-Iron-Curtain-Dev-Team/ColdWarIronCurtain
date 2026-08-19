@@ -106,64 +106,113 @@ Indochina_War_Rework = {
 	}
 
 
-	VIN_Campaign_Clock = { # Player-facing readout: the campaign deadline had no representation anywhere in the UI
+	# The restored battle missions are both the visible objective cards and the
+	# real deadline backstops. There is no parallel cosmetic clock.
+	VIN_Vinh_Yen_Objective = {
 		icon = generic_attack
-
 		allowed = { original_tag = VIN }
-
+		visible = { has_country_flag = VIN_Campaign_Vinh_Yen_Active }
 		activation = { always = no }
-
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = VIN_Camp_Clock_tt
-				always = no	# never completable; it exists to show the clock
-			}
-		}
-
-		visible = {
-			NOT = { VIN_no_campaign_running_trigger = yes }
-		}
-
+		available = { custom_trigger_tooltip = { tooltip = VIN_Camp_Clock_tt always = no } }
 		is_good = yes
 		selectable_mission = yes
-		days_mission_timeout = 300	# matches the FRA-side backstop; the real deadlines are in the tooltip
 		fire_only_once = no
-		cancel_trigger = {
-			VIN_no_campaign_running_trigger = yes
+		days_mission_timeout = var:VIN_camp_timer_days
+		cancel_trigger = { VIN_no_campaign_running_trigger = yes }
+		timeout_effect = { vin_campaign_backstop_resolve = yes }
+		complete_effect = { }
+		highlight_states = {
+			highlight_provinces = { 12075 }
+			highlight_color_while_active = 1
+			highlight_color_before_active = 1
 		}
-		timeout_effect = {
-		}
-		complete_effect = {
-		}
-		ai_will_do = {
-			factor = 0
-		}
+		ai_will_do = { factor = 0 }
 	}
 
-	VIN_Campaign_Objective_Timer = { # Viet Minh campaign backstop; hosted on FRA because FRA never vanishes
-		allowed = { always = no }
-		available = { always = no }
+	VIN_Mao_Khe_Objective = {
+		icon = generic_attack
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_Campaign_Mao_Khe_Active }
 		activation = { always = no }
-		is_good = no
-		selectable_mission = no
-		days_mission_timeout = 300	# outlasts the longest deadline (Dien Bien Phu, 260 days); vin_campaign_objective_tick normally resolves first
+		available = { custom_trigger_tooltip = { tooltip = VIN_Camp_Clock_tt always = no } }
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = var:VIN_camp_timer_days
+		cancel_trigger = { VIN_no_campaign_running_trigger = yes }
+		timeout_effect = { vin_campaign_backstop_resolve = yes }
+		complete_effect = { }
+		highlight_states = {
+			highlight_provinces = { 13772 }
+			highlight_color_while_active = 1
+			highlight_color_before_active = 1
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Day_River_Objective = {
+		icon = generic_attack
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_Campaign_Day_River_Active }
+		activation = { always = no }
+		available = { custom_trigger_tooltip = { tooltip = VIN_Camp_Clock_tt always = no } }
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = var:VIN_camp_timer_days
+		cancel_trigger = { VIN_no_campaign_running_trigger = yes }
+		timeout_effect = { vin_campaign_backstop_resolve = yes }
+		complete_effect = { }
+		highlight_states = {
+			highlight_provinces = { 1185 13753 13755 }
+			highlight_color_while_active = 1
+			highlight_color_before_active = 1
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Na_San_Objective = {
+		icon = generic_attack
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_Campaign_Na_San_Active }
+		activation = { always = no }
+		available = { custom_trigger_tooltip = { tooltip = VIN_Camp_Clock_tt always = no } }
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = var:VIN_camp_timer_days
+		cancel_trigger = { VIN_no_campaign_running_trigger = yes }
+		timeout_effect = { vin_campaign_backstop_resolve = yes }
+		complete_effect = { }
+		highlight_states = {
+			highlight_provinces = { 13757 }
+			highlight_color_while_active = 1
+			highlight_color_before_active = 1
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Campaign_Objective_Timer = { # Live campaign clock/backstop for campaign IDs 1-4
+		icon = generic_attack
+		allowed = { original_tag = VIN }
+		visible = {
+			NOT = { VIN_no_campaign_running_trigger = yes }
+			check_variable = { VIN_camp_current < 5 }
+		}
+		available = { custom_trigger_tooltip = { tooltip = VIN_Camp_Clock_tt always = no } }
+		activation = { always = no }
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = var:VIN_camp_timer_days
 		cancel_trigger = {
 			OR = {
 				has_global_flag = Indochina_War_Over
-				NOT = { country_exists = VIN }
-				VIN = { VIN_no_campaign_running_trigger = yes }
+				VIN_no_campaign_running_trigger = yes
 			}
 		}
 		timeout_effect = {
-			if = {	# the daily tick stalled: classify objective/closure before the failure fallback
-				limit = {
-					country_exists = VIN
-					VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
-				}
-				VIN = {
-					vin_campaign_backstop_resolve = yes
-				}
-			}
+			vin_campaign_backstop_resolve = yes
 		}
 		complete_effect = {
 		}
@@ -172,13 +221,16 @@ Indochina_War_Rework = {
 		}
 	}
 
-	FRE_Operation_Timer = { # CEFEO operation watchdog; guarantees the operation resolves
-		allowed = { always = no }
-		available = { always = no }
+	FRE_Operation_Timer = { # Visible CEFEO operation clock and real resolver
+		icon = generic_attack
+		allowed = { tag = FRE }
+		visible = { has_country_flag = FRE_Limited_Operation_Active }
+		available = { custom_trigger_tooltip = { tooltip = FRE_Limited_Operation_Status_tt always = no } }
 		activation = { always = no }
-		is_good = no
-		selectable_mission = no
-		days_mission_timeout = 90
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = var:FRE_op_timer_days
 		cancel_trigger = {
 			OR = {
 				has_global_flag = Indochina_War_Over
@@ -196,32 +248,61 @@ Indochina_War_Rework = {
 		}
 	}
 
-	FRE_Operation_LastChance_Timer = { # Shorter final window granted when a human commander presses on
-		allowed = { always = no }
-		available = { always = no }
-		activation = { always = no }
-		is_good = no
-		selectable_mission = no
-		days_mission_timeout = 45
-		cancel_trigger = {
-			OR = {
-				has_global_flag = Indochina_War_Over
-				has_global_flag = FRE_Operation_Resolved
-				NOT = { has_global_flag = FRE_Operation_Active }
+	FRE_Abort_Limited_Operation = {
+		icon = generic_offensive_operations
+		allowed = { tag = FRE }
+		visible = { has_country_flag = FRE_Limited_Operation_Active }
+		available = { has_country_flag = FRE_Limited_Operation_Active }
+		cost = 0
+		fire_only_once = no
+		complete_effect = { fre_operation_abort = yes }
+		ai_will_do = { factor = 0 }
+	}
+
+	FRE_Paratrooper_Interdiction_Raid = {
+		icon = generic_air_operations
+		allowed = { tag = FRE }
+		visible = { has_country_flag = FRE_Paratrooper_Raids_Unlocked }
+		available = {
+			has_country_flag = FRE_Paratrooper_Raids_Unlocked
+			country_exists = VIN
+			VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
+			check_variable = { FRE_War_Credits > 19 }
+			has_equipment = { transport_plane_equipment > 1 }
+			NOT = {
+				AND = {
+					has_country_flag = FRE_Paratrooper_Raid_Cooldown
+					NOT = { has_country_flag = { flag = FRE_Paratrooper_Raid_Cooldown days > 59 } }
 			}
 		}
-		timeout_effect = {
-			if = {
-				limit = { country_exists = FRE }
-				FRE = { fre_operation_threshold_resolve = yes }
 			}
-			else = { clr_global_flag = FRE_Operation_Active }
-		}
+		cost = 0
+		fire_only_once = no
 		complete_effect = {
+			set_temp_variable = { fre_credit_amount = -20 }
+			fre_change_war_credits = yes
+			add_equipment_to_stockpile = { type = transport_plane_equipment amount = -2 }
+			set_country_flag = FRE_Paratrooper_Raid_Cooldown
+			VIN = {
+				set_temp_variable = { vin_supply_amount = -15 }
+				vin_change_campaign_supply = yes
 		}
-		ai_will_do = {
-			factor = 0
 		}
+		ai_will_do = { factor = 20 }
+	}
+
+	VIN_Abort_Limited_Campaign = {
+		icon = generic_offensive_operations
+		allowed = { original_tag = VIN }
+		visible = { check_variable = { VIN_camp_current > 4 } NOT = { VIN_no_campaign_running_trigger = yes } }
+		available = { check_variable = { VIN_camp_current > 4 } NOT = { VIN_no_campaign_running_trigger = yes } }
+		cost = 0
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { vin_camp_outcome = 3 }
+			vin_campaign_resolve = yes
+		}
+		ai_will_do = { factor = 0 }
 	}
 
 	Laos_Raid_LastChance_Timer = { # Shorter final window granted when a human attacker chooses to press
