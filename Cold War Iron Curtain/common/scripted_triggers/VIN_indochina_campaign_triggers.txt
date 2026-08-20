@@ -2,12 +2,6 @@
 # (Thap Van Dai Son, Cao-Bac, Hoa Binh, Tay Bac, Dien Bien Phu).
 # Same shape as FRE_operation_triggers.txt on the CEFEO side; keep the two in sync.
 
-vin_indochina_ai_support_trigger = {
-	is_ai = yes
-	country_exists = FRE
-	FRE = { is_ai = yes }
-}
-
 # The war is still a live struggle - not settled, not adjourned to Geneva.
 VIN_indochina_campaign_window_trigger = {
 	custom_trigger_tooltip = {
@@ -33,10 +27,10 @@ VIN_no_campaign_running_trigger = {
 				has_country_flag = VIN_Campaign_Hoa_Binh_Active
 				has_country_flag = VIN_Campaign_Tay_Bac_Active
 				has_country_flag = VIN_Campaign_Dien_Bien_Active
-					has_country_flag = VIN_Campaign_Vinh_Yen_Active
-					has_country_flag = VIN_Campaign_Mao_Khe_Active
-					has_country_flag = VIN_Campaign_Day_River_Active
-					has_country_flag = VIN_Campaign_Na_San_Active
+				has_country_flag = VIN_Campaign_Vinh_Yen_Active
+				has_country_flag = VIN_Campaign_Mao_Khe_Active
+				has_country_flag = VIN_Campaign_Day_River_Active
+				has_country_flag = VIN_Campaign_Na_San_Active
 			}
 		}
 	}
@@ -316,8 +310,58 @@ vin_controls_foreign_delta_ground_trigger = {
 	}
 }
 
-# One tier for the first replacement patch. The helpers above keep the envelope
-# data split cleanly enough for an ordinary/severe band to be added later.
+# Exact-objective limited battles allow their named province set, not the whole
+# containing state. These helpers cover the remaining foreign ground there.
+vin_controls_foreign_delta_except_mao_khe_trigger = {
+	786 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 1185
+		controls_province = 4119
+		controls_province = 13753
+		controls_province = 13755
+		controls_province = 13756
+		controls_province = 13770
+	}
+}
+
+vin_controls_foreign_delta_except_day_river_trigger = {
+	786 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 4119
+		controls_province = 13756
+		controls_province = 13770
+		controls_province = 13772
+	}
+}
+
+vin_controls_foreign_delta_except_brochet_trigger = {
+	786 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 1185
+		controls_province = 4119
+		controls_province = 13753
+		controls_province = 13756
+		controls_province = 13770
+		controls_province = 13772
+	}
+}
+
+vin_controls_foreign_dien_bien_except_na_san_trigger = {
+	671 = { NOT = { is_owned_by = VIN } }
+	OR = {
+		controls_province = 4529
+		controls_province = 10103
+		controls_province = 13754
+		controls_province = 13758
+		controls_province = 13760
+		controls_province = 13762
+		controls_province = 13764
+		controls_province = 13765
+	}
+}
+
+# A single severe tier keeps the contract legible: the named objective is safe;
+# any other still-foreign ground immediately overextends the campaign.
 vin_campaign_vin_overextended_trigger = {
 	NOT = { VIN_no_campaign_running_trigger = yes }
 	OR = {
@@ -366,6 +410,93 @@ vin_campaign_vin_overextended_trigger = {
 				vin_controls_foreign_hoa_binh_ground_trigger = yes
 				vin_controls_foreign_dien_bien_ground_trigger = yes
 				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 5 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 6 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_except_mao_khe_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 7 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_except_day_river_trigger = yes
+			}
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 8 }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_except_na_san_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+	}
+}
+
+# FRE limited operations are exact envelopes too. Hanoi defending its own ground
+# is never overextended; crossing onto unrelated foreign ground is.
+vin_fre_operation_overextended_trigger = {
+	country_exists = FRE
+	FRE = { has_country_flag = FRE_Limited_Operation_Active }
+	OR = {
+		AND = {
+			FRE = { OR = { check_variable = { FRE_op_current = 2 } check_variable = { FRE_op_current = 3 } } }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_ground_trigger = yes
+			}
+		}
+		AND = {
+			FRE = { check_variable = { FRE_op_current = 4 } }
+			OR = {
+				vin_controls_foreign_cao_bac_ground_trigger = yes
+				vin_controls_foreign_nung_ground_trigger = yes
+				vin_controls_foreign_ha_giang_ground_trigger = yes
+				vin_controls_foreign_northwest_corridor_trigger = yes
+				vin_controls_foreign_northwest_outlier_trigger = yes
+				vin_controls_foreign_hoa_binh_ground_trigger = yes
+				vin_controls_foreign_dien_bien_ground_trigger = yes
+				vin_controls_foreign_delta_except_brochet_trigger = yes
 			}
 		}
 	}

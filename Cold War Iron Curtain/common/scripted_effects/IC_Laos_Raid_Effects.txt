@@ -8,7 +8,7 @@
 # column, VIN fights under an over-extension penalty, and a timer resolves the
 # raid if Hanoi cannot take a Laotian capital in time.
 #
-# Outcomes (decided at Laos_Raid_Timer expiry, see ic_laos_raid_resolve):
+# Outcomes (decided when the 90-day clock elapses via ic_laos_raid_daily_check, see ic_laos_raid_resolve):
 #   * attacker holds Vientiane/Luang Prabang -> conquest stands (ic_laos_raid_attacker_victory)
 #   * human attacker, no capital -> one last-chance "press vs. call off" prompt (laos_raid.1)
 #   * AI (or lapsed last chance), LAO still holds its zones -> stalemate, rump satellite
@@ -297,6 +297,8 @@ ic_laos_raid_launch = {
 		clr_global_flag = Laos_Raid_Timer_Expired
 		clr_global_flag = Laos_Raid_Stalemate
 		clr_global_flag = Laos_Raid_Total_Failure
+		set_variable = { global.Laos_Raid_Days_Elapsed = 0 }
+		set_variable = { global.Laos_Raid_Last_Duration = 0 }
 
 		LOS = {
 			add_ideas = LOS_French_Airlift
@@ -482,13 +484,10 @@ ic_laos_raid_launch = {
 				add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 300 producer = FRA }
 			}
 		}
-
-		# Arm the 90-day resolution timer on FRA (always exists, never vanishes mid-raid).
-		FRA = { activate_mission = Laos_Raid_Timer }
 	}
 }
 
-# --- Timer expiry dispatch (called from the mission, FRA scope) --------------
+# --- Timer expiry dispatch (called from ic_laos_raid_daily_check) ------------
 
 ic_laos_raid_resolve = {
 	if = {
@@ -520,6 +519,26 @@ ic_laos_raid_daily_check = {
 		}
 		ic_laos_raid_attacker_victory = yes
 	}
+	if = {
+		limit = { has_global_flag = Laos_Raid_Active }
+		add_to_variable = { global.Laos_Raid_Days_Elapsed = 1 }
+		if = {
+			limit = {
+				NOT = { has_global_flag = Laos_Raid_Last_Chance }
+				check_variable = { global.Laos_Raid_Days_Elapsed > 89 }
+			}
+			log = "IC_LAOS_RAID|DAILY_BACKSTOP|date=[GetDateText]|stage=initial|day=[?global.Laos_Raid_Days_Elapsed|0]"
+			ic_laos_raid_resolve = yes
+		}
+		else_if = {
+			limit = {
+				has_global_flag = Laos_Raid_Last_Chance
+				check_variable = { global.Laos_Raid_Days_Elapsed > 44 }
+			}
+			log = "IC_LAOS_RAID|DAILY_BACKSTOP|date=[GetDateText]|stage=last_chance|day=[?global.Laos_Raid_Days_Elapsed|0]"
+			ic_laos_raid_end_raid = yes
+		}
+	}
 	lao_check_postwar_economy = yes
 }
 
@@ -530,11 +549,11 @@ ic_laos_raid_press = {
 		limit = { has_global_flag = Laos_Raid_Active NOT = { has_global_flag = Laos_Raid_Last_Chance } }
 		set_global_flag = Laos_Raid_Last_Chance
 		clr_global_flag = Laos_Raid_Timer_Expired
+		set_variable = { global.Laos_Raid_Days_Elapsed = 0 }
 		VIN = {
 			remove_dynamic_modifier = { modifier = laos_raid_overextension }
 			add_dynamic_modifier = { modifier = laos_raid_overextension_severe }
 		}
-		FRA = { activate_mission = Laos_Raid_LastChance_Timer }
 		if = { limit = { country_exists = LOS } LOS = { activate_mission = Laos_Raid_Defence_LastChance } }
 		if = { limit = { country_exists = VIN } VIN = { activate_mission = Laos_Raid_Offensive_LastChance } }
 		if = { limit = { country_exists = LAO } LAO = { activate_mission = Laos_Raid_Offensive_LastChance } }
@@ -574,8 +593,8 @@ ic_laos_raid_stalemate = {
 			}
 		}
 	}
-	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 150 }
-	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 50 }
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 25 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 10 }
 	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
 	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 }
 	ic_laos_raid_ceasefire = yes
@@ -585,8 +604,8 @@ ic_laos_raid_stalemate = {
 
 ic_laos_raid_total_failure = {
 	set_global_flag = Laos_Raid_Total_Failure	# distinguishing outcome flag; Laos_Total_War may be set on top if Vientiane escalates
-	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 200 }
-	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 150 }
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 50 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 25 }
 	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
 	add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 50 }
 	if = {
@@ -602,8 +621,8 @@ ic_laos_raid_total_failure = {
 
 ic_laos_raid_attacker_victory = {
 	set_global_flag = Laos_Raid_Attacker_Won
-	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 300 }
-	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 150 }
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 50 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 25 }
 	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
 	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 100 }
 	news_event = laos_raid.6
@@ -707,6 +726,11 @@ ic_laos_raid_cleanup = {
 	clr_global_flag = Laos_Raid_Active
 	clr_global_flag = Laos_Raid_Timer_Expired
 	set_global_flag = Laos_Raid_Resolved
+	set_variable = { global.Laos_Raid_Last_Duration = global.Laos_Raid_Days_Elapsed }
+	set_variable = { global.Laos_Raid_Days_Elapsed = 0 }
+	if = { limit = { country_exists = LOS } LOS = { remove_mission = Laos_Raid_Defence remove_mission = Laos_Raid_Defence_LastChance } }
+	if = { limit = { country_exists = VIN } VIN = { remove_mission = Laos_Raid_Offensive remove_mission = Laos_Raid_Offensive_LastChance } }
+	if = { limit = { country_exists = LAO } LAO = { remove_mission = Laos_Raid_Offensive remove_mission = Laos_Raid_Offensive_LastChance } }
 	if = {
 		limit = { country_exists = LOS LOS = { has_idea = LOS_French_Airlift } }
 		LOS = { remove_ideas = LOS_French_Airlift }

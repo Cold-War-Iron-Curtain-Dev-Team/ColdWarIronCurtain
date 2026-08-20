@@ -1,9 +1,8 @@
 # ============================================================================
 # Viet Minh campaign wrapper (Tay Bac, Hoa Binh, Dien Bien Phu, Cao-Bac)
 # ----------------------------------------------------------------------------
-# A campaign spends VIN_Campaign_Supply to set a commitment tier, and the tier
-# decides how many regular formations march with it. Mirrors the CEFEO side in
-# FRE_Operation_Effects.txt.
+# A campaign opens its own border war from the focus; the regular formations
+# that march with it are the ones Hanoi already has in the field.
 #
 # Campaign flag contract (VIN_indochina_campaign_triggers.txt): the *_Active
 # flag is set before the campaign war; the common resolver clears it and books
@@ -11,7 +10,6 @@
 #
 # Campaign ids: 1 Tay Bac, 2 Hoa Binh, 3 Dien Bien Phu, 4 Cao-Bac,
 # 5 Vinh Yen, 6 Mao Khe, 7 Day River, 8 Na San.
-# Commitment tiers: 0 Light, 1 Standard, 2 Maximum.
 # ============================================================================
 
 vin_campaign_initialize = {
@@ -45,8 +43,6 @@ vin_accrue_monthly_supply = {
 	hidden_effect = { vin_change_campaign_supply = yes }
 }
 
-# --- Commitment -------------------------------------------------------------
-
 vin_campaign_begin = {
 	# A primary campaign outranks a limited operation; close CEFEO's package first.
 	if = {
@@ -56,115 +52,20 @@ vin_campaign_begin = {
 	}
 	vin_campaign_initialize = yes
 	set_variable = { VIN_camp_current = vin_camp_id }
-	set_variable = { VIN_camp_price_light = 40 }
-	set_variable = { VIN_camp_price_standard = 80 }
-	set_variable = { VIN_camp_price_maximum = 140 }
-	if = {
-		limit = { check_variable = { VIN_camp_current = 3 } }	# Dien Bien Phu is the whole army's campaign
-		set_variable = { VIN_camp_price_light = 60 }
-		set_variable = { VIN_camp_price_standard = 120 }
-		set_variable = { VIN_camp_price_maximum = 200 }
-	}
-	if = {
-		limit = { check_variable = { VIN_camp_current > 4 } }
-		set_variable = { VIN_camp_price_light = 30 }
-		set_variable = { VIN_camp_price_standard = 60 }
-		set_variable = { VIN_camp_price_maximum = 100 }
-	}
 	vin_ai_prepare_campaign = yes
-	country_event = { id = VIN_Camp.1 hours = 6 }
 }
 
 vin_ai_prepare_campaign = {
-	if = {
-		limit = {
-			is_ai = yes
-			check_variable = { VIN_Campaign_Supply < VIN_camp_price_maximum }
-		}
-		set_variable = { VIN_Campaign_Supply = VIN_camp_price_maximum }
-		add_to_variable = { VIN_Campaign_Supply = 10 }	# the option needs a strict >
-	}
-	if = {
-		limit = { is_ai = yes }
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_1
-			amount = 3000
-			producer = PRC
-		}
-		add_equipment_to_stockpile = {
-			type = artillery_equipment_1
-			amount = 400
-			producer = PRC
-		}
-		add_manpower = 25000
-		add_command_power = 50
-	}
+	# AI Hanoi now pays the same Campaign Supply, manpower, and equipment costs
+	# as a player. The former per-campaign top-up concealed strategic exhaustion.
 }
 
 vin_indochina_ai_initialize = {
 	if = {
-		limit = {
-			vin_indochina_ai_support_trigger = yes
-			NOT = { has_idea = VIN_Indochina_AI_Support }
-			NOT = { has_global_flag = Indochina_War_Over }
-		}
-		add_ideas = VIN_Indochina_AI_Support
-	}
-	if = {
-		limit = {
-			NOT = { vin_indochina_ai_support_trigger = yes }
-			has_idea = VIN_Indochina_AI_Support
-		}
+		limit = { has_idea = VIN_Indochina_AI_Support }
 		remove_ideas = VIN_Indochina_AI_Support
 	}
-}
-
-vin_campaign_commit = {
-	set_variable = { VIN_camp_commitment_tier = vin_camp_tier }
-	set_temp_variable = { vin_supply_amount = VIN_camp_price_light }
-	if = {
-		limit = { check_variable = { VIN_camp_commitment_tier = 1 } }
-		set_temp_variable = { vin_supply_amount = VIN_camp_price_standard }
-	}
-	else_if = {
-		limit = { check_variable = { VIN_camp_commitment_tier = 2 } }
-		set_temp_variable = { vin_supply_amount = VIN_camp_price_maximum }
-	}
-	multiply_temp_variable = { vin_supply_amount = -1 }
-	vin_change_campaign_supply = yes
-	if = {
-		limit = { check_variable = { VIN_camp_current < 5 } }
-	vin_campaign_spawn_columns = yes
-	}
-}
-
-vin_campaign_spawn_columns = {
-	if = {
-		limit = { check_variable = { VIN_camp_commitment_tier > 0 } }
-		custom_effect_tooltip = VIN_Camp_Spawn_Regiment_tt
-		random_owned_controlled_state = {
-			limit = { OR = { state = 881  state = 1762  state = 1761 } }
-			create_unit = {
-				division = "name = \"Trung doan Chu luc\" division_template = \"Trung doan Bo binh Infantry\" start_experience_factor = 0.4 start_equipment_factor = 0.9"
-				owner = VIN
-				allow_spawning_on_enemy_provs = yes
-			}
-		}
-	}
-	if = {
-		limit = { check_variable = { VIN_camp_commitment_tier > 1 } }
-		custom_effect_tooltip = VIN_Camp_Spawn_Artillery_tt
-		random_owned_controlled_state = {
-			limit = { OR = { state = 881  state = 1762  state = 1761 } }
-			create_unit = {
-				division = "name = \"Dai doan Cong Phao\" division_template = \"Tieu doan Phao binh Artillery\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
-				owner = VIN
-				allow_spawning_on_enemy_provs = yes
-			}
-		}
-		add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = PRC }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = PRC }
-	}
+	if = { limit = { has_idea = VIN_Campaign_AI_Support } remove_ideas = VIN_Campaign_AI_Support }
 }
 
 # --- Crown domain custody ---------------------------------------------------
@@ -420,31 +321,15 @@ vin_apply_contested_objective = {	# state scope
 	}
 }
 
-vin_campaign_apply_french_overextension = {
-	if = {
-		limit = { country_exists = FRE  FRE = { NOT = { has_idea = FRE_Campaign_Overextension } } }
-		FRE = { add_ideas = FRE_Campaign_Overextension }
-	}
-	if = {
-		limit = { country_exists = TAI  TAI = { NOT = { has_idea = FRE_Campaign_Overextension } } }
-		TAI = { add_ideas = FRE_Campaign_Overextension }
-	}
-	if = {
-		limit = { country_exists = TAM  TAM = { NOT = { has_idea = FRE_Campaign_Overextension } } }
-		TAM = { add_ideas = FRE_Campaign_Overextension }
-	}
-	if = {
-		limit = { country_exists = NUN  NUN = { NOT = { has_idea = FRE_Campaign_Overextension } } }
-		NUN = { add_ideas = FRE_Campaign_Overextension }
-	}
-	if = {
-		limit = { country_exists = THO  THO = { NOT = { has_idea = FRE_Campaign_Overextension } } }
-		THO = { add_ideas = FRE_Campaign_Overextension }
-	}
-	if = {
-		limit = { country_exists = VIE  VIE = { NOT = { has_idea = FRE_Campaign_Overextension } } }
-		VIE = { add_ideas = FRE_Campaign_Overextension }
-	}
+vin_campaign_update_french_overextension = {
+	# Penalize only the command whose own troops occupy VIN rear ground. One
+	# adventurous CEFEO column must not debuff every unrelated crown domain.
+	if = { limit = { country_exists = FRE } FRE = { if = { limit = { indochina_french_aligned_controls_vin_rear_trigger = yes NOT = { has_idea = FRE_Campaign_Overextension } } add_ideas = FRE_Campaign_Overextension } else_if = { limit = { has_idea = FRE_Campaign_Overextension NOT = { indochina_french_aligned_controls_vin_rear_trigger = yes } } remove_ideas = FRE_Campaign_Overextension } } }
+	if = { limit = { country_exists = TAI } TAI = { if = { limit = { indochina_french_aligned_controls_vin_rear_trigger = yes NOT = { has_idea = FRE_Campaign_Overextension } } add_ideas = FRE_Campaign_Overextension } else_if = { limit = { has_idea = FRE_Campaign_Overextension NOT = { indochina_french_aligned_controls_vin_rear_trigger = yes } } remove_ideas = FRE_Campaign_Overextension } } }
+	if = { limit = { country_exists = TAM } TAM = { if = { limit = { indochina_french_aligned_controls_vin_rear_trigger = yes NOT = { has_idea = FRE_Campaign_Overextension } } add_ideas = FRE_Campaign_Overextension } else_if = { limit = { has_idea = FRE_Campaign_Overextension NOT = { indochina_french_aligned_controls_vin_rear_trigger = yes } } remove_ideas = FRE_Campaign_Overextension } } }
+	if = { limit = { country_exists = NUN } NUN = { if = { limit = { indochina_french_aligned_controls_vin_rear_trigger = yes NOT = { has_idea = FRE_Campaign_Overextension } } add_ideas = FRE_Campaign_Overextension } else_if = { limit = { has_idea = FRE_Campaign_Overextension NOT = { indochina_french_aligned_controls_vin_rear_trigger = yes } } remove_ideas = FRE_Campaign_Overextension } } }
+	if = { limit = { country_exists = THO } THO = { if = { limit = { indochina_french_aligned_controls_vin_rear_trigger = yes NOT = { has_idea = FRE_Campaign_Overextension } } add_ideas = FRE_Campaign_Overextension } else_if = { limit = { has_idea = FRE_Campaign_Overextension NOT = { indochina_french_aligned_controls_vin_rear_trigger = yes } } remove_ideas = FRE_Campaign_Overextension } } }
+	if = { limit = { country_exists = VIE } VIE = { if = { limit = { indochina_french_aligned_controls_vin_rear_trigger = yes NOT = { has_idea = FRE_Campaign_Overextension } } add_ideas = FRE_Campaign_Overextension } else_if = { limit = { has_idea = FRE_Campaign_Overextension NOT = { indochina_french_aligned_controls_vin_rear_trigger = yes } } remove_ideas = FRE_Campaign_Overextension } } }
 }
 
 vin_campaign_clear_french_overextension = {
@@ -486,13 +371,7 @@ vin_campaign_update_overextension = {
 		limit = { has_idea = VIN_Campaign_Overextension }
 		remove_ideas = VIN_Campaign_Overextension
 	}
-	if = {
-		limit = { vin_campaign_french_overextended_trigger = yes }
-		vin_campaign_apply_french_overextension = yes
-	}
-	else = {
-		vin_campaign_clear_french_overextension = yes
-	}
+	vin_campaign_update_french_overextension = yes
 }
 
 vin_campaign_apply_war_spirits = {
@@ -520,13 +399,9 @@ vin_campaign_apply_war_spirits = {
 		limit = { country_exists = THO  THO = { NOT = { has_idea = FRE_Highland_Overextension } } }
 		THO = { add_ideas = FRE_Highland_Overextension }
 	}
-	if = {
-		limit = {
-			vin_indochina_ai_support_trigger = yes
-			NOT = { has_idea = VIN_Campaign_AI_Support }
-		}
-		add_ideas = VIN_Campaign_AI_Support
-	}
+	# No hidden AI combat package: map position, commitment, and logistics decide
+	# the campaign for the same army regardless of who controls it.
+	if = { limit = { has_idea = VIN_Campaign_AI_Support } remove_ideas = VIN_Campaign_AI_Support }
 }
 
 vin_campaign_remove_war_spirits = {
@@ -698,6 +573,8 @@ vin_campaign_declare_war = {
 		}
 		FRE = { fre_preparation_response_begin = yes }
 	}
+	# Capture declaration-day garrisons and objective-marker state before AI movement.
+	ic_afk_validation_vin_launch_tick = yes
 }
 
 # Objective provinces start at zero victory points, so their names do not render
@@ -782,13 +659,8 @@ vin_campaign_objective_tick = {
 		vin_limited_campaign_add_objective_vps = yes	# repairs active saves made before the temporary markers existed
 		add_to_variable = { VIN_camp_days_elapsed = 1 }
 		vin_limited_campaign_update_objective_hold = yes
-		if = {
-			limit = {
-				NOT = { vin_indochina_ai_support_trigger = yes }
-				has_idea = VIN_Campaign_AI_Support
-			}
-			remove_ideas = VIN_Campaign_AI_Support	# either principal combatant is now human
-		}
+		if = { limit = { has_idea = VIN_Campaign_AI_Support } remove_ideas = VIN_Campaign_AI_Support }
+		if = { limit = { has_idea = VIN_Indochina_AI_Support } remove_ideas = VIN_Indochina_AI_Support }
 		vin_campaign_sync_objective_modifiers = yes	# the objective can change hands in either direction on any day
 		vin_campaign_update_overextension = yes
 		if = {
@@ -1126,11 +998,11 @@ vin_campaign_resolve = {
 		indochina_struggle_escalate = yes
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = 100
+				StruggleInvolvedNationsIndochinaCommunistScore = 25
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = -50
+				StruggleInvolvedNationsIndochinaProFranceScore = -10
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
@@ -1159,11 +1031,11 @@ vin_campaign_resolve = {
 		indochina_struggle_escalate = yes
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = 50
+				StruggleInvolvedNationsIndochinaCommunistScore = 10
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			subtract_from_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = 25
+				StruggleInvolvedNationsIndochinaProFranceScore = 5
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
@@ -1181,11 +1053,11 @@ vin_campaign_resolve = {
 		limit = { check_variable = { VIN_camp_last_outcome = 3 } }
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = -25
+				StruggleInvolvedNationsIndochinaCommunistScore = -10
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = 25
+				StruggleInvolvedNationsIndochinaProFranceScore = 10
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}
@@ -1196,11 +1068,11 @@ vin_campaign_resolve = {
 		indochina_struggle_deescalate = yes	# a broken offensive takes the pressure off
 		FRA = {
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaCommunistScore = -50
+				StruggleInvolvedNationsIndochinaCommunistScore = -20
 				tooltip = Add_to_Communist_Victory_Points_TT
 			}
 			add_to_variable = {
-				StruggleInvolvedNationsIndochinaProFranceScore = 50
+				StruggleInvolvedNationsIndochinaProFranceScore = 20
 				tooltip = Add_to_French_Victory_Points_TT
 			}
 		}

@@ -63,6 +63,16 @@
 #   e test_vie_referendum_mid         stack it for a contested win
 #   e test_vie_referendum_low         stack it so Bao-Dai survives and Diem is dismissed
 #   e test_vie_referendum_debug       print the current score and its inputs
+#   -- Hinh standoff, Dai-Viet plots, Binh-Xuyen split, end of content --
+#   e test_vie_hinh_open              open the standoff and arm the coup mission
+#   e test_vie_hinh_standoff_high     put the standoff safely above the band
+#   e test_vie_hinh_standoff_low      put it below the band
+#   e test_vie_hinh_timeout           resolve the standoff now (Diem.22 or Diem.23)
+#   e test_vie_daiviet_low / _high / _max   set the conspiracy to each plot band
+#   e test_vie_daiviet_plot           fire the plot the current band routes to
+#   e test_vie_binh_xuyen_rung_sac    apply the April result without the focus
+#   e test_vie_end_of_content         fire the End of Content event for this path
+#   e test_vie_diem_debug             print every Diem-branch tracker and flag
 #   -- Struggle gameplay extras --
 #   e test_indochina_diplomacy_phase  jump to tension phase 6 + 300 PP for the
 #                                     de-escalation decision layer
@@ -1026,6 +1036,8 @@ test_vie_diem_pm = {
 			}
 			clr_country_flag = VIE_No_Initial_PM
 			set_country_flag = VIE_PM_Ngo_Dinh_Diem
+			set_variable = { VIE_Hinh_Standoff = 0 }
+			set_variable = { VIE_DaiViet_Threat = 10 }
 			reset_favoritism_minigame = yes
 			set_country_flag = VIE_Opposition_Diem
 			set_country_flag = {
@@ -1109,6 +1121,212 @@ test_vie_referendum_debug = {
 		VIE = {
 			VIE_calculate_referendum_score = yes
 			log = "VIE REFERENDUM: score=[?VIE_Referendum_Score|0] alt=[?Alt_Favoritism|0] main=[?Main_Favoritism|0] influence=[?VIE_Influence|0] caodai=[?Cao_Dai_Loyalty|0] hoahao=[?Hoa_Hao_Loyalty|0]"
+		}
+	}
+}
+
+
+# --- Hinh standoff, Dai-Viet plots, the Binh-Xuyen split, and the end of content ---------
+# Inputs only: the missions, the bands and the referendum scoring stay under test.
+test_vie_hinh_open = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Hinh_Standoff = 0 }
+			clr_country_flag = VIE_Diem_Controls_Army
+			clr_country_flag = VIE_Hinh_Bought_Off
+			clr_country_flag = VIE_Hinh_Exiled
+			clr_country_flag = VIE_FRA_Coup
+			set_country_flag = VIE_Hinh_Crisis
+			activate_mission = VIE_Hinh_Coup_Attempt
+			country_event = { id = Diem.20 hours = 1 }
+			log = "VIE HINH: standoff opened, mission armed"
+		}
+	}
+}
+
+test_vie_hinh_standoff_high = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Hinh_Standoff = 75 }
+			log = "VIE HINH: standoff=[?VIE_Hinh_Standoff|0] (expect >49, coup collapses)"
+		}
+	}
+}
+
+test_vie_hinh_standoff_low = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_Hinh_Standoff = 20 }
+			log = "VIE HINH: standoff=[?VIE_Hinh_Standoff|0] (expect <50, junta takes the state)"
+		}
+	}
+}
+
+# Mirrors VIE_Hinh_Coup_Attempt's timeout_effect, minus the historical-AI floor so the
+# low band can actually be observed while playing as VIE.
+test_vie_hinh_timeout = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			clr_country_flag = VIE_Hinh_Crisis
+			if = {
+				limit = { check_variable = { VIE_Hinh_Standoff > 49 } }
+				country_event = Diem.22
+				log = "VIE HINH: timeout resolved high, Diem.22"
+			}
+			else = {
+				set_country_flag = VIE_FRA_Coup
+				country_event = Diem.23
+				log = "VIE HINH: timeout resolved low, Diem.23 -> French_Coup.2"
+			}
+		}
+	}
+}
+
+test_vie_daiviet_low = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_DaiViet_Threat = 60 }
+			clr_country_flag = VIE_DaiViet_Plot_Running
+			log = "VIE DAIVIET: threat=[?VIE_DaiViet_Threat|0] (expect DaiViet.1)"
+		}
+	}
+}
+
+test_vie_daiviet_high = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_DaiViet_Threat = 85 }
+			clr_country_flag = VIE_DaiViet_Plot_Running
+			log = "VIE DAIVIET: threat=[?VIE_DaiViet_Threat|0] (expect DaiViet.2)"
+		}
+	}
+}
+
+test_vie_daiviet_max = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_variable = { VIE_DaiViet_Threat = 100 }
+			clr_country_flag = VIE_DaiViet_Plot_Running
+			log = "VIE DAIVIET: threat=[?VIE_DaiViet_Threat|0] (expect DaiViet.3)"
+		}
+	}
+}
+
+# Mirrors VIE_DaiViet_Plot's timeout_effect so a band can be observed without waiting 45 days.
+test_vie_daiviet_plot = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			set_country_flag = {
+				flag = VIE_DaiViet_Plot_Running
+				days = 120
+			}
+			if = {
+				limit = { check_variable = { VIE_DaiViet_Threat > 99 } }
+				country_event = DaiViet.3
+			}
+			else_if = {
+				limit = { check_variable = { VIE_DaiViet_Threat > 74 } }
+				country_event = DaiViet.2
+			}
+			else = {
+				country_event = DaiViet.1
+			}
+			log = "VIE DAIVIET: plot fired at threat=[?VIE_DaiViet_Threat|0]"
+		}
+	}
+}
+
+test_vie_binh_xuyen_rung_sac = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			clr_country_flag = crushed_binh_xuyen
+			clr_country_flag = integrated_binh_xuyen
+			set_variable = { Binh_Xuyen_Annihilation = 100 }
+			VIE_binh_xuyen_driven_from_saigon = yes
+			vietnam_faction_ui_update_number = yes
+			log = "VIE BINH-XUYEN: annihilation=[?Binh_Xuyen_Annihilation|0] (expect 30, crushed flag unset)"
+		}
+	}
+}
+
+test_vie_end_of_content = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			if = {
+				limit = { has_global_flag = VIE_Republic_Proclaimed }
+				country_event = Diem.60
+			}
+			else_if = {
+				limit = { has_country_flag = VIE_Hinh_Coup }
+				country_event = Diem.62
+			}
+			else = {
+				country_event = Diem.61
+			}
+			log = "VIE END: end of content event fired"
+		}
+	}
+}
+
+test_vie_diem_debug = {
+	if = {
+		limit = { country_exists = VIE }
+		VIE = {
+			log = "VIE DIEM: hinh=[?VIE_Hinh_Standoff|0] daiviet=[?VIE_DaiViet_Threat|0] binhxuyen_annih=[?Binh_Xuyen_Annihilation|0] referendum=[?VIE_Referendum_Score|0]"
+			if = {
+				limit = { has_country_flag = VIE_Diem_Controls_Army }
+				log = "VIE DIEM: flag VIE_Diem_Controls_Army"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Hinh_Exiled }
+				log = "VIE DIEM: flag VIE_Hinh_Exiled"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Hinh_Bought_Off }
+				log = "VIE DIEM: flag VIE_Hinh_Bought_Off"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Can_Lao_Founded }
+				log = "VIE DIEM: flag VIE_Can_Lao_Founded"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Binh_Xuyen_Rung_Sac }
+				log = "VIE DIEM: flag VIE_Binh_Xuyen_Rung_Sac"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Hoang_Dieu_Complete }
+				log = "VIE DIEM: flag VIE_Hoang_Dieu_Complete"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Ba_Long_Cleared }
+				log = "VIE DIEM: flag VIE_Ba_Long_Cleared"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Royal_Guard_Abolished }
+				log = "VIE DIEM: flag VIE_Royal_Guard_Abolished"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Decree_21 }
+				log = "VIE DIEM: flag VIE_Decree_21"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Reject_Geneva_Elections }
+				log = "VIE DIEM: flag VIE_Reject_Geneva_Elections"
+			}
+			if = {
+				limit = { has_country_flag = VIE_Unified_Front_Formed }
+				log = "VIE DIEM: flag VIE_Unified_Front_Formed"
+			}
 		}
 	}
 }
