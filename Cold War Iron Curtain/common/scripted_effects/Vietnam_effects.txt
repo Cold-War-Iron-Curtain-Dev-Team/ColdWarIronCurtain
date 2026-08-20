@@ -119,6 +119,43 @@ vietnam_cochinchina_unification_war = {
 	}
 }
 
+# The premiership is over for good. Called from BaoDai.9 when the Republic is proclaimed:
+# Bao-Dai is gone, so there is no Chief of State for a premier to be played off against and
+# no French favoritism to court. Clears the Main seat and whichever Opposition seat is held,
+# and drops the head-of-government panel. VIE_PM_Ngo_Dinh_Diem is deliberately left set -
+# VIE_50s_Diplo.txt reads it as a focus-tree layout offset, not as a live premiership.
+# Saigon refused the all-Vietnam ballot through the event channel instead of the focus.
+# VIE_Diem_Reject_the_Geneva_Elections is gated on 16 July 1955, the historical date, but a
+# settlement that scheduled the vote immediately (geneva_elections_term = 3) has the arbiter
+# resolving it about 150 days after Geneva - long before that gate opens. In that timeline
+# the refusal has already happened and the focus would sit unreachable forever, so it is
+# granted. The global flag tells the focus reward not to re-fire what the event already did.
+VIE_diem_autocomplete_ballot_refusal = {
+	if = {
+		limit = {
+			country_exists = VIE
+			check_variable = { global.geneva_elections_term = 3 }	# immediate ballot only
+			VIE = {
+				has_country_flag = VIE_PM_Ngo_Dinh_Diem
+				has_focus_tree = VIE_Bao_Dai_50
+				NOT = { has_completed_focus = VIE_Diem_Reject_the_Geneva_Elections }
+			}
+		}
+		set_global_flag = geneva_vie_refusal_autogranted
+		VIE = { complete_national_focus = VIE_Diem_Reject_the_Geneva_Elections }
+	}
+}
+
+VIE_close_favoritism_minigame = {
+	VIE = {
+		clr_country_flag = CWIC_HOG_UI_ENABLED
+		clr_country_flag = VIE_Main_Bao_Dai
+		clr_country_flag = VIE_Dealing_with_CuongDe
+		reset_favoritism_minigame = yes
+		set_variable = { Main_Favoritism = 0 }
+	}
+}
+
 reset_favoritism_minigame = {
 	VIE = {
 		set_variable = { Alt_Favoritism = 5 }
@@ -1033,6 +1070,34 @@ VIE_dismantle_binh_xuyen = {
 	}
 	set_country_flag = crushed_binh_xuyen
 	custom_effect_tooltip = eliminate_binh_xuyen_TT
+}
+
+# --- The Binh-Xuyen between April and September 1955 -------------------------------------
+# The Battle of Saigon drove Le-Van-Vien out of Cholon; it did not destroy him. This is the
+# April half of the arc: heavy damage, the syndicate pushed into the Rung-Sac swamps, and
+# the sect left alive so the Hoang-Dieu campaign has something to finish in September.
+# Binh_Xuyen_Annihilation counts DOWN from 100 - the sect variables are stored inverted.
+# It deliberately does not set crushed_binh_xuyen, so the 1xx sect decision band stays open.
+VIE_binh_xuyen_driven_from_saigon = {
+	set_variable = { VIE_Warlord_Status_2 = 2 }	# hostile, and no longer in the capital
+	set_temp_variable = { binh_xuyen_annihilation_change = -70 }	# 100 -> 30
+	binh_xuyen_annihilation_change_tt = yes
+	set_temp_variable = { binh_xuyen_loyalty_change = 20 }
+	binh_xuyen_loyalty_change_tt = yes
+	set_country_flag = VIE_Binh_Xuyen_Rung_Sac
+	custom_effect_tooltip = VIE_binh_xuyen_rung_sac_tt
+}
+
+# The September half. Colonel Duong-Van-Minh hunts the survivors through the Rung-Sac and
+# Le-Van-Vien leaves for Cambodia. Drives the strength track to zero first so the sect panel
+# and the crushed flag agree with one another.
+VIE_finish_the_binh_xuyen = {
+	set_temp_variable = { binh_xuyen_annihilation_change = Binh_Xuyen_Annihilation }
+	multiply_temp_variable = { binh_xuyen_annihilation_change = -1 }
+	binh_xuyen_annihilation_change_tt = yes
+	clr_country_flag = VIE_Binh_Xuyen_Rung_Sac
+	set_country_flag = VIE_Hoang_Dieu_Complete
+	VIE_dismantle_binh_xuyen = yes
 }
 
 # Vietnam Factionalism Tooltips
@@ -9741,6 +9806,15 @@ VIE_startup_guis = {
 	set_variable = { UMDC_Loyalty = 90 }
 	set_variable = { UMDC_Annihilation = 100 }
 
+	# Diem-era trackers. Neither is inverted: VIE_Hinh_Standoff higher is safer,
+	# VIE_DaiViet_Threat higher is worse. Seeded here so they always exist to read.
+	set_variable = { VIE_Hinh_Standoff = 0 }
+	set_variable = { VIE_DaiViet_Threat = 0 }
+	# Read by the situation report before anything has written them: VIE_Referendum_Score used
+	# to exist only inside VIE_calculate_referendum_score, and CD_Recruits was never seeded.
+	set_variable = { VIE_Referendum_Score = 0 }
+	set_variable = { CD_Recruits = 0 }
+
 	vietnam_faction_ui_update_number = yes
 
 	set_variable = { VIE_Region_1_Faction = 1 } #1 - Kien Gang
@@ -16132,6 +16206,7 @@ VIE_calculate_referendum_score = {
 	multiply_temp_variable = { vie_ref_tmp = 0.15 }
 	add_to_variable = { VIE_Referendum_Score = vie_ref_tmp }
 	# A broken Binh-Xuyen is worth more than a loyal one - it is the proof of control.
+	# April drove them out of Cholon and September finished them, so the two pay separately.
 	if = {
 		limit = { has_country_flag = crushed_binh_xuyen }
 		add_to_variable = { VIE_Referendum_Score = 30 }
@@ -16139,6 +16214,10 @@ VIE_calculate_referendum_score = {
 	else_if = {
 		limit = { has_country_flag = integrated_binh_xuyen }
 		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Binh_Xuyen_Rung_Sac }
+		add_to_variable = { VIE_Referendum_Score = 15 }	# driven from Saigon but still alive in the swamps
 	}
 	# The army, the refugee base, and the civilian mandate.
 	if = {
@@ -16153,6 +16232,24 @@ VIE_calculate_referendum_score = {
 		limit = { has_country_flag = VIE_Diem_NRC_Formed }
 		add_to_variable = { VIE_Referendum_Score = 25 }
 	}
+	# The party apparatus, the throne's own guard, and the refusal of the 1956 all-Vietnam vote.
+	if = {
+		limit = { has_country_flag = VIE_Can_Lao_Founded }
+		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Royal_Guard_Abolished }
+		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Reject_Geneva_Elections }
+		add_to_variable = { VIE_Referendum_Score = 10 }
+	}
+	# The Dai-Viet. Every conspiracy left standing is a bloc of the electorate voting the
+	# other way, so the running threat is subtracted at a quarter of its value.
+	set_temp_variable = { vie_ref_tmp = VIE_DaiViet_Threat }
+	multiply_temp_variable = { vie_ref_tmp = 0.25 }
+	subtract_from_variable = { VIE_Referendum_Score = vie_ref_tmp }
 	# Washington.
 	if = {
 		limit = {
@@ -16196,4 +16293,124 @@ VIE_seat_national_revolution_committee = {
 	}
 	set_country_flag = VIE_NRC_Interim
 	mark_focus_tree_layout_dirty = yes
+}
+
+# --- The Hinh standoff, July to November 1954 --------------------------------------------
+# VIE_Hinh_Standoff is the premiership's standing against its own chief of staff. Unlike the
+# sect loyalty and annihilation variables in this file it is NOT inverted: higher is safer.
+# The VIE_Hinh_Coup_Attempt mission reads it once, at timeout. Above 49 the coup collapses
+# the way it did historically; at or below 49 the armour rolls and French_Coup.2 fires.
+VIE_hinh_standoff_change = {
+	add_to_variable = {
+		var = VIE_Hinh_Standoff
+		value = hinh_standoff_change
+		tooltip = VIE_Hinh_Standoff_Adj_tt
+	}
+	clamp_variable = {
+		var = VIE_Hinh_Standoff
+		min = 0
+		max = 100
+	}
+}
+
+# --- The Dai-Viet conspiracies, 1954 to 1955 ---------------------------------------------
+# VIE_DaiViet_Threat is the pressure the Dai-Viet Quoc-Dan-Dang puts on the premiership.
+# Also NOT inverted: higher is worse. It climbs on a monthly tick and on every act that
+# pushes the party out of the state, and falls through the three counter-decisions and the
+# Ba-Long expedition. Past 49 the VIE_DaiViet_Plot mission arms.
+VIE_daiviet_threat_change = {
+	add_to_variable = {
+		var = VIE_DaiViet_Threat
+		value = daiviet_threat_change
+		tooltip = VIE_DaiViet_Threat_Adj_tt
+	}
+	clamp_variable = {
+		var = VIE_DaiViet_Threat
+		min = 0
+		max = 100
+	}
+}
+
+VIE_daiviet_threat_tick = {
+	if = {
+		limit = {
+			has_country_flag = VIE_PM_Ngo_Dinh_Diem
+			NOT = { has_global_flag = VIE_Republic_Proclaimed }
+			NOT = { has_country_flag = VIE_Hinh_Coup }
+		}
+		set_temp_variable = { daiviet_threat_change = 3 }
+		if = {
+			limit = { has_global_flag = USA_Backs_French_Coup }
+			add_to_temp_variable = { daiviet_threat_change = 2 }	# Washington shopping for a replacement emboldens them
+		}
+		if = {
+			limit = { has_country_flag = VIE_Can_Lao_Founded }
+			subtract_from_temp_variable = { daiviet_threat_change = 2 }
+		}
+		if = {
+			limit = { has_country_flag = VIE_Ba_Long_Cleared }
+			subtract_from_temp_variable = { daiviet_threat_change = 3 }
+		}
+		hidden_effect = {
+			VIE_daiviet_threat_change = yes
+		}
+	}
+}
+
+# --- End of content ----------------------------------------------------------------------
+# Read by Diem.60, Diem.61 and Diem.62. Recaps what the run actually settled before the
+# tree is wiped, so the closing event says something specific rather than generic.
+VIE_diem_run_summary = {
+	if = {
+		limit = { has_global_flag = VIE_Republic_Proclaimed }
+		custom_effect_tooltip = VIE_summary_republic_tt
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Hinh_Coup }
+		custom_effect_tooltip = VIE_summary_junta_tt
+	}
+	else = {
+		custom_effect_tooltip = VIE_summary_throne_tt
+	}
+	if = {	# the plebiscite ran with nobody standing against the throne
+		limit = { has_country_flag = VIE_Throne_Confirmed }
+		custom_effect_tooltip = VIE_summary_throne_confirmed_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Hinh_Exiled }
+		custom_effect_tooltip = VIE_summary_hinh_exiled_tt
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Hinh_Bought_Off }
+		custom_effect_tooltip = VIE_summary_hinh_bought_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Can_Lao_Founded }
+		custom_effect_tooltip = VIE_summary_can_lao_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Hoang_Dieu_Complete }
+		custom_effect_tooltip = VIE_summary_hoang_dieu_tt
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Binh_Xuyen_Rung_Sac }
+		custom_effect_tooltip = VIE_summary_rung_sac_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Ba_Long_Cleared }
+		custom_effect_tooltip = VIE_summary_ba_long_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Royal_Guard_Abolished }
+		custom_effect_tooltip = VIE_summary_royal_guard_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Decree_21 }
+		custom_effect_tooltip = VIE_summary_decree_21_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Reject_Geneva_Elections }
+		custom_effect_tooltip = VIE_summary_reject_geneva_tt
+	}
+	custom_effect_tooltip = VIE_50s_content_end_tt
 }

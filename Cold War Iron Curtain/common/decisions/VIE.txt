@@ -119,8 +119,12 @@ VIE_CrownDomain_Decisions = {
 		fire_only_once = yes
 		complete_effect = {
 			custom_effect_tooltip = VIE_FUL_Annexation_Trigger_tt
+			# The Geneva ending no longer annexes the Crown Domain, so this is the fallback for a
+			# government that never reached VIE_Diem_Decree_21. Same contract as the decree: fire
+			# Du_So_21.1 directly rather than waiting on FUL's AI to pick up FUL_Du_So_21.
 			FUL = {
 				set_country_flag = VIE_FUL_Annexation_Trigger
+				country_event = { id = Du_So_21.1 days = 3 }
 			}
 		}
 	}
@@ -166,6 +170,26 @@ VIE_CrownDomain_Decisions = {
 }
 
 VIE_Bao_Dai_Power_Minigame = {
+	# Situation Report
+	# Display only. The favoritism minigame and the Diem branch run on variables the player
+	# has no other way to read - VIE_Hinh_Standoff, VIE_DaiViet_Threat and the referendum
+	# score all decide outcomes silently. available can never pass, so the card exists purely
+	# to carry its tooltip; the sect figures use the *_number mirrors because the stored
+	# loyalties are inverted. Same shape as VIN_Vinh_Yen_Objective in Indochina_War.txt.
+	VIE_Diem_Situation_Report = {
+		icon = generic_political_discourse
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Situation_Report_tt
+				always = no
+			}
+		}
+		fire_only_once = no
+		selectable_mission = no
+		ai_will_do = {
+			factor = 0
+		}
+	}
 	# Cuong-De Leader Decisions\
 	CuongDe_NgoDinh_Countdown = {
 		activation = {
@@ -1980,6 +2004,9 @@ VIE_Bao_Dai_Power_Minigame = {
 				has_country_flag = VIE_FRA_Coup
 			}
 			NOT = {
+				has_country_flag = VIE_Hinh_Crisis	# VIE_Hinh_Coup_Attempt owns the clock while the standoff runs
+			}
+			NOT = {
 				has_country_flag = VIE_Matignon_Treaty_Signed
 			}
 			OR = {
@@ -2014,6 +2041,327 @@ VIE_Bao_Dai_Power_Minigame = {
 		timeout_effect = {
 			set_country_flag = VIE_FRA_Coup
 			country_event = French_Coup.2
+		}
+	}
+	# --- The Hinh standoff, July to November 1954 -----------------------------------------
+	# Built on the ProFrench_Coup shape: an uncompletable doom timer that the player can only
+	# cancel, here by breaking the chief of staff before it runs out. VIE_Hinh_Standoff is not
+	# inverted - higher is safer - and is read once, at timeout. The band is hard: above 49
+	# the coup collapses, at or below 49 French_Coup.2 fires and the Diem branch is over.
+	VIE_Hinh_Coup_Attempt = {
+		activation = {
+			has_country_flag = VIE_Hinh_Crisis
+			has_character = VIE_Nguyen_Van_Hinh
+			NOT = {
+				has_country_flag = VIE_FRA_Coup
+			}
+			NOT = {
+				has_country_flag = VIE_Diem_Controls_Army
+			}
+			NOT = {
+				has_country_flag = VIE_Hinh_Bought_Off
+			}
+			# Same AI-only exemption ProFrench_Coup uses. Humans are always subject to it.
+			OR = {
+				is_ai = no
+				NOT = { has_game_rule = { rule = VIE_ai_french_coup option = VIE_FRENCH_COUP_AI_EXEMPT } }
+			}
+		}
+		days_mission_timeout = 135	# 7 July 1954 cabinet to Hinh's resignation on 13 November, with a little slack
+		selectable_mission = no
+		is_good = no
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		cancel_trigger = {
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = VIE_Diem_Controls_Army_tt
+					has_country_flag = VIE_Diem_Controls_Army
+				}
+				has_country_flag = VIE_Hinh_Bought_Off
+				NOT = { has_character = VIE_Nguyen_Van_Hinh }
+			}
+		}
+		timeout_effect = {
+			clr_country_flag = VIE_Hinh_Crisis
+			# The historical run delivered a collapsed coup, so it is floored rather than weighted.
+			if = {
+				limit = {
+					is_ai = yes
+					is_historical_focus_on = yes
+					check_variable = { VIE_Hinh_Standoff < 50 }
+				}
+				set_variable = { VIE_Hinh_Standoff = 50 }
+			}
+			if = {
+				limit = { check_variable = { VIE_Hinh_Standoff > 49 } }
+				country_event = Diem.22
+			}
+			else = {
+				set_country_flag = VIE_FRA_Coup
+				country_event = Diem.23
+			}
+		}
+	}
+	VIE_Hinh_Request_American_Guards = {
+		visible = {
+			has_country_flag = VIE_Hinh_Crisis
+		}
+		available = {
+			has_political_power > 49
+			USA = {
+				OR = {
+					has_completed_focus = USA_50s_Permit_Diem_Regime
+					has_opinion = {
+						target = VIE
+						value > 24
+					}
+				}
+			}
+		}
+		cost = 50
+		fire_only_once = yes
+		selectable_mission = no
+		complete_effect = {
+			country_event = { id = Diem.24 days = 14 }
+		}
+		ai_will_do = {
+			base = 40
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+	}
+	VIE_Hinh_Buy_the_Officer_Corps = {
+		visible = {
+			has_country_flag = VIE_Hinh_Crisis
+		}
+		custom_cost_trigger = {
+			has_political_power > 24
+			check_variable = { currentMoney > 0.09 }
+		}
+		custom_cost_text = VIE_Hinh_Buy_the_Officer_Corps_cost
+		days_re_enable = 20
+		fire_only_once = no
+		selectable_mission = no
+		complete_effect = {
+			add_political_power = -25
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			set_temp_variable = { hinh_standoff_change = 10 }
+			VIE_hinh_standoff_change = yes
+		}
+		ai_will_do = {
+			base = 30
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+	}
+	VIE_Hinh_Appeal_to_Bao_Dai = {
+		visible = {
+			has_country_flag = VIE_Hinh_Crisis
+		}
+		available = {
+			has_political_power > 29
+		}
+		cost = 30
+		fire_only_once = yes
+		selectable_mission = no
+		complete_effect = {
+			set_temp_variable = { hinh_standoff_change = 20 }
+			VIE_hinh_standoff_change = yes
+			set_temp_variable = { favoritism_change = 10 }	# the throne does not do favours for nothing
+			VIE_Change_Main_Favoritism = yes
+		}
+		ai_will_do = {
+			base = 25
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+	}
+	VIE_Hinh_Reform_the_Cabinet = {
+		visible = {
+			has_country_flag = VIE_Hinh_Crisis
+			has_idea = VIE_Caretaker_Cabinet
+		}
+		available = {
+			has_political_power > 39
+		}
+		cost = 40
+		fire_only_once = yes
+		selectable_mission = no
+		complete_effect = {
+			remove_ideas = VIE_Caretaker_Cabinet
+			add_stability = 0.05
+			set_temp_variable = { hinh_standoff_change = 10 }
+			VIE_hinh_standoff_change = yes
+		}
+		ai_will_do = {
+			base = 35
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+	}
+	# --- The Dai-Viet conspiracies ---------------------------------------------------------
+	# VIE_DaiViet_Threat is not inverted - higher is worse. Past 49 this arms; the timeout
+	# bands into DaiViet.1, .2 or .3 and then sits on a 120 day cooldown before re-arming.
+	VIE_DaiViet_Plot = {
+		activation = {
+			has_country_flag = VIE_PM_Ngo_Dinh_Diem
+			NOT = {
+				has_global_flag = VIE_Republic_Proclaimed
+			}
+			NOT = {
+				has_country_flag = VIE_DaiViet_Plot_Running
+			}
+			NOT = {
+				has_country_flag = VIE_Hinh_Coup
+			}
+			check_variable = {
+				VIE_DaiViet_Threat > 49
+			}
+		}
+		days_mission_timeout = 45
+		selectable_mission = no
+		is_good = no
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		cancel_trigger = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_DaiViet_Threat_Contained_tt
+				check_variable = {
+					VIE_DaiViet_Threat < 50
+				}
+			}
+		}
+		timeout_effect = {
+			set_country_flag = {
+				flag = VIE_DaiViet_Plot_Running
+				days = 120
+			}
+			if = {
+				limit = { check_variable = { VIE_DaiViet_Threat > 99 } }
+				country_event = DaiViet.3
+			}
+			else_if = {
+				limit = { check_variable = { VIE_DaiViet_Threat > 74 } }
+				country_event = DaiViet.2
+			}
+			else = {
+				country_event = DaiViet.1
+			}
+		}
+	}
+	VIE_DaiViet_Offer_Cabinet_Seats = {
+		visible = {
+			has_country_flag = VIE_PM_Ngo_Dinh_Diem
+			NOT = { has_global_flag = VIE_Republic_Proclaimed }
+		}
+		available = {
+			has_political_power > 49
+			check_variable = {
+				VIE_DaiViet_Threat > 4
+			}
+		}
+		cost = 50
+		days_re_enable = 90
+		fire_only_once = no
+		selectable_mission = no
+		complete_effect = {
+			set_temp_variable = { daiviet_threat_change = -25 }
+			VIE_daiviet_threat_change = yes
+			set_temp_variable = { favoritism_change = -5 }	# power shared is standing spent
+			VIE_Change_Alt_Favoritism = yes
+		}
+		ai_will_do = {
+			base = 20
+			modifier = {
+				factor = 0
+				has_political_power < 80
+			}
+			modifier = {
+				factor = 4
+				check_variable = { VIE_DaiViet_Threat > 44 }
+			}
+		}
+	}
+	VIE_DaiViet_Can_Lao_Infiltration = {
+		visible = {
+			has_country_flag = VIE_Can_Lao_Founded
+			NOT = { has_global_flag = VIE_Republic_Proclaimed }
+		}
+		available = {
+			has_political_power > 24
+			check_variable = {
+				VIE_DaiViet_Threat > 4
+			}
+		}
+		cost = 25
+		days_re_enable = 60
+		fire_only_once = no
+		selectable_mission = no
+		complete_effect = {
+			set_temp_variable = { daiviet_threat_change = -20 }
+			VIE_daiviet_threat_change = yes
+		}
+		ai_will_do = {
+			base = 50
+			modifier = {
+				factor = 0
+				has_political_power < 50
+			}
+			modifier = {
+				factor = 4
+				check_variable = { VIE_DaiViet_Threat > 34 }
+			}
+		}
+	}
+	VIE_DaiViet_Arrest_the_Cadres = {
+		visible = {
+			has_country_flag = VIE_PM_Ngo_Dinh_Diem
+			NOT = { has_global_flag = VIE_Republic_Proclaimed }
+		}
+		available = {
+			has_political_power > 34
+			has_stability > 0.19
+			check_variable = {
+				VIE_DaiViet_Threat > 4
+			}
+		}
+		cost = 35
+		days_re_enable = 120
+		fire_only_once = no
+		selectable_mission = no
+		complete_effect = {
+			add_stability = -0.05
+			set_temp_variable = { daiviet_threat_change = -35 }
+			VIE_daiviet_threat_change = yes
+			set_temp_variable = { favoritism_change = -3 }
+			VIE_Change_Alt_Favoritism = yes
+		}
+		ai_will_do = {
+			base = 15
+			modifier = {
+				factor = 0
+				has_political_power < 70
+			}
+			modifier = {
+				factor = 6
+				check_variable = { VIE_DaiViet_Threat > 64 }
+			}
 		}
 	}
 }
