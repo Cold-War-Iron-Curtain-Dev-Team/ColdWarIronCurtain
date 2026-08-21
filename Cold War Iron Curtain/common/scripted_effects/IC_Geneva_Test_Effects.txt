@@ -1,105 +1,3 @@
-# ============================================================================
-# Indochina QA / testing effects (Geneva Conference, GUIs, routes)
-# ----------------------------------------------------------------------------
-# Run from the console with:   e <effect_name>
-# The effect executes in the scope of the country you are playing, so switch
-# tag first (`tag VIE`, `tag FRA`, ...) when a test is tag-specific.
-#
-# Companion file: IC_Struggle_Test_Effects.txt covers the struggle core
-# (phases, faction scores, legacy/decisive endings, struggle GUI toggles).
-# This file covers everything built since: the round-based Geneva Conference,
-# its GUI and table actions, the interim election chain, and the VIE
-# sectarian GUI.
-#
-# Quick reference:
-#   -- Geneva lifecycle --
-#   e test_geneva_reset               tear down all conference state (rerunnable)
-#   e test_geneva_announce            player-facing "Road to Geneva" entry (6-day delay)
-#   e test_geneva_start               convene instantly, seat delegations, open GUI
-#   e test_geneva_tick                advance one negotiation round
-#   e test_geneva_tick_5              advance five rounds
-#   e test_geneva_finish              force the settlement compiler now
-#   e test_geneva_auto_resolve        full headless run (wrap-up timer path)
-#   -- Geneva GUI / player helpers --
-#   e test_geneva_show_gui            open the conference window for your country
-#   e test_geneva_hide_gui            close it
-#   e test_geneva_seat_me             seat your country as a delegation
-#   e test_geneva_buff_me             +500 weight, full patience, actions + PP refill
-#   e test_geneva_refresh_actions     reset per-round action count and cooldowns
-#   e test_geneva_max_rapprochement   VIE-VIN rapprochement to 120 + pref refresh
-#   e test_geneva_lev_all             +100 to every leverage pool
-#   -- Geneva routes / outcomes --
-#   e test_geneva_settle_otl          force the historical 17th-parallel accords
-#   e test_geneva_settle_unified      force a no-partition settlement + election chain
-#   e test_geneva_settle_13th         force a 13th-parallel partition
-#   e test_geneva_settle_20th         force a 20th-parallel partition
-#   e test_geneva_collapse_no_ceasefire   collapse: ceasefire clause voted down
-#   e test_geneva_collapse_walkouts   collapse: VIE + VIN storm out
-#   e test_geneva_election_now        fire the interim all-Vietnam election arbiter
-#   e test_geneva_election_favor_ho   stack the election snapshot for Hanoi
-#   e test_geneva_election_favor_saigon   stack it for Saigon
-#   e test_geneva_debug               branch-check the conference flags
-#   -- Geneva hardening regressions --
-#   e test_geneva_runoff              13th wins a split vote -> must resolve to the 17th
-#   e test_geneva_runoff_20th         20th wins a split vote -> must resolve to the 17th
-#   e test_geneva_fre_pursuit         de-escalation pursuit: defers below the gate, convenes above it
-#   e test_geneva_stale_hollow        in-session save with no delegations + stale round
-#   e test_geneva_panic               force the Dien Bien Phu collapse path to the table
-#   e test_geneva_panic_ballot        Washington's delegation must refuse the vote
-#   e test_geneva_campaign_window     ballot focuses shut until the run-up opens
-#   e test_geneva_unified_liquidation a no-line settlement must still end the French presence
-#   -- VIE sectarian GUI --
-#   e test_vie_sect_show_gui          open the sect window (as VIE)
-#   e test_vie_sect_hide_gui          close it
-#   e test_vie_sect_reset             restore start-of-game sect values
-#   e test_vie_sect_ready_integration all loyalty tracks to integration threshold
-#   e test_vie_sect_ready_dismantle   all annihilation tracks to dismantle threshold
-#   e test_vie_sect_max_pity          guarantee the next attack/seize rolls
-#   e test_vie_sect_prompt_attack_success / _attack_failure /
-#     _seize_success / _seize_failure   show the conflict result prompt
-#   -- Diem premiership and the 1955 referendum --
-#   e test_vie_diem_pm                install Diem as premier with his branch unlocked
-#   e test_vie_referendum_high        stack the score for the historical landslide
-#   e test_vie_referendum_mid         stack it for a contested win
-#   e test_vie_referendum_low         stack it so Bao-Dai survives and Diem is dismissed
-#   e test_vie_referendum_debug       print the current score and its inputs
-#   -- Hinh standoff, Dai-Viet plots, Binh-Xuyen split, end of content --
-#   e test_vie_hinh_open              open the standoff and arm the coup mission
-#   e test_vie_hinh_standoff_high     put the standoff safely above the band
-#   e test_vie_hinh_standoff_low      put it below the band
-#   e test_vie_hinh_timeout           resolve the standoff now (Diem.22 or Diem.23)
-#   e test_vie_daiviet_low / _high / _max   set the conspiracy to each plot band
-#   e test_vie_daiviet_plot           fire the plot the current band routes to
-#   e test_vie_binh_xuyen_rung_sac    apply the April result without the focus
-#   e test_vie_end_of_content         fire the End of Content event for this path
-#   e test_vie_diem_debug             print every Diem-branch tracker and flag
-#   -- Struggle gameplay extras --
-#   e test_indochina_diplomacy_phase  jump to tension phase 6 + 300 PP for the
-#                                     de-escalation decision layer
-#   -- War Outcomes panel --
-#   e test_outcomes_show_gui / _hide_gui   toggle the panel for your country
-#   e test_outcomes_reset             re-arm all scenario detectors + recorders
-#   e test_outcomes_pulse             run the daily world detector once
-#   e test_outcomes_nlf_kill          annex NLF (then pulse to record the tier)
-#   e test_outcomes_dbp_victory / _fall / _breakout   plant the DBP result flag
-#   e test_outcomes_sects_all         integrate all five sects on VIE
-#   e test_outcomes_highlands_all     VIN annexes TAI, MEO and NUN
-#   e test_outcomes_laos_victory / _stalemate / _failure   plant raid flags
-#   -- Negotiation pipeline --
-#   e test_geneva_neg_debug           dump the negotiation arrays to game.log
-#   e test_geneva_neg_tick            run the daily maturation sweep once
-#   e test_geneva_neg_flush           bank every in-flight stake now
-# ============================================================================
-
-# ----------------------------------------------------------------------------
-# Geneva Conference: lifecycle
-# ----------------------------------------------------------------------------
-
-# Full teardown of the conference so it can be convened again in the same
-# session. Also clears Indochina_War_Over so a concluded run does not block
-# re-initialization -- territorial changes from a previous ending are NOT
-# undone (reload for that). Struggle phase/scores are untouched; use
-# test_indochina_reset (IC_Struggle_Test_Effects.txt) for those.
 test_geneva_reset = {
 	clr_global_flag = geneva_conference_announced
 	clr_global_flag = geneva_conference_in_session
@@ -111,8 +9,8 @@ test_geneva_reset = {
 	clr_global_flag = Geneva_Conference_Negotiations_Complete
 	clr_global_flag = Geneva_Conference
 	clr_global_flag = geneva_conf_attendance_autogranted	# otherwise a re-convened conference silently pays no delegation payload
-	clr_global_flag = Indochina_Geneva_Pursuit	# a pending de-escalation pursuit would re-announce the conference behind the test
-	clr_global_flag = Indochina_Geneva_Panic	# else the collapse path is one-shot across the whole session
+	clr_global_flag = Indochina_Geneva_Pursuit
+	clr_global_flag = Indochina_Geneva_Panic
 	clr_global_flag = geneva_usa_panic_no_ballot
 	clr_global_flag = geneva_election_campaign_open
 	clr_global_flag = Indochina_War_Over
@@ -166,7 +64,6 @@ test_geneva_reset = {
 		limit = { is_in_array = { array = country_politics_list value = 29 } }
 		remove_from_array = { array = country_politics_list value = 29 }
 	}
-	# Legacy outcome vocabulary from a previous compile.
 	if = {
 		limit = { country_exists = FRA }
 		FRA = {
@@ -204,9 +101,6 @@ test_geneva_reset = {
 	}
 }
 
-# Resets the pre-conference leverage pools and re-arms the one-shot world
-# detectors in geneva_conf_world_leverage_pulse. Separate from
-# test_geneva_reset because leverage accumulates across a whole campaign.
 test_geneva_reset_leverage = {
 	set_variable = { global.geneva_lev_communist = 0 }
 	set_variable = { global.geneva_lev_profrance = 0 }
@@ -225,21 +119,14 @@ test_geneva_reset_leverage = {
 	clr_global_flag = geneva_cuongde_front_applied
 }
 
-# The player-facing entry: "Road to Geneva" news to all delegations, session
-# opens via hidden Session.11 six days later. Use test_geneva_start instead
-# when you do not want to wait.
 test_geneva_announce = {
 	geneva_conf_announce = yes
 }
 
-# Convene instantly: seats every delegation, seeds weights from struggle
-# scores + leverage, opens the conference GUI for all seated countries.
 test_geneva_start = {
 	geneva_conf_initialize = yes
 }
 
-# Shared helper: make sure a live session exists. A concluded (or otherwise
-# blocked) conference is torn down and reconvened.
 test_geneva_force_session = {
 	if = {
 		limit = { NOT = { has_global_flag = geneva_conference_in_session } }
@@ -248,8 +135,6 @@ test_geneva_force_session = {
 	}
 }
 
-# One negotiation round: AI campaigning, weighted clause votes, patience
-# drain, walkout checks. Normally driven weekly from on_daily_FRA.
 test_geneva_tick = {
 	geneva_conf_round_tick = yes
 }
@@ -262,22 +147,16 @@ test_geneva_tick_5 = {
 	geneva_conf_round_tick = yes
 }
 
-# Ends the session on whatever is currently on the table.
 test_geneva_finish = {
 	test_geneva_force_session = yes
 	set_variable = { global.geneva_round = 10 }
 	geneva_conf_compile_settlement = yes
 }
 
-# The wrap-up timer's headless path: convene if needed, play 12 rounds,
-# compile. Good smoke test for AI-only resolution.
 test_geneva_auto_resolve = {
 	geneva_conf_auto_resolve = yes
 }
 
-# ----------------------------------------------------------------------------
-# Geneva Conference: GUI / player helpers
-# ----------------------------------------------------------------------------
 
 test_geneva_show_gui = {
 	set_variable = { View_Geneva_Conference = 1 }
@@ -287,8 +166,6 @@ test_geneva_hide_gui = {
 	set_variable = { View_Geneva_Conference = 0 }
 }
 
-# Seat the country you are playing as a delegation (e.g. to test the table
-# actions from a tag that is not normally invited).
 test_geneva_seat_me = {
 	if = {
 		limit = {
@@ -299,8 +176,6 @@ test_geneva_seat_me = {
 	}
 }
 
-# Everything a player needs to spam table actions: weight, patience, PP,
-# fresh action count, cleared cooldowns.
 test_geneva_buff_me = {
 	add_political_power = 500
 	add_to_variable = { geneva_weight = 500 }
@@ -323,8 +198,6 @@ test_geneva_refresh_actions = {
 	set_variable = { geneva_threats_used = 0 }
 }
 
-# Push the VIE-VIN back-channel over the 100 threshold and re-derive both
-# delegations' positions (elections become thinkable, the 17th acceptable).
 test_geneva_max_rapprochement = {
 	set_variable = { global.geneva_rapprochement_vie_vin = 120 }
 	if = {
@@ -343,8 +216,6 @@ test_geneva_max_rapprochement = {
 	}
 }
 
-# Leverage pools feed weight seeding and delegation preferences at convene
-# time, so add leverage BEFORE test_geneva_start.
 test_geneva_lev_communist = {
 	set_temp_variable = { geneva_lev_amount = 100 }
 	geneva_add_communist_leverage = yes
@@ -384,22 +255,6 @@ test_geneva_lev_all = {
 	test_geneva_lev_ethnic = yes
 }
 
-# ----------------------------------------------------------------------------
-# Geneva Conference: forced settlements and routes
-# ----------------------------------------------------------------------------
-# Clause indices/options are documented at the top of
-# CWIC_Geneva_Conference_Effects.txt:
-#   0 ceasefire (0 none / 1 phased / 2 immediate)
-#   1 partition (0 unified / 1 13th / 2 17th / 3 20th)
-#   2 elections (0 none / 1 postponed / 2 two years / 3 immediate)
-#   3 withdrawal (0 retained / 1 timetabled / 2 immediate)
-#   4 alignment (0 free blocs / 1 neutrality)
-#   5 Laos & Cambodia (0 French Union / 1 independent / 2 regroupment zones)
-#   6 minorities (0 none / 1 autonomy)
-
-# The OTL accords: immediate ceasefire, 17th parallel, elections postponed,
-# timetabled withdrawal, neutrality, independent Laos/Cambodia, no minority
-# provision.
 test_geneva_settle_otl = {
 	test_geneva_force_session = yes
 	set_variable = { global.geneva_clause_current^0 = 2 }
@@ -413,8 +268,6 @@ test_geneva_settle_otl = {
 	geneva_conf_compile_settlement = yes
 }
 
-# No partition line at all: one Vietnam under an interim arrangement, with
-# the all-Vietnam election arbiter scheduled to decide who governs it.
 test_geneva_settle_unified = {
 	test_geneva_force_session = yes
 	set_variable = { global.geneva_clause_current^0 = 2 }
@@ -428,7 +281,6 @@ test_geneva_settle_unified = {
 	geneva_conf_compile_settlement = yes
 }
 
-# Communist-favorable partition: VIN also takes Hue and the central coast.
 test_geneva_settle_13th = {
 	test_geneva_force_session = yes
 	set_variable = { global.geneva_clause_current^0 = 2 }
@@ -442,7 +294,6 @@ test_geneva_settle_13th = {
 	geneva_conf_compile_settlement = yes
 }
 
-# South-favorable partition: VIE also takes Quang Binh and Nghe-Tinh.
 test_geneva_settle_20th = {
 	test_geneva_force_session = yes
 	set_variable = { global.geneva_clause_current^0 = 2 }
@@ -456,8 +307,6 @@ test_geneva_settle_20th = {
 	geneva_conf_compile_settlement = yes
 }
 
-# Collapse route A: the ceasefire clause itself is voted down. Resolves to
-# the failed-state ending if its trigger passes, never-ending war otherwise.
 test_geneva_collapse_no_ceasefire = {
 	test_geneva_force_session = yes
 	set_variable = { global.geneva_clause_current^0 = 0 }
@@ -465,7 +314,6 @@ test_geneva_collapse_no_ceasefire = {
 	geneva_conf_compile_settlement = yes
 }
 
-# Collapse route B: two core belligerents storm out.
 test_geneva_collapse_walkouts = {
 	test_geneva_force_session = yes
 	if = {
@@ -487,10 +335,6 @@ test_geneva_collapse_walkouts = {
 	geneva_conf_compile_settlement = yes
 }
 
-# Fire the interim all-Vietnam election arbiter (Session.21) now instead of
-# waiting out the 150-540 day timer. The arbiter re-checks its own guards,
-# so it still stands down if the VIN focus-tree crisis resolved things or
-# the war resumed.
 test_geneva_election_now = {
 	if = {
 		limit = {
@@ -503,8 +347,6 @@ test_geneva_election_now = {
 	}
 }
 
-# Bias the election's struggle-score snapshot (x1.8 weight on whichever side
-# leads). Combine with test_geneva_election_now.
 test_geneva_election_favor_ho = {
 	set_variable = { global.geneva_final_comm_score = 3000 }
 	set_variable = { global.geneva_final_anticomm_score = 300 }
@@ -515,8 +357,6 @@ test_geneva_election_favor_saigon = {
 	set_variable = { global.geneva_final_anticomm_score = 3000 }
 }
 
-# Branch-check readout: run with `e test_geneva_debug` and read which limits
-# passed in the effect tooltip.
 test_geneva_debug = {
 	if = {
 		limit = { has_global_flag = geneva_conference_announced }
@@ -565,13 +405,6 @@ test_geneva_debug = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# VIE sectarian GUI
-# ----------------------------------------------------------------------------
-# Loyalty/Annihilation variables are INVERTED: they start high (60-100) and
-# grind DOWN; < 3 means integration/dismantle ready. The GUI displays
-# 100 - variable.
-
 test_vie_sect_show_gui = {
 	if = {
 		limit = { country_exists = VIE }
@@ -586,8 +419,6 @@ test_vie_sect_hide_gui = {
 	}
 }
 
-# Start-of-game sect values (mirrors the VIE on-startup setup block in
-# Vietnam_effects.txt), plus cleared pity counters and conflict prompt.
 test_vie_sect_reset = {
 	if = {
 		limit = { country_exists = VIE }
@@ -614,8 +445,6 @@ test_vie_sect_reset = {
 	}
 }
 
-# Every sect one step from peaceful integration (loyalty < 3 unlocks the
-# integrate decisions and the X07 faith-recognition checks).
 test_vie_sect_ready_integration = {
 	if = {
 		limit = { country_exists = VIE }
@@ -630,7 +459,6 @@ test_vie_sect_ready_integration = {
 	}
 }
 
-# Every sect one step from forced dismantlement (annihilation < 3).
 test_vie_sect_ready_dismantle = {
 	if = {
 		limit = { country_exists = VIE }
@@ -645,8 +473,6 @@ test_vie_sect_ready_dismantle = {
 	}
 }
 
-# Pity counters add straight onto the attack/seize success roll, so 1.0
-# guarantees the next attempt against every sect.
 test_vie_sect_max_pity = {
 	if = {
 		limit = { country_exists = VIE }
@@ -660,11 +486,6 @@ test_vie_sect_max_pity = {
 	}
 }
 
-# Conflict result prompt (VIE_Conflict_Prompt_Display). VIE_Conflict_ID picks
-# the sect (1 BX / 2 CD / 3 Harmonism / 4 HH / 5 UMDC); prompt codes are
-# 1 attack success, 2 attack failure, 3 seize success, 4 seize failure.
-# These display against the Binh-Xuyen; change VIE.VIE_Conflict_ID in the
-# console to preview another sect's text.
 test_vie_sect_prompt_attack_success = {
 	if = {
 		limit = { country_exists = VIE }
@@ -709,41 +530,27 @@ test_vie_sect_prompt_seize_failure = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# Struggle gameplay extras
-# ----------------------------------------------------------------------------
-
-# Jump straight into the tension-phase diplomacy layer: phase 6 (High
-# Tension) with enough PP to work the Indochina_Struggle_* decisions
-# (25-50 PP each). Run as VIE, FRA, VIN, or any struggle participant.
 test_indochina_diplomacy_phase = {
 	test_indochina_set_phase_high_tension = yes
 	add_political_power = 300
 }
 
-# ----------------------------------------------------------------------------
-# War Outcomes panel: scenario QA
-# ----------------------------------------------------------------------------
-
 test_outcomes_show_gui = {
 	set_variable = { show_indochina_outcome_gui = 1 }
 }
+
 test_outcomes_hide_gui = {
 	set_variable = { show_indochina_outcome_gui = 0 }
 }
 
-# Re-arms every scenario detector (shared clears live with the struggle file).
 test_outcomes_reset = {
 	test_indochina_outcomes_reset = yes
 }
 
-# One manual run of the daily detector (normally on_daily_FRA).
 test_outcomes_pulse = {
 	geneva_conf_world_leverage_pulse = yes
 }
 
-# Kill the southern insurgency; run test_outcomes_pulse afterwards and the
-# current game date decides which reward tier is recorded.
 test_outcomes_nlf_kill = {
 	if = {
 		limit = { country_exists = NLF country_exists = VIE }
@@ -761,12 +568,14 @@ test_outcomes_dbp_victory = {
 		FRE = { set_country_flag = FRE_DBP_Result_Victory }
 	}
 }
+
 test_outcomes_dbp_fall = {
 	if = {
 		limit = { country_exists = FRE }
 		FRE = { set_country_flag = FRE_DBP_Result_Fall }
 	}
 }
+
 test_outcomes_dbp_breakout = {
 	if = {
 		limit = { country_exists = FRE }
@@ -809,20 +618,17 @@ test_outcomes_laos_victory = {
 	set_global_flag = Laos_Raid_Resolved
 	set_global_flag = Laos_Raid_Attacker_Won
 }
+
 test_outcomes_laos_stalemate = {
 	set_global_flag = Laos_Raid_Resolved
 	set_global_flag = Laos_Raid_Stalemate
 }
+
 test_outcomes_laos_failure = {
 	set_global_flag = Laos_Raid_Resolved
 	set_global_flag = Laos_Raid_Total_Failure
 }
 
-# ----------------------------------------------------------------------------
-# Negotiation pipeline: QA
-# ----------------------------------------------------------------------------
-
-# Dump the negotiation arrays to game.log (Documents/Paradox/HOI4/logs).
 test_geneva_neg_debug = {
 	log = "GENEVA NEG: entries=[?global.geneva_neg_country^num]"
 	set_temp_variable = { g_dbg_i = 0 }
@@ -834,7 +640,6 @@ test_geneva_neg_debug = {
 	}
 }
 
-# One manual maturation day (normally on_daily_FRA while in session).
 test_geneva_neg_tick = {
 	geneva_neg_daily_tick = yes
 }
@@ -842,15 +647,6 @@ test_geneva_neg_tick = {
 test_geneva_neg_flush = {
 	geneva_neg_flush_all = yes
 }
-
-# ----------------------------------------------------------------------------
-# Hardening regressions (partition runoff, pursuit path, hollow-session guard)
-# ----------------------------------------------------------------------------
-# Clause 1 is the only ordinal clause: options 1/2/3 are the 13th, 17th and 20th
-# parallels. A bare plurality let a concentrated bloc take an extreme line, so the
-# vote falls back to the 17th whenever the majority sits on the far side of the
-# winner. Both tests zero every delegation's clause-1 priority so only the staked
-# pushes count and the arithmetic is deterministic.
 
 test_geneva_runoff = {
 	test_geneva_force_session = yes
@@ -882,8 +678,6 @@ test_geneva_runoff_20th = {
 	log = "GENEVA RUNOFF 20TH: 20th=1000 vs 13th+17th=1100 -> line=[?global.geneva_clause_current^1|0] (expect 2)"
 }
 
-# FRE_The_Geneva_Accords taken below the tension gate must not convene: it sets
-# Indochina_Geneva_Pursuit and works the struggle down until the gate opens.
 test_geneva_fre_pursuit = {
 	test_geneva_reset = yes
 	set_global_flag = Indochina_Geneva_Pursuit
@@ -909,8 +703,6 @@ test_geneva_fre_pursuit = {
 	}
 }
 
-# In session with an empty delegations array and a garbage round counter: the
-# tick must rebuild the session rather than compile a settlement.
 test_geneva_stale_hollow = {
 	test_geneva_reset = yes
 	set_global_flag = geneva_conference_in_session
@@ -924,9 +716,6 @@ test_geneva_stale_hollow = {
 	}
 }
 
-# `e test_geneva_panic` - drive the Dien Bien Phu collapse path end to end
-# without fighting the campaign. Records the camp as fallen, hands Hanoi the
-# highlands, then runs the daily check exactly as on_daily_FRA would.
 test_geneva_panic = {
 	clr_global_flag = Indochina_Geneva_Panic
 	clr_global_flag = geneva_conference_announced
@@ -949,7 +738,6 @@ test_geneva_panic = {
 	}
 }
 
-# The other half of the payoff: Washington's delegation must refuse the ballot.
 test_geneva_panic_ballot = {
 	set_global_flag = geneva_usa_panic_no_ballot
 	if = {
@@ -961,9 +749,6 @@ test_geneva_panic_ballot = {
 	}
 }
 
-# `e test_geneva_campaign_window` - the ballot focuses must be shut until the
-# run-up opens and live afterwards. Run it straight after a settlement that
-# scheduled a vote.
 test_geneva_campaign_window = {
 	log = "GENEVA CAMPAIGN WINDOW: term=[?global.geneva_elections_term|0] interim=[?global.geneva_tick_days|0]"
 	if = {
@@ -983,8 +768,6 @@ test_geneva_campaign_window = {
 	}
 }
 
-# `e test_geneva_unified_liquidation` - a settlement that draws no line must
-# still end the French presence. Checks the tags that used to survive it.
 test_geneva_unified_liquidation = {
 	if = {
 		limit = { country_exists = FRE }
@@ -1012,9 +795,6 @@ test_geneva_unified_liquidation = {
 	log = "GENEVA UNIFIED: liquidation check complete"
 }
 
-# --- Diem premiership and the 1955 referendum -------------------------------------------
-# Installs Diem in the premier's seat exactly as VIE_Recall_Diem does, so the mini-tree
-# and the favoritism panel come up without having to play the Geneva chain first.
 test_vie_diem_pm = {
 	if = {
 		limit = { country_exists = VIE }
@@ -1051,8 +831,6 @@ test_vie_diem_pm = {
 	}
 }
 
-# Score >119 is the landslide band. Everything below is set on the raw inputs rather than
-# on VIE_Referendum_Score itself, so the scoring effect is what is actually under test.
 test_vie_referendum_high = {
 	if = {
 		limit = { country_exists = VIE }
@@ -1125,9 +903,6 @@ test_vie_referendum_debug = {
 	}
 }
 
-
-# --- Hinh standoff, Dai-Viet plots, the Binh-Xuyen split, and the end of content ---------
-# Inputs only: the missions, the bands and the referendum scoring stay under test.
 test_vie_hinh_open = {
 	if = {
 		limit = { country_exists = VIE }
@@ -1165,8 +940,6 @@ test_vie_hinh_standoff_low = {
 	}
 }
 
-# Mirrors VIE_Hinh_Coup_Attempt's timeout_effect, minus the historical-AI floor so the
-# low band can actually be observed while playing as VIE.
 test_vie_hinh_timeout = {
 	if = {
 		limit = { country_exists = VIE }
@@ -1219,7 +992,6 @@ test_vie_daiviet_max = {
 	}
 }
 
-# Mirrors VIE_DaiViet_Plot's timeout_effect so a band can be observed without waiting 45 days.
 test_vie_daiviet_plot = {
 	if = {
 		limit = { country_exists = VIE }

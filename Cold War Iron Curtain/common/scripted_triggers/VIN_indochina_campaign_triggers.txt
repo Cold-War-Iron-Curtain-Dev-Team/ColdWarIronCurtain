@@ -1,8 +1,3 @@
-# Shared gates for the Viet Minh First Indochina War campaign focuses
-# (Thap Van Dai Son, Cao-Bac, Hoa Binh, Tay Bac, Dien Bien Phu).
-# Same shape as FRE_operation_triggers.txt on the CEFEO side; keep the two in sync.
-
-# The war is still a live struggle - not settled, not adjourned to Geneva.
 VIN_indochina_campaign_window_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIN_indochina_campaign_window_trigger_TT
@@ -16,8 +11,6 @@ VIN_indochina_campaign_window_trigger = {
 	}
 }
 
-# No primary campaign currently in the field. Thap Van Dai Son remains a
-# preparatory focus; Cao-Bac is campaign id 4.
 VIN_no_campaign_running_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIN_no_campaign_running_trigger_TT
@@ -36,7 +29,6 @@ VIN_no_campaign_running_trigger = {
 	}
 }
 
-# Major campaigns regroup for 90 days; the limited offensives regroup for 30.
 VIN_campaign_cooldown_ready_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIN_campaign_cooldown_ready_trigger_TT
@@ -83,16 +75,10 @@ VIN_campaign_cooldown_ready_trigger = {
 	}
 }
 
-# The campaign's ground objective is taken. Control, not ownership: ownership
-# only moves at a peace deal. Dien Bien Phu is the one case where the state is
-# not the objective - the camp is province 4529 inside state 671.
 vin_campaign_objective_met_trigger = {
 	OR = {
 		AND = {
 			check_variable = { VIN_camp_current = 1 }
-			# Not the whole state: 12319 is reachable only through Ha Giang, which
-			# is MEO's and which Hanoi is not at war with. These five are the link
-			# between the northern base areas and Thanh Hoa.
 			controls_province = 10075	# the gate from Dong Bac Bo
 			controls_province = 12075
 			controls_province = 13775
@@ -131,7 +117,6 @@ vin_campaign_objective_met_trigger = {
 }
 }
 
-# Raw limited-campaign objectives, feeding the five-consecutive-day counter.
 vin_limited_campaign_raw_objective_trigger = {
 	OR = {
 		AND = { check_variable = { VIN_camp_current = 5 } controls_province = 12075 }
@@ -151,9 +136,6 @@ VIN_mao_khe_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Mao_Khe_
 VIN_day_river_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Day_River_Result_Clean has_country_flag = VIN_Campaign_Day_River_Result_Costly has_country_flag = VIN_Campaign_Day_River_Result_Aborted has_country_flag = VIN_Campaign_Day_River_Result_Failure has_country_flag = VIN_Campaign_Day_River_Result_Superseded } }
 VIN_na_san_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Na_San_Result_Clean has_country_flag = VIN_Campaign_Na_San_Result_Costly has_country_flag = VIN_Campaign_Na_San_Result_Aborted has_country_flag = VIN_Campaign_Na_San_Result_Failure has_country_flag = VIN_Campaign_Na_San_Result_Superseded } }
 
-# A settlement or an external annexation can make a live campaign irrelevant.
-# This is checked after the objective, so taking the last target state still
-# records a victory rather than a supersession.
 vin_campaign_theatre_closed_trigger = {
 	OR = {
 		has_global_flag = Indochina_War_Over
@@ -209,10 +191,6 @@ vin_campaign_superseded_trigger = {
 	}
 }
 
-# --- Operational envelopes and overextension -------------------------------
-# These geography helpers are the canonical campaign-envelope data. A state
-# already owned by VIN is home territory and never counts as overextension in a
-# later campaign; only control of still-foreign ground is tested.
 
 vin_controls_foreign_cao_bac_ground_trigger = {
 	OR = {
@@ -254,7 +232,6 @@ vin_controls_foreign_ha_giang_ground_trigger = {
 
 vin_controls_foreign_northwest_corridor_trigger = {
 	1761 = { NOT = { is_owned_by = VIN } }
-	# 16526 is the VIN rear-area bridgehead; 12075 is French-aligned Vinh Yen.
 	OR = {
 		controls_province = 10075
 		controls_province = 13773
@@ -310,8 +287,6 @@ vin_controls_foreign_delta_ground_trigger = {
 	}
 }
 
-# Exact-objective limited battles allow their named province set, not the whole
-# containing state. These helpers cover the remaining foreign ground there.
 vin_controls_foreign_delta_except_mao_khe_trigger = {
 	786 = { NOT = { is_owned_by = VIN } }
 	OR = {
@@ -360,8 +335,6 @@ vin_controls_foreign_dien_bien_except_na_san_trigger = {
 	}
 }
 
-# A single severe tier keeps the contract legible: the named objective is safe;
-# any other still-foreign ground immediately overextends the campaign.
 vin_campaign_vin_overextended_trigger = {
 	NOT = { VIN_no_campaign_running_trigger = yes }
 	OR = {
@@ -467,8 +440,6 @@ vin_campaign_vin_overextended_trigger = {
 	}
 }
 
-# FRE limited operations are exact envelopes too. Hanoi defending its own ground
-# is never overextended; crossing onto unrelated foreign ground is.
 vin_fre_operation_overextended_trigger = {
 	country_exists = FRE
 	FRE = { has_country_flag = FRE_Limited_Operation_Active }
@@ -502,7 +473,6 @@ vin_fre_operation_overextended_trigger = {
 	}
 }
 
-# French-aligned control of Viet Minh rear areas outside named objectives.
 indochina_french_aligned_controls_vin_rear_trigger = {
 	OR = {
 		AND = {
@@ -558,10 +528,6 @@ vin_campaign_french_overextended_trigger = {
 	}
 }
 
-# The camp at Dien Bien Phu is invested - the condition vin_dbp_siege_tick runs
-# the scripted siege on. With the artificial movement gates retired, Hanoi must
-# hold an eastern/northern approach and at least one separate valley-ring
-# province. AI assistance may finish an established siege, but cannot invent it.
 vin_dbp_valley_invested_trigger = {
 	OR = {
 		controls_province = 13754	# eastern approach
@@ -577,8 +543,6 @@ vin_dbp_valley_invested_trigger = {
 	}
 }
 
-# The shooting stopped without the objective changing hands: someone took a white
-# peace. Distinguished from failure, which is the deadline running out mid-war.
 vin_campaign_war_abandoned_trigger = {
 	NOT = { vin_campaign_objective_met_trigger = yes }
 	NOT = {
@@ -589,13 +553,10 @@ vin_campaign_war_abandoned_trigger = {
 			AND = { country_exists = FRE  has_war_with = FRE }
 		}
 	}
-	check_variable = { VIN_camp_days_elapsed > 14 }	# grace period: the declaration takes a few days to register as a war
+	check_variable = { VIN_camp_days_elapsed > 14 }
 }
 
-# --- State ownership sides --------------------------------------------------
-# Both the objective modifiers and the guerilla networks bite the occupier and
-# nobody else. One shared pair so the two systems can never disagree.
-indochina_french_held_state_trigger = {	# state scope
+indochina_french_held_state_trigger = {
 	OR = {
 		is_controlled_by = FRE
 		is_controlled_by = FRA
@@ -605,23 +566,22 @@ indochina_french_held_state_trigger = {	# state scope
 		is_controlled_by = VIE
 		AND = {
 			is_controlled_by = NUN
-			NOT = { NUN = { vin_aligned_country_trigger = yes } }	# a Nung state that has come over is not enemy ground
+			NOT = { NUN = { vin_aligned_country_trigger = yes } }
 		}
 	}
 }
 
-vin_aligned_country_trigger = {	# country scope
+vin_aligned_country_trigger = {
 	OR = {
 		tag = VIN
 		is_subject_of = VIN
 		is_in_faction_with = VIN
-		has_country_flag = NUN_VIN_trigger	# the Nung leadership has thrown in with Hanoi
+		has_country_flag = NUN_VIN_trigger
 	}
 }
 
-# A state whose owner or occupier has come over to Hanoi. The guerilla networks
 # lift here.
-vin_aligned_state_trigger = {	# state scope
+vin_aligned_state_trigger = {
 	OR = {
 		owner = { vin_aligned_country_trigger = yes }
 		controller = { vin_aligned_country_trigger = yes }
