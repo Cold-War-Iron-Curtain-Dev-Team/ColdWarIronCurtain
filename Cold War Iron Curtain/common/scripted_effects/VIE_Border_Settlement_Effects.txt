@@ -1,20 +1,8 @@
-####################################################
-# VIE 1950s Indochina border settlement
-# Escalation ladder run from the VIE_Border_Settlement
-# decision category. Progress lives on the target STATE:
-# VIE_border_stage 0 untouched | 1 demanded | 2 refused |
-# 3 clash | 5 settled | 6 renounced, plus VIE_border_pressure
-# and the VIE_border_clash_failed marker that unlocks the CB.
-# Target identity runs in two independent channels, demand and
-# clash, each serialised by its own country flag so two ladders
-# can never overwrite one another mid-flight.
-####################################################
-
-VIE_border_start_clash = {	# country scope; the clash target is event_target:VIE_border_clash_target
+VIE_border_start_clash = {
 	set_variable = { VIE_border_attacker_state = 0 }
 	if = {
 		limit = { event_target:VIE_border_clash_target = { is_controlled_by = ROOT } }
-		set_variable = { VIE_border_attacker_state = event_target:VIE_border_clash_target }	# our garrison is already standing on it, so there is no line to cross
+		set_variable = { VIE_border_attacker_state = event_target:VIE_border_clash_target }
 	}
 	else_if = {
 		random_owned_controlled_state = {
@@ -28,7 +16,7 @@ VIE_border_start_clash = {	# country scope; the clash target is event_target:VIE
 		}
 	}
 	if = {
-		limit = { NOT = { check_variable = { VIE.VIE_border_attacker_state = 0 } } }	# a state variable holds a scope handle, which is negative - only 0 means "no state found"
+		limit = { NOT = { check_variable = { VIE.VIE_border_attacker_state = 0 } } }
 		set_country_flag = VIE_Border_Clash_Active
 		event_target:VIE_border_clash_target = { set_variable = { VIE_border_stage = 3 } }
 		VIE_border_mark_aggressor = yes
@@ -36,14 +24,14 @@ VIE_border_start_clash = {	# country scope; the clash target is event_target:VIE
 			threat = 2
 			name = VIE_border_clash_threat
 		}
-		if = {	# Hanoi will not watch its Pathet Lao clients be carved up
+		if = {
 			limit = {
 				country_exists = VIN
 				event_target:VIE_border_clash_target = { owner = { is_subject_of = VIN } }
 			}
 			VIN = { country_event = { id = VIE_Border_Settlement.40 days = 2 } }
 		}
-		if = {	# start_border_war refuses a pair under one controller, so an occupied province is settled by staying put instead
+		if = {
 			limit = { check_variable = { VIE_border_attacker_state = event_target:VIE_border_clash_target } }
 			country_event = { id = VIE_Border_Settlement.35 days = 3 }
 		}
@@ -72,7 +60,7 @@ VIE_border_start_clash = {	# country scope; the clash target is event_target:VIE
 	}
 }
 
-VIE_border_settle_target_state = {	# country scope; expects vie_border_settle_state - .2 passes the demand target, .30 the clash target
+VIE_border_settle_target_state = {
 	var:vie_border_settle_state = {
 		set_variable = { VIE_border_stage = 5 }
 		set_variable = { VIE_border_pressure = 0 }
@@ -118,7 +106,7 @@ VIE_border_mark_aggressor = {
 	}
 }
 
-VIE_border_mark_hegemon = {	# a frontier actually held turns the aggressor stigma into the hegemon's reputation
+VIE_border_mark_hegemon = {
 	if = {
 		limit = { has_idea = VIE_Regional_Aggressor }
 		swap_ideas = {
@@ -128,7 +116,7 @@ VIE_border_mark_hegemon = {	# a frontier actually held turns the aggressor stigm
 	}
 }
 
-VIE_border_mark_chastened = {	# backing down before blood is spilt
+VIE_border_mark_chastened = {
 	if = {
 		limit = { has_idea = VIE_Regional_Aggressor }
 		swap_ideas = {

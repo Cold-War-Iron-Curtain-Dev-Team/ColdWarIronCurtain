@@ -12,9 +12,6 @@ VIE_ai_opposes_binh_xuyen = {
 
 vietnam_sect_pseudo_decision_enabled = {
 	has_country_flag = activate_sect_menu
-	# A resolved sect has ceased to exist as an independent actor. Gate the
-	# entire decision family here so every action (including troop integration,
-	# courting and resource requests) closes after either terminal outcome.
 	OR = {
 		AND = {
 			check_variable = { vietnam_factionalism_decisions_list^i > 99 }
@@ -544,7 +541,6 @@ vietnam_sect_pseudo_decision_enabled = {
 			}
 			NOT = { has_country_flag = Max_UMDC_Loyalty_Requirement_NOT_MET }
 		}
-		# Courting decisions - repeatable loyalty builders on a 30 day cooldown
 		AND = {
 			check_variable = { vietnam_factionalism_decisions_list^i = 114 }	#Court the Binh-Xuyen Bosses
 			check_variable = { Binh_Xuyen_Loyalty > 0 }
@@ -3320,38 +3316,9 @@ xiangqi_is_square_occupied_by_friendly_reformist = {
     }
 }
 
-# ============================================================================
-# Favoritism Minigame - AI direction control
-# ----------------------------------------------------------------------------
-# The favoritism minigame (Alt_Favoritism = challenger vs Main_Favoritism =
-# incumbent) is a GENERIC, SEQUENTIAL mechanic reused across several distinct
-# struggles. Only one is ever live at a time, identified by the Main_* / Opposition_*
-# flags. These two triggers tell the AI which way to steer whichever struggle is
-# active, consulting the game rule that owns that struggle. Humans never affected.
-#
-#   Struggle              | Live when                 | Governing game rule
-#   ----------------------|---------------------------|---------------------------
-#   Bao-Dai premiership   | Main_Bao_Dai, opp = a PM  | VIE_ai_pm_outcome
-#   Cuong-De takeover     | Opposition_Cuong_De       | VIE_ai_cuong_de_takeover
-#
-#   pursue_challenger -> raise Alt_Favoritism  -> alt-hist outcome
-#                        (Huu Wins / Long Stays / Cuong-De takes over)
-#   pursue_historical -> keep Alt_Favoritism low -> historical outcome
-#                        (Huu dismissed / Long retires / Cuong-De faction loses)
-#
-# The Leroy/Hinh French-coup struggles are intentionally left on default here and
-# are governed separately by VIE_ai_french_coup. Once Cuong-De is the incumbent
-# (Main_Cuong_De) his succession content runs on CD_Recruits/events, not these
-# triggers, so it is not wired here.
-# ============================================================================
 VIE_ai_pm_pursue_challenger = {
 	is_ai = yes
 	OR = {
-		# --- Bao-Dai premiership: KEEP the current PM (entrench him) ---
-		# "Who entrenches" rule VIE_ai_pm_outcome. The chosen PM is made to STAY;
-		# every PM before him retires (see pursue_historical) so the chain reaches him.
-		# Only Long and Huu resolve via the favoritism minigame; the others resign/
-		# rotate through their own event-driven outcomes.
 		AND = {
 			has_country_flag = VIE_Main_Bao_Dai
 			OR = {
@@ -3365,7 +3332,6 @@ VIE_ai_pm_pursue_challenger = {
 				}
 			}
 		}
-		# --- Cuong-De takeover (Bao-Dai vs the returning Cuong-De faction) ---
 		AND = {
 			has_country_flag = VIE_Opposition_Cuong_De
 			OR = {
@@ -3382,10 +3348,6 @@ VIE_ai_pm_pursue_challenger = {
 VIE_ai_pm_pursue_historical = {
 	is_ai = yes
 	OR = {
-		# --- Bao-Dai premiership: RETIRE the current PM (rotate toward the chosen one) ---
-		# On DEFAULT nobody is entrenched, so every favoritism PM retires and the chain
-		# rotates through the historical succession (Long -> Huu -> Tam -> Loc -> Diem era).
-		# When Long/Huu is the entrench target, the *other* one still retires to reach him.
 		AND = {
 			has_country_flag = VIE_Main_Bao_Dai
 			OR = {
@@ -3399,7 +3361,6 @@ VIE_ai_pm_pursue_historical = {
 				}
 			}
 		}
-		# --- Cuong-De takeover (Bao-Dai vs the returning Cuong-De faction) ---
 		AND = {
 			has_country_flag = VIE_Opposition_Cuong_De
 			OR = {
@@ -3413,9 +3374,6 @@ VIE_ai_pm_pursue_historical = {
 	}
 }
 
-# Late-1955 stage gate for post-war bonus focuses (e.g. French naval equipment).
-# Historically these unlock after the Geneva Conference, but any concluded
-# Indochina War ending marks the same stage of the game, so accept those too.
 VIE_late_war_stage_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIE_late_war_stage_trigger_TT
@@ -3427,10 +3385,6 @@ VIE_late_war_stage_trigger = {
 	}
 }
 
-# --- 1950s Indochina border settlement ---------------------------------------
-# VIE came out of the First Indochina War on top. Either the North is gone and
-# Hanoi is ours (southern victory / Dan Quoc peace both annex VIN), or the
-# accords were signed on terms favourable to Saigon.
 VIE_indochina_war_won_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIE_indochina_war_won_trigger_TT
@@ -3452,12 +3406,12 @@ VIE_indochina_war_won_trigger = {
 	}
 }
 
-VIE_geneva_accords_signed_trigger = {	# the powers rose from the table with a settlement, not a walkout
+VIE_geneva_accords_signed_trigger = {
 	has_global_flag = geneva_conference_concluded
-	NOT = { check_variable = { global.geneva_outcome = 2 } }	# 2 = the conference broke up without accords
+	NOT = { check_variable = { global.geneva_outcome = 2 } }
 }
 
-VIE_geneva_settlement_lost_trigger = {	# mirror of VIE_indochina_war_won_trigger: the accords went Hanoi's way
+VIE_geneva_settlement_lost_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIE_geneva_settlement_lost_trigger_TT
 		VIE_geneva_accords_signed_trigger = yes
@@ -3469,7 +3423,7 @@ VIE_geneva_settlement_lost_trigger = {	# mirror of VIE_indochina_war_won_trigger
 	}
 }
 
-VIE_geneva_settlement_otl_trigger = {	# the accords were signed, but neither capital came out of Geneva on top
+VIE_geneva_settlement_otl_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIE_geneva_settlement_otl_trigger_TT
 		VIE_geneva_accords_signed_trigger = yes
@@ -3478,9 +3432,6 @@ VIE_geneva_settlement_otl_trigger = {	# the accords were signed, but neither cap
 	}
 }
 
-# Master gate for the border settlement decisions. An associated state cannot
-# press claims on its neighbours, and we will not open a frontier while already
-# fighting someone else.
 VIE_can_press_border_claims_trigger = {
 	custom_trigger_tooltip = {
 		tooltip = VIE_can_press_border_claims_trigger_TT
@@ -3492,13 +3443,11 @@ VIE_can_press_border_claims_trigger = {
 	VIE_indochina_war_won_trigger = yes
 	custom_trigger_tooltip = {
 		tooltip = VIE_border_election_pending_block_tt
-		NOT = { geneva_election_pending_trigger = yes }	# Indochina_War_Over is already set during the interim period, so the war-won gate alone lets us press claims while the accords' ballot is still to be held
+		NOT = { geneva_election_pending_trigger = yes }
 	}
 }
 
-# State scope. Resolve the owner dynamically - a Geneva regroupment settlement
 # (clause 5 = 2) hands Phongsaly and Houaphanh to a VIN-puppeted LAO, so LOS
-# must never be hardcoded here.
 VIE_border_target_pressable_trigger = {
 	NOT = { is_owned_by = VIE }
 	has_border_war = no
@@ -3510,7 +3459,7 @@ VIE_border_target_pressable_trigger = {
 			tooltip = VIE_border_target_not_french_subject_TT
 			NOT = { is_subject_of = FRA }	# never press a fellow French subject
 			NOT = { tag = FRE }
-			NOT = { is_subject_of = FRE }	# the northern crown domains answer to the corps now, but they are still on our side
+			NOT = { is_subject_of = FRE }
 		}
 	}
 	custom_trigger_tooltip = {

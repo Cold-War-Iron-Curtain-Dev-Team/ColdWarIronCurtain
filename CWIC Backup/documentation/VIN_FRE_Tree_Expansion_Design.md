@@ -36,7 +36,7 @@ VIN already has a useful campaign wrapper in `VIN_Campaign_Effects.txt`. It is n
 
 The working pieces to retain are:
 
-- campaign IDs, commitment tiers, Campaign Supply, and spawned formations;
+- campaign IDs and Campaign Supply;
 - the guaranteed `on_daily_VIN` objective tick;
 - clean, ground-out, abandoned, and failed outcome classes;
 - control-based objectives rather than ownership checks;
@@ -677,3 +677,142 @@ Each restored limited battle now states its exact contract in the focus completi
 The follow-up uses the decision system's exact `highlight_provinces` list inside each card instead of highlighting the containing state. Because all six objective provinces begin with zero victory-point value, localization alone cannot render their map labels. `vin_limited_campaign_add_objective_vps` therefore adds a reversible one-point marker only to the current objective set; one flag per campaign makes the effect idempotent, and the guaranteed daily tick repairs active saves made before this visibility layer. Common campaign finish calls `vin_limited_campaign_remove_objective_vps`, subtracting only markers whose ownership flag proves this lifecycle added them. The affected provinces are Vinh Yen `12075`, Mao Khe `13772`, Day River `1185`/`13753`/`13755`, and Na San `13757`.
 
 Static acceptance for this follow-up: `git diff --check`, changed/new gameplay Clausewitz brace balance, the 22-file SEA localization audit, edited localization BOM checks, and 26 exact-objective visibility invariants pass. Focused engine acceptance remains required for THO's declaration-day deployment, exact province highlighting, temporary VP-label appearance/removal, five-day counter display, full French-aligned campaign teardown, survival and ordinary cleanup of the 1953 CEFEO limited-operation wars, and preservation of unrelated Laos wars.
+
+## 2026-08-19 unattended acceptance telemetry
+
+The remaining engine pass can now run unattended under `human_ai`. A passive,
+always-on observer writes structured `IC_AFK|` records to `game.log`; it never
+selects an option, changes an outcome, transfers territory, makes peace, or
+repairs a failed invariant. A declaration-end call captures THO's Cao Bang and
+Lang Son battalions before AI movement, while merged startup, daily-France, and
+pre-peace-conference hooks observe the rest of the production lifecycle.
+
+The record covers every VIN campaign launch/result, restored objective-marker
+activation and cleanup, the retrying French-aligned armistice, the three exact
+CEFEO limited operations and their owned-war cleanup, Castor's Brochet/Na San
+price callbacks, Pollux and Atlante posture/results, an overlapping Atlante and
+Dien Bien Phu launch, Final Push consolidation/bypass, Geneva/theatre closure,
+and any premature vanilla peace conference involving an Indochina theatre tag.
+It emits a heartbeat every 180 days. Exact province-highlight rendering remains
+the one GUI-only observation; the underlying temporary VP-marker lifecycle is
+logged automatically.
+
+Static verification on 2026-08-19: scoped `git diff --check`, raw Clausewitz
+brace balance for the two new gameplay files and the VIN callsite, effect/call
+reference checks, and `python3 tools/loc_audit.py --check` pass. The repository-
+wide diff check still reports a pre-existing indentation warning in the separate
+dirty VIE/Diem worktree. Engine acceptance remains pending the unattended run
+and post-run review of `game.log` plus `error.log`. Run instructions and filters
+are in `CWIC Backup/documentation/Indochina_AFK_Playtest.md`.
+
+### 2026-08-19 unattended engine result
+
+The first `human_ai` run reached the end of VIE's 1956 content and produced the
+historical scripted Geneva outcome naturally on 1954-05-30. No premature
+Indochina peace conference was logged. Every completed VIN campaign armistice
+reported zero remaining French-aligned wars; all four restored objective-marker
+lifecycles activated and removed their markers; Hirondelle, Mouette, and Brochet
+launched isolated wars and reported complete cleanup; Castor established the
+airhead; and historical Pollux selected the split withdrawal and recorded its
+column-loss result. The Brochet-clean and Na-San-failure callbacks correctly
+netted Castor back to its base 100/60 prices.
+
+Two integration items remain open. Both THO battalions were absent from their
+home states at the exact Cao-Bac declaration snapshot, so the deployment repair
+does not have engine acceptance. Atlante and Final Push never entered the logged
+sequence before the historical Geneva closure, so this run supplies no engine
+coverage for either package.
+
+The run is a balance failure despite reaching the correct historical ending.
+VIN won Cao-Bac on day 11, Vinh Yen on day 8, Hoa Binh on day 3, Northwest on
+day 38, Na San on day 10, and Dien Bien Phu on day 10; only Mao Khe became costly
+and Day River failed. Hirondelle and Mouette never held an objective for one day
+and failed on their deadlines. During the repeated scripted wars, the other
+CEFEO crown domains lost their armies and collapsed, leaving FRE effectively
+confined to Saigon by the post-1952 sequence.
+
+The next balance design pass should therefore audit and likely remove or sharply
+reduce the stacked `VIN_Indochina_AI_Support`, `VIN_Campaign_AI_Support`, and
+per-campaign AI resource injections before strengthening CEFEO globally. The
+preferred containment direction is a two-tier operational-envelope contract:
+AI must remain strictly inside each named operation/campaign envelope, while a
+player may exceed it knowingly and receive a severe national/state overextension
+package. A launch briefing for both sides should state the exact objectives and
+the penalty contract. This is a recorded design direction only; it was not
+implemented in this checkpoint.
+
+The telemetry itself had one startup-only invalid-scope error because
+`on_startup` has no country ROOT. The daily France carrier recovered and logged
+the complete run. The startup hook now explicitly scopes initialization to FRA;
+no production campaign logic changed as part of that correction.
+
+### 2026-08-19 VIN/CEFEO balance and containment implementation
+
+The first unattended run's balance correction is now implemented. VIN's two
+hidden AI combat packages are no longer granted and are actively removed from
+old saves. `vin_ai_prepare_campaign` no longer tops Campaign Supply to maximum
+or grants 25,000 manpower, 3,000 rifles, 400 artillery, and 50 command power at
+every launch. The retained idea definitions exist only so stale save state can
+be cleaned safely.
+
+Campaign participation is now objective-owned. CEFEO joins VIN's war alongside
+only the crown domain which owns that campaign target: TAI for Northwest, Dien
+Bien Phu, Vinh Yen, and Na San; TAM for Hoa Binh; THO for Cao-Bac; and no crown
+domain for Mao Khe or Day River. Hirondelle, Mouette, and Brochet are FRE-VIN
+operations and do not call TAI, TAM, NUN, or THO. Their finish path likewise no
+longer white-peaces independent crown-domain wars it did not create.
+
+All eight VIN campaigns now enforce exact operational envelopes. Vinh Yen, Mao
+Khe, Day River, and Na San exempt only their named objective provinces within
+the containing state. FRE's three limited operations apply the same rule to
+CEFEO, while VIN is confined to its own territory during Hirondelle/Mouette and
+to Brochet's single objective when attacking. Leaving the envelope applies a
+single severe national penalty: -60% attack, -35% defense, -45% organization,
+-35% speed, -50% planning speed, +90% supply consumption, +75% out-of-supply
+penalty, -15% reinforce rate, and +35% attrition. It clears automatically on
+withdrawal or operation cleanup. French-aligned campaign overextension is now
+evaluated per command, preventing one CEFEO advance from debuffing unrelated
+crown domains.
+
+The AI retains positive requests only for the active objective state and gains
+strong negative requests for unrelated fronts plus allied-border suppression.
+The commitment events tell players that the named objectives are the contract,
+that the AI follows it, and that a player may deliberately exceed it at severe
+cost. AFK telemetry now records removed-buff checks, exact participant checks,
+penalty application/clear transitions, and 180-day division health for CEFEO,
+VIN, TAI, TAM, NUN, and THO.
+
+Engine acceptance is pending a fresh 1949-to-Geneva `human_ai` run. Compare
+campaign completion days and CEFEO operation hold days against the prior sample,
+and use the `FORCE_HEALTH` series to determine whether the crown domains retain
+armies through 1952-54. Any `VIN_hidden_AI_buffs_removed` or participant-envelope
+`FAIL` is a code regression rather than a balance result.
+
+## 2026-08-19 second unattended-run corrections
+
+The follow-up run exposed three systemic defects despite again reaching the
+historical outcome. The Pathet Lao clocks were declared with an impossible
+`allowed` condition, AI raids reserved nearly CEFEO's entire field army, and VIN
+received 500 duplicate Communist points from focus completion on top of live
+campaign results.
+
+Both Laos timers are now FRA-owned and activatable. Cleanup removes every hidden
+and visible mission, a 90-day initial and 45-day last-chance daily backstop makes
+the lifecycle self-terminating, and CEFEO limited operations cannot launch while
+the raid is active. The shared raid AI predicate now suppresses new ambient raids
+for VIN and FRE while preserving human access to all raid controls.
+
+The five duplicate VIN focus awards are removed. VIN campaign outcomes are now
+roughly quarter-strength, CEFEO limited-operation and response outcomes are
+scaled into the same range, and Laos results move the score by 25-50 rather than
+three-digit amounts. Escalation-phase arithmetic is intentionally unchanged.
+VIN's Geneva seed now converts battlefield score at 1/50 and Communist leverage
+at one quarter; PRC/SOV use one fifth. VIN's major focus and post-DBP leverage
+awards are also reduced. The target for a complete VIN victory is a Communist
+lead of roughly 100-200 points and a Hanoi delegate weight comparable in scale
+to Saigon and France rather than the observed ~700.
+
+AFK telemetry now logs six-month Struggle scores, all Geneva leverage pools,
+VIN/VIE/FRA weights, Pathet Lao launch/result/duration, stuck-clock failures, and
+any illegal CEFEO-operation overlap. Engine acceptance requires another fresh
+1949-to-Geneva `human_ai` run.

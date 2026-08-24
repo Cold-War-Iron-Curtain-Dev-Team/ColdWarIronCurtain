@@ -30,14 +30,13 @@ VIE_Change_Domestic_Influence = {
 }
 
 
-VIE_ai_french_coup_gamerule = { # AI-only management of the French coup, driven by the VIE_ai_french_coup game rule.
+VIE_ai_french_coup_gamerule = {
 	if = {
 		limit = {
 			is_ai = yes
 			has_game_rule = { rule = VIE_ai_french_coup option = VIE_FRENCH_COUP_AI_PROTECTED }
 			check_variable = { FRA_Influence < 20 }
 		}
-		# Soft floor: lift FRA_Influence back to 25, keeping the pair summed to 100.
 		# influence_change = FRA_Influence - 25 (negative), so FRA_Influence -> 25.
 		set_temp_variable = { influence_change = FRA_Influence }
 		subtract_from_temp_variable = { var = influence_change value = 25 }
@@ -50,8 +49,6 @@ VIE_ai_french_coup_gamerule = { # AI-only management of the French coup, driven 
 			NOT = { has_country_flag = VIE_FRA_Coup }
 			check_variable = { FRA_Influence > 5 }
 		}
-		# Driver: push FRA_Influence down until it crosses the coup threshold (< 11),
-		# at which point ProFrench_Coup activates through its normal path.
 		set_temp_variable = { influence_change = 3 }
 		VIE_Change_Domestic_Influence = yes
 	}
@@ -116,6 +113,32 @@ vietnam_cochinchina_unification_war = {
 				hostility_reason = asked_to_join
 			}
 		}
+	}
+}
+
+VIE_diem_autocomplete_ballot_refusal = {
+	if = {
+		limit = {
+			country_exists = VIE
+			check_variable = { global.geneva_elections_term = 3 }	# immediate ballot only
+			VIE = {
+				has_country_flag = VIE_PM_Ngo_Dinh_Diem
+				has_focus_tree = VIE_Bao_Dai_50
+				NOT = { has_completed_focus = VIE_Diem_Reject_the_Geneva_Elections }
+			}
+		}
+		set_global_flag = geneva_vie_refusal_autogranted
+		VIE = { complete_national_focus = VIE_Diem_Reject_the_Geneva_Elections }
+	}
+}
+
+VIE_close_favoritism_minigame = {
+	VIE = {
+		clr_country_flag = CWIC_HOG_UI_ENABLED
+		clr_country_flag = VIE_Main_Bao_Dai
+		clr_country_flag = VIE_Dealing_with_CuongDe
+		reset_favoritism_minigame = yes
+		set_variable = { Main_Favoritism = 0 }
 	}
 }
 
@@ -1035,7 +1058,25 @@ VIE_dismantle_binh_xuyen = {
 	custom_effect_tooltip = eliminate_binh_xuyen_TT
 }
 
-# Vietnam Factionalism Tooltips
+VIE_binh_xuyen_driven_from_saigon = {
+	set_variable = { VIE_Warlord_Status_2 = 2 }	# hostile, and no longer in the capital
+	set_temp_variable = { binh_xuyen_annihilation_change = -70 }	# 100 -> 30
+	binh_xuyen_annihilation_change_tt = yes
+	set_temp_variable = { binh_xuyen_loyalty_change = 20 }
+	binh_xuyen_loyalty_change_tt = yes
+	set_country_flag = VIE_Binh_Xuyen_Rung_Sac
+	custom_effect_tooltip = VIE_binh_xuyen_rung_sac_tt
+}
+
+VIE_finish_the_binh_xuyen = {
+	set_temp_variable = { binh_xuyen_annihilation_change = Binh_Xuyen_Annihilation }
+	multiply_temp_variable = { binh_xuyen_annihilation_change = -1 }
+	binh_xuyen_annihilation_change_tt = yes
+	clr_country_flag = VIE_Binh_Xuyen_Rung_Sac
+	set_country_flag = VIE_Hoang_Dieu_Complete
+	VIE_dismantle_binh_xuyen = yes
+}
+
 binh_xuyen_loyalty_change_tt = {
 	set_temp_variable = { inverse_number = binh_xuyen_loyalty_change }
 	multiply_temp_variable = {
@@ -1332,7 +1373,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 1
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_1 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_1 }
 		set_temp_variable = { binh_xuyen_loyalty_change = 5 }
 		binh_xuyen_loyalty_change_tt = yes
 		set_variable = {
@@ -1378,7 +1419,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 1
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_1 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_1 }
 		set_variable = {
 			show_vie_sect_conflict = 1
 		}
@@ -1700,7 +1741,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 2
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_2 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_2 }
 		set_temp_variable = { cao_dai_loyalty_change = 5 }
 		cao_dai_loyalty_change_tt = yes
 		set_variable = {
@@ -1746,7 +1787,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 2
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_2 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_2 }
 		set_variable = {
 			show_vie_sect_conflict = 1
 		}
@@ -2027,7 +2068,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 3
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_3 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_3 }
 		set_variable = {
 			show_vie_sect_conflict = 1
 		}
@@ -2072,7 +2113,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 3
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_3 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_3 }
 		set_variable = {
 			show_vie_sect_conflict = 1
 		}
@@ -2436,7 +2477,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 4
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_4 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_4 }
 		set_temp_variable = { hoa_hao_loyalty_change = 5 }
 		hoa_hao_loyalty_change_tt = yes
 		set_variable = {
@@ -2482,7 +2523,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 4
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_4 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_4 }
 		set_variable = {
 			show_vie_sect_conflict = 1
 		}
@@ -2797,7 +2838,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 5
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_5 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_5 }
 		set_temp_variable = { umdc_loyalty_change = 5 }
 		umdc_loyalty_change_tt = yes
 		set_variable = {
@@ -2843,7 +2884,7 @@ vietnam_faction_ui_decision_click = {
 		set_variable = {
 			VIE_Conflict_ID = 5
 		}
-		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_5 } # streak protection, grows on each failure
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_5 }
 		set_variable = {
 			show_vie_sect_conflict = 1
 		}
@@ -3077,7 +3118,6 @@ vietnam_faction_ui_decision_click = {
 	}
 }
 
-# VIE State Integration Decisions
 
 SendTroops_Option_enabled = {
 	if = {
@@ -9704,7 +9744,6 @@ VIE_state_dirty_variable = {
 }
 
 VIE_startup_guis = {
-	# FF Decision Setup
 	set_variable = { VIE_Influence = 40 }
 	set_variable = { FRA_Influence = 60 }
 	set_variable = { Main_Favoritism = 30 }
@@ -9725,7 +9764,6 @@ VIE_startup_guis = {
 	set_variable = { VIE_Warlord_Status_7 = 2 }
 	set_variable = { VIE_Warlord_Status_8 = 4 }
 
-	#Faction Loyalty and Annihilation Variables, Values are Inverted for UI
 	set_variable = { Binh_Xuyen_Loyalty = 80 }
 	set_variable = { Binh_Xuyen_Annihilation = 100 }
 
@@ -9740,6 +9778,11 @@ VIE_startup_guis = {
 
 	set_variable = { UMDC_Loyalty = 90 }
 	set_variable = { UMDC_Annihilation = 100 }
+
+	set_variable = { VIE_Hinh_Standoff = 0 }
+	set_variable = { VIE_DaiViet_Threat = 0 }
+	set_variable = { VIE_Referendum_Score = 0 }
+	set_variable = { CD_Recruits = 0 }
 
 	vietnam_faction_ui_update_number = yes
 
@@ -9772,7 +9815,6 @@ VIE_startup_guis = {
 	set_variable = { VIE_PROVINCE_DISPLAY = 1 }
 	set_variable = { VIE_PROVINCE_DISPLAY_CONTROLLER = 1 }
 
-	#Binh-Xuyen	Default to this on Start
 	add_to_array = { vietnam_factionalism_decisions_list = 100 }	#Recognize the “Binh-xuyen Cong-an Xung-phong“
 	add_to_array = { vietnam_factionalism_decisions_list = 101 }	#Promote Le-van_Vien
 	add_to_array = { vietnam_factionalism_decisions_list = 102 }	#Permit the Binh-Xuyen Opium Trade
@@ -9853,7 +9895,6 @@ VIE_startup_guis = {
 	#add_to_array = { vietnam_factionalism_decisions_list = 512 }	#Dismantle the UMDC
 	#add_to_array = { vietnam_factionalism_decisions_list = 513 }	#Integrate the UMDC
 
-	# State Integration GUI Setup
 
 	set_variable = { VIE_State_1_Status = 7 }
 	set_variable = { VIE_State_2_Status = 1 }
@@ -9937,14 +9978,6 @@ VIE_startup_guis = {
 }
 
 #Summary Table
-#Piece	        	HP	Attack	Role
-#General	        6	2	Fragile win condition
-#Chariot	        8	4	Main executioner
-#Cannon	        	6	5	Burst damage
-#Elephant	    	9	2	Tank / stabilizer
-#Horse	        	6	3	Flexible attacker
-#Soldier	        4	1	Fodder
-#Vanguard	    	3	2	Risk–reward pawn
 
 startup_vietnam_minigame_placement = {
 	clear_array = xiangqi_row_x
@@ -10084,7 +10117,6 @@ startup_vietnam_minigame_placement = {
     add_to_array = { xiangqi_attack_column_y = 621 }  #Column 9
     add_to_array = { xiangqi_attack_column_y = 692 }  #Column 10
 
-	#Startup AI Variables
 	set_variable = { xiangqi_ai_last_square_type_1_row = 0 } # General
 	set_variable = { xiangqi_ai_last_square_type_1_col = 0 }
 
@@ -10207,7 +10239,7 @@ xiangqi_add_legal_attack = {
 
 	if = {
 		limit = { check_variable = { xiangqi_legal_attack_count > 4 } }
-		hidden_effect = { } # no-op
+		hidden_effect = { }
 	}
 	else = {
 		add_to_variable = { xiangqi_legal_attack_count = 1 }
@@ -10224,7 +10256,6 @@ xiangqi_add_legal_move = {
 	#   ROOT.xiangqi_tmp_target_row
 	#   ROOT.xiangqi_tmp_target_col
 
-	# If already at cap, do nothing (prevents the "last direction disappears" illusion)
 	if = {
 		limit = {
 			check_variable = { xiangqi_selected_piece_side = 1 }
@@ -10241,7 +10272,7 @@ xiangqi_add_legal_move = {
 	}
 	else_if = {
 		limit = { check_variable = { xiangqi_legal_move_count > 24 } }
-		hidden_effect = { } # no-op
+		hidden_effect = { }
 	}
 	else = {
 		add_to_variable = { xiangqi_legal_move_count = 1 }
@@ -10275,22 +10306,14 @@ xiangqi_add_legal_move = {
 
 
 xiangqi_government_elephant_generate_legal_moves = {
-	# Only generate if alive
 	if = {
 		limit = { check_variable = { xiangqi_Government_Elephant_piece_alive = 1 } }
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Cache current position
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Elephant_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Elephant_piece_col }
 
-		# Government is the TOP side: Elephant must stay on rows 1-5
-		# River boundary is between 5 and 6.
 
-		# ---------------------------------------
-		# Candidate 1: (row + 2, col + 2)
-		# Eye: (row + 1, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10301,21 +10324,19 @@ xiangqi_government_elephant_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_eye_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_eye_col = 1 }
 
-		# Eye square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_eye_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_eye_col }
 		if = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col < 6 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col < 6 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -10328,10 +10349,6 @@ xiangqi_government_elephant_generate_legal_moves = {
 			}
 		}
 
-		# ---------------------------------------
-		# Candidate 2: (row + 2, col - 2)
-		# Eye: (row + 1, col - 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10348,14 +10365,13 @@ xiangqi_government_elephant_generate_legal_moves = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col < 6 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col < 6 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -10368,10 +10384,6 @@ xiangqi_government_elephant_generate_legal_moves = {
 			}
 		}
 
-		# ---------------------------------------
-		# Candidate 3: (row - 2, col + 2)
-		# Eye: (row - 1, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10387,14 +10399,13 @@ xiangqi_government_elephant_generate_legal_moves = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col < 6 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col < 6 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -10406,10 +10417,6 @@ xiangqi_government_elephant_generate_legal_moves = {
 				hidden_effect = { xiangqi_add_legal_move = yes }
 			}
 		}
-		# ---------------------------------------
-		# Candidate 4: (row - 2, col - 2)
-		# Eye: (row - 1, col - 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10425,14 +10432,13 @@ xiangqi_government_elephant_generate_legal_moves = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col < 6 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col < 6 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -10447,18 +10453,13 @@ xiangqi_government_elephant_generate_legal_moves = {
 	}
 }
 xiangqi_government_horse_generate_legal_moves = {
-	# Only generate if alive
 	if = {
 		limit = { check_variable = { xiangqi_Government_Horse_piece_alive = 1 } }
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Cache current position
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Horse_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Horse_piece_col }
 
-		# ======================================================
-		# Candidate 1: (row + 2, col + 1)  Leg: (row + 1, col)
-		# ======================================================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10468,7 +10469,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = 1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10477,18 +10477,16 @@ xiangqi_government_horse_generate_legal_moves = {
 		if = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
-				check_variable = { xiangqi_tmp_target_row < 10 }   # rows 1-9
+				check_variable = { xiangqi_tmp_target_row < 10 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }   # cols 1-10
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
-				# Destination must not be friendly-occupied
 
 				NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
 			}
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row + 2, col - 1)  Leg: (row + 1, col)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10498,7 +10496,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = 1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10516,7 +10513,6 @@ xiangqi_government_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 2, col + 1)  Leg: (row - 1, col)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10526,7 +10522,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = -1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10544,7 +10539,6 @@ xiangqi_government_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 2, col - 1)  Leg: (row - 1, col)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10554,7 +10548,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = -1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10572,9 +10565,6 @@ xiangqi_government_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ======================================================
-		# Candidate 5: (row + 1, col + 2)  Leg: (row, col + 1)
-		# ======================================================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10584,7 +10574,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = 1 }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10602,7 +10591,6 @@ xiangqi_government_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 1, col + 2)  Leg: (row, col + 1)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10611,7 +10599,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = 1 }
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10630,7 +10617,6 @@ xiangqi_government_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row + 1, col - 2)  Leg: (row, col - 1)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10640,7 +10626,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = -1 }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10659,7 +10644,6 @@ xiangqi_government_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 1, col - 2)  Leg: (row, col - 1)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -10668,7 +10652,6 @@ xiangqi_government_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = -1 }
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -10694,9 +10677,6 @@ xiangqi_government_canon_generate_legal_moves_left = {
 		# Cache origin
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Canon_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Canon_piece_col }
-		# =====================
-		# LEFT (row - 1, -2, ...)
-		# =====================
 		set_variable = { xiangqi_tmp_iter = 1 }
 
 		while_loop_effect = {
@@ -10744,23 +10724,19 @@ xiangqi_government_canon_generate_legal_moves_right = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Canon_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Canon_piece_col }
 
-    # RIGHT (row + 1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         add_to_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -10771,11 +10747,9 @@ xiangqi_government_canon_generate_legal_moves_right = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied = yes }
@@ -10783,7 +10757,6 @@ xiangqi_government_canon_generate_legal_moves_right = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -10800,24 +10773,19 @@ xiangqi_government_canon_generate_legal_moves_up = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Canon_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Canon_piece_col }
 
-    # =====================
-    # UP (column -1, -2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         subtract_from_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -10828,11 +10796,9 @@ xiangqi_government_canon_generate_legal_moves_up = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied = yes }
@@ -10840,7 +10806,6 @@ xiangqi_government_canon_generate_legal_moves_up = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -10857,24 +10822,19 @@ xiangqi_government_canon_generate_legal_moves_down = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Canon_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Canon_piece_col }
 
-    # =====================
-    # DOWN (column +1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         add_to_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -10885,11 +10845,9 @@ xiangqi_government_canon_generate_legal_moves_down = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied = yes }
@@ -10897,7 +10855,6 @@ xiangqi_government_canon_generate_legal_moves_down = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -10908,12 +10865,8 @@ xiangqi_government_canon_generate_legal_moves_down = {
     }
 }
 # ============================================================
-# GOVERNMENT CANON ATTACKS (capture targets only)
 # Rule:
-#   - Scan outward in one direction.
 #   - First occupied square sets "screen_found = 1" and continues.
-#   - After screen_found, the FIRST occupied square is capturable IF enemy.
-#   - Stop after that first post-screen occupied square (hit or not).
 # ============================================================
 
 xiangqi_government_canon_attacks_up = {
@@ -10927,9 +10880,8 @@ xiangqi_government_canon_attacks_up = {
 
     while_loop_effect = {
         break = break
-        limit = { check_variable = { xiangqi_tmp_iter < 11 } } # safety cap
+        limit = { check_variable = { xiangqi_tmp_iter < 11 } }
 
-        # Target: col - iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         subtract_from_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
@@ -10949,7 +10901,6 @@ xiangqi_government_canon_attacks_up = {
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # If no screen yet: first occupied becomes screen, do NOT add capture
         if = {
             limit = {
                 check_variable = { xiangqi_tmp_canon_screen_found = 0 }
@@ -10988,7 +10939,6 @@ xiangqi_government_canon_attacks_down = {
         break = break
         limit = { check_variable = { xiangqi_tmp_iter < 11 } }
 
-        # Target: col + iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         add_to_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
@@ -11045,7 +10995,6 @@ xiangqi_government_canon_attacks_left = {
         break = break
         limit = { check_variable = { xiangqi_tmp_iter < 10 } }
 
-        # Target: row - iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         subtract_from_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11102,7 +11051,6 @@ xiangqi_government_canon_attacks_right = {
         break = break
         limit = { check_variable = { xiangqi_tmp_iter < 10 } }
 
-        # Target: row + iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         add_to_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11151,8 +11099,6 @@ xiangqi_government_canon_generate_attacks = {
     if = {
         limit = { check_variable = { xiangqi_Government_Canon_piece_alive = 1 } }
 
-        # Do NOT clear legal moves here if you're combining moves+attacks in one list.
-        # If you're keeping separate "legal_move" lists, call the right clear here.
 
         xiangqi_government_canon_attacks_up = yes
         xiangqi_government_canon_attacks_down = yes
@@ -11190,9 +11136,6 @@ xiangqi_government_chariot_generate_legal_moves_left = {
 		# Cache origin
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Chariot_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Chariot_piece_col }
-		# =====================
-		# LEFT (row - 1, -2, ...)
-		# =====================
 		set_variable = { xiangqi_tmp_iter = 1 }
 
 		while_loop_effect = {
@@ -11240,23 +11183,19 @@ xiangqi_government_chariot_generate_legal_moves_right = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Chariot_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Chariot_piece_col }
 
-    # RIGHT (row + 1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         add_to_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -11267,11 +11206,9 @@ xiangqi_government_chariot_generate_legal_moves_right = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
@@ -11279,7 +11216,6 @@ xiangqi_government_chariot_generate_legal_moves_right = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -11296,24 +11232,19 @@ xiangqi_government_chariot_generate_legal_moves_up = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Chariot_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Chariot_piece_col }
 
-    # =====================
-    # UP (column -1, -2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         subtract_from_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -11324,11 +11255,9 @@ xiangqi_government_chariot_generate_legal_moves_up = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
@@ -11336,7 +11265,6 @@ xiangqi_government_chariot_generate_legal_moves_up = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -11353,24 +11281,19 @@ xiangqi_government_chariot_generate_legal_moves_down = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Chariot_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Chariot_piece_col }
 
-    # =====================
-    # DOWN (column +1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         add_to_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -11381,11 +11304,9 @@ xiangqi_government_chariot_generate_legal_moves_down = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied_by_friendly_government = yes }
@@ -11393,7 +11314,6 @@ xiangqi_government_chariot_generate_legal_moves_down = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -11429,7 +11349,6 @@ xiangqi_government_chariot_generate_legal_moves = {
 }
 
 
-
 xiangqi_government_soldier_generate_legal_moves = {
 	if = {
 		limit = { check_variable = { xiangqi_Government_Soldier_piece_alive = 1 } }
@@ -11438,9 +11357,6 @@ xiangqi_government_soldier_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Soldier_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Soldier_piece_col }
 
-		# ---------------------------------------
-		# Candidate 1: Forward (row, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_target_col = 1 }
@@ -11463,13 +11379,9 @@ xiangqi_government_soldier_generate_legal_moves = {
 
 		}
 
-		# ---------------------------------------
-		# Side moves only after river (origin_col > 5)
-		# ---------------------------------------
 		if = {
 			limit = { check_variable = { xiangqi_tmp_origin_col > 5 } }
 
-			# Candidate 2: Right (row + 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = 1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11490,7 +11402,6 @@ xiangqi_government_soldier_generate_legal_moves = {
 				}
 			}
 
-			# Candidate 3: Left (row - 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = -1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11521,9 +11432,6 @@ xiangqi_government_Soldier_Front_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_Soldier_Front_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_Soldier_Front_piece_col }
 
-		# ---------------------------------------
-		# Candidate 1: Forward (row, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_target_col = 1 }
@@ -11546,13 +11454,9 @@ xiangqi_government_Soldier_Front_generate_legal_moves = {
 
 		}
 
-		# ---------------------------------------
-		# Side moves only after river (origin_col > 5)
-		# ---------------------------------------
 		if = {
 			limit = { check_variable = { xiangqi_tmp_origin_col > 5 } }
 
-			# Candidate 2: Right (row + 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = 1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11573,7 +11477,6 @@ xiangqi_government_Soldier_Front_generate_legal_moves = {
 				}
 			}
 
-			# Candidate 3: Left (row - 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = -1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11604,13 +11507,9 @@ xiangqi_government_general_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Government_General_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Government_General_piece_col }
 
-		# Government (Top) palace:
 		# Rows (horizontal): 4..6  => row > 3 AND row < 7
 		# Cols (vertical):   1..3  => col > 0 AND col < 4
 
-		# ===============================
-		# Move LEFT (row - 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		subtract_from_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11629,9 +11528,6 @@ xiangqi_government_general_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ===============================
-		# Move RIGHT (row + 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -11650,9 +11546,6 @@ xiangqi_government_general_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ===============================
-		# Move UP (column - 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		subtract_from_variable = { xiangqi_tmp_target_col = 1 }
@@ -11671,9 +11564,6 @@ xiangqi_government_general_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ===============================
-		# Move DOWN (column + 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_target_col = 1 }
@@ -11708,7 +11598,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11723,7 +11612,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11738,7 +11626,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11753,7 +11640,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11768,7 +11654,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11783,7 +11668,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11798,7 +11682,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11813,7 +11696,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11828,7 +11710,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11843,7 +11724,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11858,7 +11738,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11873,7 +11752,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11888,7 +11766,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 	else_if = {
@@ -11903,7 +11780,6 @@ Potential_Move_1_click_effect = {
 		# Cleanup
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Optional: end selection
 		set_variable = { xiangqi_selected_piece_id = 0 }
 	}
 }
@@ -11912,10 +11788,7 @@ xiangqi_apply_selected_piece_move = {
 	# Expects:
 	#   ROOT.xiangqi_tmp_move_index (1..24)
 	# Uses:
-	#   ROOT.xiangqi_selected_piece_side (1 gov / 2 reformist)
-	#   ROOT.xiangqi_selected_piece_type (1 general, 2 soldier_front, 3 elephant, 4 horse, 5 chariot, 6 canon, 7 soldier)
 
-	# --- Resolve target row/col from move index ---
 	set_variable = { xiangqi_tmp_target_row = 0 }
 	set_variable = { xiangqi_tmp_target_col = 0 }
 	set_variable = { xiangqi_tmp_abort_move = 0 }
@@ -11949,7 +11822,6 @@ xiangqi_apply_selected_piece_move = {
 	else_if = { limit = { check_variable = { xiangqi_tmp_move_index = 23 } } set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_legal_move_23_row } set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_legal_move_23_col } }
 	else_if = { limit = { check_variable = { xiangqi_tmp_move_index = 24 } } set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_legal_move_24_row } set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_legal_move_24_col } }
 	else = {
-		# Invalid index, just bail safely
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 		set_variable = { xiangqi_selected_piece_id = 0 }
 		set_variable = { xiangqi_tmp_move_index = 0 }
@@ -11960,7 +11832,6 @@ xiangqi_apply_selected_piece_move = {
 
 	}
 
-	# Optional safety: ignore clicking an "empty" move dot
 	if = {
 		limit = {
 			OR = {
@@ -11976,7 +11847,6 @@ xiangqi_apply_selected_piece_move = {
 		set_variable = { xiangqi_tmp_abort_move = 1 }
 	}
 
-	# --- Apply to selected piece (your same mapping) ---
 
 	# Government (side = 1)
 	if = {
@@ -12111,8 +11981,6 @@ xiangqi_apply_selected_piece_move = {
 	}
 
 
-	# Cleanup selection + move dots
-
 	hidden_effect = { xiangqi_clear_legal_moves = yes }
 	set_variable = { xiangqi_selected_piece_id = 0 }
 	set_variable = { xiangqi_selected_piece_type = 0 }
@@ -12126,21 +11994,14 @@ xiangqi_apply_selected_piece_move = {
 
 #Reformist Moves
 xiangqi_reformist_elephant_generate_legal_moves = {
-	# Only generate if alive
 	if = {
 		limit = { check_variable = { xiangqi_Reformist_Elephant_piece_alive = 1 } }
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Cache current position
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Elephant_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Elephant_piece_col }
 
-		# River boundary is between 5 and 6.
 
-		# ---------------------------------------
-		# Candidate 1: (row + 2, col + 2)
-		# Eye: (row + 1, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12151,21 +12012,19 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_eye_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_eye_col = 1 }
 
-		# Eye square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_eye_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_eye_col }
 		if = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col > 5 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col > 5 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -12178,10 +12037,6 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 			}
 		}
 
-		# ---------------------------------------
-		# Candidate 2: (row + 2, col - 2)
-		# Eye: (row + 1, col - 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12198,14 +12053,13 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col > 5 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col > 5 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -12218,10 +12072,6 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 			}
 		}
 
-		# ---------------------------------------
-		# Candidate 3: (row - 2, col + 2)
-		# Eye: (row - 1, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12237,14 +12087,13 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col > 5 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col > 5 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -12256,10 +12105,6 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 				hidden_effect = { xiangqi_add_legal_move = yes }
 			}
 		}
-		# ---------------------------------------
-		# Candidate 4: (row - 2, col - 2)
-		# Eye: (row - 1, col - 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12275,14 +12120,13 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
 				check_variable = { xiangqi_tmp_target_row < 10 }
-				check_variable = { xiangqi_tmp_target_col > 5 }	#River Rule
+				check_variable = { xiangqi_tmp_target_col > 5 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }    # cols 1-9
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
 
 				NOT = { xiangqi_is_square_occupied = yes }
 
-				# Destination must not be friendly-occupied
 				NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
 			}
 			set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
@@ -12297,18 +12141,13 @@ xiangqi_reformist_elephant_generate_legal_moves = {
 	}
 }
 xiangqi_reformist_horse_generate_legal_moves = {
-	# Only generate if alive
 	if = {
 		limit = { check_variable = { xiangqi_Reformist_Horse_piece_alive = 1 } }
 		hidden_effect = { xiangqi_clear_legal_moves = yes }
 
-		# Cache current position
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Horse_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Horse_piece_col }
 
-		# ======================================================
-		# Candidate 1: (row + 2, col + 1)  Leg: (row + 1, col)
-		# ======================================================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12318,7 +12157,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = 1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12327,18 +12165,16 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		if = {
 			limit = {
 				check_variable = { xiangqi_tmp_target_row > 0 }
-				check_variable = { xiangqi_tmp_target_row < 10 }   # rows 1-9
+				check_variable = { xiangqi_tmp_target_row < 10 }
 				check_variable = { xiangqi_tmp_target_col > 0 }
-				check_variable = { xiangqi_tmp_target_col < 11 }   # cols 1-10
+				check_variable = { xiangqi_tmp_target_col < 11 }
 
-				# Destination must not be friendly-occupied
 
 				NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
 			}
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row + 2, col - 1)  Leg: (row + 1, col)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12348,7 +12184,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = 1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12366,7 +12201,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 2, col + 1)  Leg: (row - 1, col)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12376,7 +12210,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = -1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12394,7 +12227,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 2, col - 1)  Leg: (row - 1, col)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -2 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12404,7 +12236,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		add_to_variable = { xiangqi_tmp_leg_row = -1 }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12422,9 +12253,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ======================================================
-		# Candidate 5: (row + 1, col + 2)  Leg: (row, col + 1)
-		# ======================================================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12434,7 +12262,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = 1 }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12452,7 +12279,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 1, col + 2)  Leg: (row, col + 1)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12461,7 +12287,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = 1 }
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12480,7 +12305,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row + 1, col - 2)  Leg: (row, col - 1)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12490,7 +12314,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = -1 }
 
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12509,7 +12332,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# (row - 1, col - 2)  Leg: (row, col - 1)
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = -1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12518,7 +12340,6 @@ xiangqi_reformist_horse_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_leg_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_leg_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_leg_col = -1 }
-		# Leg square must be empty
 		set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_leg_row }
 		set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_leg_col }
 
@@ -12544,9 +12365,6 @@ xiangqi_reformist_canon_generate_legal_moves_left = {
 		# Cache origin
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Canon_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Canon_piece_col }
-		# =====================
-		# LEFT (row - 1, -2, ...)
-		# =====================
 		set_variable = { xiangqi_tmp_iter = 1 }
 
 		while_loop_effect = {
@@ -12594,23 +12412,19 @@ xiangqi_reformist_canon_generate_legal_moves_right = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Canon_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Canon_piece_col }
 
-    # RIGHT (row + 1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         add_to_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -12621,11 +12435,9 @@ xiangqi_reformist_canon_generate_legal_moves_right = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied = yes }
@@ -12633,7 +12445,6 @@ xiangqi_reformist_canon_generate_legal_moves_right = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -12650,24 +12461,19 @@ xiangqi_reformist_canon_generate_legal_moves_up = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Canon_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Canon_piece_col }
 
-    # =====================
-    # UP (column -1, -2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         subtract_from_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -12678,11 +12484,9 @@ xiangqi_reformist_canon_generate_legal_moves_up = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied = yes }
@@ -12690,7 +12494,6 @@ xiangqi_reformist_canon_generate_legal_moves_up = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -12707,24 +12510,19 @@ xiangqi_reformist_canon_generate_legal_moves_down = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Canon_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Canon_piece_col }
 
-    # =====================
-    # DOWN (column +1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         add_to_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -12735,11 +12533,9 @@ xiangqi_reformist_canon_generate_legal_moves_down = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied = yes }
@@ -12747,7 +12543,6 @@ xiangqi_reformist_canon_generate_legal_moves_down = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -12758,12 +12553,8 @@ xiangqi_reformist_canon_generate_legal_moves_down = {
     }
 }
 # ============================================================
-# GOVERNMENT CANON ATTACKS (capture targets only)
 # Rule:
-#   - Scan outward in one direction.
 #   - First occupied square sets "screen_found = 1" and continues.
-#   - After screen_found, the FIRST occupied square is capturable IF enemy.
-#   - Stop after that first post-screen occupied square (hit or not).
 # ============================================================
 
 xiangqi_reformist_canon_attacks_up = {
@@ -12777,9 +12568,8 @@ xiangqi_reformist_canon_attacks_up = {
 
     while_loop_effect = {
         break = break
-        limit = { check_variable = { xiangqi_tmp_iter < 11 } } # safety cap
+        limit = { check_variable = { xiangqi_tmp_iter < 11 } }
 
-        # Target: col - iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         subtract_from_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
@@ -12799,7 +12589,6 @@ xiangqi_reformist_canon_attacks_up = {
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # If no screen yet: first occupied becomes screen, do NOT add capture
         if = {
             limit = {
                 check_variable = { xiangqi_tmp_canon_screen_found = 0 }
@@ -12838,7 +12627,6 @@ xiangqi_reformist_canon_attacks_down = {
         break = break
         limit = { check_variable = { xiangqi_tmp_iter < 11 } }
 
-        # Target: col + iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         add_to_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
@@ -12895,7 +12683,6 @@ xiangqi_reformist_canon_attacks_left = {
         break = break
         limit = { check_variable = { xiangqi_tmp_iter < 10 } }
 
-        # Target: row - iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         subtract_from_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -12952,7 +12739,6 @@ xiangqi_reformist_canon_attacks_right = {
         break = break
         limit = { check_variable = { xiangqi_tmp_iter < 10 } }
 
-        # Target: row + iter
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         add_to_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13001,8 +12787,6 @@ xiangqi_reformist_canon_generate_attacks = {
     if = {
         limit = { check_variable = { xiangqi_Reformist_Canon_piece_alive = 1 } }
 
-        # Do NOT clear legal moves here if you're combining moves+attacks in one list.
-        # If you're keeping separate "legal_move" lists, call the right clear here.
 
         xiangqi_reformist_canon_attacks_up = yes
         xiangqi_reformist_canon_attacks_down = yes
@@ -13040,9 +12824,6 @@ xiangqi_reformist_chariot_generate_legal_moves_left = {
 		# Cache origin
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Chariot_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Chariot_piece_col }
-		# =====================
-		# LEFT (row - 1, -2, ...)
-		# =====================
 		set_variable = { xiangqi_tmp_iter = 1 }
 
 		while_loop_effect = {
@@ -13090,23 +12871,19 @@ xiangqi_reformist_chariot_generate_legal_moves_right = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Chariot_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Chariot_piece_col }
 
-    # RIGHT (row + 1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         add_to_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_iter }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -13117,11 +12894,9 @@ xiangqi_reformist_chariot_generate_legal_moves_right = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
@@ -13129,7 +12904,6 @@ xiangqi_reformist_chariot_generate_legal_moves_right = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -13146,24 +12920,19 @@ xiangqi_reformist_chariot_generate_legal_moves_up = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Chariot_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Chariot_piece_col }
 
-    # =====================
-    # UP (column -1, -2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         subtract_from_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -13174,11 +12943,9 @@ xiangqi_reformist_chariot_generate_legal_moves_up = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
@@ -13186,7 +12953,6 @@ xiangqi_reformist_chariot_generate_legal_moves_up = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -13203,24 +12969,19 @@ xiangqi_reformist_chariot_generate_legal_moves_down = {
     set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Chariot_piece_row }
     set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Chariot_piece_col }
 
-    # =====================
-    # DOWN (column +1, +2, ...)
-    # =====================
     set_variable = { xiangqi_tmp_iter = 1 }
 
     while_loop_effect = {
 		break = break
         limit = {
-            check_variable = { xiangqi_tmp_iter < 10 } # safety cap
+            check_variable = { xiangqi_tmp_iter < 10 }
 			check_variable = { break_loop = 0 }
         }
 
-        # Compute target square
         set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
         set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
         add_to_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_iter }
 
-        # Stop if off board
         if = {
             limit = {
                 OR = {
@@ -13231,11 +12992,9 @@ xiangqi_reformist_chariot_generate_legal_moves_down = {
             set_temp_variable = { break = 1 }
         }
 
-        # Set square to check
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_tmp_target_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_tmp_target_col }
 
-        # Legal move if not friendly-occupied
         if = {
             limit = {
                 NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
@@ -13243,7 +13002,6 @@ xiangqi_reformist_chariot_generate_legal_moves_down = {
             hidden_effect = { xiangqi_add_legal_move = yes }
         }
 
-        # Stop ray if ANY piece blocks
         if = {
             limit = { xiangqi_is_square_occupied = yes }
 			set_variable = { break_loop = 1 }
@@ -13279,7 +13037,6 @@ xiangqi_reformist_chariot_generate_legal_moves = {
 }
 
 
-
 xiangqi_reformist_soldier_generate_legal_moves = {
 	if = {
 		limit = { check_variable = { xiangqi_Reformist_Soldier_piece_alive = 1 } }
@@ -13288,9 +13045,6 @@ xiangqi_reformist_soldier_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Soldier_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Soldier_piece_col }
 
-		# ---------------------------------------
-		# Candidate 1: Forward (row, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_target_col = -1 }
@@ -13313,13 +13067,9 @@ xiangqi_reformist_soldier_generate_legal_moves = {
 
 		}
 
-		# ---------------------------------------
-		# Side moves only after river (origin_col > 6)
-		# ---------------------------------------
 		if = {
 			limit = { check_variable = { xiangqi_tmp_origin_col < 6 } }
 
-			# Candidate 2: Right (row + 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = 1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13340,7 +13090,6 @@ xiangqi_reformist_soldier_generate_legal_moves = {
 				}
 			}
 
-			# Candidate 3: Left (row - 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = -1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13371,9 +13120,6 @@ xiangqi_reformist_Soldier_Front_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Soldier_Front_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Soldier_Front_piece_col }
 
-		# ---------------------------------------
-		# Candidate 1: Forward (row, col + 1)
-		# ---------------------------------------
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_target_col = -1 }
@@ -13396,13 +13142,9 @@ xiangqi_reformist_Soldier_Front_generate_legal_moves = {
 
 		}
 
-		# ---------------------------------------
-		# Side moves only after river (origin_col > 5)
-		# ---------------------------------------
 		if = {
 			limit = { check_variable = { xiangqi_tmp_origin_col < 6 } }
 
-			# Candidate 2: Right (row + 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = 1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13423,7 +13165,6 @@ xiangqi_reformist_Soldier_Front_generate_legal_moves = {
 				}
 			}
 
-			# Candidate 3: Left (row - 1, col)
 			set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 			add_to_variable = { xiangqi_tmp_target_row = -1 }
 			set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13454,13 +13195,9 @@ xiangqi_reformist_general_generate_legal_moves = {
 		set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_General_piece_row }
 		set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_General_piece_col }
 
-		# Reformist (Bottom) palace:
 		# Rows (horizontal): 4..6  => row > 3 AND row < 7
 		# Cols (vertical):   1..3  => col > 0 AND col < 4
 
-		# ===============================
-		# Move LEFT (row - 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		subtract_from_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13481,9 +13218,6 @@ xiangqi_reformist_general_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ===============================
-		# Move RIGHT (row + 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		add_to_variable = { xiangqi_tmp_target_row = 1 }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
@@ -13502,9 +13236,6 @@ xiangqi_reformist_general_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ===============================
-		# Move UP (column - 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		subtract_from_variable = { xiangqi_tmp_target_col = 1 }
@@ -13523,9 +13254,6 @@ xiangqi_reformist_general_generate_legal_moves = {
 			hidden_effect = { xiangqi_add_legal_move = yes }
 		}
 
-		# ===============================
-		# Move DOWN (column + 1)
-		# ===============================
 		set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_tmp_origin_row }
 		set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_tmp_origin_col }
 		add_to_variable = { xiangqi_tmp_target_col = 1 }
@@ -13553,12 +13281,7 @@ xiangqi_execute_selected_piece_attack = {
 	#   ROOT.xiangqi_tmp_check_row
 	#   ROOT.xiangqi_tmp_check_col
 	# Uses:
-	#   ROOT.xiangqi_selected_piece_side (1 gov, 2 reformist)
-	#   ROOT.xiangqi_selected_piece_type (1 general, 2 vanguard, 3 elephant, 4 horse, 5 chariot, 6 canon, 7 soldier)
 
-	# -------------------------
-	# Resolve damage from piece variables
-	# -------------------------
 	set_variable = { xiangqi_tmp_damage = 0 }
 
 	# Government attacker
@@ -13586,9 +13309,6 @@ xiangqi_execute_selected_piece_attack = {
 		else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } set_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Reformist_Soldier_attack_point } }
 	}
 
-	# -------------------------
-	# Apply damage (only if damage is valid)
-	# -------------------------
 	if = {
 		limit = { check_variable = { xiangqi_tmp_damage > 0 } }
 		set_variable = { xiangqi_tmp_attacker_side = ROOT.xiangqi_selected_piece_side }
@@ -13610,10 +13330,8 @@ xiangqi_ai_reformist_execute_chosen_attack = {
 	set_variable = { xiangqi_selected_piece_side = 2 }
 	set_variable = { xiangqi_selected_piece_type = ROOT.xiangqi_ai_chosen_type }
 
-	# regenerate attacks for that piece so slots are guaranteed valid
 	hidden_effect = { xiangqi_ai_reformist_generate_for_selected_type = yes }
 
-	# load chosen slot into tmp_check row/col
 	if = { limit = { check_variable = { xiangqi_ai_chosen_index = 1 } } set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_1_row } set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_1_col } }
 	else_if = { limit = { check_variable = { xiangqi_ai_chosen_index = 2 } } set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_2_row } set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_2_col } }
 	else_if = { limit = { check_variable = { xiangqi_ai_chosen_index = 3 } } set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_3_row } set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_3_col } }
@@ -13622,7 +13340,6 @@ xiangqi_ai_reformist_execute_chosen_attack = {
 
 	hidden_effect = { xiangqi_execute_selected_piece_attack = yes }
 
-	# AI cleanup flags
 	set_variable = { xiangqi_ai_found_action = 1 }
 	set_variable = { xiangqi_ai_action_is_attack = 1 }
 	set_variable = { xiangqi_ai_chosen_index = 0 }
@@ -13632,10 +13349,8 @@ xiangqi_ai_government_execute_chosen_attack = {
 	set_variable = { xiangqi_selected_piece_side = 1 }
 	set_variable = { xiangqi_selected_piece_type = ROOT.xiangqi_ai_chosen_type }
 
-	# regenerate attacks for that piece so slots are guaranteed valid
 	hidden_effect = { xiangqi_ai_government_generate_for_selected_type = yes }
 
-	# load chosen slot into tmp_check row/col
 	if = { limit = { check_variable = { xiangqi_ai_chosen_index = 1 } } set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_1_row } set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_1_col } }
 	else_if = { limit = { check_variable = { xiangqi_ai_chosen_index = 2 } } set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_2_row } set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_2_col } }
 	else_if = { limit = { check_variable = { xiangqi_ai_chosen_index = 3 } } set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_3_row } set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_3_col } }
@@ -13644,7 +13359,6 @@ xiangqi_ai_government_execute_chosen_attack = {
 
 	hidden_effect = { xiangqi_execute_selected_piece_attack = yes }
 
-	# AI cleanup flags
 	set_variable = { xiangqi_ai_found_action = 1 }
 	set_variable = { xiangqi_ai_action_is_attack = 1 }
 	set_variable = { xiangqi_ai_chosen_index = 0 }
@@ -13732,9 +13446,6 @@ xiangqi_resolve_piece_at_square = {
         set_temp_variable = { xiangqi_tmp_target_piece_type = 7 }
     }
 
-    # -------------------------
-    # Reformist (only if none found)
-    # -------------------------
     if = {
         limit = { check_variable = { xiangqi_tmp_target_side = 0 } }
 
@@ -13816,9 +13527,6 @@ xiangqi_apply_damage_at_square = {
     set_temp_variable = { xiangqi_tmp_damage = 0 }
     set_temp_variable = { xiangqi_tmp_hit_success = 0 }
 
-	# -------------------------
-	# Determine damage from attacker
-	# -------------------------
 	if = { limit = { check_variable = { xiangqi_selected_piece_side = 1 } }
 
 		if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } set_temp_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Government_General_attack_point } }
@@ -13840,9 +13548,6 @@ xiangqi_apply_damage_at_square = {
 		else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } set_temp_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Reformist_Soldier_attack_point } }
 	}
 	else = { }
-	# -------------------------
-	# Resolve target piece on square
-	# -------------------------
 	hidden_effect = { xiangqi_resolve_piece_at_square = yes }
 	# =========================
 	# Government target
@@ -13864,7 +13569,6 @@ xiangqi_apply_damage_at_square = {
 		}
 		else_if = {
 			limit = { check_variable = { xiangqi_tmp_target_piece_type = 2 } }
-			# Vanguard only (Soldier_Front)
 			subtract_from_variable = { xiangqi_Government_Soldier_Front_health_point = xiangqi_tmp_damage }
 			if = { limit = { check_variable = { xiangqi_Government_Soldier_Front_health_point < 1 } }
 				set_variable = { xiangqi_Government_Soldier_Front_piece_alive = -1 }
@@ -14003,9 +13707,7 @@ xiangqi_apply_selected_piece_attack = {
     # Expects:
     #   ROOT.xiangqi_tmp_attack_index (1..5)
     # Uses:
-    #   xiangqi_selected_piece_side / xiangqi_selected_piece_type for damage source
     # Applies:
-    #   xiangqi_execute_selected_piece_attack (expects tmp_check_row/col)
 
     if = {
         limit = { check_variable = { xiangqi_tmp_attack_index = 1 } }
@@ -14028,12 +13730,10 @@ xiangqi_apply_selected_piece_attack = {
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_4_col }
     }
     else = {
-        # Default to slot 5 (or clamp)
         set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_5_row }
         set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_5_col }
     }
 
-    # Execute the damage pipeline
     hidden_effect = { xiangqi_execute_selected_piece_attack = yes }
 
     # Cleanup
@@ -14043,13 +13743,12 @@ xiangqi_apply_selected_piece_attack = {
     set_variable = { xiangqi_tmp_attack_index = 0 }
 }
 
-#AI Movement and Processing
 xiangqi_ai_reformist_generate_for_selected_type = {
     # Expects:
     #   xiangqi_selected_piece_side = 2
     #   xiangqi_selected_piece_type = 1..7
 
-    hidden_effect = { xiangqi_clear_attack_moves = yes } # if exists
+    hidden_effect = { xiangqi_clear_attack_moves = yes }
     hidden_effect = { xiangqi_clear_legal_moves = yes }
 
     if = { limit = { check_variable = { xiangqi_selected_piece_type = 2 } } hidden_effect = { xiangqi_reformist_Soldier_Front_generate_legal_moves = yes } }
@@ -14068,7 +13767,6 @@ xiangqi_ai_reformist_try_attack_for_type = {
     if = {
         limit = { check_variable = { xiangqi_legal_attack_count > 0 } }
 
-        # Determine our attack power for this selected type (Reformist)
         set_variable = { xiangqi_ai_attacker_atk = 0 }
         if = { limit = { check_variable = { xiangqi_selected_piece_type = 6 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Reformist_Canon_attack_point } }
         else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 5 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Reformist_Chariot_attack_point } }
@@ -14078,22 +13776,19 @@ xiangqi_ai_reformist_try_attack_for_type = {
         else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Reformist_Soldier_attack_point } }
         else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Reformist_General_attack_point } }
 
-        # Pick best slot 1..5
         set_variable = { xiangqi_ai_best_attack_index = 0 }
         set_variable = { xiangqi_ai_best_attack_score = -999 }
 
         set_variable = { xiangqi_ai_iter = 1 }
         while_loop_effect = {
             break = break
-            limit = { check_variable = { xiangqi_ai_iter < 6 } } # 1..5
+            limit = { check_variable = { xiangqi_ai_iter < 6 } }
 
-            # Stop if past count
             if = {
                 limit = { check_variable = { xiangqi_ai_iter > xiangqi_legal_attack_count } }
                 set_temp_variable = { break = 1 }
             }
 
-            # Load this attack slot into tmp_check_row/col
             if = {
                 limit = { check_variable = { xiangqi_ai_iter = 1 } }
                 set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_1_row }
@@ -14120,7 +13815,6 @@ xiangqi_ai_reformist_try_attack_for_type = {
                 set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_5_col }
             }
 
-            # Evaluate target at this square (sets target_value, target_hp, target_exists)
             hidden_effect = { xiangqi_ai_eval_government_target_at_tmp_square = yes }
 
             # Score
@@ -14131,7 +13825,6 @@ xiangqi_ai_reformist_try_attack_for_type = {
 
                 set_variable = { xiangqi_ai_score = 0 }
 
-                # Base: target value weight
                 add_to_variable = { xiangqi_ai_score = ROOT.xiangqi_ai_target_value }
 
                 # Prefer kills
@@ -14146,14 +13839,11 @@ xiangqi_ai_reformist_try_attack_for_type = {
                     add_to_variable = { xiangqi_ai_score = 50 }
                 }
                 else = {
-                    # Otherwise prefer dealing more relative damage
-                    # (atk - hp) is negative; better if closer to 0
                     set_variable = { xiangqi_ai_tmp_diff = ROOT.xiangqi_ai_attacker_atk }
                     subtract_from_variable = { xiangqi_ai_tmp_diff = ROOT.xiangqi_ai_target_hp }
-                    add_to_variable = { xiangqi_ai_score = ROOT.xiangqi_ai_tmp_diff } # less negative is better
+                    add_to_variable = { xiangqi_ai_score = ROOT.xiangqi_ai_tmp_diff }
                 }
 
-                # Small randomness to avoid always same choice
                 random = { chance = 35 add_to_variable = { xiangqi_ai_score = 1 } }
             }
 
@@ -14181,11 +13871,10 @@ xiangqi_ai_eval_government_target_at_tmp_square = {
     set_variable = { xiangqi_ai_target_hp = 0 }
     set_variable = { xiangqi_ai_target_value = 0 }
 
-    # Must be occupied by enemy at all
     if = {
         limit = {
             xiangqi_is_square_occupied = yes
-            NOT = { xiangqi_is_square_occupied_by_nhanvan = yes } # enemy for Reformist
+            NOT = { xiangqi_is_square_occupied_by_nhanvan = yes }
         }
 
         # Canon
@@ -14270,11 +13959,8 @@ xiangqi_ai_eval_government_target_at_tmp_square = {
 
 xiangqi_ai_reformist_try_move_for_type = {
     # Expects:
-    #   xiangqi_selected_piece_type already set (1/2/3/4/5/6/7)
-    # Assumes Reformist side
     set_variable = { xiangqi_selected_piece_side = 2 }
 
-    # Generate legal moves for this type
     if = { limit = { check_variable = { xiangqi_selected_piece_type = 6 } } hidden_effect = { xiangqi_reformist_canon_generate_legal_moves = yes } }
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 5 } } hidden_effect = { xiangqi_reformist_chariot_generate_legal_moves = yes } }
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 4 } } hidden_effect = { xiangqi_reformist_horse_generate_legal_moves = yes } }
@@ -14283,7 +13969,6 @@ xiangqi_ai_reformist_try_move_for_type = {
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } hidden_effect = { xiangqi_reformist_soldier_generate_legal_moves = yes } }
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } hidden_effect = { xiangqi_reformist_general_generate_legal_moves = yes } }
 
-    # If none, bail
     if = {
         limit = { check_variable = { xiangqi_legal_move_count < 1 } }
         hidden_effect = { xiangqi_clear_legal_moves = yes }
@@ -14300,14 +13985,11 @@ xiangqi_ai_reformist_try_move_for_type = {
                 check_variable = { xiangqi_ai_iter < 25 }
             }
 
-            # stop if past count
             if = {
                 limit = { check_variable = { xiangqi_ai_iter > xiangqi_legal_move_count } }
                 set_temp_variable = { break = 1 }
             }
 
-            # Resolve candidate row/col for this iter
-            # (You already have this mapping elsewhere; keep it explicit.)
             set_variable = { xiangqi_tmp_target_row = 0 }
             set_variable = { xiangqi_tmp_target_col = 0 }
 
@@ -14336,11 +14018,9 @@ xiangqi_ai_reformist_try_move_for_type = {
             else_if = { limit = { check_variable = { xiangqi_ai_iter = 23 } } set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_legal_move_23_row } set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_legal_move_23_col } }
             else_if = { limit = { check_variable = { xiangqi_ai_iter = 24 } } set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_legal_move_24_row } set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_legal_move_24_col } }
 
-            # ---- Score it ----
             set_variable = { xiangqi_ai_score = 0 }
 			if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } add_to_variable = { xiangqi_ai_score = -2 } }
 
-            # 1) Backtrack check (reject/huge penalty if equals last square)
             set_variable = { xiangqi_ai_backtrack = 0 }
 
             if = {
@@ -14420,8 +14100,6 @@ xiangqi_ai_reformist_try_move_for_type = {
             }
 
             # 2) Prefer forward progress for Reformist (smaller col = better)
-            # Add +3 if col < current col, +1 if equal, -1 if col > current col
-            # (We need current col per piece type)
             set_variable = { xiangqi_ai_curr_col = 0 }
 
             if = { limit = { check_variable = { xiangqi_selected_piece_type = 6 } } set_variable = { xiangqi_ai_curr_col = ROOT.xiangqi_Reformist_Canon_piece_col } }
@@ -14436,12 +14114,9 @@ xiangqi_ai_reformist_try_move_for_type = {
             else_if = { limit = { check_variable = { xiangqi_tmp_target_col = xiangqi_ai_curr_col } } add_to_variable = { xiangqi_ai_score = 1 } }
             else = { add_to_variable = { xiangqi_ai_score = -1 } }
 
-            # 3) Mild center preference (row closer to 5 is better)
-            # +2 if row is 5, +1 if 4 or 6, else 0
             if = { limit = { check_variable = { xiangqi_tmp_target_row = 5 } } add_to_variable = { xiangqi_ai_score = 2 } }
             else_if = { limit = { OR = { check_variable = { xiangqi_tmp_target_row = 4 } check_variable = { xiangqi_tmp_target_row = 6 } } } add_to_variable = { xiangqi_ai_score = 1 } }
 
-            # 4) Random tie-breaker (0..1)
             random = {
                 chance = 50
                 add_to_variable = { xiangqi_ai_score = 1 }
@@ -14457,7 +14132,6 @@ xiangqi_ai_reformist_try_move_for_type = {
             add_to_variable = { xiangqi_ai_iter = 1 }
         }
 
-        # If we found anything, execute it
         if = {
             limit = { check_variable = { xiangqi_ai_best_move_index > 0 } }
             set_variable = { xiangqi_tmp_move_index = ROOT.xiangqi_ai_best_move_index }
@@ -14470,7 +14144,6 @@ xiangqi_ai_reformist_try_move_for_type = {
 }
 
 xiangqi_ai_reformist_take_turn = {
-    # Reset AI state
     set_variable = { xiangqi_ai_found_action = 0 }
     set_variable = { xiangqi_ai_action_is_attack = 0 }
     set_variable = { xiangqi_ai_chosen_type = 0 }
@@ -14523,8 +14196,6 @@ xiangqi_ai_reformist_take_turn = {
 
 
 xiangqi_ai_get_legal_move_at_index = {
-    # Expects: xiangqi_tmp_iter (1..24)
-    # Sets: xiangqi_tmp_target_row / xiangqi_tmp_target_col
 
     set_variable = { xiangqi_tmp_target_row = 0 }
     set_variable = { xiangqi_tmp_target_col = 0 }
@@ -14561,16 +14232,12 @@ xiangqi_ai_get_legal_move_at_index = {
 xiangqi_ai_reformist_choose_nonreversal_move_index = {
     # Expects:
     #   xiangqi_ai_chosen_type (1..7)
-    #   legal moves already generated into xiangqi_legal_move_*_row/col
     #
     # Sets:
     #   xiangqi_ai_chosen_index (1..24)
 
     set_variable = { xiangqi_ai_chosen_index = 0 }
 
-    # ----------------------------
-    # Load last square for this type
-    # ----------------------------
     set_variable = { xiangqi_tmp_last_row = 0 }
     set_variable = { xiangqi_tmp_last_col = 0 }
 
@@ -14582,9 +14249,6 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
     else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 6 } } set_variable = { xiangqi_tmp_last_row = ROOT.xiangqi_ai_last_square_type_6_row } set_variable = { xiangqi_tmp_last_col = ROOT.xiangqi_ai_last_square_type_6_col } }
     else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 7 } } set_variable = { xiangqi_tmp_last_row = ROOT.xiangqi_ai_last_square_type_7_row } set_variable = { xiangqi_tmp_last_col = ROOT.xiangqi_ai_last_square_type_7_col } }
 
-    # ----------------------------
-    # Load current origin for this piece type (Reformist side)
-    # ----------------------------
     set_variable = { xiangqi_tmp_origin_row = 0 }
     set_variable = { xiangqi_tmp_origin_col = 0 }
 
@@ -14612,21 +14276,16 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
             check_variable = { break_loop = 0 }
         }
 
-        hidden_effect = { xiangqi_ai_get_legal_move_at_index = yes } # sets tmp_target_row/col
+        hidden_effect = { xiangqi_ai_get_legal_move_at_index = yes }
 
-        # Only consider real move dots
         if = {
             limit = {
                 check_variable = { xiangqi_tmp_target_row > 0 }
                 check_variable = { xiangqi_tmp_target_col > 0 }
             }
 
-            # ----------------------------
-            # Score this candidate
-            # ----------------------------
             set_variable = { xiangqi_tmp_score = 0 }
 
-			# (A) Huge penalty if it is immediate reversal, but only if we actually have history
 			if = {
 				limit = {
 					check_variable = { xiangqi_tmp_last_row > 0 }
@@ -14639,7 +14298,6 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
 				if = {
 					limit = { check_variable = { xiangqi_tmp_cmp = 0 } }
 
-					# col match too?
 					set_variable = { xiangqi_tmp_cmp = ROOT.xiangqi_tmp_target_col }
 					subtract_from_variable = { xiangqi_tmp_cmp = ROOT.xiangqi_tmp_last_col }
 					if = {
@@ -14648,13 +14306,11 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
 					}
 				}
 			}
-            # (B) Prefer advancing toward Government (Reformist advances by DECREASING col)
 			# compute delta_col = target_col - origin_col
 
 			set_variable = { xiangqi_tmp_delta = ROOT.xiangqi_tmp_target_col }
 			subtract_from_variable = { xiangqi_tmp_delta = ROOT.xiangqi_tmp_origin_col }
 
-			# Reformist advances by DECREASING col, so delta < 0 is good
 			if = {
 				limit = { check_variable = { xiangqi_tmp_delta < 0 } }
 				if = {
@@ -14673,7 +14329,6 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
 				add_to_variable = { xiangqi_tmp_score = -3 }
 			}
 
-            # (C) Centralize row (prefer row 5, then 4/6, then 3/7)
             if = { limit = { check_variable = { xiangqi_tmp_target_row = 5 } } add_to_variable = { xiangqi_tmp_score = 3 } }
             else_if = {
                 limit = {
@@ -14694,7 +14349,6 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
                 add_to_variable = { xiangqi_tmp_score = 1 }
             }
 
-            # (D) Extra centralization for Chariot/Canon: prefer columns 5–6-ish (center lanes)
             if = {
                 limit = {
                     OR = {
@@ -14722,7 +14376,6 @@ xiangqi_ai_reformist_choose_nonreversal_move_index = {
                 }
             }
 
-            # (E) Deprioritize General wandering (keeps it from being the default mover)
             if = {
                 limit = { check_variable = { xiangqi_ai_chosen_type = 1 } }
                 add_to_variable = { xiangqi_tmp_score = -2 }
@@ -14755,16 +14408,12 @@ xiangqi_ai_reformist_execute_chosen_move = {
     # Expects:
     #   xiangqi_ai_chosen_type   (1..7)
     # Optional:
-    #   xiangqi_ai_chosen_index  (if pre-chosen; otherwise we auto-pick)
     #
     # Uses:
-    #   xiangqi_ai_last_square_type_X_row/col for anti-bounce
 
-    # Force selection to Reformist
     set_variable = { xiangqi_selected_piece_side = 2 }
     set_variable = { xiangqi_selected_piece_type = ROOT.xiangqi_ai_chosen_type }
 
-    # Resolve current square (origin)
     set_variable = { xiangqi_tmp_origin_row = 0 }
     set_variable = { xiangqi_tmp_origin_col = 0 }
 
@@ -14776,28 +14425,22 @@ xiangqi_ai_reformist_execute_chosen_move = {
     else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 6 } } set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Canon_piece_row }          set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Canon_piece_col } }
     else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 7 } } set_variable = { xiangqi_tmp_origin_row = ROOT.xiangqi_Reformist_Soldier_piece_row }        set_variable = { xiangqi_tmp_origin_col = ROOT.xiangqi_Reformist_Soldier_piece_col } }
 
-    # Store the square we are moving FROM (used to avoid immediate reversal next time)
     set_variable = { xiangqi_tmp_prev_row = ROOT.xiangqi_tmp_origin_row }
     set_variable = { xiangqi_tmp_prev_col = ROOT.xiangqi_tmp_origin_col }
 
-    # Generate legal moves for this selected type
     hidden_effect = { xiangqi_ai_reformist_generate_for_selected_type = yes }
 
-    # Only proceed if we actually have moves
     if = {
         limit = { check_variable = { xiangqi_legal_move_count > 0 } }
 
-        # Choose index if not pre-set
         if = {
             limit = { check_variable = { xiangqi_ai_chosen_index < 1 } }
             hidden_effect = { xiangqi_ai_reformist_choose_nonreversal_move_index = yes }
         }
 
-        # Execute the move
         set_variable = { xiangqi_tmp_move_index = ROOT.xiangqi_ai_chosen_index }
         hidden_effect = { xiangqi_apply_selected_piece_move = yes }
 
-        # Record last square for this type (the square we came FROM)
         if = { limit = { check_variable = { xiangqi_ai_chosen_type = 1 } } set_variable = { xiangqi_ai_last_square_type_1_row = ROOT.xiangqi_tmp_prev_row } set_variable = { xiangqi_ai_last_square_type_1_col = ROOT.xiangqi_tmp_prev_col } }
         else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 2 } } set_variable = { xiangqi_ai_last_square_type_2_row = ROOT.xiangqi_tmp_prev_row } set_variable = { xiangqi_ai_last_square_type_2_col = ROOT.xiangqi_tmp_prev_col } }
         else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 3 } } set_variable = { xiangqi_ai_last_square_type_3_row = ROOT.xiangqi_tmp_prev_row } set_variable = { xiangqi_ai_last_square_type_3_col = ROOT.xiangqi_tmp_prev_col } }
@@ -14807,25 +14450,22 @@ xiangqi_ai_reformist_execute_chosen_move = {
         else_if = { limit = { check_variable = { xiangqi_ai_chosen_type = 7 } } set_variable = { xiangqi_ai_last_square_type_7_row = ROOT.xiangqi_tmp_prev_row } set_variable = { xiangqi_ai_last_square_type_7_col = ROOT.xiangqi_tmp_prev_col } }
     }
     else = {
-        # No moves: cleanup
         hidden_effect = { xiangqi_clear_legal_moves = yes }
         set_variable = { xiangqi_selected_piece_type = 0 }
         set_variable = { xiangqi_selected_piece_side = 0 }
         set_variable = { xiangqi_ai_chosen_index = 0 }
     }
 
-    # Cleanup AI pick vars (always)
     set_variable = { xiangqi_ai_chosen_index = 0 }
     set_variable = { xiangqi_ai_chosen_type = 0 }
 }
-#AI Movement and Processing (Government)
 
 xiangqi_ai_government_generate_for_selected_type = {
     # Expects:
     #   xiangqi_selected_piece_side = 1
     #   xiangqi_selected_piece_type = 1..7
 
-    hidden_effect = { xiangqi_clear_attack_moves = yes } # if exists
+    hidden_effect = { xiangqi_clear_attack_moves = yes }
     hidden_effect = { xiangqi_clear_legal_moves = yes }
 
     if = { limit = { check_variable = { xiangqi_selected_piece_type = 2 } } hidden_effect = { xiangqi_government_Soldier_Front_generate_legal_moves = yes } }
@@ -14845,7 +14485,6 @@ xiangqi_ai_government_try_attack_for_type = {
     if = {
         limit = { check_variable = { xiangqi_legal_attack_count > 0 } }
 
-        # Determine our attack power for this selected type (Government)
         set_variable = { xiangqi_ai_attacker_atk = 0 }
         if = { limit = { check_variable = { xiangqi_selected_piece_type = 6 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Government_Canon_attack_point } }
         else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 5 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Government_Chariot_attack_point } }
@@ -14855,22 +14494,19 @@ xiangqi_ai_government_try_attack_for_type = {
         else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Government_Soldier_attack_point } }
         else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } set_variable = { xiangqi_ai_attacker_atk = ROOT.xiangqi_Government_General_attack_point } }
 
-        # Pick best slot 1..5
         set_variable = { xiangqi_ai_best_attack_index = 0 }
         set_variable = { xiangqi_ai_best_attack_score = -999 }
 
         set_variable = { xiangqi_ai_iter = 1 }
         while_loop_effect = {
             break = break
-            limit = { check_variable = { xiangqi_ai_iter < 6 } } # 1..5
+            limit = { check_variable = { xiangqi_ai_iter < 6 } }
 
-            # Stop if past count
             if = {
                 limit = { check_variable = { xiangqi_ai_iter > xiangqi_legal_attack_count } }
                 set_temp_variable = { break = 1 }
             }
 
-            # Load this attack slot into tmp_check_row/col
             if = {
                 limit = { check_variable = { xiangqi_ai_iter = 1 } }
                 set_variable = { xiangqi_tmp_check_row = ROOT.xiangqi_legal_attack_1_row }
@@ -14897,7 +14533,6 @@ xiangqi_ai_government_try_attack_for_type = {
                 set_variable = { xiangqi_tmp_check_col = ROOT.xiangqi_legal_attack_5_col }
             }
 
-            # Evaluate target at this square (sets target_value, target_hp, target_exists)
             hidden_effect = { xiangqi_ai_eval_reformist_target_at_tmp_square = yes }
 
             # Score
@@ -14908,7 +14543,6 @@ xiangqi_ai_government_try_attack_for_type = {
 
                 set_variable = { xiangqi_ai_score = 0 }
 
-                # Base: target value weight
                 add_to_variable = { xiangqi_ai_score = ROOT.xiangqi_ai_target_value }
 
                 # Prefer kills
@@ -14922,13 +14556,11 @@ xiangqi_ai_government_try_attack_for_type = {
                     add_to_variable = { xiangqi_ai_score = 50 }
                 }
                 else = {
-                    # Otherwise prefer dealing more relative damage
                     set_variable = { xiangqi_ai_tmp_diff = ROOT.xiangqi_ai_attacker_atk }
                     subtract_from_variable = { xiangqi_ai_tmp_diff = ROOT.xiangqi_ai_target_hp }
                     add_to_variable = { xiangqi_ai_score = ROOT.xiangqi_ai_tmp_diff }
                 }
 
-                # Small randomness to avoid always same choice
                 random = { chance = 35 add_to_variable = { xiangqi_ai_score = 1 } }
             }
 
@@ -14952,7 +14584,6 @@ xiangqi_ai_government_try_attack_for_type = {
     }
 }
 
-# Government is attacking Reformist, so we evaluate Reformist piece vars on the square.
 xiangqi_ai_eval_reformist_target_at_tmp_square = {
     set_variable = { xiangqi_ai_target_exists = 0 }
     set_variable = { xiangqi_ai_target_hp = 0 }
@@ -15047,11 +14678,8 @@ xiangqi_ai_eval_reformist_target_at_tmp_square = {
 
 xiangqi_ai_government_try_move_for_type = {
     # Expects:
-    #   xiangqi_selected_piece_type already set (1/2/3/4/5/6/7)
-    # Assumes Government side
     set_variable = { xiangqi_selected_piece_side = 1 }
 
-    # Generate legal moves for this type
     if = { limit = { check_variable = { xiangqi_selected_piece_type = 6 } } hidden_effect = { xiangqi_government_canon_generate_legal_moves = yes } }
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 5 } } hidden_effect = { xiangqi_government_chariot_generate_legal_moves = yes } }
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 4 } } hidden_effect = { xiangqi_government_horse_generate_legal_moves = yes } }
@@ -15060,7 +14688,6 @@ xiangqi_ai_government_try_move_for_type = {
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } hidden_effect = { xiangqi_government_soldier_generate_legal_moves = yes } }
     else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } hidden_effect = { xiangqi_government_general_generate_legal_moves = yes } }
 
-    # If none, bail
     if = {
         limit = { check_variable = { xiangqi_legal_move_count < 1 } }
         hidden_effect = { xiangqi_clear_legal_moves = yes }
@@ -15075,13 +14702,11 @@ xiangqi_ai_government_try_move_for_type = {
             break = break
             limit = { check_variable = { xiangqi_ai_iter < 25 } }
 
-            # stop if past count
             if = {
                 limit = { check_variable = { xiangqi_ai_iter > xiangqi_legal_move_count } }
                 set_temp_variable = { break = 1 }
             }
 
-            # Resolve candidate row/col for this iter
             set_variable = { xiangqi_tmp_target_row = 0 }
             set_variable = { xiangqi_tmp_target_col = 0 }
 
@@ -15110,11 +14735,9 @@ xiangqi_ai_government_try_move_for_type = {
             else_if = { limit = { check_variable = { xiangqi_ai_iter = 23 } } set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_legal_move_23_row } set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_legal_move_23_col } }
             else_if = { limit = { check_variable = { xiangqi_ai_iter = 24 } } set_variable = { xiangqi_tmp_target_row = ROOT.xiangqi_legal_move_24_row } set_variable = { xiangqi_tmp_target_col = ROOT.xiangqi_legal_move_24_col } }
 
-            # ---- Score it ----
             set_variable = { xiangqi_ai_score = 0 }
             if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } add_to_variable = { xiangqi_ai_score = -2 } }
 
-            # 1) Backtrack check (reject/huge penalty if equals last square)
             set_variable = { xiangqi_ai_backtrack = 0 }
 
             if = {
@@ -15208,11 +14831,9 @@ xiangqi_ai_government_try_move_for_type = {
             else_if = { limit = { check_variable = { xiangqi_tmp_target_col = xiangqi_ai_curr_col } } add_to_variable = { xiangqi_ai_score = 1 } }
             else = { add_to_variable = { xiangqi_ai_score = -1 } }
 
-            # 3) Mild center preference (row closer to 5 is better)
             if = { limit = { check_variable = { xiangqi_tmp_target_row = 5 } } add_to_variable = { xiangqi_ai_score = 2 } }
             else_if = { limit = { OR = { check_variable = { xiangqi_tmp_target_row = 4 } check_variable = { xiangqi_tmp_target_row = 6 } } } add_to_variable = { xiangqi_ai_score = 1 } }
 
-            # 4) Random tie-breaker (0..1)
             random = { chance = 50 add_to_variable = { xiangqi_ai_score = 1 } }
 
             # Keep best
@@ -15225,7 +14846,6 @@ xiangqi_ai_government_try_move_for_type = {
             add_to_variable = { xiangqi_ai_iter = 1 }
         }
 
-        # If we found anything, execute it
         if = {
             limit = { check_variable = { xiangqi_ai_best_move_index > 0 } }
             set_variable = { xiangqi_tmp_move_index = ROOT.xiangqi_ai_best_move_index }
@@ -15238,7 +14858,6 @@ xiangqi_ai_government_try_move_for_type = {
 }
 
 xiangqi_ai_government_take_turn = {
-    # Reset AI state
     set_variable = { xiangqi_ai_found_action = 0 }
     set_variable = { xiangqi_ai_action_is_attack = 0 }
     set_variable = { xiangqi_ai_chosen_type = 0 }
@@ -15341,7 +14960,6 @@ xiangqi_ai_government_execute_chosen_move = {
 }
 
 xiangqi_ai_government_choose_nonreversal_move_index = {
-    # Same as reformist chooser, but origin is Government vars and forward is delta > 0.
 
     set_variable = { xiangqi_ai_chosen_index = 0 }
 
@@ -15390,7 +15008,6 @@ xiangqi_ai_government_choose_nonreversal_move_index = {
 
             set_variable = { xiangqi_tmp_score = 0 }
 
-            # (A) reversal penalty
             if = {
                 limit = {
                     check_variable = { xiangqi_tmp_last_row > 0 }
@@ -15433,7 +15050,6 @@ xiangqi_ai_government_choose_nonreversal_move_index = {
                 add_to_variable = { xiangqi_tmp_score = -3 }
             }
 
-            # (C) centralize row
             if = { limit = { check_variable = { xiangqi_tmp_target_row = 5 } } add_to_variable = { xiangqi_tmp_score = 3 } }
             else_if = {
                 limit = {
@@ -15454,7 +15070,6 @@ xiangqi_ai_government_choose_nonreversal_move_index = {
                 add_to_variable = { xiangqi_tmp_score = 1 }
             }
 
-            # (D) prefer center lanes for chariot/canon
             if = {
                 limit = {
                     OR = {
@@ -15482,7 +15097,6 @@ xiangqi_ai_government_choose_nonreversal_move_index = {
                 }
             }
 
-            # (E) discourage General wandering
             if = { limit = { check_variable = { xiangqi_ai_chosen_type = 1 } } add_to_variable = { xiangqi_tmp_score = -2 } }
 
             if = {
@@ -15542,10 +15156,8 @@ remove_nhan_van_minigame_to_ui = {
 	}
 }
 
-# Apply once per army-modernisation upgrade.
 VIN_improve_drv_army = {
 	custom_effect_tooltip = Improve_DRV_Army_TT
-	# Equipment, supply and border warfare.
 	add_to_variable = { var = VIN_M_A_ECR value = 0.02 }
 
 	add_to_variable = { var = VIN_M_A_OSP value = -0.01 }
@@ -15554,17 +15166,14 @@ VIN_improve_drv_army = {
 
 	add_to_variable = { var = VIN_M_A_SR value = 0.01 }
 
-	# Lower garrison losses as organisation and control improve.
 	add_to_variable = { var = VIN_M_A_RDG value = -0.01 }
 
-	# Army administration and mobilisation.
 	add_to_variable = { var = VIN_M_A_DCP value = 0.05 }
 	add_to_variable = { var = VIN_M_A_MS value = 0.01 }
 	add_to_variable = { var = VIN_M_A_RPF value = 0.01 }
 	add_to_variable = { var = VIN_M_A_RR value = 0.005 }
 	add_to_variable = { var = VIN_M_A_TT value = -0.01 }
 
-	# Land combat doctrine and field performance.
 	add_to_variable = { var = VIN_M_A_AF value = 0.01 }
 	add_to_variable = { var = VIN_M_A_CAF value = 0.01 }
 	add_to_variable = { var = VIN_M_A_DF value = 0.01 }
@@ -15585,13 +15194,11 @@ VIN_improve_drv_army = {
 # DRV AIR FORCE
 # ============================================================
 
-# Run once when the air-force dynamic modifier is first granted.
 VIN_initialize_drv_air_force = {
 	add_dynamic_modifier = {
 		modifier = VIN_DRV_air_force_research
 	}
 
-	# Air combat baseline: a tiny, inexperienced air arm.
 	set_variable = { VIN_M_AF_AAF = 0.75 }		# Air accidents: bad
 	set_variable = { VIN_M_AF_AAG = -0.50 }		# Ace generation: bad
 	set_variable = { VIN_M_AF_AMXP = 0.05 }		# Air mission XP: good
@@ -15601,17 +15208,12 @@ VIN_initialize_drv_air_force = {
 	set_variable = { VIN_M_AF_AXPL = 0.10 }		# XP lost on wing death: bad
 }
 
-# Generic air-force development step.
-# Use for focuses such as pilot schools, imported aircraft doctrine,
-# Soviet/Chinese advisers, airfield construction, etc.
 VIN_improve_drv_air_force = {
-	# Fewer crashes as training, maintenance and airfield procedures improve.
 	add_to_variable = {
 		var = VIN_M_AF_AAF
 		value = -0.10
 	}
 
-	# More capable pilots and better mission doctrine.
 	add_to_variable = {
 		var = VIN_M_AF_AAG
 		value = 0.10
@@ -15625,7 +15227,6 @@ VIN_improve_drv_air_force = {
 		value = 0.03
 	}
 
-	# Reduce operational penalties.
 	add_to_variable = {
 		var = VIN_M_AF_ANP
 		value = -0.05
@@ -15644,13 +15245,11 @@ VIN_improve_drv_air_force = {
 # DRV NAVY
 # ============================================================
 
-# Run once when the naval dynamic modifier is first granted.
 VIN_initialize_drv_navy = {
 	add_dynamic_modifier = {
 		modifier = VIN_DRV_navy
 	}
 
-	# Navy baseline: coastal irregular capability, limited doctrine and coordination.
 	set_variable = { VIN_M_N_NDC = 0.50 }		# Naval doctrine cost: bad
 	set_variable = { VIN_M_N_EGF = 0.00 }		# Navy XP gain
 	set_variable = { VIN_M_N_SFC = 0.02 }		# Special forces cap
@@ -15665,11 +15264,7 @@ VIN_initialize_drv_navy = {
 	set_variable = { VIN_M_N_SC = 0.10 }		# Spotting chance
 }
 
-# Generic naval-development step.
-# Use for focuses involving coastal flotillas, naval schools,
-# amphibious doctrine, Chinese/Soviet advisers, or shipyard expansion.
 VIN_improve_drv_navy = {
-	# Better access to doctrine and more accumulated institutional experience.
 	add_to_variable = {
 		var = VIN_M_N_NDC
 		value = -0.05
@@ -15679,13 +15274,11 @@ VIN_improve_drv_navy = {
 		value = 0.05
 	}
 
-	# Expand the pool available for marines / naval special formations.
 	add_to_variable = {
 		var = VIN_M_N_SFC
 		value = 0.01
 	}
 
-	# Improve the ability to land, sustain and coordinate amphibious operations.
 	add_to_variable = {
 		var = VIN_M_N_NIC
 		value = 2
@@ -15699,7 +15292,6 @@ VIN_improve_drv_navy = {
 		value = -0.02
 	}
 
-	# Bring the fleet from dispersed coastal units toward a coordinated force.
 	add_to_variable = {
 		var = VIN_M_N_NC
 		value = 0.05
@@ -15721,15 +15313,8 @@ VIN_improve_drv_navy = {
 # ============================================================
 # STATE OF VIETNAM (VIE) BRANCH MODERNIZATION
 # ============================================================
-# The VIE_etat_du_vietnam_* dynamic modifiers start as founding-era
-# values (see history/countries/VIE - Vietnam.txt). Each upgrade
-# effect below is tied to 50s military focuses in both the regular
-# and Cuong-De trees; completing every upgrade path inverts the
-# starting penalties and doubles the starting bonuses.
 
-# --- National Gendarmerie ---
 
-# VIE_Amalgamatize_VeBinh_Paramilitaries / VIE_ReEstablish_VietKienQuocQuan_Mil
 VIE_gendarmerie_field_upgrade = {
 	custom_effect_tooltip = VIE_Gendarmerie_Field_Upgrade_TT
 	add_to_variable = { var = VIE_M_G_S value = 0.05 }		# 0.05 -> 0.10
@@ -15739,7 +15324,6 @@ VIE_gendarmerie_field_upgrade = {
 	add_to_variable = { var = VIE_M_G_SFAF value = 0.10 }	# 0.10 -> 0.20
 }
 
-# VIE_Incorporate_Religious_Sects_BinhXuyen_Forces (both trees)
 VIE_gendarmerie_internal_security_upgrade = {
 	custom_effect_tooltip = VIE_Gendarmerie_Internal_Security_Upgrade_TT
 	add_to_variable = { var = VIE_M_G_DD value = 0.03 }		# 0.03 -> 0.06
@@ -15749,16 +15333,13 @@ VIE_gendarmerie_internal_security_upgrade = {
 	add_to_variable = { var = VIE_M_G_CAC value = -0.20 }	# 0.10 -> -0.10
 }
 
-# --- National Army ---
 
-# VIE_Organize_VoBi_Mil_Academies / VIE_CD_Recommision_WW_Native_Veterns
 VIE_army_academies_upgrade = {
 	custom_effect_tooltip = VIE_Army_Academies_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_TTF value = -0.20 }	# 0.20 -> -0.20 with mobilization step
 	add_to_variable = { var = VIE_M_A_MT value = 0.05 }		# -0.05 -> 0.05 with mobilization step
 }
 
-# VIE_National_Army_Vietnam & VIE_Expand_Territoire_Autonome_Battalions /
 # VIE_ReEstablish_VietKienQuocQuan_Mil
 VIE_army_foundation_upgrade = {
 	custom_effect_tooltip = VIE_Army_Foundation_Upgrade_TT
@@ -15766,7 +15347,6 @@ VIE_army_foundation_upgrade = {
 	add_to_variable = { var = VIE_M_A_RPF value = 0.20 }	# -0.20 -> 0.20 with mobilization step
 }
 
-# VIE_Organize_Vietnamese_BoQuocPhong & VIE_Establish_Autonomous_Command_Staffs
 VIE_army_ministry_upgrade = {
 	custom_effect_tooltip = VIE_Army_Ministry_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_PP value = 0.20 }		# see foundation step
@@ -15774,7 +15354,6 @@ VIE_army_ministry_upgrade = {
 	add_to_variable = { var = VIE_M_A_MCP value = 0.10 }	# -0.10 -> 0.10 with tactics step
 }
 
-# VIE_Form_JointStaffs & VIE_Modernize_Autonomous_Armies_Orgs
 VIE_army_joint_staffs_upgrade = {
 	custom_effect_tooltip = VIE_Army_Joint_Staffs_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_MP value = 0.10 }		# -0.05 -> 0.05
@@ -15783,7 +15362,6 @@ VIE_army_joint_staffs_upgrade = {
 	add_to_variable = { var = VIE_M_A_CPM value = 0.10 }	# -0.05 -> 0.05
 }
 
-# VIE_Organize_National_Mobilization & VIE_Incorporate_Irregular_Units
 VIE_army_mobilization_upgrade = {
 	custom_effect_tooltip = VIE_Army_Mobilization_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_RPF value = 0.20 }	# see foundation step
@@ -15791,8 +15369,6 @@ VIE_army_mobilization_upgrade = {
 	add_to_variable = { var = VIE_M_A_TTF value = -0.20 }	# see academies step
 }
 
-# VIE_Expand_QuanCu_Foundries, and again from
-# VIE_Accept_American_Mil_Aid / VIE_Encourage_Homemade_Arms
 VIE_army_arsenal_upgrade = {
 	custom_effect_tooltip = VIE_Army_Arsenal_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_PEG value = 0.05 }	# -0.05 -> 0.05 over two steps
@@ -15800,29 +15376,24 @@ VIE_army_arsenal_upgrade = {
 	add_to_variable = { var = VIE_M_A_PEB value = 0.05 }	# -0.05 -> 0.05 over two steps
 }
 
-# VIE_Coordinate_with_CEFEO (both trees)
 VIE_army_supply_upgrade = {
 	custom_effect_tooltip = VIE_Army_Supply_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_SG value = 72 }		# -72 -> 72 with field command step
 }
 
-# VIE_Request_Control_over_French_KhinhQuan (both trees)
 VIE_army_field_command_upgrade = {
 	custom_effect_tooltip = VIE_Army_Field_Command_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_SG value = 72 }		# see supply step
 	add_to_variable = { var = VIE_M_A_AS value = 0.05 }		# 0.05 -> 0.10
 }
 
-# VIE_Implement_French_Equipment_Tactics / VIE_Implement_Trad_Tactics (both trees)
 VIE_army_tactics_upgrade = {
 	custom_effect_tooltip = VIE_Army_Tactics_Upgrade_TT
 	add_to_variable = { var = VIE_M_A_CPG value = 0.15 }	# see ministry step
 	add_to_variable = { var = VIE_M_A_MCP value = 0.10 }	# see ministry step
 }
 
-# --- National Navy ---
 
-# Run once from VIE_Section_Marine (both trees) or the 1955+ bookmarks.
 VIE_initialize_national_navy = {
 	custom_effect_tooltip = VIE_Found_National_Navy_TT
 	set_variable = { VIE_M_N_EGN = 0.25 }
@@ -15844,7 +15415,6 @@ VIE_initialize_national_navy = {
 	}
 }
 
-# VIE_Form_Infanterie_Marine (both trees)
 VIE_navy_marines_upgrade = {
 	custom_effect_tooltip = VIE_Navy_Marines_Upgrade_TT
 	add_to_variable = { var = VIE_M_N_AI value = 0.10 }		# 0.10 -> 0.20
@@ -15852,7 +15422,6 @@ VIE_navy_marines_upgrade = {
 	add_to_variable = { var = VIE_M_N_NIC value = 1 }		# 2 -> 4 with french ships step
 }
 
-# VIE_Establish_DINA_Units (both trees)
 VIE_navy_assault_upgrade = {
 	custom_effect_tooltip = VIE_Navy_Assault_Upgrade_TT
 	add_to_variable = { var = VIE_M_N_NIP value = -0.60 }	# 0.60 -> -0.60 with french ships step
@@ -15860,14 +15429,12 @@ VIE_navy_assault_upgrade = {
 	add_to_variable = { var = VIE_M_N_IP value = -0.10 }	# -0.20 -> -0.40 with french ships step
 }
 
-# VIE_Form_NhaTrang_Training_Center (both trees)
 VIE_navy_academy_upgrade = {
 	custom_effect_tooltip = VIE_Navy_Academy_Upgrade_TT
 	add_to_variable = { var = VIE_M_N_EGN value = 0.25 }	# 0.25 -> 0.50
 	add_to_variable = { var = VIE_M_N_NLC value = -0.10 }	# -0.10 -> -0.20
 }
 
-# VIE_Expand_LienDoan_TuanGiang (both trees)
 VIE_navy_patrol_upgrade = {
 	custom_effect_tooltip = VIE_Navy_Patrol_Upgrade_TT
 	add_to_variable = { var = VIE_M_N_TC value = 0.05 }		# 0.05 -> 0.10
@@ -15875,7 +15442,6 @@ VIE_navy_patrol_upgrade = {
 	add_to_variable = { var = VIE_M_N_NEXP value = -0.25 }	# 0.25 -> -0.25 with french ships step
 }
 
-# VIE_Recieve_French_Naval_Equipment (both trees)
 VIE_navy_french_ships_upgrade = {
 	custom_effect_tooltip = VIE_Navy_French_Ships_Upgrade_TT
 	add_to_variable = { var = VIE_M_N_NEXP value = -0.25 }	# see patrol step
@@ -15887,9 +15453,7 @@ VIE_navy_french_ships_upgrade = {
 	add_to_variable = { var = VIE_M_N_NIC value = 1 }		# see marines step
 }
 
-# --- National Air Force ---
 
-# Run once from VIE_Section_Air (both trees) or the 1955+ bookmarks.
 VIE_initialize_national_air_force = {
 	custom_effect_tooltip = VIE_Found_National_Air_Force_TT
 	set_variable = { VIE_M_AF_EGA = 0.25 }
@@ -15916,7 +15480,6 @@ VIE_initialize_national_air_force = {
 	}
 }
 
-# VIE_Vietnamized_Air_Officer_Corp (both trees)
 VIE_air_officers_upgrade = {
 	custom_effect_tooltip = VIE_Air_Officers_Upgrade_TT
 	add_to_variable = { var = VIE_M_AF_EGA value = 0.25 }	# 0.25 -> 0.50
@@ -15927,7 +15490,6 @@ VIE_air_officers_upgrade = {
 	add_to_variable = { var = VIE_M_AF_AWP value = -0.30 }	# 0.15 -> -0.15
 }
 
-# VIE_Recruit_TieuDoan_NhayDu (both trees)
 VIE_air_airborne_upgrade = {
 	custom_effect_tooltip = VIE_Air_Airborne_Upgrade_TT
 	add_to_variable = { var = VIE_M_AF_AME value = 0.50 }	# -0.50 -> 0.50 with air bases step
@@ -15936,7 +15498,6 @@ VIE_air_airborne_upgrade = {
 	add_to_variable = { var = VIE_M_AF_ARF value = 0.05 }	# 0.05 -> 0.10
 }
 
-# VIE_Expand_PhiTruong_QuanSu_NhaTrang (both trees)
 VIE_air_bases_upgrade = {
 	custom_effect_tooltip = VIE_Air_Bases_Upgrade_TT
 	add_to_variable = { var = VIE_M_AF_AAF value = 0.05 }	# 0.05 -> 0.10
@@ -15951,16 +15512,7 @@ VIE_air_bases_upgrade = {
 	add_to_variable = { var = VIE_M_AF_SBV value = -1.80 }	# 0.90 -> -0.90
 }
 
-# --- AI Helpers ---
 
-# AI-only political power relief, fired from on_monthly_VIE.
-# The Etat du Vietnam's PP drains through 1949-53 are intentional, but the AI
-# cannot prioritize spending like a player and ends up too broke to take
-# coup-avoidance decisions on historical. Top the AI up toward a small floor
-# each month instead of a flat income buff so it never banks a surplus and
-# large negative PP hits (coup fallout etc.) still take months to recover.
-# No event, no decision, no tooltip: invisible to the player, and is_ai is
-# re-checked every pulse so a hotjoining player stops receiving it.
 VIE_ai_monthly_pp_relief = {
 	if = {
 		limit = {
@@ -15973,9 +15525,6 @@ VIE_ai_monthly_pp_relief = {
 	}
 }
 
-# Legacy compatibility for later bookmarks or paths in which Saigon leads an
-# independent faction. During the First Indochina War, CEFEO leads the fixed
-# French Indochina command and VIE cosmetic changes must not rename it.
 VIE_sync_faction_name = {
 	if = {
 		limit = {
@@ -16107,22 +15656,14 @@ VIE_vacate_premiership = {
 	reset_favoritism_minigame = yes
 }
 
-# --- The October 1955 referendum -------------------------------------------------------
-# Scores Diem's premiership against Bao Dai's throne and stores the result in
-# VIE_Referendum_Score. Read by VIE_1955_Grand_Election, which routes to one of three
-# outcomes. Historically the ballot was rigged 98.2 per cent, so a Diem who actually did
-# the work cannot lose; a Diem who skipped the branch can.
 # No >= in check_variable - the engine does not accept it. Compare against one less.
 VIE_calculate_referendum_score = {
 	set_variable = { VIE_Referendum_Score = 0 }
-	# Standing against the throne. Alt is the premier's seat, Main is Bao Dai's.
 	add_to_variable = { VIE_Referendum_Score = Alt_Favoritism }
 	subtract_from_variable = { VIE_Referendum_Score = Main_Favoritism }
-	# National autonomy: a government still run from Paris cannot claim a mandate.
 	set_temp_variable = { vie_ref_tmp = VIE_Influence }
 	multiply_temp_variable = { vie_ref_tmp = 0.5 }
 	add_to_variable = { VIE_Referendum_Score = vie_ref_tmp }
-	# The sects. Stored loyalty is inverted, so displayed loyalty is 100 minus the variable.
 	set_temp_variable = { vie_ref_tmp = 100 }
 	subtract_from_temp_variable = { vie_ref_tmp = Cao_Dai_Loyalty }
 	multiply_temp_variable = { vie_ref_tmp = 0.15 }
@@ -16131,7 +15672,6 @@ VIE_calculate_referendum_score = {
 	subtract_from_temp_variable = { vie_ref_tmp = Hoa_Hao_Loyalty }
 	multiply_temp_variable = { vie_ref_tmp = 0.15 }
 	add_to_variable = { VIE_Referendum_Score = vie_ref_tmp }
-	# A broken Binh-Xuyen is worth more than a loyal one - it is the proof of control.
 	if = {
 		limit = { has_country_flag = crushed_binh_xuyen }
 		add_to_variable = { VIE_Referendum_Score = 30 }
@@ -16140,7 +15680,10 @@ VIE_calculate_referendum_score = {
 		limit = { has_country_flag = integrated_binh_xuyen }
 		add_to_variable = { VIE_Referendum_Score = 15 }
 	}
-	# The army, the refugee base, and the civilian mandate.
+	else_if = {
+		limit = { has_country_flag = VIE_Binh_Xuyen_Rung_Sac }
+		add_to_variable = { VIE_Referendum_Score = 15 }	# driven from Saigon but still alive in the swamps
+	}
 	if = {
 		limit = { has_country_flag = VIE_Diem_Controls_Army }
 		add_to_variable = { VIE_Referendum_Score = 25 }
@@ -16153,6 +15696,21 @@ VIE_calculate_referendum_score = {
 		limit = { has_country_flag = VIE_Diem_NRC_Formed }
 		add_to_variable = { VIE_Referendum_Score = 25 }
 	}
+	if = {
+		limit = { has_country_flag = VIE_Can_Lao_Founded }
+		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Royal_Guard_Abolished }
+		add_to_variable = { VIE_Referendum_Score = 15 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Reject_Geneva_Elections }
+		add_to_variable = { VIE_Referendum_Score = 10 }
+	}
+	set_temp_variable = { vie_ref_tmp = VIE_DaiViet_Threat }
+	multiply_temp_variable = { vie_ref_tmp = 0.25 }
+	subtract_from_variable = { VIE_Referendum_Score = vie_ref_tmp }
 	# Washington.
 	if = {
 		limit = {
@@ -16164,7 +15722,6 @@ VIE_calculate_referendum_score = {
 		limit = { has_global_flag = USA_Backs_French_Coup }
 		subtract_from_variable = { VIE_Referendum_Score = 30 }
 	}
-	# Historical AI must still deliver the landslide it delivered in 1955.
 	if = {
 		limit = {
 			is_ai = yes
@@ -16180,8 +15737,6 @@ VIE_calculate_referendum_score = {
 	}
 }
 
-# Seats the National Revolution Committee as the interim government. The referendum
-# deposes Bao Dai; the Republic is not proclaimed until BaoDai.9 fires days later.
 VIE_seat_national_revolution_committee = {
 	promote_character = VIE_National_Revolution_Committee
 	set_party_name = {
@@ -16196,4 +15751,111 @@ VIE_seat_national_revolution_committee = {
 	}
 	set_country_flag = VIE_NRC_Interim
 	mark_focus_tree_layout_dirty = yes
+}
+
+VIE_hinh_standoff_change = {
+	add_to_variable = {
+		var = VIE_Hinh_Standoff
+		value = hinh_standoff_change
+		tooltip = VIE_Hinh_Standoff_Adj_tt
+	}
+	clamp_variable = {
+		var = VIE_Hinh_Standoff
+		min = 0
+		max = 100
+	}
+}
+
+VIE_daiviet_threat_change = {
+	add_to_variable = {
+		var = VIE_DaiViet_Threat
+		value = daiviet_threat_change
+		tooltip = VIE_DaiViet_Threat_Adj_tt
+	}
+	clamp_variable = {
+		var = VIE_DaiViet_Threat
+		min = 0
+		max = 100
+	}
+}
+
+VIE_daiviet_threat_tick = {
+	if = {
+		limit = {
+			has_country_flag = VIE_PM_Ngo_Dinh_Diem
+			NOT = { has_global_flag = VIE_Republic_Proclaimed }
+			NOT = { has_country_flag = VIE_Hinh_Coup }
+		}
+		set_temp_variable = { daiviet_threat_change = 3 }
+		if = {
+			limit = { has_global_flag = USA_Backs_French_Coup }
+			add_to_temp_variable = { daiviet_threat_change = 2 }	# Washington shopping for a replacement emboldens them
+		}
+		if = {
+			limit = { has_country_flag = VIE_Can_Lao_Founded }
+			subtract_from_temp_variable = { daiviet_threat_change = 2 }
+		}
+		if = {
+			limit = { has_country_flag = VIE_Ba_Long_Cleared }
+			subtract_from_temp_variable = { daiviet_threat_change = 3 }
+		}
+		hidden_effect = {
+			VIE_daiviet_threat_change = yes
+		}
+	}
+}
+
+VIE_diem_run_summary = {
+	if = {
+		limit = { has_global_flag = VIE_Republic_Proclaimed }
+		custom_effect_tooltip = VIE_summary_republic_tt
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Hinh_Coup }
+		custom_effect_tooltip = VIE_summary_junta_tt
+	}
+	else = {
+		custom_effect_tooltip = VIE_summary_throne_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Throne_Confirmed }
+		custom_effect_tooltip = VIE_summary_throne_confirmed_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Hinh_Exiled }
+		custom_effect_tooltip = VIE_summary_hinh_exiled_tt
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Hinh_Bought_Off }
+		custom_effect_tooltip = VIE_summary_hinh_bought_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Can_Lao_Founded }
+		custom_effect_tooltip = VIE_summary_can_lao_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Hoang_Dieu_Complete }
+		custom_effect_tooltip = VIE_summary_hoang_dieu_tt
+	}
+	else_if = {
+		limit = { has_country_flag = VIE_Binh_Xuyen_Rung_Sac }
+		custom_effect_tooltip = VIE_summary_rung_sac_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Ba_Long_Cleared }
+		custom_effect_tooltip = VIE_summary_ba_long_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Royal_Guard_Abolished }
+		custom_effect_tooltip = VIE_summary_royal_guard_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Decree_21 }
+		custom_effect_tooltip = VIE_summary_decree_21_tt
+	}
+	if = {
+		limit = { has_country_flag = VIE_Reject_Geneva_Elections }
+		custom_effect_tooltip = VIE_summary_reject_geneva_tt
+	}
+	custom_effect_tooltip = VIE_50s_content_end_tt
 }

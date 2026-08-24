@@ -1,5 +1,3 @@
-##### South Vietnam #####
-
 	#Misc
 	add_namespace = VIE_Mechanics
 
@@ -24,6 +22,9 @@
 	add_namespace = VIE_Toan
 	add_namespace = VIE_Quang
 	add_namespace = Diem
+	add_namespace = Can_Lao
+	add_namespace = DaiViet
+	add_namespace = Sect_Crisis
 	add_namespace = VIE_Historical
 
 	add_namespace = Initial_CuongDe
@@ -747,7 +748,6 @@ country_event = {
 	}
 }
 
-### CCC Political Events ###
 
 country_event = {
 	id = CCC_Pol.1
@@ -1497,7 +1497,7 @@ country_event = {
 		add_ideas = VIE_Looming_Diem
 
 		set_country_flag = VIE_Ambitious_Diem
-		activate_mission = Dealing_With_Diem_Countdown #activate deal with diem mission
+		activate_mission = Dealing_With_Diem_Countdown
 		custom_effect_tooltip = VIE_Diem_Warning_tt
 
 		trigger = {
@@ -1633,8 +1633,9 @@ country_event = {
 			ideology = oriental_personalism
 		}
 		clr_country_flag = VIE_NRC_Interim
-		drop_cosmetic_tag = yes	# the bare VIE tag reads Republic of Vietnam; the VIE_ETAT family reads State of Vietnam
+		drop_cosmetic_tag = yes
 		set_global_flag = VIE_Republic_Proclaimed
+		VIE_close_favoritism_minigame = yes
 		VIE_sync_faction_name = yes
 		add_opinion_modifier = {
 			target = FRA
@@ -1696,7 +1697,21 @@ country_event = {
 	id = BaoDai.11
 	immediate = { }
 	title = BaoDai.11.t
-	desc = BaoDai.11.d
+	desc = {
+		trigger = { has_global_flag = VIE_Republic_Proclaimed }
+		text = BaoDai.11.d_republic
+	}
+	desc = {
+		trigger = {
+			NOT = { has_global_flag = VIE_Republic_Proclaimed }
+			NOT = { has_country_flag = VIE_Hinh_Coup }
+		}
+		text = BaoDai.11.d_throne
+	}
+	desc = {
+		trigger = { has_country_flag = VIE_Hinh_Coup }
+		text = BaoDai.11.d_junta
+	}
 	picture = GFX_BaoDai.11
 
 	is_triggered_only = yes
@@ -1707,7 +1722,18 @@ country_event = {
 
 		FRA = { country_event = { id = BaoDai.12 hours = 13 random_hours = 8 } }
 		hidden_effect = {
-			load_focus_tree = empty_focus # No content past 1955 at the moment
+			if = {
+				limit = { has_global_flag = VIE_Republic_Proclaimed }
+				country_event = { id = Diem.60 hours = 6 }
+			}
+			else_if = {
+				limit = { has_country_flag = VIE_Hinh_Coup }
+				country_event = { id = Diem.62 hours = 6 }
+			}
+			else = {
+				country_event = { id = Diem.61 hours = 6 }
+			}
+			load_focus_tree = empty_focus
 		}
 	}
 }
@@ -1943,7 +1969,6 @@ country_event = {
 			set_temp_variable = { influence_target = THIS.id }
 			change_influence_percentage = yes
 		}
-		# Status ideas represent French influence without linking the war to NATO.
 		add_stability = -0.20
 		set_politics = {
 			ruling_party = neutrality
@@ -2010,11 +2035,13 @@ country_event = {
 			set_temp_variable = { influence_target = THIS.id }
 			change_influence_percentage = yes
 		}
-		# The spirit records the settlement without changing the command chain.
 		add_ideas = VIE_Independent_Facade
 		add_stability = 0.05
 		set_country_flag = VIE_French_Self_Governance_End
 		news_event = { id = French_Hinh.0 hours = 12 }
+		hidden_effect = {
+			country_event = { id = Diem.62 days = 1 }	# the junta tree ends here too
+		}
 	}
 }
 
@@ -2042,11 +2069,13 @@ country_event = {
 			set_temp_variable = { influence_target = THIS.id }
 			change_influence_percentage = yes
 		}
-		# The spirit records this route without linking the war to France's faction.
 		add_ideas = VIE_French_Province
 		add_stability = -0.10
 		set_country_flag = VIE_French_Province_End
 		news_event = { id = French_Hinh.100 hours = 12 }
+		hidden_effect = {
+			country_event = { id = Diem.62 days = 1 }	# the junta tree ends here too
+		}
 	}
 }
 
@@ -2361,7 +2390,7 @@ country_event = {
 		name = VIE_PMs.9.a
 
 		VIE_vacate_premiership = yes
-		set_politics = {	# Diem ruled as socialist; the caretaker reverts to the neutral national government
+		set_politics = {
 			ruling_party = neutrality
 			elections_allowed = no
 			last_election = "1955.10.23"
@@ -2371,8 +2400,6 @@ country_event = {
 	}
 }
 
-# The Hinh crisis, August to November 1954. Diem's chief of staff openly threatened a coup;
-# breaking him is what put the National Army behind the premiership.
 country_event = {
 	id = Diem.1
 	immediate = { }
@@ -2383,18 +2410,34 @@ country_event = {
 	is_triggered_only = yes
 	fire_only_once = yes
 
-	option = {	# force Hinh out
+	option = {
 		name = Diem.1.a
+		trigger = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Hinh_Break_Requirement_tt
+				OR = {
+					check_variable = { VIE_Hinh_Standoff > 49 }
+					AND = {
+						is_ai = yes
+						is_historical_focus_on = yes
+					}
+				}
+			}
+		}
 
-		add_political_power = -100
-		add_stability = -0.05
+		add_political_power = -50
+		add_stability = -0.03
 		set_country_flag = VIE_Diem_Controls_Army
+		set_country_flag = VIE_Hinh_Exiled
+		clr_country_flag = VIE_Hinh_Crisis
 		set_temp_variable = { favoritism_change = 15 }
 		VIE_Change_Alt_Favoritism = yes
 		set_temp_variable = { favoritism_change = -10 }
 		VIE_Change_Main_Favoritism = yes
 		set_temp_variable = { influence_change = 10 }
 		VIE_Change_Domestic_Influence = yes
+		set_temp_variable = { daiviet_threat_change = 10 }	# the party had backed him, and his officers go where he goes
+		VIE_daiviet_threat_change = yes
 		add_opinion_modifier = {
 			target = FRA
 			modifier = medium_decrease
@@ -2403,22 +2446,32 @@ country_event = {
 			target = FRA
 			modifier = medium_decrease
 		}
+		ai_chance = {
+			base = 100
+		}
 	}
 
-	option = {	# buy him off and leave the army in French hands
+	option = {
 		name = Diem.1.b
 
 		add_political_power = -25
 		add_stability = 0.05
+		set_country_flag = VIE_Hinh_Bought_Off	# ends the coup risk, but the premier never gets the army
+		clr_country_flag = VIE_Hinh_Crisis
 		set_temp_variable = { favoritism_change = 10 }
 		VIE_Change_Main_Favoritism = yes
 		set_temp_variable = { influence_change = -10 }
 		VIE_Change_Domestic_Influence = yes
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
 	}
 }
 
-# The Battle of Saigon, April to May 1955. The Binh Xuyen held the National Police;
-# breaking them ended French efforts to remove Diem.
 country_event = {
 	id = Diem.2
 	immediate = { }
@@ -2429,13 +2482,13 @@ country_event = {
 	is_triggered_only = yes
 	fire_only_once = yes
 
-	option = {	# storm Cholon
+	option = {
 		name = Diem.2.a
 
-		add_political_power = -100
-		add_stability = -0.10
+		add_political_power = -50
+		add_stability = -0.05
 		add_war_support = 0.10
-		VIE_dismantle_binh_xuyen = yes
+		VIE_binh_xuyen_driven_from_saigon = yes
 		set_temp_variable = { favoritism_change = 20 }
 		VIE_Change_Alt_Favoritism = yes
 		set_temp_variable = { favoritism_change = -20 }
@@ -2444,10 +2497,10 @@ country_event = {
 		VIE_Change_Domestic_Influence = yes
 	}
 
-	option = {	# accept a truce and leave the syndicate in place
+	option = {
 		name = Diem.2.b
 
-		add_political_power = -50
+		add_political_power = -25
 		add_stability = 0.05
 		set_temp_variable = { binh_xuyen_loyalty_change = -20 }
 		binh_xuyen_loyalty_change_tt = yes
@@ -2456,8 +2509,6 @@ country_event = {
 	}
 }
 
-# The National Revolutionary Committee, spring 1955 - the body that demanded Bao Dai's
-# abdication and gave Diem a civilian mandate to call the referendum.
 country_event = {
 	id = Diem.3
 	immediate = { }
@@ -2468,7 +2519,7 @@ country_event = {
 	is_triggered_only = yes
 	fire_only_once = yes
 
-	option = {	# convene it and turn it on the throne
+	option = {
 		name = Diem.3.a
 
 		set_country_flag = VIE_Diem_NRC_Formed
@@ -2486,7 +2537,7 @@ country_event = {
 		}
 	}
 
-	option = {	# keep it advisory and spare the emperor
+	option = {
 		name = Diem.3.b
 
 		add_political_power = 25
@@ -2496,12 +2547,8 @@ country_event = {
 	}
 }
 
-# --- Referendum outcomes, 23 October 1955 ------------------------------------------------
-# Routed from VIE_1955_Grand_Election on VIE_Referendum_Score. Diem.4 and Diem.5 both
-# depose Bao Dai and seat the National Revolution Committee, which hands over to the
-# Republic in BaoDai.9; Diem.6 leaves the throne standing and retires Diem.
 
-country_event = {	# landslide - the historical 98.2 per cent
+country_event = {
 	id = Diem.4
 	immediate = { }
 	title = Diem.4.t
@@ -2518,11 +2565,12 @@ country_event = {	# landslide - the historical 98.2 per cent
 		add_political_power = 100
 		add_war_support = 0.05
 		VIE_seat_national_revolution_committee = yes
+		news_event = { id = Diem.10 hours = 6 random_hours = 6 }
 		country_event = { id = BaoDai.9 days = 3 }
 	}
 }
 
-country_event = {	# a win nobody believes
+country_event = {
 	id = Diem.5
 	immediate = { }
 	title = Diem.5.t
@@ -2535,7 +2583,7 @@ country_event = {	# a win nobody believes
 	option = {
 		name = Diem.5.a
 
-		add_stability = -0.15
+		add_stability = -0.08
 		add_political_power = 25
 		add_popularity = {
 			ideology = monarchism
@@ -2548,11 +2596,12 @@ country_event = {	# a win nobody believes
 			add_compliance = -10
 		}
 		VIE_seat_national_revolution_committee = yes
+		news_event = { id = Diem.10 hours = 6 random_hours = 6 }
 		country_event = { id = BaoDai.9 days = 21 }
 	}
 }
 
-country_event = {	# the throne holds and the premier goes
+country_event = {
 	id = Diem.6
 	immediate = { }
 	title = Diem.6.t
@@ -2565,8 +2614,8 @@ country_event = {	# the throne holds and the premier goes
 	option = {
 		name = Diem.6.a
 
-		add_stability = -0.05
-		add_political_power = -50
+		add_stability = -0.03
+		add_political_power = -25
 		add_popularity = {
 			ideology = monarchism
 			popularity = 0.10
@@ -2574,6 +2623,646 @@ country_event = {	# the throne holds and the premier goes
 		set_temp_variable = { favoritism_change = 20 }
 		VIE_Change_Main_Favoritism = yes
 		country_event = { id = VIE_PMs.9 hours = 6 }
+	}
+}
+
+
+country_event = {
+	id = Diem.20
+	immediate = { }
+	title = Diem.20.t
+	desc = Diem.20.d
+	picture = GFX_French_Coup.1	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.20.a
+
+		add_stability = -0.05
+		add_war_support = -0.05
+	}
+}
+
+country_event = {
+	id = Diem.21
+	immediate = { }
+	title = Diem.21.t
+	desc = Diem.21.d
+	picture = GFX_BaoDai.13	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		has_country_flag = VIE_Hinh_Crisis
+	}
+
+	option = {
+		name = Diem.21.a
+
+		add_political_power = -25
+		add_timed_idea = {
+			idea = VIE_Caretaker_Cabinet
+			days = 60
+		}
+		set_temp_variable = { hinh_standoff_change = -15 }
+		VIE_hinh_standoff_change = yes
+	}
+}
+
+country_event = {
+	id = Diem.22
+	immediate = { }
+	title = Diem.22.t
+	desc = Diem.22.d
+	picture = GFX_French_Coup.1	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.22.a
+
+		add_political_power = -25
+		add_stability = -0.05
+		set_country_flag = VIE_Diem_Controls_Army
+		set_country_flag = VIE_Hinh_Exiled
+		set_temp_variable = { favoritism_change = 15 }
+		VIE_Change_Alt_Favoritism = yes
+		set_temp_variable = { favoritism_change = -10 }
+		VIE_Change_Main_Favoritism = yes
+		set_temp_variable = { influence_change = 10 }
+		VIE_Change_Domestic_Influence = yes
+		set_temp_variable = { daiviet_threat_change = 10 }
+		VIE_daiviet_threat_change = yes
+	}
+}
+
+country_event = {
+	id = Diem.23
+	immediate = { }
+	title = Diem.23.t
+	desc = Diem.23.d
+	picture = GFX_French_Coup.2	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.23.a
+
+		country_event = { id = French_Coup.2 hours = 3 }
+	}
+}
+
+country_event = {
+	id = Diem.24
+	immediate = { }
+	title = Diem.24.t
+	desc = Diem.24.d
+	picture = GFX_French_Coup.1	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.24.a
+
+		add_stability = 0.05
+		set_temp_variable = { hinh_standoff_change = 25 }
+		VIE_hinh_standoff_change = yes
+		add_opinion_modifier = {
+			target = USA
+			modifier = medium_increase
+		}
+		reverse_add_opinion_modifier = {
+			target = USA
+			modifier = medium_increase
+		}
+	}
+}
+
+# branch. No >= in check_variable - compare against one less.
+country_event = {
+	id = Diem.30
+	immediate = { }
+	title = Diem.30.t
+	desc = Diem.30.d
+	picture = GFX_BaoDai.11	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.30.a
+
+		add_stability = -0.05
+		add_political_power = -25
+		set_temp_variable = { favoritism_change = -15 }
+		VIE_Change_Main_Favoritism = yes
+		hidden_effect = {
+			VIE_calculate_referendum_score = yes
+			if = {
+				limit = { check_variable = { VIE_Referendum_Score > 119 } }
+				country_event = { id = Diem.4 hours = 6 }	# landslide
+			}
+			else_if = {
+				limit = { check_variable = { VIE_Referendum_Score > 69 } }
+				country_event = { id = Diem.5 hours = 6 }	# contested win
+			}
+			else = {
+				country_event = { id = Diem.6 hours = 6 }	# Bao Dai survives
+			}
+		}
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	option = {
+		name = Diem.30.b
+
+		add_stability = 0.05
+		set_temp_variable = { favoritism_change = 25 }
+		VIE_Change_Main_Favoritism = yes
+		country_event = { id = VIE_PMs.9 hours = 6 }
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+	}
+}
+
+country_event = {
+	id = Diem.31
+	immediate = { }
+	title = Diem.31.t
+	desc = Diem.31.d
+	picture = GFX_BaoDai.11	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.31.a
+
+		set_country_flag = VIE_Throne_Confirmed
+		add_stability = 0.05
+		add_popularity = { ideology = monarchism popularity = 0.10 }
+		set_temp_variable = { favoritism_change = 25 }
+		VIE_Change_Main_Favoritism = yes
+	}
+}
+
+country_event = {
+	id = Diem.40
+	immediate = { }
+	title = Diem.40.t
+	desc = Diem.40.d
+	picture = GFX_BaoDai.13	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.40.a
+
+		add_political_power = -25
+		add_war_support = 0.05
+		add_manpower = -2000
+		VIE_finish_the_binh_xuyen = yes
+		if = {
+			limit = { has_character = VIE_Duong_Van_Minh }
+			VIE_Duong_Van_Minh = {
+				add_corps_commander_role = {
+					traits = { french_trainee infantry_leader politically_connected Pro_QuocGia }
+					skill = 3
+					attack_skill = 3
+					defense_skill = 3
+					planning_skill = 3
+					logistics_skill = 2
+				}
+			}
+		}
+		set_temp_variable = { favoritism_change = 10 }
+		VIE_Change_Alt_Favoritism = yes
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	option = {
+		name = Diem.40.b
+
+		add_political_power = 25
+		set_temp_variable = { binh_xuyen_annihilation_change = -15 }
+		binh_xuyen_annihilation_change_tt = yes
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+	}
+}
+
+country_event = {
+	id = Diem.41
+	immediate = { }
+	title = Diem.41.t
+	desc = Diem.41.d
+	picture = GFX_BaoDai.13	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.41.a
+
+		add_political_power = -25
+		add_stability = 0.05
+		set_temp_variable = { favoritism_change = 10 }
+		VIE_Change_Alt_Favoritism = yes
+		country_event = { id = Diem.50 days = 12 }
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	option = {
+		name = Diem.41.b
+
+		add_political_power = -25
+		add_stability = -0.05
+		add_war_support = 0.05
+		set_temp_variable = { favoritism_change = 15 }
+		VIE_Change_Alt_Favoritism = yes
+		set_temp_variable = { favoritism_change = -10 }
+		VIE_Change_Main_Favoritism = yes
+		country_event = { id = Diem.50 days = 12 }
+		ai_chance = {
+			base = 20
+		}
+	}
+}
+
+country_event = {
+	id = Diem.50
+	immediate = { }
+	title = Diem.50.t
+	desc = Diem.50.d
+	picture = GFX_BaoDai.9	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.50.a
+
+		set_country_flag = VIE_Royal_Guard_Abolished
+		add_manpower = 3000
+		add_war_support = 0.05
+		add_popularity = {
+			ideology = monarchism
+			popularity = -0.05
+		}
+		set_temp_variable = { favoritism_change = -25 }	# the throne loses its own regiment
+		VIE_Change_Main_Favoritism = yes
+		set_temp_variable = { favoritism_change = 15 }
+		VIE_Change_Alt_Favoritism = yes
+		set_temp_variable = { daiviet_threat_change = 10 }
+		VIE_daiviet_threat_change = yes
+	}
+}
+
+# VIE_50s_content_end_tt.
+country_event = {
+	id = Diem.60
+	immediate = { }
+	title = Diem.60.t
+	desc = Diem.60.d
+	picture = GFX_BaoDai.100	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.60.a
+
+		VIE_diem_run_summary = yes
+	}
+}
+
+country_event = {
+	id = Diem.61
+	immediate = { }
+	title = Diem.61.t
+	desc = Diem.61.d
+	picture = GFX_BaoDai.11	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.61.a
+
+		VIE_diem_run_summary = yes
+	}
+}
+
+country_event = {
+	id = Diem.62
+	immediate = { }
+	title = Diem.62.t
+	desc = Diem.62.d
+	picture = GFX_French_Hinh.0	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Diem.62.a
+
+		VIE_diem_run_summary = yes
+	}
+}
+
+news_event = {
+	id = Diem.10	# the referendum deposes the Chief of State
+	immediate = { }
+	title = Diem.10.t
+	desc = Diem.10.d
+	picture = GFX_BaoDai.100
+
+	is_triggered_only = yes
+	major = yes
+
+	option = {
+		name = Diem.10.a
+	}
+}
+
+news_event = {
+	id = Diem.12	# 16 July 1955, Saigon refuses the all-Vietnam vote
+	immediate = { }
+	title = Diem.12.t
+	desc = Diem.12.d
+	picture = GFX_BaoDai.100
+
+	is_triggered_only = yes
+	major = yes
+
+	option = {
+		name = Diem.12.a
+	}
+}
+
+news_event = {
+	id = Can_Lao.1	# 2 September 1954, Sac-lenh 116/BNV/CT
+	immediate = { }
+	title = Can_Lao.1.t
+	desc = Can_Lao.1.d
+	picture = GFX_BaoDai.100
+
+	is_triggered_only = yes
+	major = yes
+
+	option = {
+		name = Can_Lao.1.a
+	}
+}
+
+country_event = {
+	id = DaiViet.1
+	immediate = { }
+	title = DaiViet.1.t
+	desc = DaiViet.1.d
+	picture = GFX_French_Coup.1	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+
+	option = {
+		name = DaiViet.1.a
+
+		add_political_power = -25
+		add_stability = -0.05
+		set_temp_variable = { daiviet_threat_change = -20 }
+		VIE_daiviet_threat_change = yes
+	}
+}
+
+country_event = {
+	id = DaiViet.2
+	immediate = { }
+	title = DaiViet.2.t
+	desc = DaiViet.2.d
+	picture = GFX_French_Coup.2	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+
+	option = {
+		name = DaiViet.2.a
+		trigger = {
+			has_country_flag = VIE_Diem_Controls_Army
+		}
+
+		add_war_support = -0.05
+		add_manpower = -5000
+		add_political_power = -25
+		set_temp_variable = { daiviet_threat_change = -40 }
+		VIE_daiviet_threat_change = yes
+		set_temp_variable = { favoritism_change = 5 }
+		VIE_Change_Alt_Favoritism = yes
+	}
+
+	option = {
+		name = DaiViet.2.b
+		trigger = {
+			NOT = { has_country_flag = VIE_Diem_Controls_Army }
+		}
+
+		add_stability = -0.05
+		add_political_power = -35
+		set_country_flag = VIE_DaiViet_Army_Compromised
+		set_temp_variable = { daiviet_threat_change = -25 }
+		VIE_daiviet_threat_change = yes
+		set_temp_variable = { favoritism_change = 15 }
+		VIE_Change_Main_Favoritism = yes
+		set_temp_variable = { favoritism_change = -10 }
+		VIE_Change_Alt_Favoritism = yes
+	}
+}
+
+country_event = {
+	id = DaiViet.3
+	immediate = { }
+	title = DaiViet.3.t
+	desc = DaiViet.3.d
+	picture = GFX_French_Coup.2	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+
+	option = {
+		name = DaiViet.3.a
+		trigger = {
+			OR = {
+				has_global_flag = USA_Backs_French_Coup
+				NOT = { has_country_flag = VIE_Diem_Controls_Army }
+			}
+		}
+
+		add_stability = -0.08
+		add_political_power = -50
+		set_temp_variable = { favoritism_change = 25 }
+		VIE_Change_Main_Favoritism = yes
+		country_event = { id = VIE_PMs.9 hours = 6 }
+	}
+
+	option = {
+		name = DaiViet.3.b
+		trigger = {
+			NOT = { has_global_flag = USA_Backs_French_Coup }
+			has_country_flag = VIE_Diem_Controls_Army
+		}
+
+		add_stability = -0.05
+		add_political_power = -35
+		set_temp_variable = { daiviet_threat_change = -50 }
+		VIE_daiviet_threat_change = yes
+		set_temp_variable = { favoritism_change = 10 }
+		VIE_Change_Alt_Favoritism = yes
+	}
+}
+
+country_event = {
+	id = DaiViet.4
+	immediate = { }
+	title = DaiViet.4.t
+	desc = DaiViet.4.d
+	picture = GFX_BaoDai.13	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = DaiViet.4.a
+
+		add_political_power = -25
+		add_war_support = 0.05
+		add_stability = -0.05
+		add_manpower = -3000
+		set_country_flag = VIE_Ba_Long_Cleared
+		set_temp_variable = { daiviet_threat_change = -40 }
+		VIE_daiviet_threat_change = yes
+		ai_chance = {
+			base = 100
+		}
+	}
+
+	option = {
+		name = DaiViet.4.b
+
+		add_political_power = -35
+		add_stability = 0.05
+		set_temp_variable = { daiviet_threat_change = -20 }
+		VIE_daiviet_threat_change = yes
+		ai_chance = {
+			base = 20
+		}
+	}
+}
+
+country_event = {
+	id = Sect_Crisis.1
+	immediate = { }
+	title = Sect_Crisis.1.t
+	desc = Sect_Crisis.1.d
+	picture = GFX_French_Coup.1	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = Sect_Crisis.1.b
+
+		add_political_power = -25
+		if = {
+			limit = { country_exists = VIE }
+			VIE = {
+				set_country_flag = VIE_France_Backs_the_Front
+				set_temp_variable = { cao_dai_loyalty_change = 10 }
+				cao_dai_loyalty_change_tt = yes
+				set_temp_variable = { hoa_hao_loyalty_change = 10 }
+				hoa_hao_loyalty_change_tt = yes
+				set_temp_variable = { binh_xuyen_loyalty_change = 10 }
+				binh_xuyen_loyalty_change_tt = yes
+				set_temp_variable = { favoritism_change = -10 }
+				VIE_Change_Alt_Favoritism = yes
+			}
+		}
+		ai_chance = {
+			base = 60
+			modifier = {
+				factor = 0
+				has_completed_focus = FRA_Accept_Diems_Regime
+			}
+			modifier = {
+				factor = 0
+				has_completed_focus = FRA_Retreat_From_Indochina
+			}
+		}
+	}
+
+	option = {
+		name = Sect_Crisis.1.a
+
+		add_political_power = 25
+		if = {
+			limit = { country_exists = VIE }
+			VIE = {
+				set_country_flag = VIE_France_Abandons_the_Front
+				set_temp_variable = { cao_dai_loyalty_change = -15 }
+				cao_dai_loyalty_change_tt = yes
+				set_temp_variable = { favoritism_change = 10 }
+				VIE_Change_Alt_Favoritism = yes
+			}
+			reverse_add_opinion_modifier = {
+				target = VIE
+				modifier = medium_increase
+			}
+		}
+		ai_chance = {
+			base = 40
+			modifier = {
+				factor = 3
+				has_completed_focus = FRA_Accept_Diems_Regime
+			}
+			modifier = {
+				factor = 3
+				has_completed_focus = FRA_Retreat_From_Indochina
+			}
+		}
+	}
+}
+
+news_event = {
+	id = Sect_Crisis.2
+	immediate = { }
+	title = Sect_Crisis.2.t
+	desc = Sect_Crisis.2.d
+	picture = GFX_BaoDai.100
+
+	is_triggered_only = yes
+	major = yes
+
+	option = {
+		name = Sect_Crisis.2.a
 	}
 }
 
@@ -2744,7 +3433,7 @@ country_event = {
 				instant_build = yes
 			}
 		}
-		add_opinion_modifier = {	# the event fires on VIE, so the partner in the modifier is France
+		add_opinion_modifier = {
 			target = FRA
 			modifier = medium_increase
 		}
@@ -3602,7 +4291,6 @@ country_event = {
 	}
 }
 
-##VIE Historical Events - These events fire automatically no matter what
 
 country_event = {
 	id = VIE_Historical.1
@@ -4860,8 +5548,8 @@ country_event = {
 
 	trigger = {
 		tag = VIE
-		date > 1952.1.1 ##as reigning emperor he gets far better care than he did in exile - hold his death until 1952-54
-		date < 1960.1.1 ##date check for it to not trigger for 80s
+		date > 1952.1.1
+		date < 1960.1.1
 		has_country_flag = VIE_CuongDe_Succeeds
 		NOT = {
 			has_country_flag = Nhiep_Successor
@@ -5020,7 +5708,6 @@ country_event = {
 		}
 	}
 }
-#SUPERSEDED: duplicate of NH_DIEMa.5 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.6
 #	immediate = { }
@@ -5033,7 +5720,6 @@ country_event = {
 #		name = CuongDe_NgoDinh.6.a
 #	}
 #}
-#SUPERSEDED: duplicate of NH_DIEMa.4 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.7
 #	immediate = { }
@@ -5058,7 +5744,6 @@ country_event = {
 		name = CuongDe_NgoDinh.8.a
 	}
 }
-#SUPERSEDED: duplicate of DiemLR.0 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.9
 #	immediate = { }
@@ -5071,7 +5756,6 @@ country_event = {
 #		name = CuongDe_NgoDinh.9.a
 #	}
 #}
-#SUPERSEDED: duplicate of NH_DIEMa.2 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.10
 #	immediate = { }
@@ -5113,7 +5797,6 @@ country_event = {
 		name = CuongDe_NgoDinh.12.a
 	}
 }
-#SUPERSEDED: duplicate of DiemLR.1 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.13
 #	immediate = { }
@@ -5126,7 +5809,6 @@ country_event = {
 #		name = CuongDe_NgoDinh.13.a
 #	}
 #}
-#SUPERSEDED: duplicate of NH_DIEMa.7 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.14
 #	immediate = { }
@@ -5139,7 +5821,6 @@ country_event = {
 #		name = CuongDe_NgoDinh.14.a
 #	}
 #}
-#SUPERSEDED: duplicate of NH_DIEMa.3 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.15
 #	immediate = { }
@@ -5152,7 +5833,6 @@ country_event = {
 #		name = CuongDe_NgoDinh.15.a
 #	}
 #}
-#SUPERSEDED: duplicate of NH_DIEMa.9 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.16
 #	immediate = { }
@@ -5177,7 +5857,6 @@ country_event = {
 		name = CuongDe_NgoDinh.17.a
 	}
 }
-#SUPERSEDED: duplicate of NH_DIEMa.6 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.18
 #	immediate = { }
@@ -5250,7 +5929,6 @@ country_event = {
 		name = CuongDe_NgoDinh.23.a
 	}
 }
-#SUPERSEDED: duplicate of NH_DIEMa.11 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.24
 #	immediate = { }
@@ -5311,7 +5989,6 @@ country_event = {
 		name = CuongDe_NgoDinh.28.a
 	}
 }
-#SUPERSEDED: duplicate of DiemLR.2 (the wired re-implementation with art) - parked 2026-07-15
 #country_event = {
 #	id = CuongDe_NgoDinh.29
 #	immediate = { }
@@ -5781,8 +6458,6 @@ country_event = {
 	}
 }
 
-# Saigon, rebuffed on reunification, offers normalized relations instead
-# (VIE_NH_Cold_Coexistence). Fired at VIN.
 country_event = {
 	id = NV_CuongDe.3
 	immediate = { }
@@ -6490,7 +7165,7 @@ country_event = {
 	}
 }
 
-country_event = {	# broadcast to VIE, the exiled Federation and Chin Peng's Malaya, so each reads its own text
+country_event = {
 	id = VIE_Malaysia.1
 	immediate = { }
 	title = {
@@ -6986,7 +7661,7 @@ country_event = {
 
 		ai_chance = {
 			base = 20
-			modifier = {	# a friendly Saigon is worth more than the island
+			modifier = {
 				factor = 3
 				has_opinion = { target = VIE value > 0 }
 			}
@@ -6994,7 +7669,7 @@ country_event = {
 				factor = 0.25
 				is_historical_focus_on = yes
 			}
-			modifier = {	# no appetite for a second front
+			modifier = {
 				factor = 2
 				has_war = yes
 			}
@@ -7068,7 +7743,7 @@ country_event = {
 		set_variable = { VIE_brevet_defender_state = 0 }
 		if = {
 			limit = { country_exists = CAM }
-			CAM = {	# Phu Quoc is a one-province island, so the clash falls on the land border instead
+			CAM = {
 				random_owned_controlled_state = {
 					limit = {
 						has_border_war = no
@@ -7097,7 +7772,7 @@ country_event = {
 				NOT = { check_variable = { VIE_brevet_attacker_state = 0 } }
 				NOT = { check_variable = { VIE_brevet_defender_state = 0 } }
 			}
-			start_border_war = {	# the maritime claim is settled in the outcome events, not by province transfer
+			start_border_war = {
 				change_state_after_war = no
 				attacker = {
 					state = var:ROOT.VIE_brevet_attacker_state
@@ -7193,7 +7868,7 @@ country_event = {
 		}
 		if = {
 			limit = {
-				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }	# the struggle arrays live on FRA scope
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
 			}
 			FRA = {
 				add_to_variable = {
@@ -7204,7 +7879,7 @@ country_event = {
 	}
 }
 
-country_event = {	# on_cancel for both sides of the clash, so it reads from whichever chair it lands in
+country_event = {
 	id = Brevert_Lines.6
 	immediate = { }
 	title = {
@@ -7239,7 +7914,7 @@ country_event = {	# on_cancel for both sides of the clash, so it reads from whic
 	}
 }
 
-country_event = {	# fires to CAM when the Khmer side prevails in the border clash
+country_event = {
 	id = Brevert_Lines.7
 	immediate = { }
 	title = Brevert_Lines.7.t
@@ -7258,7 +7933,7 @@ country_event = {	# fires to CAM when the Khmer side prevails in the border clas
 	}
 }
 
-country_event = {	# fires to CAM when the Khmer side is driven off
+country_event = {
 	id = Brevert_Lines.8
 	immediate = { }
 	title = Brevert_Lines.8.t
@@ -7291,7 +7966,7 @@ country_event = {
 
 		1295 = { add_claim_by = VIE }
 		1794 = { add_claim_by = VIE }
-		set_country_flag = VIE_Claimed_TranNinh_Chosen	# complete_national_focus no-ops off-tree, so record the choice as a flag too
+		set_country_flag = VIE_Claimed_TranNinh_Chosen
 		every_country = {
 			limit = {
 				OR = {
@@ -7510,7 +8185,6 @@ country_event = {
 	}
 }
 
-# The State of Vietnam approves a formal request for the restitution of Pulo Condore.
 country_event = {
 	id = VIE_Pulo_Condore.1
 	title = VIE_Pulo_Condore.1.t
@@ -7535,7 +8209,6 @@ country_event = {
 	}
 }
 
-# France decides whether to return the archipelago.
 country_event = {
 	id = VIE_Pulo_Condore.2
 	title = VIE_Pulo_Condore.2.t
@@ -7606,7 +8279,6 @@ country_event = {
 	}
 }
 
-# Vietnam receives France's agreement.
 country_event = {
 	id = VIE_Pulo_Condore.3
 	title = VIE_Pulo_Condore.3.t
@@ -7621,7 +8293,6 @@ country_event = {
 	}
 }
 
-# Vietnam receives France's refusal.
 country_event = {
 	id = VIE_Pulo_Condore.4
 	title = VIE_Pulo_Condore.4.t
@@ -7705,7 +8376,6 @@ country_event = {
 		}
 		set_temp_variable = { umdc_loyalty_change = -35 }
 		umdc_loyalty_change_tt = yes
-		#Effect leading to more leroy stuff
 	}
 
 	option = {
@@ -7715,7 +8385,6 @@ country_event = {
 		umdc_loyalty_change_tt = yes
 		set_temp_variable = { umdc_annihilation_change = -15 }
 		umdc_annihilation_change_tt = yes
-		#Shut down leroy
 	}
 }
 
@@ -8402,7 +9071,6 @@ country_event = {
 	}
 }
 
-#Cuong-De military events
 country_event = {
 	id = VNA.6
 	immediate = { }
@@ -8482,8 +9150,6 @@ news_event = {
 	}
 }
 
-
-##### Montagnard Country #####
 
 	#Political
 	add_namespace = QuyChe_16
@@ -9771,7 +10437,7 @@ country_event = {
 	}
 }
 
-country_event = { ## Formation of Vietnam China Anti-Communist Association
+country_event = {
 	id = CD_Hung.1
 	immediate = { }
 	title = CD_Hung.1.t
@@ -9785,7 +10451,7 @@ country_event = { ## Formation of Vietnam China Anti-Communist Association
 		name = CD_Hung.1.a
 	}
 }
-country_event = { ## Formation of Anti-Communist Front
+country_event = {
 	id = CD_Hung.2
 	immediate = { }
 	title = CD_Hung.2.t
@@ -9799,7 +10465,7 @@ country_event = { ## Formation of Anti-Communist Front
 		name = CD_Hung.2.a
 	}
 }
-country_event = { ## Modernize war tactics
+country_event = {
 	id = CD_Hung.3
 	immediate = { }
 	title = CD_Hung.3.t
@@ -9813,7 +10479,7 @@ country_event = { ## Modernize war tactics
 		name = CD_Hung.3.a
 	}
 }
-country_event = { ## Purge Leftist
+country_event = {
 	id = CD_Hung.4
 	immediate = { }
 	title = CD_Hung.4.t
@@ -10031,7 +10697,6 @@ country_event = {
 		name = DiemLR.3.a
 	}
 }
-#Infiltrator risk from VIE_Cadres_To_Barracks/Villages decisions - repeatable
 country_event = {
 	id = DiemMarx.1
 	immediate = { }
@@ -10369,7 +11034,7 @@ country_event = {
 		USA = {
 			add_opinion_modifier = {
 				target = VIE
-				modifier = medium_increase	# this is the aid path, not the coup path - both sides gain here
+				modifier = medium_increase
 			}
 			send_equipment = {
 				equipment = infantry_equipment_0
@@ -10384,7 +11049,7 @@ country_event = {
 		}
 		add_opinion_modifier = {
 			target = USA
-			modifier = medium_increase	# Washington backed a Dan-Quoc that was already standing
+			modifier = medium_increase
 		}
 		add_to_variable = {
 			currentMoney = 15
@@ -10413,7 +11078,6 @@ country_event = {
 	}
 }
 
-# USA Supports North Vietnam - Reunification Event Chain
 country_event = {
 	id = USA_VIN_Reunification.1
 	immediate = { }

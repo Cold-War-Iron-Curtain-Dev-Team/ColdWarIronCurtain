@@ -1,43 +1,16 @@
-# ============================================================================
-# Geneva Conference System
-# ----------------------------------------------------------------------------
-# Replaces the old Geneva_Conference_Invitation/Negotiations binary event
-# chain with a round-based, multi-delegation negotiation that resolves the
-# Indochina Struggle's diplomatic endings. The old outcome vocabulary
-# (X_Accepted_Ceasefire / X_Accepted_Reunification / X_Rejected_* /
-# USA_Tampered_With_VIE country flags, Geneva_Conference_Negotiations_Complete
-# global flag) is still produced by the settlement compiler, so every
-# downstream trigger and focus keeps working.
+#   ----------------------------------------------------------------------------
 #
-# Clause indices (global.geneva_clause_current^N holds the tabled option):
-#   0 Ceasefire            0 = none          1 = phased          2 = immediate
-#   1 Partition line       0 = unified       1 = 13th parallel   2 = 17th parallel  3 = 20th parallel
-#   2 Reunification vote   0 = none          1 = postponed       2 = within two years  3 = immediate
-#   3 French withdrawal    0 = retained      1 = timetabled      2 = immediate
-#   4 Alignment            0 = free blocs    1 = enforced neutrality
-#   5 Laos & Cambodia      0 = French Union  1 = independent     2 = communist regroupment zones
-#   6 Minority peoples     0 = no provision  1 = autonomy guarantees
+#   Clause indices (global.geneva_clause_current^N holds the tabled option):
+#    0 Ceasefire            0 = none          1 = phased          2 = immediate
+#    1 Partition line       0 = unified       1 = 13th parallel   2 = 17th parallel  3 = 20th parallel
+#    2 Reunification vote   0 = none          1 = postponed       2 = within two years  3 = immediate
+#    3 French withdrawal    0 = retained      1 = timetabled      2 = immediate
+#    4 Alignment            0 = free blocs    1 = enforced neutrality
+#    5 Laos & Cambodia      0 = French Union  1 = independent     2 = communist regroupment zones
+#    6 Minority peoples     0 = no provision  1 = autonomy guarantees
 #
-# Per-delegation country variables/arrays:
-#   geneva_weight    - vote strength, seeded from struggle scores + leverage
-#   geneva_patience  - 0..100, walks out at 0
-#   geneva_pref^N    - preferred option per clause
-#   geneva_prio^N    - how much the delegation cares about clause N (0-10)
-# Flags: geneva_walked_out, geneva_core_delegation (FRA/VIE/VIN)
-#
-# Leverage pools (globals, accumulate before the conference convenes and can
-# be fed from anywhere via the API below):
-#   global.geneva_lev_communist / _profrance / _proindependence / _usa
-#   global.geneva_lev_federal / _ethnic
-#   global.geneva_rapprochement_vie_vin
-# ============================================================================
+#   ----------------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------
-# Modular leverage API. Callers may set temp geneva_lev_amount first;
-# otherwise 50 is used. Example:
-#   set_temp_variable = { geneva_lev_amount = 100 }
-#   geneva_add_communist_leverage = yes
-# ----------------------------------------------------------------------------
 geneva_lev_default_amount = {
 	if = {
 		limit = { NOT = { check_variable = { geneva_lev_amount > 0 } } }
@@ -80,11 +53,7 @@ geneva_add_vie_vin_rapprochement = {
 	custom_effect_tooltip = geneva_add_vie_vin_rapprochement_TT
 }
 
-# ----------------------------------------------------------------------------
-# War-outcome award routers. Before the conference the points bank into the
-# leverage pools; once the session is live they land on the seated delegation's
-# vote weight instead. Callers set temp geneva_lev_amount first.
-# ----------------------------------------------------------------------------
+
 geneva_outcome_award_proindependence = {
 	geneva_lev_default_amount = yes
 	if = {
@@ -140,17 +109,10 @@ geneva_outcome_award_profrance = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# World-state detectors. Runs daily from on_daily_FRA; every branch is
-# one-shot flag guarded so the cost after firing is a handful of flag checks.
-# ----------------------------------------------------------------------------
+
 geneva_conf_world_leverage_pulse = {
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
-		# --- War-balance cache for trigger-context readers (focus ai_will_do,
-		# --- geneva_vie_side_*_trigger): triggers cannot do arithmetic, so the
-		# --- pulse precomputes the totals daily. The settlement compiler
-		# --- re-derives them from the final-score snapshot at conclusion.
 		if = {
 			limit = { country_exists = FRA }
 			set_variable = { global.geneva_cache_comm_score = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
@@ -179,7 +141,6 @@ geneva_conf_world_leverage_pulse = {
 					LOS = { has_capitulated = yes }
 				}
 			}
-			# Pathet Lao overran the Kingdom of Laos: huge communist boost.
 			set_global_flag = geneva_pathet_lao_outcome_applied
 			set_variable = { global.geneva_outcome_pathet_lao = 1 }
 			set_temp_variable = { geneva_lev_amount = 125 }
@@ -196,14 +157,12 @@ geneva_conf_world_leverage_pulse = {
 					LAO = { has_capitulated = yes }
 				}
 			}
-			# The Kingdom beat back the Pathet Lao: huge anti-communist boost.
 			set_global_flag = geneva_pathet_lao_outcome_applied
 			set_variable = { global.geneva_outcome_pathet_lao = 2 }
 			set_temp_variable = { geneva_lev_amount = 125 }
 			geneva_add_profrance_leverage = yes
 		}
 
-		# --- USA commits to VIE early (Diplo tree early-intervention path) ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_usa_backs_vie_applied }
@@ -217,7 +176,6 @@ geneva_conf_world_leverage_pulse = {
 			geneva_add_usa_leverage = yes
 		}
 
-		# --- France hands the war to the State of Vietnam (Elysee framework) ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_handoff_applied }
@@ -229,7 +187,6 @@ geneva_conf_world_leverage_pulse = {
 			geneva_add_federal_leverage = yes
 		}
 
-		# --- USA doubles down on the French war effort ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_usa_backs_france_applied }
@@ -246,7 +203,6 @@ geneva_conf_world_leverage_pulse = {
 			geneva_add_profrance_leverage = yes
 		}
 
-		# --- USA props up the Dan Quoc government directly ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_usa_danquoc_applied }
@@ -258,8 +214,6 @@ geneva_conf_world_leverage_pulse = {
 			geneva_add_proindependence_leverage = yes
 		}
 
-		# --- Cuong De sends Diem to talk to Ho (VIE_NH_Using_Diem_Ho_Connections):
-		#     the Vietnamese closing ranks strengthens the independence camp ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_cuongde_talks_applied }
@@ -270,8 +224,6 @@ geneva_conf_world_leverage_pulse = {
 			geneva_add_proindependence_leverage = yes
 		}
 
-		# --- Saigon forms the anticommunist front: reconciliation curdles.
-		#     Written directly because the leverage API clamps negatives. ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_cuongde_front_applied }
@@ -282,10 +234,7 @@ geneva_conf_world_leverage_pulse = {
 			add_to_variable = { global.geneva_rapprochement_vie_vin = -50 }
 		}
 
-		# --- War-outcome scenario detectors: one-shot guarded, recorders drive the
-		# --- "War Outcomes" panel loc, awards route through geneva_outcome_award_*.
 
-		# --- Fate of the Southern Viet Minh ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_nlf_outcome_applied }
@@ -318,11 +267,10 @@ geneva_conf_world_leverage_pulse = {
 					country_exists = VIE
 					VIE = { is_in_array = { global.geneva_delegations = THIS.id } }
 				}
-				VIE = { geneva_conf_refresh_prefs = yes }	# a mid-conference victory restores Saigon's ambition on the partition line
+				VIE = { geneva_conf_refresh_prefs = yes }
 			}
 		}
 
-		# The 1953 raid froze into the historical two-zone garrison.
 		if = {
 			limit = {
 				has_global_flag = Laos_Raid_Stalemate
@@ -331,7 +279,6 @@ geneva_conf_world_leverage_pulse = {
 			set_variable = { global.geneva_outcome_pathet_lao = 3 }	# display only: points paid by the Laos Raid scenario
 		}
 
-		# --- Battle of Dien Bien Phu (result flags set by the VIN map resolver) ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_dbp_outcome_applied }
@@ -364,7 +311,6 @@ geneva_conf_world_leverage_pulse = {
 			}
 		}
 
-		# --- Fate of the Religious Sects ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_sects_outcome_applied }
@@ -383,7 +329,6 @@ geneva_conf_world_leverage_pulse = {
 			geneva_outcome_award_proindependence = yes
 		}
 
-		# --- Fate of the Highland States ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_highland_tai_applied }
@@ -449,7 +394,6 @@ geneva_conf_world_leverage_pulse = {
 			set_variable = { global.geneva_outcome_highland_done = 1 }
 		}
 
-		# --- The 1953 Laos Raid (flags set by IC_Laos_Raid_Effects.txt) ---
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_laos_raid_outcome_applied }
@@ -482,11 +426,7 @@ geneva_conf_world_leverage_pulse = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# Seals every still-pending war-outcome scenario at conference opening, before
-# any delegation is seated, so the awards land in the leverage pools that
-# geneva_conf_seed_weight is about to read.
-# ----------------------------------------------------------------------------
+
 geneva_conf_resolve_pending_outcomes = {
 	if = {
 		limit = { NOT = { has_global_flag = geneva_nlf_outcome_applied } }
@@ -518,25 +458,13 @@ geneva_conf_resolve_pending_outcomes = {
 			limit = { check_variable = { g_hl_surv > 0 } }
 			set_temp_variable = { geneva_lev_amount = 25 }
 			multiply_temp_variable = { geneva_lev_amount = g_hl_surv }
-			geneva_add_ethnic_leverage = yes	# surviving highland polities speak through the small delegations
+			geneva_add_ethnic_leverage = yes
 		}
 	}
 }
 
-# ============================================================================
-# Negotiation pipeline. Champion/Threaten open a visible three-day negotiation
-# tracked in five parallel global arrays; the daily tick banks matured stakes
-# into global.geneva_push, which the weekly vote consumes. Per-country mirrors
-# exist because triggers and scripted loc cannot iterate arrays:
-#   geneva_neg_mine^clause                  1 while this country negotiates it
-#   geneva_neg_display_clause               clause+1 of the first active entry
-#   geneva_neg_display_days                 days left on that entry
-#   global.geneva_neg_clause_count^clause   entries in flight per clause
-# ============================================================================
 
-# Open a negotiation. Country scope; caller sets temps g_neg_clause,
 # g_neg_option, g_neg_amount. With temp g_geneva_headless = 1 (auto-resolve)
-# the stake banks instantly instead.
 geneva_neg_start = {
 	if = {
 		limit = { check_variable = { g_geneva_headless = 1 } }
@@ -557,7 +485,6 @@ geneva_neg_start = {
 	}
 }
 
-# Recompute every mirror from the arrays. Cheap: runs only while in session.
 geneva_neg_rebuild_mirrors = {
 	every_country = {
 		limit = { is_in_array = { global.geneva_delegations = THIS.id } }
@@ -591,8 +518,6 @@ geneva_neg_rebuild_mirrors = {
 	}
 }
 
-# Daily maturation sweep. Downward so removal by index never shifts an
-# unvisited entry. Walked-out owners forfeit their in-flight stakes.
 geneva_neg_daily_tick = {
 	set_temp_variable = { g_ni = global.geneva_neg_country^num }
 	subtract_from_temp_variable = { g_ni = 1 }
@@ -632,7 +557,6 @@ geneva_neg_daily_tick = {
 	geneva_neg_rebuild_mirrors = yes
 }
 
-# Bank every in-flight stake immediately (force vote, auto-resolve).
 geneva_neg_flush_all = {
 	set_temp_variable = { g_ni = 0 }
 	set_temp_variable = { g_nsz = global.geneva_neg_country^num }
@@ -647,7 +571,6 @@ geneva_neg_flush_all = {
 	geneva_neg_clear = yes
 }
 
-# Clause severity table, seeded at initialize.
 geneva_conf_seed_severity = {
 	clear_array = global.geneva_severity
 	add_to_array = { global.geneva_severity = 2 }	# ceasefire
@@ -659,7 +582,6 @@ geneva_conf_seed_severity = {
 	add_to_array = { global.geneva_severity = 1 }	# minority peoples
 }
 
-# Drop all entries and reset mirrors (initialize, settlement compile).
 geneva_neg_clear = {
 	clear_array = global.geneva_neg_country
 	clear_array = global.geneva_neg_clause
@@ -672,6 +594,7 @@ geneva_neg_clear = {
 # ----------------------------------------------------------------------------
 # Delegation seating
 # ----------------------------------------------------------------------------
+
 geneva_conf_seat_delegation = {
 	add_to_array = { global.geneva_delegations = THIS.id }
 	set_variable = { geneva_patience = 100 }
@@ -688,7 +611,6 @@ geneva_conf_seat_delegation = {
 	clear_array = geneva_prio
 	geneva_conf_set_delegation_prefs = yes
 	geneva_conf_seed_weight = yes
-	# Table-action bookkeeping (player actions, phase 3).
 	set_variable = { geneva_actions_used = 0 }
 	set_variable = { geneva_sel_clause = 0 }
 	set_variable = { geneva_sel_option = 0 }
@@ -697,26 +619,18 @@ geneva_conf_seat_delegation = {
 	set_variable = { geneva_backchannel_next = 0 }
 	set_variable = { geneva_threat_next = 0 }
 	set_variable = { View_Geneva_Conference = 1 }
-	# Political-tab entry (id 29 in the pseudo-foci list): the conference view
-	# must be reachable without the Indochina Struggle window — SOV and PRC
-	# hold Geneva seats without being struggle participants, and the struggle
-	# window may be gone in edge cases. Handler lives in Parliament.txt.
 	if = {
 		limit = { NOT = { is_in_array = { country_politics_list = 29 } } }
 		add_to_array = { country_politics_list = 29 }
 	}
 }
 
-# Re-derive a delegation's preferences mid-conference (e.g. after the
-# VIE-VIN rapprochement crosses a threshold). Country scope.
 geneva_conf_refresh_prefs = {
 	clear_array = geneva_pref
 	clear_array = geneva_prio
 	geneva_conf_set_delegation_prefs = yes
 }
 
-# Preferences and priorities per delegation. Country scope.
-# The struggle scores live on FRA (guarded: FRA can be dead by now).
 geneva_conf_set_delegation_prefs = {
 	set_temp_variable = { g_sc_comm = 0 }
 	set_temp_variable = { g_sc_fra = 0 }
@@ -746,7 +660,6 @@ geneva_conf_set_delegation_prefs = {
 		add_to_array = { geneva_prio = 2 }
 		add_to_array = { geneva_prio = 3 }
 		add_to_array = { geneva_prio = 1 }
-		# A dominant battlefield position hardens the territorial demand.
 		set_temp_variable = { g_comm_x1 = g_sc_fra }
 		add_to_temp_variable = { g_comm_x1 = g_sc_ind }
 		if = {
@@ -761,8 +674,6 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_prio^1 = 10 }
 			set_variable = { geneva_pref^2 = 3 }	# and the vote that would deliver it
 		}
-		# Negotiating from weakness: the sponsors force Hanoi to take the deal
-		# on the table rather than lose everything on the battlefield.
 		set_temp_variable = { g_anti_x2 = g_sc_comm }
 		multiply_temp_variable = { g_anti_x2 = 2 }
 		set_temp_variable = { g_anti_tot = g_sc_fra }
@@ -773,7 +684,6 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_pref^2 = 2 }	# elections in two years
 			set_variable = { geneva_pref^3 = 1 }	# tolerate a timetabled withdrawal
 		}
-		# Warmth between the two Vietnams softens Hanoi at the table.
 		if = {
 			limit = {
 				tag = VIN
@@ -782,7 +692,6 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_pref^1 = 2 }	# accept the 17th
 			set_variable = { geneva_pref^2 = 2 }	# elections in two years
 		}
-		# Full Cuong De reconciliation: Hanoi stakes everything on the vote.
 		if = {
 			limit = {
 				tag = VIN
@@ -799,7 +708,6 @@ geneva_conf_set_delegation_prefs = {
 	}
 	else_if = {
 		limit = { OR = { tag = SOV tag = PRC } }
-		# The sponsors want a deal more than they want Hanoi's maximum program.
 		add_to_array = { geneva_pref = 2 }
 		add_to_array = { geneva_pref = 2 }	# partition: 17th (pressure VIN to settle)
 		add_to_array = { geneva_pref = 2 }	# elections: two years
@@ -831,7 +739,6 @@ geneva_conf_set_delegation_prefs = {
 		add_to_array = { geneva_prio = 2 }
 		add_to_array = { geneva_prio = 4 }
 		add_to_array = { geneva_prio = 2 }
-		# A strong French position pushes the line north and keeps the bases.
 		if = {
 			limit = { check_variable = { g_sc_fra > 999 } }
 			set_variable = { geneva_pref^1 = 3 }	# 20th parallel
@@ -846,8 +753,6 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_pref^6 = 1 }	# sect/highland autonomy
 			set_variable = { geneva_prio^6 = 5 }
 		}
-		# Saigon drifting out of the French orbit: Paris champions the sects
-		# and highlanders as a counterweight inside whatever Vietnam emerges.
 		if = {
 			limit = {
 				country_exists = VIE
@@ -856,8 +761,6 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_pref^6 = 1 }	# minority autonomy as a wedge
 			set_variable = { geneva_prio^6 = 7 }
 		}
-		# The war is lost: Paris stops haggling over its sphere and just wants
-		# its army home with something resembling dignity.
 		set_temp_variable = { g_fra_x2 = g_sc_fra }
 		multiply_temp_variable = { g_fra_x2 = 2 }
 		if = {
@@ -892,23 +795,19 @@ geneva_conf_set_delegation_prefs = {
 		if = {
 			limit = {
 				has_global_flag = Southern_VietMinh_Defeated
-				NOT = { check_variable = { g_vie_comm_x2 > g_vie_anti_x3 } }	# not being out-scored 1.5x by the communists
+				NOT = { check_variable = { g_vie_comm_x2 > g_vie_anti_x3 } }
 			}
 			set_variable = { geneva_pref^1 = 3 }	# press for the 20th
 		}
-		# Early American commitment means Saigon wants the French gone faster.
 		if = {
 			limit = { has_global_flag = geneva_usa_backs_vie_applied }
 			set_variable = { geneva_pref^3 = 2 }
 		}
-		# Genuine rapprochement with the North makes elections thinkable.
 		if = {
 			limit = { check_variable = { global.geneva_rapprochement_vie_vin > 99 } }
 			set_variable = { geneva_pref^2 = 2 }
 			set_variable = { geneva_pref^4 = 1 }
 		}
-		# Full Cuong De reconciliation: Saigon accepts the 17th as a
-		# temporary line and champions an immediate nationwide vote.
 		if = {
 			limit = { check_variable = { global.geneva_rapprochement_vie_vin > 199 } }
 			set_variable = { geneva_pref^1 = 2 }	# accept the 17th
@@ -937,10 +836,6 @@ geneva_conf_set_delegation_prefs = {
 			limit = { has_global_flag = geneva_usa_backs_vie_applied }
 			set_variable = { geneva_pref^1 = 3 }	# push the line to the 20th
 		}
-		# Playtest: the categorical American veto on elections only makes
-		# sense from strength. An AI Washington whose Vietnamese clients are
-		# losing — or merely not dominant — accepts a supervised vote rather
-		# than wreck the talks. Focus commitments below still override this.
 		set_temp_variable = { g_usa_anti = g_sc_fra }
 		add_to_temp_variable = { g_usa_anti = g_sc_ind }
 		set_temp_variable = { g_usa_comm_x2 = g_sc_comm }
@@ -965,7 +860,6 @@ geneva_conf_set_delegation_prefs = {
 			set_variable = { geneva_pref^2 = 0 }
 			set_variable = { geneva_prio^2 = 10 }
 		}
-		# Washington softens if it agreed to underwrite a reunification vote instead.
 		if = {
 			limit = { has_completed_focus = USA_50s_Endorse_Free_Vietnamese_Vote }
 			set_variable = { geneva_pref^2 = 2 }
@@ -973,7 +867,6 @@ geneva_conf_set_delegation_prefs = {
 	}
 	else_if = {
 		limit = { tag = ENG }
-		# Co-chair: wants any workable settlement, cares little where lines fall.
 		add_to_array = { geneva_pref = 2 }
 		add_to_array = { geneva_pref = 2 }
 		add_to_array = { geneva_pref = 1 }
@@ -1008,8 +901,6 @@ geneva_conf_set_delegation_prefs = {
 	}
 	else_if = {
 		limit = { tag = PQC }
-		# The sect coalition sits at Geneva for one reason above all others:
-		# guarantees for the minority peoples it claims to speak for.
 		add_to_array = { geneva_pref = 1 }
 		add_to_array = { geneva_pref = 3 }
 		add_to_array = { geneva_pref = 0 }
@@ -1026,7 +917,6 @@ geneva_conf_set_delegation_prefs = {
 		add_to_array = { geneva_prio = 10 }
 	}
 	else = {
-		# Unknown seat: neutral middle-of-the-road positions, low priorities.
 		add_to_array = { geneva_pref = 2 }
 		add_to_array = { geneva_pref = 2 }
 		add_to_array = { geneva_pref = 1 }
@@ -1044,7 +934,6 @@ geneva_conf_set_delegation_prefs = {
 	}
 }
 
-# Vote strength. Country scope. Struggle scores reward the whole war effort.
 geneva_conf_seed_weight = {
 	set_temp_variable = { g_w = 0 }
 	if = {
@@ -1053,17 +942,19 @@ geneva_conf_seed_weight = {
 		if = {
 			limit = { country_exists = FRA }
 			set_temp_variable = { g_ws = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
-			divide_temp_variable = { g_ws = 20 }
+			divide_temp_variable = { g_ws = 50 }
 			add_to_temp_variable = { g_w = g_ws }
 		}
-		add_to_temp_variable = { g_w = global.geneva_lev_communist }
+		set_temp_variable = { g_ws = global.geneva_lev_communist }
+		divide_temp_variable = { g_ws = 4 }
+		add_to_temp_variable = { g_w = g_ws }
 		if = { limit = { tag = LAO } multiply_temp_variable = { g_w = 0.4 } }
 	}
 	else_if = {
 		limit = { OR = { tag = SOV tag = PRC } }
 		set_temp_variable = { g_w = 50 }
 		set_temp_variable = { g_ws = global.geneva_lev_communist }
-		divide_temp_variable = { g_ws = 2 }
+		divide_temp_variable = { g_ws = 5 }
 		add_to_temp_variable = { g_w = g_ws }
 	}
 	else_if = {
@@ -1120,13 +1011,7 @@ geneva_conf_seed_weight = {
 	round_variable = geneva_weight
 }
 
-# ----------------------------------------------------------------------------
-# Convening the conference
-# ----------------------------------------------------------------------------
-# Player-facing entry point: announces the conference ("The Road to Geneva")
-# to every prospective delegation, then opens the session six days later via
-# the hidden Geneva_Conference_Session.11 event. Headless AI resolution
-# (geneva_conf_auto_resolve) skips the announcement and opens directly.
+
 geneva_conf_announce = {
 	if = {
 		limit = {
@@ -1165,9 +1050,6 @@ geneva_conf_announce = {
 	}
 }
 
-# Paris has committed to a settlement but the fighting has not cooled enough for
-# anyone to sit down. Works the struggle down month by month and convenes through
-# the normal gated path the moment it qualifies. Each phase step costs 500 B-points.
 indochina_geneva_pursuit_tick = {
 	if = {
 		limit = {
@@ -1199,7 +1081,7 @@ geneva_conf_initialize = {
 		}
 		set_global_flag = geneva_conference_in_session
 		set_global_flag = Geneva_Conference_Preparations
-		geneva_conf_resolve_pending_outcomes = yes	# seal open war scenarios into the pools before seating reads them
+		geneva_conf_resolve_pending_outcomes = yes
 		set_variable = { global.geneva_round = 0 }
 		set_variable = { global.geneva_tick_days = 0 }
 		set_variable = { global.geneva_outcome = 0 }
@@ -1207,7 +1089,6 @@ geneva_conf_initialize = {
 		set_variable = { global.geneva_walkout_news = 0 }
 		clear_array = global.geneva_delegations
 
-		# Historical opening agenda on the table.
 		clear_array = global.geneva_clause_current
 		add_to_array = { global.geneva_clause_current = 2 }	# immediate ceasefire
 		add_to_array = { global.geneva_clause_current = 2 }	# 17th parallel
@@ -1217,18 +1098,12 @@ geneva_conf_initialize = {
 		add_to_array = { global.geneva_clause_current = 1 }	# independent Laos/Cambodia
 		add_to_array = { global.geneva_clause_current = 0 }	# no minority provision
 
-		# Clause severity: scales action costs, AI stakes and the equal-reaction
-		# backlash after a flip.
 		geneva_conf_seed_severity = yes
 
-		# Campaign pushes: one flattened 28-slot array (clause * 4 + option),
-		# fed by table actions and AI campaigning, consumed and cleared by
-		# each round's vote.
 		clear_array = global.geneva_push
 		resize_array = { array = global.geneva_push size = 28 value = 0 }
-		geneva_neg_clear = yes	# no negotiations carry over from a previous conference
+		geneva_neg_clear = yes
 
-		# Core belligerent delegations: their walkouts can sink the conference.
 		if = {
 			limit = { country_exists = FRA }
 			FRA = {
@@ -1255,17 +1130,13 @@ geneva_conf_initialize = {
 		if = { limit = { country_exists = SOV } SOV = { geneva_conf_seat_delegation = yes } }
 		if = { limit = { country_exists = PRC } PRC = { geneva_conf_seat_delegation = yes } }
 		if = { limit = { country_exists = ENG } ENG = { geneva_conf_seat_delegation = yes } }
-		# Regional minor seats.
 		if = { limit = { country_exists = LOS } LOS = { geneva_conf_seat_delegation = yes } }
 		if = { limit = { country_exists = CAM } CAM = { geneva_conf_seat_delegation = yes } }
 		if = { limit = { country_exists = LAO } LAO = { geneva_conf_seat_delegation = yes } }
 		if = { limit = { country_exists = PQC } PQC = { geneva_conf_seat_delegation = yes } }
 
-		# Seats are taken, so the national trees can be brought level with them.
 		geneva_conf_catch_up_delegation_focuses = yes
 
-		# Broadcast to every human player: news anchored on FRA is invisible
-		# to everyone else when France is AI (playtest finding).
 		every_country = {
 			limit = { is_ai = no }
 			news_event = Geneva_Conference_Session.1
@@ -1273,12 +1144,9 @@ geneva_conf_initialize = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# Catching the national trees up to the table
-# ----------------------------------------------------------------------------
-# Attendance focuses only: a delegation seated here would otherwise spend the whole session completing the focus that represents showing up to it, and never reach the stance focuses underneath or the ballot branches below those. What it argues for at the table stays a decision. VIE_Accept_Geneva_Conference is deliberately left out - it is mutually exclusive with VIE_BaoDai_Liberator_of_Vietnam, so granting it at the opening gavel would foreclose Saigon's military ending if the conference collapses.
+
 geneva_conf_catch_up_delegation_focuses = {
-	set_global_flag = geneva_conf_attendance_autogranted	# read by the granted focuses: leverage and weight are the reward for playing the branch, not for the seat geneva_conf_seed_weight already paid for
+	set_global_flag = geneva_conf_attendance_autogranted
 	if = {
 		limit = {
 			country_exists = USA
@@ -1331,19 +1199,16 @@ geneva_conf_catch_up_delegation_focuses = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# One negotiation round. Driven weekly from on_daily_FRA while in session;
-# also driven headlessly by geneva_conf_auto_resolve.
-# ----------------------------------------------------------------------------
+
 geneva_conf_round_tick = {
 	set_temp_variable = { g_tick_repaired = 0 }
 	if = {
-		limit = {	# in session with nobody at the table: rebuild rather than voting on an empty room
+		limit = {
 			has_global_flag = geneva_conference_in_session
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = { check_variable = { global.geneva_delegations^num > 0 } }
 		}
-		clr_global_flag = geneva_conference_in_session	# geneva_conf_initialize refuses to run while it is set
+		clr_global_flag = geneva_conference_in_session
 		geneva_conf_initialize = yes
 		set_temp_variable = { g_tick_repaired = 1 }
 	}
@@ -1359,14 +1224,11 @@ geneva_conf_round_tick = {
 		}
 		add_to_variable = { global.geneva_round = 1 }
 
-		# --- New round: every delegation gets its table actions back.
 		every_country = {
 			limit = { is_in_array = { global.geneva_delegations = THIS.id } }
 			set_variable = { geneva_actions_used = 0 }
 		}
 
-		# --- AI campaigning: each AI delegation contests the clauses it is losing,
-		# --- worst grievance first, with an action budget scaled to its weight.
 		every_country = {
 			limit = {
 				is_in_array = { global.geneva_delegations = THIS.id }
@@ -1440,7 +1302,6 @@ geneva_conf_round_tick = {
 							check_variable = { geneva_weight < 60 }
 							check_variable = { g_conceded = 0 }
 						}
-						# Hopeless minor gripe: cut losses, bank goodwill and weight.
 						set_variable = { geneva_sel_clause = g_bc }
 						geneva_action_concede = yes
 						set_temp_variable = { g_conceded = 1 }
@@ -1448,23 +1309,21 @@ geneva_conf_round_tick = {
 					else_if = {
 						limit = {
 							check_variable = { g_bsev > 2 }
-							check_variable = { g_bprio > 8 }	# only the partition line clears this: the AI puts its chair on the line for the border and nothing else
+							check_variable = { g_bprio > 8 }
 							check_variable = { geneva_patience > 60 }	# a bluff made from comfort, never from the brink
-							check_variable = { global.geneva_round > 2 }	# not before the talks have properly opened
+							check_variable = { global.geneva_round > 2 }
 							check_variable = { geneva_threats_used < 2 }
 							NOT = { check_variable = { geneva_threat_next > global.geneva_round } }
 						}
-						# The great clauses are worth the chair: public walkout threat.
 						set_variable = { geneva_sel_clause = g_bc }
 						add_to_variable = { geneva_threats_used = 1 }
 						geneva_action_threaten = yes
 					}
 					else = {
-						# Scaled campaign stake through the visible pipeline.
 						set_temp_variable = { g_amt = 25 }
 						set_temp_variable = { g_amt2 = g_bprio }
 						multiply_temp_variable = { g_amt2 = 5 }
-						add_to_temp_variable = { g_amt = g_amt2 }	# 25%..75% of weight by priority
+						add_to_temp_variable = { g_amt = g_amt2 }
 						multiply_temp_variable = { g_amt = geneva_weight }
 						divide_temp_variable = { g_amt = 100 }
 						set_temp_variable = { g_neg_clause = g_bc }
@@ -1473,7 +1332,7 @@ geneva_conf_round_tick = {
 						geneva_neg_start = yes
 						set_temp_variable = { g_wcost = g_bsev }
 						multiply_temp_variable = { g_wcost = 3 }
-						subtract_from_variable = { geneva_weight = g_wcost }	# 3/6/9 weight by severity
+						subtract_from_variable = { geneva_weight = g_wcost }
 				clamp_variable = {
 					var = geneva_weight
 							min = 15
@@ -1485,8 +1344,6 @@ geneva_conf_round_tick = {
 			}
 		}
 
-		# --- Snapshot the agenda so the equal-reaction pass below can see which
-		# --- clauses this vote flipped.
 		set_temp_variable = { g_prev_0 = global.geneva_clause_current^0 }
 		set_temp_variable = { g_prev_1 = global.geneva_clause_current^1 }
 		set_temp_variable = { g_prev_2 = global.geneva_clause_current^2 }
@@ -1496,7 +1353,6 @@ geneva_conf_round_tick = {
 		set_temp_variable = { g_prev_6 = global.geneva_clause_current^6 }
 
 		# --- Weighted vote per clause: strength = weight x priority. Ties keep
-		# --- the currently tabled option so the agenda doesn't oscillate.
 		set_temp_variable = { g_c = 0 }
 		while_loop_effect = {
 			limit = { check_variable = { g_c < 7 } }
@@ -1528,7 +1384,6 @@ geneva_conf_round_tick = {
 					add_to_temp_variable = { g_opt_3 = g_vote }
 				}
 			}
-			# Campaign pushes staked on this clause since the last vote.
 			set_temp_variable = { g_pi0 = g_c }
 			multiply_temp_variable = { g_pi0 = 4 }
 			set_temp_variable = { g_pi1 = g_pi0 }
@@ -1604,7 +1459,6 @@ geneva_conf_round_tick = {
 			add_to_temp_variable = { g_c = 1 }
 		}
 
-		# --- Pushes are consumed by the vote above; reset for the next round.
 		set_temp_variable = { g_pz = 0 }
 		while_loop_effect = {
 			limit = { check_variable = { g_pz < 28 } }
@@ -1612,9 +1466,6 @@ geneva_conf_round_tick = {
 			add_to_temp_variable = { g_pz = 1 }
 		}
 
-		# --- Equal reaction: flipping a clause hands the delegations that lost it a
-		# --- weight rebate and a grievance; losing a great clause also seeds a free
-		# --- counter-push for the NEXT vote (deliberately after the zeroing above).
 		set_temp_variable = { g_rc = 0 }
 		while_loop_effect = {
 			limit = { check_variable = { g_rc < 7 } }
@@ -1650,15 +1501,13 @@ geneva_conf_round_tick = {
 						set_temp_variable = { g_rpi = g_rc }
 						multiply_temp_variable = { g_rpi = 4 }
 						add_to_temp_variable = { g_rpi = geneva_pref^g_rc }
-						add_to_variable = { global.geneva_push^g_rpi = g_rcp }	# the aggrieved bloc answers a flip with money and votes, not by walking: this is what makes a flipped clause flip back
+						add_to_variable = { global.geneva_push^g_rpi = g_rcp }
 					}
 				}
 			}
 			add_to_temp_variable = { g_rc = 1 }
 		}
 
-		# --- Patience: delegations losing on the clauses they care about walk
-		# --- toward the door; satisfied delegations settle back in.
 		set_variable = { global.geneva_walkout_news = 0 }	# global, not temp: every_country re-scopes and a temp written in there would not survive back out
 		every_country = {
 			limit = {
@@ -1682,7 +1531,7 @@ geneva_conf_round_tick = {
 						multiply_temp_variable = { g_dist = -1 }
 					}
 					set_temp_variable = { g_add = geneva_prio^g_c2 }
-					if = {	# clauses 0/1/2/3/5 run along a scale, so the next notch over is a compromise rather than a defeat: this is what makes the 17th an equilibrium instead of a coin-flip. 4 and 6 are binary, where any mismatch is total
+					if = {
 						limit = {
 							check_variable = { g_dist = 1 }
 							NOT = { check_variable = { g_c2 = 4 } }
@@ -1729,7 +1578,7 @@ geneva_conf_round_tick = {
 				limit = { check_variable = { g_hi_mis = 1 } }
 				subtract_from_variable = { geneva_patience = 3 }
 			}
-			if = {	# an extreme line rammed through against a delegation that is already losing is a provocation, not merely a defeat. Option 0 is off the axis and provokes anyone who did not want it
+			if = {
 				limit = {
 					check_variable = { g_dissat = 1 }
 					NOT = { check_variable = { geneva_pref^1 = global.geneva_clause_current^1 } }
@@ -1775,7 +1624,7 @@ geneva_conf_round_tick = {
 				}
 				set_temp_variable = { g_floor = 0 }	# actively provoked round after round: the door is open again
 			}
-			if = {	# clamp_variable takes literals only in this codebase, so the floor is applied by hand first
+			if = {
 				limit = { check_variable = { geneva_patience < g_floor } }
 				set_variable = { geneva_patience = g_floor }
 			}
@@ -1793,8 +1642,6 @@ geneva_conf_round_tick = {
 			}
 		}
 
-		# --- End conditions: two core walkouts sink it now, otherwise the
-		# --- conference winds down after ten rounds and signs what it has.
 		set_temp_variable = { g_core_out = 0 }
 		every_country = {
 			limit = {
@@ -1810,7 +1657,7 @@ geneva_conf_round_tick = {
 			}
 			every_country = {
 				limit = { is_ai = no }
-				news_event = Geneva_Conference_Session.2	# one headline per round however many chairs emptied; a same-tick collapse is reported by .3 or .4 instead
+				news_event = Geneva_Conference_Session.2
 			}
 		}
 		set_variable = { global.geneva_walkout_news = 0 }
@@ -1825,21 +1672,18 @@ geneva_conf_round_tick = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# Settlement compiler: turns the final clause states into the legacy flag
-# vocabulary and hands off to the existing ending effects.
-# ----------------------------------------------------------------------------
+
 geneva_conf_compile_settlement = {
 	if = {
 		limit = { has_global_flag = geneva_conference_in_session }
 		clr_global_flag = geneva_conference_in_session
 		set_global_flag = geneva_conference_concluded
-		geneva_neg_clear = yes	# lobbying still mid-timer at the close is moot
+		geneva_neg_clear = yes
 		every_country = {
 			limit = { is_in_array = { global.geneva_delegations = THIS.id } }
 			set_variable = { View_Geneva_Conference = 0 }
 		}
-		every_country = {	# the political-tab button goes with the window, as the struggle's does
+		every_country = {
 			limit = { is_in_array = { array = country_politics_list value = 29 } }
 			remove_from_array = { array = country_politics_list value = 29 }
 		}
@@ -1862,7 +1706,6 @@ geneva_conf_compile_settlement = {
 			}
 			# ------------------------- COLLAPSE -------------------------
 			set_variable = { global.geneva_outcome = 2 }
-			# Record the refusal in the legacy vocabulary too.
 			every_country = {
 				limit = {
 					has_country_flag = geneva_core_delegation
@@ -1874,7 +1717,6 @@ geneva_conf_compile_settlement = {
 			}
 			if = {
 				limit = { indochina_struggle_ending_failed_state_trigger = yes }
-				# Nobody left with the strength to win: the depressing ending.
 				every_country = {
 					limit = { is_ai = no }
 					news_event = Geneva_Conference_Session.4
@@ -1882,7 +1724,6 @@ geneva_conf_compile_settlement = {
 				indochina_struggle_run_failed_state_ending_effect = yes
 			}
 			else = {
-				# The delegations went home to keep fighting: permanent war.
 				every_country = {
 					limit = { is_ai = no }
 					news_event = Geneva_Conference_Session.3
@@ -1902,29 +1743,19 @@ geneva_conf_compile_settlement = {
 			set_variable = { global.geneva_minorities_term = global.geneva_clause_current^6 }
 			if = {
 				limit = { check_variable = { global.geneva_clause_current^1 = 0 } }
-				# The accords drew no partition line at all: one Vietnam, with
-				# the question of who governs it left to the interim period.
 				set_global_flag = geneva_unified_settlement
 			}
-			# Snapshot the war's final balance: the struggle scores are torn
-			# down by the ending cleanup, but the all-Vietnam election that the
-			# accords may schedule still needs to know who was winning.
 			if = {
 				limit = { country_exists = FRA }
 				set_variable = { global.geneva_final_comm_score = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
 				set_variable = { global.geneva_final_anticomm_score = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
 				add_to_variable = { global.geneva_final_anticomm_score = FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
-				# Freeze the trigger-context cache on the final balance: the
-				# daily pulse stops once the war winds down, but the election
-				# focus AI still reads geneva_vie_side_*_trigger afterwards.
 				set_variable = { global.geneva_cache_comm_score = global.geneva_final_comm_score }
 				set_variable = { global.geneva_cache_anticomm_score = global.geneva_final_anticomm_score }
 				set_variable = { global.geneva_cache_comm_x2 = global.geneva_cache_comm_score }
 				multiply_variable = { global.geneva_cache_comm_x2 = 2 }
 			}
 
-			# The signing ceremony: lists the agreed terms clause by clause
-			# (the scripted-loc readers keep working after the conference).
 			every_country = {
 				limit = { is_ai = no }
 				news_event = Geneva_Conference_Session.5
@@ -1936,15 +1767,11 @@ geneva_conf_compile_settlement = {
 
 			if = {
 				limit = { check_variable = { global.geneva_clause_current^2 > 1 } }
-				# Reunification elections agreed: the complete-success path.
 				if = { limit = { country_exists = FRA } FRA = { set_country_flag = FRA_Accepted_Reunification } }
 				if = { limit = { country_exists = VIE } VIE = { set_country_flag = VIE_Accepted_Reunification } }
 				if = { limit = { country_exists = VIN } VIN = { set_country_flag = VIN_Accepted_Reunification } }
 			}
 			else = {
-				# Elections blocked or postponed indefinitely: OTL accords.
-				# Each core delegation's own preference decides its flag, so
-				# the aftermath correctly remembers who buried the vote.
 				if = {
 					limit = { country_exists = FRA }
 					FRA = {
@@ -1976,9 +1803,8 @@ geneva_conf_compile_settlement = {
 							limit = {
 								check_variable = { geneva_pref^2 > 1 }
 								country_exists = USA
-								USA = { has_completed_focus = USA_50s_Withhold_American_Assent }	# the table-stance focus; the block focus now sits after the accords and cannot be read here
+								USA = { has_completed_focus = USA_50s_Withhold_American_Assent }
 							}
-							# Saigon wanted the vote; Washington killed it.
 							set_country_flag = VIE_Rejected_Reunification_USA_Intervention
 							USA = { set_country_flag = USA_Tampered_With_VIE }
 						}
@@ -1995,12 +1821,6 @@ geneva_conf_compile_settlement = {
 
 			indochina_struggle_run_geneva_ending_effect = yes
 
-			# ---------------- The interim arrangements ----------------
-			# A settlement that schedules a reunification vote (or that drew no
-			# partition line at all) has not answered the Vietnamese question:
-			# it has set a date for it. The hidden Session.21 arbiter resolves
-			# the election when it falls due; if the VIN focus-tree election
-			# crisis settles the matter first, the arbiter stands down.
 			if = {
 				limit = {
 					has_global_flag = Geneva_Conference	# set by indochina_struggle_unlock_geneva_conference in the settlement branch above and never cleared. The phase it sets alongside is 11, but the ending cleanup inside that same call overwrites it with 100 before control returns here
@@ -2016,11 +1836,6 @@ geneva_conf_compile_settlement = {
 					limit = { is_ai = no }
 					news_event = { id = Geneva_Conference_Session.20 days = 2 }
 				}
-				# Session.26 is the campaign trail: both capitals read the same
-				# polls (the war's final balance) before the arbiter resolves
-				# the vote, so nobody is blindsided by the result.
-				# Session.27 opens the hidden campaign window ahead of the campaign
-				# trail. Fired at FRA, which cannot vanish.
 				if = {
 					limit = { check_variable = { global.geneva_elections_term = 3 } }
 					VIE = { country_event = { id = Geneva_Conference_Session.26 days = 95 random_days = 15 } }
@@ -2048,8 +1863,6 @@ geneva_conf_compile_settlement = {
 					}
 				}
 				else = {
-					# Unified settlement with the vote postponed: the interim
-					# council still has to produce a government eventually.
 					VIE = { country_event = { id = Geneva_Conference_Session.26 days = 220 random_days = 30 } }
 					VIN = { country_event = { id = Geneva_Conference_Session.26 days = 220 random_days = 30 } }
 					VIN = { country_event = { id = Geneva_Conference_Session.21 days = 300 random_days = 90 } }
@@ -2066,15 +1879,12 @@ geneva_conf_compile_settlement = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# Headless resolution for AI-only games, called by the Indochina wrap-up
-# timer. Convenes the conference if needed and plays it out immediately.
-# ----------------------------------------------------------------------------
+
 geneva_conf_auto_resolve = {
 	if = {
 		limit = {
 			NOT = { has_global_flag = Indochina_War_Over }
-			NOT = {	# an announcement is out and its six-day opener has not landed: let the interactive pipeline run instead of resolving on top of it
+			NOT = {
 				AND = {
 					has_global_flag = geneva_conference_announced
 					NOT = { has_global_flag = geneva_conference_in_session }
@@ -2083,7 +1893,7 @@ geneva_conf_auto_resolve = {
 			}
 		}
 		set_temp_variable = { g_geneva_headless = 1 }	# AI stakes bank instantly; the 3-day pipeline never stalls the loop
-		geneva_neg_flush_all = yes	# a human-session save being auto-resolved keeps its in-flight stakes
+		geneva_neg_flush_all = yes
 		if = {
 			limit = {
 				NOT = { has_global_flag = geneva_conference_in_session }
@@ -2107,21 +1917,7 @@ geneva_conf_auto_resolve = {
 	}
 }
 
-# ----------------------------------------------------------------------------
-# Table actions (player-facing, phase 3). All run in the acting delegation's
-# country scope from GUI clicks. Every effect re-checks its own guards so a
-# stale click can never cheat; the GUI's click_enabled triggers mirror them.
-# Selection state lives on the acting country: geneva_sel_clause,
-# geneva_sel_option (for Champion), geneva_sel_target (a country id set by
-# the Select buttons in the delegation list).
-# ----------------------------------------------------------------------------
 
-# The shared guard (seated, at the table, session live, actions left) lives
-# in common/scripted_triggers/IC_struggle_triggers.txt as
-# geneva_action_possible_trigger, shared with the GUI's click_enabled checks.
-
-# Champion: stake weight behind your selected option on the selected clause.
-# Sets your own preference and adds a large one-round push to the next vote.
 geneva_action_champion = {
 	set_temp_variable = { g_ch_cost = global.geneva_severity^geneva_sel_clause }
 	multiply_temp_variable = { g_ch_cost = 5 }	# 5/10/15 weight by clause severity
@@ -2151,9 +1947,6 @@ geneva_action_champion = {
 	}
 }
 
-# Pressure: strong-arm the selected delegation into adopting your position
-# on the selected clause. Costs half their weight from your pool; they
-# resent it (patience) and refuse further pressure for three rounds.
 geneva_action_pressure = {
 	if = {
 		limit = {
@@ -2185,7 +1978,6 @@ geneva_action_pressure = {
 			set_variable = { geneva_pressured_until = global.geneva_round }
 			add_to_variable = { geneva_pressured_until = 2 }
 		}
-		# Only pay if a valid target was actually found and pressured.
 		if = {
 			limit = { check_variable = { g_cost > -1 } }
 			add_political_power = -25
@@ -2200,9 +1992,6 @@ geneva_action_pressure = {
 	}
 }
 
-# Concede: publicly drop your opposition on the selected clause. You adopt
-# whatever is currently tabled, recover weight, and every delegation that
-# wanted that outcome warms to the conference.
 geneva_action_concede = {
 	if = {
 		limit = { geneva_action_possible_trigger = yes }
@@ -2228,9 +2017,6 @@ geneva_action_concede = {
 	}
 }
 
-# Back-channel: quiet corridor talks between Saigon and Hanoi. Builds the
-# rapprochement track; at 100+ both delegations soften their formal
-# positions (elections become thinkable, the 17th acceptable).
 geneva_action_backchannel = {
 	if = {
 		limit = {
@@ -2278,8 +2064,6 @@ geneva_action_backchannel = {
 	}
 }
 
-# Threaten walkout: put your chair on the line. A huge push behind your own
-# position on the selected clause, paid for with your delegation's patience.
 geneva_action_threaten = {
 	if = {
 		limit = {
@@ -2299,7 +2083,7 @@ geneva_action_threaten = {
 			limit = { check_variable = { g_threat_cost < 8 } }
 			set_temp_variable = { g_threat_cost = 11 }	# severity array missing on stale saves: legacy cost
 		}
-		subtract_from_variable = { geneva_patience = g_threat_cost }	# 8/11/14 by clause severity: roughly two bad rounds, not a quarter of the delegation's whole stamina
+		subtract_from_variable = { geneva_patience = g_threat_cost }
 		set_temp_variable = { g_neg_clause = geneva_sel_clause }
 		set_temp_variable = { g_neg_option = geneva_pref^geneva_sel_clause }
 		set_temp_variable = { g_neg_amount = geneva_weight }
@@ -2308,8 +2092,6 @@ geneva_action_threaten = {
 	}
 }
 
-# Force the vote: a core belligerent ends the conference on the current
-# terms. Available once the talks have matured (round 5+).
 geneva_action_force_vote = {
 	if = {
 		limit = {
@@ -2320,15 +2102,12 @@ geneva_action_force_vote = {
 			check_variable = { global.geneva_round > 4 }
 		}
 		add_political_power = -50
-		geneva_neg_flush_all = yes	# in-flight stakes land in the final vote instead of being voided
+		geneva_neg_flush_all = yes
 		set_variable = { global.geneva_round = 9 }
-		geneva_conf_round_tick = yes	# one genuine final vote (tick raises the round past the cap and compiles)
+		geneva_conf_round_tick = yes
 	}
 }
 
-# Lean on Saigon: the covert successor to the old USA tamper event. Kills
-# Saigon's appetite for elections. If the two Vietnams have a warm
-# back-channel (rapprochement 50+), Hanoi hears about it and the scandal
 # breaks publicly.
 geneva_action_lean_on_saigon = {
 	if = {
@@ -2354,7 +2133,6 @@ geneva_action_lean_on_saigon = {
 		}
 		if = {
 			limit = { check_variable = { global.geneva_rapprochement_vie_vin > 49 } }
-			# Saigon's channel to Hanoi leaks the pressure: public scandal.
 			every_country = {
 				limit = { is_ai = no }
 				news_event = Geneva_Conference_Session.13
@@ -2384,9 +2162,9 @@ geneva_action_lean_on_saigon = {
 }
 
 # ----------------------------------------------------------------------------
-# GUI selection helpers (player scope). Option counts per clause:
 # c0=3, c1=4, c2=4, c3=3, c4=2, c5=3, c6=2.
 # ----------------------------------------------------------------------------
+
 geneva_ui_cycle_clause = {
 	add_to_variable = { geneva_sel_clause = 1 }
 	if = {

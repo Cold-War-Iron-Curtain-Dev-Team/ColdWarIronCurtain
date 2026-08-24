@@ -9,10 +9,6 @@ Indochina_War_Rework = {
 			always = no
 		}
 		activation = {
-			# Never activates on its own: ic_pulse calls activate_mission when
-			# indochina_struggle_all_participants_ai_trigger passes (all
-			# Indochina participants + France AI controlled) inside the 1954
-			# Geneva window or after 1957 as a stalemate fallback.
 			always = no
 		}
 		is_good = no
@@ -21,22 +17,18 @@ Indochina_War_Rework = {
 		days_mission_timeout = 60
 
 		cancel_trigger = {
-			# A player-driven ending (or hot-joined player) resolved the war
-			# while the timer was running.
 			OR = {
 			has_global_flag = Indochina_War_Over
-				NOT = { indochina_struggle_all_participants_ai_trigger = yes }	# a human took one of the stake countries mid-timer: they play it out themselves
+				NOT = { indochina_struggle_all_participants_ai_trigger = yes }
 			}
 		}
 
 		cancel_effect = {
-			clr_global_flag = Indochina_War_Timer_Active	# ic_pulse can re-arm later if the map goes all-AI again
+			clr_global_flag = Indochina_War_Timer_Active
 		}
 
 		timeout_effect = {
 			if = {
-				# A decisive set-piece is still being fought out: give the battle
-				# another 60 days to produce its own result, four times over.
 				limit = {
 					NOT = { has_global_flag = Indochina_War_Over }
 					indochina_war_still_being_fought_trigger = yes
@@ -50,19 +42,10 @@ Indochina_War_Rework = {
 				limit = {
 					NOT = { has_global_flag = Indochina_War_Over }
 				}
-				# Resolve with whichever decisive ending the AI war has already
-				# earned; otherwise default to the historical Geneva Accords
-				# partition. Each ending effect handles cleanup, sets
-				# Indochina_War_Over and fires the (major) news event itself.
-				indochina_struggle_resolve_best_available_ending = yes	# the ladder itself lives in CWIC_Struggle_Effects.txt; the failsafe router shares it
+				indochina_struggle_resolve_best_available_ending = yes
 				if = {
-					# No decisive ending earned: convene the Geneva Conference
-					# headlessly and let the delegations settle (or wreck) it.
-					# Re-checked here, not just at arming: a human who joined a stake
-					# country during the 60 days must not have the conference concluded
-					# over their head.
 					limit = {
-						NOT = { has_global_flag = Indochina_War_Over }	# unset means the ladder found nothing; a decisive ending set it as it ran
+						NOT = { has_global_flag = Indochina_War_Over }
 						indochina_struggle_all_participants_ai_trigger = yes
 					}
 					geneva_conf_auto_resolve = yes
@@ -70,7 +53,7 @@ Indochina_War_Rework = {
 				else_if = {
 					limit = { NOT = { has_global_flag = Indochina_War_Over } }
 					clr_global_flag = Indochina_War_Timer_Active
-					set_global_flag = Indochina_Geneva_Pursuit	# settle through the normal gated path instead, so the human plays the conference
+					set_global_flag = Indochina_Geneva_Pursuit
 				}
 			}
 		}
@@ -81,33 +64,6 @@ Indochina_War_Rework = {
 		}
 	}
 
-	Laos_Raid_Timer = { # 1953 Laos raid resolution timer
-		allowed = { always = no }
-		available = { always = no }
-		activation = { always = no }
-		is_good = no
-		selectable_mission = no
-		days_mission_timeout = 90
-		cancel_trigger = {
-			OR = {
-				has_global_flag = Indochina_War_Over
-				has_global_flag = Laos_Raid_Resolved
-				NOT = { has_global_flag = Laos_Raid_Active }
-			}
-		}
-		timeout_effect = {
-			ic_laos_raid_resolve = yes
-		}
-		complete_effect = {
-		}
-		ai_will_do = {
-			factor = 0
-		}
-	}
-
-
-	# The restored battle missions are both the visible objective cards and the
-	# real deadline backstops. There is no parallel cosmetic clock.
 	VIN_Vinh_Yen_Objective = {
 		icon = generic_attack
 		allowed = { original_tag = VIN }
@@ -192,7 +148,7 @@ Indochina_War_Rework = {
 		ai_will_do = { factor = 0 }
 	}
 
-	VIN_Campaign_Objective_Timer = { # Live campaign clock/backstop for campaign IDs 1-4
+	VIN_Campaign_Objective_Timer = {
 		icon = generic_attack
 		allowed = { original_tag = VIN }
 		visible = {
@@ -221,7 +177,7 @@ Indochina_War_Rework = {
 		}
 	}
 
-	FRE_Operation_Timer = { # Visible CEFEO operation clock and real resolver
+	FRE_Operation_Timer = {
 		icon = generic_attack
 		allowed = { tag = FRE }
 		visible = { has_country_flag = FRE_Limited_Operation_Active }
@@ -305,31 +261,7 @@ Indochina_War_Rework = {
 		ai_will_do = { factor = 0 }
 	}
 
-	Laos_Raid_LastChance_Timer = { # Shorter final window granted when a human attacker chooses to press
-		allowed = { always = no }
-		available = { always = no }
-		activation = { always = no }
-		is_good = no
-		selectable_mission = no
-		days_mission_timeout = 45
-		cancel_trigger = {
-			OR = {
-				has_global_flag = Indochina_War_Over
-				has_global_flag = Laos_Raid_Resolved
-				NOT = { has_global_flag = Laos_Raid_Active }
-			}
-		}
-		timeout_effect = {
-			ic_laos_raid_end_raid = yes
-		}
-		complete_effect = {
-		}
-		ai_will_do = {
-			factor = 0
-		}
-	}
-
-	Laos_Raid_Defence = { # Purely cosmetic
+	Laos_Raid_Defence = {
 		icon = generic_prepare_civil_war
 		allowed = { original_tag = LOS }
 		available = { always = no }
@@ -353,7 +285,7 @@ Indochina_War_Rework = {
 		}
 	}
 
-	Laos_Raid_Offensive = { # Attacker-side mirror of Laos_Raid_Defence: Hanoi was racing a clock it could not see
+	Laos_Raid_Offensive = {
 		icon = generic_prepare_civil_war
 		allowed = { OR = { original_tag = VIN  original_tag = LAO } }
 		available = { always = no }
@@ -377,7 +309,7 @@ Indochina_War_Rework = {
 		}
 	}
 
-	Laos_Raid_Offensive_LastChance = { # Attacker-side mirror of the 45-day last-chance window.
+	Laos_Raid_Offensive_LastChance = {
 		icon = generic_prepare_civil_war
 		allowed = { OR = { original_tag = VIN  original_tag = LAO } }
 		available = { always = no }
@@ -401,7 +333,7 @@ Indochina_War_Rework = {
 		}
 	}
 
-	Laos_Raid_Defence_LastChance = { # LOS-side mirror of the 45-day last-chance window.
+	Laos_Raid_Defence_LastChance = {
 		icon = generic_prepare_civil_war
 		allowed = { original_tag = LOS }
 		available = { always = no }
@@ -429,12 +361,9 @@ Indochina_War_Rework = {
 		icon = border_war
         state_target = yes
         target_root_trigger = {
-           check_variable = {
-               global.Indochina_War_Active_Phase < 4
-           }
+            has_global_flag = Indochina_Ending_Failed_State
             OR = {
                 is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
-                is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
                 is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
             }
         }
@@ -444,6 +373,9 @@ Indochina_War_Rework = {
                 has_border_war = no
                 NOT = {
                     is_owned_by = ROOT
+                }
+                NOT = {
+                    is_controlled_by = ROOT
                 }
                 owner = {
                     OR = {
@@ -647,9 +579,7 @@ Indochina_War_Rework = {
 		icon = border_war
         state_target = yes
         target_root_trigger = {
-            check_variable = {
-                global.Indochina_War_Active_Phase < 4
-            }
+            has_global_flag = Indochina_Ending_Failed_State
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
         }
         target_array = global.indochina_cores
@@ -814,9 +744,7 @@ Indochina_War_Rework = {
 		icon = border_war
         state_target = yes
         target_root_trigger = {
-            check_variable = {
-                global.Indochina_War_Active_Phase < 4
-            }
+            has_global_flag = Indochina_Ending_Failed_State
             is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
         }
         target_array = global.indochina_cores
@@ -890,7 +818,7 @@ Indochina_War_Rework = {
                         }
                     }
                 }
-                else_if = { #Ethnic
+                else_if = {
                     limit = {
                         FROM = {
                             OWNER = {
@@ -917,7 +845,7 @@ Indochina_War_Rework = {
                         }
                     }
                 }
-                else_if = { #Pro-French
+                else_if = {
                     limit = {
                         FROM = {
                             OWNER = {
@@ -944,7 +872,7 @@ Indochina_War_Rework = {
                         }
                     }
                 }
-                else_if = { #Quoc-Gia
+                else_if = {
                     limit = {
                         FROM = {
                             OWNER = {
@@ -978,13 +906,8 @@ Indochina_War_Rework = {
 
     ############################################################
     # Struggle Diplomacy
-    # Faction-gated decisions for the tension phases (6-8) so
-    # de-escalation is a playable strategy rather than something
-    # that only happens through raid failures and the time drip.
-    # Point awards go through the shared helpers in
     ############################################################
 
-    #Pro-Independence (VIE, CCC)
     Indochina_Struggle_ProInd_Backchannel_Talks = {
         icon = generic_civil_support
         visible = {
@@ -1129,7 +1052,6 @@ Indochina_War_Rework = {
         }
     }
 
-    #Communist (VIN, NLF, MEO)
     Indochina_Struggle_Com_Peace_Overtures = {
         icon = generic_civil_support
         visible = {
@@ -1239,7 +1161,6 @@ Indochina_War_Rework = {
         }
     }
 
-    #Pro-France (FRA, CAM, LOS, etc.)
     Indochina_Struggle_ProFra_Ceasefire_Lines = {
         icon = generic_civil_support
         visible = {

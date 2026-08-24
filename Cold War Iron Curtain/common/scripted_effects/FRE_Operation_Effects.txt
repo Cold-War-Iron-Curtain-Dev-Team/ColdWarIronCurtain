@@ -1,7 +1,3 @@
-# Exact-objective CEFEO limited operations.
-# IDs: 2 Hirondelle, 3 Mouette, 4 Brochet. Lorraine is a Northwest response and
-# never enters this wrapper. These operations never transfer ownership.
-
 fre_operation_load_config = {
 	set_variable = { FRE_op_price_light = 45 }
 	set_variable = { FRE_op_price_standard = 90 }
@@ -21,7 +17,6 @@ fre_operation_load_config = {
 		set_variable = { FRE_op_deadline_x = 35 }
 		set_variable = { FRE_op_deadline_y = 35 }
 	}
-	# The visible mission expires after the inclusive final operation day.
 	set_variable = { FRE_op_timer_days = FRE_op_deadline_y }
 	add_to_variable = { FRE_op_timer_days = 1 }
 }
@@ -81,7 +76,6 @@ fre_operation_launch = {
 	set_global_flag = FRE_Operation_Active
 	clr_global_flag = FRE_Operation_Resolved
 	set_country_flag = FRE_Limited_Operation_Active
-	# Disarm the VIN campaign armistice retry so it cannot white-peace this new war.
 	if = {
 		limit = {
 			country_exists = VIN
@@ -112,7 +106,6 @@ fre_operation_launch = {
 		log = "FRE_OP_TRACE: DECLARE owner=VIN target=FRE id=[?FRE_op_current|0]"
 		VIN = { hidden_effect = { declare_war_on = { target = FRE type = annex_everything } } }
 	}
-	# Controlled exception to the no-call rule: attach the northern CEFEO commands.
 	indochina_call_all_vin_fre_theater_forces = yes
 	log = "FRE_OP_TRACE: LAUNCH exit id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
 	activate_mission = FRE_Operation_Timer
@@ -129,12 +122,37 @@ fre_operation_update_hold = {
 		}
 	}
 
+fre_operation_update_overextension = {
+	if = {
+		limit = { fre_operation_fre_overextended_trigger = yes }
+		if = { limit = { NOT = { has_idea = FRE_Operation_Overextension } } add_ideas = FRE_Operation_Overextension }
+	}
+	else_if = {
+		limit = { has_idea = FRE_Operation_Overextension }
+		remove_ideas = FRE_Operation_Overextension
+	}
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			if = {
+				limit = { vin_fre_operation_overextended_trigger = yes }
+				if = { limit = { NOT = { has_idea = VIN_Campaign_Overextension } } add_ideas = VIN_Campaign_Overextension }
+			}
+			else_if = {
+				limit = { VIN_no_campaign_running_trigger = yes has_idea = VIN_Campaign_Overextension }
+				remove_ideas = VIN_Campaign_Overextension
+			}
+		}
+	}
+}
+
 fre_limited_operation_daily_tick = {
 	if = {
 		limit = { has_country_flag = FRE_Limited_Operation_Active }
 		add_to_variable = { FRE_op_days_elapsed = 1 }
 		log = "FRE_OP_TRACE: DAILY before_objective id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
 		fre_operation_update_hold = yes
+		fre_operation_update_overextension = yes
 		log = "FRE_OP_TRACE: DAILY after_objective id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
 		fre_operation_check_resolution = yes
 			}
@@ -221,19 +239,19 @@ fre_operation_record_result = {
 fre_operation_apply_ledger = {
 	if = {
 		limit = { check_variable = { FRE_op_last_outcome = 1 } }
-		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 50 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 tooltip = Add_to_Escalation_Phase_TT } }
+		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 20 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 tooltip = Add_to_Escalation_Phase_TT } }
 	}
 	else_if = {
 		limit = { check_variable = { FRE_op_last_outcome = 2 } }
-		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 25 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 25 tooltip = Add_to_Escalation_Phase_TT } }
+		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 10 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 25 tooltip = Add_to_Escalation_Phase_TT } }
 	}
 	else_if = {
 		limit = { check_variable = { FRE_op_last_outcome = 3 } }
-		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = -10 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 10 tooltip = Add_to_Communist_Victory_Points_TT } }
+		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = -5 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 5 tooltip = Add_to_Communist_Victory_Points_TT } }
 	}
 	else_if = {
 		limit = { check_variable = { FRE_op_last_outcome = 4 } }
-		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = -25 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 25 tooltip = Add_to_Communist_Victory_Points_TT } add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 tooltip = Add_to_Escalation_Phase_TT } }
+		FRA = { add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = -10 tooltip = Add_to_French_Victory_Points_TT } add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 10 tooltip = Add_to_Communist_Victory_Points_TT } add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 tooltip = Add_to_Escalation_Phase_TT } }
 	}
 	if = { limit = { NOT = { check_variable = { FRE_op_last_outcome = 5 } } } FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes } }
 }
@@ -256,27 +274,8 @@ fre_operation_abort = {
 	}
 }
 
-# Shims for queued legacy events; they classify through the resolver only.
-fre_operation_fire_outcome_success = {
-	if = {
-		limit = { has_country_flag = FRE_Limited_Operation_Active }
-		log = "FRE_OP_TRACE: RESOLUTION caller=legacy_success_shim id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0]"
-		set_temp_variable = { fre_op_outcome = 1 }
-		fre_operation_resolve_outcome = yes
-	}
-}
-fre_operation_fire_outcome_failure = {
-	if = {
-		limit = { has_country_flag = FRE_Limited_Operation_Active }
-		log = "FRE_OP_TRACE: RESOLUTION caller=legacy_failure_shim id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0]"
-		set_temp_variable = { fre_op_outcome = 4 }
-		fre_operation_resolve_outcome = yes
-	}
-}
 fre_operation_threshold_resolve = { fre_operation_check_resolution = yes }
-fre_operation_press = { add_stability = -0.01 }
 
-# FRA's visible mission is the hard backstop if the daily carrier stalls.
 fre_operation_resolve = {
 	if = { limit = { country_exists = FRE } FRE = {
 		if = {
@@ -307,6 +306,11 @@ fre_operation_finish = {
 	if = { limit = { has_idea = FRE_Limited_Operation_Light } remove_ideas = FRE_Limited_Operation_Light }
 	if = { limit = { has_idea = FRE_Limited_Operation_Standard } remove_ideas = FRE_Limited_Operation_Standard }
 	if = { limit = { has_idea = FRE_Limited_Operation_Maximum } remove_ideas = FRE_Limited_Operation_Maximum }
+	if = { limit = { has_idea = FRE_Operation_Overextension } remove_ideas = FRE_Operation_Overextension }
+	if = {
+		limit = { country_exists = VIN VIN = { VIN_no_campaign_running_trigger = yes has_idea = VIN_Campaign_Overextension } }
+		VIN = { remove_ideas = VIN_Campaign_Overextension }
+	}
 	if = {
 		limit = { has_country_flag = FRE_Limited_Operation_Owns_War country_exists = VIN has_war_with = VIN }
 		log = "FRE_OP_TRACE: WHITE_PEACE caller=fre_operation_finish actor=FRE target=VIN id=[?FRE_op_current|0] outcome=[?FRE_op_last_outcome|0]"
@@ -318,14 +322,6 @@ fre_operation_finish = {
 	}
 	else = {
 		log = "FRE_OP_TRACE: FINISH no_operation_owned_war id=[?FRE_op_current|0] outcome=[?FRE_op_last_outcome|0]"
-	}
-	# Close the northern CEFEO participant edges the operation bridge opened.
-	if = {
-		limit = { has_country_flag = FRE_Limited_Operation_Owns_War }
-		if = { limit = { country_exists = TAI TAI = { has_war_with = VIN } } TAI = { white_peace = VIN } }
-		if = { limit = { country_exists = TAM TAM = { has_war_with = VIN } } TAM = { white_peace = VIN } }
-		if = { limit = { country_exists = NUN NUN = { has_war_with = VIN } } NUN = { white_peace = VIN } }
-		if = { limit = { country_exists = THO THO = { has_war_with = VIN } } THO = { white_peace = VIN } }
 	}
 	clr_country_flag = FRE_Limited_Operation_Owns_War
 	set_variable = { FRE_op_days_elapsed = 0 }
@@ -350,61 +346,3 @@ fre_operation_watchdog = {
 		fre_operation_resolve_outcome = yes
 	}
 }
-
-fre_legacy_operation_migrate = {
-	if = {
-		limit = { NOT = { has_global_flag = FRE_Limited_Operations_Renovated } }
-		set_global_flag = FRE_Limited_Operations_Renovated
-		clr_global_flag = FRE_Operation_Active
-		clr_global_flag = FRE_Operation_Resolved
-		if = { limit = { has_country_flag = FRE_Operation_Hirondelle_Success } set_country_flag = FRE_Operation_Hirondelle_Result_Clean set_country_flag = FRE_Paratrooper_Raids_Unlocked }
-		if = { limit = { has_country_flag = FRE_Operation_Hirondelle_Failure } set_country_flag = FRE_Operation_Hirondelle_Result_Failure }
-		if = { limit = { has_country_flag = FRE_Operation_Mouette_Success } set_country_flag = FRE_Operation_Mouette_Result_Clean }
-		if = { limit = { has_country_flag = FRE_Operation_Mouette_Failure } set_country_flag = FRE_Operation_Mouette_Result_Failure }
-		if = { limit = { has_country_flag = FRE_Operation_Brochet_Success } set_country_flag = FRE_Operation_Brochet_Result_Clean }
-		if = { limit = { has_country_flag = FRE_Operation_Brochet_Failure } set_country_flag = FRE_Operation_Brochet_Result_Failure }
-		if = { limit = { has_country_flag = FRE_Mission_Prepare_Vinh_Yen_Completed } set_country_flag = FRE_Vinh_Yen_Prepared }
-		if = { limit = { has_country_flag = FRE_Mission_Prepare_Mao_Khe_Completed } set_country_flag = FRE_Mao_Khe_Prepared }
-		if = { limit = { has_country_flag = FRE_Mission_Prepare_Na_San_Completed } set_country_flag = FRE_Na_San_Prepared }
-		remove_mission = FRE_Mission_Operation_Hirondelle
-		remove_mission = FRE_Mission_Operation_Mouette
-		remove_mission = FRE_Mission_Operation_Brochet
-		remove_mission = FRE_Mission_Prepare_Vinh_Yen
-		remove_mission = FRE_Mission_Prepare_Mao_Khe
-		remove_mission = FRE_Mission_Prepare_Na_San
-		clr_country_flag = FRE_Mission_Operation_Lorraine_Activated
-		clr_country_flag = FRE_Limited_Operation_Pending
-		clr_country_flag = FRE_Mission_Operation_Hirondelle_Activated
-		clr_country_flag = FRE_Mission_Operation_Mouette_Activated
-		clr_country_flag = FRE_Mission_Operation_Brochet_Activated
-		clr_country_flag = FRE_Mission_Prepare_Vinh_Yen_Activated
-		clr_country_flag = FRE_Mission_Prepare_Mao_Khe_Activated
-		clr_country_flag = FRE_Mission_Prepare_Na_San_Activated
-		clr_country_flag = FRE_Operation_Cooldown_Hirondelle
-		clr_country_flag = FRE_Operation_Cooldown_Mouette
-		clr_country_flag = FRE_Operation_Cooldown_Brochet
-		clr_global_flag = FRE_Operation_Last_Chance
-		clear_array = FRE_op_target_states
-		set_variable = { FRE_op_attacker_state = 0 }
-		set_variable = { FRE_op_defender_state = 0 }
-		set_variable = { FRE_op_resistance = 0 }
-		if = { limit = { has_idea = FRE_Operation_Overextension } remove_ideas = FRE_Operation_Overextension }
-		FRA = { remove_mission = FRE_Operation_Timer }	# compatibility: old saves hosted this timer on France
-		remove_mission = FRE_Operation_Timer
-		if = {
-			limit = { has_country_flag = FRE_Operation_Hirondelle_Launched NOT = { FRE_hirondelle_terminal_trigger = yes } FRE_limited_operation_window_trigger = yes }
-			set_temp_variable = { fre_op_id = 2 }
-			fre_operation_begin = yes
-		}
-		else_if = {
-			limit = { has_country_flag = FRE_Operation_Mouette_Launched NOT = { FRE_mouette_terminal_trigger = yes } FRE_limited_operation_window_trigger = yes }
-			set_temp_variable = { fre_op_id = 3 }
-			fre_operation_begin = yes
-		}
-		else_if = {
-			limit = { has_country_flag = FRE_Operation_Brochet_Launched NOT = { FRE_brochet_terminal_trigger = yes } FRE_limited_operation_window_trigger = yes }
-			set_temp_variable = { fre_op_id = 4 }
-			fre_operation_begin = yes
-			}
-		}
-	}

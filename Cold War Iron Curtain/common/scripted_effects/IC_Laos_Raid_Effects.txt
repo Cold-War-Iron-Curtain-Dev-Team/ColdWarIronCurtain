@@ -1,25 +1,5 @@
-# ============================================================================
-# 1953 Laos Raid mechanic
-# ----------------------------------------------------------------------------
-# The Phase3 block of ic_pulse (IC_scripted_effects.txt) releases the Pathet Lao
-# (LAO) as a VIN satellite and throws them at the Kingdom of Laos (LOS). Left
-# alone, VIN's far larger army simply overruns LOS. This file turns that scripted
-# defeat into the historical over-extended raid: LOS gets a scaled CEFEO relief
-# column, VIN fights under an over-extension penalty, and a timer resolves the
-# raid if Hanoi cannot take a Laotian capital in time.
-#
-# Outcomes (decided at Laos_Raid_Timer expiry, see ic_laos_raid_resolve):
-#   * attacker holds Vientiane/Luang Prabang -> conquest stands (ic_laos_raid_attacker_victory)
-#   * human attacker, no capital -> one last-chance "press vs. call off" prompt (laos_raid.1)
-#   * AI (or lapsed last chance), LAO still holds its zones -> stalemate, rump satellite
-#   * AI (or lapsed last chance), LAO pushed out -> total failure, LOS accepts or goes total war
-# ============================================================================
-
-# --- Release the Pathet Lao ------------------------------------------------
-
 ic_laos_raid_release_pathet_lao = {
 	set_global_flag = Laos_Pathet_Released
-	# The no-call policy must exist before LOS declares the raid wars.
 	if = {
 		limit = { country_exists = LOS }
 		LOS = { add_ideas = LOS_French_Airlift }
@@ -43,10 +23,10 @@ ic_laos_raid_release_pathet_lao = {
    	}
 	if = {
 		limit = { NOT = { is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = LAO.id } } }
-		add_to_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = LAO.id }	# the Pathet Lao join the struggle's communist bloc the moment they exist
+		add_to_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = LAO.id }
 		LAO = { indochina_struggle_starting_idea_setup = yes }
    	}
-	lao_deploy_field_force = yes	# the Pathet Lao spawned with nothing at all and fought the whole raid on VIN's divisions
+	lao_deploy_field_force = yes
 	VIN = {
 	    country_event = VINLAO.1
 		set_autonomy = {
@@ -56,7 +36,6 @@ ic_laos_raid_release_pathet_lao = {
 	}
 }
 
-# --- The Pathet Lao's own divisions -----------------------------------------
 
 lao_ensure_templates = {
 	if = {
@@ -122,7 +101,6 @@ lao_deploy_field_force = {
 	}
 }
 
-# --- Frontier garrison for a Pathet Lao Kingdom -----------------------------
 
 lao_deploy_frontier_garrison = {
 	if = {
@@ -130,7 +108,7 @@ lao_deploy_frontier_garrison = {
 		lao_ensure_templates = yes
 		if = {
 			limit = { LAO = { controls_state = 841 } }
-			841 = {	# Phongsaly, the frontier facing Dien Bien Phu and the Tai federation
+			841 = {
 				create_unit = {
 					division = "name = \"Kong Phan Phongsaly\" division_template = \"Kong Phan\" start_experience_factor = 0.35 start_equipment_factor = 0.8"
 					owner = LAO
@@ -143,7 +121,7 @@ lao_deploy_frontier_garrison = {
 		}
 		if = {
 			limit = { LAO = { controls_state = 1295 } }
-			1295 = {	# Sam Neua, the Annamite frontier
+			1295 = {
 				create_unit = {
 					division = "name = \"Kong Phan Sam Neua\" division_template = \"Kong Phan\" start_experience_factor = 0.35 start_equipment_factor = 0.8"
 					owner = LAO
@@ -156,7 +134,7 @@ lao_deploy_frontier_garrison = {
 		}
 		if = {
 			limit = { LAO = { controls_state = 670 } }
-			670 = {	# Vientiane
+			670 = {
 				create_unit = {
 					division = "name = \"Kong Pathom Vientiane\" division_template = \"Kong Pathom\" start_experience_factor = 0.4 start_equipment_factor = 0.9"
 					owner = LAO
@@ -165,7 +143,7 @@ lao_deploy_frontier_garrison = {
 		}
 		if = {
 			limit = { LAO = { controls_state = 1198 } }
-			1198 = {	# Luang Prabang
+			1198 = {
 				create_unit = {
 					division = "name = \"Kong Phan Luang Prabang\" division_template = \"Kong Phan\" start_experience_factor = 0.35 start_equipment_factor = 0.8"
 					owner = LAO
@@ -297,27 +275,22 @@ ic_laos_raid_launch = {
 		clr_global_flag = Laos_Raid_Timer_Expired
 		clr_global_flag = Laos_Raid_Stalemate
 		clr_global_flag = Laos_Raid_Total_Failure
+		set_variable = { global.Laos_Raid_Days_Elapsed = 0 }
+		set_variable = { global.Laos_Raid_Last_Duration = 0 }
 
 		LOS = {
 			add_ideas = LOS_French_Airlift
-			# The Kingdom mobilises for the emergency.
 			add_ideas = extensive_conscription
-			# Player-facing "hold the capitals" objective + situation briefing.
 			activate_mission = Laos_Raid_Defence
 			country_event = laos_raid.7
 		}
 		VIN = {
 			add_dynamic_modifier = { modifier = laos_raid_overextension }
-			activate_mission = Laos_Raid_Offensive	# the attacker had no sight of the clock at all
-			# INDOCHINESE_WAR_LAOS and _LAOS_VINH (map/adjacency_rules.txt) close every
-			# crossing into the Kingdom to a VIN at war with the CEFEO, which is the
-			# whole war. Nothing set this flag, so Hanoi's own divisions could not follow
-			# the Pathet Lao across the border it had just declared war to cross.
+			activate_mission = Laos_Raid_Offensive
 			set_country_flag = LAOS_BORDER_UNLOCKED
 		}
 		if = { limit = { country_exists = LAO } LAO = { activate_mission = Laos_Raid_Offensive } }
 
-		# Relief column sized by how much fight Paris still has in it.
 		# tier 0 = token garrison, 1 = reduced, 2 = full airlift.
 		set_temp_variable = { laos_relief_tier = 1 }
 		if = {
@@ -397,7 +370,6 @@ ic_laos_raid_launch = {
 			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = FRA }
 		}
 
-		# Reduced airlift: Paris still cares enough to fly in a brigade group.
 		if = {
 			limit = { check_variable = { laos_relief_tier > 0 } }
 			670 = {
@@ -440,7 +412,6 @@ ic_laos_raid_launch = {
 			}
 		}
 
-		# Full airlift: the Groupements Aeroportes and the Groupes Mobiles arrive.
 		if = {
 			limit = { check_variable = { laos_relief_tier > 1 } }
 			1198 = {
@@ -482,13 +453,9 @@ ic_laos_raid_launch = {
 				add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 300 producer = FRA }
 			}
 		}
-
-		# Arm the 90-day resolution timer on FRA (always exists, never vanishes mid-raid).
-		FRA = { activate_mission = Laos_Raid_Timer }
 	}
 }
 
-# --- Timer expiry dispatch (called from the mission, FRA scope) --------------
 
 ic_laos_raid_resolve = {
 	if = {
@@ -520,28 +487,46 @@ ic_laos_raid_daily_check = {
 		}
 		ic_laos_raid_attacker_victory = yes
 	}
+	if = {
+		limit = { has_global_flag = Laos_Raid_Active }
+		add_to_variable = { global.Laos_Raid_Days_Elapsed = 1 }
+		if = {
+			limit = {
+				NOT = { has_global_flag = Laos_Raid_Last_Chance }
+				check_variable = { global.Laos_Raid_Days_Elapsed > 89 }
+			}
+			log = "IC_LAOS_RAID|DAILY_BACKSTOP|date=[GetDateText]|stage=initial|day=[?global.Laos_Raid_Days_Elapsed|0]"
+			ic_laos_raid_resolve = yes
+		}
+		else_if = {
+			limit = {
+				has_global_flag = Laos_Raid_Last_Chance
+				check_variable = { global.Laos_Raid_Days_Elapsed > 44 }
+			}
+			log = "IC_LAOS_RAID|DAILY_BACKSTOP|date=[GetDateText]|stage=last_chance|day=[?global.Laos_Raid_Days_Elapsed|0]"
+			ic_laos_raid_end_raid = yes
+		}
+	}
 	lao_check_postwar_economy = yes
 }
 
-# --- Human attacker doubles down: deepen the penalty, one short final window --
 
 ic_laos_raid_press = {
 	if = {
 		limit = { has_global_flag = Laos_Raid_Active NOT = { has_global_flag = Laos_Raid_Last_Chance } }
 		set_global_flag = Laos_Raid_Last_Chance
 		clr_global_flag = Laos_Raid_Timer_Expired
+		set_variable = { global.Laos_Raid_Days_Elapsed = 0 }
 		VIN = {
 			remove_dynamic_modifier = { modifier = laos_raid_overextension }
 			add_dynamic_modifier = { modifier = laos_raid_overextension_severe }
 		}
-		FRA = { activate_mission = Laos_Raid_LastChance_Timer }
 		if = { limit = { country_exists = LOS } LOS = { activate_mission = Laos_Raid_Defence_LastChance } }
 		if = { limit = { country_exists = VIN } VIN = { activate_mission = Laos_Raid_Offensive_LastChance } }
 		if = { limit = { country_exists = LAO } LAO = { activate_mission = Laos_Raid_Offensive_LastChance } }
 	}
 }
 
-# --- The raid culminates: stalemate or total failure -------------------------
 
 ic_laos_raid_end_raid = {
 	if = {
@@ -557,7 +542,7 @@ ic_laos_raid_end_raid = {
 }
 
 ic_laos_raid_stalemate = {
-	set_global_flag = Laos_Raid_Stalemate	# distinguishing outcome flag, read by the Geneva war-outcomes tracker
+	set_global_flag = Laos_Raid_Stalemate
 	if = {
 		limit = { country_exists = LAO country_exists = VIN }
 		LAO = {
@@ -574,8 +559,8 @@ ic_laos_raid_stalemate = {
 			}
 		}
 	}
-	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 150 }
-	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 50 }
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 25 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 10 }
 	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
 	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 50 }
 	ic_laos_raid_ceasefire = yes
@@ -584,9 +569,9 @@ ic_laos_raid_stalemate = {
 }
 
 ic_laos_raid_total_failure = {
-	set_global_flag = Laos_Raid_Total_Failure	# distinguishing outcome flag; Laos_Total_War may be set on top if Vientiane escalates
-	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 200 }
-	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 150 }
+	set_global_flag = Laos_Raid_Total_Failure
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 50 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 25 }
 	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
 	add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 50 }
 	if = {
@@ -602,8 +587,8 @@ ic_laos_raid_total_failure = {
 
 ic_laos_raid_attacker_victory = {
 	set_global_flag = Laos_Raid_Attacker_Won
-	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 300 }
-	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 150 }
+	add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 50 }
+	subtract_from_variable = { FRA.StruggleInvolvedNationsIndochinaProFranceScore = 25 }
 	FRA = { indochina_struggle_recalculate_total_anti_communist_score = yes }
 	add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 100 }
 	news_event = laos_raid.6
@@ -618,7 +603,6 @@ ic_laos_raid_total_war = {
 	ic_laos_raid_cleanup = yes
 }
 
-# --- Shared helpers ----------------------------------------------------------
 
 ic_laos_raid_ceasefire = {
 	if = {
@@ -653,7 +637,7 @@ lao_convert_to_normal_economy = {
 	if = {
 		limit = { has_country_flag = active_insurgency }
 		clr_country_flag = active_insurgency
-		drop_cosmetic_tag = yes	# no longer the Pathet Lao insurgency - the LPDR is proclaimed
+		drop_cosmetic_tag = yes
 		if = { limit = { has_idea = closed_economy } remove_ideas = closed_economy }
 		if = { limit = { has_idea = unrecognized_state } remove_ideas = unrecognized_state }
 		set_variable = { show_finance = 0 }
@@ -688,7 +672,7 @@ lao_convert_to_normal_economy = {
 		resource_bonus_script = yes
 		industrial_pulse = yes
 
-		lao_deploy_frontier_garrison = yes	# a government has borders to hold, and the Kingdom's army died winning them
+		lao_deploy_frontier_garrison = yes
 	}
 }
 
@@ -707,6 +691,11 @@ ic_laos_raid_cleanup = {
 	clr_global_flag = Laos_Raid_Active
 	clr_global_flag = Laos_Raid_Timer_Expired
 	set_global_flag = Laos_Raid_Resolved
+	set_variable = { global.Laos_Raid_Last_Duration = global.Laos_Raid_Days_Elapsed }
+	set_variable = { global.Laos_Raid_Days_Elapsed = 0 }
+	if = { limit = { country_exists = LOS } LOS = { remove_mission = Laos_Raid_Defence remove_mission = Laos_Raid_Defence_LastChance } }
+	if = { limit = { country_exists = VIN } VIN = { remove_mission = Laos_Raid_Offensive remove_mission = Laos_Raid_Offensive_LastChance } }
+	if = { limit = { country_exists = LAO } LAO = { remove_mission = Laos_Raid_Offensive remove_mission = Laos_Raid_Offensive_LastChance } }
 	if = {
 		limit = { country_exists = LOS LOS = { has_idea = LOS_French_Airlift } }
 		LOS = { remove_ideas = LOS_French_Airlift }
@@ -721,20 +710,6 @@ ic_laos_raid_cleanup = {
 	}
 }
 
-# ============================================================================
-# Console test harness (mirrors the test_geneva_* effects). Run with `e <name>`.
-#   e test_laos_raid_launch      spawn the relief column + arm the 90-day timer
-#   e test_laos_raid_resolve     run the timer-expiry dispatch now
-#   e test_laos_raid_press       simulate the human "press the offensive" choice
-#   e test_laos_raid_end         force the raid to culminate now
-#   e test_laos_raid_cleanup     tear down modifiers/ideas/flags (rerunnable)
-#   e test_lao_field_force       spawn the Pathet Lao's own divisions now
-#   e test_lao_frontier          spawn the post-victory frontier garrison now
-#   e test_lao_status            report LAO's ground, divisions and templates
-#   e test_laos_choice           open the March 1953 choice (VINLAO.10)
-#   e test_laos_consolidate      take the consolidation branch (VINLAO.11)
-#   e test_laos_deferred         fire the deferred re-offer (VINLAO.12)
-# ============================================================================
 test_laos_raid_launch = { ic_laos_raid_launch = yes }
 test_lao_field_force = { lao_deploy_field_force = yes }
 test_lao_frontier = { lao_deploy_frontier_garrison = yes }
@@ -766,7 +741,6 @@ test_laos_raid_press = { ic_laos_raid_press = yes }
 test_laos_raid_end = { ic_laos_raid_end_raid = yes }
 test_laos_raid_cleanup = { ic_laos_raid_cleanup = yes }
 
-# Open the March 1953 choice without waiting for the date.
 test_laos_choice = {
 	if = {
 		limit = { country_exists = VIN }
@@ -774,7 +748,6 @@ test_laos_choice = {
 	}
 }
 
-# Take the consolidation branch directly.
 test_laos_consolidate = {
 	if = {
 		limit = { country_exists = VIN }
@@ -782,7 +755,6 @@ test_laos_consolidate = {
 	}
 }
 
-# Fire the deferred re-offer.
 test_laos_deferred = {
 	if = {
 		limit = { country_exists = VIN }
