@@ -18,10 +18,7 @@ nlf_set_southern_command = {
 	else_if = {
 		limit = { check_variable = { nlf_command_choice = 2 } }
 		set_country_flag = Le_Duan_Leader
-		if = {
-			limit = { has_character = NLF_Le_Duan }
-			promote_character = NLF_Le_Duan
-		}
+		nlf_call_up_le_duan = yes
 	}
 	else_if = {
 		limit = { check_variable = { nlf_command_choice = 3 } }
@@ -55,7 +52,76 @@ nlf_set_southern_command = {
 		}
 		retire_character = NLF_Nguyen_Binh
 	}
+	if = {
+		limit = {
+			NOT = { has_country_flag = Le_Duan_Leader }
+			has_character = VIN_Le_Duan
+		}
+		nlf_return_le_duan_north = yes
+	}
 	nlf_route_displaced_southern_cadres = yes
+}
+
+nlf_call_up_le_duan = {
+	if = {
+		limit = {
+			NOT = { has_character = VIN_Le_Duan }
+			country_exists = VIN
+			VIN = { has_character = VIN_Le_Duan }
+		}
+		VIN = {
+			set_nationality = {
+				target_country = NLF
+				character = VIN_Le_Duan
+			}
+		}
+	}
+	if = {
+		limit = { has_character = VIN_Le_Duan }
+		VIN_Le_Duan = {
+			set_portraits = {
+				civilian = { large = "gfx/leaders/VIN/Le_Duan_50s.dds" }
+			}
+		}
+		if = {
+			limit = { NOT = { has_country_flag = NLF_Le_Duan_Cosvn_Role } }
+			set_country_flag = NLF_Le_Duan_Cosvn_Role
+			add_country_leader_role = {
+				character = VIN_Le_Duan
+				promote_leader = yes
+				country_leader = {
+					ideology = ho_chi_minh_thought_revsoc
+				}
+			}
+		}
+		else = {
+			promote_character = VIN_Le_Duan
+		}
+	}
+}
+
+nlf_return_le_duan_north = {
+	if = {
+		limit = { country_exists = VIN }
+		if = {
+			limit = { has_country_flag = NLF_Le_Duan_Cosvn_Role }
+			clr_country_flag = NLF_Le_Duan_Cosvn_Role
+			VIN_Le_Duan = {
+				remove_country_leader_role = {
+					ideology = ho_chi_minh_thought_revsoc
+				}
+			}
+		}
+		VIN_Le_Duan = {
+			set_portraits = {
+				civilian = { large = GFX_Le_Duan }
+			}
+		}
+		set_nationality = {
+			target_country = VIN
+			character = VIN_Le_Duan
+		}
+	}
 }
 
 # Whoever loses the command question leaves the southern movement.
