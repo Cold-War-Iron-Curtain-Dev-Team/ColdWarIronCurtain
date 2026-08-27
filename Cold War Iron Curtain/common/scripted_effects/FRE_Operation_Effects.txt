@@ -47,15 +47,28 @@ fre_operation_commit = {
 		limit = {
 			OR = {
 				fre_operation_theatre_closed = yes
+				has_global_flag = Laos_Raid_Active
 				AND = { country_exists = VIN VIN = { NOT = { VIN_no_campaign_running_trigger = yes } } }
 			}
 		}
 		log = "FRE_OP_TRACE: COMMIT rejected/superseded id=[?FRE_op_current|0] phase=[?global.Indochina_War_Active_Phase|0]"
+		if = {
+			limit = { has_global_flag = Laos_Raid_Active }
+			log = "IC_AFK|PASS|check=FRE_operation_commit_guarded_during_Laos_raid|operation=[?FRE_op_current|0]"
+		}
 		set_temp_variable = { fre_op_outcome = 5 }
 		fre_operation_resolve_outcome = yes
 	}
 	else = {
 		set_variable = { FRE_op_commitment_tier = fre_op_tier }
+		# Hirondelle is an airborne cache raid, not a territorial offensive. Higher
+		# commitments shorten the time needed to locate and demolish the depots.
+		if = {
+			limit = { check_variable = { FRE_op_current = 2 } }
+			set_variable = { FRE_op_objective_required = 13 }
+			if = { limit = { check_variable = { FRE_op_commitment_tier = 1 } } set_variable = { FRE_op_objective_required = 9 } }
+			else_if = { limit = { check_variable = { FRE_op_commitment_tier = 2 } } set_variable = { FRE_op_objective_required = 6 } }
+		}
 		set_temp_variable = { fre_credit_amount = FRE_op_price_light }
 		if = { limit = { check_variable = { FRE_op_commitment_tier = 1 } } set_temp_variable = { fre_credit_amount = FRE_op_price_standard } }
 		else_if = { limit = { check_variable = { FRE_op_commitment_tier = 2 } } set_temp_variable = { fre_credit_amount = FRE_op_price_maximum } }
@@ -90,9 +103,10 @@ fre_operation_launch = {
 	else_if = { limit = { check_variable = { FRE_op_current = 3 } } set_country_flag = FRE_Mission_Operation_Mouette_Activated }
 	else_if = { limit = { check_variable = { FRE_op_current = 4 } } set_country_flag = FRE_Mission_Operation_Brochet_Activated }
 	fre_operation_apply_commitment = yes
+	vin_cefeo_intel_launch_limited_operation = yes
 	if = {
 		limit = {
-			OR = { check_variable = { FRE_op_current = 2 } check_variable = { FRE_op_current = 3 } }
+			check_variable = { FRE_op_current = 3 }
 			country_exists = VIN
 			NOT = { has_war_with = VIN }
 		}
@@ -106,14 +120,22 @@ fre_operation_launch = {
 		log = "FRE_OP_TRACE: DECLARE owner=VIN target=FRE id=[?FRE_op_current|0]"
 		VIN = { hidden_effect = { declare_war_on = { target = FRE type = annex_everything } } }
 	}
-	indochina_call_all_vin_fre_theater_forces = yes
+	if = { limit = { check_variable = { FRE_op_current > 2 } } indochina_call_all_vin_fre_theater_forces = yes }
 	log = "FRE_OP_TRACE: LAUNCH exit id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
 	activate_mission = FRE_Operation_Timer
 }
 
 fre_operation_update_hold = {
 	if = {
-		limit = { fre_operation_raw_objective_met = yes }
+		limit = {
+			OR = {
+				AND = {
+					check_variable = { FRE_op_current = 2 }
+					OR = { has_equipment = { transport_plane_equipment > 0 } has_country_flag = FRE_Air_Assets_Delivered }
+				}
+				AND = { check_variable = { FRE_op_current > 2 } fre_operation_raw_objective_met = yes }
+			}
+		}
 		add_to_variable = { FRE_op_objective_hold_days = 1 }
 			}
 	else = {
@@ -124,7 +146,7 @@ fre_operation_update_hold = {
 
 fre_operation_update_overextension = {
 	if = {
-		limit = { fre_operation_fre_overextended_trigger = yes }
+		limit = { check_variable = { FRE_op_current > 2 } fre_operation_fre_overextended_trigger = yes }
 		if = { limit = { NOT = { has_idea = FRE_Operation_Overextension } } add_ideas = FRE_Operation_Overextension }
 	}
 	else_if = {
@@ -132,7 +154,7 @@ fre_operation_update_overextension = {
 		remove_ideas = FRE_Operation_Overextension
 	}
 	if = {
-		limit = { country_exists = VIN }
+		limit = { check_variable = { FRE_op_current > 2 } country_exists = VIN }
 		VIN = {
 			if = {
 				limit = { vin_fre_operation_overextended_trigger = yes }
@@ -187,7 +209,7 @@ fre_operation_check_resolution = {
 		fre_operation_resolve_outcome = yes
 	}
 	else_if = {
-		limit = { check_variable = { FRE_op_days_elapsed > 7 } NOT = { has_war_with = VIN } }
+		limit = { check_variable = { FRE_op_current > 2 } check_variable = { FRE_op_days_elapsed > 7 } NOT = { has_war_with = VIN } }
 		log = "FRE_OP_TRACE: RESOLUTION branch=war_missing id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0]"
 		set_temp_variable = { fre_op_outcome = 3 }
 		fre_operation_resolve_outcome = yes
@@ -202,8 +224,26 @@ fre_operation_record_result = {
 		clr_country_flag = FRE_Operation_Hirondelle_Result_Aborted
 		clr_country_flag = FRE_Operation_Hirondelle_Result_Failure
 		clr_country_flag = FRE_Operation_Hirondelle_Result_Superseded
-		if = { limit = { check_variable = { FRE_op_last_outcome = 1 } } set_country_flag = FRE_Operation_Hirondelle_Result_Clean set_country_flag = FRE_Paratrooper_Raids_Unlocked }
-		else_if = { limit = { check_variable = { FRE_op_last_outcome = 2 } } set_country_flag = FRE_Operation_Hirondelle_Result_Costly set_country_flag = FRE_Paratrooper_Raids_Unlocked }
+		if = {
+			limit = { check_variable = { FRE_op_last_outcome = 1 } }
+			set_country_flag = FRE_Operation_Hirondelle_Result_Clean
+			set_country_flag = FRE_Paratrooper_Raids_Unlocked
+			VIN = {
+				add_equipment_to_stockpile = { type = infantry_equipment amount = -1000 }
+				set_temp_variable = { vin_supply_amount = -25 }
+				vin_change_campaign_supply = yes
+			}
+		}
+		else_if = {
+			limit = { check_variable = { FRE_op_last_outcome = 2 } }
+			set_country_flag = FRE_Operation_Hirondelle_Result_Costly
+			set_country_flag = FRE_Paratrooper_Raids_Unlocked
+			VIN = {
+				add_equipment_to_stockpile = { type = infantry_equipment amount = -500 }
+				set_temp_variable = { vin_supply_amount = -15 }
+				vin_change_campaign_supply = yes
+			}
+		}
 		else_if = { limit = { check_variable = { FRE_op_last_outcome = 3 } } set_country_flag = FRE_Operation_Hirondelle_Result_Aborted }
 		else_if = { limit = { check_variable = { FRE_op_last_outcome = 4 } } set_country_flag = FRE_Operation_Hirondelle_Result_Failure }
 		else = { set_country_flag = FRE_Operation_Hirondelle_Result_Superseded }
@@ -328,6 +368,7 @@ fre_operation_finish = {
 	set_variable = { FRE_op_days_elapsed = 0 }
 	set_variable = { FRE_op_objective_hold_days = 0 }
 	set_variable = { FRE_op_commitment_tier = 0 }
+	set_variable = { FRE_op_objective_required = 0 }
 	set_variable = { FRE_op_current = 0 }
 	set_variable = { FRE_op_price_light = 0 }
 	set_variable = { FRE_op_price_standard = 0 }
