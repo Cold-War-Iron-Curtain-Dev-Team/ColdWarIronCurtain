@@ -3,7 +3,7 @@ focus_tree = {
 	country = {
 		factor = 0
 		modifier = {
-			add = 0
+			add = 1000
 			tag = VIE
 		}
 	}
@@ -1073,7 +1073,17 @@ focus_tree = {
 		available = {
 			date > 1955.09.18
 		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Referendum_Already_Held_tt
+				OR = {
+					has_country_flag = VIE_Referendum_Held	# the premiership branch runs its own referendum focus
+					has_global_flag = VIE_Republic_Proclaimed
+				}
+			}
+		}
 		completion_reward = {
+			set_country_flag = VIE_Referendum_Held
 			if = {
 				limit = { NOT = { has_global_flag = Indochina_War_Over } }
 				set_temp_variable = { ic_award = 100 }
@@ -1081,7 +1091,6 @@ focus_tree = {
 				set_temp_variable = { indochina_phase_amount = 50 }
 				indochina_struggle_deescalate = yes
 			}
-			custom_effect_tooltip = VIE_Referendum_Score_tt
 			if = {
 				limit = {
 					has_country_leader = {
@@ -1089,6 +1098,7 @@ focus_tree = {
 						ruling_only = yes
 					}
 				}
+				custom_effect_tooltip = VIE_Referendum_Score_tt
 				country_event = Diem.30
 			}
 			else = {
@@ -3095,7 +3105,7 @@ focus_tree = {
 		x = -1
 		y = 1
 		completion_reward = {
-
+			country_event = VIE_PMs.7
 		}
 	}
 	focus = {
@@ -3112,7 +3122,7 @@ focus_tree = {
 		x = 1
 		y = 1
 		completion_reward = {
-
+			country_event = VIE_PMs.7
 		}
 	}
 
@@ -3415,12 +3425,76 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = VIE_Diem_Cabinet_of_Eighteen
-		icon = GFX_VIE_NH_Reorganize_Incompetent_Government	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		id = VIE_Diem_Second_in_Command
+		icon = GFX_VIE_NH_Diem_Successor	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
 		cost = 1.4
 		relative_position_id = VIE_PM_Diem
 		prerequisite = {
 			focus = VIE_PM_Diem
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = -1
+		y = 1
+		completion_reward = {
+			add_political_power = 40
+			add_stability = 0.03
+			add_ideas = VIE_Nhu_Political_Counsellor
+			set_country_flag = VIE_Diem_Nhu_Deputy
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = 5 }
+			VIE_Change_Alt_Favoritism = yes
+			set_temp_variable = { daiviet_threat_change = -5 }	# the brother runs the files the party would rather nobody read
+			VIE_daiviet_threat_change = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Refugee_Commissariat
+		icon = GFX_VIE_Rescue_PhatDiem_Catholic_Militias	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_PM_Diem
+		prerequisite = {
+			focus = VIE_PM_Diem
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			add_ideas = VIE_Phu_Tong_Uy_Di_Cu
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			set_temp_variable = { hinh_standoff_change = 10 }	# a ministry of his own, staffed by people who owe the army nothing
+			VIE_hinh_standoff_change = yes
+			set_temp_variable = { favoritism_change = 5 }
+			VIE_Change_Alt_Favoritism = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Cabinet_of_Eighteen
+		icon = GFX_VIE_NH_Reorganize_Incompetent_Government	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Second_in_Command
+		prerequisite = {
+			focus = VIE_Diem_Second_in_Command
+		}
+		prerequisite = {
+			focus = VIE_Diem_Refugee_Commissariat
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Reinvite_CuongDe_Comrades
 		}
 		ai_will_do = {
 			base = 1
@@ -3454,15 +3528,259 @@ focus_tree = {
 				country_event = { id = Diem.20 hours = 6 }
 				country_event = { id = Diem.21 days = 45 }
 			}
+			else_if = {
+				limit = {
+					NOT = { has_character = VIE_Nguyen_Van_Hinh }
+					NOT = { has_country_flag = VIE_FRA_Coup }
+					NOT = { has_country_flag = VIE_Hinh_Coup }
+					NOT = { has_country_flag = VIE_Diem_Controls_Army }
+					NOT = { has_country_flag = VIE_Hinh_Bought_Off }
+				}
+				set_country_flag = VIE_Diem_Controls_Army	# there is no chief of staff left to fight; the General Staff answers to the premier by default
+			}
 		}
 	}
 	focus = {
-		id = VIE_Diem_Break_General_Hinh
-		icon = GFX_VIE_Recall_French_and_Pro_French_native_officers	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 5
+		id = VIE_Diem_Reinvite_CuongDe_Comrades
+		icon = GFX_VIE_NH_Promote_PhuQuoc_Hoi_Comrades	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Refugee_Commissariat
+		prerequisite = {
+			focus = VIE_Diem_Refugee_Commissariat
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Cabinet_of_Eighteen
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			has_character = VIE_Cuong_De
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_No_CuongDe_Circle_tt
+				NOT = { has_character = VIE_Cuong_De }
+			}
+		}
+		completion_reward = {
+			add_political_power = 25
+			add_stability = -0.05
+			set_country_flag = VIE_Diem_CuongDe_Circle
+			every_unit_leader = {
+				limit = { has_trait = CuongDe_Comrade }
+				add_trait = { trait = Pro_QuocGia }
+			}
+			if = {
+				limit = { has_character = VIE_Tran_Huu_Cong }
+				VIE_Tran_Huu_Cong = {
+					add_corps_commander_role = {
+						traits = { roc_trainee guerilla_fighter irregular_officer ww2_veteran CuongDe_Comrade Pro_QuocGia }
+						skill = 3
+						attack_skill = 3
+						defense_skill = 3
+						planning_skill = 1
+						logistics_skill = 2
+					}
+				}
+			}
+			add_popularity = {
+				ideology = nationalist
+				popularity = 0.05
+			}
+			set_temp_variable = { daiviet_threat_change = -20 }	# the Phuc-Quoc exiles are the men the Dai-Viet would otherwise have recruited
+			VIE_daiviet_threat_change = yes
+			set_temp_variable = { favoritism_change = -10 }	# the throne remembers who the prince's men are
+			VIE_Change_Main_Favoritism = yes
+			set_temp_variable = { hinh_standoff_change = 5 }
+			VIE_hinh_standoff_change = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_First_Cabinet
+		icon = GFX_VIE_Form_3_Ministries	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
 		relative_position_id = VIE_Diem_Cabinet_of_Eighteen
 		prerequisite = {
 			focus = VIE_Diem_Cabinet_of_Eighteen
+			focus = VIE_Diem_Reinvite_CuongDe_Comrades
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1954.09.24
+		}
+		completion_reward = {
+			add_political_power = 50
+			add_stability = 0.08
+			if = {
+				limit = { has_idea = VIE_Caretaker_Cabinet }
+				remove_ideas = VIE_Caretaker_Cabinet
+			}
+			set_country_flag = VIE_Diem_First_Cabinet_Formed
+			set_temp_variable = { hinh_standoff_change = 15 }	# the ministries that walked out in September are filled again, and filled by his people
+			VIE_hinh_standoff_change = yes
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = 10 }
+			VIE_Change_Alt_Favoritism = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Form_the_NRM
+		icon = GFX_VIE_NH_Political_Harmony	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_First_Cabinet
+		prerequisite = {
+			focus = VIE_Diem_First_Cabinet
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			date > 1954.10.02
+		}
+		completion_reward = {
+			add_political_power = 25
+			set_party_name = {
+				ideology = socialist
+				long_name = VIE_NRM_PARTY_long
+				name = VIE_NRM_PARTY
+			}
+			add_ideas = VIE_Phong_Trao_Cach_Mang_Quoc_Gia
+			set_country_flag = VIE_Diem_NRM_Formed
+			add_popularity = {
+				ideology = socialist
+				popularity = 0.05
+			}
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = 10 }
+			VIE_Change_Alt_Favoritism = yes
+			set_temp_variable = { hinh_standoff_change = 10 }
+			VIE_hinh_standoff_change = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Security_Directive
+		icon = GFX_VIE_Tam_Expand_AntiCommunist_Security	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_First_Cabinet
+		prerequisite = {
+			focus = VIE_Diem_First_Cabinet
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = -8
+		y = 1
+		available = {
+			date > 1954.12.31
+		}
+		completion_reward = {
+			add_political_power = -25
+			add_stability = -0.03
+			add_war_support = 0.05
+			if = {
+				limit = { NOT = { has_idea = VIE_AnNinh_QuocGia } }
+				add_ideas = VIE_AnNinh_QuocGia
+			}
+			set_country_flag = VIE_Diem_Security_Directive_Issued
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { daiviet_threat_change = 10 }	# every police file opened is a grievance the party can bank
+			VIE_daiviet_threat_change = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_National_Revolutionary_Committee
+		icon = GFX_VIE_1955_Grand_Election	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_First_Cabinet
+		prerequisite = {
+			focus = VIE_Diem_First_Cabinet
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 8
+		y = 1
+		completion_reward = {
+			country_event = Diem.3
+		}
+	}
+	focus = {
+		id = VIE_Diem_National_Bank
+		icon = GFX_VIE_Introduce_Dong_Currency	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Form_the_NRM
+		prerequisite = {
+			focus = VIE_Diem_Form_the_NRM
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = 25
+			set_temp_variable = { money_to_gain = 0.15 }
+			add_money_with_tooltip_effect = yes
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = -10 }
+			VIE_Change_Main_Favoritism = yes
+			set_temp_variable = { hinh_standoff_change = 15 }	# the army draws its pay in Vietnamese money now, and from the premier
+			VIE_hinh_standoff_change = yes
+			add_opinion_modifier = {
+				target = FRA
+				modifier = medium_decrease
+			}
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 25 }
+				indochina_struggle_grant_pro_independence = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Confront_the_Far_Right
+		icon = GFX_VIE_Denounce_VietQuoc_Republic	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Security_Directive
+		prerequisite = {
+			focus = VIE_Diem_Security_Directive
 		}
 		ai_will_do = {
 			base = 1
@@ -3472,6 +3790,32 @@ focus_tree = {
 			}
 		}
 		x = -2
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			set_country_flag = VIE_Diem_Far_Right_Confronted
+			set_temp_variable = { daiviet_threat_change = 5 }	# naming them in public is itself a provocation
+			VIE_daiviet_threat_change = yes
+			set_temp_variable = { influence_change = 5 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Break_General_Hinh
+		icon = GFX_VIE_Recall_French_and_Pro_French_native_officers	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 5
+		relative_position_id = VIE_Diem_Security_Directive
+		prerequisite = {
+			focus = VIE_Diem_Security_Directive
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 2
 		y = 1
 		available = {
 			custom_trigger_tooltip = {
@@ -3486,13 +3830,277 @@ focus_tree = {
 			}
 		}
 		bypass = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Hinh_Already_Won_tt
-				has_completed_focus = VIE_Hinh_Coup
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = VIE_Diem_Hinh_Already_Won_tt
+					has_completed_focus = VIE_Hinh_Coup
+				}
+				custom_trigger_tooltip = {
+					tooltip = VIE_Diem_Hinh_Already_Settled_tt
+					OR = {
+						has_country_flag = VIE_Diem_Controls_Army
+						has_country_flag = VIE_Hinh_Bought_Off
+						NOT = { has_character = VIE_Nguyen_Van_Hinh }
+					}
+				}
 			}
 		}
 		completion_reward = {
 			country_event = Diem.1
+		}
+	}
+	focus = {
+		id = VIE_Diem_Decree_No_2_Land_Reform
+		icon = GFX_VIE_SmallScale_Agri_Reforms	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_National_Bank
+		prerequisite = {
+			focus = VIE_Diem_National_Bank
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = -2
+		y = 1
+		available = {
+			date > 1955.01.08
+		}
+		completion_reward = {
+			add_political_power = -25
+			add_stability = 0.05
+			set_country_flag = VIE_Diem_Du_No_2
+			custom_effect_tooltip = Decrease_Land_Reform_Penalty_5
+			add_to_variable = {
+				VIE_Land_Reform_Penalty = 0.05
+			}
+			add_popularity = {
+				ideology = socialist
+				popularity = 0.05
+			}
+			set_temp_variable = { favoritism_change = -10 }	# the rents the decree caps are the throne's friends' rents
+			VIE_Change_Main_Favoritism = yes
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 25 }
+				indochina_struggle_grant_pro_independence = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Passage_to_Freedom
+		icon = GFX_VIE_Resettle_Malaysian_Refugees	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_National_Bank
+		prerequisite = {
+			focus = VIE_Diem_National_Bank
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 2
+		y = 1
+		completion_reward = {
+			add_political_power = -10
+			add_stability = -0.03
+			add_manpower = 25000
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			add_popularity = {
+				ideology = socialist
+				popularity = 0.05
+			}
+			set_temp_variable = { hinh_standoff_change = 10 }	# a million northern Catholics are a constituency the army does not have
+			VIE_hinh_standoff_change = yes
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 25 }
+				indochina_struggle_grant_pro_independence = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Court_the_Cao_Dai
+		icon = GFX_VIE_NH_Reward_CaoDai_Loyalists	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_National_Bank
+		prerequisite = {
+			focus = VIE_Diem_National_Bank
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Cao_Dai_Settled_tt
+				OR = {
+					has_country_flag = crushed_cao_dai
+					has_country_flag = integrated_cao_dai
+				}
+			}
+		}
+		completion_reward = {
+			add_political_power = -15
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			set_temp_variable = { cao_dai_loyalty_change = -20 }	# stored var falls, displayed loyalty rises
+			cao_dai_loyalty_change_tt = yes
+			set_temp_variable = { binh_xuyen_loyalty_change = 5 }
+			binh_xuyen_loyalty_change_tt = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Found_the_Can_Lao
+		icon = GFX_VIE_Reward_Loyal_Political_Parties	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_National_Revolutionary_Committee
+		prerequisite = {
+			focus = VIE_Diem_National_Revolutionary_Committee
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = -2
+		y = 1
+		completion_reward = {
+			add_political_power = 75
+			add_stability = 0.05
+			add_ideas = VIE_Can_Lao_Party
+			set_country_flag = VIE_Can_Lao_Founded
+			set_temp_variable = { favoritism_change = 10 }
+			VIE_Change_Alt_Favoritism = yes
+			set_temp_variable = { hinh_standoff_change = 20 }	# a party is the one thing the chief of staff cannot arrest
+			VIE_hinh_standoff_change = yes
+			set_temp_variable = { daiviet_threat_change = -15 }	# the Can-Lao recruits out of the same nationalist pool the Dai-Viet draw on
+			VIE_daiviet_threat_change = yes
+			news_event = { id = Can_Lao.1 hours = 6 random_hours = 6 }
+		}
+	}
+	focus = {
+		id = VIE_Diem_Fate_of_the_Crownlands
+		icon = GFX_VIE_NH_Request_Montagnard_Dominion	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_National_Revolutionary_Committee
+		prerequisite = {
+			focus = VIE_Diem_National_Revolutionary_Committee
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 2
+		y = 1
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Crown_Domain_Gone_tt
+				OR = {
+					NOT = { country_exists = FUL }
+					has_country_flag = VIE_Crown_Domains_Annexed
+				}
+			}
+		}
+		completion_reward = {
+			add_political_power = -20
+			set_country_flag = VIE_Diem_Crownlands_Reviewed
+			if = {
+				limit = { NOT = { has_country_flag = CrownDomain_Decisions_Unlocked } }
+				set_country_flag = CrownDomain_Decisions_Unlocked
+				unlock_decision_category_tooltip = VIE_CrownDomain_Decisions
+			}
+			set_temp_variable = { favoritism_change = -10 }	# the Royal Domain is the throne's private estate and everyone in Da-Lat knows it
+			VIE_Change_Main_Favoritism = yes
+			set_temp_variable = { influence_change = 5 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Accept_Multipartyism
+		icon = GFX_VIE_Tam_Elect_VietQuoc_Leadership	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Confront_the_Far_Right
+		prerequisite = {
+			focus = VIE_Diem_Confront_the_Far_Right
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Ba_Long_Expedition
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+		x = -1
+		y = 1
+		available = {
+			date > 1955.02.01
+		}
+		completion_reward = {
+			add_political_power = -50
+			add_stability = 0.05
+			set_country_flag = VIE_Diem_Multipartyism
+			set_temp_variable = { daiviet_threat_change = -25 }
+			VIE_daiviet_threat_change = yes
+			set_temp_variable = { influence_change = -10 }	# a cabinet shared is a cabinet the premier no longer runs alone
+			VIE_Change_Domestic_Influence = yes
+			add_popularity = {
+				ideology = nationalist
+				popularity = 0.05
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Ba_Long_Expedition
+		icon = GFX_VIE_Contact_DaiViet_War_Bases	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 3
+		relative_position_id = VIE_Diem_Confront_the_Far_Right
+		prerequisite = {
+			focus = VIE_Diem_Confront_the_Far_Right
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Accept_Multipartyism
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1955.02.01
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Ba_Long_Cleared_tt
+				has_country_flag = VIE_Ba_Long_Cleared
+			}
+		}
+		completion_reward = {
+			country_event = DaiViet.4
 		}
 	}
 	focus = {
@@ -3540,12 +4148,12 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = VIE_Diem_Passage_to_Freedom
-		icon = GFX_VIE_Resettle_Malaysian_Refugees	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		id = VIE_Diem_Land_Redistribution
+		icon = GFX_VIE_Tam_SmallScale_CaiCach_DienDia	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
 		cost = 1.4
-		relative_position_id = VIE_Diem_Cabinet_of_Eighteen
+		relative_position_id = VIE_Diem_Decree_No_2_Land_Reform
 		prerequisite = {
-			focus = VIE_Diem_Cabinet_of_Eighteen
+			focus = VIE_Diem_Decree_No_2_Land_Reform
 		}
 		ai_will_do = {
 			base = 1
@@ -3555,24 +4163,32 @@ focus_tree = {
 			}
 		}
 		x = 0
-		y = 1
+		y = 2
+		available = {
+			date > 1955.02.05
+		}
 		completion_reward = {
-			add_political_power = -10
-			add_stability = -0.03
-			add_manpower = 25000
-			set_temp_variable = { money_to_gain = -0.1 }
+			add_political_power = -35
+			add_stability = 0.05
+			set_country_flag = VIE_Diem_Land_Redistributed
+			custom_effect_tooltip = Decrease_Land_Reform_Penalty_10
+			add_to_variable = {
+				VIE_Land_Reform_Penalty = 0.10
+			}
+			set_temp_variable = { money_to_gain = -0.2 }
 			add_money_with_tooltip_effect = yes
+			every_owned_state = {
+				limit = { is_core_of = VIE }
+				add_manpower = 2000
+			}
 			add_popularity = {
 				ideology = socialist
 				popularity = 0.05
 			}
-			set_temp_variable = { hinh_standoff_change = 10 }	# a million northern Catholics are a constituency the army does not have
-			VIE_hinh_standoff_change = yes
-			if = {
-				limit = { NOT = { has_global_flag = Indochina_War_Over } }
-				set_temp_variable = { ic_award = 25 }
-				indochina_struggle_grant_pro_independence = yes
-			}
+			set_temp_variable = { favoritism_change = -10 }
+			VIE_Change_Main_Favoritism = yes
+			set_temp_variable = { favoritism_change = 10 }
+			VIE_Change_Alt_Favoritism = yes
 		}
 	}
 	focus = {
@@ -3591,7 +4207,7 @@ focus_tree = {
 			}
 		}
 		x = 0
-		y = 1
+		y = 2
 		completion_reward = {
 			set_country_flag = VIE_Diem_Refugees_Settled
 			add_political_power = 50
@@ -3609,12 +4225,12 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = VIE_Diem_National_Bank
-		icon = GFX_VIE_Introduce_Dong_Currency	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		id = VIE_Diem_Subdue_the_Hoa_Hao
+		icon = GFX_VIE_Toan_Spread_HoaHao_Buddhism	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
 		cost = 1.4
-		relative_position_id = VIE_Diem_Cabinet_of_Eighteen
+		relative_position_id = VIE_Diem_Court_the_Cao_Dai
 		prerequisite = {
-			focus = VIE_Diem_Cabinet_of_Eighteen
+			focus = VIE_Diem_Court_the_Cao_Dai
 		}
 		ai_will_do = {
 			base = 1
@@ -3623,36 +4239,34 @@ focus_tree = {
 				is_historical_focus_on = yes
 			}
 		}
-		x = 2
+		x = 0
 		y = 1
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Hoa_Hao_Settled_tt
+				OR = {
+					has_country_flag = crushed_hoa_hao
+					has_country_flag = integrated_hoa_hao
+				}
+			}
+		}
 		completion_reward = {
-			add_political_power = 25
-			set_temp_variable = { money_to_gain = 0.15 }
-			add_money_with_tooltip_effect = yes
-			set_temp_variable = { influence_change = 15 }
-			VIE_Change_Domestic_Influence = yes
-			set_temp_variable = { favoritism_change = -10 }
-			VIE_Change_Main_Favoritism = yes
-			set_temp_variable = { hinh_standoff_change = 15 }	# the army draws its pay in Vietnamese money now, and from the premier
-			VIE_hinh_standoff_change = yes
-			add_opinion_modifier = {
-				target = FRA
-				modifier = medium_decrease
-			}
-			if = {
-				limit = { NOT = { has_global_flag = Indochina_War_Over } }
-				set_temp_variable = { ic_award = 25 }
-				indochina_struggle_grant_pro_independence = yes
-			}
+			add_political_power = -15
+			add_war_support = 0.05
+			add_stability = -0.05
+			set_temp_variable = { hoa_hao_loyalty_change = -15 }
+			hoa_hao_loyalty_change_tt = yes
+			set_temp_variable = { favoritism_change = 5 }
+			VIE_Change_Alt_Favoritism = yes
 		}
 	}
 	focus = {
 		id = VIE_Diem_Cut_the_Subsidies
 		icon = GFX_VIE_Using_Sect_Resources	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
 		cost = 1.4
-		relative_position_id = VIE_Diem_National_Bank
+		relative_position_id = VIE_Diem_Subdue_the_Hoa_Hao
 		prerequisite = {
-			focus = VIE_Diem_National_Bank
+			focus = VIE_Diem_Subdue_the_Hoa_Hao
 		}
 		ai_will_do = {
 			base = 1
@@ -3706,12 +4320,15 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = VIE_Diem_Court_the_Cao_Dai
-		icon = GFX_VIE_NH_Reward_CaoDai_Loyalists	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 1.4
-		relative_position_id = VIE_Diem_Cut_the_Subsidies
+		id = VIE_Diem_Ally_Tran_Quoc_Buu
+		icon = GFX_VIE_Quang_Legalize_Worker_Unions	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Found_the_Can_Lao
 		prerequisite = {
-			focus = VIE_Diem_Cut_the_Subsidies
+			focus = VIE_Diem_Found_the_Can_Lao
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Tinh_Than_Group
 		}
 		ai_will_do = {
 			base = 1
@@ -3722,194 +4339,88 @@ focus_tree = {
 		}
 		x = -1
 		y = 1
+		available = {
+			has_character = VIE_Tran_Quoc_Buu
+		}
 		bypass = {
 			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Cao_Dai_Settled_tt
-				OR = {
-					has_country_flag = crushed_cao_dai
-					has_country_flag = integrated_cao_dai
-				}
+				tooltip = VIE_Diem_No_Buu_tt
+				NOT = { has_character = VIE_Tran_Quoc_Buu }
 			}
 		}
 		completion_reward = {
-			add_political_power = -15
-			set_temp_variable = { money_to_gain = -0.1 }
-			add_money_with_tooltip_effect = yes
-			set_temp_variable = { cao_dai_loyalty_change = -20 }	# stored var falls, displayed loyalty rises
-			cao_dai_loyalty_change_tt = yes
-			set_temp_variable = { binh_xuyen_loyalty_change = 5 }
-			binh_xuyen_loyalty_change_tt = yes
-		}
-	}
-	focus = {
-		id = VIE_Diem_Subdue_the_Hoa_Hao
-		icon = GFX_VIE_Toan_Spread_HoaHao_Buddhism	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 1.4
-		relative_position_id = VIE_Diem_Cut_the_Subsidies
-		prerequisite = {
-			focus = VIE_Diem_Cut_the_Subsidies
-		}
-		ai_will_do = {
-			base = 1
-			modifier = {
-				factor = 100
-				is_historical_focus_on = yes
-			}
-		}
-		x = 1
-		y = 1
-		bypass = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Hoa_Hao_Settled_tt
-				OR = {
-					has_country_flag = crushed_hoa_hao
-					has_country_flag = integrated_hoa_hao
+			add_political_power = 25
+			set_country_flag = VIE_Diem_Buu_Alliance
+			VIE_Tran_Quoc_Buu = {
+				add_corps_commander_role = {
+					traits = { irregular_officer politically_connected }
+					skill = 3
+					attack_skill = 3
+					defense_skill = 3
+					planning_skill = 3
+					logistics_skill = 3
 				}
 			}
-		}
-		completion_reward = {
-			add_political_power = -15
-			add_war_support = 0.05
-			add_stability = -0.05
-			set_temp_variable = { hoa_hao_loyalty_change = -15 }
-			hoa_hao_loyalty_change_tt = yes
-			set_temp_variable = { favoritism_change = 5 }
-			VIE_Change_Alt_Favoritism = yes
-		}
-	}
-	focus = {
-		id = VIE_Diem_Confront_Binh_Xuyen
-		icon = GFX_VIE_Incorporate_Religious_Sects_BinhXuyen_Forces	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 1.4
-		relative_position_id = VIE_Diem_Cabinet_of_Eighteen
-		prerequisite = {
-			focus = VIE_Diem_Cabinet_of_Eighteen
-		}
-		ai_will_do = {
-			base = 1
-			modifier = {
-				factor = 100
-				is_historical_focus_on = yes
+			hidden_effect = {
+				remove_ideas = policy_union_temp_0
+				remove_ideas = policy_union_temp_1
+				remove_ideas = policy_union_temp_2
+				remove_ideas = policy_union_temp_3
 			}
-		}
-		x = -4
-		y = 1
-		bypass = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Binh_Xuyen_Settled_tt
-				OR = {
-					has_country_flag = crushed_binh_xuyen
-					has_country_flag = integrated_binh_xuyen
-				}
+			add_ideas = policy_union_temp_4
+			add_popularity = {
+				ideology = socialist
+				popularity = 0.05
 			}
-		}
-		completion_reward = {
-			add_political_power = -25
-			add_stability = -0.05
-			set_temp_variable = { binh_xuyen_loyalty_change = 25 }	# stripping the National Police enrages them
-			binh_xuyen_loyalty_change_tt = yes
-			set_temp_variable = { influence_change = 5 }
+			set_temp_variable = { influence_change = 10 }
 			VIE_Change_Domestic_Influence = yes
 		}
 	}
 	focus = {
-		id = VIE_Diem_Battle_of_Saigon
-		icon = GFX_VIE_NH_Fight_Against_BinhXuyen_Criminal_Empire	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 7
-		relative_position_id = VIE_Diem_Confront_Binh_Xuyen
+		id = VIE_Diem_Tinh_Than_Group
+		icon = GFX_VIE_NH_Promote_TamDan_Policies	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Found_the_Can_Lao
 		prerequisite = {
-			focus = VIE_Diem_Confront_Binh_Xuyen
+			focus = VIE_Diem_Found_the_Can_Lao
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Ally_Tran_Quoc_Buu
 		}
 		ai_will_do = {
 			base = 1
 			modifier = {
-				factor = 100
-				is_historical_focus_on = yes
-			}
-		}
-		x = 0
-		y = 1
-		available = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Controls_Army_tt
-				has_country_flag = VIE_Diem_Controls_Army
-			}
-		}
-		bypass = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Binh_Xuyen_Settled_tt
-				OR = {
-					has_country_flag = crushed_binh_xuyen
-					has_country_flag = integrated_binh_xuyen
-				}
-			}
-		}
-		completion_reward = {
-			country_event = Diem.2
-		}
-	}
-	focus = {
-		id = VIE_Diem_National_Revolutionary_Committee
-		icon = GFX_VIE_1955_Grand_Election	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 1.4
-		relative_position_id = VIE_Diem_Battle_of_Saigon
-		prerequisite = {
-			focus = VIE_Diem_Battle_of_Saigon
-		}
-		prerequisite = {
-			focus = VIE_Diem_Purge_Francophile_Officers
-		}
-		ai_will_do = {
-			base = 1
-			modifier = {
-				factor = 100
+				factor = 0
 				is_historical_focus_on = yes
 			}
 		}
 		x = 1
 		y = 1
 		completion_reward = {
-			country_event = Diem.3
-		}
-	}
-	focus = {
-		id = VIE_Diem_Found_the_Can_Lao
-		icon = GFX_VIE_Reward_Loyal_Political_Parties	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 1.4
-		relative_position_id = VIE_Diem_Cabinet_of_Eighteen
-		prerequisite = {
-			focus = VIE_Diem_Cabinet_of_Eighteen
-		}
-		ai_will_do = {
-			base = 1
-			modifier = {
-				factor = 100
-				is_historical_focus_on = yes
+			add_political_power = 50
+			add_stability = -0.03
+			set_country_flag = VIE_Diem_Tinh_Than
+			if = {
+				limit = { NOT = { has_idea = VIE_Democratic_Centralism_1 } }
+				add_ideas = VIE_Democratic_Centralism_1
 			}
-		}
-		x = 4
-		y = 1
-		completion_reward = {
-			add_political_power = 75
-			add_stability = 0.05
-			add_ideas = VIE_Can_Lao_Party
-			set_country_flag = VIE_Can_Lao_Founded
-			set_temp_variable = { favoritism_change = 10 }
-			VIE_Change_Alt_Favoritism = yes
-			set_temp_variable = { hinh_standoff_change = 20 }	# a party is the one thing the chief of staff cannot arrest
-			VIE_hinh_standoff_change = yes
-			set_temp_variable = { daiviet_threat_change = -15 }	# the Can-Lao recruits out of the same nationalist pool the Dai-Viet draw on
+			add_research_slot = 1
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { daiviet_threat_change = -10 }
 			VIE_daiviet_threat_change = yes
-			news_event = { id = Can_Lao.1 hours = 6 random_hours = 6 }
 		}
 	}
 	focus = {
 		id = VIE_Diem_Decree_21
 		icon = GFX_VIE_Request_Control_Over_Crown_Domains	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
 		cost = 1.4
-		relative_position_id = VIE_Diem_Found_the_Can_Lao
+		relative_position_id = VIE_Diem_Fate_of_the_Crownlands
 		prerequisite = {
-			focus = VIE_Diem_Found_the_Can_Lao
+			focus = VIE_Diem_Fate_of_the_Crownlands
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Retain_Montagnard_Autonomy
 		}
 		ai_will_do = {
 			base = 1
@@ -3918,7 +4429,7 @@ focus_tree = {
 				is_historical_focus_on = yes
 			}
 		}
-		x = 0
+		x = -1
 		y = 1
 		available = {
 			date > 1955.03.11
@@ -3973,9 +4484,179 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = VIE_Diem_Ba_Long_Expedition
-		icon = GFX_VIE_Contact_DaiViet_War_Bases	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 3
+		id = VIE_Diem_Retain_Montagnard_Autonomy
+		icon = GFX_VIE_Expand_Territoire_Autonome_Battalions	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Fate_of_the_Crownlands
+		prerequisite = {
+			focus = VIE_Diem_Fate_of_the_Crownlands
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Decree_21
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1955.03.11
+			country_exists = FUL
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Crown_Domain_Gone_tt
+				OR = {
+					NOT = { country_exists = FUL }
+					has_country_flag = VIE_Crown_Domains_Annexed
+				}
+			}
+		}
+		completion_reward = {
+			add_political_power = -20
+			add_stability = 0.03
+			set_country_flag = VIE_Montagnard_Autonomy_Retained	# read by VIE_Annex_FUL, which stays shut on this path
+			set_temp_variable = { favoritism_change = -15 }	# the decree still ends the imperial privilege, it simply does not hand the uplands to Saigon
+			VIE_Change_Main_Favoritism = yes
+			if = {
+				limit = { country_exists = FUL }
+				if = {
+					limit = { FUL = { is_subject_of = ROOT } }	# set_autonomy runs on the overlord, never inside the subject's scope
+					set_autonomy = {
+						target = FUL
+						autonomy_state = autonomy_indon_union
+						freedom_level = 0.4
+					}
+				}
+				FUL = {
+					set_country_flag = VIE_FUL_Autonomy_Guaranteed
+					country_event = { id = Autonomous_FUL_Republic.1 days = 3 }
+				}
+				add_opinion_modifier = {
+					target = FUL
+					modifier = large_increase
+				}
+				reverse_add_opinion_modifier = {
+					target = FUL
+					modifier = large_increase
+				}
+			}
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 25 }
+				indochina_struggle_grant_pro_ethnic = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Legalize_the_Nationalists
+		icon = GFX_VIE_Vinh_Rehabilitate_PhucQuoc_Members	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Accept_Multipartyism
+		prerequisite = {
+			focus = VIE_Diem_Accept_Multipartyism
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			add_stability = 0.08
+			set_country_flag = VIE_Diem_Nationalists_Legalized
+			set_temp_variable = { daiviet_threat_change = -30 }
+			VIE_daiviet_threat_change = yes
+			add_popularity = {
+				ideology = nationalist
+				popularity = 0.05
+			}
+			set_temp_variable = { influence_change = -5 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Purge_the_Nationalists
+		icon = GFX_VIE_Sabatoge_VietQuoc_Gov	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Ba_Long_Expedition
+		prerequisite = {
+			focus = VIE_Diem_Ba_Long_Expedition
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			add_stability = -0.05
+			add_war_support = 0.05
+			set_country_flag = VIE_Diem_Nationalists_Purged
+			set_temp_variable = { daiviet_threat_change = -35 }
+			VIE_daiviet_threat_change = yes
+			add_popularity = {
+				ideology = nationalist
+				popularity = -0.05
+			}
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Confront_Binh_Xuyen
+		icon = GFX_VIE_Incorporate_Religious_Sects_BinhXuyen_Forces	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Purge_Francophile_Officers
+		prerequisite = {
+			focus = VIE_Diem_Purge_Francophile_Officers
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = -1
+		y = 1
+		available = {
+			date > 1955.01.01
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Binh_Xuyen_Settled_tt
+				OR = {
+					has_country_flag = crushed_binh_xuyen
+					has_country_flag = integrated_binh_xuyen
+				}
+			}
+		}
+		completion_reward = {
+			add_political_power = -25
+			add_stability = -0.05
+			set_temp_variable = { binh_xuyen_loyalty_change = 25 }	# stripping the National Police enrages them
+			binh_xuyen_loyalty_change_tt = yes
+			set_temp_variable = { influence_change = 5 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Modernize_Ong_Lem
+		icon = GFX_VIE_Form_CongXa_BietDien	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
 		relative_position_id = VIE_Diem_Purge_Francophile_Officers
 		prerequisite = {
 			focus = VIE_Diem_Purge_Francophile_Officers
@@ -3989,17 +4670,433 @@ focus_tree = {
 		}
 		x = 1
 		y = 1
+		completion_reward = {
+			add_political_power = -20
+			set_temp_variable = { money_to_gain = -0.25 }
+			add_money_with_tooltip_effect = yes
+			set_country_flag = VIE_Diem_Ong_Lem_Modernized
+			286 = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+			add_war_support = 0.03
+			set_temp_variable = { hinh_standoff_change = 10 }	# the citadel is the one barracks in Saigon the General Staff does not hold the keys to
+			VIE_hinh_standoff_change = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Second_Cabinet
+		icon = GFX_VIE_Quang_Reform_Civil_Services	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Cut_the_Subsidies
+		prerequisite = {
+			focus = VIE_Diem_Land_Redistribution
+		}
+		prerequisite = {
+			focus = VIE_Diem_Cut_the_Subsidies
+		}
+		prerequisite = {
+			focus = VIE_Diem_Settle_the_Refugees
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
 		available = {
-			date > 1955.02.01
+			date > 1955.05.10
+		}
+		completion_reward = {
+			add_political_power = 75
+			add_stability = 0.10
+			set_country_flag = VIE_Diem_Second_Cabinet_Formed
+			if = {
+				limit = { has_idea = VIE_Caretaker_Cabinet }
+				remove_ideas = VIE_Caretaker_Cabinet
+			}
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = 15 }
+			VIE_Change_Alt_Favoritism = yes
+			set_temp_variable = { favoritism_change = -10 }	# not one of the new ministers is the throne's man
+			VIE_Change_Main_Favoritism = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Promote_the_Defectors
+		icon = GFX_VIE_Recommision_WW_Native_Veterns	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Ally_Tran_Quoc_Buu
+		prerequisite = {
+			focus = VIE_Diem_Ally_Tran_Quoc_Buu
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			add_stability = -0.03
+			set_country_flag = VIE_Diem_Defectors_Promoted
+			if = {
+				limit = {
+					has_country_flag = Cung_Defection
+					has_character = NLF_Kieu_Cong_Cung
+				}
+				NLF_Kieu_Cong_Cung = {
+					add_unit_leader_trait = politically_connected
+				}
+				add_to_variable = { VIE_ChieuHoi_Cadres = 2 }
+				custom_effect_tooltip = VIE_Diem_Cung_Civic_Action_tt
+			}
+			else = {
+				custom_effect_tooltip = VIE_Diem_No_Cung_tt
+			}
+			add_to_variable = { VIE_ChieuHoi_Cadres = 3 }
+			custom_effect_tooltip = VIE_Diem_ChieuHoi_Cadres_tt
+			add_popularity = {
+				ideology = socialist
+				popularity = 0.05
+			}
+			if = {
+				limit = { country_exists = VIN }
+				add_opinion_modifier = {
+					target = VIN
+					modifier = medium_decrease
+				}
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Court_the_Francophiles
+		icon = GFX_VIE_Winning_French_Favoritism	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Tinh_Than_Group
+		prerequisite = {
+			focus = VIE_Diem_Tinh_Than_Group
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = 25
+			add_stability = 0.05
+			set_country_flag = VIE_Diem_Francophiles_Courted
+			if = {
+				limit = { country_exists = FRA }
+				add_opinion_modifier = {
+					target = FRA
+					modifier = medium_increase
+				}
+				reverse_add_opinion_modifier = {
+					target = FRA
+					modifier = medium_increase
+				}
+			}
+			set_temp_variable = { money_to_gain = 0.2 }
+			add_money_with_tooltip_effect = yes
+			set_temp_variable = { daiviet_threat_change = -10 }
+			VIE_daiviet_threat_change = yes
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = -25 }
+				indochina_struggle_grant_pro_independence = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Mend_Minority_Relations
+		icon = GFX_VIE_DaLat_Summer_Vacation	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Decree_21
+		prerequisite = {
+			focus = VIE_Diem_Decree_21
+			focus = VIE_Diem_Retain_Montagnard_Autonomy
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			set_temp_variable = { money_to_gain = -0.2 }
+			add_money_with_tooltip_effect = yes
+			set_country_flag = VIE_Diem_Minorities_Mended
+			1757 = {
+				if = {
+					limit = { is_owned_by = VIE }
+					add_extra_state_shared_building_slots = 1
+					add_compliance = 15
+				}
+			}
+			every_owned_state = {
+				limit = {
+					NOT = { is_core_of = VIE }
+					is_on_continent = asia
+				}
+				add_compliance = 5
+			}
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 25 }
+				indochina_struggle_grant_pro_ethnic = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Nhan_Vi_the_Press
+		icon = GFX_VIE_Tighten_Noose_On_Western_Journalism	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Legalize_the_Nationalists
+		prerequisite = {
+			focus = VIE_Diem_Legalize_the_Nationalists
+			focus = VIE_Diem_Purge_the_Nationalists
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1955.07.16
+		}
+		completion_reward = {
+			add_political_power = -35
+			add_stability = -0.03
+			add_ideas = VIE_Cach_Mang_Quoc_Gia_Press
+			set_country_flag = VIE_Diem_Press_NhanVinized
+			set_temp_variable = { influence_change = 20 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = -15 }	# the papers that carried the throne's side stop carrying it
+			VIE_Change_Main_Favoritism = yes
+			if = {
+				limit = { country_exists = FRA }
+				add_opinion_modifier = {
+					target = FRA
+					modifier = medium_decrease
+				}
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Battle_of_Saigon
+		icon = GFX_VIE_NH_Fight_Against_BinhXuyen_Criminal_Empire	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 7
+		relative_position_id = VIE_Diem_Confront_Binh_Xuyen
+		prerequisite = {
+			focus = VIE_Diem_Confront_Binh_Xuyen
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Controls_Army_tt
+				has_country_flag = VIE_Diem_Controls_Army
+			}
 		}
 		bypass = {
 			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Ba_Long_Cleared_tt
-				has_country_flag = VIE_Ba_Long_Cleared
+				tooltip = VIE_Diem_Binh_Xuyen_Settled_tt
+				OR = {
+					has_country_flag = crushed_binh_xuyen
+					has_country_flag = integrated_binh_xuyen
+				}
 			}
 		}
 		completion_reward = {
-			country_event = DaiViet.4
+			country_event = Diem.2
+		}
+	}
+	focus = {
+		id = VIE_Diem_Abolish_the_Royal_Guard
+		icon = GFX_VIE_Amalgamatize_VeBinh_Paramilitaries	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Modernize_Ong_Lem
+		prerequisite = {
+			focus = VIE_Diem_Modernize_Ong_Lem
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			date > 1955.04.28
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Controls_Army_tt
+				has_country_flag = VIE_Diem_Controls_Army
+			}
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_NRC_Formed_tt
+				OR = {
+					has_country_flag = VIE_Diem_NRC_Formed
+					date > 1955.05.12	# a Committee kept advisory delays the abolition, it does not cancel it
+				}
+			}
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Throne_Already_Gone_tt
+				has_global_flag = VIE_Republic_Proclaimed
+			}
+		}
+		completion_reward = {
+			country_event = Diem.41
+		}
+	}
+	focus = {
+		id = VIE_Diem_Seize_the_Royal_Estate
+		icon = GFX_VIE_Auction_off_Imperial_Treasures	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Second_Cabinet
+		prerequisite = {
+			focus = VIE_Diem_Second_Cabinet
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			date > 1955.05.31
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Throne_Already_Gone_tt
+				has_global_flag = VIE_Republic_Proclaimed
+			}
+		}
+		completion_reward = {
+			add_political_power = -25
+			set_temp_variable = { money_to_gain = 1.5 }
+			add_money_with_tooltip_effect = yes
+			set_country_flag = VIE_Diem_Royal_Estate_Seized
+			1758 = {
+				if = {
+					limit = { is_owned_by = VIE }
+					add_extra_state_shared_building_slots = 1
+				}
+			}
+			add_popularity = {
+				ideology = monarchism
+				popularity = -0.10
+			}
+			set_temp_variable = { favoritism_change = -30 }	# Hue and the private accounts are the last thing the throne still owns
+			VIE_Change_Main_Favoritism = yes
+			set_temp_variable = { favoritism_change = 10 }
+			VIE_Change_Alt_Favoritism = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Civil_Action_Commissariat
+		icon = GFX_VIE_NH_Established_DacPhu_DanTien_Cuoc_Commission	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Promote_the_Defectors
+		prerequisite = {
+			focus = VIE_Diem_Promote_the_Defectors
+			focus = VIE_Diem_Court_the_Francophiles
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1955.03.07
+		}
+		completion_reward = {
+			add_political_power = -35
+			add_ideas = VIE_Dac_Phu_Cong_Dan_Vu
+			set_country_flag = VIE_Diem_Civil_Action_Founded
+			set_temp_variable = { money_to_gain = -0.3 }
+			add_money_with_tooltip_effect = yes
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Appoint_Ngo_Dinh_Can
+		icon = GFX_VIE_CD_Recruit_NgoDinh_Brothers	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 1.4
+		relative_position_id = VIE_Diem_Mend_Minority_Relations
+		prerequisite = {
+			focus = VIE_Diem_Mend_Minority_Relations
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = 25
+			add_stability = 0.05
+			set_country_flag = VIE_Diem_Can_Appointed
+			if = {
+				limit = { NOT = { has_character = VIE_Ngo_Dinh_Can } }
+				recruit_character = VIE_Ngo_Dinh_Can
+			}
+			every_owned_state = {
+				limit = {
+					NOT = { is_core_of = VIE }
+					is_on_continent = asia
+				}
+				add_compliance = 5
+			}
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { daiviet_threat_change = -10 }	# Trung-Phan is where the party recruited, and it now answers to the premier's brother
+			VIE_daiviet_threat_change = yes
 		}
 	}
 	focus = {
@@ -4017,7 +5114,7 @@ focus_tree = {
 				is_historical_focus_on = yes
 			}
 		}
-		x = -1
+		x = 0
 		y = 1
 		available = {
 			date > 1955.09.01
@@ -4027,11 +5124,21 @@ focus_tree = {
 			}
 		}
 		bypass = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Binh_Xuyen_Settled_tt
-				OR = {
-					has_country_flag = crushed_binh_xuyen
-					has_country_flag = integrated_binh_xuyen
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = VIE_Diem_Binh_Xuyen_Settled_tt
+					OR = {
+						has_country_flag = crushed_binh_xuyen
+						has_country_flag = integrated_binh_xuyen
+					}
+				}
+				custom_trigger_tooltip = {	# Diem.2.b settled Cholon by negotiation, so there is no Rung-Sac pocket to hunt
+					tooltip = VIE_Diem_No_Rung_Sac_Pocket_tt
+					AND = {
+						date > 1955.09.01
+						has_completed_focus = VIE_Diem_Battle_of_Saigon
+						NOT = { has_country_flag = VIE_Binh_Xuyen_Rung_Sac }
+					}
 				}
 			}
 		}
@@ -4040,43 +5147,9 @@ focus_tree = {
 		}
 	}
 	focus = {
-		id = VIE_Diem_Abolish_the_Royal_Guard
-		icon = GFX_VIE_Amalgamatize_VeBinh_Paramilitaries	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		id = VIE_Diem_Promote_Loyalist_Officers
+		icon = GFX_VIE_Establish_Autonomous_Command_Staffs	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
 		cost = 1.4
-		relative_position_id = VIE_Diem_National_Revolutionary_Committee
-		prerequisite = {
-			focus = VIE_Diem_National_Revolutionary_Committee
-		}
-		ai_will_do = {
-			base = 1
-			modifier = {
-				factor = 100
-				is_historical_focus_on = yes
-			}
-		}
-		x = 0
-		y = 1
-		available = {
-			date > 1955.04.28
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Controls_Army_tt
-				has_country_flag = VIE_Diem_Controls_Army
-			}
-		}
-		bypass = {
-			custom_trigger_tooltip = {
-				tooltip = VIE_Diem_Throne_Already_Gone_tt
-				has_global_flag = VIE_Republic_Proclaimed
-			}
-		}
-		completion_reward = {
-			country_event = Diem.41
-		}
-	}
-	focus = {
-		id = VIE_Diem_Reject_the_Geneva_Elections
-		icon = GFX_VIE_Proclaim_Sole_Viet_State	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
-		cost = 2
 		relative_position_id = VIE_Diem_Abolish_the_Royal_Guard
 		prerequisite = {
 			focus = VIE_Diem_Abolish_the_Royal_Guard
@@ -4089,6 +5162,41 @@ focus_tree = {
 			}
 		}
 		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			add_war_support = 0.05
+			set_country_flag = VIE_Diem_Loyalist_Officers_Promoted
+			add_ideas = Diem_Pol_Commissar
+			if = {
+				limit = { has_character = VIE_Duong_Van_Minh }
+				VIE_Duong_Van_Minh = { promote_leader = yes }
+			}
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { daiviet_threat_change = 10 }	# every promotion out of turn is another colonel with a grievance
+			VIE_daiviet_threat_change = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Reject_the_Geneva_Elections
+		icon = GFX_VIE_Proclaim_Sole_Viet_State	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Seize_the_Royal_Estate
+		prerequisite = {
+			focus = VIE_Diem_Seize_the_Royal_Estate
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Accept_Pham_Van_Dong
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = -1
 		y = 1
 		available = {
 			custom_trigger_tooltip = {
@@ -4158,6 +5266,338 @@ focus_tree = {
 				}
 			}
 			news_event = { id = Diem.12 hours = 6 random_hours = 6 }
+		}
+	}
+	focus = {
+		id = VIE_Diem_Accept_Pham_Van_Dong
+		icon = GFX_VIE_Northern_Question	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Seize_the_Royal_Estate
+		prerequisite = {
+			focus = VIE_Diem_Seize_the_Royal_Estate
+		}
+		mutually_exclusive = {
+			focus = VIE_Diem_Reject_the_Geneva_Elections
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			country_exists = VIN
+			custom_trigger_tooltip = {
+				tooltip = geneva_election_scheduled_avail_TT
+				check_variable = { global.geneva_elections_term > 1 }
+			}
+		}
+		bypass = {
+			OR = {
+				custom_trigger_tooltip = {
+					tooltip = VIE_Diem_No_North_To_Refuse_tt
+					NOT = { country_exists = VIN }
+				}
+				has_global_flag = geneva_election_resolved
+				custom_trigger_tooltip = {
+					tooltip = geneva_elections_never_scheduled_TT
+					AND = {
+						has_global_flag = geneva_conference_concluded
+						NOT = { has_global_flag = geneva_unified_settlement }
+						NOT = { check_variable = { global.geneva_elections_term > 1 } }
+					}
+				}
+			}
+		}
+		completion_reward = {
+			add_political_power = -25
+			add_stability = -0.05
+			add_war_support = -0.05
+			set_country_flag = VIE_Diem_Accepted_Pham_Van_Dong
+			set_country_flag = VIE_reunification_election_accepted
+			if = {
+				limit = { country_exists = VIN }
+				VIN = {
+					set_country_flag = VIN_reunification_election_approved
+					add_opinion_modifier = {
+						target = VIE
+						modifier = medium_increase
+					}
+				}
+				add_opinion_modifier = {
+					target = VIN
+					modifier = medium_increase
+				}
+			}
+			if = {
+				limit = { country_exists = USA }
+				add_opinion_modifier = {
+					target = USA
+					modifier = medium_decrease
+				}
+				reverse_add_opinion_modifier = {
+					target = USA
+					modifier = medium_decrease
+				}
+			}
+			set_temp_variable = { favoritism_change = -10 }
+			VIE_Change_Alt_Favoritism = yes
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 50 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 25 }
+				indochina_struggle_deescalate = yes
+			}
+		}
+	}
+	focus = {
+		id = VIE_Diem_Dismantle_the_United_Front
+		icon = GFX_VIE_Vinh_Incorporate_Sect_Assets	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Nhan_Vi_the_Press
+		prerequisite = {
+			focus = VIE_Diem_Nhan_Vi_the_Press
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			date > 1955.10.05
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_United_Front_Standing_tt
+				has_country_flag = VIE_Unified_Front_Formed
+			}
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_No_United_Front_tt
+				NOT = { has_country_flag = VIE_Unified_Front_Formed }
+			}
+		}
+		completion_reward = {
+			add_political_power = -25
+			add_stability = 0.08
+			clr_country_flag = VIE_Unified_Front_Formed
+			set_country_flag = VIE_Diem_United_Front_Dismantled
+			set_temp_variable = { cao_dai_loyalty_change = -25 }	# stored var falls, displayed loyalty rises
+			cao_dai_loyalty_change_tt = yes
+			set_temp_variable = { hoa_hao_loyalty_change = -25 }
+			hoa_hao_loyalty_change_tt = yes
+			set_temp_variable = { binh_xuyen_loyalty_change = -15 }
+			binh_xuyen_loyalty_change_tt = yes
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = 10 }
+			VIE_Change_Alt_Favoritism = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Found_the_ARVN
+		icon = GFX_VIE_National_Army_Vietnam	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 3
+		relative_position_id = VIE_Diem_Hoang_Dieu_Campaign
+		prerequisite = {
+			focus = VIE_Diem_Hoang_Dieu_Campaign
+		}
+		prerequisite = {
+			focus = VIE_Diem_Promote_Loyalist_Officers
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1955.10.26
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Controls_Army_tt
+				has_country_flag = VIE_Diem_Controls_Army
+			}
+		}
+		completion_reward = {
+			add_political_power = 50
+			add_war_support = 0.10
+			add_ideas = VIE_Quan_Luc_VNCH
+			set_country_flag = VIE_Diem_ARVN_Founded
+			if = {
+				limit = { has_character = VIE_Le_Van_Ty }
+				VIE_Le_Van_Ty = { promote_leader = yes }
+			}
+			army_experience = 25
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+			set_temp_variable = { favoritism_change = 15 }
+			VIE_Change_Alt_Favoritism = yes
+			set_temp_variable = { favoritism_change = -15 }
+			VIE_Change_Main_Favoritism = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Deploy_the_Cadres
+		icon = GFX_VIE_NH_Pacifying_NamPhan	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Civil_Action_Commissariat
+		prerequisite = {
+			focus = VIE_Diem_Civil_Action_Commissariat
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			date > 1955.04.15
+		}
+		completion_reward = {
+			add_political_power = -25
+			add_stability = 0.05
+			set_country_flag = VIE_Mobilized_Civil_Action_Cadres	# unlocks the VIE_Cadre_* per-state decisions
+			set_country_flag = VIE_Diem_Cadres_Deployed
+			add_to_variable = { VIE_ChieuHoi_Cadres = 5 }
+			custom_effect_tooltip = VIE_Diem_ChieuHoi_Cadres_tt
+			every_owned_state = {
+				limit = { is_core_of = VIE }
+				add_compliance = 5
+			}
+			set_temp_variable = { influence_change = 15 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Integrate_Minority_Forces
+		icon = GFX_VIE_Modernize_Autonomous_Armies_Orgs	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Appoint_Ngo_Dinh_Can
+		prerequisite = {
+			focus = VIE_Diem_Appoint_Ngo_Dinh_Can
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		completion_reward = {
+			add_political_power = -25
+			add_war_support = 0.05
+			set_country_flag = VIE_Diem_Minority_Forces_Integrated
+			add_manpower = 15000
+			army_experience = 15
+			if = {
+				limit = { NOT = { has_country_flag = Activate_State_Integration_GUI } }
+				hidden_effect = {
+					set_country_flag = Activate_State_Integration_GUI
+				}
+				custom_effect_tooltip = Activate_State_Integration_GUI_tt
+			}
+			every_owned_state = {
+				limit = {
+					NOT = { is_core_of = VIE }
+					is_on_continent = asia
+				}
+				add_compliance = 10
+			}
+			set_temp_variable = { influence_change = 10 }
+			VIE_Change_Domestic_Influence = yes
+		}
+	}
+	focus = {
+		id = VIE_Diem_Host_the_Referendum
+		icon = GFX_VIE_1955_Grand_Election	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 5
+		relative_position_id = VIE_Diem_Reject_the_Geneva_Elections
+		prerequisite = {
+			focus = VIE_Diem_Reject_the_Geneva_Elections
+			focus = VIE_Diem_Accept_Pham_Van_Dong
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 1
+		y = 1
+		available = {
+			date > 1955.09.18
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Referendum_Already_Held_tt
+				OR = {
+					has_country_flag = VIE_Referendum_Held
+					has_global_flag = VIE_Republic_Proclaimed
+				}
+			}
+		}
+		completion_reward = {
+			set_country_flag = VIE_Referendum_Held
+			if = {
+				limit = { NOT = { has_global_flag = Indochina_War_Over } }
+				set_temp_variable = { ic_award = 100 }
+				indochina_struggle_grant_pro_independence = yes
+				set_temp_variable = { indochina_phase_amount = 50 }
+				indochina_struggle_deescalate = yes
+			}
+			custom_effect_tooltip = VIE_Referendum_Score_tt
+			country_event = Diem.30
+		}
+	}
+	focus = {
+		id = VIE_Diem_Proclaim_the_Republic
+		icon = GFX_VIE_Proclaim_Sole_Viet_State	# placeholder art, see LogDocs/VIE_DIEM_ART_REQUESTS.md
+		cost = 2
+		relative_position_id = VIE_Diem_Host_the_Referendum
+		prerequisite = {
+			focus = VIE_Diem_Host_the_Referendum
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 100
+				is_historical_focus_on = yes
+			}
+		}
+		x = 0
+		y = 1
+		available = {
+			date > 1955.10.26
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Referendum_Won_tt
+				has_country_flag = VIE_Diem_Referendum_Won
+			}
+		}
+		bypass = {
+			custom_trigger_tooltip = {
+				tooltip = VIE_Diem_Republic_Already_Proclaimed_tt
+				has_global_flag = VIE_Republic_Proclaimed
+			}
+		}
+		completion_reward = {
+			country_event = BaoDai.9
+			news_event = { id = Diem.11 days = 2 random_hours = 12 }
 		}
 	}
 }
