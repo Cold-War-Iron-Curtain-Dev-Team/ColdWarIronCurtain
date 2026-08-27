@@ -478,12 +478,11 @@ Existing tree landmarks:
 - Hoa Binh records one response result before common cleanup: orderly withdrawal, held, lost, inconclusive, or superseded. CEFEO dissolution, orphan checks, and every parent-campaign exit clear its temporary state modifiers, posture flags, and withdrawal request without granting the response ownership of the war.
 - Mixed player/AI engine runs confirm consistent Hoa Binh passes and clean response/resolution behavior. The follow-up now presents the asymmetric contract explicitly: Amarante concedes Hoa Binh on day `105`, preserves the field force, offsets the French Patience loss, and continues the wider war; holding retains the objective, risks the force to day `210`, pays a larger success reward, and suffers an additional result-dependent loss package if broken. Neither route changes primary-campaign ownership.
 - The scoped player-facing English audit replaced raw country-tag prose and exposed implementation language in the reworked campaign, Lorraine, southern-war, and legacy named-operation tooltips. Internal keys/scopes and variable expressions remain unchanged.
-- Once the Dien Bien Phu result is recorded, a surviving, armed, non-capitulated NLF that still controls ground and remains at war triggers a VIN briefing and a temporary decision category. This is an explicit signifier that the northern set-piece did not end the southern war.
-- VIN may choose exactly one response: spend political power and Campaign Supply to reinforce the NLF with equipment, manpower, and a war-duration supply spirit, or press for an Indochina settlement by starting the existing Geneva-pursuit path, adding communist leverage, and adding de-escalation points. No direct-intervention option is included in this patch.
-- The southern response does not bypass `geneva_conference_vietnam_at_peace_trigger`. Geneva still waits for the Vietnamese parties to leave their wars; the support spirit clears when the NLF war or the Indochina theatre ends.
-- The funded route now has a terminal classifier. A defeated southern resistance or a genuine ceasefire removes its support spirit, records one conclusion, informs Hanoi, and starts settlement pursuit; the route can no longer disappear without advancing the war.
-- A recorded Dien Bien Phu fall plus an absent, capitulated, landless, or divisionless NLF queues the typical Geneva ending independently of whether the southern briefing ever appeared. A divisionless NLF still formally at war with VIE receives a narrowly guarded armistice after VIN is already at peace; once `geneva_conference_vietnam_at_peace_trigger` passes, the daily VIN bridge announces Geneva directly without waiting for phase `8`, another 500 de-escalation points, a focus, or the broader panic-collapse conditions. It does not annex territory or bypass an unrelated live war.
-- Post-DBP diagnostics now report the DBP recorder, NLF existence/capitulation/ground/war state, Hanoi and Saigon war state, the peace predicate, phase points, pursuit and queue state, and all conference latches. Separate effects advance the live checks or reset only the response flags for repeat testing.
+- A recorded communist capture of Dien Bien Phu now raises one VIN briefing even when the NLF is already defeated or absent. The visible strategy is a focus fork after `VIN_Prepare_Dien`, gated by the recorded fall, an idle VIN campaign system, and the absence of an announced, active, or concluded Geneva conference.
+- The 14-day historical focus `VIN_Push_for_Negotiations` grants 25 Communist leverage, adds 150 de-escalation points, starts `Indochina_Geneva_Pursuit`, and owns a renamed queue latch. Its immediate and daily checks retain `geneva_conference_vietnam_at_peace_trigger`; only a divisionless NLF paper war may be repaired, and only after VIN is at peace. The existing delegation and `VIN_The_Geneva_Peace_Conference` systems remain authoritative.
+- The mutually exclusive 34-day `VIN_Carry_the_Revolution_South` costs no political power or Campaign Supply. It reuses the old funded-NLF posture and exact support package when NLF exists, adds 25 Communist Struggle score and 50 escalation points, clears VIN-owned pursuit/queue state, and suppresses the panic-collapse Geneva route without disabling deliberate French, American, or other conference entry points.
+- The escalation continuation consists of a 56-day mobilization and a 14-day general offensive. Mobilization grants a 180-day +10% planning speed, +5% organization, -5% supply consumption, and +2% reinforce-rate spirit plus VIE-front AI and northern reserve buffers. The terminal directly declares one `annex_everything` war on VIE if no war already exists; it never sets the 1960s `Vietnam_War` flag, explicitly calls FRE/FRA, or changes NLF independence/ownership.
+- Save compatibility maps the old talks posture into the focus-owned queue, maps funded-NLF into the escalation posture, and clears a legacy autonomous queue without touching an externally owned Geneva pursuit. Diagnostics and AFK telemetry report strategy exclusivity, queue ownership, the peace gate, panic suppression, NLF independence, preparation cleanup, and the guarded invasion.
 - Castor now spends its manpower, transports, War Credits, and Patience at the airborne commitment event rather than at a later generic-operation prompt. Full and limited drops create different garrison tiers; a successful fourteen-day establishment returns a bounded part of the commitment, while a failed thirty-day effort applies posture-scaled losses. A lost landing ground before the drop and an unfunded plan receive distinct non-deployment conclusions.
 - The camp fortification helper now sets the intended bunker and anti-air levels instead of repeatedly stacking construction. The siege state modifier is added only when VIN campaign ID `3` is actually live, so Castor can establish the pre-siege position without starting the siege months early.
 - Castor's daily pulse, visible timer backstop, weekly orphan check, CEFEO dissolution, Struggle ending, and fallback dispatcher all share the dedicated result/cleanup state. If VIN campaign ID `3` begins before establishment completes, a handoff closes Castor as superseded while preserving its already-deployed garrison for the parent siege. Console helpers start, advance, fail, inspect, and reset the airhead lifecycle without routing through the generic operation wrapper.
@@ -573,7 +572,7 @@ Existing tree landmarks:
 - 2026-08-11 exact-province Castor static verification: `git diff --check`, raw Clausewitz brace balance across every changed/new gameplay `.txt`, and `python3 tools/loc_audit.py --check` pass. The new Castor effects and state modifier are unique; no generic operation ID `5` or current-operation-`5` consumer remains; the dedicated effect contains no ownership transfer, province-controller mutation, peace, annexation, primary-campaign resolution, or Geneva-result mutation. Targeted checks confirm exact province `4529`, fourteen consecutive hold days, the thirty-day visible timer/backstop, full/limited/up-front costs, objective-first daily resolution, one-of-three permanent results, generic watchdog isolation, weekly/dissolution/theatre cleanup, and a fallback wait only while Castor is unresolved. The combined historical-path run was accepted on 2026-08-12.
 - 2026-08-11 Dien Bien Phu response static verification: `git diff --check`, raw Clausewitz brace balance, and `python3 tools/loc_audit.py --check` pass. New response effects, triggers, events, modifiers, AI strategies, and English localization keys are unique in their namespaces. Targeted source checks confirm four live postures, Condor's prior-investment plus seven-day exact-province requirement, both limited and direct Vulture hooks, parent-before-recorder result ordering, fixed day-`150`/`260` deadlines, result-gated payouts, and response ownership neutrality. Parent finish, weekly orphan handling, CEFEO dissolution, and theatre supersession all reach response cleanup. The combined historical-path run was accepted on 2026-08-12.
 
-- 2026-08-11 post-DBP Geneva closure repair: `git diff --check` and targeted raw-brace checks pass; all new scripted triggers/effects, `VIN_South.2`, and its English localization keys are unique; `python3 tools/loc_audit.py --check` passes with the post-DBP event/localization files now covered. The automatic terminal requires recorded Dien Bien Phu outcome `2`, recognizes an absent/capitulated/landless/divisionless southern resistance, and retains `geneva_conference_vietnam_at_peace_trigger`; it bypasses only the normal phase-`8`, 500-point, focus, and panic-collapse thresholds. Its sole war mutation is a guarded Saigon-resistance armistice after Hanoi is already at peace and the resistance has no divisions; it owns no annexation, state transfer, or direct Indochina-war ending. The ordinary destroyed-NLF path received engine acceptance on 2026-08-12; the separately funded terminal remains optional branch coverage.
+- Historical baseline, superseded by the focus fork: the 2026-08-11 autonomous post-DBP closure repair passed static verification and its ordinary destroyed-NLF route received engine acceptance on 2026-08-12. Preserve that result only as regression evidence for the shared Vietnamese peace gate and conference backend; the new focus-owned queue and escalation branch require their own checkpoint coverage.
 - 2026-08-10 Hoa Binh response static verification: `git diff --check` passed; all edited/new gameplay files have balanced raw braces; new effects, events, AI strategies, state modifiers, and English localization keys are unique; the two legacy delayed `FRE_Battles.5` calls are absent; the sole remaining call is owned by the live response; Amarante contains no transfer, peace, annexation, or direct resolver call; objective capture and theatre supersession precede its request in the primary classifier; and normal finish plus CEFEO dissolution clear the package.
 - 2026-08-10 Hoa Binh payoff/clarity follow-up static verification: `git diff --check` and targeted raw-brace checks pass; the three new result-payoff effects and four new/changed response localization keys are unique; a successful hold requires parent outcome `4`; the committed-hold loss package is gated by the hold posture; Amarante still owns no transfer, annexation, peace, or campaign resolution; its permanent withdrawal result alone suppresses the Hoa Binh clean-result Patience loss; the Na San callback appears once in the preparation mission; and the scoped localization audit finds no raw `VIN`/`FRE`/`VIE`/`NUN`/`TAI`/`TAM`/`THO`/`MEO`/`NLF` prose, province/state IDs, border-war language, or primary-resolver language in the audited values. Engine acceptance is pending.
 - 2026-08-10 Hoa Binh engine acceptance: repeated mixed player/AI runs produced more consistent passes for both CEFEO and the Viet Minh, with no reported response, campaign-resolution, or cleanup failure. Acceptance exposed one UX/balance failure: a player who held Hoa Binh through day `105` received too little benefit from Amarante and could reasonably interpret the scripted withdrawal as losing a war they had been winning.
@@ -636,7 +635,7 @@ Existing tree landmarks:
 - **2026-08-13 resolved faction-propagation finding:** the first CEFEO-faction run pulled the State of Vietnam and other uninvolved French Indochina/Viet Minh faction members into VIN's scripted campaigns and the 1953 Pathet Lao invasion. VIE later left through campaign white peace, but its temporary participation was still incorrect. The follow-up restored NLF to VIN's faction and added hidden no-call rules, call-refusal permission, `-1000` AI get/call/join desire, and pre-declaration Laos isolation. The user's initial replay confirmed the corrected faction rework functions properly; retain the diagnostics for longer-run and alternate-branch coverage.
 - **Resolved in the 2026-08-17 renovation batch:** Hirondelle, Mouette, Brochet, and the Na San/Vinh Yen/Mao Khe preparation paths no longer use the broken generic launcher or legacy delayed arithmetic. See the implementation checkpoint below. The first full VIN run found three follow-up integration defects; their armistice, THO deployment, and objective-clarity repairs are code-complete but await focused engine acceptance.
 - The Lorraine rear-depot objective uses the six provinces of state `881` (Dong Bac Bo) as the map's abstraction of the Clear River/Phu Doan rear area. The 2026-08-12 player run confirmed that the intended state can be defended, Lorraine terminates properly, and its response outcome records correctly. Alternate controller/focus-order branches remain useful diagnostic coverage.
-- The post-DBP southern decisions deliberately stop short of direct VIN intervention. The automatic-Geneva bridge waits for the existing Vietnamese peace predicate and forces only the narrow VIE-NLF armistice needed when the resistance has no divisions and VIN is already at peace. Any unrelated war still leaves Geneva visibly queued, with the diagnostic effect identifying which government is fighting.
+- The retired post-DBP decisions and autonomous Geneva bridge have been superseded by the focus-owned strategy fork. Negotiations retain the existing Vietnamese peace predicate and the narrow divisionless-NLF armistice; escalation proceeds through mobilization to a direct VIN-VIE war while leaving the NLF independent.
 - This repository environment still cannot run HOI4 directly; all engine findings come from the user's external playtests.
 - Hoa Binh's mechanics are accepted and the payoff/contract follow-up is code-complete, but its new result values still need one human CEFEO run per choice. Do not reopen the accepted campaign lifecycle unless those runs demonstrate an engine failure.
 - The scoped rework-localization audit is complete. Continue to keep raw tags and implementation terms out of player-facing values while leaving internal keys, scopes, and hidden variable syntax untouched.
@@ -816,3 +815,178 @@ AFK telemetry now logs six-month Struggle scores, all Geneva leverage pools,
 VIN/VIE/FRA weights, Pathet Lao launch/result/duration, stuck-clock failures, and
 any illegal CEFEO-operation overlap. Engine acceptance requires another fresh
 1949-to-Geneva `human_ai` run.
+
+## 2026-08-21 AFK defect-repair checkpoint
+
+The follow-up log audit queue is code-complete and statically accepted. The
+undefined `vin_ai_prepare_campaign` launch call is gone. An active Laos raid is
+now rechecked inside `fre_operation_commit`, before any resource debit or
+operation activation, and resolves the pending package as superseded. This is
+the authoritative guard that focus availability alone could not provide.
+
+THO placement telemetry established the real failure mode: both battalions load
+in their historical states, but the Lang Son battalion leaves during peacetime
+by June 1949. Because a front strategy cannot guarantee peacetime stationing,
+Cao-Bac declaration now re-forms the two AI-only territorial battalions at Cao
+Bang and Lang Son if either post is empty. This happens before war declaration
+and validation, preserves exactly two battalions, and does not alter objectives,
+deadlines, ownership, or campaign rewards. NUN has separate immediate-postwar
+and later terminal existence/capitulation/state-ownership records to trace its
+previously unexplained post-Geneva disappearance.
+
+Balance values remain frozen pending evidence. The passive FRA daily carrier now
+records every Struggle component delta, while the suspected one-time `+350`
+Communist victory-preparation award emits a source-specific record. The next log
+can therefore confirm or eliminate that award as the late-war overshoot source
+without guessing from six-month snapshots.
+
+The scoped runtime cleanup moves Tran Quoc Buu's retirement into NLF scope,
+uses the valid generic VIN cleanup ideas, promotes Lo Van Hac through character
+roles that already exist, seeds Pathet Lao's required truck variant before its
+field-force OOB loads, and replaces the missing Laos demobilization icon with an
+existing Laos-war asset. The Lo Van Hac role expiry and `war_industrialist`
+trait remain declared on all three relevant ideology roles.
+
+Static verification: repository and scoped `git diff --check`, raw Clausewitz
+brace balance across all 17 changed gameplay `.txt` files, targeted lifecycle
+and symbol assertions, and the 22-file SEA localization audit pass. External
+engine acceptance remains the next step; no deferred operation, including Dak
+Doa, should be started until the new baseline logs confirm these repairs.
+## 2026-08-22 implementation checkpoint: Dak Doa and Northwest recovery
+
+Implementation has begun. The contract is frozen as follows: Dak Doa is an
+NLF-scoped, ownership-neutral seven-day province campaign whose cleanup can
+white-peace only an NLF-FUL war it created; its CEFEO response is parent-resolved
+before common cleanup. Northwest recovery is VIN campaign ID `9`, permanently
+attempted at launch, always costly on success, and leaves campaign ID `1`'s
+permanent result untouched. `VIN_Prepare_Dien` continues to require ownership of
+state `1761`.
+
+The historical AI defaults to the isolated-post defense represented by the
+February 1954 siege; GM 100 remains the expensive counterfactual commitment.
+Operational context: https://mcoecbamcoepwprd01.blob.core.usgovcloudapi.net/library/ABOLC_BA_2018/Research_Modules_B/Groupemont_Mobile_100/LaBatailled%27Ankh%C3%A9_ENG_translation.pdf
+
+Code-complete checkpoint: Dak Doa, its CEFEO response, Northwest recovery ID
+`9`, shared response validation/logging, scoped console diagnostics, English
+localization, AI priorities, and the unified checkpoint playtest are present.
+Static acceptance covers diff whitespace, raw braces, localization audit/BOM,
+new symbol uniqueness/references, VIN focus acyclicity, permanent-result
+exclusivity, ownership/peace mutation guards, and pixel-map adjacency
+`1328 <-> 10180/16442/4363`. Unified engine acceptance remains pending.
+
+Engine follow-up: the first alternate run exposed that TAI could receive the
+campaign-owned white peace while FRE, pulled into that same recovery war, did
+not. Campaign `9` now records a pre-launch war snapshot for the relevant
+French-aligned tags. Resolution settles only opponents absent from that
+snapshot, retries while a generated opponent remains, and records cleanup
+complete only after all such participants are at peace. This preserves an
+unrelated pre-existing VIN war while preventing the observed perpetual FRE war.
+The Northwest recovery checkpoint must be rerun before engine acceptance.
+
+## 2026-08-23 historical-AI playtest review
+
+The 23 August logs supersede the prior baseline for current runtime behavior.
+They do not accept the current battlefield AI or balance. Lifecycle telemetry
+recorded no `IC_AFK|FAIL`: both THO declaration posts, participant isolation,
+temporary objective markers, campaign armistices, CEFEO operation cleanup, and
+Final Push consolidation behaved correctly. The result sequence was Cao-Bac
+clean day `51`, Vinh Yen clean day `8`, Mao Khe failure day `36`, Day River
+costly day `38`, Hoa Binh clean day `66`, Northwest clean day `102`, Na San
+clean day `11`, and Dien Bien Phu clean day `30`. Hirondelle and Mouette failed,
+Brochet succeeded, Castor established, Pollux was superseded by campaign `3`,
+and Atlante was later superseded.
+
+Two engine errors outrank balance interpretation. The recovery focus uses the
+unsupported trigger `political_power > 49`, and the engine rejects
+`defender_modifier` in all rework-local state dynamic modifiers. Until the
+second issue is replaced by a supported defender-only application contract,
+the intended contested-objective, holdout, Castor, Dak Doa, and Dien Bien Phu
+packages cannot be treated as functioning balance inputs. The recovery console
+inspection also needs to expose its cleanup-complete flag.
+
+The same scoped error review found that `SWF_VIN.17` is deliberately fired in
+both VIN and NLF scope but currently gives both options a VIN-only trigger. NLF
+therefore receives no valid option. Restore a non-conflicting NLF
+acknowledgement or stop sending that player-choice event to NLF. Missing Siam
+focus completions in `Indochina_Flavor_Events.txt` are real adjacent regional
+errors, but they are not a cause of the northern battlefield behavior and are a
+lower priority than the rework-local failures.
+
+The user's map observations establish a systemic objective-allocation problem:
+Vinh Yen and Na San were not defended; VIN would not press favorable attacks at
+Mao Khe and Day River; raid outposts drew CEFEO/TAI toward Lai Chau/`12319`
+during Northwest; MEO did not visibly remain in Ha Giang; VIN entered Dien Bien
+Phu before its named campaign; and the Laos AI left Luang Prabang open while
+stacking province `13738`. Repair this through exact objective demand, local
+minimum presence, raid-versus-campaign priority, and bounded reserve behavior
+before applying global combat bonuses.
+
+Operation-specific conclusions are now frozen for the next pass. Brochet's
+observed behavior is acceptable. Hirondelle should become an ownership-neutral
+airborne cache-destruction/interdiction raid rather than a conventional limited
+war. Mouette needs exact southern-Tonkin/Red-River-Delta sweep objectives and
+must keep both sides from abandoning the live operation for unrelated fronts.
+Lorraine needs visible posture/result reporting. Castor and Pollux must occur
+early enough to create a real preparation window; after the rejected defensive
+modifier contract is repaired, the DBP garrison/output and siege duration may
+be strengthened. Campaign `3` also needs a bounded Hanoi/Tonkin reserve so the
+camp objective does not coexist with unopposed CEFEO penetration elsewhere.
+
+The post-DBP focus fork is not yet authoritative. Dien Bien Phu fell on 16 March
+1954, the VIN briefing appeared on 17 March, and scripted Geneva concluded on
+31 May without evidence that `VIN_Push_for_Negotiations` completed. Shared
+French or other pursuit owners can still bypass the visible Hanoi choice. Add
+source-specific pursuit/announcement telemetry and a narrow post-communist-DBP
+choice/grace latch while preserving the existing Vietnamese peace gate and
+legitimate conference routes outside that causal path.
+
+The outcome GUI must now display the full campaign ledger. "The Wars Behind the
+Table" currently covers only the southern Viet Minh, Pathet Lao, Dien Bien Phu,
+sects, highlands, and the Laos raid. Add the permanent result and actual
+Struggle/leverage contribution for every VIN campaign, CEFEO operation, and
+attached response package so raw outcomes are visible without observing each
+battle live.
+
+The score telemetry rules out the suspected single `+350` award in this run.
+The Communist margin reached the desired band at `+184` in May 1953, then rose
+through repeated ambient `+25`/`+50` awards to `+364` in October and `+429` in
+April 1954. Trace those recurring sources before retuning outcome values. The
+southern force comparison is independently unacceptable: VIE grew from `34` to
+`38` divisions while NLF remained at `5` and disappeared by late April 1954.
+Reduce VIE's effective wartime build/limit advantage and/or provide bounded NLF
+sustainment without merging the southern and northern wars.
+
+Revised implementation order: fix engine-rejected syntax, the NLF event with no
+valid option, and recovery telemetry; make the post-DBP choice authoritative and log Geneva ownership;
+expand the outcome GUI; repair objective allocation and raid interaction;
+rework Hirondelle/Mouette; accelerate and then rebalance Castor/Pollux/DBP;
+rebalance NLF/VIE and recurring score awards; then perform targeted checkpoint
+coverage followed by a unified run. Dak Doa and Northwest recovery remain
+code-complete but unaccepted because this natural run reached Geneva before Dak
+Doa and did not exercise campaign `9`.
+
+## 2026-08-23 corrective-pass implementation ledger
+
+The corrective pass following the 23 August historical-AI review is implemented
+but not yet engine-accepted. It repairs the rejected script contracts, makes
+VIN's post-Dien Bien Phu strategy choice authoritative over shared Geneva entry,
+adds observer-only CEFEO intelligence and a full campaign/operation outcome
+journal, tightens objective AI allocation, converts Hirondelle into a
+non-territorial cache raid, bounds Mouette to southern Tonkin, accelerates
+Castor/Pollux, strengthens the supported Dien Bien Phu holdout modifiers, and
+adds bounded NLF reconstitution. Brochet is intentionally retained unchanged.
+
+This pass also establishes the presentation contract for future polish: VIN is
+briefed only on visible French action and uncertain intent; commitment tiers and
+resolver arithmetic stay concealed. A later dedicated prose pass may update the
+remaining legacy raw keys and omniscient/future-tense writing, but new operation
+briefings already use present-tense, fog-of-war language.
+
+The score trace did not identify a repeated `+350` or duplicate campaign result.
+The observed `+25`/`+50` deltas correspond to ordinary focus-ledger awards, so
+the implementation does not apply a global score nerf without a comparative
+run. The expanded GUI exposes exact standings and leverage for that test.
+
+Engine acceptance is intentionally pending. The next sequence is a targeted
+smoke pass for parser/event/mission/Geneva and operation contracts, followed by
+the unified historical-AI run already requested in this specification.

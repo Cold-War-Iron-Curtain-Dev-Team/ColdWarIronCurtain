@@ -41,6 +41,17 @@ Indochina_War_Rework = {
 			else_if = {
 				limit = {
 					NOT = { has_global_flag = Indochina_War_Over }
+					country_exists = VIN
+					VIN = { vin_post_dbp_strategy_unresolved_trigger = yes }
+				}
+				set_variable = { global.Indochina_Geneva_Pursuit_Source = 2 }
+				set_global_flag = Indochina_Geneva_Pursuit
+				activate_mission = Indochina_Wrapup_Timer
+				log = "GENEVA_SOURCE|DEFERRED|date=[GetDateText]|source=2|reason=VIN_post_DBP_choice_unresolved|caller=wrapup"
+			}
+			else_if = {
+				limit = {
+					NOT = { has_global_flag = Indochina_War_Over }
 				}
 				indochina_struggle_resolve_best_available_ending = yes
 				if = {
@@ -48,11 +59,13 @@ Indochina_War_Rework = {
 						NOT = { has_global_flag = Indochina_War_Over }
 						indochina_struggle_all_participants_ai_trigger = yes
 					}
+					set_variable = { global.Indochina_Geneva_Pursuit_Source = 2 }
 					geneva_conf_auto_resolve = yes
 				}
 				else_if = {
 					limit = { NOT = { has_global_flag = Indochina_War_Over } }
 					clr_global_flag = Indochina_War_Timer_Active
+					set_variable = { global.Indochina_Geneva_Pursuit_Source = 2 }
 					set_global_flag = Indochina_Geneva_Pursuit
 				}
 			}
@@ -148,6 +161,48 @@ Indochina_War_Rework = {
 		ai_will_do = { factor = 0 }
 	}
 
+	VIN_Northwest_Recovery_Objective = {
+		icon = generic_attack
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active }
+		activation = { always = no }
+		available = { custom_trigger_tooltip = { tooltip = VIN_Northwest_Recovery_Clock_tt always = no } }
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = var:VIN_camp_timer_days
+		cancel_trigger = { VIN_no_campaign_running_trigger = yes }
+		timeout_effect = { vin_campaign_backstop_resolve = yes }
+		complete_effect = { }
+		highlight_states = {
+			highlight_provinces = { 10075 12075 13775 16526 16527 }
+			highlight_color_while_active = 1
+			highlight_color_before_active = 1
+		}
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Dak_Doa_Objective = {
+		icon = generic_attack
+		allowed = { original_tag = NLF }
+		visible = { has_country_flag = VIN_Campaign_Dak_Doa_Active }
+		activation = { always = no }
+		available = { custom_trigger_tooltip = { tooltip = VIN_Dak_Doa_Clock_tt always = no } }
+		is_good = yes
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 46
+		cancel_trigger = { NOT = { has_country_flag = VIN_Campaign_Dak_Doa_Active } }
+		timeout_effect = { nlf_dak_doa_deadline_resolve = yes }
+		complete_effect = { }
+		highlight_states = {
+			highlight_provinces = { 10180 1328 16442 4363 }
+			highlight_color_while_active = 1
+			highlight_color_before_active = 1
+		}
+		ai_will_do = { factor = 0 }
+	}
+
 	VIN_Campaign_Objective_Timer = {
 		icon = generic_attack
 		allowed = { original_tag = VIN }
@@ -212,6 +267,120 @@ Indochina_War_Rework = {
 		cost = 0
 		fire_only_once = no
 		complete_effect = { fre_operation_abort = yes }
+		ai_will_do = { factor = 0 }
+	}
+
+	# VIN receives these as intelligence displays only. Their timeout and cleanup
+	# never call a CEFEO resolver; the authoritative FRE package removes them.
+	VIN_Intel_Operation_Lorraine = {
+		icon = generic_intelligence_agency
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Lorraine_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 200
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Lorraine_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Lorraine|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 1073 1157 7015 12048 13763 13769 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Intel_Operation_Hirondelle = {
+		icon = generic_air_operations
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Hirondelle_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 31
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Hirondelle_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Hirondelle|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 9948 13761 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Intel_Operation_Mouette = {
+		icon = generic_intelligence_agency
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Mouette_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 46
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Mouette_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Mouette|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 11909 1185 13753 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Intel_Operation_Brochet = {
+		icon = generic_intelligence_agency
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Brochet_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 36
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Brochet_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Brochet|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 13755 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Intel_Operation_Castor = {
+		icon = generic_air_operations
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Castor_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 31
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Castor_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Castor|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 4529 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Intel_Operation_Pollux = {
+		icon = generic_intelligence_agency
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Pollux_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 22
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Pollux_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Pollux|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 13765 13762 4529 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
+		ai_will_do = { factor = 0 }
+	}
+
+	VIN_Intel_Operation_Atlante = {
+		icon = generic_intelligence_agency
+		allowed = { original_tag = VIN }
+		visible = { has_country_flag = VIN_CEFEO_Intel_Atlante_Active }
+		activation = { always = no }
+		available = { always = no }
+		is_good = no
+		selectable_mission = yes
+		fire_only_once = no
+		days_mission_timeout = 91
+		cancel_trigger = { NOT = { has_country_flag = VIN_CEFEO_Intel_Atlante_Active } }
+		timeout_effect = { log = "CEFEO_INTEL|TIMEOUT|date=[GetDateText]|operation=Atlante|observer_only=yes" }
+		highlight_states = { highlight_provinces = { 4255 1300 } highlight_color_while_active = 1 highlight_color_before_active = 1 }
 		ai_will_do = { factor = 0 }
 	}
 

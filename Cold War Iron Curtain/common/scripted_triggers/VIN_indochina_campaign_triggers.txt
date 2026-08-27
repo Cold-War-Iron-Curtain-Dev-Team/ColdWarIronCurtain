@@ -24,6 +24,7 @@ VIN_no_campaign_running_trigger = {
 				has_country_flag = VIN_Campaign_Mao_Khe_Active
 				has_country_flag = VIN_Campaign_Day_River_Active
 				has_country_flag = VIN_Campaign_Na_San_Active
+				has_country_flag = VIN_Campaign_Northwest_Recovery_Active
 			}
 		}
 	}
@@ -70,6 +71,10 @@ VIN_campaign_cooldown_ready_trigger = {
 					has_country_flag = VIN_Campaign_Cooldown_Na_San
 					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Na_San days > 29 } }
 				}
+				AND = {
+					has_country_flag = VIN_Campaign_Cooldown_Northwest_Recovery
+					NOT = { has_country_flag = { flag = VIN_Campaign_Cooldown_Northwest_Recovery days > 29 } }
+				}
 			}
 		}
 	}
@@ -113,8 +118,12 @@ vin_campaign_objective_met_trigger = {
 		AND = {
 			check_variable = { VIN_camp_current = 8 }
 			check_variable = { VIN_camp_objective_hold_days > 4 }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 9 }
+			check_variable = { VIN_camp_objective_hold_days > 4 }
+		}
 	}
-}
 }
 
 vin_limited_campaign_raw_objective_trigger = {
@@ -128,6 +137,14 @@ vin_limited_campaign_raw_objective_trigger = {
 			controls_province = 13755
 		}
 		AND = { check_variable = { VIN_camp_current = 8 } controls_province = 13757 }
+		AND = {
+			check_variable = { VIN_camp_current = 9 }
+			controls_province = 10075
+			controls_province = 12075
+			controls_province = 13775
+			controls_province = 16526
+			controls_province = 16527
+		}
 	}
 }
 
@@ -135,6 +152,17 @@ VIN_vinh_yen_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Vinh_Ye
 VIN_mao_khe_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Mao_Khe_Result_Clean has_country_flag = VIN_Campaign_Mao_Khe_Result_Costly has_country_flag = VIN_Campaign_Mao_Khe_Result_Aborted has_country_flag = VIN_Campaign_Mao_Khe_Result_Failure has_country_flag = VIN_Campaign_Mao_Khe_Result_Superseded } }
 VIN_day_river_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Day_River_Result_Clean has_country_flag = VIN_Campaign_Day_River_Result_Costly has_country_flag = VIN_Campaign_Day_River_Result_Aborted has_country_flag = VIN_Campaign_Day_River_Result_Failure has_country_flag = VIN_Campaign_Day_River_Result_Superseded } }
 VIN_na_san_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Na_San_Result_Clean has_country_flag = VIN_Campaign_Na_San_Result_Costly has_country_flag = VIN_Campaign_Na_San_Result_Aborted has_country_flag = VIN_Campaign_Na_San_Result_Failure has_country_flag = VIN_Campaign_Na_San_Result_Superseded } }
+VIN_northwest_recovery_terminal_trigger = { OR = { has_country_flag = VIN_Campaign_Northwest_Recovery_Result_Costly has_country_flag = VIN_Campaign_Northwest_Recovery_Result_Aborted has_country_flag = VIN_Campaign_Northwest_Recovery_Result_Failure has_country_flag = VIN_Campaign_Northwest_Recovery_Result_Superseded } }
+
+VIN_northwest_recovery_target_available_trigger = {
+	1761 = {
+		owner = {
+			exists = yes
+			NOT = { tag = VIN }
+			OR = { tag = TAI tag = FRE tag = FRA tag = VIE tag = NUN tag = THO tag = TAM }
+		}
+	}
+}
 
 vin_campaign_theatre_closed_trigger = {
 	OR = {
@@ -180,6 +208,13 @@ vin_campaign_target_disappeared_trigger = {
 				check_variable = { VIN_camp_current = 7 }
 			}
 			NOT = { country_exists = FRE }
+		}
+		AND = {
+			check_variable = { VIN_camp_current = 9 }
+			OR = {
+				NOT = { event_target:VIN_northwest_recovery_target = { exists = yes } }
+				event_target:VIN_northwest_recovery_target = { NOT = { owns_state = 1761 } }
+			}
 		}
 	}
 }
@@ -339,7 +374,7 @@ vin_campaign_vin_overextended_trigger = {
 	NOT = { VIN_no_campaign_running_trigger = yes }
 	OR = {
 		AND = {
-			check_variable = { VIN_camp_current = 1 }
+			OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 9 } }
 			OR = {
 				vin_controls_foreign_cao_bac_ground_trigger = yes
 				vin_controls_foreign_nung_ground_trigger = yes
@@ -551,6 +586,9 @@ vin_campaign_war_abandoned_trigger = {
 			AND = { country_exists = TAM  has_war_with = TAM }
 			AND = { country_exists = THO  has_war_with = THO }
 			AND = { country_exists = FRE  has_war_with = FRE }
+			AND = { country_exists = FRA  has_war_with = FRA }
+			AND = { country_exists = VIE  has_war_with = VIE }
+			AND = { country_exists = NUN  has_war_with = NUN }
 		}
 	}
 	check_variable = { VIN_camp_days_elapsed > 14 }

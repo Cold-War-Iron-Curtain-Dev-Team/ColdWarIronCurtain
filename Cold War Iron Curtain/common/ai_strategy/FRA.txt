@@ -1,6 +1,6 @@
 FRA_build_peacetime_army = {
 	allowed = { tag = FRA }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = no
 		has_army_manpower = { size < 300000 }
@@ -13,7 +13,7 @@ FRA_build_peacetime_army = {
 }
 FRA_build_wartime_army = {
 	allowed = { tag = FRA }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = yes
 		has_army_manpower = { size < 2000000 }
@@ -27,7 +27,7 @@ FRA_build_wartime_army = {
 FRA_ignore_Italy = {
 	allowed = { tag = FRA }
 	enable = {
-		NOT = { 
+		NOT = {
 			OR = {
 				has_war_with = ITA
 			}
@@ -38,19 +38,18 @@ FRA_ignore_Italy = {
 			has_war_with = ITA
 		}
 	}
-	
+
 	ai_strategy = {
 		type = ignore
-		id = "ITA"			
+		id = "ITA"
 		value = 1000
 	}
-
 
 }
 FRA_ignore_Swiss = {
 	allowed = { tag = FRA }
 	enable = {
-		NOT = { 
+		NOT = {
 			OR = {
 				has_war_with = SWI
 			}
@@ -61,46 +60,45 @@ FRA_ignore_Swiss = {
 			has_war_with = SWI
 		}
 	}
-	
+
 	ai_strategy = {
 		type = ignore
-		id = "SWI"			
+		id = "SWI"
 		value = 1000
 	}
-
 
 }
 FRA_ignore_Germany = {
 	allowed = { OR = { tag = FRA tag = ENG } }
 	enable = {
-		NOT = { 
+		NOT = {
 			has_war_with = WGR
 		}
 	}
 	abort = {
 		has_war_with = WGR
 	}
-	
+
 	ai_strategy = {
 		type = force_defend_ally_borders
-		id = "WGR"			
+		id = "WGR"
 		value = 100
 	}
 }
 FRA_ignore_USA = {
 	allowed = { OR = { tag = FRA tag = ENG } }
 	enable = {
-		NOT = { 
+		NOT = {
 			has_war_with = USA
 		}
 	}
 	abort = {
 		has_war_with = USA
 	}
-	
+
 	ai_strategy = {
 		type = ignore
-		id = "USA"			
+		id = "USA"
 		value = 1000
 	}
 }
@@ -110,6 +108,7 @@ FRE_Protect_Hanoi = {
 	}
 	enable = {
 		has_war_with = VIN
+		NOT = { has_country_flag = FRE_Limited_Operation_Active }
 	}
 	abort_when_not_enabled = yes
 
@@ -119,6 +118,24 @@ FRE_Protect_Hanoi = {
 		value = 300
 	}
 }
+
+FRE_Protect_Hanoi_during_operations = {
+	allowed = {
+		tag = FRE
+	}
+	enable = {
+		has_war_with = VIN
+		has_country_flag = FRE_Limited_Operation_Active
+	}
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = front_unit_request
+		state = 1760
+		value = 100
+	}
+}
+
 FRE_Protect_vietnam = {
 	allowed = {
 		tag = FRE
@@ -151,7 +168,7 @@ FRE_contain_secondary_campaign_fronts = {
 	}
 	ai_strategy = { type = theatre_distribution_demand_increase id = 1760 value = 18 }
 	ai_strategy = { type = theatre_distribution_demand_increase id = 786 value = 15 }
-	ai_strategy = { type = front_unit_request state = 1760 value = 400 }
+	ai_strategy = { type = front_unit_request state = 1760 value = 200 }
 	ai_strategy = { type = front_unit_request state = 786 value = 300 }
 	ai_strategy = { type = front_unit_request state = 1762 value = -700 }
 	ai_strategy = { type = front_unit_request state = 1763 value = -700 }
@@ -219,12 +236,17 @@ FRE_defend_cao_bac = {
 	ai_strategy = {
 		type = front_unit_request
 		state = 1280
-		value = 300
+		value = 600
 	}
 	ai_strategy = {
 		type = front_unit_request
 		state = 1768
-		value = 300
+		value = 600
+	}
+	ai_strategy = {
+		type = force_defend_ally_borders
+		id = "THO"
+		value = 200
 	}
 }
 FRE_defend_tay_bac = {
@@ -240,8 +262,8 @@ FRE_defend_tay_bac = {
 		state = 1761
 		ordertype = front
 		execution_type = careful
-		ratio = 0.60
-		priority = 700
+		ratio = 1.0
+		priority = 900
 		execute_order = yes
 		manual_attack = no
 	}
@@ -250,21 +272,59 @@ FRE_defend_tay_bac = {
 		state = 671
 		ordertype = front
 		execution_type = careful
-		ratio = 0.30
-		priority = 650
+		ratio = 0.10
+		priority = 250
 		execute_order = yes
 		manual_attack = no
 	}
 	ai_strategy = {
 		type = front_unit_request
 		state = 1761
-		value = 275
+		value = 800
 	}
 	ai_strategy = {
 		type = front_unit_request
 		state = 671
-		value = 275
+		value = -400
 	}
+	ai_strategy = {
+		type = force_defend_ally_borders
+		id = "TAI"
+		value = 200
+	}
+	ai_strategy = { type = front_unit_request state = 1760 value = 300 }
+	ai_strategy = { type = front_unit_request state = 786 value = 350 }
+}
+
+FRE_TAI_defend_vinh_yen = {
+	allowed = { OR = { tag = FRE tag = TAI } }
+	enable = { has_war_with = VIN VIN = { has_country_flag = VIN_Campaign_Vinh_Yen_Active } }
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = { type = front_control state = 1761 ordertype = front execution_type = careful ratio = 1.0 priority = 1100 execute_order = yes manual_attack = no }
+	ai_strategy = { type = front_unit_request state = 1761 value = 1000 }
+	ai_strategy = { type = dont_defend_ally_borders value = 500 }
+}
+
+FRE_TAI_defend_na_san = {
+	allowed = { OR = { tag = FRE tag = TAI } }
+	enable = { has_war_with = VIN VIN = { has_country_flag = VIN_Campaign_Na_San_Active } }
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = { type = front_control state = 671 ordertype = front execution_type = careful ratio = 1.0 priority = 1100 execute_order = yes manual_attack = no }
+	ai_strategy = { type = front_unit_request state = 671 value = 1000 }
+	ai_strategy = { type = dont_defend_ally_borders value = 500 }
+}
+
+TAI_defend_northwest_during_campaign = {
+	allowed = { tag = TAI }
+	enable = { has_war_with = VIN VIN = { has_country_flag = VIN_Campaign_Tay_Bac_Active } }
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = { type = front_control state = 1761 ordertype = front execution_type = careful ratio = 1.0 priority = 1000 execute_order = yes manual_attack = no }
+	ai_strategy = { type = front_unit_request state = 1761 value = 1000 }
+	ai_strategy = { type = front_unit_request state = 671 value = -500 }
+	ai_strategy = { type = dont_defend_ally_borders value = 750 }
 }
 
 # Deep Lorraine targets Dong Bac Bo without opening a tag-wide front.
@@ -325,12 +385,17 @@ FRE_defend_hoa_binh = {
 	ai_strategy = {
 		type = front_unit_request
 		state = 1766
-		value = 275
+		value = 550
 	}
 	ai_strategy = {
 		type = front_unit_request
 		state = 671
-		value = 250
+		value = 400
+	}
+	ai_strategy = {
+		type = force_defend_ally_borders
+		id = "TAM"
+		value = 200
 	}
 }
 FRE_hoa_binh_holdout_commitment = {
@@ -375,7 +440,12 @@ FRE_defend_dien_bien = {
 	ai_strategy = {
 		type = front_unit_request
 		state = 671
-		value = 300
+		value = 600
+	}
+	ai_strategy = {
+		type = force_defend_ally_borders
+		id = "TAI"
+		value = 200
 	}
 }
 
@@ -449,6 +519,114 @@ FRE_dien_bien_condor_relief = {
 	ai_strategy = { type = front_unit_request state = 671 value = 650 }
 }
 
+THO_garrison_the_domain = {
+	allowed = { tag = THO }
+	enable = {
+		NOT = { has_global_flag = Indochina_War_Over }
+		OR = { owns_state = 1280 owns_state = 1768 }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			has_global_flag = Indochina_War_Over
+			AND = { NOT = { owns_state = 1280 } NOT = { owns_state = 1768 } }
+		}
+	}
+
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 15
+		states = { 1280 1768 }
+		ratio = 0.8
+		area = asia
+		subtract_invasions_from_need = yes
+	}
+	ai_strategy = { type = garrison value = 100 }
+	ai_strategy = { type = front_unit_request state = 786 value = -400 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -400 }
+}
+
+TAI_garrison_the_domain = {
+	allowed = { tag = TAI }
+	enable = {
+		NOT = { has_global_flag = Indochina_War_Over }
+		OR = { owns_state = 671 owns_state = 1761 }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			has_global_flag = Indochina_War_Over
+			AND = { NOT = { owns_state = 671 } NOT = { owns_state = 1761 } }
+		}
+	}
+
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 13
+		states = { 671 1761 }
+		ratio = 0.8
+		area = asia
+		subtract_invasions_from_need = yes
+	}
+	ai_strategy = { type = garrison value = 100 }
+	ai_strategy = { type = front_unit_request state = 786 value = -400 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -400 }
+}
+
+TAM_garrison_the_domain = {
+	allowed = { tag = TAM }
+	enable = {
+		NOT = { has_global_flag = Indochina_War_Over }
+		OR = { owns_state = 1766 }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			has_global_flag = Indochina_War_Over
+			AND = { NOT = { owns_state = 1766 } }
+		}
+	}
+
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 14
+		states = { 1766 }
+		ratio = 0.8
+		area = asia
+		subtract_invasions_from_need = yes
+	}
+	ai_strategy = { type = garrison value = 100 }
+	ai_strategy = { type = front_unit_request state = 786 value = -400 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -400 }
+}
+
+NUN_garrison_the_domain = {
+	allowed = { tag = NUN }
+	enable = {
+		NOT = { has_global_flag = Indochina_War_Over }
+		OR = { owns_state = 1281 }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			has_global_flag = Indochina_War_Over
+			AND = { NOT = { owns_state = 1281 } }
+		}
+	}
+
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 16
+		states = { 1281 }
+		ratio = 0.8
+		area = asia
+		subtract_invasions_from_need = yes
+	}
+	ai_strategy = { type = garrison value = 100 }
+	ai_strategy = { type = front_unit_request state = 786 value = -400 }
+	ai_strategy = { type = front_unit_request state = 1760 value = -400 }
+}
+
 # Crown-domain armies own the ground the corps is being asked to defend. Give
 # their AI the same positional priorities instead of assuming FRE can directly
 # move every subject formation.
@@ -506,6 +684,26 @@ THO_hold_cao_bac = {
 	ai_strategy = { type = front_unit_request tag = NUN value = -1000 }
 	ai_strategy = { type = garrison value = -200 }
 	ai_strategy = { type = dont_defend_ally_borders value = 1000 }
+}
+
+TAI_rebuild_the_domain_forces = {
+	allowed = { tag = TAI }
+	enable = {
+		country_exists = VIN
+		NOT = { has_global_flag = Indochina_War_Over }
+	}
+	abort_when_not_enabled = yes
+	abort = {
+		OR = {
+			NOT = { country_exists = VIN }
+			has_global_flag = Indochina_War_Over
+		}
+	}
+
+	ai_strategy = { type = build_army id = infantry value = 6 }
+	ai_strategy = { type = build_army id = mountaineers value = 2 }
+	ai_strategy = { type = build_army id = garrison value = 2 }
+	ai_strategy = { type = force_build_armies value = 100 }
 }
 
 TAI_hold_the_highlands = {
@@ -645,29 +843,6 @@ FRE_atlante_central_drive = {
 	ai_strategy = { type = front_unit_request state = 1287 value = 550 }
 }
 
-VIE_atlante_central_drive = {
-	allowed = { tag = VIE }
-	enable = {
-		country_exists = FRE
-		FRE = { has_country_flag = FRE_Atlante_Offensive_Active }
-		country_exists = NLF
-		has_war_with = NLF
-	}
-	abort_when_not_enabled = yes
-	abort = { always = no }
-	ai_strategy = {
-		type = front_control
-		state = 1287
-		ordertype = front
-		execution_type = rush
-		ratio = 1.0
-		priority = 950
-		execute_order = yes
-		manual_attack = no
-	}
-	ai_strategy = { type = front_unit_request state = 1287 value = 700 }
-}
-
 NLF_atlante_base_defense = {
 	allowed = { tag = NLF }
 	enable = {
@@ -755,49 +930,53 @@ NUN_hold_the_nung_marches = {
 	ai_strategy = { type = front_unit_request state = 881 value = -600 }
 }
 
-# Keep State of Vietnam formations off Viet Minh rear areas during campaigns.
-VIE_contain_viet_minh_campaign_fronts = {
-	allowed = { tag = VIE }
-	enable = {
-		has_war_with = VIN
-		VIN = { NOT = { VIN_no_campaign_running_trigger = yes } }
-	}
-	abort_when_not_enabled = yes
-	abort = {
-		OR = {
-			NOT = { has_war_with = VIN }
-			VIN = { VIN_no_campaign_running_trigger = yes }
-		}
-	}
-	ai_strategy = { type = front_unit_request state = 881 value = -700 }
-	ai_strategy = { type = front_unit_request state = 1762 value = -700 }
-	ai_strategy = { type = front_unit_request state = 1763 value = -700 }
-	ai_strategy = { type = front_unit_request state = 838 value = -700 }
-}
 FRE_unit_buffer_for_Indochina = {
 	allowed = {
 		tag = FRE
 	}
 	enable = {
 		has_war_with = VIN
+		NOT = { has_country_flag = FRE_Limited_Operation_Active }
 	}
-	abort = { always = no }
 	abort_when_not_enabled = yes
-	
+
 	ai_strategy = {
 		type = put_unit_buffers
-		
+
 		order_id = 2
-		
+
 		# Near Hanoi
-		states = { 
+		states = {
 			786
 			1281
 		}
-		
+
 		ratio = 0.2
 		area = asia
-		
+
+		subtract_invasions_from_need = yes
+	}
+}
+
+FRE_unit_buffer_during_operations = {
+	allowed = {
+		tag = FRE
+	}
+	enable = {
+		has_war_with = VIN
+		has_country_flag = FRE_Limited_Operation_Active
+	}
+	abort_when_not_enabled = yes
+
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 2
+		states = {
+			786
+			1281
+		}
+		ratio = 0.1
+		area = asia
 		subtract_invasions_from_need = yes
 	}
 }
@@ -845,7 +1024,8 @@ FRE_defend_early_delta_campaigns = {
 
 FRE_operation_hirondelle_push = {
 	allowed = { tag = FRE }
-	enable = { has_country_flag = FRE_Limited_Operation_Active check_variable = { FRE_op_current = 2 } has_war_with = VIN }
+	# Hirondelle is now an ownership-neutral airborne cache raid.
+	enable = { always = no }
 	abort_when_not_enabled = yes
 	abort = { always = no }
 	ai_strategy = { type = front_control state = 1768 ordertype = front execution_type = rush ratio = 1.0 priority = 1000 execute_order = yes manual_attack = yes }
@@ -856,6 +1036,8 @@ FRE_operation_hirondelle_push = {
 	ai_strategy = { type = front_unit_request state = 1763 value = -1000 }
 	ai_strategy = { type = front_unit_request state = 838 value = -1000 }
 	ai_strategy = { type = dont_defend_ally_borders value = 1000 }
+	ai_strategy = { type = front_unit_request state = 786 value = -250 }
+	ai_strategy = { type = front_unit_request state = 1281 value = 300 }
 }
 
 FRE_operation_mouette_push = {
@@ -865,8 +1047,10 @@ FRE_operation_mouette_push = {
 	abort = { always = no }
 	ai_strategy = { type = front_control state = 1762 ordertype = front execution_type = rush ratio = 1.0 priority = 1000 execute_order = yes manual_attack = yes }
 	ai_strategy = { type = front_unit_request state = 1762 value = 700 }
+	ai_strategy = { type = front_unit_request state = 786 value = 300 }
 	ai_strategy = { type = front_unit_request state = 1280 value = -1000 }
 	ai_strategy = { type = front_unit_request state = 1768 value = -1000 }
+	ai_strategy = { type = front_unit_request state = 1766 value = -1000 }
 	ai_strategy = { type = front_unit_request state = 881 value = -1000 }
 	ai_strategy = { type = front_unit_request state = 1763 value = -1000 }
 	ai_strategy = { type = front_unit_request state = 838 value = -1000 }
@@ -890,7 +1074,7 @@ FRE_operation_brochet_defense = {
 }
 LOS_build_wartime_army = {
 	allowed = { tag = LOS }
-	enable = { 
+	enable = {
 		date > 1949.1.1
 		has_war = yes
 		has_army_manpower = { size < 1000000 }
@@ -900,4 +1084,17 @@ LOS_build_wartime_army = {
 	ai_strategy = { type = build_army id = motorized value = 500 }
 	ai_strategy = { type = build_army id = infantry value = 400 }
 	ai_strategy = { type = force_build_armies value = 300 }
+}
+FRE_northwest_recovery_corridor_defense = {
+	allowed = { OR = { tag = TAI tag = FRE tag = FRA tag = VIE tag = NUN tag = THO tag = TAM } }
+	enable = {
+		country_exists = VIN
+		has_war_with = VIN
+		owns_state = 1761
+		VIN = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active }
+	}
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = { type = front_control state = 1761 ordertype = front execution_type = careful ratio = 1.0 priority = 1000 execute_order = yes manual_attack = no }
+	ai_strategy = { type = front_unit_request state = 1761 value = 700 }
 }

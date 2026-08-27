@@ -27,6 +27,7 @@ indochina_struggle_auto_trigger_communist_victory_preparation = {
 		VIN = {
 			set_country_flag = VIN_Communist_Victory_Preparation_Triggered
 		}
+		log = "IC_AFK|SCORE_AWARD|date=[GetDateText]|source=communist_victory_preparation|communist_delta=350|phase_delta=175|communist_before=[?FRA.StruggleInvolvedNationsIndochinaCommunistScore|0]"
 		add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 350 }
 		add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 175 }
 	}
@@ -48,7 +49,29 @@ indochina_struggle_starting_idea_setup = {
 }
 
 indochina_struggle_invite_countries_to_geneva = {
-	geneva_conf_announce = yes
+	if = {
+		limit = {
+			country_exists = VIN
+			VIN = { vin_post_dbp_strategy_unresolved_trigger = yes }
+		}
+		if = {
+			limit = { check_variable = { global.Indochina_Geneva_Pursuit_Source < 1 } }
+			set_variable = { global.Indochina_Geneva_Pursuit_Source = 4 }
+		}
+		set_global_flag = Indochina_Geneva_Pursuit
+		clr_global_flag = Geneva_Conference_Preparations
+		log = "GENEVA_SOURCE|DEFERRED|date=[GetDateText]|source=[?global.Indochina_Geneva_Pursuit_Source|0]|reason=VIN_post_DBP_choice_unresolved"
+	}
+	else = {
+		if = {
+			limit = { check_variable = { global.Indochina_Geneva_Pursuit_Source < 1 } }
+			set_variable = { global.Indochina_Geneva_Pursuit_Source = 4 }
+		}
+		log = "GENEVA_SOURCE|INVITE|date=[GetDateText]|source=[?global.Indochina_Geneva_Pursuit_Source|0]"
+		geneva_conf_announce = yes
+		clr_global_flag = Indochina_Geneva_Pursuit
+		set_variable = { global.Indochina_Geneva_Pursuit_Source = 0 }
+	}
 }
 
 indochina_tai_federation_collapses = {
@@ -435,6 +458,8 @@ indochina_struggle_ending_cleanup = {
 		limit = { country_exists = VIN }
 		VIN = {
 			clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+			clr_country_flag = VIN_Post_DBP_Reunification_AI_Active
 			if = {
 				limit = { NOT = { VIN_no_campaign_running_trigger = yes } }
 				set_temp_variable = { vin_camp_outcome = 5 }
@@ -443,9 +468,10 @@ indochina_struggle_ending_cleanup = {
 			vin_campaign_remove_war_spirits = yes
 			if = { limit = { has_idea = VIN_Resistance_War_Economy } remove_ideas = VIN_Resistance_War_Economy }
 			if = { limit = { has_idea = VIN_Indochina_AI_Support } remove_ideas = VIN_Indochina_AI_Support }
-			if = { limit = { has_idea = VIN_paramilitarism_focus } remove_ideas = VIN_paramilitarism_focus }
-			if = { limit = { has_idea = VIN_cold_war_civil_war_ideological_idea } remove_ideas = VIN_cold_war_civil_war_ideological_idea }
+			if = { limit = { has_idea = paramilitarism_focus } remove_ideas = paramilitarism_focus }
+			if = { limit = { has_idea = cold_war_civil_war_ideological_idea } remove_ideas = cold_war_civil_war_ideological_idea }
 			if = { limit = { has_idea = VIN_peoples_army } remove_ideas = VIN_peoples_army }
+			if = { limit = { has_idea = VIN_National_Reunification_Preparation } remove_ideas = VIN_National_Reunification_Preparation }
 		}
 	}
 	if = {
@@ -461,11 +487,13 @@ indochina_struggle_ending_cleanup = {
 			fre_dbp_disband_gono = yes
 		}
 	}
+	vin_cefeo_intel_clear_all = yes
     set_global_flag = Indochina_War_Over
     set_variable = { global.Indochina_War_Active_Phase = 100 }
     clr_global_flag = geneva_conference_in_session	# the conference GUI must not outlive the war it was called to settle
     indochina_failsafe_geneva_teardown_gui = yes	# and neither must its political-tab button: only the compiler removes it, and clearing the flag above has just locked the compiler out
     clr_global_flag = Indochina_Geneva_Pursuit
+	set_variable = { global.Indochina_Geneva_Pursuit_Source = 0 }
     set_variable = { global.indochina_ending_available_check = 0 }
     every_country = {
         set_variable = { View_Indochina_Struggle = 0 }
@@ -1656,6 +1684,7 @@ indochina_struggle_unlock_geneva_conference = {
 
 indochina_geneva_panic_force_conference = {
 	set_global_flag = Indochina_Geneva_Panic
+	set_variable = { global.Indochina_Geneva_Pursuit_Source = 5 }
 	set_variable = { global.Indochina_War_Active_Phase = 11 }
 	indochina_struggle_unlock_geneva_conference = yes
 	clr_global_flag = Indochina_Geneva_Pursuit

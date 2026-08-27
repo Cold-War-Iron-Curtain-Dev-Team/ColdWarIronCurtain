@@ -1,78 +1,86 @@
+# The daily owner for Hanoi's post-Dien Bien Phu strategic fork.
 vin_post_dbp_southern_war_check = {
+	vin_post_dbp_legacy_compatibility = yes
 	if = {
 		limit = {
-			vin_post_dbp_southern_war_active_trigger = yes
-			NOT = { has_country_flag = VIN_Post_DBP_Southern_War_Recognized }
+			has_completed_focus = VIN_Prepare_Dien
+			has_global_flag = geneva_dbp_outcome_applied
+			check_variable = { global.geneva_outcome_dbp = 2 }
+			NOT = { has_country_flag = VIN_Post_DBP_Strategy_Briefed }
 		}
+		set_country_flag = VIN_Post_DBP_Strategy_Briefed
 		set_country_flag = VIN_Post_DBP_Southern_War_Recognized
 		country_event = { id = VIN_South.1 hours = 6 }
 	}
 	if = {
 		limit = {
-			has_country_flag = VIN_Post_DBP_Southern_War_Recognized
-			NOT = { vin_post_dbp_southern_war_active_trigger = yes }
+			has_country_flag = VIN_Post_DBP_Escalation_Chosen
 			NOT = { has_country_flag = VIN_Post_DBP_Southern_War_Ended }
+			NOT = { vin_post_dbp_southern_war_active_trigger = yes }
 		}
 		set_country_flag = VIN_Post_DBP_Southern_War_Ended
 		if = {
+			limit = { vin_post_dbp_southern_resistance_defeated_trigger = yes }
+			set_country_flag = VIN_Post_DBP_Funded_NLF_Defeated
+		}
+		else = { set_country_flag = VIN_Post_DBP_Funded_NLF_Ceasefire }
+		if = {
 			limit = { country_exists = NLF }
 			NLF = { remove_ideas = NLF_Northern_Supply_Line }
 		}
+		response_package_validation_vin_south_log = yes
+		country_event = { id = VIN_South.2 hours = 6 }
+	}
+	vin_post_dbp_escalation_cleanup_check = yes
+}
+
+# Old saves may contain a decision posture or an autonomous queue. Only an
+# explicit old talks choice is allowed to inherit the focus-owned queue.
+vin_post_dbp_legacy_compatibility = {
+	if = {
+		limit = { NOT = { has_country_flag = VIN_Post_DBP_Strategy_Compatibility_Checked } }
+		set_country_flag = VIN_Post_DBP_Strategy_Compatibility_Checked
 		if = {
-			limit = {
-				has_country_flag = VIN_Post_DBP_Funded_NLF
-				NOT = { has_global_flag = Indochina_War_Over }
-				NOT = { has_global_flag = geneva_conference_announced }
-				NOT = { has_global_flag = geneva_conference_in_session }
-				NOT = { has_global_flag = geneva_conference_concluded }
-			}
+			limit = { has_country_flag = VIN_Post_DBP_Funded_NLF }
+			set_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+			set_country_flag = VIN_Post_DBP_Escalation_Chosen
+			set_country_flag = VIN_Post_DBP_Panic_Geneva_Suppressed
+			clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 			if = {
-				limit = { vin_post_dbp_southern_resistance_defeated_trigger = yes }
-				set_country_flag = VIN_Post_DBP_Funded_NLF_Defeated
+				limit = {
+					OR = {
+						has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+						has_country_flag = VIN_Post_DBP_Pressed_For_Geneva
+						has_country_flag = VIN_Post_DBP_Settlement_After_South
+					}
+				}
+				clr_global_flag = Indochina_Geneva_Pursuit
 			}
-			else = { set_country_flag = VIN_Post_DBP_Funded_NLF_Ceasefire }
-			vin_post_dbp_begin_settlement_after_southern_end = yes
-			set_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported
-			country_event = { id = VIN_South.2 hours = 6 }
 		}
+		else_if = {
+			limit = { has_country_flag = VIN_Post_DBP_Pressed_For_Geneva }
+			set_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+			set_country_flag = VIN_Post_DBP_Negotiations_Chosen
+			set_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+			set_global_flag = Indochina_Geneva_Pursuit
+		}
+		else = {
+			clr_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+			if = {
+				limit = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued }
+				clr_global_flag = Indochina_Geneva_Pursuit
+			}
+		}
+		clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
 	}
 }
 
-vin_post_dbp_begin_settlement_after_southern_end = {
-	set_global_flag = Indochina_Geneva_Pursuit
-	if = {
-		limit = { NOT = { has_country_flag = VIN_Post_DBP_Settlement_After_South } }
-		set_country_flag = VIN_Post_DBP_Settlement_After_South
-		FRA = {
-			add_to_variable = {
-				global.Indochina_War_Next_Phase_B_Points = 100
-				tooltip = Add_to_De_Escalation_Phase_TT
-			}
-		}
-	}
-}
-
-vin_post_dbp_auto_geneva_check = {
+# Focus-owned queue processor. It can repair only the divisionless NLF paper
+# war, and only after Hanoi itself is at peace.
+vin_post_dbp_focus_geneva_queue_tick = {
 	if = {
 		limit = {
-			vin_post_dbp_auto_geneva_eligible_trigger = yes
-			NOT = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued }
-		}
-		set_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
-		set_global_flag = Indochina_Geneva_Pursuit
-		if = {
-			limit = { country_exists = NLF }
-			NLF = { remove_ideas = NLF_Northern_Supply_Line }
-		}
-		if = {
-			limit = { NOT = { has_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported } }
-			set_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported
-			country_event = { id = VIN_South.2 hours = 6 }
-		}
-	}
-	if = {
-		limit = {
-			has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 			has_war = no
 			country_exists = VIE
 			country_exists = NLF
@@ -84,21 +92,21 @@ vin_post_dbp_auto_geneva_check = {
 	}
 	if = {
 		limit = {
-			has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 			geneva_conference_vietnam_at_peace_trigger = yes
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = { has_global_flag = geneva_conference_announced }
 			NOT = { has_global_flag = geneva_conference_in_session }
 			NOT = { has_global_flag = geneva_conference_concluded }
 		}
-		clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
-		set_country_flag = VIN_Post_DBP_Auto_Geneva_Launched
+		clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+		set_country_flag = VIN_Post_DBP_Focus_Geneva_Launched
 		clr_global_flag = Indochina_Geneva_Pursuit
 		indochina_struggle_invite_countries_to_geneva = yes
 	}
 	if = {
 		limit = {
-			has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+			has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 			OR = {
 				has_global_flag = Indochina_War_Over
 				has_global_flag = geneva_conference_announced
@@ -106,15 +114,32 @@ vin_post_dbp_auto_geneva_check = {
 				has_global_flag = geneva_conference_concluded
 			}
 		}
-		clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+		clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 	}
 }
 
 vin_post_dbp_fund_southern_war = {
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+				has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+				has_country_flag = VIN_Post_DBP_Pressed_For_Geneva
+				has_country_flag = VIN_Post_DBP_Settlement_After_South
+			}
+		}
+		clr_global_flag = Indochina_Geneva_Pursuit
+	}
+	# A generic FRE/wrap-up pursuit can already be live without any legacy VIN
+	# queue flag. The southern strategy always vetoes that pending conference.
+	clr_global_flag = Indochina_Geneva_Pursuit
 	set_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+	set_country_flag = VIN_Post_DBP_Escalation_Chosen
 	set_country_flag = VIN_Post_DBP_Funded_NLF
-	set_temp_variable = { vin_supply_amount = -75 }
-	vin_change_campaign_supply = yes
+	set_country_flag = VIN_Post_DBP_Panic_Geneva_Suppressed
+	clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+	clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
+	set_variable = { global.Indochina_Geneva_Pursuit_Source = 0 }
 	if = {
 		limit = { country_exists = NLF }
 		NLF = {
@@ -139,14 +164,18 @@ vin_post_dbp_fund_southern_war = {
 			}
 		}
 	}
+	response_package_validation_vin_south_log = yes
 }
 
 vin_post_dbp_press_for_geneva = {
 	set_country_flag = VIN_Post_DBP_Southern_Response_Chosen
+	set_country_flag = VIN_Post_DBP_Negotiations_Chosen
 	set_country_flag = VIN_Post_DBP_Pressed_For_Geneva
+	set_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+	set_variable = { global.Indochina_Geneva_Pursuit_Source = 3 }
 	set_global_flag = Indochina_Geneva_Pursuit
 	set_temp_variable = { geneva_lev_amount = 25 }
-	geneva_outcome_award_communist = yes
+	geneva_add_communist_leverage = yes
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
 		FRA = {
@@ -155,5 +184,26 @@ vin_post_dbp_press_for_geneva = {
 				tooltip = Add_to_De_Escalation_Phase_TT
 			}
 		}
+	}
+	response_package_validation_vin_south_log = yes
+	vin_post_dbp_focus_geneva_queue_tick = yes
+}
+
+vin_post_dbp_escalation_cleanup_check = {
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Escalation_Chosen
+			OR = {
+				NOT = { country_exists = VIE }
+				has_global_flag = Indochina_War_Over
+				has_global_flag = geneva_conference_announced
+				has_global_flag = geneva_conference_in_session
+				has_global_flag = geneva_conference_concluded
+			}
+		}
+		clr_country_flag = VIN_Post_DBP_Reunification_AI_Active
+		if = { limit = { has_idea = VIN_National_Reunification_Preparation } remove_ideas = VIN_National_Reunification_Preparation }
+		if = { limit = { country_exists = NLF } NLF = { remove_ideas = NLF_Northern_Supply_Line } }
+		set_country_flag = VIN_Post_DBP_Preparation_Cleaned
 	}
 }

@@ -224,11 +224,19 @@ VIN_campaign_cao_bac_push = {
 VIN_campaign_tay_bac_push = {
 	allowed = { tag = VIN }
 	enable = {
-		has_country_flag = VIN_Campaign_Tay_Bac_Active
+		OR = {
+			has_country_flag = VIN_Campaign_Tay_Bac_Active
+			has_country_flag = VIN_Campaign_Northwest_Recovery_Active
+		}
 	}
 	abort_when_not_enabled = yes
 	abort = {
-		NOT = { has_country_flag = VIN_Campaign_Tay_Bac_Active }
+		NOT = {
+			OR = {
+				has_country_flag = VIN_Campaign_Tay_Bac_Active
+				has_country_flag = VIN_Campaign_Northwest_Recovery_Active
+			}
+		}
 	}
 
 	ai_strategy = {
@@ -426,6 +434,26 @@ VIN_take_the_valley = {
 	ai_strategy = { type = front_unit_request state = 786 value = -600 }
 }
 
+MEO_garrison_the_zone = {
+	allowed = { tag = MEO }
+	enable = { NOT = { has_global_flag = Indochina_War_Over } }
+	abort_when_not_enabled = yes
+	abort = { has_global_flag = Indochina_War_Over }
+
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 12
+		states = { 1767 }
+		ratio = 1.0
+		area = asia
+		subtract_invasions_from_need = yes
+	}
+	ai_strategy = { type = garrison value = 100 }
+	ai_strategy = { type = theatre_distribution_demand_increase id = 1767 value = 100 }
+	ai_strategy = { type = front_unit_request state = 1767 value = 1000 }
+	ai_strategy = { type = dont_defend_ally_borders value = 1000 }
+}
+
 MEO_hold_ha_giang = {
 	allowed = { tag = MEO }
 	enable = { has_war = yes }
@@ -485,6 +513,9 @@ VIN_campaign_vinh_yen_push = {
 	abort = { NOT = { has_country_flag = VIN_Campaign_Vinh_Yen_Active } }
 	ai_strategy = { type = front_control state = 1761 ordertype = front execution_type = rush ratio = 1.0 priority = 1000 execute_order = yes manual_attack = yes }
 	ai_strategy = { type = front_unit_request state = 1761 value = 700 }
+	ai_strategy = { type = front_unit_request state = 1287 value = -1000 }
+	ai_strategy = { type = front_unit_request state = 1295 value = -800 }
+	ai_strategy = { type = ignore_army_incompetence value = 1000 }
 }
 
 VIN_campaign_delta_push = {
@@ -493,7 +524,11 @@ VIN_campaign_delta_push = {
 	abort_when_not_enabled = yes
 	abort = { AND = { NOT = { has_country_flag = VIN_Campaign_Mao_Khe_Active } NOT = { has_country_flag = VIN_Campaign_Day_River_Active } } }
 	ai_strategy = { type = front_control state = 786 ordertype = front execution_type = rush ratio = 1.0 priority = 1000 execute_order = yes manual_attack = yes }
-	ai_strategy = { type = front_unit_request state = 786 value = 750 }
+	ai_strategy = { type = front_unit_request state = 786 value = 1000 }
+	ai_strategy = { type = front_unit_request state = 1287 value = -1000 }
+	ai_strategy = { type = front_unit_request state = 1295 value = -800 }
+	ai_strategy = { type = front_unit_request state = 671 value = -700 }
+	ai_strategy = { type = ignore_army_incompetence value = 1000 }
 }
 
 VIN_campaign_na_san_push = {
@@ -503,11 +538,41 @@ VIN_campaign_na_san_push = {
 	abort = { NOT = { has_country_flag = VIN_Campaign_Na_San_Active } }
 	ai_strategy = { type = front_control state = 671 ordertype = front execution_type = rush ratio = 1.0 priority = 1000 execute_order = yes manual_attack = yes }
 	ai_strategy = { type = front_unit_request state = 671 value = 750 }
+	ai_strategy = { type = front_unit_request state = 1287 value = -1000 }
+	ai_strategy = { type = front_unit_request state = 1295 value = -800 }
+	ai_strategy = { type = ignore_army_incompetence value = 1000 }
+}
+
+VIN_prepare_reunification_front = {
+	allowed = { tag = VIN }
+	enable = {
+		has_country_flag = VIN_Post_DBP_Reunification_AI_Active
+		country_exists = VIE
+		NOT = { has_global_flag = Indochina_War_Over }
+		NOT = { has_global_flag = geneva_conference_in_session }
+		NOT = { has_global_flag = geneva_conference_concluded }
+	}
+	abort_when_not_enabled = yes
+	abort = { always = no }
+
+	ai_strategy = { type = front_control state = 786 ordertype = front execution_type = careful ratio = 1.0 priority = 1100 execute_order = yes manual_attack = no }
+	ai_strategy = { type = front_control state = 1287 ordertype = front execution_type = careful ratio = 1.0 priority = 1100 execute_order = yes manual_attack = no }
+	ai_strategy = { type = front_unit_request state = 786 value = 700 }
+	ai_strategy = { type = front_unit_request state = 1287 value = 700 }
+	ai_strategy = {
+		type = put_unit_buffers
+		order_id = 12
+		states = { 1280 1768 1761 671 }
+		ratio = 0.35
+		area = asia
+		subtract_invasions_from_need = yes
+	}
 }
 
 VIN_counter_hirondelle = {
 	allowed = { tag = VIN }
-	enable = { country_exists = FRE has_war_with = FRE FRE = { has_country_flag = FRE_Limited_Operation_Active check_variable = { FRE_op_current = 2 } } }
+	# Hirondelle is now an ownership-neutral airborne cache raid.
+	enable = { always = no }
 	abort_when_not_enabled = yes
 	abort = { always = no }
 	ai_strategy = { type = front_control state = 1768 ordertype = front execution_type = careful ratio = 1.0 priority = 1000 execute_order = yes manual_attack = no }
@@ -523,9 +588,11 @@ VIN_counter_mouette = {
 	abort_when_not_enabled = yes
 	abort = { always = no }
 	ai_strategy = { type = front_control state = 1762 ordertype = front execution_type = careful ratio = 1.0 priority = 1000 execute_order = yes manual_attack = no }
-	ai_strategy = { type = front_unit_request state = 1762 value = 650 }
+	ai_strategy = { type = front_unit_request state = 1762 value = 900 }
 	ai_strategy = { type = front_unit_request state = 1768 value = -1000 }
-	ai_strategy = { type = front_unit_request state = 786 value = -1000 }
+	ai_strategy = { type = front_unit_request state = 786 value = 300 }
+	ai_strategy = { type = front_unit_request state = 1287 value = -1000 }
+	ai_strategy = { type = front_unit_request state = 1295 value = -800 }
 	ai_strategy = { type = dont_defend_ally_borders value = 1000 }
 }
 
@@ -561,11 +628,6 @@ VIN_build_the_army = {
 		type = build_army
 		id = infantry
 		value = 500
-	}
-	ai_strategy = {
-		type = build_army
-		id = artillery
-		value = 200
 	}
 	ai_strategy = {
 		type = force_build_armies
@@ -728,4 +790,16 @@ LAO_ignore_the_wider_world = {
 		id = "USA"
 		value = 200
 	}
+}
+NLF_dak_doa_offensive = {
+	allowed = { tag = NLF }
+	enable = {
+		has_country_flag = VIN_Campaign_Dak_Doa_Active
+		country_exists = FUL
+		has_war_with = FUL
+	}
+	abort_when_not_enabled = yes
+	abort = { always = no }
+	ai_strategy = { type = front_control state = 1286 ordertype = front execution_type = rush ratio = 1.0 priority = 1100 execute_order = yes manual_attack = yes }
+	ai_strategy = { type = front_unit_request state = 1286 value = 750 }
 }
