@@ -1061,10 +1061,16 @@ indochina_geneva_pursuit_tick = {
 		}
 		if = {
 			limit = {
+				country_exists = VIN
+				VIN = { vin_post_dbp_strategy_unresolved_trigger = yes }
+			}
+			log = "GENEVA_SOURCE|DEFERRED|date=[GetDateText]|source=[?global.Indochina_Geneva_Pursuit_Source|0]|reason=VIN_post_DBP_choice_unresolved|caller=pursuit_tick"
+		}
+		else_if = {
+			limit = {
 				geneva_conference_should_be_available_trigger = yes
 			}
 			indochina_struggle_invite_countries_to_geneva = yes
-			clr_global_flag = Indochina_Geneva_Pursuit
 		}
 		else = {
 			add_to_variable = { global.Indochina_War_Next_Phase_B_Points = 50 }
@@ -1883,6 +1889,14 @@ geneva_conf_compile_settlement = {
 geneva_conf_auto_resolve = {
 	if = {
 		limit = {
+			country_exists = VIN
+			VIN = { vin_post_dbp_strategy_unresolved_trigger = yes }
+		}
+		set_global_flag = Indochina_Geneva_Pursuit
+		log = "GENEVA_SOURCE|DEFERRED|date=[GetDateText]|source=[?global.Indochina_Geneva_Pursuit_Source|0]|reason=VIN_post_DBP_choice_unresolved|caller=auto_resolve"
+	}
+	else_if = {
+		limit = {
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = {
 				AND = {
@@ -1892,6 +1906,11 @@ geneva_conf_auto_resolve = {
 				}
 			}
 		}
+		if = {
+			limit = { check_variable = { global.Indochina_Geneva_Pursuit_Source < 1 } }
+			set_variable = { global.Indochina_Geneva_Pursuit_Source = 4 }
+		}
+		log = "GENEVA_SOURCE|AUTO_RESOLVE|date=[GetDateText]|source=[?global.Indochina_Geneva_Pursuit_Source|0]"
 		set_temp_variable = { g_geneva_headless = 1 }	# AI stakes bank instantly; the 3-day pipeline never stalls the loop
 		geneva_neg_flush_all = yes
 		if = {
@@ -1914,6 +1933,7 @@ geneva_conf_auto_resolve = {
 			limit = { has_global_flag = geneva_conference_in_session }
 			geneva_conf_compile_settlement = yes
 		}
+		set_variable = { global.Indochina_Geneva_Pursuit_Source = 0 }
 	}
 }
 

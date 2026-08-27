@@ -312,10 +312,14 @@ test_vin_campaign_cao_bac_check = {
 	log = "VIN CAO-BAC: result check complete"
 }
 
-# Post-DBP QA: status is read-only; auto_geneva_check advances the live checks;
+# Post-DBP QA: status is read-only; focus_geneva_check advances the live checks;
 # response_reset preserves the Dien Bien Phu recorder and current map state.
 test_vin_post_dbp_southern_war_status = {
 	log = "[VIN SOUTH] dbp=[?global.geneva_outcome_dbp|0] phase=[?global.Indochina_War_Active_Phase|0] A=[?global.Indochina_War_Next_Phase_A_Points|0] B=[?global.Indochina_War_Next_Phase_B_Points|0]"
+	set_temp_variable = { vin_post_dbp_strategy_choice_count = 0 }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Negotiations_Chosen } add_to_temp_variable = { vin_post_dbp_strategy_choice_count = 1 } }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Escalation_Chosen } add_to_temp_variable = { vin_post_dbp_strategy_choice_count = 1 } }
+	log = "[VIN SOUTH] strategic choice count=[?vin_post_dbp_strategy_choice_count|0] (expected 0 before choice, exactly 1 afterward)"
 	if = { limit = { has_global_flag = geneva_dbp_outcome_applied } log = "[VIN SOUTH] Dien Bien Phu outcome recorded" }
 	else = { log = "[VIN SOUTH] BLOCKED - Dien Bien Phu outcome not recorded" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Southern_War_Recognized } log = "[VIN SOUTH] Continued southern war recognized" }
@@ -324,8 +328,9 @@ test_vin_post_dbp_southern_war_status = {
 	if = { limit = { has_country_flag = VIN_Post_DBP_Southern_War_Ended } log = "[VIN SOUTH] Southern response ended" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Funded_NLF_Defeated } log = "[VIN SOUTH] Funded resistance was defeated" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Funded_NLF_Ceasefire } log = "[VIN SOUTH] Funded resistance reached a ceasefire" }
-	if = { limit = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued } log = "[VIN SOUTH] Automatic Geneva is queued behind the peace gate" }
-	if = { limit = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Launched } log = "[VIN SOUTH] Automatic Geneva invitation launched" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued } log = "[VIN SOUTH] Focus-owned Geneva is queued behind the peace gate" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Focus_Geneva_Launched } log = "[VIN SOUTH] Focus-owned Geneva invitation launched" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Auto_Geneva_Queued } log = "[VIN SOUTH] FAIL - legacy autonomous Geneva queue remains" }
 	if = { limit = { has_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice } log = "[VIN SOUTH] A disarmed southern resistance received the automatic armistice" }
 	if = { limit = { has_global_flag = Indochina_Geneva_Pursuit } log = "[VIN SOUTH] Geneva pursuit is active" }
 	if = {
@@ -342,6 +347,8 @@ test_vin_post_dbp_southern_war_status = {
 		if = { limit = { country_exists = FRA FRA = { has_war_with = NLF } } log = "[VIN SOUTH] France remains at war with the southern resistance" }
 	}
 	else = { log = "[VIN SOUTH] Southern resistance country no longer exists" }
+	if = { limit = { country_exists = NLF NLF = { is_subject = no } } log = "[VIN SOUTH] NLF remains independent" }
+	else_if = { limit = { country_exists = NLF } log = "[VIN SOUTH] WARNING - NLF is no longer independent" }
 	if = {
 		limit = { vin_post_dbp_southern_war_active_trigger = yes }
 		log = "[VIN SOUTH] The NLF is alive in a post-DBP war; the response category should be visible"
@@ -358,7 +365,12 @@ test_vin_post_dbp_southern_war_status = {
 	if = { limit = { geneva_conference_vietnam_at_peace_trigger = yes } log = "[VIN SOUTH] Vietnamese peace gate passes" }
 	else = { log = "[VIN SOUTH] BLOCKED - Vietnamese peace gate fails" }
 	if = { limit = { vin_post_dbp_southern_resistance_defeated_trigger = yes } log = "[VIN SOUTH] Southern resistance defeat predicate passes" }
-	if = { limit = { vin_post_dbp_auto_geneva_eligible_trigger = yes } log = "[VIN SOUTH] Automatic post-DBP Geneva predicate passes" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Panic_Geneva_Suppressed } log = "[VIN SOUTH] Panic Geneva is suppressed by Hanoi's escalation choice" }
+	if = { limit = { has_idea = VIN_National_Reunification_Preparation } log = "[VIN SOUTH] 180-day reunification preparation spirit is active" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Preparation_Cleaned NOT = { has_idea = VIN_National_Reunification_Preparation } } log = "[VIN SOUTH] Reunification preparation cleanup passed" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_Invasion_Declared country_exists = VIE has_war_with = VIE } log = "[VIN SOUTH] Direct VIN-VIE invasion declaration passed" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_General_Offensive_Terminal NOT = { has_global_flag = Vietnam_War } } log = "[VIN SOUTH] General offensive did not activate the 1960s Vietnam War system" }
+	if = { limit = { has_country_flag = VIN_Post_DBP_General_Offensive_Terminal } log = "[VIN SOUTH] Declaration owner contract: VIE only; no explicit FRE/FRA call exists in the post-DBP effect" }
 	if = { limit = { has_global_flag = geneva_conference_announced } log = "[VIN SOUTH] Geneva has been announced" }
 	if = { limit = { has_global_flag = Geneva_Conference_Preparations } log = "[VIN SOUTH] Geneva preparations are active" }
 	if = { limit = { has_global_flag = geneva_conference_in_session } log = "[VIN SOUTH] Geneva is in session" }
@@ -374,11 +386,14 @@ test_vin_post_dbp_southern_war_status = {
 	}
 }
 
-test_vin_post_dbp_auto_geneva_check = {
+test_vin_post_dbp_focus_geneva_check = {
 	vin_post_dbp_southern_war_check = yes
-	vin_post_dbp_auto_geneva_check = yes
+	vin_post_dbp_focus_geneva_queue_tick = yes
 	test_vin_post_dbp_southern_war_status = yes
 }
+
+# Console compatibility for old test notes; production has no autonomous queue.
+test_vin_post_dbp_auto_geneva_check = { test_vin_post_dbp_focus_geneva_check = yes }
 
 test_vin_post_dbp_response_reset = {
 	clr_country_flag = VIN_Post_DBP_Southern_War_Recognized
@@ -392,12 +407,28 @@ test_vin_post_dbp_response_reset = {
 	clr_country_flag = VIN_Post_DBP_Southern_Conclusion_Reported
 	clr_country_flag = VIN_Post_DBP_Auto_Geneva_Queued
 	clr_country_flag = VIN_Post_DBP_Auto_Geneva_Launched
+	clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+	clr_country_flag = VIN_Post_DBP_Focus_Geneva_Launched
+	clr_country_flag = VIN_Post_DBP_Negotiations_Chosen
+	clr_country_flag = VIN_Post_DBP_Escalation_Chosen
+	clr_country_flag = VIN_Post_DBP_Panic_Geneva_Suppressed
+	clr_country_flag = VIN_Post_DBP_Reunification_AI_Active
+	clr_country_flag = VIN_Post_DBP_Preparation_Cleaned
+	clr_country_flag = VIN_Post_DBP_General_Offensive_Terminal
+	clr_country_flag = VIN_Post_DBP_Invasion_Declared
+	clr_country_flag = VIN_Post_DBP_Invasion_Already_Active
+	clr_country_flag = VIN_Post_DBP_Strategy_Focus_Superseded
+	clr_country_flag = VIN_Post_DBP_Mobilization_Superseded
+	clr_country_flag = VIN_Post_DBP_General_Offensive_Superseded
+	clr_country_flag = VIN_Post_DBP_Strategy_Briefed
+	clr_country_flag = VIN_Post_DBP_Strategy_Compatibility_Checked
 	clr_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice
 	clr_global_flag = Indochina_Geneva_Pursuit
 	if = {
 		limit = { country_exists = NLF }
 		NLF = { remove_ideas = NLF_Northern_Supply_Line }
 	}
+	if = { limit = { has_idea = VIN_National_Reunification_Preparation } remove_ideas = VIN_National_Reunification_Preparation }
 	log = "[VIN SOUTH] Response flags reset; the Dien Bien Phu recorder and map state were preserved"
 }
 
