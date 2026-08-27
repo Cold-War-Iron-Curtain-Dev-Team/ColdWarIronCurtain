@@ -165,7 +165,7 @@ vin_campaign_open_planned_state = {
 
 vin_campaign_apply_planned_offensive = {
 	if = {
-		limit = { check_variable = { VIN_camp_current = 1 } }
+		limit = { OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 9 } } }
 		1761 = { vin_campaign_open_planned_state = yes }
 	}
 	else_if = {
@@ -243,7 +243,7 @@ vin_campaign_sync_objective_modifiers = {
 	if = {
 		limit = { NOT = { VIN_no_campaign_running_trigger = yes } }
 		if = {
-			limit = { check_variable = { VIN_camp_current = 1 } }
+			limit = { OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 9 } } }
 			1761 = { vin_apply_contested_objective = yes }
 		}
 		else_if = {
@@ -403,6 +403,35 @@ vin_campaign_remove_war_spirits = {
 	vin_campaign_clear_french_overextension = yes
 }
 
+vin_northwest_recovery_clear_war_snapshot = {
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_FRE_War
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_FRA_War
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_TAI_War
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_TAM_War
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_THO_War
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_VIE_War
+	clr_country_flag = VIN_Northwest_Recovery_Preexisting_NUN_War
+}
+
+vin_northwest_recovery_snapshot_preexisting_wars = {
+	vin_northwest_recovery_clear_war_snapshot = yes
+	clr_country_flag = VIN_Campaign_Northwest_Recovery_Owns_War
+	clr_country_flag = VIN_Campaign_Northwest_Recovery_Armistice_Pending
+	clr_country_flag = VIN_Campaign_Northwest_Recovery_Cleanup_Complete
+	if = {
+		limit = { NOT = { has_country_flag = VIN_Limited_Campaign_Armistice_Pending } }
+		if = { limit = { country_exists = FRE has_war_with = FRE } set_country_flag = VIN_Northwest_Recovery_Preexisting_FRE_War }
+		if = { limit = { country_exists = FRA has_war_with = FRA } set_country_flag = VIN_Northwest_Recovery_Preexisting_FRA_War }
+		if = { limit = { country_exists = TAI has_war_with = TAI } set_country_flag = VIN_Northwest_Recovery_Preexisting_TAI_War }
+		if = { limit = { country_exists = TAM has_war_with = TAM } set_country_flag = VIN_Northwest_Recovery_Preexisting_TAM_War }
+		if = { limit = { country_exists = THO has_war_with = THO } set_country_flag = VIN_Northwest_Recovery_Preexisting_THO_War }
+		if = { limit = { country_exists = VIE has_war_with = VIE } set_country_flag = VIN_Northwest_Recovery_Preexisting_VIE_War }
+		if = { limit = { country_exists = NUN has_war_with = NUN } set_country_flag = VIN_Northwest_Recovery_Preexisting_NUN_War }
+	}
+	else = { log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY inherited_campaign_armistice_not_preserved" }
+	log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY preexisting_wars_snapshotted"
+}
+
 vin_campaign_declare_war = {
 	if = {
 		limit = { has_country_flag = VIN_Limited_Campaign_Armistice_Pending }
@@ -442,9 +471,47 @@ vin_campaign_declare_war = {
 		set_variable = { VIN_camp_deadline_x = 30 }
 		set_variable = { VIN_camp_deadline_y = 45 }
 	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 9 } }
+		set_variable = { VIN_camp_deadline_x = -1 }	# every recovery success is costly
+		set_variable = { VIN_camp_deadline_y = 120 }
+	}
 	set_variable = { VIN_camp_timer_days = VIN_camp_deadline_y }
 	add_to_variable = { VIN_camp_timer_days = 1 }
 	vin_limited_campaign_add_objective_vps = yes
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current = 4 }
+			country_exists = THO
+			THO = {
+				OR = {
+					NOT = { divisions_in_state = { state = 1280 size > 0 } }
+					NOT = { divisions_in_state = { state = 1768 size > 0 } }
+				}
+			}
+		}
+		THO = {
+			delete_units = {
+				division_template = "Auxiliaires territoriaux tho"
+				disband = yes
+			}
+		}
+		1280 = {
+			create_unit = {
+				division = "name = \"1er Bataillon territorial de Cao Bang\" division_template = \"Auxiliaires territoriaux tho\" start_experience_factor = 0.45 start_equipment_factor = 0.9"
+				owner = THO
+				prioritize_location = 12065
+			}
+		}
+		1768 = {
+			create_unit = {
+				division = "name = \"2e Bataillon territorial de Lang Son\" division_template = \"Auxiliaires territoriaux tho\" start_experience_factor = 0.45 start_equipment_factor = 0.9"
+				owner = THO
+				prioritize_location = 9948
+			}
+		}
+		log = "VIN_CAMPAIGN_TRACE: THO historical garrisons re-formed for Cao-Bac declaration"
+	}
 	if = {
 		limit = {
 			check_variable = { VIN_camp_current = 2 }
@@ -476,6 +543,16 @@ vin_campaign_declare_war = {
 		}
 	}
 	else_if = {
+		limit = { check_variable = { VIN_camp_current = 9 } VIN_northwest_recovery_target_available_trigger = yes }
+		vin_northwest_recovery_snapshot_preexisting_wars = yes
+		1761 = { owner = { save_global_event_target_as = VIN_northwest_recovery_target } }
+		if = {
+			limit = { NOT = { has_war_with = event_target:VIN_northwest_recovery_target } }
+			set_country_flag = VIN_Campaign_Northwest_Recovery_Owns_War
+			hidden_effect = { declare_war_on = { target = event_target:VIN_northwest_recovery_target type = annex_everything } }
+		}
+	}
+	else_if = {
 		limit = {
 			OR = {
 				check_variable = { VIN_camp_current = 6 }
@@ -500,7 +577,10 @@ vin_campaign_declare_war = {
 		}
 		hidden_effect = { declare_war_on = { target = TAI type = annex_everything } }
 	}
-	indochina_call_all_vin_fre_theater_forces = yes
+	if = {
+		limit = { NOT = { check_variable = { VIN_camp_current = 9 } } }
+		indochina_call_all_vin_fre_theater_forces = yes
+	}
 	if = {
 		limit = { check_variable = { VIN_camp_current = 3 } }
 		lao_join_the_battle_of_dien_bien_phu = yes
@@ -517,6 +597,7 @@ vin_campaign_declare_war = {
 	else_if = { limit = { check_variable = { VIN_camp_current = 6 } } activate_mission = VIN_Mao_Khe_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 7 } } activate_mission = VIN_Day_River_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 8 } } activate_mission = VIN_Na_San_Objective }
+	else_if = { limit = { check_variable = { VIN_camp_current = 9 } } activate_mission = VIN_Northwest_Recovery_Objective }
 	else = { activate_mission = VIN_Campaign_Objective_Timer }
 	if = {
 		limit = {
@@ -529,6 +610,7 @@ vin_campaign_declare_war = {
 	if = {
 		limit = {
 			check_variable = { VIN_camp_current > 4 }
+			check_variable = { VIN_camp_current < 9 }
 			country_exists = FRE
 		}
 		FRE = { fre_preparation_response_begin = yes }
@@ -603,6 +685,10 @@ vin_limited_campaign_remove_objective_vps = {
 }
 
 vin_campaign_objective_tick = {
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Northwest_Recovery_Armistice_Pending }
+		vin_northwest_recovery_close_owned_war = yes
+	}
 	if = {
 		limit = { has_country_flag = VIN_Limited_Campaign_Armistice_Pending }
 		vin_limited_campaign_close_spillover_wars = yes
@@ -859,6 +945,17 @@ vin_campaign_record_result = {
 		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 4 } } set_country_flag = VIN_Campaign_Na_San_Result_Failure }
 		else = { set_country_flag = VIN_Campaign_Na_San_Result_Superseded }
 	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 9 } }
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Costly
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Aborted
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Failure
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Superseded
+		if = { limit = { check_variable = { VIN_camp_last_outcome = 2 } } set_country_flag = VIN_Campaign_Northwest_Recovery_Result_Costly }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 3 } } set_country_flag = VIN_Campaign_Northwest_Recovery_Result_Aborted }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 4 } } set_country_flag = VIN_Campaign_Northwest_Recovery_Result_Failure }
+		else = { set_country_flag = VIN_Campaign_Northwest_Recovery_Result_Superseded }
+	}
 }
 
 vin_campaign_resolve = {
@@ -889,6 +986,7 @@ vin_campaign_resolve = {
 	if = {
 		limit = {
 			check_variable = { VIN_camp_current > 4 }
+			check_variable = { VIN_camp_current < 9 }
 			country_exists = FRE
 		}
 		FRE = { fre_preparation_resolve_from_campaign = yes }
@@ -935,6 +1033,14 @@ vin_campaign_resolve = {
 			if = {
 				limit = { country_exists = THO }
 				annex_country = { target = THO transfer_troops = no }
+			}
+		}
+		else_if = {
+			limit = { check_variable = { VIN_camp_current = 9 } }
+			transfer_state = 1761
+			if = {
+				limit = { country_exists = TAI  TAI = { NOT = { owns_state = 671 } num_of_controlled_states < 1 } }
+				annex_country = { target = TAI transfer_troops = no }
 			}
 		}
 	}
@@ -1042,6 +1148,46 @@ vin_campaign_resolve = {
 	}
 }
 
+vin_northwest_recovery_close_owned_war = {
+	if = {
+		limit = {
+			has_country_flag = VIN_Campaign_Northwest_Recovery_Owns_War
+			event_target:VIN_northwest_recovery_target = { exists = yes }
+			has_war_with = event_target:VIN_northwest_recovery_target
+		}
+		log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=dynamic"
+		white_peace = event_target:VIN_northwest_recovery_target
+	}
+	if = { limit = { country_exists = FRE has_war_with = FRE NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_FRE_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=FRE" white_peace = FRE }
+	if = { limit = { country_exists = FRA has_war_with = FRA NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_FRA_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=FRA" white_peace = FRA }
+	if = { limit = { country_exists = TAI has_war_with = TAI NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_TAI_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=TAI" white_peace = TAI }
+	if = { limit = { country_exists = TAM has_war_with = TAM NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_TAM_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=TAM" white_peace = TAM }
+	if = { limit = { country_exists = THO has_war_with = THO NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_THO_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=THO" white_peace = THO }
+	if = { limit = { country_exists = VIE has_war_with = VIE NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_VIE_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=VIE" white_peace = VIE }
+	if = { limit = { country_exists = NUN has_war_with = NUN NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_NUN_War } } log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY WHITE_PEACE target=NUN" white_peace = NUN }
+	if = {
+		limit = {
+			NOT = {
+				OR = {
+					AND = { country_exists = FRE has_war_with = FRE NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_FRE_War } }
+					AND = { country_exists = FRA has_war_with = FRA NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_FRA_War } }
+					AND = { country_exists = TAI has_war_with = TAI NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_TAI_War } }
+					AND = { country_exists = TAM has_war_with = TAM NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_TAM_War } }
+					AND = { country_exists = THO has_war_with = THO NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_THO_War } }
+					AND = { country_exists = VIE has_war_with = VIE NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_VIE_War } }
+					AND = { country_exists = NUN has_war_with = NUN NOT = { has_country_flag = VIN_Northwest_Recovery_Preexisting_NUN_War } }
+				}
+			}
+		}
+		log = "VIN_CAMPAIGN_TRACE: NW_RECOVERY cleanup_complete"
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Owns_War
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Armistice_Pending
+		set_country_flag = VIN_Campaign_Northwest_Recovery_Cleanup_Complete
+		clear_global_event_target = VIN_northwest_recovery_target
+		vin_northwest_recovery_clear_war_snapshot = yes
+	}
+}
+
 vin_campaign_finish = {
 	if = {
 		limit = { country_exists = FRE }
@@ -1093,8 +1239,20 @@ vin_campaign_finish = {
 		clr_country_flag = VIN_Campaign_Na_San_Active
 		set_country_flag = VIN_Campaign_Cooldown_Na_San
 	}
-	set_country_flag = VIN_Limited_Campaign_Armistice_Pending
-	vin_limited_campaign_close_spillover_wars = yes
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active }
+		clr_country_flag = VIN_Campaign_Northwest_Recovery_Active
+		set_country_flag = VIN_Campaign_Cooldown_Northwest_Recovery
+	}
+	if = {
+		limit = { check_variable = { VIN_camp_current = 9 } }
+		set_country_flag = VIN_Campaign_Northwest_Recovery_Armistice_Pending
+		vin_northwest_recovery_close_owned_war = yes
+	}
+	else = {
+		set_country_flag = VIN_Limited_Campaign_Armistice_Pending
+		vin_limited_campaign_close_spillover_wars = yes
+	}
 	clr_country_flag = VIN_Limited_Campaign_Owns_TAI_War
 	clr_country_flag = VIN_Limited_Campaign_Owns_FRE_War
 	if = {
@@ -1124,6 +1282,7 @@ vin_campaign_finish = {
 	remove_mission = VIN_Mao_Khe_Objective
 	remove_mission = VIN_Day_River_Objective
 	remove_mission = VIN_Na_San_Objective
+	remove_mission = VIN_Northwest_Recovery_Objective
 	set_variable = { VIN_camp_timer_days = 0 }
 }
 
