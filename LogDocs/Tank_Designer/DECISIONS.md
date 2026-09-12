@@ -390,6 +390,57 @@ references live across 70 files, 572 of them in `CWIC_national_tank_presets.txt`
 full slot specialization invalidates the "already-explicit assignments stay legal"
 guarantee that made the last expansion cheap.
 
+### Carrier cutover, ratified 2026-09-11
+
+**Tier mapping: not-later-than-year.** Each retired carrier tier lands on the newest light
+hull tier whose year does not exceed it. APC 0-7 to light 2, 3, 4, 4, 5, 6, 7, 8; IFV 0-7
+to light 2, 3, 3, 4, 5, 6, 7, 8. Mapping by armour instead was rejected outright: the hull
+tier is the research tier, so an armour-anchored mapping would let a 1939 technology
+produce a 1985 BTR. Two pairs collide and that is accepted; the merge was measured first
+and produces zero duplicate `(tag, name, chassis)` triples across all 572 national presets.
+
+**Both carrier families go to the light hull.** `light_tank_ifv_chassis` is "Infantry
+Fighting Vehicle" and `medium_tank_ifv_chassis` is "Heavy IFV", so the legacy IFVs are
+IFVs. Their armour ladder was authored at medium-hull weight, which is a pricing defect
+rather than a statement about which hull they belong on.
+
+**The delta rides on role-exclusive modules, and covers armour, cost and speed only.**
+Not `for_each`: every `for_each` block in vanilla was audited and the whole observed
+vocabulary is `variant_name = { find_and_replace }`, `hardness = { set }` and
+`air_superiority = { set }`. There is no evidence `multiply` is accepted there, and `set`
+would flatten a stat across all ten tiers. `defense`, `breakthrough`, `reliability` and
+`fuel_consumption` adopt the hull curve: reproducing them meant authoring a troop
+compartment with `defense = +39` and `breakthrough = -8`, which would defeat the point of
+putting carriers on the hull curve. Phase 7 owns the recalibration.
+
+**The sixteen freed hull technologies become the carrier's generational ladder.** After
+phase 3 the light hull technologies already unlock every `light_tank_<role>_chassis_N`, so
+`nsb_apc_hulls0..7` and `nsb_ifv_hulls0..7` had nothing left to enable. Each now unlocks
+one rung of an eight-step superstructure ladder, which is also the fix for a real content
+gap: the carrier designer had three APC and two IFV superstructure choices across 1947 to
+2005. Deleting the technologies instead was rejected - they carry the tech tree geometry,
+the 1980 bookmark research list, 741 `has_tech` references and the preset era pacing.
+
+**A bookmark chassis holds exactly one generic design.** Where two generations share a
+tier, the earlier one owns it: it keeps the generic bookmark design and supplies the
+superstructure module both generations mount. The later generation keeps every national
+preset and has no generic design. Without the shared module the same named design would
+exist twice on one chassis with different loadouts, which is what the engine cannot
+represent. `Standard APC 1965` and `Standard IFV 1955` are therefore deleted.
+
+**The archetypes survive the cutover.** Only the designer hulls retire.
+`mechanized_equipment` and `mechanized_heavy_equipment` keep their legacy rows for non-NSB
+games, lose every designer surface, and revert to `type = mechanized`; `armor` was only
+ever there to route the NSB hulls to `tank_designer_view`. The seven mechanized sub-units
+keep `need = { mechanized_equipment = N }` unchanged - connecting designer output to
+battalions is phase 5.
+
+**Carrier stat values are authored, not derived from a frozen contract.**
+`Balance_Target_Manifest.md:52` puts all 18 mechanized rows explicitly out of scope and
+the living balance CSV carries no carrier module rows, so the only source of truth was the
+equipment file. The ladder reproduces it exactly. This retires the claim that the
+restructure renegotiates 18 of 40 frozen rows.
+
 ## Architecture
 
 **SUPERSEDED 2026-09-10 by the three-hull restructure above. Kept for provenance.**
