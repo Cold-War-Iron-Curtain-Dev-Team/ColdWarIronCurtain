@@ -1587,6 +1587,12 @@ def top_level_blocks(value: str, root_name: str) -> list[tuple[str, str]]:
             result.append((name or "", "".join(lines[start : index + 1])))
             start = None
             name = None
+        if depth <= 0:
+            # The root closed. Anything after it is a sibling section, not a
+            # child: `x_tank_chassis.txt` carries `duplicate_archetypes` and an
+            # `equipments` block, and without this the second section's rows
+            # were reported as role roots.
+            break
     return result
 
 
@@ -5235,6 +5241,51 @@ def carrier_stale_id_errors(label: str, body: str) -> list[str]:
     return [f"{label} still references retired carrier equipment {stale.group(0)}"] if stale else []
 
 
+CARRIER_BATTALIONS = {
+    "mechanized_infantry": ("CWIC-Infantry.txt", "light_tank_apc_chassis"),
+    "armored_infantry": ("CWIC-Infantry.txt", "light_tank_ifv_chassis"),
+    "mechanized_airborne": ("CWIC-Special-Units.txt", "light_tank_ifv_chassis"),
+    "engineer_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
+    "recon_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
+    "field_hospital_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
+}
+
+
+def validate_carrier_battalions() -> None:
+    """Designer carrier output has to reach a battalion.
+
+    Phase 5, 2026-09-12. `need` is what a battalion draws, `essential` is what it
+    must hold to count as combat-ready and `transport` is its carrier; all three
+    name an equipment family, and leaving any one of them on the retired carrier
+    family makes the battalion silently read as unequipped. Before this pass every
+    carrier design a player produced fed nothing at all.
+    """
+    units_dir = MOD / "common/units"
+    for battalion, (filename, role) in sorted(CARRIER_BATTALIONS.items()):
+        blocks = dict(top_level_blocks(text(units_dir / filename), "sub_units"))
+        block = blocks.get(battalion)
+        if block is None:
+            fail(f"carrier battalion is missing: {battalion}")
+            continue
+        if direct_values(block, "transport") != [role]:
+            fail(f"{battalion} must have transport = {role}")
+        for key in ("need", "essential"):
+            bodies = keyed_blocks(block, key)
+            # Support companies carry no `essential` block at all; only the line
+            # battalions do. An absent block is fine, a stale one is not.
+            if not bodies and key == "essential":
+                continue
+            if len(bodies) != 1:
+                fail(f"{battalion} must declare exactly one {key} block")
+                continue
+            if not re.search(rf"(?<![A-Za-z0-9_]){role}(?![A-Za-z0-9_])", bodies[0]):
+                fail(f"{battalion} {key} must name {role}")
+    retired = re.compile(r"(?<![A-Za-z0-9_])mechanized(?:_heavy)?_equipment(?![A-Za-z0-9_])")
+    for path in sorted(units_dir.glob("*.txt")):
+        if retired.search(code_only(text(path))):
+            fail(f"{path.name} still wires a land sub-unit to a retired carrier family")
+
+
 def validate_carrier_roles() -> None:
     """Contract for APC and IFV as roles on the light tank hull.
 
@@ -5259,11 +5310,27 @@ def validate_carrier_roles() -> None:
             continue
         for message in carrier_archetype_errors(archetype, block):
             fail(message)
-        if not [name for name in blocks if re.fullmatch(rf"{archetype}_\d+", name)]:
-            fail(f"{archetype} has no legacy equipment rows left for non-NSB games")
-        for name, legacy in blocks.items():
-            if name != archetype and direct_values(legacy, "module_slots"):
+        # Phase 5, 2026-09-12: the legacy carrier rows moved into the role
+        # family so one battalion serves both the NSB designer path and the
+        # non-NSB legacy path, exactly as `lt_equipment_1..6` already sit in
+        # `light_tank_chassis`. The retired archetype is left as an empty shell
+        # because roughly 180 MIO, idea and decision entries name it.
+        role_members = dict(top_level_blocks(text(ROLE_CHASSIS_FILE), "equipments"))
+        legacy = [name for name in role_members if re.fullmatch(rf"{archetype}_\d+", name)]
+        if not legacy:
+            fail(f"{archetype} rows are missing from the {role} family; non-NSB loses its carriers")
+        for name in legacy:
+            body = role_members[name]
+            if direct_values(body, "archetype") != [role]:
+                fail(f"{name} must declare archetype = {role}")
+            if direct_values(body, "module_slots"):
                 fail(f"legacy row {name} must not declare module slots")
+            # Relocation moved these rows off an archetype that supplied their
+            # base stats. Each must state its own, or it silently inherits the
+            # light tank hull's.
+            for stat in ("maximum_speed", "armor_value", "build_cost_ic", "defense", "reliability"):
+                if not direct_values(body, stat):
+                    fail(f"{name} must state {stat} explicitly after the relocation")
 
         if not re.search(rf"(?m)^\s*{role}\s*=\s*{{", role_text):
             fail(f"carrier role root is missing: {role}")
@@ -5494,6 +5561,7 @@ def run_stockpile_negative_fixtures() -> None:
 
 validate_carrier_bookmarks()
 validate_carrier_roles()
+validate_carrier_battalions()
 validate_designer_window_coverage()
 stockpile_grant_count = sum(
     len(stockpile_grants(code_only(text(path))))
