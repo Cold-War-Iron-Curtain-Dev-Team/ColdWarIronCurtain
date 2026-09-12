@@ -5262,10 +5262,10 @@ def run_apc_negative_fixtures() -> None:
         ("hull leaves the mechanized archetype", lambda v: v.replace(
             "\tapc_chassis_0 = {\n\t\tabbreviation", "\tapc_chassis_0 = {\n\t\tarchetype = light_tank_chassis\n\t\tabbreviation", 1)),
         ("hull loses its DLC gate", lambda v: v.replace('has_dlc = "No Step Back"', "always = yes", 1)),
-        # Owner decision 2026-09-10 role-token remap requires amphibious,
-        # not the retired custom mechanized token, on this APC archetype.
+        # The standalone carrier families keep the real `mechanized` equipment
+        # type; only the hull role roots carry a designer role token.
         ("archetype leaves the armor domain", lambda v: v.replace(
-            "\t\ttype = { armor amphibious }\n", "\t\ttype = amphibious\n", 1)),
+            "\t\ttype = { armor mechanized }\n", "\t\ttype = mechanized\n", 1)),
         ("hull loses its own production icon", lambda v: v.replace(
             "\t\tpicture = cwic_apc_chassis_0\n", "", 1)),
     ):
@@ -5574,11 +5574,11 @@ def run_ifv_negative_fixtures() -> None:
     for label, mutation in (
         ("legacy row inherits slots", lambda value: value.replace("\t\tmechanized_heavy_equipment_1 = {\n\t\tyear = 1947", "\t\tmechanized_heavy_equipment_1 = {\n\t\tmodule_slots = inherit\n\t\tyear = 1947", 1)),
         ("tank gun allowed on an IFV", lambda value: value.replace("tank_ifv_armament", "tank_small_main_armament", 1)),
-        ("hull leaves the Heavy Mech archetype", lambda value: value.replace("archetype = mechanized_heavy_equipment type = { armor rocket }", "archetype = light_tank_chassis type = { armor rocket }", 1)),
+        ("hull leaves the Heavy Mech archetype", lambda value: value.replace("archetype = mechanized_heavy_equipment type = { armor mechanized }", "archetype = light_tank_chassis type = { armor mechanized }", 1)),
         ("hull loses its DLC gate", lambda value: value.replace('has_dlc = "No Step Back"', "always = yes", 1)),
-        # Owner decision 2026-09-10 role-token remap requires rocket, not the
-        # retired custom mechanized/ifv token, on this IFV archetype.
-        ("archetype leaves the armor domain", lambda value: value.replace("\t\ttype = { armor rocket }", "\t\ttype = rocket", 1)),
+        # The standalone carrier families keep the real `mechanized` equipment
+        # type; only the hull role roots carry a designer role token.
+        ("archetype leaves the armor domain", lambda value: value.replace("\t\ttype = { armor mechanized }", "\t\ttype = mechanized", 1)),
         ("hull loses its own production icon", lambda value: value.replace("\t\tpicture = cwic_ifv_chassis_0\n", "", 1)),
     ):
         mutated = mutation(source)
