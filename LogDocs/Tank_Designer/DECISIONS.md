@@ -441,6 +441,42 @@ the living balance CSV carries no carrier module rows, so the only source of tru
 equipment file. The ladder reproduces it exactly. This retires the claim that the
 restructure renegotiates 18 of 40 frozen rows.
 
+### Carrier battalions, ratified 2026-09-12
+
+**One battalion serves both profiles; the legacy equipment moves to it.** The six carrier
+battalions keep their ids and move onto the carrier role families, and all 18 legacy
+carrier rows move into those same families. This is the shape the mod already uses for
+tanks, where `lt_equipment_1..6` carry `archetype = light_tank_chassis` and `light_armor`
+therefore draws designer and legacy equipment alike. Splitting the battalions per DLC
+profile is rejected: `mechanized_infantry` appears 2,366 times across 294 OOB files, and
+the mod deliberately keeps NSB and non-NSB division templates identical.
+
+**`need`, `essential` and `transport` are one decision, not three.** `essential` is what a
+battalion must hold to read as combat-ready. Rewiring `need` and `transport` while leaving
+`essential` on the retired family would leave every rewired battalion silently registering
+as unequipped, which is invisible in the files and obvious only in game.
+
+**Relocated rows state every stat explicitly.** A row moved between archetypes silently
+inherits the new archetype's base values, so each relocated row writes out the thirteen
+stats the retired archetype used to supply. The relocation is required to be stat-neutral
+and is verified numerically, not by inspection.
+
+**The retired archetypes stay as empty shells.** `mechanized_equipment` and
+`mechanized_heavy_equipment` keep no members. They are not deleted because roughly 180
+military industrial organization, idea and decision entries name those archetype ids, and
+because the mod already ships exactly this shape: `lt_equipment` has had zero members
+since the legacy tank rows were reparented.
+
+**Legacy carrier rows live in `x_tank_chassis.txt`.** Load order, not preference: the role
+archetypes do not exist until that file is evaluated, so `mechanized.txt` cannot name them.
+Vanilla puts its own plain members of duplicated archetypes in the same place.
+
+**Artillery, AA and tank destroyers are out of scope here.** Their legacy battalions still
+consume standalone families, and converging them is the artillery/AA restructure the owner
+deferred. The eight role brigades that already exist are technology-gated through
+`enable_subunits`, which is the normal pattern - `active = no` on a sub-unit is not a
+disabled unit, and 59 of the mod's 91 land sub-units carry it.
+
 ## Architecture
 
 **SUPERSEDED 2026-09-10 by the three-hull restructure above. Kept for provenance.**

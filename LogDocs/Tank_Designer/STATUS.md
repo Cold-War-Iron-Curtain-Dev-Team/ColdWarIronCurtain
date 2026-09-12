@@ -1780,8 +1780,8 @@ The three-hull restructure's role layer is done and owner-verified:
   three size tokens.
 - Flame removed; heavy SPAA retired.
 
-Outstanding for later passes: phase 5 battalion taxonomy, amphibious supply,
-artillery/AA, envelope recalibration. Phase 4 landed 2026-09-11, below.
+Outstanding for later passes: amphibious supply, artillery/AA, envelope recalibration.
+Phase 4 landed 2026-09-11 and phase 5 on 2026-09-12, both below.
 
 ### Phase 4 - IMPLEMENTED 2026-09-11
 
@@ -1866,6 +1866,84 @@ Gate line after the pass: `1317 technologies, 299 tank modules, 135 historical t
 designs, 38 generic bookmark variants, 586 national presets and 560 named OOB requests
 across 68 NSB OOBs, 76 country-history bootstrap sites, 6220 stockpile grants, 16 carrier
 superstructure rungs, and 20 designer slots checked.`
+
+### Phase 5 - IMPLEMENTED 2026-09-12
+
+Designer carrier output now reaches the battlefield. Before this pass a player could
+design, produce and stockpile an APC or IFV and no battalion in the game consumed it:
+`mechanized_infantry` and `armored_infantry` still drew the retired
+`mechanized_equipment` / `mechanized_heavy_equipment` families.
+
+**Scope is narrower than Finding 16 implied, and the narrowing is measured.** Three
+things were already true before this pass and needed no work:
+
+1. **The armour line battalions already work.** `light_armor`, `medium_armor` and
+   `heavy_armor` need the base hulls, and the legacy `lt_equipment_*`, `mbt_equipment_*`
+   and `ht_equipment_*` rows were reparented into those same hull families in an earlier
+   pass, so one battalion serves the NSB designer and the non-NSB legacy path together.
+2. **The eight role brigades are neither inactive nor unreachable.** Tank destroyer, SP
+   artillery and SPAA brigades on the role roots are `active = no` but each carries an
+   `enable_subunits` grant in `NSB_armor.txt`, which is the ordinary
+   technology-gated pattern, not a disabled unit. 59 of the mod's 91 land sub-units are
+   `active = no` for the same reason, including `engineer` and `artillery`.
+3. **Artillery and AA stay out.** Their legacy battalions still consume the standalone
+   `sp_artillery_equipment`, `spaag_equipment` and `medium_tank_destroyer_equipment`
+   families, and converging those is the artillery/AA restructure the owner deferred.
+
+**What changed.** Six battalions move onto the carrier role families, on all three of
+`need`, `essential` and `transport`: `mechanized_infantry`, `engineer_mechanized`,
+`recon_mechanized` and `field_hospital_mechanized` to `light_tank_apc_chassis`;
+`armored_infantry` and `mechanized_airborne` to `light_tank_ifv_chassis`. `essential`
+matters as much as `need` - it is what a battalion must hold to read as combat-ready, and
+leaving it stale would have made every rewired battalion silently register as unequipped.
+
+Their ids are untouched, so the migration costs zero OOB edits: `mechanized_infantry`
+alone appears 2,366 times across 294 order-of-battle files, `armored_infantry` 977 times
+across 163, and renaming any of them would also have forced NSB and non-NSB division
+templates apart, which the mod deliberately keeps identical.
+
+**Non-NSB is preserved by relocation, not by a second battalion.** All 18 legacy carrier
+rows - `mechanized_equipment_1..10` and `mechanized_heavy_equipment_1..8` - move into the
+two role families and now carry `archetype = light_tank_apc_chassis` /
+`light_tank_ifv_chassis`. They live in `x_tank_chassis.txt` rather than `mechanized.txt`
+because of load order: the role archetypes do not exist until that file is evaluated.
+
+Every stat the retired archetype used to supply is written out explicitly on each
+relocated row, because the new archetype supplies the light tank hull's values instead.
+Verified numerically across all 18 rows and 13 stats: effective armour, speed, defense,
+breakthrough, hardness, attack, cost, fuel and lend-lease are identical to the values
+those rows had before the move. A non-NSB game fields exactly the carriers it fielded
+before.
+
+**Two precedents carried the design, and both were checked rather than assumed.** Vanilla
+declares plain, pre-NSB equipment inside a duplicated archetype - `light_tank_aa_equipment_1`
+is a 1934 row with `archetype = light_tank_aa_chassis` - so a role family may hold members
+that the designer did not generate. And this mod already ships an empty archetype:
+`lt_equipment` has zero members, every `lt_equipment_N` having been reparented to
+`light_tank_chassis`. `mechanized_equipment` and `mechanized_heavy_equipment` are now the
+same kind of empty shell, which is why they are kept rather than deleted - roughly 180
+military industrial organization, idea and decision entries name those archetype ids.
+
+**A plan that was measured and abandoned.** The first design rewired the battalions and
+left the legacy rows where they were, which would have cost non-NSB its carriers outright.
+The second worried that relocating the rows would empty the archetypes and silently kill
+those ~180 production bonuses. The `lt_equipment` precedent settles it: the bonuses key on
+an archetype id that survives, and the mod has shipped exactly this shape through several
+playtests.
+
+**A validator bug this pass exposed.** `top_level_blocks` never stopped at its root's
+closing brace, so once `x_tank_chassis.txt` gained an `equipments` section beside
+`duplicate_archetypes`, all 18 relocated rows were reported as tank role roots. The parser
+now breaks when the root closes.
+
+New contracts: `validate_carrier_battalions` pins all three wiring keys per battalion and
+rejects any land sub-unit file that still names a retired carrier family; the carrier role
+contract now requires the legacy rows to sit in the role family with their stats stated
+explicitly. Both proven to bite by mutating real source - a stale `transport`, a stale
+`essential`, a stale `need`, a row left on the old archetype and a row that loses an
+explicit stat are each reported, with every file restored afterwards.
+
+Gate line is unchanged by this pass.
 
 
 ### Role-token probe - PASSED, and the remap is IMPLEMENTED 2026-09-10
