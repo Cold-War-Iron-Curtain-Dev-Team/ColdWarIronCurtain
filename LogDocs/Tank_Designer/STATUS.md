@@ -1780,8 +1780,93 @@ The three-hull restructure's role layer is done and owner-verified:
   three size tokens.
 - Flame removed; heavy SPAA retired.
 
-Outstanding for later passes, unchanged: phase 4 carrier cutover, phase 5 battalion
-taxonomy, amphibious supply, artillery/AA, envelope recalibration.
+Outstanding for later passes: phase 5 battalion taxonomy, amphibious supply,
+artillery/AA, envelope recalibration. Phase 4 landed 2026-09-11, below.
+
+### Phase 4 - IMPLEMENTED 2026-09-11
+
+The carrier cutover landed as one atomic pass. `apc_chassis_0..7` and `ifv_chassis_0..7`
+are gone; APC and IFV designs are roles on the light tank hull. The two mechanized
+archetypes are plain equipment again - no `module_slots`, no `module_count_limit`, no
+`default_modules`, and `type = mechanized` rather than `{ armor mechanized }` - so
+non-NSB games keep `mechanized_equipment_1..10` and `mechanized_heavy_equipment_1..8`
+exactly as before.
+
+**Tier mapping, owner ruling: not-later-than-year.** Each retired tier lands on the
+newest light hull tier whose year does not exceed it.
+
+| Legacy | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| APC to light tier | 2 | 3 | 4 | 4 | 5 | 6 | 7 | 8 |
+| IFV to light tier | 2 | 3 | 3 | 4 | 5 | 6 | 7 | 8 |
+
+Two pairs collide, APC 2+3 on tier 4 and IFV 1+2 on tier 3. Measured before migrating:
+zero duplicate `(tag, name, chassis)` triples across all 572 national presets, so no
+national design was lost or merged.
+
+**The delta instrument, owner ruling: armour, cost and speed carried by role-exclusive
+modules.** The sixteen freed `nsb_apc_hulls0..7` / `nsb_ifv_hulls0..7` technologies no
+longer enable equipment - the role tiers are already unlocked by the light hull ladder
+from phase 3 - so each now unlocks one rung of an eight-step superstructure ladder. Five
+APC and six IFV modules were authored to fill the ladders out from the shipped three and
+two. Verified arithmetically on all sixteen rungs: light hull tier stat plus module
+`add_stats` reproduces the retired chassis row exactly for armour, build cost and maximum
+speed.
+
+`defense`, `breakthrough`, `reliability` and `fuel_consumption` adopt the hull curve by
+the same ruling. The deltas dropped are large and deliberate - APC breakthrough -17 to
+-14, IFV defense +24 to +39 - because reproducing them would have meant a troop
+compartment that adds 39 defense, which defeats putting carriers on the hull curve.
+Phase 7 owns the recalibration.
+
+**Corrections to Finding 16 that the migration produced:**
+
+1. **There were never 18 frozen carrier rows.** `Balance_Target_Manifest.md:52` reads
+   "The 18 mechanized rows remain explicitly out of scope for the tank designer pass",
+   and the living balance CSV carries no carrier module rows at all. Finding 16's "the
+   frozen 40-row manifest is renegotiated, not satisfied" is wrong: there was no frozen
+   carrier contract to renegotiate. The only source of truth for carrier numbers was the
+   equipment file, which is what the ladder reproduces.
+2. **`for_each` cannot re-price a role.** Audited every `for_each` block in vanilla -
+   `x_tank_chassis.txt` and `x_plane_airframes.txt`, 21 blocks. The entire observed
+   vocabulary is `variant_name = { find_and_replace }`, `hardness = { set }` and
+   `air_superiority = { set }`. No `multiply`, and no stat outside those two. Finding 16's
+   "a role-wide multiplier is the shape available" rests on an operator nothing
+   demonstrates, and the one proven operator would flatten a stat across all ten tiers.
+3. **Sub-unit `need` needed no change.** Finding 16 counted seven sub-units consuming a
+   retired archetype. The archetypes are not retired - only the designer hulls are - so
+   `mechanized_infantry` and the six others still resolve `mechanized_equipment` and its
+   legacy rows. Getting designer output to the battlefield remains phase 5's job.
+4. **857 references was 809.** The measured count against current source, after the
+   phase 1-3 work moved some of it.
+
+**What the cutover touched.** 732 equipment-id rewrites across 66 files; 16 script enum
+entries removed; 64 localisation keys removed and 22 added; 16 technologies rewired; two
+dead designer windows deleted, 85 blueprints to 83; the two standalone carrier AI recipe
+families deleted as exact duplicates of the phase 3 role recipes, HE-gated recipes 103 to
+95; 16 orphaned hull picture sprites removed. Every national preset and the ten generic
+bookmark designs now mount their tier's superstructure.
+
+**Two generic designs were dropped, deliberately.** A bookmark chassis may hold exactly
+one generic design, so `Standard APC 1965` and `Standard IFV 1955` - the non-owning half
+of each merged pair - are gone. Both generations keep all their national presets, and the
+manifest records this as `has_generic_design`. Generic bookmark variants 40 to 38.
+
+**The IFV armour inversion is carried forward unchanged, and it is a defect.** A 2005 IFV
+has 80 armour against the 2010 MBT's 75, and the 1947 IFV has 30 against the 1947 light
+tank's 10. The cutover reproduces it exactly because a cutover preserves observable
+behaviour; phase 7's envelope recalibration is where it should be priced. Do not read the
+ladder's +20 to +55 rungs as authored intent.
+
+**Hardness is the one carrier stat the cutover does not preserve.** Legacy APC 0.5 and IFV
+0.6 against the role roots' 0.3 and 0.5, set by `for_each` in phase 3 and owner-verified in
+game. Left alone rather than changed under a ruling that named three other stats.
+
+Gate line after the pass: `1317 technologies, 299 tank modules, 135 historical tank
+designs, 38 generic bookmark variants, 586 national presets and 560 named OOB requests
+across 68 NSB OOBs, 76 country-history bootstrap sites, 6220 stockpile grants, 16 carrier
+superstructure rungs, and 20 designer slots checked.`
+
 
 ### Role-token probe - PASSED, and the remap is IMPLEMENTED 2026-09-10
 
