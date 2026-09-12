@@ -83,45 +83,49 @@ CHASSIS_FILE = MOD / "common/units/equipment/tank_chassis.txt"
 ROLE_CHASSIS_FILE = MOD / "common/units/equipment/x_tank_chassis.txt"
 MECHANIZED_FILE = MOD / "common/units/equipment/mechanized.txt"
 HEAVY_MECHANIZED_FILE = MOD / "common/units/equipment/mechanized_heavy.txt"
-# The APC designer family reuses the mechanized_equipment archetype so every
-# existing mechanized consumer resolves designer personnel carriers unchanged.
-# tier -> (legacy Light Mech row it replaces, hull technology, introduction year)
-APC_HULL_ROWS = {
-    0: ("mechanized_equipment_3", "nsb_apc_hulls0", 1947),
-    1: ("mechanized_equipment_4", "nsb_apc_hulls1", 1950),
-    2: ("mechanized_equipment_5", "nsb_apc_hulls2", 1960),
-    3: ("mechanized_equipment_6", "nsb_apc_hulls3", 1965),
-    4: ("mechanized_equipment_7", "nsb_apc_hulls4", 1975),
-    5: ("mechanized_equipment_8", "nsb_apc_hulls5", 1985),
-    6: ("mechanized_equipment_9", "nsb_apc_hulls6", 1995),
-    7: ("mechanized_equipment_10", "nsb_apc_hulls7", 2005),
+# Owner decision 2026-09-11: APC and IFV are roles on the light tank hull, not
+# standalone designer families. The legacy mechanized archetypes keep only their
+# plain equipment rows for non-NSB games. Each retired carrier tier maps onto the
+# newest light hull tier whose year does not exceed it, and the role-exclusive
+# superstructure module carries the armour, cost and speed the old chassis row
+# used to carry. tier -> (module, technology, light hull tier, armour, cost, speed)
+APC_LADDER = {
+    0: ("apc_open_troop_bay", "nsb_apc_hulls0", 2, 5, 2.6, 4),
+    1: ("apc_enclosed_troop_bay", "nsb_apc_hulls1", 3, 5.5, 3.45, 4),
+    2: ("apc_troop_compartment", "nsb_apc_hulls2", 4, 7, 4.3, 4.5),
+    3: ("apc_sloped_troop_compartment", "nsb_apc_hulls3", 4, 9, 5.6, 5.5),
+    4: ("apc_frontal_engine_layout", "nsb_apc_hulls4", 5, 10.5, 7.5, 6.5),
+    5: ("apc_rear_ramp_compartment", "nsb_apc_hulls5", 6, 12, 8.4, 7),
+    6: ("apc_spall_lined_compartment", "nsb_apc_hulls6", 7, 13.5, 9.3, 7.5),
+    7: ("apc_modular_troop_capsule", "nsb_apc_hulls7", 8, 15, 11.2, 8.5),
 }
-# The 2023 balance workbook is frozen and predates the APC designer family, so
-# its module sheets can never carry these rows. They are authored values kept in
+IFV_LADDER = {
+    0: ("ifv_fighting_compartment", "nsb_ifv_hulls0", 2, 20, 10.4, 5),
+    1: ("ifv_enclosed_fighting_compartment", "nsb_ifv_hulls1", 3, 23.5, 11.65, 5.5),
+    2: ("ifv_sloped_fighting_compartment", "nsb_ifv_hulls2", 3, 31.5, 14.8, 6.5),
+    3: ("ifv_reinforced_fighting_compartment", "nsb_ifv_hulls3", 4, 33, 16.55, 6),
+    4: ("ifv_frontal_engine_layout", "nsb_ifv_hulls4", 5, 38.5, 18.3, 6.5),
+    5: ("ifv_rear_ramp_compartment", "nsb_ifv_hulls5", 6, 44, 20.05, 8),
+    6: ("ifv_spall_lined_compartment", "nsb_ifv_hulls6", 7, 49.5, 21.8, 8.5),
+    7: ("ifv_modular_fighting_capsule", "nsb_ifv_hulls7", 8, 55, 24.55, 9),
+}
+CARRIER_LADDERS = {"apc": APC_LADDER, "ifv": IFV_LADDER}
+CARRIER_ARCHETYPES = {
+    "apc": ("mechanized_equipment", MECHANIZED_FILE, "light_tank_apc_chassis", "amphibious"),
+    "ifv": ("mechanized_heavy_equipment", HEAVY_MECHANIZED_FILE, "light_tank_ifv_chassis", "rocket"),
+}
+# The 2023 balance workbook is frozen and predates the carrier modules, so its
+# module sheets can never carry these rows. They are authored values kept in
 # script only, and the module balance report reports them as an explicit
 # exemption instead of silently widening workbook coverage.
-APC_SUPERSTRUCTURE_MODULES = (
-    "apc_open_troop_bay",
-    "apc_troop_compartment",
-    "apc_frontal_engine_layout",
-)
+APC_SUPERSTRUCTURE_MODULES = tuple(row[0] for row in APC_LADDER.values())
 APC_ARMAMENT_MODULES = (
     "apc_firing_ports",
     "apc_pintle_mg",
     "apc_cupola_hmg",
     "apc_remote_weapon_station",
 )
-IFV_HULL_ROWS = {
-    0: ("mechanized_heavy_equipment_1", "nsb_ifv_hulls0", 1947),
-    1: ("mechanized_heavy_equipment_2", "nsb_ifv_hulls1", 1950),
-    2: ("mechanized_heavy_equipment_3", "nsb_ifv_hulls2", 1955),
-    3: ("mechanized_heavy_equipment_4", "nsb_ifv_hulls3", 1965),
-    4: ("mechanized_heavy_equipment_5", "nsb_ifv_hulls4", 1975),
-    5: ("mechanized_heavy_equipment_6", "nsb_ifv_hulls5", 1985),
-    6: ("mechanized_heavy_equipment_7", "nsb_ifv_hulls6", 1995),
-    7: ("mechanized_heavy_equipment_8", "nsb_ifv_hulls7", 2005),
-}
-IFV_SUPERSTRUCTURE_MODULES = ("ifv_fighting_compartment", "ifv_frontal_engine_layout")
+IFV_SUPERSTRUCTURE_MODULES = tuple(row[0] for row in IFV_LADDER.values())
 IFV_ARMAMENT_MODULES = tuple(f"ifv_autocannon_{tier}" for tier in range(8)) + tuple(
     f"ifv_atgm_launcher_{tier}" for tier in range(6)
 )
@@ -320,14 +324,15 @@ STOCKPILE_REJECTED_KEYS = ("creator",)
 # each needs its content owner to say what was meant, so they are recorded here
 # rather than guessed at or deleted. None is tank-designer owned.
 #   mp_uav_1                    technology (helicopter.txt); ISR_1980{,_nsb}.txt:486
-#   apc_equipment_1             derived_variant_name only; PHI_1950s.txt:586
+#   light_tank_apc_equipment_3  derived_variant_name only; PHI_1950s.txt:586
+#                               (was apc_equipment_1 before the 2026-09-11 cutover)
 #   manpads_3                   undeclared; USA_80s_CIA.txt:1850,1872
 #   cv_nav_bomber_equipment_6   undeclared; JAP_1950s.txt:437
 #   armor_light, armor_medium, artillery_light, artillery_medium,
 #   support_artillery           technology categories; PRC_50s_New.txt:2489-2509
 STOCKPILE_TYPE_EXCEPTIONS = {
     "mp_uav_1",
-    "apc_equipment_1",
+    "light_tank_apc_equipment_3",
     "manpads_3",
     "cv_nav_bomber_equipment_6",
     "armor_light",
@@ -428,12 +433,14 @@ EXPORT_VARIANTS = {
     "CWIC Export Light Tank 1944": "light_tank_chassis_2",
     "CWIC Export Heavy Tank 1942": "heavy_tank_chassis_1",
     "CWIC Export Heavy Tank 1944": "heavy_tank_chassis_2",
-    "CWIC Export Armored Personnel Carrier 1947": "apc_chassis_0",
-    "CWIC Export Armored Personnel Carrier 1950": "apc_chassis_1",
-    "CWIC Export Armored Personnel Carrier 1960": "apc_chassis_2",
-    "CWIC Export Armored Personnel Carrier 1965": "apc_chassis_3",
-    "CWIC Export Infantry Fighting Vehicle 1950": "ifv_chassis_1",
-    "CWIC Export Infantry Fighting Vehicle 1965": "ifv_chassis_3",
+    # The 1960 and 1965 carrier exports share light hull tier 4 after the
+    # 2026-09-11 cutover, and both remain distinct named export designs.
+    "CWIC Export Armored Personnel Carrier 1947": "light_tank_apc_chassis_2",
+    "CWIC Export Armored Personnel Carrier 1950": "light_tank_apc_chassis_3",
+    "CWIC Export Armored Personnel Carrier 1960": "light_tank_apc_chassis_4",
+    "CWIC Export Armored Personnel Carrier 1965": "light_tank_apc_chassis_4",
+    "CWIC Export Infantry Fighting Vehicle 1950": "light_tank_ifv_chassis_3",
+    "CWIC Export Infantry Fighting Vehicle 1965": "light_tank_ifv_chassis_4",
 }
 LEGACY_ARMOUR_GRANT = re.compile(
     r"^(?:lt_equipment|mbt_equipment|ht_equipment|mechanized_equipment"
@@ -528,15 +535,39 @@ UNSUPPORTED_IDS = {
 }
 
 
-BOOKMARK_VARIANT_NAMES.update({r["type"]: r["generic_name"] for r in CARRIER_MANIFEST["recipes"]})
-BOOKMARK_VARIANT_TECHS.update({r["type"]: r["technology"] for r in CARRIER_MANIFEST["recipes"]})
+# Two carrier generations share a light hull tier after the 2026-09-11 cutover,
+# and only the generation that owns the tier carries a generic bookmark design,
+# so the later one must not overwrite the map with a null name.
+BOOKMARK_VARIANT_NAMES.update(
+    {r["type"]: r["generic_name"] for r in CARRIER_MANIFEST["recipes"] if r["has_generic_design"]}
+)
+BOOKMARK_VARIANT_TECHS.update(
+    {r["type"]: r["technology"] for r in CARRIER_MANIFEST["recipes"] if r["has_generic_design"]}
+)
+
+
+def bookmark_variant_names(equipment_type: str, producer: str) -> set[str]:
+    """Every design a producer bootstraps on one chassis.
+
+    Before the 2026-09-11 carrier cutover this was a single name, because each
+    producer had at most one preset per chassis. Two carrier generations now
+    share a light hull tier, so a producer legitimately bootstraps two designs
+    on it - Canada's 1960 carrier and its M113A1 - and an OOB may request either.
+    """
+    names = {
+        preset["name"]
+        for preset in NATIONAL_PRESETS + CARRIER_PRESETS
+        if (preset["type"], preset["producer"]) == (equipment_type, producer)
+    }
+    return names or {BOOKMARK_VARIANT_NAMES[equipment_type]}
 
 
 def bookmark_variant_name(equipment_type: str, producer: str) -> str:
-    for preset in NATIONAL_PRESETS + CARRIER_PRESETS:
-        if (preset["type"], preset["producer"]) == (equipment_type, producer):
-            return preset["name"]
-    return BOOKMARK_VARIANT_NAMES[equipment_type]
+    """The single design for a producer and chassis; fails loudly when ambiguous."""
+    names = bookmark_variant_names(equipment_type, producer)
+    if len(names) != 1:
+        fail(f"{producer} bootstraps several designs on {equipment_type}: {sorted(names)}")
+    return sorted(names)[0]
 
 
 def oob_variant_producer(block: str, default_tag: str) -> str:
@@ -1698,7 +1729,7 @@ def tank_type_domain_token_errors(blocks: dict[str, str]) -> list[str]:
             result.append(f"{name} type domain must not carry unused flame")
         legal = (
             LEGAL_CARRIER_FAMILY_TYPE_TOKENS
-            if name in carrier_families or re.fullmatch(r"(apc|ifv)_chassis_\d+", name)
+            if name in carrier_families or re.fullmatch(r"light_tank_(apc|ifv)_chassis_\d+", name)
             else LEGAL_TANK_DESIGNER_TYPE_TOKENS
         )
         unsupported = sorted((equipment_type_domain(block) - {"armor"}) - legal)
@@ -2639,8 +2670,15 @@ def _variant_recipes() -> dict[tuple[str, str], dict[str, object]]:
 
     A design name is only unique per country: the carrier presets give many tags
     the same exported vehicle, and an incomplete national ladder can place that
-    vehicle on a different hull tier. Identical repeats are expected; only a
-    same-name-same-chassis pair with a different loadout is a real conflict.
+    vehicle on a different hull tier. Identical repeats are expected.
+
+    Since the 2026-09-11 carrier cutover a name can also repeat on one chassis
+    with a different loadout, because two bookmark generations share a light hull
+    tier: Albania's 1950 BTR-50PK mounts `ifv_autocannon_1` and East Germany's
+    1955 one mounts `ifv_autocannon_2`, both on `light_tank_ifv_chassis_3`. That
+    is legal content, so the entry is marked ambiguous rather than failed - the
+    envelope report already refuses to sample an ambiguous name, and OOB requests
+    resolve per producer through `bookmark_variant_names`.
     """
     recipes: dict[tuple[str, str], dict[str, object]] = {}
     for path in (VARIANT_EFFECT_FILE, FOCUS_EFFECT_FILE, NATIONAL_EFFECT_FILE):
@@ -2666,10 +2704,22 @@ def _variant_recipes() -> dict[tuple[str, str], dict[str, object]]:
                     slots.append((match.group(1), match.group(2)))
             name = name_match.group(1)
             key = (name, type_match.group(1))
-            record = {"name": name, "type": type_match.group(1), "slots": slots, "source": path.name}
+            record = {
+                "name": name,
+                "type": type_match.group(1),
+                "slots": slots,
+                "loadouts": [slots],
+                "source": path.name,
+            }
             if key in recipes and recipes[key]["slots"] != slots:
-                fail(f"tank recipe {name} on {key[1]} has conflicting loadouts")
-            recipes[key] = record
+                # Legal since the carrier cutover: one chassis, one design name,
+                # two national loadouts. Keep every loadout so slot legality is
+                # still checked, and mark the entry unusable for name lookups.
+                recipes[key]["ambiguous"] = True
+                if slots not in recipes[key]["loadouts"]:
+                    recipes[key]["loadouts"].append(slots)
+                continue
+            recipes.setdefault(key, record)
     return recipes
 
 
@@ -2677,7 +2727,10 @@ def _variant_recipes_by_name() -> dict[str, dict[str, object]]:
     """Name-only view for the envelope map, which samples unique tank designs."""
     by_name: dict[str, dict[str, object]] = {}
     for (name, _chassis), record in _variant_recipes().items():
-        if name in by_name and by_name[name]["slots"] != record["slots"]:
+        if record.get("ambiguous"):
+            by_name[name] = {"name": name, "ambiguous": True}
+            continue
+        if name in by_name and by_name[name].get("slots") != record["slots"]:
             by_name[name] = {"name": name, "ambiguous": True}
             continue
         by_name.setdefault(name, record)
@@ -3368,10 +3421,11 @@ def validate_tank_qa_contracts(tank_techs: dict[str, str]) -> None:
         if not top_level_named_blocks(helper[1], "hidden_effect", helper[0]):
             fail(f"export setup helper {helper[0]} must hide internal variant creation")
     for (name, _chassis), recipe in _variant_recipes().items():
-        for slot, module in recipe["slots"]:
-            match = re.fullmatch(r"tank_special_slot_(\d+)", slot)
-            if match and module_category(module) not in TANK_SPECIAL_SLOT_CATEGORIES.get(int(match[1]), set()):
-                fail(f"{name} places {module} in incompatible {slot}")
+        for loadout in recipe["loadouts"]:
+            for slot, module in loadout:
+                match = re.fullmatch(r"tank_special_slot_(\d+)", slot)
+                if match and module_category(module) not in TANK_SPECIAL_SLOT_CATEGORIES.get(int(match[1]), set()):
+                    fail(f"{name} places {module} in incompatible {slot}")
     for recipe in keyed_blocks(text(AI_FILE), "target_variant"):
         for slot, value in re.findall(r"(?m)^\s*(tank_special_slot_\d+)\s*=\s*(\w+)\s*$", recipe):
             if value == "empty":
@@ -3421,6 +3475,12 @@ def validate_national_tank_presets(national_override: str | None = None, generic
         if len(types) != 1:
             continue
         kind = types[0]
+        # Carrier guards key their flag on the bookmark generation, not on the
+        # equipment id, because two generations share a light hull tier after the
+        # 2026-09-11 cutover. `validate_carrier_bookmarks.check_guard` pins those
+        # flags, their idempotence and their ordering.
+        if re.match(r"light_tank_(?:apc|ifv)_chassis_\d", kind):
+            continue
         flag = f"cwic_starting_{kind}_created"
         if f"NOT = {{ has_country_flag = {flag} }}" not in guard or f"set_country_flag = {flag}" not in guard:
             fail(f"generic preset {kind} is not idempotent")
@@ -3467,13 +3527,24 @@ def validate_carrier_bookmarks(national_override: str | None = None,
         "effects = {\n" + generic + "\n}", "generic carrier effects"
     )
     recipes = manifest["recipes"]
+    # Owner decision 2026-09-11: a carrier generation is a bookmark index, not an
+    # equipment id. The scripted effect names, creation flags and hull
+    # technologies still carry the legacy generation, while `type` names the
+    # migrated role chassis. Two generations collapse onto one light hull tier -
+    # APC 2 and 3 onto tier 4, IFV 1 and 2 onto tier 3 - and a bookmark chassis
+    # may hold exactly one generic design, so the later generation of each pair
+    # keeps its national presets and has no generic design of its own.
     wanted = {f"{family}_chassis_{tier}" for family in ("apc", "ifv") for tier in range(5)}
-    recipe_map = {r["type"]: r for r in recipes}
+    generic_generations = wanted - {"apc_chassis_3", "ifv_chassis_2"}
+    recipe_map = {r["generation"]: r for r in recipes}
     if len(recipes) != 10 or set(recipe_map) != wanted:
-        fail("carrier recipes must cover exactly APC/IFV bookmark tiers 0-4")
+        fail("carrier recipes must cover exactly APC/IFV bookmark generations 0-4")
+        return
+    if {r["generation"] for r in recipes if r["has_generic_design"]} != generic_generations:
+        fail("exactly the eight generations that own a light hull tier may carry a generic design")
         return
     presets = manifest["presets"]
-    pairs = {(p["producer"], p["type"]) for p in presets}
+    pairs = {(p["producer"], p["generation"]) for p in presets}
     inventory = carrier_source_inventory()
     expected_pairs = {pair for pair in inventory if pair[1] in wanted}
     if len(presets) != 572 or len(pairs) != len(presets) or pairs != expected_pairs:
@@ -3486,10 +3557,8 @@ def validate_carrier_bookmarks(national_override: str | None = None,
     if {tag for tag, _ in pairs} - country_tags:
         fail("carrier national presets include an undefined producer tag")
     mandatory = set(REQUIRED_VARIANT_SLOTS)
-    archetypes = {
-        "apc": dict(top_level_blocks(text(MECHANIZED_FILE), "equipments")).get("mechanized_equipment", ""),
-        "ifv": dict(top_level_blocks(text(HEAVY_MECHANIZED_FILE), "equipments")).get("mechanized_heavy_equipment", ""),
-    }
+    light_hull = dict(top_level_blocks(text(CHASSIS_FILE), "equipments")).get("light_tank_chassis", "")
+    archetypes = {"apc": light_hull, "ifv": light_hull}
     mandatory_categories: dict[str, dict[str, set[str]]] = {}
     for family, archetype in archetypes.items():
         module_slots = top_level_named_blocks(archetype, "module_slots", f"{family} archetype")
@@ -3537,7 +3606,7 @@ def validate_carrier_bookmarks(national_override: str | None = None,
 
 
     def check_guard(guard: str, recipe: dict, name: str, producer: str | None) -> None:
-        kind = recipe["type"]
+        kind = recipe["generation"]
         flag = f"cwic_starting_{kind}_created"
         limits = top_level_named_blocks(guard, "limit")
         variants = top_level_named_blocks(guard, "create_equipment_variant")
@@ -3557,7 +3626,7 @@ def validate_carrier_bookmarks(national_override: str | None = None,
             fail(f"carrier {producer}/{kind} missing creation flag")
         if quoted_top_level_values(variant, "name", f"carrier {producer}/{kind} variant") != [name]:
             fail(f"carrier {producer}/{kind} wrong name")
-        for field, expected in (("type", kind), ("allow_without_tech", "yes"),
+        for field, expected in (("type", recipe["type"]), ("allow_without_tech", "yes"),
                                 ("parent_version", "0"), ("mark_older_equipment_obsolete", "yes")):
             if top_level_values(variant, field) != [expected]:
                 fail(f"carrier {producer}/{kind} wrong {field}")
@@ -3580,7 +3649,7 @@ def validate_carrier_bookmarks(national_override: str | None = None,
             fail(f"carrier helper {helper} must occur exactly once")
             continue
         guards = top_level_named_blocks(bodies[0], "if")
-        expected = [p for p in presets if p["type"] == kind]
+        expected = [p for p in presets if p["generation"] == kind]
         if len(guards) != len(expected):
             fail(f"carrier helper {helper} guard count differs from manifest")
         by_tag: dict[str, list[str]] = {}
@@ -3636,16 +3705,31 @@ def validate_carrier_bookmarks(national_override: str | None = None,
         if key == "if":
             variants = top_level_named_blocks(body, "create_equipment_variant")
             types = top_level_values(variants[0], "type") if len(variants) == 1 else []
-            if types and types[0] in wanted:
-                kind = types[0]
+            generic_for_type = {
+                r["type"]: r["generation"] for r in recipes if r["has_generic_design"]
+            }
+            if types and types[0] in generic_for_type:
+                kind = generic_for_type[types[0]]
                 ordered_events.append((start, "generic", kind))
                 check_guard(body, recipe_map[kind], recipe_map[kind]["generic_name"], None)
     events = [(mode, kind) for _, mode, kind in sorted(ordered_events)]
-    expected_events = [(mode, f"{family}_chassis_{tier}") for family in ("apc", "ifv") for tier in range(5) for mode in ("national", "generic")]
+    expected_events = [
+        event
+        for family in ("apc", "ifv")
+        for tier in range(5)
+        for event in (("national", f"{family}_chassis_{tier}"), ("generic", f"{family}_chassis_{tier}"))
+        if event[0] == "national" or event[1] in generic_generations
+    ]
     if events != expected_events:
         fail("carrier dispatcher must interleave national then fallback per ascending tier, with each family contiguous")
     # Execute the validated event model for actual and synthetic partial national
     # coverage. Flags persist across calls; obsolescence affects only that family.
+    # Coverage is asserted per chassis tier, not per generation: after the
+    # 2026-09-11 cutover two generations share a tier, and the generation that
+    # does not own the tier has no generic fallback of its own. A country with no
+    # national preset for it still fields a design on that tier through the
+    # owning generation, which is the property that actually matters in game.
+    chassis_of = {generation: recipe["type"] for generation, recipe in recipe_map.items()}
     for coverage in [{kind for tag, kind in pairs if tag == producer} for producer in {tag for tag, _ in pairs}] + [set(), wanted, {"apc_chassis_4", "ifv_chassis_3"}]:
         flags: set[str] = set()
         created: list[str] = []
@@ -3656,15 +3740,17 @@ def validate_carrier_bookmarks(national_override: str | None = None,
                     continue
                 flags.add(kind)
                 created.append(kind)
-                active[kind.split("_")[0]] = kind
+                active[kind.split("_")[0]] = chassis_of[kind]
         first = {kind for kind in wanted if int(kind[-1]) < 4}
         simulate(first)
         before = list(created)
         simulate(first)
-        if before != created or set(created) != first:
-            fail("carrier initialization must be complete and idempotent under partial national coverage")
+        if before != created:
+            fail("carrier initialization must be idempotent under partial national coverage")
+        if {chassis_of[kind] for kind in created} != {chassis_of[kind] for kind in first}:
+            fail("carrier initialization must cover every unlocked carrier chassis tier")
         simulate(wanted)
-        if len(created) != 10 or active != {family: f"{family}_chassis_4" for family in ("apc", "ifv")}:
+        if active != {family: chassis_of[f"{family}_chassis_4"] for family in ("apc", "ifv")}:
             fail("carrier initialization must preserve newest-only visibility after new hull unlocks")
 
     actual_requests = Counter()
@@ -3678,7 +3764,7 @@ def validate_carrier_bookmarks(national_override: str | None = None,
         for key in ("add_equipment_to_stockpile", "add_equipment_production", "equipment"):
             for block in keyed_blocks(value, key):
                 kinds = top_level_values(block, "type")
-                if kinds and re.fullmatch(r'(?:apc|ifv)_chassis_\d+', kinds[0]):
+                if kinds and re.fullmatch(r'light_tank_(?:apc|ifv)_chassis_\d+', kinds[0]):
                     name = quoted_top_level_values(
                         block, "variant_name" if key.endswith("stockpile") else "version_name",
                         f"{relative} {key}",
@@ -3686,14 +3772,14 @@ def validate_carrier_bookmarks(national_override: str | None = None,
                     actual_requests[(relative, kinds[0], oob_variant_producer(block, path.stem[:3]), name[0] if len(name) == 1 else "")] += 1
         for block in keyed_blocks(value, "force_equipment_variants"):
             for kind, _, _, request in top_level_ranges(block, "carrier forced requests"):
-                if re.fullmatch(r'(?:apc|ifv)_chassis_\d+', kind):
+                if re.fullmatch(r'light_tank_(?:apc|ifv)_chassis_\d+', kind):
                     names = quoted_top_level_values(request, "version_name", f"{relative} {kind}")
                     actual_requests[(relative, kind, oob_variant_producer(request, path.stem[:3]), names[0] if len(names) == 1 else "")] += 1
     expected_requests = Counter((r["file"], r["chassis"], r["resolved_producer"], r["resolved_variant_name"]) for r in manifest["oob_migration"])
     if sum(expected_requests.values()) != 100 or actual_requests != expected_requests:
         fail("carrier OOB migration must preserve the manifest's 100 producer/chassis/name requests")
     for row in manifest["oob_migration"]:
-        if row["resolved_variant_name"] != bookmark_variant_name(row["chassis"], row["resolved_producer"]):
+        if row["resolved_variant_name"] not in bookmark_variant_names(row["chassis"], row["resolved_producer"]):
             fail("carrier OOB manifest requests a name the resolved producer does not create")
     for path in sorted(HISTORY_DIR.glob("*.txt")):
         tag = path.name[:3]
@@ -3707,15 +3793,16 @@ def validate_carrier_bookmarks(national_override: str | None = None,
 
 
 def tank_archetype_blocks() -> dict[str, str]:
+    """The three designer archetypes.
+
+    Owner decision 2026-09-11 retired the carrier designer families, so
+    mechanized_equipment and mechanized_heavy_equipment are plain equipment and
+    carry no designer slots. `validate_carrier_roles` owns their contract now.
+    """
     chassis_blocks = dict(top_level_blocks(text(CHASSIS_FILE), "equipments"))
-    mechanized_blocks = dict(top_level_blocks(text(MECHANIZED_FILE), "equipments"))
-    heavy_mechanized_blocks = dict(top_level_blocks(text(HEAVY_MECHANIZED_FILE), "equipments"))
     return {
         archetype: chassis_blocks.get(archetype, "")
         for archetype in ("light_tank_chassis", "medium_tank_chassis", "heavy_tank_chassis")
-    } | {
-        "mechanized_equipment": mechanized_blocks.get("mechanized_equipment", ""),
-        "mechanized_heavy_equipment": heavy_mechanized_blocks.get("mechanized_heavy_equipment", ""),
     }
 
 
@@ -4623,31 +4710,47 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
             f"{path.name} bootstraps variants inside the OOB; the bootstrap must run "
             "in country history before set_oob"
         )
+    # A tank chassis maps one-to-one onto its unlock, so seed those by type. The
+    # carrier tiers do not: two bookmark generations share a light hull tier
+    # after the 2026-09-11 cutover, so their technology is resolved from the
+    # requested design name by `record_request` below.
     oob_required_techs[path.stem] = {
-        BOOKMARK_VARIANT_TECHS[ref] for ref in refs if ref in BOOKMARK_VARIANT_TECHS
+        BOOKMARK_VARIANT_TECHS[ref]
+        for ref in refs
+        if ref in BOOKMARK_VARIANT_TECHS
+        and not re.match(r"light_tank_(?:apc|ifv)_chassis_\d", ref)
     }
     # A tank bought from or designed by another tag is created by that tag, so
     # its chassis technology belongs to that tag's bookmark bootstrap rather
     # than this OOB's.
     era = path.stem.split("_")[1]
 
-    def record_creator(block: str, refs: list[str]) -> None:
-        creator = oob_variant_producer(block, path.stem[:3])
-        if creator == path.stem[:3]:
-            return
-        for ref in refs:
-            if ref in BOOKMARK_VARIANT_TECHS:
-                foreign_producer_techs.setdefault((creator, era), set()).add(
-                    BOOKMARK_VARIANT_TECHS[ref]
-                )
+    def request_tech(equipment_type: str, producer: str, name: str | None) -> str | None:
+        """The technology whose generation bootstraps this exact design.
 
-    for effect in ("add_equipment_to_stockpile", "add_equipment_production"):
-        for block in keyed_blocks(value, effect):
-            record_creator(block, OOB_TANK_PATTERN.findall(block))
-    for block in keyed_blocks(value, "force_equipment_variants"):
-        for tank_type in set(OOB_TANK_PATTERN.findall(block)):
-            for variant_request in keyed_blocks(block, tank_type):
-                record_creator(variant_request, [tank_type])
+        Resolving by equipment type alone stopped working with the 2026-09-11
+        carrier cutover: two generations share a light hull tier, so Canada's
+        M113A1 and its 1960 carrier are both `light_tank_apc_chassis_4` but are
+        unlocked by different technologies. The requested design name is what
+        distinguishes them.
+        """
+        if name is not None:
+            for preset in NATIONAL_PRESETS + CARRIER_PRESETS:
+                if (preset["type"], preset["producer"], preset["name"]) == (equipment_type, producer, name):
+                    return preset["technology"]
+        return BOOKMARK_VARIANT_TECHS.get(equipment_type)
+
+    def record_request(block: str, equipment_type: str, name: str | None) -> None:
+        creator = oob_variant_producer(block, path.stem[:3])
+        technology = request_tech(equipment_type, creator, name)
+        if technology is None:
+            return
+        oob_required_techs[path.stem].add(technology)
+        # A tank bought from or designed by another tag is created by that tag,
+        # so its chassis technology also belongs to that tag's bookmark bootstrap.
+        if creator != path.stem[:3]:
+            foreign_producer_techs.setdefault((creator, era), set()).add(technology)
+
 
     for effect, field in (
         ("add_equipment_production", "version_name"),
@@ -4668,11 +4771,12 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
                     f"{path.name} {effect} request for {tank_type} does not select "
                     f"an explicit variant with {field}"
                 )
-            elif name_match.group(1) != bookmark_variant_name(tank_type, oob_variant_producer(block, path.stem[:3])):
+            elif name_match.group(1) not in bookmark_variant_names(tank_type, oob_variant_producer(block, path.stem[:3])):
                 fail(
                     f"{path.name} {effect} request asks for {tank_type} variant "
                     f"{name_match.group(1)!r}, which no bootstrap creates"
                 )
+            record_request(block, tank_type, name_match.group(1) if name_match else None)
             versioned_oob_requests += 1
 
     for block in keyed_blocks(value, "force_equipment_variants"):
@@ -4687,13 +4791,14 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
                         f"{path.name} forced variant request for {tank_type} does not "
                         "select an explicit version_name"
                     )
-                elif name_match.group(1) != bookmark_variant_name(tank_type, oob_variant_producer(variant_request, path.stem[:3])):
+                elif name_match.group(1) not in bookmark_variant_names(tank_type, oob_variant_producer(variant_request, path.stem[:3])):
                     fail(
                         f"{path.name} forced variant request asks for {tank_type} "
                         f"variant {name_match.group(1)!r}, which no bootstrap creates"
                     )
+                record_request(variant_request, tank_type, name_match.group(1) if name_match else None)
                 versioned_oob_requests += 1
-invalid_oob = oob_refs - expected_types - {f"{family}_chassis_{tier}" for family in ("apc", "ifv") for tier in range(8)}
+invalid_oob = oob_refs - expected_types
 if invalid_oob:
     fail(f"NSB OOBs reference invalid tank types: {sorted(invalid_oob)}")
 
@@ -4847,11 +4952,12 @@ ai_types = set(re.findall(r"^\s*type\s*=\s*([A-Za-z0-9_]+)", ai_text, re.MULTILI
 missing_ai = expected_types - ai_types
 if missing_ai:
     fail(f"tank types without a generic historical AI design: {sorted(missing_ai)}")
-# Owner decision 2026-09-11 carrier role consolidation derives generic history
-# coverage from the ten-role FAMILY_ROLES set plus the two standalone carrier
-# families; standalone IFV remains phase 4 and is not a tank designer role.
-if len(re.findall(r"^\s*history\s*=\s*yes\b", ai_text, re.MULTILINE)) != len(expected_types) + len(APC_HULL_ROWS) + len(IFV_HULL_ROWS):
-    fail("generic tank AI file must contain one historical recipe per supported tank, APC and IFV type")
+# Owner decision 2026-09-11 carrier cutover: APC and IFV are roles on the light
+# tank hull, so generic history coverage is exactly the FAMILY_ROLES set. The two
+# standalone carrier recipe families were deleted as duplicates of the role
+# recipes phase 3 authored.
+if len(re.findall(r"^\s*history\s*=\s*yes\b", ai_text, re.MULTILINE)) != len(expected_types):
+    fail("generic tank AI file must contain one historical recipe per supported tank type")
 for recipe in keyed_blocks(ai_text, "target_variant"):
     type_match = re.search(r"\btype\s*=\s*(\w+)", recipe)
     if not type_match:
@@ -4864,7 +4970,7 @@ for recipe in keyed_blocks(ai_text, "target_variant"):
     # Owner decision 2026-09-10 phase 3 restructure exempts the APC family by
     # family name: APC armament modules may multiply stats, but APC histories
     # intentionally carry no shell ammunition.
-    if equipment_type.startswith("apc_chassis_") or "_tank_apc_chassis_" in equipment_type:
+    if "_tank_apc_chassis_" in equipment_type:
         continue
     for category in ammo_categories:
         if not re.search(rf"\btank_special_slot_\d+\s*=\s*{category}\b", recipe):
@@ -4874,12 +4980,11 @@ for enable in keyed_blocks(ai_text, "enable"):
     if "nsb_ammo" in enable and "nsb_he_ammo0" not in enable:
         fail("AI ammunition prerequisite omits HE research")
 # This count tracks the current conventional-gun recipe population and must move
-# whenever recipes are added or removed. 103 -> 83 on 2026-09-11 when the twenty
-# IFV role histories went with the carrier role consolidation; the earlier ATGM
-# removal left it unchanged because those histories carried missile ammunition,
-# never HE.
-if len(re.findall(r"\bhas_tech\s*=\s*nsb_he_ammo0\b", ai_text)) != 103:
-    fail("generic tank AI HE-gated recipe population must contain 103 entries")
+# whenever recipes are added or removed. 103 -> 95 on 2026-09-11 when the carrier
+# cutover deleted the eight standalone IFV histories, which duplicated the light
+# hull IFV role recipes phase 3 authored.
+if len(re.findall(r"\bhas_tech\s*=\s*nsb_he_ammo0\b", ai_text)) != 95:
+    fail("generic tank AI HE-gated recipe population must contain 95 entries")
 
 active_roots = [MOD / "common", MOD / "interface"]
 # The 2026-09-09 amphibious-role ids are distinct from UNSUPPORTED_IDS, so this
@@ -4904,14 +5009,11 @@ stale_generated_enums = (
     r"medium_tank_rocket_chassisbt_equipment_[0-9]+",
     r"heavy_tank_rocket_chassist_equipment_[0-9]+",
 )
-for tier in range(len(APC_HULL_ROWS)):
-    # equipment_database.cpp:656 logs every equipment id missing from this
-    # documentation enum. QA 2026-09-07 saw eight such lines for the APC hulls.
-    if not re.search(rf"(?m)^\s*apc_chassis_{tier}\s*$", enum_text):
-        fail(f"apc_chassis_{tier} is missing from script_enum_equipment_bonus_type")
-for tier in range(len(IFV_HULL_ROWS)):
-    if not re.search(rf"(?m)^\s*ifv_chassis_{tier}\s*$", enum_text):
-        fail(f"ifv_chassis_{tier} is missing from script_enum_equipment_bonus_type")
+# The retired carrier ids must be gone from the enum: they name equipment the
+# engine no longer derives, and equipment_database.cpp:656 audits this enum in
+# both directions.
+if re.search(r"(?m)^\s*(?:apc|ifv)_chassis_\d\s*$", enum_text):
+    fail("script_enum_equipment_bonus_type still lists a retired carrier hull")
 
 for pattern in stale_generated_enums:
     if re.search(rf"^\s*{pattern}\s*$", enum_text, re.MULTILINE):
@@ -4951,9 +5053,10 @@ for designer_slot in sorted(REQUIRED_VARIANT_SLOTS) + [
         fail(f"designer slot localisation is missing: EQ_MOD_SLOT_{designer_slot}_TITLE")
 blueprint_dir = MOD / "interface/equipmentdesigner/tanks"
 blueprint_files = sorted(blueprint_dir.glob("*.gui"))
-# Owner decision 2026-09-11 carrier role consolidation removes the two IFV
-# role blueprints along with the retired ATGM/heavy-SPAA files; 85 survive.
-if len(blueprint_files) != 85:
+# Owner decision 2026-09-11 carrier cutover deletes the two standalone carrier
+# designer windows, `equipment_designer_mechanized_equipment` and its heavy
+# twin, because those archetypes no longer carry module slots; 83 survive.
+if len(blueprint_files) != 83:
     fail(f"tank blueprint file count changed: {len(blueprint_files)}")
 expected_blueprint_slots = [
     f"tank_special_slot_{index}" for index in range(1, TANK_SPECIAL_SLOT_COUNT + 1)
@@ -5056,589 +5159,221 @@ def tank_icon_sprites() -> dict[str, str]:
     return sprites
 
 
-def carrier_picture_errors(
-    family: str, tier: int, hull: str, sprites: dict[str, str]
+CARRIER_STALE_ID = re.compile(
+    r"(?<![A-Za-z0-9_])(?:apc|ifv)_(?:chassis|equipment)_\d(?![A-Za-z0-9_])"
+)
+
+
+def carrier_archetype_errors(archetype: str, block: str) -> list[str]:
+    """A retired carrier family must be plain equipment again.
+
+    Any surviving designer surface re-opens a second carrier designer that no
+    technology unlocks, and `armor` in the type set keeps legacy mechanized in
+    the armour production domain it only ever entered to route the NSB hulls.
+    """
+    errors: list[str] = []
+    for key in ("module_slots", "module_count_limit", "default_modules"):
+        if re.search(rf"\b{key}\s*=", block):
+            errors.append(f"{archetype} still declares {key}; the carrier designer family is retired")
+    found = direct_values(block, "type")
+    if found != ["mechanized"]:
+        errors.append(
+            f"{archetype} must be plain mechanized equipment after the cutover, "
+            f"found type = {found or 'none'}"
+        )
+    return errors
+
+
+def carrier_module_errors(
+    family: str,
+    tier: int,
+    row: tuple,
+    definition: str | None,
+    tech_block: str | None,
+    parent: str | None,
 ) -> list[str]:
-    """A carrier hull must own its production icon.
+    """One rung of a carrier superstructure ladder.
 
-    Declaring no `picture` makes the hull inherit the archetype's generic
-    motorized art, so every APC and IFV design renders with the same icon -
-    STATUS.md Finding 3. The engine resolves `picture = X` through the sprite
-    `GFX_X_medium`, so the registry entry and its texture must both exist or the
-    icon silently falls back again.
+    The ladder is the only instrument the restructure leaves for carrier
+    identity: the hull supplies the light tank curve, and this module supplies
+    the armour, cost and speed the retired chassis row used to carry. A missing
+    delta is silent - the design still builds, it is simply a light tank hull.
     """
-    hull_name = f"{family}_chassis_{tier}"
-    expected = f"cwic_{family}_chassis_{tier}"
-    pictures = direct_values(hull, "picture")
-    if pictures != [expected]:
-        return [f"{hull_name} must declare picture = {expected}, found {pictures or 'none'}"]
-    sprite = f"GFX_{expected}_medium"
-    texture = sprites.get(sprite)
-    if texture is None:
-        return [f"{hull_name} picture resolves to unregistered sprite {sprite}"]
-    if not (MOD / texture).is_file():
-        return [f"{sprite} points at a missing texture: {texture}"]
-    return []
-
-
-def validate_apc_designer_family() -> None:
-    """Contract for the APC designer family carried on mechanized_equipment.
-
-    The hulls deliberately share the legacy archetype so that mechanized,
-    marine-support and support-company sub-units resolve designer personnel
-    carriers with no `need` change. That only stays safe while the legacy rows
-    keep no module slots of their own, so non-NSB games are unaffected.
-    """
-    brace_balance(MECHANIZED_FILE)
-    blocks = dict(top_level_blocks(text(MECHANIZED_FILE), "equipments"))
-
-    archetype = blocks.get("mechanized_equipment", "")
-    if not archetype:
-        fail("mechanized_equipment archetype is missing")
-        return
-    special = [
-        slot
-        for index in range(1, TANK_SPECIAL_SLOT_COUNT + 1)
-        for slot in keyed_blocks(archetype, f"tank_special_slot_{index}")
-    ]
-    if len(special) != TANK_SPECIAL_SLOT_COUNT:
-        fail(f"APC archetype must expose all {TANK_SPECIAL_SLOT_COUNT} specialized special slots")
-    for message in tank_slot_layout_errors(archetype):
-        fail(f"mechanized_equipment: {message}")
-    for message in tank_count_limit_errors(archetype):
-        fail(f"mechanized_equipment: {message}")
-    for slot, expected in (
-        ("turret_type_slot", {"tank_apc_superstructure"}),
-        ("main_armament_slot", {"tank_apc_armament"}),
-    ):
-        found = keyed_blocks(archetype, slot)
-        categories = set(
-            re.findall(r"\btank_[a-z_]+\b", " ".join(keyed_blocks(found[0], "allowed_module_categories")))
-        ) if len(found) == 1 else set()
-        if categories != expected:
-            fail(f"APC {slot} must be restricted to {sorted(expected)}, found {sorted(categories)}")
-        if len(found) == 1 and "required = yes" not in found[0]:
-            fail(f"APC {slot} must stay mandatory")
-    defaults = keyed_blocks(archetype, "default_modules")
-    default_map = dict(re.findall(r"(?m)^\s*(\w+)\s*=\s*(\w+)\s*$", defaults[0])) if len(defaults) == 1 else {}
-    if set(default_map) != {
-        "main_armament_slot", "turret_type_slot", "suspension_type_slot",
-        "armor_type_slot", "engine_type_slot",
-    }:
-        fail("APC archetype must give every mandatory slot a default module")
-    if default_map.get("turret_type_slot") not in APC_SUPERSTRUCTURE_MODULES:
-        fail("APC default turret module is not an APC superstructure")
-    if default_map.get("main_armament_slot") not in APC_ARMAMENT_MODULES:
-        fail("APC default armament is not APC armament")
-    # The standalone APC family keeps `mechanized`; it is phase 4 scope and
-    # REFERENCE.md records the token as load bearing for transport consumers.
-    archetype_domain = equipment_type_domain(archetype)
-    if archetype_domain != {"armor", "mechanized"}:
-        fail(f"APC archetype domain must be armor plus mechanized, found {format_type_domain(archetype_domain)}")
-
-    # Legacy rows must stay plain equipment so non-NSB games are untouched.
-    for tier in range(1, 11):
-        legacy = blocks.get(f"mechanized_equipment_{tier}", "")
-        if not legacy:
-            fail(f"legacy mechanized_equipment_{tier} is missing")
-        elif "module_slots" in code_only(legacy):
-            fail(f"legacy mechanized_equipment_{tier} must not inherit designer slots")
-
-    tech_text = code_only(text(TECH_DIR / "NSB_armor.txt"))
-    legacy_folder_text = code_only(text(TECH_DIR / "armor.txt"))
-    sprites = tank_icon_sprites()
-    for tier, (legacy_row, technology, year) in APC_HULL_ROWS.items():
-        hull = blocks.get(f"apc_chassis_{tier}", "")
-        if not hull:
-            fail(f"apc_chassis_{tier} is missing")
-            continue
-        if direct_values(hull, "archetype") != ["mechanized_equipment"]:
-            fail(f"apc_chassis_{tier} must share the mechanized_equipment archetype")
-        for message in carrier_picture_errors("apc", tier, hull, sprites):
-            fail(message)
-        # Owner decision 2026-09-10 role-token remap carries amphibious on each
-        # APC hull domain so the designer role remains selectable.
-        hull_domain = equipment_type_domain(hull)
-        if hull_domain != {"armor", "mechanized"}:
-            fail(f"apc_chassis_{tier} must restate the armor/mechanized domain, found {format_type_domain(hull_domain)}")
-        if direct_values(hull, "module_slots") != ["inherit"]:
-            fail(f"apc_chassis_{tier} must inherit the APC designer slots")
-        if direct_values(hull, "derived_variant_name") != [f"apc_equipment_{tier}"]:
-            fail(f"apc_chassis_{tier} has the wrong derived variant name")
-        if direct_values(hull, "year") != [str(year)]:
-            fail(f"apc_chassis_{tier} year differs from the {legacy_row} row it replaces")
-        produced = keyed_blocks(hull, "can_be_produced")
-        if len(produced) != 1 or 'has_dlc = "No Step Back"' not in produced[0]:
-            fail(f"apc_chassis_{tier} must be gated behind No Step Back")
-        expected_parent = [] if tier == 0 else [f"apc_chassis_{tier - 1}"]
-        if direct_values(hull, "parent") != expected_parent:
-            fail(f"apc_chassis_{tier} has a broken hull upgrade chain")
-        legacy = blocks.get(legacy_row, "")
-        for stat in ("armor_value",):
-            hull_value = direct_values(hull, stat)
-            legacy_value = direct_values(legacy, stat)
-            if hull_value != legacy_value:
-                fail(
-                    f"apc_chassis_{tier} {stat} {hull_value} drifts from frozen "
-                    f"{legacy_row} {legacy_value}"
-                )
-        if not re.search(rf"\benable_equipments\s*=\s*\{{[^}}]*\bapc_chassis_{tier}\b", tech_text, re.DOTALL):
-            fail(f"apc_chassis_{tier} is not unlocked by an NSB technology")
-        if technology not in technology_set:
-            fail(f"APC hull technology {technology} is undefined")
-        if re.search(rf"\b{technology}\b", legacy_folder_text):
-            fail(f"{technology} leaks into the legacy armour folder")
-        # QA 2026-09-07: the APC column first shipped on raw folder rows copied from
-        # the mechanized line, which sit on a different scale than the @year macros
-        # used by every other NSB armour column. The tree then drew "1947 APC" on the
-        # 1955 row. Pin each hull technology to the year row its start_year claims.
-        tech_block = dict(top_level_blocks(text(TECH_DIR / "NSB_armor.txt"), "technologies")).get(technology, "")
-        if direct_values(tech_block, "start_year") != [str(year)]:
-            fail(f"{technology} start_year differs from the {legacy_row} row it replaces")
-        row = re.search(r"nsb_armor_folder\s*}?\s*position\s*=\s*\{[^}]*y\s*=\s*(@?[0-9]+)", tech_block)
-        if not row:
-            row = re.search(r"position\s*=\s*\{[^}]*y\s*=\s*(@?[0-9]+)", tech_block)
-        if not row or row.group(1) != f"@{year}":
-            fail(
-                f"{technology} sits on tree row {row.group(1) if row else 'none'}, "
-                f"expected the @{year} year row"
+    module, technology, _hull_tier, armour, cost, speed = row
+    token = "amphibious" if family == "apc" else "rocket"
+    if definition is None:
+        return [f"carrier superstructure module is missing: {module}"]
+    errors: list[str] = []
+    if module_category(module) != f"tank_{family}_superstructure":
+        errors.append(f"{module} must sit in tank_{family}_superstructure")
+    if direct_values(definition, "allow_equipment_type") != [token]:
+        errors.append(f"{module} must be gated on the {token} role token")
+    add = keyed_blocks(definition, "add_stats")
+    stats = dict(re.findall(r"(\w+)\s*=\s*(-?[\d.]+)", add[0])) if add else {}
+    for key, expected in (("armor_value", armour), ("build_cost_ic", cost), ("maximum_speed", speed)):
+        raw = stats.get(key)
+        if raw is None or abs(float(raw) - expected) >= 1e-6:
+            errors.append(
+                f"{module} must add {key} = {expected} so a tier {tier} carrier reproduces "
+                f"the retired chassis row, found {raw or 'none'}"
             )
-
-    for module, category in (
-        [(name, "tank_apc_superstructure") for name in APC_SUPERSTRUCTURE_MODULES]
-        + [(name, "tank_apc_armament") for name in APC_ARMAMENT_MODULES]
-    ):
-        if module not in module_ids:
-            fail(f"APC module {module} is missing")
-            continue
-        if module_category(module) != category:
-            fail(f"APC module {module} has category {module_category(module)}, expected {category}")
-        if needs_ammunition(module):
-            fail(f"APC module {module} multiplies gun stats and would need ammunition")
-
-    apc_recipes = [
-        recipe for recipe in keyed_blocks(ai_text, "target_variant")
-        if re.search(r"\btype\s*=\s*apc_chassis_\d+", recipe)
-    ]
-    if len(apc_recipes) != len(APC_HULL_ROWS):
-        fail("every APC hull needs one generic historical AI recipe")
-    for recipe in apc_recipes:
-        tier = int(re.search(r"\btype\s*=\s*apc_chassis_(\d+)", recipe).group(1))
-        if "turret_type_slot = tank_apc_superstructure" not in recipe:
-            fail(f"APC AI recipe {tier} does not use the APC superstructure category")
-        if "main_armament_slot = tank_apc_armament" not in recipe:
-            fail(f"APC AI recipe {tier} does not use the APC armament category")
-    for tier, (_, technology, _) in APC_HULL_ROWS.items():
-        if not re.search(rf"enable = \{{ has_tech = {technology} \}}", ai_text):
-            fail(f"APC AI recipe for tier {tier} is not gated on {technology}")
-
-    hull_loc = text(MOD / "localisation/english/tank_modules_l_english.yml")
-    tech_loc = text(MOD / "localisation/english/nsb_armor_l_english.yml")
-    for tier, (_, technology, _) in APC_HULL_ROWS.items():
-        for key, source in (
-            (f"apc_chassis_{tier}", hull_loc),
-            (f"apc_chassis_{tier}_short", hull_loc),
-            (f"apc_chassis_{tier}_desc", hull_loc),
-            (f"apc_equipment_{tier}", hull_loc),
-            (technology, tech_loc),
-        ):
-            if not re.search(rf"(?m)^\s*{key}:\d*\s+\"", source):
-                fail(f"APC localisation key is missing: {key}")
-    for module in APC_SUPERSTRUCTURE_MODULES + APC_ARMAMENT_MODULES:
-        for key in (module, f"{module}_desc"):
-            if not re.search(rf"(?m)^\s*{key}:\d*\s+\"", hull_loc):
-                fail(f"APC localisation key is missing: {key}")
+    if parent is not None and direct_values(definition, "parent") != [parent]:
+        errors.append(f"{module} must descend from {parent} so the ladder researches in order")
+    if tech_block is None:
+        errors.append(f"carrier technology is missing: {technology}")
+    else:
+        if module not in tech_block:
+            errors.append(f"{technology} must unlock {module}")
+        if "enable_equipments" in tech_block:
+            errors.append(f"{technology} still enables retired carrier equipment")
+    return errors
 
 
-def run_apc_negative_fixtures() -> None:
-    """The APC contract must reject the shapes that would break legacy support."""
-    source = text(MECHANIZED_FILE)
-    for label, mutation in (
-        ("legacy row inherits slots", lambda v: v.replace(
-            "\tmechanized_equipment_3 = {\n\t\tyear = 1947",
-            "\tmechanized_equipment_3 = {\n\t\tmodule_slots = inherit\n\t\tyear = 1947", 1)),
-        ("tank gun allowed on an APC", lambda v: v.replace(
-            "\t\t\t\t\ttank_apc_armament\n", "\t\t\t\t\ttank_small_main_armament\n", 1)),
-        ("hull leaves the mechanized archetype", lambda v: v.replace(
-            "\tapc_chassis_0 = {\n\t\tabbreviation", "\tapc_chassis_0 = {\n\t\tarchetype = light_tank_chassis\n\t\tabbreviation", 1)),
-        ("hull loses its DLC gate", lambda v: v.replace('has_dlc = "No Step Back"', "always = yes", 1)),
-        # The standalone carrier families keep the real `mechanized` equipment
-        # type; only the hull role roots carry a designer role token.
-        ("archetype leaves the armor domain", lambda v: v.replace(
-            "\t\ttype = { armor mechanized }\n", "\t\ttype = mechanized\n", 1)),
-        ("hull loses its own production icon", lambda v: v.replace(
-            "\t\tpicture = cwic_apc_chassis_0\n", "", 1)),
-    ):
-        mutated = mutation(source)
-        if mutated == source:
-            raise AssertionError(f"APC fixture did not mutate the source: {label}")
-        MECHANIZED_FILE.write_text(mutated, encoding="utf-8", newline="")
-        previous = len(errors)
-        try:
-            validate_apc_designer_family()
-            rejected = len(errors) > previous
-        finally:
-            del errors[previous:]
-            MECHANIZED_FILE.write_text(source, encoding="utf-8", newline="")
-        if not rejected:
-            raise AssertionError(f"APC contract accepted a broken mutation: {label}")
-    icon_bytes = TANK_ICON_FILE.read_bytes()
-    for label, mutation in (
-        ("hull picture loses its registry entry", lambda value: value.replace(
-            b'"GFX_cwic_apc_chassis_0_medium"', b'"GFX_cwic_apc_chassis_0_unused"', 1)),
-        ("hull picture points at a missing texture", lambda value: value.replace(
-            b'"GFX_cwic_apc_chassis_0_medium" texturefile = "gfx/interface/technologies/apc_3.dds"',
-            b'"GFX_cwic_apc_chassis_0_medium" texturefile = "gfx/interface/technologies/apc_absent.dds"', 1)),
-    ):
-        mutated = mutation(icon_bytes)
-        if mutated == icon_bytes:
-            raise AssertionError(f"APC fixture did not mutate the icon registry: {label}")
-        TANK_ICON_FILE.write_bytes(mutated)
-        previous = len(errors)
-        try:
-            validate_apc_designer_family()
-            rejected = len(errors) > previous
-        finally:
-            del errors[previous:]
-            TANK_ICON_FILE.write_bytes(icon_bytes)
-        if not rejected:
-            raise AssertionError(f"APC contract accepted a broken icon registry: {label}")
-    windows = designer_window_names()
-    if "equipment_designer_mechanized_equipment" not in windows:
-        raise AssertionError("the APC designer window is missing from the fixture baseline")
-    previous = len(errors)
-    validate_designer_window_coverage(windows - {"equipment_designer_mechanized_equipment"})
-    rejected = len(errors) > previous
-    del errors[previous:]
-    if not rejected:
-        raise AssertionError("designer window coverage accepted a missing APC window")
+def carrier_stale_id_errors(label: str, body: str) -> list[str]:
+    """The cutover is atomic; one surviving id means a half-migrated mod."""
+    stale = CARRIER_STALE_ID.search(body)
+    return [f"{label} still references retired carrier equipment {stale.group(0)}"] if stale else []
 
 
-def validate_ifv_designer_family() -> None:
-    """Contract for the NSB IFV family carried on Heavy Mech."""
-    brace_balance(HEAVY_MECHANIZED_FILE)
-    blocks = dict(top_level_blocks(text(HEAVY_MECHANIZED_FILE), "equipments"))
-    archetype = blocks.get("mechanized_heavy_equipment", "")
-    if not archetype:
-        fail("mechanized_heavy_equipment archetype is missing")
-        return
+def validate_carrier_roles() -> None:
+    """Contract for APC and IFV as roles on the light tank hull.
 
-    localisation_paths = (
-        MOD / "localisation/english/designer_l_english.yml",
-        MOD / "localisation/english/nsb_armor_l_english.yml",
-        MOD / "localisation/english/tank_modules_l_english.yml",
-    )
-    no_bom_paths = (
-        HEAVY_MECHANIZED_FILE,
-        MODULE_FILE,
-        TECH_DIR / "NSB_armor.txt",
-        AI_FILE,
-        MOD / "common/scripted_effects/CWIC_tank_bookmark_research.txt",
-        ENUM_FILE,
-        MOD / "interface/equipmentdesigner/tanks/tank_chassis_ifv.gui",
-        TANK_ICON_FILE,
-    )
-    for path in localisation_paths:
-        if not path.read_bytes().startswith(b"\xef\xbb\xbf"):
-            fail(f"IFV-owned English localisation must retain a UTF-8 BOM: {path.relative_to(MOD)}")
-    for path in no_bom_paths:
-        if path.read_bytes().startswith(b"\xef\xbb\xbf"):
-            fail(f"IFV-owned script/GUI/GFX file must not have a BOM: {path.relative_to(MOD)}")
-
-    for message in tank_slot_layout_errors(archetype):
-        fail(f"mechanized_heavy_equipment: {message}")
-    for message in tank_count_limit_errors(archetype):
-        fail(f"mechanized_heavy_equipment: {message}")
-    special = [
-        slot
-        for index in range(1, TANK_SPECIAL_SLOT_COUNT + 1)
-        for slot in keyed_blocks(archetype, f"tank_special_slot_{index}")
-    ]
-    if len(special) != TANK_SPECIAL_SLOT_COUNT:
-        fail(f"IFV archetype must expose all {TANK_SPECIAL_SLOT_COUNT} specialized special slots")
-    for slot, expected in (
-        ("turret_type_slot", {"tank_ifv_superstructure"}),
-        ("main_armament_slot", {"tank_ifv_armament"}),
-    ):
-        found = keyed_blocks(archetype, slot)
-        categories = set(re.findall(r"\btank_[a-z_]+\b", " ".join(keyed_blocks(found[0], "allowed_module_categories")))) if len(found) == 1 else set()
-        if categories != expected:
-            fail(f"IFV {slot} must be restricted to {sorted(expected)}, found {sorted(categories)}")
-        if len(found) != 1 or "required = yes" not in found[0]:
-            fail(f"IFV {slot} must stay mandatory")
-    defaults = keyed_blocks(archetype, "default_modules")
-    default_map = dict(re.findall(r"(?m)^\s*(\w+)\s*=\s*(\w+)\s*$", defaults[0])) if len(defaults) == 1 else {}
-    expected_defaults = {
-        "main_armament_slot": "ifv_autocannon_0",
-        "turret_type_slot": "ifv_fighting_compartment",
-        "suspension_type_slot": "Bogie_0",
-        "armor_type_slot": "Armor_0_W",
-        "engine_type_slot": "tank_gasoline_engine",
-    }
-    if default_map != expected_defaults:
-        fail(f"IFV mandatory defaults differ: {default_map}")
-    # Owner decision 2026-09-10 role-token remap selects this archetype with
-    # the hardcoded rocket role token.
-    domain = equipment_type_domain(archetype)
-    if domain != {"armor", "mechanized"}:
-        fail(f"IFV archetype domain must be armor plus mechanized, found {format_type_domain(domain)}")
-    if direct_values(archetype, "interface_category") != ["interface_category_land"]:
-        fail("IFV archetype must retain interface_category_land")
-
-    for tier in range(1, 9):
-        legacy = blocks.get(f"mechanized_heavy_equipment_{tier}", "")
-        if not legacy:
-            fail(f"legacy mechanized_heavy_equipment_{tier} is missing")
-        elif "module_slots" in code_only(legacy):
-            fail(f"legacy mechanized_heavy_equipment_{tier} must not inherit designer slots")
-
-    tech_blocks = dict(top_level_blocks(text(TECH_DIR / "NSB_armor.txt"), "technologies"))
-    ifv_module_definitions = dict(top_level_blocks(text(MODULE_FILE), "equipment_modules"))
-    current_ai_text = code_only(text(AI_FILE))
-    tech_text = code_only(text(TECH_DIR / "NSB_armor.txt"))
-    legacy_tech_text = code_only(text(TECH_DIR / "armor.txt"))
-    resolved_fields = (
-        "priority", "visual_level", "maximum_speed", "reliability", "defense", "breakthrough", "hardness",
-        "armor_value", "soft_attack", "hard_attack", "ap_attack", "lend_lease_cost",
-        "build_cost_ic", "fuel_consumption",
-    )
-    sprites = tank_icon_sprites()
-    for tier, (legacy_name, technology, year) in IFV_HULL_ROWS.items():
-        hull_name = f"ifv_chassis_{tier}"
-        hull = blocks.get(hull_name, "")
-        if not hull:
-            fail(f"{hull_name} is missing")
-            continue
-        if direct_values(hull, "archetype") != ["mechanized_heavy_equipment"]:
-            fail(f"{hull_name} must share the mechanized_heavy_equipment archetype")
-        for message in carrier_picture_errors("ifv", tier, hull, sprites):
-            fail(message)
-        # Owner decision 2026-09-10 role-token remap carries rocket on each IFV
-        # hull domain so the designer role remains selectable.
-        hull_domain = equipment_type_domain(hull)
-        if hull_domain != {"armor", "mechanized"}:
-            fail(f"{hull_name} must restate the armor/mechanized domain, found {format_type_domain(hull_domain)}")
-        if direct_values(hull, "module_slots") != ["inherit"]:
-            fail(f"{hull_name} must inherit the IFV designer slots")
-        if direct_values(hull, "derived_variant_name") != [f"ifv_equipment_{tier}"]:
-            fail(f"{hull_name} has the wrong derived variant name")
-        if direct_values(hull, "year") != [str(year)]:
-            fail(f"{hull_name} has the wrong year")
-        if direct_values(hull, "parent") != ([] if tier == 0 else [f"ifv_chassis_{tier - 1}"]):
-            fail(f"{hull_name} has a broken hull upgrade chain")
-        produced = keyed_blocks(hull, "can_be_produced")
-        if len(produced) != 1 or 'has_dlc = "No Step Back"' not in produced[0]:
-            fail(f"{hull_name} must be gated behind No Step Back")
-
-        legacy = blocks[legacy_name]
-        for field in resolved_fields:
-            legacy_value = direct_values(legacy, field) or direct_values(archetype, field)
-            if direct_values(hull, field) != legacy_value:
-                fail(f"{hull_name} {field} drifts from frozen {legacy_name}: {direct_values(hull, field)} != {legacy_value}")
-        legacy_resources = keyed_blocks(legacy, "resources") or keyed_blocks(archetype, "resources")
-        if len(keyed_blocks(hull, "resources")) != 1 or not legacy_resources:
-            fail(f"{hull_name} must carry its fully resolved resources")
-        else:
-            pairs = lambda value: dict(re.findall(r"\b(coal|steel|aluminium)\s*=\s*([0-9.]+)", value))
-            if pairs(keyed_blocks(hull, "resources")[0]) != pairs(legacy_resources[0]):
-                fail(f"{hull_name} resources drift from frozen {legacy_name}")
-
-        tech = tech_blocks.get(technology, "")
-        if not tech:
-            fail(f"IFV hull technology {technology} is undefined")
-            continue
-        if re.search(rf"\b{technology}\b", legacy_tech_text):
-            fail(f"{technology} leaks into the legacy armour folder")
-        if not re.search(rf"\benable_equipments\s*=\s*\{{[^}}]*\b{hull_name}\b", tech, re.DOTALL):
-            fail(f"{technology} does not unlock {hull_name}")
-        if direct_values(tech, "start_year") != [str(year)] or f"y = @{year}" not in tech:
-            fail(f"{technology} must use start year and tree row @{year}")
-        if "x = -9" not in tech or "infantry_vehicles_ifv" not in tech:
-            fail(f"{technology} must occupy IFV column x=-9 and category infantry_vehicles_ifv")
-        category_blocks = keyed_blocks(tech, "categories")
-        category_set = set(re.findall(r"\b(?:vehicles|infantry_vehicles|infantry_vehicles_ifv)\b", category_blocks[0])) if len(category_blocks) == 1 else set()
-        if category_set != {"vehicles", "infantry_vehicles", "infantry_vehicles_ifv"}:
-            fail(f"{technology} has the wrong technology categories: {sorted(category_set)}")
-        leads = [target for path in keyed_blocks(tech, "path") for target in direct_values(path, "leads_to_tech")]
-        expected_leads = [] if tier == 7 else [f"nsb_ifv_hulls{tier + 1}"]
-        if leads != expected_leads:
-            fail(f"{technology} has a broken technology chain: {leads}")
-    if "allow = { has_tech = mechanized_heavy_infantry }" not in tech_blocks.get("nsb_ifv_hulls0", ""):
-        fail("nsb_ifv_hulls0 must require mechanized_heavy_infantry")
-    root = tech_blocks.get("nsb_iw_armored_vehicles", "")
-    if "leads_to_tech = nsb_ifv_hulls0" not in root:
-        fail("nsb_iw_armored_vehicles must lead to nsb_ifv_hulls0")
-
-    expected_unlocks = {
-        0: {"ifv_fighting_compartment", "ifv_autocannon_0"},
-        1: {"ifv_autocannon_1"},
-        2: {"ifv_autocannon_2", "ifv_atgm_launcher_0"},
-        3: {"ifv_autocannon_3", "ifv_atgm_launcher_1"},
-        4: {"ifv_autocannon_4", "ifv_atgm_launcher_2", "ifv_frontal_engine_layout"},
-        5: {"ifv_autocannon_5", "ifv_atgm_launcher_3"},
-        6: {"ifv_autocannon_6", "ifv_atgm_launcher_4"},
-        7: {"ifv_autocannon_7", "ifv_atgm_launcher_5"},
-    }
-    for tier, wanted in expected_unlocks.items():
-        tech = tech_blocks.get(f"nsb_ifv_hulls{tier}", "")
-        actual = {item for block in keyed_blocks(tech, "enable_equipment_modules") for item in re.findall(r"\bifv_[a-z0-9_]+\b", block)}
-        if actual != wanted:
-            fail(f"nsb_ifv_hulls{tier} module unlocks differ: {sorted(actual ^ wanted)}")
-
-    for module, category in (
-        [(name, "tank_ifv_superstructure") for name in IFV_SUPERSTRUCTURE_MODULES]
-        + [(name, "tank_ifv_armament") for name in IFV_ARMAMENT_MODULES]
-    ):
-        if module not in ifv_module_definitions:
-            fail(f"IFV module {module} is missing")
-        else:
-            found_category = (direct_values(ifv_module_definitions[module], "category") or [""])[0]
-            if found_category != category:
-                fail(f"IFV module {module} has category {found_category}, expected {category}")
-    for module in IFV_ARMAMENT_MODULES:
-        if module in ifv_module_definitions and not positive_attack_multiplier(module, ifv_module_definitions):
-            fail(f"IFV armament {module} must multiply a positive attack stat")
-
-    groups = keyed_blocks(current_ai_text, "cwic_generic_ifv")
-    if len(groups) != 1 or "roles = { land_ifv }" not in groups[0]:
-        fail("IFV AI group must be unique and use land_ifv")
-    group = groups[0] if len(groups) == 1 else ""
-    recipes = [recipe for recipe in keyed_blocks(group, "target_variant") if re.search(r"\btype\s*=\s*ifv_chassis_\d+", recipe)]
-    if len(recipes) != 8:
-        fail("every IFV hull needs exactly one generic historical AI recipe")
-    recipe_tiers = Counter(
-        int(re.search(r"\btype\s*=\s*ifv_chassis_(\d+)", recipe).group(1))
-        for recipe in recipes
-    )
-    if recipe_tiers != Counter(range(8)):
-        fail(f"IFV AI recipe types must be unique and complete: {dict(recipe_tiers)}")
-    for recipe in recipes:
-        tier = int(re.search(r"\btype\s*=\s*ifv_chassis_(\d+)", recipe).group(1))
-        if "main_armament_slot = tank_ifv_armament" not in recipe or "turret_type_slot = tank_ifv_superstructure" not in recipe:
-            fail(f"IFV AI recipe {tier} must use IFV-only mandatory categories")
-        if "tank_special_slot_1 = tank_ammo_kinetic" not in recipe or "tank_special_slot_2 = tank_ammo_he" not in recipe:
-            fail(f"IFV AI recipe {tier} must mount kinetic AP and HE ammunition")
-        for slot, value in re.findall(r"\btank_special_slot_(\d+)\s*=\s*(\w+)", recipe):
-            if int(slot) >= 3 and value != "empty":
-                fail(f"IFV AI recipe {tier} must leave special slot {slot} empty, found {value}")
-        history_blocks = keyed_blocks(group, f"ifv_chassis_{tier}_history")
-        enables = keyed_blocks(history_blocks[0], "enable") if len(history_blocks) == 1 else []
-        required_techs = {f"nsb_ifv_hulls{tier}", "nsb_ammo", "nsb_he_ammo0"}
-        actual_techs = set(re.findall(r"\bhas_tech\s*=\s*(\w+)", enables[0])) if len(enables) == 1 else set()
-        if actual_techs != required_techs:
-            fail(f"IFV AI recipe {tier} lacks its hull/AP/HE prerequisite gate")
-
-    bookmark = text(MOD / "common/scripted_effects/CWIC_tank_bookmark_research.txt")
-    grants = keyed_blocks(bookmark, "set_technology")
-    nsb_ifv_grants = set(re.findall(r"(?m)^\s*(nsb_ifv_hulls\d+)\s*=\s*1\s*$", grants[0])) if grants else set()
-    expected_ifv_grants = {
-        technology for _, technology, year in IFV_HULL_ROWS.values() if year <= 1980
-    }
-    if nsb_ifv_grants != expected_ifv_grants:
-        fail(f"1980 NSB bookmark IFV hull coverage differs: {sorted(nsb_ifv_grants ^ expected_ifv_grants)}")
-
-    hull_loc = text(TANK_LOC_FILE)
-    tech_loc = text(MOD / "localisation/english/nsb_armor_l_english.yml")
-    designer_loc = text(MOD / "localisation/english/designer_l_english.yml")
+    Owner decision 2026-09-11 retired the standalone carrier designer families.
+    Every retired tier maps onto the newest light hull tier whose year does not
+    exceed it, and the role-exclusive superstructure ladder carries the armour,
+    cost and speed the old chassis row used to carry.
+    """
+    role_text = text(ROLE_CHASSIS_FILE)
+    tech_text = text(TECH_DIR / "NSB_armor.txt")
     gfx = text(TANK_ICON_FILE)
-    sprites: dict[str, str] = {}
-    for block in keyed_blocks(gfx, "spriteType"):
-        name = re.search(r'\bname\s*=\s*"([^"]+)"', block)
-        texture = re.search(r'\btexture[fF]ile\s*=\s*"([^"]+)"', block)
-        if name and texture:
-            sprites[name.group(1)] = texture.group(1)
-    for tier, (_, technology, _) in IFV_HULL_ROWS.items():
-        for key, source in ((f"ifv_chassis_{tier}", hull_loc), (f"ifv_chassis_{tier}_short", hull_loc), (f"ifv_chassis_{tier}_desc", hull_loc), (f"ifv_equipment_{tier}", hull_loc), (technology, tech_loc)):
-            if not re.search(rf"(?m)^\s*{key}:\d*\s+\"", source):
-                fail(f"IFV localisation key is missing: {key}")
-        expected_texture = f"gfx/interface/technologies/ifv_{tier + 1}.dds"
-        for sprite in (f"GFX_nsb_ifv_hulls{tier}", f"GFX_nsb_ifv_hulls{tier}_medium"):
-            if sprites.get(sprite) != expected_texture:
-                fail(f"IFV technology sprite {sprite} must use {expected_texture}")
-        if not (MOD / expected_texture).is_file():
-            fail(f"IFV technology texture is missing: {expected_texture}")
-    for module in IFV_SUPERSTRUCTURE_MODULES + IFV_ARMAMENT_MODULES:
-        for key in (module, f"{module}_desc"):
-            if not re.search(rf"(?m)^\s*{key}:\d*\s+\"", hull_loc):
-                fail(f"IFV localisation key is missing: {key}")
-        if f"GFX_SMI_{module}" not in gfx:
-            fail(f"IFV module sprite is missing: GFX_SMI_{module}")
-    for key in ("tank_designer_mechanized_heavy_equipment", "tank_designer_mechanized_heavy_equipment_role_disallowed"):
-        if not re.search(rf"(?m)^\s*{key}:\d*\s+\"", designer_loc):
-            fail(f"IFV designer role localisation is missing: {key}")
+    hull_loc = text(MOD / "localisation/english/tank_modules_l_english.yml")
+    definitions = module_definitions
+    sprites = tank_icon_sprites()
+
+    for family, (archetype, source, role, _token) in sorted(CARRIER_ARCHETYPES.items()):
+        brace_balance(source)
+        blocks = dict(top_level_blocks(text(source), "equipments"))
+        block = blocks.get(archetype)
+        if block is None:
+            fail(f"{archetype} archetype is missing")
+            continue
+        for message in carrier_archetype_errors(archetype, block):
+            fail(message)
+        if not [name for name in blocks if re.fullmatch(rf"{archetype}_\d+", name)]:
+            fail(f"{archetype} has no legacy equipment rows left for non-NSB games")
+        for name, legacy in blocks.items():
+            if name != archetype and direct_values(legacy, "module_slots"):
+                fail(f"legacy row {name} must not declare module slots")
+
+        if not re.search(rf"(?m)^\s*{role}\s*=\s*{{", role_text):
+            fail(f"carrier role root is missing: {role}")
+        for tier in sorted({row[2] for row in CARRIER_LADDERS[family].values()}):
+            if not re.search(rf"\b{role}_{tier}\b", tech_text):
+                fail(f"{role}_{tier} is not enabled by any technology")
+
+        ladder = sorted(CARRIER_LADDERS[family].items())
+        for index, (tier, row) in enumerate(ladder):
+            module, technology = row[0], row[1]
+            techs = re.findall(rf"(?ms)^\t{technology}\s*=\s*{{.*?^\t}}", tech_text)
+            parent = ladder[index - 1][1][0] if index else None
+            for message in carrier_module_errors(
+                family, tier, row, definitions.get(module), techs[0] if techs else None, parent
+            ):
+                fail(message)
+            if f"GFX_SMI_{module}" not in gfx:
+                fail(f"carrier module sprite is missing: GFX_SMI_{module}")
+            else:
+                texture = sprites.get(f"GFX_SMI_{module}")
+                if texture and not (MOD / texture).is_file():
+                    fail(f"GFX_SMI_{module} points at a missing texture: {texture}")
+            for key in (module, f"{module}_desc"):
+                if not re.search(rf'(?m)^\s*{key}:\d*\s+"', hull_loc):
+                    fail(f"carrier localisation key is missing: {key}")
+
+    for path in sorted(MOD.rglob("*")):
+        if not path.is_file() or path.suffix.lower() not in (".txt", ".yml", ".gui", ".gfx", ".asset", ".json"):
+            continue
+        for message in carrier_stale_id_errors(
+            str(path.relative_to(MOD)), path.read_text(encoding="utf-8", errors="replace")
+        ):
+            fail(message)
+
+    # Two generations share a light hull tier, and a design name is unique per
+    # producer and chassis, so both generations must mount the same
+    # superstructure or the same named design would exist twice with different
+    # loadouts. The generation that owns the tier supplies the module.
+    preset_text = text(MOD / "common/scripted_effects/CWIC_national_tank_presets.txt")
+    for family, ladder in sorted(CARRIER_LADDERS.items()):
+        owner = {}
+        for tier, row in sorted(ladder.items()):
+            owner.setdefault(row[2], tier)
+        for tier, row in sorted(ladder.items()):
+            expected = ladder[owner[row[2]]][0]
+            effect = f"cwic_create_national_{family}_chassis_{tier}_variants"
+            found = re.findall(rf"(?ms)^{effect}\s*=\s*{{.*?^}}", preset_text)
+            if not found:
+                continue
+            wrong = {name for name in re.findall(r"turret_type_slot = (\w+)", found[0]) if name != expected}
+            if wrong:
+                fail(f"{effect} mounts {sorted(wrong)}; tier {tier} must mount {expected}")
 
 
-def run_ifv_negative_fixtures() -> None:
-    source_bytes = HEAVY_MECHANIZED_FILE.read_bytes()
-    source = source_bytes.decode("utf-8")
-    for label, mutation in (
-        ("legacy row inherits slots", lambda value: value.replace("\t\tmechanized_heavy_equipment_1 = {\n\t\tyear = 1947", "\t\tmechanized_heavy_equipment_1 = {\n\t\tmodule_slots = inherit\n\t\tyear = 1947", 1)),
-        ("tank gun allowed on an IFV", lambda value: value.replace("tank_ifv_armament", "tank_small_main_armament", 1)),
-        ("hull leaves the Heavy Mech archetype", lambda value: value.replace("archetype = mechanized_heavy_equipment type = { armor mechanized }", "archetype = light_tank_chassis type = { armor mechanized }", 1)),
-        ("hull loses its DLC gate", lambda value: value.replace('has_dlc = "No Step Back"', "always = yes", 1)),
-        # The standalone carrier families keep the real `mechanized` equipment
-        # type; only the hull role roots carry a designer role token.
-        ("archetype leaves the armor domain", lambda value: value.replace("\t\ttype = { armor mechanized }", "\t\ttype = mechanized", 1)),
-        ("hull loses its own production icon", lambda value: value.replace("\t\tpicture = cwic_ifv_chassis_0\n", "", 1)),
+def run_carrier_negative_fixtures() -> None:
+    """Every half-applied cutover shape must be rejected.
+
+    In memory throughout. The retired APC and IFV fixtures rewrote the real
+    equipment files, which corrupted any live `-debug` game and manufactured
+    2380 unrelated errors - STATUS.md Finding 8.
+    """
+    plain = '\tmechanized_equipment = {\n\t\tis_archetype = yes\n\t\ttype = mechanized\n\t}'
+    for label, block in (
+        ("archetype keeps its designer slots", plain.replace("type = mechanized", "module_slots = { turret_type_slot = { } }\n\t\ttype = mechanized")),
+        ("archetype keeps a count limit", plain.replace("type = mechanized", "module_count_limit = { category = tank_smoke count < 2 }\n\t\ttype = mechanized")),
+        ("archetype keeps default modules", plain.replace("type = mechanized", "default_modules = { turret_type_slot = apc_open_troop_bay }\n\t\ttype = mechanized")),
+        ("archetype stays in the armor domain", plain.replace("type = mechanized", "type = { armor mechanized }")),
     ):
-        mutated = mutation(source)
-        if mutated == source:
-            raise AssertionError(f"IFV fixture did not mutate the source: {label}")
-        HEAVY_MECHANIZED_FILE.write_text(mutated, encoding="utf-8", newline="")
-        previous = len(errors)
-        try:
-            validate_ifv_designer_family()
-            rejected = len(errors) > previous
-        finally:
-            del errors[previous:]
-            HEAVY_MECHANIZED_FILE.write_bytes(source_bytes)
-        if not rejected:
-            raise AssertionError(f"IFV contract accepted a broken mutation: {label}")
+        parsed = dict(top_level_blocks("equipments = {\n" + block + "\n}", "equipments"))
+        if not carrier_archetype_errors("mechanized_equipment", parsed["mechanized_equipment"]):
+            raise AssertionError(f"carrier archetype contract accepted: {label}")
+    if carrier_archetype_errors(
+        "mechanized_equipment",
+        dict(top_level_blocks("equipments = {\n" + plain + "\n}", "equipments"))["mechanized_equipment"],
+    ):
+        raise AssertionError("carrier archetype contract rejected the shipped plain archetype")
 
-    byte_fixtures = (
-        (MODULE_FILE, "zero IFV attack multipliers", lambda value: value.replace(
-            b"soft_attack = 0.05\n\t\t\thard_attack = 0.025\n\t\t\tap_attack = 0.05",
-            b"soft_attack = 0\n\t\t\thard_attack = 0\n\t\t\tap_attack = 0", 1)),
-        (AI_FILE, "IFV recipe uses another hull gate", lambda value: value.replace(
-            b"has_tech = nsb_ifv_hulls0 has_tech = nsb_ammo",
-            b"has_tech = nsb_ifv_hulls1 has_tech = nsb_ammo", 1)),
-        (MOD / "common/scripted_effects/CWIC_tank_bookmark_research.txt", "post-1980 IFV bookmark grant", lambda value: value.replace(
-            b"\t\t\tnsb_ifv_hulls4 = 1\n", b"\t\t\tnsb_ifv_hulls4 = 1\n\t\t\tnsb_ifv_hulls5 = 1\n", 1)),
-        (TANK_ICON_FILE, "IFV tech uses APC art", lambda value: value.replace(
-            b'GFX_nsb_ifv_hulls0" texturefile = "gfx/interface/technologies/ifv_1.dds',
-            b'GFX_nsb_ifv_hulls0" texturefile = "gfx/interface/technologies/apc_3.dds', 1)),
-        (TANK_ICON_FILE, "IFV hull picture loses its registry entry", lambda value: value.replace(
-            b'"GFX_cwic_ifv_chassis_0_medium"', b'"GFX_cwic_ifv_chassis_0_unused"', 1)),
-        (TANK_ICON_FILE, "IFV hull picture points at a missing texture", lambda value: value.replace(
-            b'"GFX_cwic_ifv_chassis_0_medium" texturefile = "gfx/interface/technologies/ifv_1.dds"',
-            b'"GFX_cwic_ifv_chassis_0_medium" texturefile = "gfx/interface/technologies/ifv_absent.dds"', 1)),
-        (TANK_LOC_FILE, "IFV localisation loses BOM", lambda value: value[3:]),
-        (MOD / "interface/equipmentdesigner/tanks/tank_chassis_ifv.gui", "IFV GUI gains BOM", lambda value: b"\xef\xbb\xbf" + value),
+    row = APC_LADDER[0]
+    good = (
+        '\t\tcategory = tank_apc_superstructure\n'
+        '\t\tallow_equipment_type = amphibious\n'
+        '\t\tadd_stats = {\n\t\t\tbuild_cost_ic = 2.6\n\t\t\tarmor_value = 5\n\t\t\tmaximum_speed = 4\n\t\t}\n'
     )
-    for path, label, mutation in byte_fixtures:
-        original = path.read_bytes()
-        mutated = mutation(original)
-        if mutated == original:
-            raise AssertionError(f"IFV fixture did not mutate the source: {label}")
-        path.write_bytes(mutated)
-        previous = len(errors)
-        try:
-            validate_ifv_designer_family()
-            rejected = len(errors) > previous
-        finally:
-            del errors[previous:]
-            path.write_bytes(original)
-        if not rejected:
-            raise AssertionError(f"IFV contract accepted a broken mutation: {label}")
-    windows = designer_window_names()
-    if "equipment_designer_mechanized_heavy_equipment" not in windows:
-        raise AssertionError("the IFV designer window is missing from the fixture baseline")
-    previous = len(errors)
-    validate_designer_window_coverage(windows - {"equipment_designer_mechanized_heavy_equipment"})
-    rejected = len(errors) > previous
-    del errors[previous:]
-    if not rejected:
-        raise AssertionError("designer window coverage accepted a missing IFV window")
+    tech = "enable_equipment_modules = { apc_open_troop_bay }"
+    for label, definition, tech_block in (
+        ("module loses its armour delta", good.replace("armor_value = 5", "armor_value = 0"), tech),
+        ("module loses its cost delta", good.replace("build_cost_ic = 2.6", "build_cost_ic = 0.3"), tech),
+        ("module loses its speed delta", good.replace("maximum_speed = 4", "maximum_speed = 0"), tech),
+        ("module drops its role gate", good.replace("allow_equipment_type = amphibious", "allow_equipment_type = armor"), tech),
+        ("technology still enables a retired hull", good, tech + "\n\t\tenable_equipments = { apc_chassis_0 }"),
+        ("technology stops unlocking the module", good, "enable_equipment_modules = { apc_firing_ports }"),
+    ):
+        if not carrier_module_errors("apc", 0, row, definition, tech_block, None):
+            raise AssertionError(f"carrier module contract accepted: {label}")
+    if not carrier_module_errors("apc", 0, row, None, tech, None):
+        raise AssertionError("carrier module contract accepted a missing module")
+
+    for label, body in (
+        ("a retired chassis id", "type = apc_chassis_3"),
+        ("a retired derived variant", 'variant_name = "ifv_equipment_5"'),
+    ):
+        if not carrier_stale_id_errors("fixture", body):
+            raise AssertionError(f"carrier stale-id contract accepted: {label}")
+    for label, body in (
+        ("the migrated role id", "type = light_tank_apc_chassis_4"),
+        ("the preset effect name", "cwic_create_national_apc_chassis_2_variants = {"),
+        ("the starting flag", "set_country_flag = cwic_starting_ifv_chassis_1_created"),
+    ):
+        if carrier_stale_id_errors("fixture", body):
+            raise AssertionError(f"carrier stale-id contract rejected: {label}")
 
 
 def defined_equipment_ids() -> tuple[set[str], dict[str, str]]:
@@ -5758,8 +5493,7 @@ def run_stockpile_negative_fixtures() -> None:
 
 
 validate_carrier_bookmarks()
-validate_apc_designer_family()
-validate_ifv_designer_family()
+validate_carrier_roles()
 validate_designer_window_coverage()
 stockpile_grant_count = sum(
     len(stockpile_grants(code_only(text(path))))
@@ -5767,8 +5501,7 @@ stockpile_grant_count = sum(
 )
 validate_stockpile_grants()
 if "--tank-self-test" in sys.argv:
-    run_apc_negative_fixtures()
-    run_ifv_negative_fixtures()
+    run_carrier_negative_fixtures()
     run_stockpile_negative_fixtures()
 
 balance_report = tank_balance_report() if "--tank-balance-report" in sys.argv else ""
@@ -5791,8 +5524,7 @@ print(
     f"and {versioned_oob_requests} named OOB requests across "
     f"{len(oob_files_with_tanks)} NSB OOBs, {history_bootstrap_sites} country-history "
     f"bootstrap sites, {stockpile_grant_count} stockpile grants, "
-    f"{len(APC_HULL_ROWS)} APC designer hulls, "
-    f"{len(IFV_HULL_ROWS)} IFV designer hulls, and "
+    f"{len(APC_LADDER) + len(IFV_LADDER)} carrier superstructure rungs, and "
     f"{TANK_DESIGNER_POSITIONS} designer slots checked."
 )
 if balance_report:
