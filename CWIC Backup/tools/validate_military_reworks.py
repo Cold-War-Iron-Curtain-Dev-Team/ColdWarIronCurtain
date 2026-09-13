@@ -87,31 +87,59 @@ HEAVY_MECHANIZED_FILE = MOD / "common/units/equipment/mechanized_heavy.txt"
 # standalone designer families. The legacy mechanized archetypes keep only their
 # plain equipment rows for non-NSB games. Each retired carrier tier maps onto the
 # newest light hull tier whose year does not exceed it, and the role-exclusive
-# superstructure module carries the armour, cost and speed the old chassis row
-# used to carry. tier -> (module, technology, light hull tier, armour, cost, speed)
+# superstructure module carries the envelope the old chassis row used to carry.
+# Phase 7, 2026-09-12: the module also carries `defense` and `breakthrough`,
+# because the light tank hull curve gave a troop carrier tank breakthrough and
+# tank defense, inverting the one thing that distinguishes it from a tank. The
+# deltas are negative on breakthrough for exactly that reason.
+# tier -> (module, technology, light hull tier, armour, cost, speed, defense, breakthrough)
 APC_LADDER = {
-    0: ("apc_open_troop_bay", "nsb_apc_hulls0", 2, 5, 2.6, 4),
-    1: ("apc_enclosed_troop_bay", "nsb_apc_hulls1", 3, 5.5, 3.45, 4),
-    2: ("apc_troop_compartment", "nsb_apc_hulls2", 4, 7, 4.3, 4.5),
-    3: ("apc_sloped_troop_compartment", "nsb_apc_hulls3", 4, 9, 5.6, 5.5),
-    4: ("apc_frontal_engine_layout", "nsb_apc_hulls4", 5, 10.5, 7.5, 6.5),
-    5: ("apc_rear_ramp_compartment", "nsb_apc_hulls5", 6, 12, 8.4, 7),
-    6: ("apc_spall_lined_compartment", "nsb_apc_hulls6", 7, 13.5, 9.3, 7.5),
-    7: ("apc_modular_troop_capsule", "nsb_apc_hulls7", 8, 15, 11.2, 8.5),
+    0: ("apc_open_troop_bay", "nsb_apc_hulls0", 2, 5, 2.6, 4, 5, -17),
+    1: ("apc_enclosed_troop_bay", "nsb_apc_hulls1", 3, 5.5, 3.45, 4, 8, -16),
+    2: ("apc_troop_compartment", "nsb_apc_hulls2", 4, 7, 4.3, 4.5, 8, -16),
+    3: ("apc_sloped_troop_compartment", "nsb_apc_hulls3", 4, 9, 5.6, 5.5, 10, -15),
+    4: ("apc_frontal_engine_layout", "nsb_apc_hulls4", 5, 10.5, 7.5, 6.5, 10, -15),
+    5: ("apc_rear_ramp_compartment", "nsb_apc_hulls5", 6, 12, 8.4, 7, 10, -15),
+    6: ("apc_spall_lined_compartment", "nsb_apc_hulls6", 7, 13.5, 9.3, 7.5, 13, -14),
+    7: ("apc_modular_troop_capsule", "nsb_apc_hulls7", 8, 15, 11.2, 8.5, 13, -14),
 }
 IFV_LADDER = {
-    0: ("ifv_fighting_compartment", "nsb_ifv_hulls0", 2, 20, 10.4, 5),
-    1: ("ifv_enclosed_fighting_compartment", "nsb_ifv_hulls1", 3, 23.5, 11.65, 5.5),
-    2: ("ifv_sloped_fighting_compartment", "nsb_ifv_hulls2", 3, 31.5, 14.8, 6.5),
-    3: ("ifv_reinforced_fighting_compartment", "nsb_ifv_hulls3", 4, 33, 16.55, 6),
-    4: ("ifv_frontal_engine_layout", "nsb_ifv_hulls4", 5, 38.5, 18.3, 6.5),
-    5: ("ifv_rear_ramp_compartment", "nsb_ifv_hulls5", 6, 44, 20.05, 8),
-    6: ("ifv_spall_lined_compartment", "nsb_ifv_hulls6", 7, 49.5, 21.8, 8.5),
-    7: ("ifv_modular_fighting_capsule", "nsb_ifv_hulls7", 8, 55, 24.55, 9),
+    0: ("ifv_fighting_compartment", "nsb_ifv_hulls0", 2, 12, 10.4, 5, 24, -8),
+    1: ("ifv_enclosed_fighting_compartment", "nsb_ifv_hulls1", 3, 12.5, 11.65, 5.5, 29, -6),
+    2: ("ifv_sloped_fighting_compartment", "nsb_ifv_hulls2", 3, 15.5, 14.8, 6.5, 30, -6),
+    3: ("ifv_reinforced_fighting_compartment", "nsb_ifv_hulls3", 4, 16, 16.55, 6, 34, -4),
+    4: ("ifv_frontal_engine_layout", "nsb_ifv_hulls4", 5, 17.5, 18.3, 6.5, 34, -4),
+    5: ("ifv_rear_ramp_compartment", "nsb_ifv_hulls5", 6, 19, 20.05, 8, 35, -4),
+    6: ("ifv_spall_lined_compartment", "nsb_ifv_hulls6", 7, 21.5, 21.8, 8.5, 39, -2),
+    7: ("ifv_modular_fighting_capsule", "nsb_ifv_hulls7", 8, 24, 24.55, 9, 39, -2),
 }
+# Phase 7 armour envelope, owner ruling 2026-09-12: no carrier may exceed 70% of
+# the same-year medium tank hull's armour, on either DLC profile. Before it a
+# 2005 IFV carried 80 armour against the 2010 MBT's 75, and the relocated legacy
+# rows carried the same inversion.
+CARRIER_ARMOUR_CAP_RATIO = 0.7
+MEDIUM_HULL_ARMOUR = (
+    (1939, 30), (1942, 35), (1944, 40), (1950, 45), (1960, 50),
+    (1970, 55), (1980, 60), (1990, 65), (2000, 70), (2010, 75),
+)
+LIGHT_HULL_ARMOUR = {
+    0: 5, 1: 7.5, 2: 10, 3: 12.5, 4: 15, 5: 17.5, 6: 20, 7: 22.5, 8: 25, 9: 27.5,
+}
+CARRIER_GENERATION_YEARS = {
+    "apc": (1947, 1950, 1960, 1965, 1975, 1985, 1995, 2005),
+    "ifv": (1947, 1950, 1955, 1965, 1975, 1985, 1995, 2005),
+}
+# Hardness is set once per role family and never added by a module, so a design
+# cannot drift off the carrier value by mounting a superstructure.
+CARRIER_ROLE_HARDNESS = {"apc": 0.5, "ifv": 0.6}
+# Phase 6, 2026-09-12: `mechanized_marine` consumes the APC role family, so the
+# marine rows moved into it exactly as the 18 legacy carrier rows did in phase 5.
+MARINE_ARCHETYPE = "mechanized_marine_equipment"
+MARINE_ROLE = "light_tank_apc_chassis"
+MARINE_ROWS = {1: (1944, 24), 2: (1950, 31), 3: (1965, 35), 4: (1985, 42), 5: (2005, 49)}
 CARRIER_LADDERS = {"apc": APC_LADDER, "ifv": IFV_LADDER}
 CARRIER_ARCHETYPES = {
-    "apc": ("mechanized_equipment", MECHANIZED_FILE, "light_tank_apc_chassis", "amphibious"),
+    "apc": ("mechanized_equipment", MECHANIZED_FILE, "light_tank_apc_chassis", "flame"),
     "ifv": ("mechanized_heavy_equipment", HEAVY_MECHANIZED_FILE, "light_tank_ifv_chassis", "rocket"),
 }
 # The 2023 balance workbook is frozen and predates the carrier modules, so its
@@ -342,18 +370,18 @@ STOCKPILE_TYPE_EXCEPTIONS = {
     "support_artillery",
 }
 
-# Owner decision 2026-09-11 carrier role consolidation: the engine recognizes
-# only five hardcoded designer role tokens, so APC and IFV loadouts share its
-# working `amphibious` carrier role rather than risking a broken hull role list.
+# Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and `amphibious`
+# remains deliberately unspent and reserved for a future dedicated amphibious
+# mechanized role.
 FAMILY_ROLES = {
     "light": ("aa", "artillery", "destroyer", "apc", "ifv"),
     "medium": ("aa", "artillery", "destroyer", "apc", "ifv"),
     "heavy": ("artillery", "destroyer"),
 }
 FAMILY_TIERS = {"light": 10, "medium": 10, "heavy": 5}
-# Owner decision 2026-09-11 carrier role consolidation retires IFV, flame,
-# ATGM, and heavy SPAAG designer roots; the engine permits carrier loadouts only
-# through the hardcoded `amphibious` role.
+# Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and `amphibious`
+# remains deliberately unspent and reserved for a future dedicated amphibious
+# mechanized role; flame, ATGM, and heavy SPAAG designer roots are retired.
 REMOVED_TANK_ROLE_ROOTS = {
     "light_tank_flame_chassis",
     "medium_tank_flame_chassis",
@@ -514,8 +542,10 @@ BOOKMARK_VARIANT_TECHS = {
     "medium_tank_destroyer_chassis_2": "nsb_main_battle_tanks1",
     "medium_tank_destroyer_chassis_3": "nsb_main_battle_tanks2",
 }
-# Owner decision 2026-09-11 carrier role consolidation keeps flame, IFV, ATGM,
-# and retired heavy SPAAG ids unsupported; carrier loadouts use amphibious.
+# Shipped 2026-09-13: flame-family, IFV, ATGM, and retired heavy SPAAG ids stay
+# unsupported; APC uses `flame`, IFV uses `rocket`, and `amphibious` remains
+# deliberately unspent and reserved for a future dedicated amphibious
+# mechanized role.
 UNSUPPORTED_IDS = {
     "light_tank_rocket_chassis",
     "medium_tank_rocket_chassis",
@@ -1676,7 +1706,8 @@ LEGAL_TANK_DESIGNER_TYPE_TOKENS = frozenset(
 # standalone APC and IFV families only, where REFERENCE.md records it as load
 # bearing for land/transport classification and every `transport =
 # mechanized_equipment` consumer. Those families are phase 4 scope and must not
-# be remapped here; `flame` remains legal vocabulary but is unused in bounds.
+# be remapped here; APC uses `flame`, while `amphibious` remains reserved for a
+# future dedicated amphibious mechanized role.
 LEGAL_CARRIER_FAMILY_TYPE_TOKENS = LEGAL_TANK_DESIGNER_TYPE_TOKENS | {"mechanized"}
 
 
@@ -1689,8 +1720,8 @@ def unsupported_tank_designer_tokens(
     return [
         f"{subject} uses unsupported designer type token(s): {unsupported}; "
         "custom tokens cannot be designer roles. The 2026-09-10 in-game probe "
-        "showed amphibious and rocket as selectable roles, while ifv, atgm, "
-        "and mechanized never appeared."
+        "showed amphibious, rocket, and flame as selectable roles, while ifv, "
+        "atgm, and mechanized never appeared."
     ]
 
 
@@ -1709,13 +1740,6 @@ def tank_module_designer_token_errors(
                 f"tank module {module} eligibility",
             )
         )
-        # Owner decision 2026-09-11 carrier role consolidation leaves the
-        # `flame` token legal but unused in every tank restriction key because
-        # the engine hardcodes only five designer role tokens.
-        if "flame" in eligibility_tokens:
-            result.append(
-                f"tank module {module} eligibility must not use unused flame token"
-            )
     return result
 
 
@@ -1728,11 +1752,6 @@ def tank_type_domain_token_errors(blocks: dict[str, str]) -> list[str]:
     for name, block in blocks.items():
         # The standalone carrier families keep `mechanized` for land/transport
         # classification; they are phase 4 scope, not designer role roots.
-        # Owner decision 2026-09-11 carrier role consolidation leaves `flame`
-        # legal only as vocabulary because the engine hardcodes five role tokens;
-        # no tank type set may carry that token.
-        if "flame" in equipment_type_domain(block):
-            result.append(f"{name} type domain must not carry unused flame")
         legal = (
             LEGAL_CARRIER_FAMILY_TYPE_TOKENS
             if name in carrier_families or re.fullmatch(r"light_tank_(apc|ifv)_chassis_\d+", name)
@@ -1775,18 +1794,14 @@ def tank_module_type_bound_errors(definitions: dict[str, str]) -> list[str]:
             "tank modules must not use forbid_equipment_type_exact_match: "
             f"{exact_match}"
         )
-    # Owner decision 2026-09-11 carrier role consolidation puts APC and IFV
-    # loadouts on one working `amphibious` role. Both carrier categories must
-    # keep exactly the three plain-gun size-token forbids.
-    # Reverted 2026-09-11 to the two-role carrier split: APC on `amphibious`,
-    # which the owner confirmed working end to end, and IFV on `rocket`, which
-    # renders and mounts but still fails its role change on save. Each role
-    # forbids the other so a carrier cannot be both.
+    # Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and `amphibious`
+    # remains deliberately unspent and reserved for a future dedicated amphibious
+    # mechanized role.
     carrier_categories = {
-        "tank_apc_superstructure": ({"amphibious"}, TANK_SIZE_TOKENS | {"rocket"}),
-        "tank_apc_armament": ({"amphibious"}, TANK_SIZE_TOKENS | {"rocket"}),
-        "tank_ifv_superstructure": ({"rocket"}, TANK_SIZE_TOKENS | {"amphibious"}),
-        "tank_ifv_armament": ({"rocket"}, TANK_SIZE_TOKENS | {"amphibious"}),
+        "tank_apc_superstructure": ({"flame"}, TANK_SIZE_TOKENS | {"rocket"}),
+        "tank_apc_armament": ({"flame"}, TANK_SIZE_TOKENS | {"rocket"}),
+        "tank_ifv_superstructure": ({"rocket"}, TANK_SIZE_TOKENS | {"flame"}),
+        "tank_ifv_armament": ({"rocket"}, TANK_SIZE_TOKENS | {"flame"}),
     }
     # Owner decision 2026-09-11 carrier role consolidation keeps carrier
     # modules role-exclusive despite allow_equipment_type extending eligibility.
@@ -1807,17 +1822,17 @@ def tank_module_type_bound_errors(definitions: dict[str, str]) -> list[str]:
                 f"{module} must forbid {format_type_domain(expected_forbid)}, "
                 f"found {format_type_domain(actual_forbid)}"
             )
-    # Owner decision 2026-09-11 carrier role consolidation leaves conventional
-    # guns off the shared amphibious role, while ATGM uses anti_tank and AA uses
-    # anti_air; all must retain their exact engine-compatible bounds.
+    # Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and
+    # `amphibious` remains deliberately unspent and reserved for a future dedicated
+    # amphibious mechanized role.
     conventional_categories = {
         "tank_small_main_armament",
         "tank_low_pressure_main_armament",
         "tank_medium_main_armament",
         "tank_heavy_main_armament",
     }
-    conventional_forbid = {"amphibious", "rocket"}
-    aa_forbid = TANK_SIZE_TOKENS | {"amphibious", "rocket"}
+    conventional_forbid = {"flame", "rocket"}
+    aa_forbid = TANK_SIZE_TOKENS | {"flame", "rocket"}
     for module, definition in definitions.items():
         category = (direct_values(definition, "category") or [""])[0]
         actual_forbid = equipment_type_tokens(definition, "forbid_equipment_type")
@@ -1840,9 +1855,9 @@ def tank_module_type_bound_errors(definitions: dict[str, str]) -> list[str]:
 
 
 def validate_tank_type_domains(chassis_text: str, role_text: str) -> None:
-    # Owner decision 2026-09-11 carrier role consolidation leaves every plain
-    # gun hull with exactly one size token, while the shared carrier role uses
-    # amphibious because the engine has only five hardcoded role tokens.
+    # Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and `amphibious`
+    # remains deliberately unspent and reserved for a future dedicated amphibious
+    # mechanized role.
     expected_archetypes = {
         "light_tank_chassis": {"armor", "light_armor"},
         "medium_tank_chassis": {"armor", "medium_armor"},
@@ -1860,8 +1875,8 @@ def validate_tank_type_domains(chassis_text: str, role_text: str) -> None:
         "light_tank_destroyer_chassis": {"armor", "anti_tank"},
         "medium_tank_destroyer_chassis": {"armor", "anti_tank"},
         "heavy_tank_destroyer_chassis": {"armor", "anti_tank"},
-        "light_tank_apc_chassis": {"armor", "amphibious"},
-        "medium_tank_apc_chassis": {"armor", "amphibious"},
+        "light_tank_apc_chassis": {"armor", "flame"},
+        "medium_tank_apc_chassis": {"armor", "flame"},
         "light_tank_ifv_chassis": {"armor", "rocket"},
         "medium_tank_ifv_chassis": {"armor", "rocket"},
     }
@@ -1883,18 +1898,8 @@ def validate_tank_type_domains(chassis_text: str, role_text: str) -> None:
     unexpected_role_roots = sorted(set(role_blocks) - set(expected_role_domains))
     if unexpected_role_roots:
         fail(f"unexpected tank role roots remain: {unexpected_role_roots}")
-    # Owner decision 2026-09-11 carrier role consolidation leaves `flame`
-    # unused: no chassis or role type set may carry it, even though the legal
-    # token vocabulary remains unchanged for compatibility.
-    flame_type_holders = sorted(
-        name
-        for name, block in {**chassis_blocks, **role_blocks}.items()
-        if "flame" in equipment_type_domain(block)
-    )
-    if flame_type_holders:
-        fail(f"flame type token remains in tank type set: {flame_type_holders}")
-    # Owner decision 2026-09-11 carrier role consolidation keeps the existing
-    # flame-family name check while forbidding the now-unused `flame` token.
+    # The flame-family name check remains: token use does not restore retired
+    # flame chassis roots.
     flame_family_holders = sorted(
         name for name in {**chassis_blocks, **role_blocks} if "flame" in name
     )
@@ -3866,9 +3871,9 @@ def tank_category_contract_errors(
                 archetype_categories[archetype].update(categories)
                 for category in categories:
                     slot_owners.setdefault(category, set()).add(slot)
-    # Owner decision 2026-09-11 carrier role consolidation keeps all four
-    # APC/IFV loadout categories reachable from both light and medium hull
-    # slots despite the five-token engine constraint and shared amphibious role.
+    # Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and `amphibious`
+    # remains deliberately unspent and reserved for a future dedicated amphibious
+    # mechanized role.
     carrier_categories = {
         "tank_apc_superstructure",
         "tank_apc_armament",
@@ -4196,9 +4201,9 @@ def run_tank_negative_fixtures() -> None:
         del errors[previous_errors:]
     rejected(rejected_role_size_token, "role root with a size token")
 
-    # Owner decision 2026-09-11 carrier role consolidation requires carrier
-    # modules to retain every plain-gun size-token exclusion under the engine's
-    # single working amphibious role.
+    # Shipped 2026-09-13: APC uses `flame`, IFV uses `rocket`, and `amphibious`
+    # remains deliberately unspent and reserved for a future dedicated amphibious
+    # mechanized role.
     carrier_armament_fixture = dict(module_definitions)
     carrier_armament_fixture[APC_ARMAMENT_MODULES[0]] = carrier_armament_fixture[
         APC_ARMAMENT_MODULES[0]
@@ -4212,14 +4217,12 @@ def run_tank_negative_fixtures() -> None:
         "carrier armament missing a size-token forbid",
     )
 
-    # Owner decision 2026-09-11 carrier role consolidation retargets this
-    # in-memory negative fixture at the surviving APC bound: the five-token
-    # engine requires a carrier module to allow amphibious, not another role.
+    # This in-memory negative fixture retargets the surviving APC `flame` bound.
     carrier_role_module_fixture = dict(module_definitions)
     fixture_module = APC_ARMAMENT_MODULES[0]
     carrier_role_module_fixture[fixture_module] = carrier_role_module_fixture[
         fixture_module
-    ].replace("allow_equipment_type = amphibious", "allow_equipment_type = anti_air", 1)
+    ].replace("allow_equipment_type = flame", "allow_equipment_type = anti_air", 1)
     if carrier_role_module_fixture[fixture_module] == module_definitions[fixture_module]:
         raise AssertionError("carrier role eligibility fixture did not mutate the module")
     rejected(
@@ -5202,11 +5205,18 @@ def carrier_module_errors(
 
     The ladder is the only instrument the restructure leaves for carrier
     identity: the hull supplies the light tank curve, and this module supplies
-    the armour, cost and speed the retired chassis row used to carry. A missing
-    delta is silent - the design still builds, it is simply a light tank hull.
+    the envelope the retired chassis row used to carry. A missing delta is
+    silent - the design still builds, it is simply a light tank hull.
+
+    Phase 7 added `defense` and `breakthrough` to that envelope. They are what
+    separates a troop carrier from a tank, and the hull curve had them backwards:
+    breakthrough 20 and defense 6, against a carrier's 3-18 and 11-45. Hardness
+    and stat multipliers are banned here rather than merely unused - hardness is
+    set once on the role root, and a multiplier applied on top of the rung breaks
+    the hull-plus-module arithmetic the whole envelope is checked with.
     """
-    module, technology, _hull_tier, armour, cost, speed = row
-    token = "amphibious" if family == "apc" else "rocket"
+    module, technology, _hull_tier, armour, cost, speed, defense, breakthrough = row
+    token = "flame" if family == "apc" else "rocket"
     if definition is None:
         return [f"carrier superstructure module is missing: {module}"]
     errors: list[str] = []
@@ -5216,13 +5226,33 @@ def carrier_module_errors(
         errors.append(f"{module} must be gated on the {token} role token")
     add = keyed_blocks(definition, "add_stats")
     stats = dict(re.findall(r"(\w+)\s*=\s*(-?[\d.]+)", add[0])) if add else {}
-    for key, expected in (("armor_value", armour), ("build_cost_ic", cost), ("maximum_speed", speed)):
+    for key, expected in (
+        ("armor_value", armour),
+        ("build_cost_ic", cost),
+        ("maximum_speed", speed),
+        ("defense", defense),
+        ("breakthrough", breakthrough),
+    ):
         raw = stats.get(key)
         if raw is None or abs(float(raw) - expected) >= 1e-6:
             errors.append(
                 f"{module} must add {key} = {expected} so a tier {tier} carrier reproduces "
                 f"the retired chassis row, found {raw or 'none'}"
             )
+    if "hardness" in stats:
+        errors.append(
+            f"{module} must not add hardness; the role root sets it once for the family"
+        )
+    multiplied = [
+        key
+        for block in keyed_blocks(definition, "multiply_stats")
+        for key, _value in re.findall(r"(\w+)\s*=\s*(-?[\d.]+)", block)
+    ]
+    if multiplied:
+        errors.append(
+            f"{module} must not multiply {sorted(multiplied)}; the envelope is checked as "
+            "light hull tier plus this module"
+        )
     if parent is not None and direct_values(definition, "parent") != [parent]:
         errors.append(f"{module} must descend from {parent} so the ladder researches in order")
     if tech_block is None:
@@ -5241,6 +5271,34 @@ def carrier_stale_id_errors(label: str, body: str) -> list[str]:
     return [f"{label} still references retired carrier equipment {stale.group(0)}"] if stale else []
 
 
+def medium_hull_armour(year: int) -> float:
+    """Armour of the newest medium tank hull whose year does not exceed `year`."""
+    armour = MEDIUM_HULL_ARMOUR[0][1]
+    for hull_year, value in MEDIUM_HULL_ARMOUR:
+        if hull_year <= year:
+            armour = value
+    return armour
+
+
+def carrier_armour_cap_errors(label: str, year: int, armour: float) -> list[str]:
+    """Phase 7 envelope: a carrier never out-armours a same-year medium tank.
+
+    Owner ruling 2026-09-12, and it binds both DLC profiles. The cutover
+    reproduced a legacy ladder that put a 2005 IFV at 80 armour against the 2010
+    MBT's 75, so the inversion was inherited rather than introduced - which is
+    exactly why nothing caught it.
+    """
+    cap = medium_hull_armour(year) * CARRIER_ARMOUR_CAP_RATIO
+    if armour <= cap + 1e-6:
+        return []
+    percent = int(CARRIER_ARMOUR_CAP_RATIO * 100)
+    return [
+        f"{label} carries {armour:g} armour against a {cap:g} cap; a {year} carrier may not "
+        f"exceed {percent}% of the same-year medium tank hull ({medium_hull_armour(year):g})"
+    ]
+
+
+
 CARRIER_BATTALIONS = {
     "mechanized_infantry": ("CWIC-Infantry.txt", "light_tank_apc_chassis"),
     "armored_infantry": ("CWIC-Infantry.txt", "light_tank_ifv_chassis"),
@@ -5248,6 +5306,7 @@ CARRIER_BATTALIONS = {
     "engineer_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
     "recon_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
     "field_hospital_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
+    "mechanized_marine": ("CWIC-Special-Units.txt", "light_tank_apc_chassis"),
 }
 
 
@@ -5280,7 +5339,9 @@ def validate_carrier_battalions() -> None:
                 continue
             if not re.search(rf"(?<![A-Za-z0-9_]){role}(?![A-Za-z0-9_])", bodies[0]):
                 fail(f"{battalion} {key} must name {role}")
-    retired = re.compile(r"(?<![A-Za-z0-9_])mechanized(?:_heavy)?_equipment(?![A-Za-z0-9_])")
+    retired = re.compile(
+        r"(?<![A-Za-z0-9_])mechanized(?:_heavy|_marine)?_equipment(?![A-Za-z0-9_])"
+    )
     for path in sorted(units_dir.glob("*.txt")):
         if retired.search(code_only(text(path))):
             fail(f"{path.name} still wires a land sub-unit to a retired carrier family")
@@ -5331,9 +5392,29 @@ def validate_carrier_roles() -> None:
             for stat in ("maximum_speed", "armor_value", "build_cost_ic", "defense", "reliability"):
                 if not direct_values(body, stat):
                     fail(f"{name} must state {stat} explicitly after the relocation")
+            years = direct_values(body, "year")
+            armour = direct_values(body, "armor_value")
+            if years and armour:
+                for message in carrier_armour_cap_errors(name, int(years[0]), float(armour[0])):
+                    fail(message)
 
         if not re.search(rf"(?m)^\s*{role}\s*=\s*{{", role_text):
             fail(f"carrier role root is missing: {role}")
+        roots = dict(top_level_blocks(role_text, "duplicate_archetypes"))
+        root = roots.get(role)
+        if root is None:
+            fail(f"{role} is not declared as a duplicate_archetypes root")
+        else:
+            # Phase 7: hardness is the one carrier stat the cutover did not
+            # preserve, and it cannot come from a module - `for_each` sets it
+            # once for every derived tier, so a design cannot drift off it.
+            expected = CARRIER_ROLE_HARDNESS[family]
+            found = re.search(r"hardness\s*=\s*{\s*set\s*=\s*([\d.]+)", root)
+            if not found or abs(float(found.group(1)) - expected) >= 1e-6:
+                fail(
+                    f"{role} must set hardness = {expected} for the whole family, "
+                    f"found {found.group(1) if found else 'none'}"
+                )
         for tier in sorted({row[2] for row in CARRIER_LADDERS[family].values()}):
             if not re.search(rf"\b{role}_{tier}\b", tech_text):
                 fail(f"{role}_{tier} is not enabled by any technology")
@@ -5345,6 +5426,12 @@ def validate_carrier_roles() -> None:
             parent = ladder[index - 1][1][0] if index else None
             for message in carrier_module_errors(
                 family, tier, row, definitions.get(module), techs[0] if techs else None, parent
+            ):
+                fail(message)
+            hull_armour = LIGHT_HULL_ARMOUR[row[2]]
+            year = CARRIER_GENERATION_YEARS[family][tier]
+            for message in carrier_armour_cap_errors(
+                f"{family} generation {tier}", year, hull_armour + row[3]
             ):
                 fail(message)
             if f"GFX_SMI_{module}" not in gfx:
@@ -5385,6 +5472,49 @@ def validate_carrier_roles() -> None:
                 fail(f"{effect} mounts {sorted(wrong)}; tier {tier} must mount {expected}")
 
 
+def validate_marine_carrier() -> None:
+    """Phase 6, 2026-09-12: marines ride the APC role family.
+
+    APC uses `flame`; IFV uses `rocket`; `amphibious` remains unspent for a
+    future dedicated amphibious mechanized role. The owner ruled for APC-wide
+    marine transport instead, which works because a `duplicate_archetypes` root
+    is a family a sub-unit's `need` can name, unlike the plain members Finding 15
+    ruled out. The five legacy marine rows follow the same relocation phase 5
+    used for the 18 legacy carrier rows: they move into the role family stating
+    every stat, and the retired archetype stays as an empty shell because MIO,
+    idea, focus and country-leader entries name it.
+    """
+    shell = dict(top_level_blocks(text(EQUIPMENT_DIR / "mechanized_marine.txt"), "equipments"))
+    if MARINE_ARCHETYPE not in shell:
+        fail(f"{MARINE_ARCHETYPE} archetype is missing")
+    stranded = sorted(name for name in shell if name != MARINE_ARCHETYPE)
+    if stranded:
+        fail(
+            f"{MARINE_ARCHETYPE} still declares {stranded}; those rows belong to "
+            f"{MARINE_ROLE} or the ids are declared twice"
+        )
+    rows = dict(top_level_blocks(text(ROLE_CHASSIS_FILE), "equipments"))
+    for tier, (year, armour) in sorted(MARINE_ROWS.items()):
+        name = f"{MARINE_ARCHETYPE}_{tier}"
+        body = rows.get(name)
+        if body is None:
+            fail(f"{name} is missing from the {MARINE_ROLE} family; marines lose their transport")
+            continue
+        if direct_values(body, "archetype") != [MARINE_ROLE]:
+            fail(f"{name} must declare archetype = {MARINE_ROLE}")
+        for stat in (
+            "maximum_speed", "armor_value", "build_cost_ic", "defense",
+            "breakthrough", "hardness", "reliability",
+        ):
+            if not direct_values(body, stat):
+                fail(f"{name} must state {stat} explicitly after the relocation")
+        found = direct_values(body, "armor_value")
+        if found and abs(float(found[0]) - armour) >= 1e-6:
+            fail(f"{name} must carry armor_value = {armour}, found {found[0]}")
+        for message in carrier_armour_cap_errors(name, year, armour):
+            fail(message)
+
+
 def run_carrier_negative_fixtures() -> None:
     """Every half-applied cutover shape must be rejected.
 
@@ -5411,15 +5541,20 @@ def run_carrier_negative_fixtures() -> None:
     row = APC_LADDER[0]
     good = (
         '\t\tcategory = tank_apc_superstructure\n'
-        '\t\tallow_equipment_type = amphibious\n'
-        '\t\tadd_stats = {\n\t\t\tbuild_cost_ic = 2.6\n\t\t\tarmor_value = 5\n\t\t\tmaximum_speed = 4\n\t\t}\n'
+        '\t\tallow_equipment_type = flame\n'
+        '\t\tadd_stats = {\n\t\t\tbuild_cost_ic = 2.6\n\t\t\tarmor_value = 5\n'
+        '\t\t\tmaximum_speed = 4\n\t\t\tdefense = 5\n\t\t\tbreakthrough = -17\n\t\t}\n'
     )
     tech = "enable_equipment_modules = { apc_open_troop_bay }"
     for label, definition, tech_block in (
         ("module loses its armour delta", good.replace("armor_value = 5", "armor_value = 0"), tech),
         ("module loses its cost delta", good.replace("build_cost_ic = 2.6", "build_cost_ic = 0.3"), tech),
         ("module loses its speed delta", good.replace("maximum_speed = 4", "maximum_speed = 0"), tech),
-        ("module drops its role gate", good.replace("allow_equipment_type = amphibious", "allow_equipment_type = armor"), tech),
+        ("module loses its defense delta", good.replace("defense = 5", "defense = 1"), tech),
+        ("module keeps the hull's breakthrough", good.replace("breakthrough = -17", "breakthrough = 0.5"), tech),
+        ("module stacks hardness on the role root", good.replace("defense = 5", "defense = 5\n\t\t\thardness = 0.025"), tech),
+        ("module multiplies a stat the envelope adds", good + '\t\tmultiply_stats = {\n\t\t\tarmor_value = 0.05\n\t\t}\n', tech),
+        ("module drops its role gate", good.replace("allow_equipment_type = flame", "allow_equipment_type = armor"), tech),
         ("technology still enables a retired hull", good, tech + "\n\t\tenable_equipments = { apc_chassis_0 }"),
         ("technology stops unlocking the module", good, "enable_equipment_modules = { apc_firing_ports }"),
     ):
@@ -5427,6 +5562,20 @@ def run_carrier_negative_fixtures() -> None:
             raise AssertionError(f"carrier module contract accepted: {label}")
     if not carrier_module_errors("apc", 0, row, None, tech, None):
         raise AssertionError("carrier module contract accepted a missing module")
+    # An empty `multiply_stats` block is shipped style on eleven of the sixteen
+    # rungs, so the ban is on multiplied values, not on the block.
+    empty = carrier_module_errors("apc", 0, row, good + '\t\tmultiply_stats = {\n\t\t}\n', tech, None)
+    if empty != carrier_module_errors("apc", 0, row, good, tech, None):
+        raise AssertionError("carrier module contract reacted to an empty multiply_stats block")
+
+    # The inversion this cap exists for: the shipped 2005 IFV carried 80 armour
+    # against a 2000 medium hull's 70, and nothing reported it.
+    if not carrier_armour_cap_errors("fixture", 2005, 80):
+        raise AssertionError("carrier armour cap accepted an IFV that out-armours a same-year MBT")
+    if carrier_armour_cap_errors("fixture", 2005, 49):
+        raise AssertionError("carrier armour cap rejected the repriced 2005 IFV")
+    if carrier_armour_cap_errors("fixture", 1947, 28):
+        raise AssertionError("carrier armour cap rejected a carrier sitting exactly on the cap")
 
     for label, body in (
         ("a retired chassis id", "type = apc_chassis_3"),
@@ -5562,6 +5711,7 @@ def run_stockpile_negative_fixtures() -> None:
 validate_carrier_bookmarks()
 validate_carrier_roles()
 validate_carrier_battalions()
+validate_marine_carrier()
 validate_designer_window_coverage()
 stockpile_grant_count = sum(
     len(stockpile_grants(code_only(text(path))))
@@ -5592,7 +5742,8 @@ print(
     f"and {versioned_oob_requests} named OOB requests across "
     f"{len(oob_files_with_tanks)} NSB OOBs, {history_bootstrap_sites} country-history "
     f"bootstrap sites, {stockpile_grant_count} stockpile grants, "
-    f"{len(APC_LADDER) + len(IFV_LADDER)} carrier superstructure rungs, and "
+    f"{len(APC_LADDER) + len(IFV_LADDER)} carrier superstructure rungs, "
+    f"{len(MARINE_ROWS)} relocated marine rows, and "
     f"{TANK_DESIGNER_POSITIONS} designer slots checked."
 )
 if balance_report:

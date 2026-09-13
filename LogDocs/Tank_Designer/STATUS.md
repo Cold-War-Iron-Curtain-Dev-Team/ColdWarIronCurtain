@@ -1,6 +1,6 @@
 # Status
 
-Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-10.
+Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-12.
 
 ## Where the project stands
 
@@ -8,16 +8,18 @@ Tier 1 and Tier 2 of the original completion plan are shipped and stable. Bookma
 presets and the NSB OOB migration are committed, and the 20-position designer is live
 and confirmed in game.
 
-**The headline as of 2026-09-10 is that the architecture changed underneath the shipped
-work.** The owner has ratified a three-hull restructure: every armoured vehicle becomes
-a role on the light, medium or heavy tank hull, the two standalone carrier families
-retire, and all sixteen special slots become fully specialized. Finding 16 carries the
-measured blast radius and the implementation order; `DECISIONS.md` carries the
-architecture. The APC and IFV designer families remain built, validated and QA-accepted
-- they are now migration input rather than finished work.
+**The three-hull restructure is shipped and owner-QA-accepted as of 2026-09-12.** Every
+armoured ground vehicle is a role on the light, medium or heavy hull; the two standalone
+carrier designer families are retired; the designer is 20 positions with fifteen fully
+specialized special slots; and designer carrier output reaches the battlefield through the
+six rewired carrier battalions. Phases 1-5 of Finding 16's implementation order are done
+and confirmed in game on all four USA profiles. `DECISIONS.md` carries the architecture,
+Finding 16 the measured blast radius.
 
-Finding 6's 15-to-21 expansion is closed and shipped. What remains is the restructure,
-the historical coverage sweep, three QA findings, and the deferred content batches.
+What remains is phase 7's artillery/AA half (the restructure the owner deferred), the
+historical coverage sweep, the deferred focus-grant variant mapping, and the unowned
+content items. Phases 1-6 and phase 7's carrier envelope are shipped; the amphibious batch
+is closed by engine constraint plus an owner ruling rather than implemented as a role.
 
 ### Committed checkpoints
 
@@ -604,7 +606,7 @@ Static verification only. The type-set mutation fixture rejects a bare light
 archetype and names the expected `{armor, light_armor}` domain. The eventual paradrop
 consumer and its in-game filtering remain unconfirmed.
 
-### Finding 14: the documented module-based amphibious design is engine-impossible
+### Finding 14: the documented module-based amphibious design is engine-impossible - CLOSED 2026-09-12
 
 Established 2026-09-09 from vanilla evidence, and it overrides `REFERENCE.md:129-131`,
 which specifies an "amphibious mobility module on eligible mechanized designs". That
@@ -648,7 +650,13 @@ batch starts: a real sixth designer family, rejected carrier-member renaming, or
 APC-wide marine transport. OPVT and Underwater Driving Capability inherit the same
 blocker.
 
-### Finding 15: the ratified amphibious route cannot work - `need` cannot name a plain member - deferred by owner decision
+**Closed 2026-09-12 by owner ruling, not by a fix.** The role route this finding argues
+for turned out to be unavailable: all five usable designer role tokens are spent, so
+amphibious can never be a designer role. The owner took the option this finding flags as
+needing explicit acceptance - every APC is a marine transport - and phase 6 shipped it.
+
+
+### Finding 15: the ratified amphibious route cannot work - `need` cannot name a plain member - CLOSED 2026-09-12
 
 Established 2026-09-09 from vanilla evidence, and it invalidates the previously
 ratified route rather than refining it. The owner defers the whole amphibious batch;
@@ -702,6 +710,12 @@ together with marine sub-unit supply".
 **Owner decision: deferred.** Nothing was implemented and no amphibious content was
 authored. The batch stays blocked on the three priced options above, rather than on an
 assumption that would fail after the work was done.
+
+**Closed 2026-09-12.** Option 2 was already rejected and option 1 is unbuildable as a
+*role* - the token set is spent - so the owner chose option 3, APC-wide marine transport,
+which the restructure made cheap: `light_tank_apc_chassis` is a `duplicate_archetypes`
+root, and this finding's own measured rule says a root is exactly what `need` can name.
+Option 1 survives only as a sixth standalone family, priced and declined. See phase 6.
 
 
 ### AA ammunition - IMPLEMENTED 2026-09-09
@@ -1296,11 +1310,16 @@ design, so those three items leave the unverified list below.
 
 ## Not yet verified, any batch
 
-Non-NSB regression, long-run AI production behaviour with mechanized now also in the
-`armor` domain, the 1980 bookmark path end to end, the sixteen new carrier hull
-icons rendering in the production tab, the moved tech-tree columns rendering, the
-light-family type filtering, the French and West German 1949 starts, and whether the
-AI ever assigns factories to `land_apc` or `land_ifv` without a `role_ratio`.
+Closed by the owner's 2026-09-12 USA capture: non-NSB regression, the 1980 bookmark path
+end to end, and equipment/OOB correctness on both profiles. Two entries are retired rather
+than verified - the sixteen carrier hull icons and the moved tech-tree columns no longer
+exist, phase 4 having deleted the sprites and the owner having reverted the column move
+(Finding 18).
+
+Still open: long-run AI production behaviour with mechanized now also in the `armor`
+domain, light-family type filtering, the French and West German 1949 starts, every tag
+other than USA at either date, and whether the AI ever assigns factories to `land_apc` or
+`land_ifv` without a `role_ratio`.
 
 Newest-only production visibility and save/reload of a saved NSB design were
 confirmed by the owner on 2026-09-08 and are no longer open.
@@ -1768,6 +1787,12 @@ a real malfunction. The lesson is narrow and practical - **a log line is not a s
 the described behaviour is checked in the UI.** The owner's decision to save the design
 despite the error is what settled it.
 
+**Owner capture 2026-09-12 adds the workaround, and it corroborates the diagnosis.**
+Selecting the role manually after the correct modules are fitted reports the failure;
+renaming the design, or simply saving it, clears the state. That is exactly how a no-op
+re-assignment onto an already-assigned role behaves - the design itself is unchanged
+either way. Still ignorable, still not a defect to chase.
+
 ### Phase 3 status: COMPLETE
 
 The three-hull restructure's role layer is done and owner-verified:
@@ -1944,6 +1969,112 @@ explicitly. Both proven to bite by mutating real source - a stale `transport`, a
 explicit stat are each reported, with every file restored afterwards.
 
 Gate line is unchanged by this pass.
+
+### Playtest acceptance, 2026-09-12
+
+Owner capture: USA at 1949 and 1980 on NSB and non-NSB. **All four profiles pass.**
+Equipment is redefined as intended and the OOBs read correctly, so the phase 4 carrier
+cutover and the phase 5 battalion rewire are accepted in game rather than only statically
+verified. This closes the fresh-capture item owed since 2026-09-06 and supersedes the
+stale 2026-09-06 and 2026-09-08 log corpora for everything it covers.
+
+The only issue observed was Finding 24's benign role line, with the workaround now known -
+see that finding. No new defect was reported.
+
+The acceptance is USA-scoped. It is not evidence about other tags, the French and West
+German 1949 starts, or long-run AI production, all of which remain open above.
+
+### Phase 6 - IMPLEMENTED 2026-09-12
+
+Marines ride the APC role family. `mechanized_marine` had been consuming
+`mechanized_marine_equipment` since before the restructure, so a player could field an
+entire designer carrier fleet and still not supply a marine battalion with any of it.
+
+**One option died before the ruling, and it is worth stating plainly: a selective
+amphibious designer role is not buildable.** Finding 22 established the usable role token
+vocabulary as exactly five, and all five are spent - `anti_air`, `anti_tank`, `artillery`,
+`amphibious` on APC, `flame` on IFV. No sixth token exists and none can be registered. So
+Finding 15's option list reduced to two: APC-wide marine transport, or a sixth standalone
+designer family. The owner ruled for APC-wide. Findings 14 and 15 are closed by that
+ruling rather than by a fix; `DECISIONS.md` carries the reasoning.
+
+**What changed.** `mechanized_marine` names `light_tank_apc_chassis` on all three of
+`need`, `essential` and `transport` - the same three-key rule phase 5 established, for the
+same reason. The five `mechanized_marine_equipment_1..5` rows moved into
+`x_tank_chassis.txt` under `archetype = light_tank_apc_chassis`, each stating every stat
+the retired archetype used to supply, and `mechanized_marine.txt` is now an archetype-only
+empty shell. The ids never change, so the `amphibious1..5` grants, 18 OOB references, six
+`script_enums.txt` entries and the MIO, idea, focus and country-leader references all keep
+resolving with no edit.
+
+Marine armour comes down under phase 7's cap in the same pass: 24 / 31 / 35 / 42 / 49
+against the old 24 / 36 / 48 / 64 / 80. Hardness aligns to the APC family's 0.5 from 0.55.
+
+`mechanized_marine` stays `active = no`; the technology gate was not in scope and the
+validator still asserts it.
+
+New contract: `validate_marine_carrier` pins the empty shell, the five relocated rows,
+their archetype, seven explicitly stated stats each, their exact armour and the cap.
+`mechanized_marine` joins `CARRIER_BATTALIONS`, and the retired-family scan over
+`common/units/*.txt` now rejects `mechanized_marine_equipment` alongside the other two.
+
+### Phase 7 - carrier envelope recalibration, IMPLEMENTED 2026-09-12
+
+The three defects phase 4 knowingly preserved are priced and closed. `DECISIONS.md`
+carries the two rulings; this is what shipped.
+
+**1. The armour inversion, both profiles.** Owner ruling: no carrier exceeds 70% of the
+same-year medium tank hull. IFV armour goes 30 / 36 / 44 / 48 / 56 / 64 / 72 / 80 to
+**22 / 25 / 28 / 31 / 35 / 39 / 44 / 49** on the designer rungs and on the eight relocated
+legacy rows alike, against caps of 28 / 31.5 / 31.5 / 35 / 38.5 / 42 / 45.5 / 49. The old
+ladder put a 2005 IFV at 80 against the 2010 MBT's 75 and the 2000 MBT's 70. APC armour is
+untouched at 15 to 40 - it was never near the cap - and neither is carrier cost or speed.
+
+**2. The defensive profile, restored rather than recalibrated.** This reverses phase 4's
+"they adopt the hull curve", and the reason is that the curve was the wrong shape, not
+merely the wrong magnitude. Every light hull tier is `defense = 6`, `breakthrough = 20`; a
+carrier is `defense = 11..45`, `breakthrough = 3..18`. The 16 rungs now carry both stats
+and reproduce the retired chassis rows exactly:
+
+| Generation | APC defense / breakthrough | IFV defense / breakthrough |
+| --- | --- | --- |
+| 0-7 | 11/3, 14/4, 14/4, 16/5, 16/5, 16/5, 19/6, 19/6 | 30/12, 35/14, 36/14, 40/16, 40/16, 41/16, 45/18, 45/18 |
+
+The breakthrough deltas are negative, between -17 and -2. Phase 4's objection - that
+reproducing IFV defense meant a module adding 39 - is what shipped, because a troop
+compartment that makes the vehicle defensible is the module doing its job.
+
+**3. Hardness.** `light_tank_apc_chassis` sets 0.5 and `light_tank_ifv_chassis` 0.6, the
+legacy values, replacing 0.3 / 0.5. The 15 per-rung hardness adds are deleted: with
+`for_each ... hardness = { set }` deciding the family value, a module add is a second
+authority over one stat.
+
+**A fourth thing the pass found.** Three rungs carried an undocumented `multiply_stats` 5%
+bump - `apc_open_troop_bay` on speed, both `*_frontal_engine_layout` on armour - which
+silently broke the hull-tier-plus-module arithmetic every envelope claim is written in.
+Phase 4's "verified arithmetically on all sixteen rungs" was true of the `add_stats` and
+wrong about the shipped total on those three. Removed. Empty `multiply_stats` blocks are
+shipped style on eleven rungs and stay; the ban is on a multiplied value.
+
+`reliability` and `fuel_consumption` stay on the hull curve. Neither inverts anything and
+changing them would mean inventing numbers.
+
+New contracts: the two ladders carry `defense` and `breakthrough`, so `carrier_module_errors`
+pins five stats per rung instead of three and rejects any hardness add or multiplied stat;
+`carrier_armour_cap_errors` applies the 70% rule to all 16 designer generations, the 18
+relocated legacy rows and the 5 marine rows; the role roots' `for_each` hardness value is
+pinned per family. Five new negative fixtures cover a lost defense delta, a retained hull
+breakthrough, a stacked hardness add, a multiplied stat and an over-cap 2005 IFV, plus
+positive fixtures for the repriced IFV, a carrier sitting exactly on the cap and the empty
+multiply block.
+
+Gate line: `... 6220 stockpile grants, 16 carrier superstructure rungs, 5 relocated marine
+rows, and 20 designer slots checked.` The marine-row counter is the only movement.
+
+**Static verification only.** No live testing is claimed for either phase. What wants
+in-game eyes: that a marine division equips off APC production on both profiles, and that
+the repriced IFV still reads as worth its cost now that its armour is roughly two thirds of
+what it was.
 
 
 ### Role-token probe - PASSED, and the remap is IMPLEMENTED 2026-09-10
@@ -2236,11 +2367,11 @@ rather than the technology coordinates.
 
 These remain owed and are not superseded by the restructure:
 
-1. **Fresh playtest capture** at 1949 and 1980 on both profiles, replacing the stale
-   2026-09-06 corpus. Confirm the moved tech-tree columns, the light-family filtering,
-   the French and West German 1949 starts and the Soviet 1980 stockpile.
+1. ~~**Fresh playtest capture.**~~ **Done 2026-09-12** - USA, 1949 and 1980, NSB and
+   non-NSB, all four accepted. See "Playtest acceptance, 2026-09-12". The French and West
+   German 1949 starts and non-USA coverage were not in the capture and stay open.
 2. **Historical coverage sweep** - named designs for every armour family across all
-   countries. Its scope is now defined by the role table, so it must follow phase 4.
+   countries. Its scope is the role table. Phase 4 landed, so this is now unblocked.
 3. **`mp_uav_1`** - the two ISR grants still need a content owner's decision.
 4. ~~**The flame decision.**~~ **Answered and implemented 2026-09-10** - flame is removed.
    Phase 3 authors six role roots, not nine. No open decisions remain on the restructure.
@@ -2261,3 +2392,264 @@ Estimator status: module parents no longer stack predecessor stats. Radar II fue
 and GL ATGM III hard attack 95 are tested regression anchors. Full-design ordering,
 caps, role bonuses, inherited chassis defaults, technology/MIO effects and agreed
 tolerances remain uncalibrated. The envelope report samples 11 of 21 tank generations.
+
+## Next scope: 3D models, vehicle images, legacy NSB duplicates - context gathered 2026-09-13
+
+Owner direction 2026-09-13 after a passing playtest. Nothing below is implemented; this
+section is the measured starting position for those three items. Baseline self-test on an
+untouched tree matches the 2026-09-12 line exactly - `1317 technologies, 299 tank modules,
+135 historical tank designs, 38 generic bookmark variants, 586 national presets and 560
+named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites, 6220 stockpile
+grants, 16 carrier superstructure rungs, 5 relocated marine rows, and 20 designer slots
+checked` - so the delta for this session is zero.
+
+**Phases 6 and 7 are recorded as implemented but are not committed.** Working tree carries
+`CWIC-Special-Units.txt`, `mechanized_marine.txt`, `00_tank_modules.txt`,
+`x_tank_chassis.txt` and `validate_military_reworks.py` modified, +399/-230. Commit that
+before starting new work, or a later pass cannot tell the two batches apart.
+
+**The role root set is twelve, not fourteen, and there are no ATGM roots.**
+`x_tank_chassis.txt:4-124`: light aa/artillery/destroyer/apc/ifv (`:8,18,27,35,44`), medium
+aa/artillery/destroyer/apc/ifv (`:58,67,75,83,92`), heavy artillery/destroyer (`:107,116`).
+ATGM is a loadout on the tank-destroyer role per `DECISIONS.md`; heavy AA and flame are
+retired. Any scout report citing six new roots including ATGM is reading the phase-3 plan,
+not the file.
+
+### 3D models
+
+`gfx/entities/zz_CWIC_armor_entity_aliases.asset` is 2349 entries over 11,896 lines and its
+own header states the lookup it feeds: `<TAG>_<sub_unit>_<visual_level>_entity`. Each entry
+clones a country mesh entity under a derived name, e.g. `clone = "AFG_heavy_armor_entity"` /
+`name = "AFG_heavy_armor_0_entity"` (`:5-8`), and role variants use the sub-unit id, e.g.
+`AFG_heavy_tank_destroyer_brigade_0_entity` (`:30-33`).
+
+**The key is the sub-unit and visual level, not the equipment id or the design name.** Zero
+aliases name any of the twelve role roots or any derived role tier. Vanilla
+`gfx/entities/units_tanks.asset` uses the same plain `TAG_<class>_armor[_N]_entity` naming
+and contains no `tank_chassis`, module, turret or gun strings, so there is **no evidence in
+either tree that a fitted module swaps a sub-entity**, and none that a named design can
+carry its own model. Per-design historical models are unproven, not merely unimplemented.
+What the evidence does support is per-country, per-sub-unit, per-visual-level models - which
+is exactly the granularity the alias file already ships.
+
+The 2026-09-08 log holds zero entity or GFX database lines naming CWIC content: all
+`equipment_graphic_database.cpp:49/:72/:106` lines are base-game and old country content, the
+already-triaged noise. So nothing is currently broken here; this item is additive art work.
+
+### Vehicle images
+
+Three archetype `picture` values cover every tank family: `archetype_light_tank_equipment`
+(`tank_chassis.txt:10`, `tank_light.txt:13`), `archetype_mbt_equipment`
+(`tank_chassis.txt:305`, `tank_medium.txt:9`), `archetype_ht_equipment`
+(`tank_chassis.txt:597`, `tank_heavy.txt:9`), plus `archetype_motorized_equipment`
+(`mechanized.txt:11`) and `archetype_mechanized_heavy_equipment` (`mechanized_heavy.txt:12`).
+The twelve role roots and all relocated legacy rows in `x_tank_chassis.txt` declare no
+`picture` and inherit.
+
+**Three of those five values resolve to no sprite anywhere.** Registered `GFX_archetype_*_medium`
+sprites in the mod (`interface/Technologies.gfx:975-991`) and vanilla are
+`archetype_light_tank_equipment`, `archetype_heavy_tank_equipment`,
+`archetype_medium_tank_equipment` and `archetype_motorized_equipment`. Nothing registers
+`archetype_mbt_equipment`, `archetype_ht_equipment` or `archetype_mechanized_heavy_equipment`,
+and the mod registers the medium size only. The engine logs nothing for this - grep of the
+2026-09-08 log for all three names returns zero lines - so if the MBT, heavy and heavy-carrier
+production icons are wrong in game it fails silently. **Confirm visually before fixing**: the
+fix is either renaming the picture value onto the registered sprite or registering the value,
+and which one is right depends on what the owner sees.
+
+Per-design art stays closed for tanks on the same evidence that closed it for carriers.
+Vanilla `interface/tank_profiles.gfx` is 6188 lines of enumerated
+`GFX_<tag-or-generic>_<hull>_<profile>` sprites keyed on hull, module combination and
+graphical culture, with texture paths `designer/<tag>/<TAG>_<hull>_<profile>.dds`; the mod
+neither overrides nor extends it, and its eight
+`gfx/interface/equipmentdesigner/tanks/designer/0N_tank_icons.txt` files are 0 bytes. National
+presets are `create_equipment_variant` blocks with no art key
+(`CWIC_national_tank_presets.txt:13-25`, BTR-40 at `:544-552`). So the realistic image work is
+**profile-sprite coverage per hull and graphical culture**, not one picture per historical name.
+
+Art already shipped and currently reachable only as technology icons:
+`interface/cwic_tank_rework_icons.gfx:2620-2680` (8 APC hulls) and `:2707-2724` (8 IFV hulls),
+plus national pieces such as `WGR_apc_2/3`, `WGR_ifv_2/3`, `SOV_apc_10`, `SOV_ifv_2..8`,
+`USA_ifv_3/4` and generic `mbt_0..9` under `gfx/interface/technologies/`.
+
+### Duplicate legacy vehicles on NSB
+
+Fifty-four numbered legacy rows are declared and **none of them carries `can_be_produced` or
+any DLC predicate**, so on an NSB profile every one sits in the production tab beside its
+designer replacement:
+
+| Family | Rows | Declared at |
+| --- | --- | --- |
+| `lt_equipment_1..6` | 6 | `tank_light.txt:55,96,127,158,190,223` |
+| `mbt_equipment_0..9` | 10 | `tank_medium.txt:57,67,98,129,161,193,225,257,289,321` |
+| `ht_equipment_1..5` | 5 | `tank_heavy.txt:55,101,132,164,197` |
+| `mechanized_equipment_1..10` | 10 | `x_tank_chassis.txt:137,167,202,237,272,307,344,382,419,457` |
+| `mechanized_heavy_equipment_1..8` | 8 | `x_tank_chassis.txt:494,524,561,598,636,674,712,750` |
+| `mechanized_marine_equipment_1..5` | 5 | `x_tank_chassis.txt:788,816,845,874,903` |
+| `spaag_equipment_1..5` | 5 | `sp_aa.txt:50,61,90,121,151` |
+| `sp_artillery_equipment_1..5` | 5 | `sp_art.txt:54,66,96,126,156` |
+| `medium_tank_destroyer_equipment_1..5` | 5 | `tank_destroyer.txt:52,93,124,155,187` |
+| `atgm_carrier_equipment_0..4` | 5 | `atgm_carrier.txt:54,62,93,124,157` |
+
+Enabling technologies carry no DLC predicate either: `armor.txt` MBT `:47..393`, heavy
+`:429..599`, mechanized `:959..1354`, heavy mechanized `:1400..1724`, amphibious 1-5 at
+`:1767,1795,1830,1866,1901`; `artillery.txt` SPAAG `:258..388`, SP artillery `:1273..1403`,
+medium TD `:3402..3531`; `rocket.txt` ATGM `:1516..1667`.
+
+**Correction to `DECISIONS.md`'s gating note: the claimed `OR = { has_tech = legacy has_tech = nsb_* }`
+precedent does not exist in `common/units/`.** Measured: zero matches. The closest real sites are
+dual-tech blocks in `common/technologies/support.txt:84,132,186,240,292,380,432`, and
+`common/ai_equipment/generic_tank.txt` has NSB-only enables (`:14,41,68`). Do not cite a
+`common/units/` precedent that is not there; pick the mechanism deliberately.
+
+Live consumers that break if a row is deleted rather than gated: sub-unit `need` at
+`CWIC-Anti-Air.txt:111,115`, `Support-Units.txt:1764,1768` (`spaag_equipment`),
+`CWIC-Anti-Tank.txt:118,122` (`medium_tank_destroyer_equipment`) and `:269,273`
+(`atgm_carrier_equipment`), `CWIC-Artillery.txt:120,124` (`sp_artillery_equipment`); the generic
+AI template's `lt_equipment` at `:20`; and weapon-purchase decisions granting SPAAG and SP
+artillery rows (eastern block `:765,792,818,842,869,895,918,944,969`, SP artillery `:1898`, WGR
+`:344-372`). **Gating, not deletion, is the only option that keeps these alive**, which matches
+the ratified position that the archetypes survive for non-NSB play.
+
+Proposed mapping, measured from the year fields and the ratified role table, not yet ruled on:
+post-1945 `lt_equipment`/`mbt_equipment`/`ht_equipment` rows map to the base light, medium and
+heavy hulls at the nearest ladder tier whose year does not exceed theirs;
+`mechanized_equipment_3..10` to `light_tank_apc_chassis`; `mechanized_heavy_equipment_1..8` to
+`light_tank_ifv_chassis`; `spaag_equipment_*` to `medium_tank_aa_chassis`;
+`sp_artillery_equipment_*` to `medium_tank_artillery_chassis`;
+`medium_tank_destroyer_equipment_*` to `medium_tank_destroyer_chassis`; `atgm_carrier_equipment_*`
+to the light destroyer role carrying the ATGM launcher, since ATGM is a loadout and not a role.
+
+**Rows with no designer replacement, which must stay ungated:** the pre-1945 tank rows
+`lt_equipment_1` (1942, inherited) and `_2` (1944), `mbt_equipment_0` (1942) and `_1` (1944),
+`ht_equipment_1` (1942) and `_2` (1944); `mechanized_equipment_1..2` (1942/1944, the
+pre-designer WWII rows in the ratified exception set); and `mechanized_marine_equipment_1..5`,
+unlocked by `amphibious1..5` at `armor.txt:1767,1795,1830,1866,1901` for 1944/1950/1965/1985/2005 -
+the APC role family supplies marines mod-wide but nothing replaces these selectively.
+
+The gating shape on every replaced row is `can_be_produced = { NOT = { has_dlc = "No Step Back" } }`.
+The recorded blocker still stands: gating the carriers leaves an NSB bookmark start with no
+buildable carrier until a design exists, so this pass depends on the bookmark presets being the
+source of the starting design - which they now are.
+
+Validator sites any gating pass must edit: constants `LEGACY_ARMOUR_GRANT` `:473-475` and
+`UNMIGRATED_LEGACY_ARMOUR` `:477-480`; `validate_focus_armour_grants` `:2980`, filter `:2994-2999`,
+NSB fallback `:3000-3027`; `validate_carrier_battalions` `:5338`, retired-carrier regex `:5367-5371`;
+`validate_carrier_roles` `:5375`, legacy role rows `:5399-5411`; `validate_marine_carrier` `:5500`,
+marine rows `:5512-5535`; `validate_stockpile_grants` `:5650` with its transposed-legacy fixture
+at `:5698`.
+
+### Finding 25: `flame` is free, and that reopens amphibious as a real designer role - 2026-09-13
+
+Owner challenge 2026-09-13, and it is correct. **The flame blacklist rested on an observation
+that Finding 24 already disproved**, and nothing in this folder had propagated the correction.
+`DECISIONS.md` is corrected in place.
+
+The chain: IFV moved to `flame` on 2026-09-10, "both carrier roles failed", so flame was
+recorded as the token that breaks a working role. Finding 24 then established that **neither
+role was ever broken** - the only symptom was the benign `equipmentdesignerview.cpp:3657`
+no-op line - and it names the flame remap explicitly as one of "two wrong turns ... both
+attempts to fix a defect that did not exist". So there is no evidence against flame at all.
+Structurally it is in the safer group: vanilla declares `light_tank_flame_chassis`,
+`medium_tank_flame_chassis` and `heavy_tank_flame_chassis` (`x_tank_chassis.txt:47,92,137`),
+which is the exact property the `rocket` diagnosis used as its discriminator - and `rocket`
+works anyway.
+
+**Token ledger, corrected.** Six usable: `anti_air`, `anti_tank`, `artillery`, `amphibious`,
+`rocket`, `flame`. Five spent: AA, TD, artillery, APC (`amphibious`), IFV (`rocket`). One free:
+`flame`.
+
+### The proposed reshuffle, and vanilla already ships its exact shape
+
+Move APC from `amphibious` to `flame`; leave IFV on `rocket`; spend the freed `amphibious`
+token on a dedicated amphibious mechanized role. One role migrates, not two.
+
+**This is not a novel design - it is what vanilla does.** Vanilla's amphibious role roots are
+`light_tank_amphibious_chassis` and `medium_tank_amphibious_chassis` (`x_tank_chassis.txt:38,83`),
+and its sub-units `amphibious_light_armor` / `amphibious_medium_armor`
+(`amphibious_armor.txt:71,139`) consume them by name with `light_tank_amphibious_chassis = 50`
+in `need`. The amphibious combat bonus is a **sub-unit** block - `amphibious = { attack = 0.6 }`
+alongside `river` and `marsh` at `amphibious_armor.txt:60-68` - not a property of the equipment
+`type`, so it is granted by the battalion this mod authors, not inherited from the token.
+
+That last point cuts both ways and is worth stating plainly: there is **no measured evidence
+that today's APC-on-`amphibious` arrangement grants any unintended amphibious modifier**, since
+the modifier lives on the sub-unit. The argument for the reshuffle is taxonomic, and the owner's
+framing is the right one - it stops "every APC is amphibious" from being the mod's position,
+without keeping legacy content and without a broad unrealistic category.
+
+**It also closes the amphibious batch on its own terms.** Finding 15 priced three options and the
+owner took option 3, APC-wide marine transport, because a dedicated role needed a token and the
+token set was believed spent. It is not spent. A dedicated `light_tank_amphibious_chassis` role
+is selective in exactly the way Finding 15 required - `need` can name a role root - so marines
+can ride a real amphibious vehicle rather than any APC. Phase 6 does not have to be undone to try
+this; the marine rows already live in the APC family and can move again.
+
+### Cost, measured against the last swap of the same shape
+
+The `rocket` -> `flame` IFV swap is the precedent and it was measured: 2 role roots, 65 module
+restriction lines, 4 localisation keys, validator expectations. The APC swap is the same scope,
+because every carrier reference already sits on a token boundary and **no chassis id changes** -
+so presets, OOB requests, focus grants, blueprints, `script_enums.txt` and the AI recipes are all
+untouched. Loc becomes `tank_designer_flame` = "Armored Personnel Carrier" and
+`tank_designer_amphibious` = whatever the amphibious vehicle is called.
+
+The new role is the real cost and it is ordinary role work, not a family: one or two
+`duplicate_archetypes` roots, their derived tiers in `script_enums.txt`, module `allow`/`forbid`
+bounds, `NSB_armor.txt` chassis grants, blueprint GUI files, AI recipes, the marine sub-unit
+rewire, and the validator's `FAMILY_ROLES` plus the historical-design count.
+
+### The probe is SHIPPED 2026-09-13 - live QA owed
+
+Everything in this finding is inference from Finding 24 plus vanilla structure. Flame has never
+been positively confirmed to carry a working CWIC role, because the one time it was tried the
+result was misread. The swap is now in the tree so that the owner can settle it in game; nothing
+downstream has been built on it.
+
+What shipped, and it is exactly the token retarget and nothing else:
+
+| Surface | Change |
+| --- | --- |
+| `x_tank_chassis.txt:37,85` | both APC role roots `{ armor amphibious }` -> `{ armor flame }`. IFV roots untouched at `{ armor rocket }`. |
+| `00_tank_modules.txt` | all 76 `amphibious` tokens -> `flame`, in four shapes: 12 `allow_equipment_type = flame` (APC modules), 38 `forbid_equipment_type = { flame rocket }` (conventional guns), 22 `{ light_armor medium_armor heavy_armor flame }` (IFV modules), 4 `{ light_armor medium_armor heavy_armor flame rocket }` (AA and the ATGM launcher). Zero `amphibious` tokens remain mod-wide in `common/`. |
+| `designer_l_english.yml:225-226` | `tank_designer_amphibious` -> `tank_designer_flame`, still reading "Armored Personnel Carrier". The `amphibious` override is gone, so the dropdown entry reverts to vanilla "Amphibious" until the amphibious role claims it. |
+| `validate_military_reworks.py` | `CARRIER_ARCHETYPES` APC binding to `flame`; module bound map, type-domain check, conventional/AA forbid sets and `carrier_module_errors` retargeted; the two checks that rejected `flame` in eligibility keys and type domains **deleted**, since the APC modules legitimately carry it now. The separate rule that no chassis or role *name* may contain `flame` survives, as do `UNSUPPORTED_IDS` and the blueprint-filename regex - that is what flame removal actually retired. Two negative fixtures re-pointed from `amphibious` to `flame`. |
+
+**No chassis id changed**, so the 586 national presets, 560 OOB requests, focus grants, blueprints,
+`script_enums.txt`, `NSB_armor.txt` grants and the AI recipes were not touched and did not need to
+be. That was the prediction and it held.
+
+**Verification: static only.** Gate passes with the inventory line byte-identical to the
+2026-09-12 baseline - `1317 technologies, 299 tank modules, 135 historical tank designs, 38
+generic bookmark variants, 586 national presets and 560 named OOB requests across 68 NSB OOBs,
+76 country-history bootstrap sites, 6220 stockpile grants, 16 carrier superstructure rungs, 5
+relocated marine rows, and 20 designer slots checked`. A retarget should move no count, and it
+moved none. `loc_audit_1.py --check` clean on 22 SEA files; no BOM gained by the two script files,
+`designer_l_english.yml` keeps its BOM, and its only non-ASCII bytes are the legal section-sign
+and pound-sign prefixes. `french/` and `russian/` were not touched.
+
+**What the owner has to check, and it is the whole point of the pass:** open a light-hull design,
+fit the APC superstructure and armament, and confirm the role header reads "Armored Personnel
+Carrier", the design saves, it produces its own equipment on its own production line, and the
+equipment tab lists it separately from the IFV. Confirm the IFV role still does all of the same on
+`rocket`. `equipmentdesignerview.cpp:3657` on a redundant role selection is expected and benign -
+Finding 24 - so judge the UI, not the log.
+
+If it passes, `amphibious` is free and the dedicated amphibious mechanized role is authorable. If
+it fails, revert the four files in the table; nothing else was spent. Note that this swap is
+**uncommitted and sits on top of the uncommitted phase 6/7 work**, so commit those separately
+before reverting anything.
+
+Do not run this probe in the same pass as the legacy NSB gating - both touch the production tab,
+and a shared pass makes any symptom ambiguous.
+
+### Suggested order
+
+1. Commit the uncommitted phase 6/7 work.
+2. ~~The flame probe.~~ **Shipped 2026-09-13, live QA owed** - it gates the whole amphibious plan,
+   so settle it in game before anything downstream.
+3. Confirm the three unregistered archetype pictures in game - it is a cheap, possibly live
+   defect and it decides whether the image item starts as a repair or as new art.
+4. Legacy NSB gating, which is scripted work with a measured blast radius and no art dependency.
+5. Vehicle images as profile-sprite coverage, then 3D models as per-sub-unit alias coverage.
+   Both are art-supply-bound; neither can promise per-design fidelity on current evidence.

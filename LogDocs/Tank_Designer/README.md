@@ -56,14 +56,14 @@ python3 "CWIC Backup/tools/loc_audit_1.py" --check
 git diff --check
 ```
 
-Current expected pass line, re-measured 2026-09-11:
+Current expected pass line, re-measured 2026-09-12:
 
 ```
 1317 technologies, 299 tank modules, 135 historical tank designs,
 38 generic bookmark variants, 586 national presets and
 560 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
 6220 stockpile grants, 16 carrier superstructure rungs,
-and 20 designer slots checked
+5 relocated marine rows, and 20 designer slots checked
 ```
 
 **Twenty is an engine cap, not a design choice.** `pos_custom_module_slot_window_20`
@@ -72,7 +72,8 @@ never renders. See `STATUS.md` Finding 17.
 **`equipmentdesignerview.cpp:3657: Failed to change role` is ignorable when the design is
 already in the named role.** Carrier modules carry `allow_equipment_type`, which assigns the
 role as soon as they are fitted, so selecting that role in the dropdown is a no-op the engine
-logs as a failure. It cost three debugging rounds. See `STATUS.md` Finding 24.
+logs as a failure. Renaming the design or saving it clears the reported state. It cost three
+debugging rounds. See `STATUS.md` Finding 24.
 
 The historical-design count is family x tier x role, so it moves whenever a role does:
 125 -> 100 when flame was removed (three roles across 10 / 10 / 5) and 100 -> 155 when
