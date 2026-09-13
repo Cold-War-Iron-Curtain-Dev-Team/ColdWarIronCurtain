@@ -17,9 +17,11 @@ and confirmed in game on all four USA profiles. `DECISIONS.md` carries the archi
 Finding 16 the measured blast radius.
 
 What remains is phase 7's artillery/AA half (the restructure the owner deferred), the
-historical coverage sweep, the deferred focus-grant variant mapping, and the unowned
-content items. Phases 1-6 and phase 7's carrier envelope are shipped; the amphibious batch
-is closed by engine constraint plus an owner ruling rather than implemented as a role.
+historical coverage sweep, the deferred focus-grant variant mapping, and the three content
+items in "Next scope" - 3D models, vehicle images, and the legacy NSB duplicates. Phases 1-6
+and phase 7's carrier envelope are shipped. **The amphibious thread is closed for good by the
+owner's 2026-09-13 ruling**: marines and paratroopers get no custom vehicles, every APC and IFV
+serves them, and no amphibious role will be authored.
 
 ### Committed checkpoints
 
@@ -33,6 +35,7 @@ is closed by engine constraint plus an owner ruling rather than implemented as a
 | `660f8984ae` | APC designer family |
 | `faddc3dd5e` | IFV designer family |
 | `eb708e3691` | APC/IFV bookmark presets and NSB carrier OOB migration (Step 2) |
+| `2636424db7` | APC designer role moved to the `flame` token, freeing `amphibious`; phases 6 and 7 landed with it |
 
 ### Step 2 acceptance, 2026-09-08
 
@@ -2578,12 +2581,11 @@ the modifier lives on the sub-unit. The argument for the reshuffle is taxonomic,
 framing is the right one - it stops "every APC is amphibious" from being the mod's position,
 without keeping legacy content and without a broad unrealistic category.
 
-**It also closes the amphibious batch on its own terms.** Finding 15 priced three options and the
-owner took option 3, APC-wide marine transport, because a dedicated role needed a token and the
-token set was believed spent. It is not spent. A dedicated `light_tank_amphibious_chassis` role
-is selective in exactly the way Finding 15 required - `need` can name a role root - so marines
-can ride a real amphibious vehicle rather than any APC. Phase 6 does not have to be undone to try
-this; the marine rows already live in the APC family and can move again.
+**It looked like it closed the amphibious batch on its own terms - and the owner has since ruled
+that batch out entirely. See the ruling at the end of this finding before acting on anything in
+this subsection.** The reasoning preserved here is only why the reshuffle was worth doing at the
+time: Finding 15 priced three options and the owner took option 3, APC-wide marine transport,
+because a dedicated role needed a token and the token set was believed spent. It was not spent.
 
 ### Cost, measured against the last swap of the same shape
 
@@ -2594,17 +2596,17 @@ so presets, OOB requests, focus grants, blueprints, `script_enums.txt` and the A
 untouched. Loc becomes `tank_designer_flame` = "Armored Personnel Carrier" and
 `tank_designer_amphibious` = whatever the amphibious vehicle is called.
 
-The new role is the real cost and it is ordinary role work, not a family: one or two
+**Superseded by the ruling below - no new role is being authored.** The cost is recorded because
+it is the standing price of any *future* role, not because this one is queued: one or two
 `duplicate_archetypes` roots, their derived tiers in `script_enums.txt`, module `allow`/`forbid`
 bounds, `NSB_armor.txt` chassis grants, blueprint GUI files, AI recipes, the marine sub-unit
 rewire, and the validator's `FAMILY_ROLES` plus the historical-design count.
 
-### The probe is SHIPPED 2026-09-13 - live QA owed
+### The probe is SHIPPED and OWNER-ACCEPTED 2026-09-13
 
-Everything in this finding is inference from Finding 24 plus vanilla structure. Flame has never
-been positively confirmed to carry a working CWIC role, because the one time it was tried the
-result was misread. The swap is now in the tree so that the owner can settle it in game; nothing
-downstream has been built on it.
+The probe was written as inference from Finding 24 plus vanilla structure, and the owner then
+settled it in game. Flame carries a working CWIC designer role; the one earlier attempt failed
+only because its result was misread.
 
 What shipped, and it is exactly the token retarget and nothing else:
 
@@ -2612,7 +2614,7 @@ What shipped, and it is exactly the token retarget and nothing else:
 | --- | --- |
 | `x_tank_chassis.txt:37,85` | both APC role roots `{ armor amphibious }` -> `{ armor flame }`. IFV roots untouched at `{ armor rocket }`. |
 | `00_tank_modules.txt` | all 76 `amphibious` tokens -> `flame`, in four shapes: 12 `allow_equipment_type = flame` (APC modules), 38 `forbid_equipment_type = { flame rocket }` (conventional guns), 22 `{ light_armor medium_armor heavy_armor flame }` (IFV modules), 4 `{ light_armor medium_armor heavy_armor flame rocket }` (AA and the ATGM launcher). Zero `amphibious` tokens remain mod-wide in `common/`. |
-| `designer_l_english.yml:225-226` | `tank_designer_amphibious` -> `tank_designer_flame`, still reading "Armored Personnel Carrier". The `amphibious` override is gone, so the dropdown entry reverts to vanilla "Amphibious" until the amphibious role claims it. |
+| `designer_l_english.yml:225-226` | `tank_designer_amphibious` -> `tank_designer_flame`, still reading "Armored Personnel Carrier". The `amphibious` override is gone, so that dropdown entry renders vanilla's "Amphibious". Nothing claims it, by the 2026-09-13 ruling below. |
 | `validate_military_reworks.py` | `CARRIER_ARCHETYPES` APC binding to `flame`; module bound map, type-domain check, conventional/AA forbid sets and `carrier_module_errors` retargeted; the two checks that rejected `flame` in eligibility keys and type domains **deleted**, since the APC modules legitimately carry it now. The separate rule that no chassis or role *name* may contain `flame` survives, as do `UNSUPPORTED_IDS` and the blueprint-filename regex - that is what flame removal actually retired. Two negative fixtures re-pointed from `amphibious` to `flame`. |
 
 **No chassis id changed**, so the 586 national presets, 560 OOB requests, focus grants, blueprints,
@@ -2635,19 +2637,46 @@ equipment tab lists it separately from the IFV. Confirm the IFV role still does 
 `rocket`. `equipmentdesignerview.cpp:3657` on a redundant role selection is expected and benign -
 Finding 24 - so judge the UI, not the log.
 
-If it passes, `amphibious` is free and the dedicated amphibious mechanized role is authorable. If
-it fails, revert the four files in the table; nothing else was spent. Note that this swap is
-**uncommitted and sits on top of the uncommitted phase 6/7 work**, so commit those separately
-before reverting anything.
+**Owner playtest passed and the batch is committed as `2636424db7`.** The APC role assigns, saves
+and produces on `flame`; the tree is clean. Phases 6 and 7 went in with it, because their edits
+share `00_tank_modules.txt` and `x_tank_chassis.txt` and could not be split by file. So
+`flame` is now positively confirmed as a working CWIC designer role, not an inference - that fact
+outlives the plan it was gathered for.
 
-Do not run this probe in the same pass as the legacy NSB gating - both touch the production tab,
-and a shared pass makes any symptom ambiguous.
+### Owner ruling 2026-09-13: there is no amphibious vehicle class, and `amphibious` stays unspent
+
+**Confirmed by the owner after the probe landed: mechanized marines and mechanized paratroopers
+will not have custom vehicles.** Every APC and IFV is usable by them, and no APC or IFV differs
+from another by usage. This is the final word on the question Findings 14, 15 and 25 kept
+reopening, and it closes them as a class rather than deferring them again.
+
+**What it settles.** No dedicated amphibious mechanized role is authored. No amphibious role root,
+no derived tiers, no marine sub-unit rewire, no second carrier family. Phase 6's APC-wide marine
+transport is not a compromise that was accepted under token scarcity - it is the correct and final
+design, and it is already shipped. The five relocated marine rows stay where phase 6 put them.
+Do not re-price the amphibious batch; there is no batch.
+
+**Status of the `amphibious` token: free, and deliberately unspent.** Nothing consumes it. Leave
+it that way unless a genuinely new vehicle class appears, and note that the English
+`tank_designer_amphibious` override is gone, so it renders with vanilla's "Amphibious" label if
+anything ever claims it.
+
+**Was the flame swap wasted?** Partly, and it is worth being straight about which part. The
+taxonomic goal - stop "every APC is amphibious" being the mod's position - is still achieved and
+still correct under this ruling, arguably more so: the APC family now carries a token with no
+semantic claim at all instead of one that implies a capability the owner has just said does not
+exist. What is wasted is the freed token, which now has no consumer. The swap cost four files, no
+chassis ids and zero content edits, and it bought a confirmed answer to "is flame usable" that
+three earlier sessions got wrong. That is a cheap price for retiring a false constraint.
+
+**Do not** use this ruling to reopen the flame blacklist, the role-token vocabulary, or the
+question of whether `need` can name a role root. Those are settled and unaffected.
 
 ### Suggested order
 
-1. Commit the uncommitted phase 6/7 work.
-2. ~~The flame probe.~~ **Shipped 2026-09-13, live QA owed** - it gates the whole amphibious plan,
-   so settle it in game before anything downstream.
+1. ~~Commit the phase 6/7 and flame-probe work.~~ **Done 2026-09-13, `2636424db7`.**
+2. ~~The flame probe.~~ **Shipped and owner-accepted 2026-09-13.** The amphibious role it was
+   gating is ruled out; see the ruling above. Nothing downstream is blocked on it.
 3. Confirm the three unregistered archetype pictures in game - it is a cheap, possibly live
    defect and it decides whether the image item starts as a repair or as new art.
 4. Legacy NSB gating, which is scripted work with a measured blast radius and no art dependency.

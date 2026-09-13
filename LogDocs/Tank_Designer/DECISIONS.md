@@ -303,9 +303,9 @@ attempts to fix a defect that did not exist". Nothing was ever broken, so nothin
 observed about flame. Structurally flame is in the **stronger** group, not the weaker one: it
 has a vanilla `duplicate_archetypes` role root (`light_tank_flame_chassis`,
 `medium_tank_flame_chassis`, `heavy_tank_flame_chassis` at vanilla `x_tank_chassis.txt:47,92,137`),
-which is the exact property the `rocket` diagnosis below used as its discriminator. **The usable
-token set is six, and one - flame - is currently unspent.** Live confirmation is still owed
-before building on it; see the amphibious plan in `STATUS.md`.
+which is the exact property the `rocket` diagnosis below used as its discriminator. **Confirmed
+in game 2026-09-13** by owner playtest of the APC-on-`flame` swap, committed as `2636424db7`:
+the role assigns, saves and produces. Flame is a working designer role, not a theory.
 
 **`rocket` renders but cannot be switched to - the usable set is five, not six.**
 **SUPERSEDED 2026-09-11 by Finding 24 and by the shipped tree, which runs IFV on `rocket`
@@ -320,20 +320,40 @@ save, while the `amphibious` APC role worked completely. The discriminator is st
 the base game**. That is enough to render it in the dropdown and not enough to make it a
 real role.
 
-So IFV takes `flame`. The token is free precisely because flame tanks were deleted earlier
-the same day, and the name is internal - the dropdown reads "Infantry Fighting Vehicle"
-because `tank_designer_flame` says so. `tank_designer_rocket` was restored to "Rocket
-Artillery" since nothing uses it.
+So IFV took `flame` on 2026-09-10, then moved back to `rocket` with the 2026-09-11 revert, and
+APC took `flame` on 2026-09-13. The names are internal; the dropdown label is our localisation.
 
-**The usable designer role vocabulary is therefore exactly five:** `anti_air`, `anti_tank`,
-`artillery`, `amphibious`, `flame`. All five are now spent - AA, Tank Destroyer, Artillery,
-APC, IFV - which is the real reason ATGM had to become a loadout, and it means **no further
-designer role can ever be added.** Any future vehicle class must be a loadout on an existing
-role or a separate archetype family.
+**Superseded by the final map below.** This paragraph claimed the vocabulary is five tokens, all
+spent, with `rocket` excluded. Both halves are wrong: `rocket` works, the vocabulary is six, and
+one token is unspent. Its surviving conclusion is that ATGM is a loadout - that stands, on the
+separate ground ratified above.
+
+## Final role-token map, ratified 2026-09-13
+
+| Token | Spent on |
+| --- | --- |
+| `anti_tank` | Tank Destroyer, and ATGM as a loadout on it |
+| `artillery` | SP Artillery |
+| `anti_air` | SPAA |
+| `flame` | Armored Personnel Carrier |
+| `rocket` | Infantry Fighting Vehicle |
+| `amphibious` | **deliberately unspent** |
+
+The internal token names are invisible to players; the dropdown label is our localisation. The
+English `tank_designer_amphibious` override was removed with the swap, so that entry renders
+vanilla's "Amphibious" if anything ever claims it.
+
+**Owner ruling 2026-09-13: mechanized marines and mechanized paratroopers get no custom
+vehicles.** Every APC and IFV is usable by them; no carrier differs from another by usage. So
+there is no amphibious vehicle class, no dedicated amphibious role, and no marine sub-unit
+rewire. **This closes Findings 14, 15 and 25's amphibious thread as a class, not as a
+deferral** - phase 6's APC-wide marine transport is the final design rather than a concession
+to token scarcity, and it is already shipped. Do not re-price the amphibious batch; there is
+no batch. The `amphibious` token stays free unless a genuinely new vehicle class appears.
 
 **Consequence for the flame-removal contract:** the validator no longer bans the `flame`
-type token, because the IFV roles legitimately carry it. What it bans is any chassis or role
-whose *name* contains `flame`, which is the thing that was actually retired.
+type token, because the APC roles legitimately carry it since 2026-09-13. What it bans is any
+chassis or role whose *name* contains `flame`, which is the thing that was actually retired.
 
 Role roots therefore settle at **12**, not 14.
 
@@ -345,11 +365,10 @@ non-`armor` token on the three hulls or their role roots, outside
 The two standalone carrier families additionally keep `mechanized`, which is a vanilla
 equipment type and not a designer role.
 
-**Consequence worth tracking:** APC now carries the `amphibious` token. Vanilla marine
-sub-units consume the `amphibious_tank_chassis` *archetype*, not the token, so nothing is
-wired up by accident - but `light_tank_apc_chassis` is a nameable `duplicate_archetypes`
-family, which is exactly what Finding 15 said a marine sub-unit needs. The amphibious
-supply problem is now solvable whenever that batch is picked up.
+**Retired 2026-09-13.** This note tracked that APC carried the `amphibious` token and that the
+amphibious supply problem was therefore solvable whenever the batch was picked up. APC moved to
+`flame` on 2026-09-13 and the owner ruled that there is no amphibious vehicle class, so there is
+nothing left to track and no batch to pick up. Marines ride any APC or IFV, as shipped in phase 6.
 
 ### Flame tanks are removed - ratified 2026-09-10
 
@@ -834,7 +853,13 @@ enforces this for `position`/`size`/`margin` blocks in the designer GUI and all 
 blueprint files. Load-time parse errors appear with `no_game_date`, so a plain boot
 confirms them with no gameplay required - do that after any GUI edit.
 
-## Amphibious as a designer role, ratified 2026-09-09
+## Amphibious as a designer role, ratified 2026-09-09 - CLOSED 2026-09-13
+
+**Do not implement any of this.** The owner ruled 2026-09-13 that mechanized marines and
+paratroopers get no custom vehicles and that every APC and IFV serves them equally, so there is
+no amphibious vehicle class and no amphibious designer role. See "Final role-token map". The
+section is kept because its mechanism analysis - modules are restricted to a role, roles do not
+emerge from modules - is correct and load-bearing elsewhere.
 
 **Owner ruling, superseding every earlier amphibious statement** including
 `REFERENCE.md:129-131`'s "amphibious mobility module" and the "eligible mechanized
