@@ -295,10 +295,22 @@ disproved that theory; the truth is that neither was ever broken. The tree is re
 the last state with a confirmed-working APC: APC on `amphibious`, IFV on `rocket` and still
 failing its role change. One working role beats two broken ones.
 
-**`flame` remains unused and should stay that way** - it is the one token observed to break
-a role that was previously working.
+**`flame` is available - corrected 2026-09-13, and the earlier blacklist is withdrawn.** The
+sentence that stood here said flame "is the one token observed to break a role that was
+previously working". That observation is the benign `equipmentdesignerview.cpp:3657` line, and
+`STATUS.md` Finding 24 names the flame remap explicitly as one of "two wrong turns ... both
+attempts to fix a defect that did not exist". Nothing was ever broken, so nothing was ever
+observed about flame. Structurally flame is in the **stronger** group, not the weaker one: it
+has a vanilla `duplicate_archetypes` role root (`light_tank_flame_chassis`,
+`medium_tank_flame_chassis`, `heavy_tank_flame_chassis` at vanilla `x_tank_chassis.txt:47,92,137`),
+which is the exact property the `rocket` diagnosis below used as its discriminator. **The usable
+token set is six, and one - flame - is currently unspent.** Live confirmation is still owed
+before building on it; see the amphibious plan in `STATUS.md`.
 
-**`rocket` renders but cannot be switched to - the usable set is five, not six.** Corrected
+**`rocket` renders but cannot be switched to - the usable set is five, not six.**
+**SUPERSEDED 2026-09-11 by Finding 24 and by the shipped tree, which runs IFV on `rocket`
+and passed owner QA.** Kept for the structural discriminator it records, which is still the
+best predictor available; its conclusion is wrong. Original text follows. Corrected
 2026-09-10 after the remap shipped on `rocket` and the owner hit
 `equipmentdesignerview.cpp:3657: Failed to change role to "Infantry Fighting Vehicle"` on
 save, while the `amphibious` APC role worked completely. The discriminator is structural:
@@ -476,6 +488,74 @@ consume standalone families, and converging them is the artillery/AA restructure
 deferred. The eight role brigades that already exist are technology-gated through
 `enable_subunits`, which is the normal pattern - `active = no` on a sub-unit is not a
 disabled unit, and 59 of the mod's 91 land sub-units carry it.
+
+### Carrier armour envelope, ratified 2026-09-12
+
+**No carrier may exceed 70% of the same-year medium tank hull's armour, on either DLC
+profile.** Owner ruling, and it reaches both the eight designer IFV rungs and the eight
+relocated legacy rows rather than only the NSB path. The inversion being fixed was
+inherited, not introduced: a 2005 IFV carried 80 armour against the 2010 MBT's 75, and
+`mechanized_heavy_equipment_8` carried the same 80, so the cutover reproduced it faithfully
+and nothing flagged it. Same-year means the newest medium tier whose year does not exceed
+the carrier's, the same not-later-than-year rule the tier mapping uses.
+
+IFV armour therefore becomes 22 / 25 / 28 / 31 / 35 / 39 / 44 / 49 across the eight
+generations, against caps of 28 / 31.5 / 31.5 / 35 / 38.5 / 42 / 45.5 / 49. APC armour is
+untouched - at 15 to 40 it was never near the cap - and so are carrier cost and speed. An
+IFV keeps its cost while losing armour because phase 7 hands it back the defensive profile
+below, which is where a troop carrier's value actually sits.
+
+**The carrier defensive profile is restored, superseding "they adopt the hull curve".**
+The phase 4 ruling deferred `defense` and `breakthrough` to phase 7 on the grounds that
+reproducing them meant a module adding 39 defense. That is exactly what ships now, and the
+reason is that the hull curve had the carrier backwards: every light hull tier is
+`defense = 6`, `breakthrough = 20`, which is a tank's profile, while a carrier's is
+`defense = 11..45`, `breakthrough = 3..18`. Putting a troop carrier on a breakthrough curve
+is not a neutral simplification, it deletes the thing that distinguishes it. The rungs now
+carry both stats, with negative breakthrough deltas, reproducing the retired chassis rows
+exactly.
+
+**Hardness is set once on the role root and never added by a module.** `light_tank_apc_chassis`
+sets 0.5 and `light_tank_ifv_chassis` 0.6, the legacy values, replacing the 0.3 / 0.5 the
+cutover left. The rungs' 0.025-to-0.125 hardness adds are deleted rather than rebalanced:
+with `for_each ... hardness = { set }` already deciding the family value, a module add is an
+undeclared second authority over the same stat.
+
+**Stat multipliers are banned on the rungs.** Three rungs carried an undocumented
+`multiply_stats` 5% bump on armour or speed, which silently broke the hull-tier-plus-module
+arithmetic every envelope check is written in. Empty `multiply_stats` blocks are shipped
+style on eleven rungs and stay; what is banned is a multiplied value.
+
+`reliability` and `fuel_consumption` stay on the hull curve. Neither inverts anything - a
+carrier with hull reliability and zero fuel draw is not stronger than a tank in any way the
+player can exploit - and reopening them would mean authoring numbers no evidence supports.
+
+### Marine transport, ratified 2026-09-12
+
+**`mechanized_marine` consumes `light_tank_apc_chassis`; every APC is a marine transport.**
+Owner ruling, taken against the three priced options in Finding 15 and with one of them now
+dead. A selective amphibious designer role is not buildable at all: the usable role token
+vocabulary is exactly five and all five are spent - `anti_air`, `anti_tank`, `artillery`,
+`amphibious` on APC, `flame` on IFV. There is no sixth token and no mechanism to register
+one, so "amphibious as a designer role" is closed by the engine, not deferred.
+
+What made the cheap option work is the restructure: `light_tank_apc_chassis` is a
+`duplicate_archetypes` root, and Finding 15's measured rule is that `need`, `essential` and
+`transport` resolve a family. A role root is a family, so the sub-unit can name it. The
+alternative still standing was a sixth standalone designer family - archetype, hull tiers,
+pictures, blueprints, unlocks, presets - and the owner declined to spend that for
+selectivity.
+
+**The five marine rows relocate into the APC role family**, exactly as the 18 legacy
+carrier rows did in phase 5: every stat stated explicitly, `mechanized_marine_equipment`
+kept as an empty shell because MIO, idea, focus and country-leader entries name it, and the
+rows placed in `x_tank_chassis.txt` for load order. Their ids do not change, so the
+`amphibious1..5` technology grants, the 18 OOB references and the stockpile grants all keep
+resolving. Their armour comes down under the same 70% rule: 24 / 31 / 35 / 42 / 49, from
+24 / 36 / 48 / 64 / 80.
+
+**`mechanized_marine` stays `active = no`.** The ruling changes what marines consume, not
+how they are unlocked; the technology gate is untouched and the validator still asserts it.
 
 ## Architecture
 
