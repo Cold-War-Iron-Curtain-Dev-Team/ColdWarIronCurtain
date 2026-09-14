@@ -2748,6 +2748,86 @@ content and balance, not a cutover. It is named in the validator as
 `unconsumed_by_decision` so the contract still guards the other ten, and it needs an owner ruling:
 author Heavy APC / Heavy IFV battalions, or retire those two role families.
 
+## Finding 28: the entity alias remap - IMPLEMENTED 2026-09-13
+
+**85% of the armour entity aliases named sub-units that no longer exist, and nothing detected
+it** - a missing entity alias produces no log line at all, the unit just renders a default mesh.
+The file is `gfx/entities/zz_CWIC_armor_entity_aliases.asset`; the engine looks up
+`<TAG>_<sub_unit>_<visual_level>_entity`, so the sub-unit token is the whole contract.
+
+### The remap
+
+Six tokens renamed onto the surviving battalion that consumes the same role family, one deleted,
+three untouched. **Two of the eight deleted brigades kept their aliases because Finding 27
+restored those brigades** - getting that wrong would have destroyed 470 working aliases.
+
+| Token | Aliases | Disposition |
+| --- | ---: | --- |
+| `medium_sp_artillery_brigade` | 390 | -> `sp_artillery` |
+| `medium_tank_destroyer_brigade` | 388 | -> `tank_destroyer` |
+| `light_tank_destroyer_brigade` | 200 | -> `atgm_carrier` |
+| `light_sp_artillery_brigade` | 200 | -> `light_sp_artillery` |
+| `light_sp_anti_air_brigade` | 200 | -> `spaag` |
+| `heavy_sp_artillery_brigade` | 80 | -> `heavy_sp_artillery` |
+| `heavy_sp_anti_air_brigade` | 80 | **deleted** - retired with heavy AA, no consumer exists |
+| `medium_sp_anti_air_brigade` | 390 | kept - brigade restored 2026-09-13 |
+| `heavy_tank_destroyer_brigade` | 80 | kept - brigade restored 2026-09-13 |
+| `light_armor` / `medium_armor` / `heavy_armor` | 179 / 84 / 78 | kept |
+
+1,458 renamed, 80 deleted, 811 untouched. **2,349 -> 2,269 aliases**, eleven distinct tokens,
+11,496 lines. `clone` values were not touched by the rename - they name the mesh, and changing
+one would change the model. Verified by diffing sorted clone multisets before and after: 80
+removed, zero added.
+
+### A second defect found underneath it: 15 dangling clone targets
+
+The clone-integrity check turned up 15 targets that no entity declares, across **AFG, IRQ, PER,
+RAJ and SPR**: the unnumbered base forms `<TAG>_light_armor_entity`,
+`<TAG>_medium_armor_entity`, `<TAG>_heavy_armor_entity` plus two `_0` forms. 418 clone lines
+pointed at them.
+
+**The trap that hid this, and it is worth remembering: the alias file was resolving against
+itself.** A first scan found numbered siblings like `IRQ_light_armor_0_entity` and concluded the
+targets were nearly valid - but those numbered entities are the alias file's **own outputs**, not
+meshes. Excluding the alias file from the declared set shows these five TAGs declare **no armour
+mesh entity at all**, and none of the 15 exists in the base game either.
+
+Resolved by repointing all 418 clone lines onto the generic `light_armor_entity` /
+`medium_armor_entity` / `heavy_armor_entity` from `gfx/entities/units_tanks.asset`. Generic art
+makes no aesthetic claim and is strictly better than a dangling clone. If someone later decides
+Afghanistan should field Soviet models, that is a content choice on top of a working baseline
+rather than a repair.
+
+### Validator
+
+`validate_entity_alias_contract()` pins four things: every alias token is in the expected
+eleven-token set; every token resolves to a sub-unit actually declared in `common/units/*.txt`;
+every `clone` target is declared in some `gfx/entities/*.asset` **excluding the alias file
+itself**, which is the self-reference trap above; and the file keeps its load-order-critical
+`zz_` name and gains no BOM. The alias count is deliberately not pinned as a magic number - it
+would fight every future country addition.
+
+Both new checks proven to bite against a real validator run, then reverted: renaming one alias
+back to `light_sp_anti_air_brigade` produces `entity alias AFG_light_sp_anti_air_brigade_0_entity
+uses unexpected sub-unit token: light_sp_anti_air_brigade`, and breaking one clone produces
+`entity alias AFG_light_armor_1_entity clones undeclared entity: NOPE_light_armor_entity`.
+Check 1 is the one that would have caught all 2,008 dead aliases.
+
+### Coverage still owed, deliberately out of this pass
+
+The remap fixes aliases that pointed at nothing. It does not add coverage, and **twelve
+hull-consuming sub-units still have zero aliases**: `spaag_support`, `super_heavy_armor`,
+`mechanized_infantry`, `armored_infantry`, `mechanized_marine`, `mechanized_airborne`,
+`engineer_mechanized`, `engineer_armored`, `recon_mechanized`, `recon_armored`,
+`field_hospital_mechanized`, plus the two restored brigades' partial ladders. 40 TAGs are
+covered of the mod's full roster. Closing that is authoring, not remapping - it needs a clone
+source chosen per country per sub-unit, which is a content decision.
+
+**Static verification only.** Self-test inventory unchanged; no BOM; `git diff --check` clean.
+The rendered models have not been confirmed in game, and that is the one thing owner QA should
+check: a division with SP artillery, SPAAG, tank destroyer and ATGM battalions should show
+country-appropriate armour models rather than the default mesh.
+
 ## Conversion surface, measured 2026-09-13
 
 The mass non-NSB-to-NSB conversion splits into four surfaces with very different readiness.
