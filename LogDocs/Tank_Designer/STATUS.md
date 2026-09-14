@@ -2699,6 +2699,104 @@ that SPAAG/artillery/TD battalions still build from designer equipment; on non-N
 same battalions and the legacy rows behave exactly as before. Division templates in existing
 saves are not migrated - use fresh campaigns.
 
+## Finding 27: the brigade deletion orphaned two role families - FIXED 2026-09-13
+
+**A regression introduced by Finding 26's own cutover, found the same day by the contract
+written to prevent exactly this.** Deleting all eight duplicate role brigades went two too far:
+six were genuine duplicates of a surviving legacy battalion, but **`heavy_tank_destroyer_chassis`
+and `medium_tank_aa_chassis` had no other consumer**. Measured: after the deletion, a grep of
+`common/units/` for either id returned nothing. Designer output for those two families could be
+designed, researched and produced, and no battalion in the game would take it - which also
+silently dropped Heavy Tank Destroyer and Medium SPAAG from the ratified battalion taxonomy.
+
+The mapping that makes the asymmetry obvious, and which should have been checked before deleting:
+
+| Deleted brigade | Surviving consumer of the same family |
+| --- | --- |
+| `light_tank_destroyer_brigade` | `atgm_carrier` |
+| `medium_tank_destroyer_brigade` | `tank_destroyer` |
+| `heavy_tank_destroyer_brigade` | **none** |
+| `light_sp_artillery_brigade` | `light_sp_artillery` |
+| `medium_sp_artillery_brigade` | `sp_artillery` |
+| `heavy_sp_artillery_brigade` | `heavy_sp_artillery` |
+| `light_sp_anti_air_brigade` | `spaag` |
+| `medium_sp_anti_air_brigade` | **none** |
+
+**Fix:** `heavy_tank_destroyer_brigade` and `medium_sp_anti_air_brigade` are restored to
+`need_for_tank_roles.txt` byte-for-byte from `HEAD~1`, re-added to `NSB_armor.txt:82-83`
+`enable_subunits`, and removed from `UNSUPPORTED_IDS` with a comment naming why they are not
+retired. The other six stay retired and stay pinned.
+
+**New contract, and it is the real deliverable here:** `validate_tank_rework()` now fails when
+any declared role family has no sub-unit naming it anywhere under `common/units/` -
+`role family <root> has no sub-unit consuming it`. Designer output that cannot reach the
+battlefield is the failure class this whole restructure has hit repeatedly (phase 5 existed
+because of it), and nothing checked for it until now.
+
+### It immediately found two more, and they predate this session
+
+`medium_tank_apc_chassis` and `medium_tank_ifv_chassis` - the **Heavy APC and Heavy IFV** roles -
+have had no consuming battalion since phase 3 authored them. Every carrier battalion names the
+light roles (`CWIC-Infantry.txt:158-165,235-242`, `CWIC-Special-Units.txt:99-106,278-285`,
+`CWIC-Support-Units.txt:122-127,457-462,937-941`). So two of the twelve role families are
+designable and unusable, and have been for three sessions.
+
+The ratified battalion taxonomy lists Heavy APC and Heavy IFV under Infantry Carrier, so this is
+a real gap rather than an intentional omission. **It is not fixed here**: closing it means
+authoring two new battalions with stats, categories and combat width, which is owner-facing
+content and balance, not a cutover. It is named in the validator as
+`unconsumed_by_decision` so the contract still guards the other ten, and it needs an owner ruling:
+author Heavy APC / Heavy IFV battalions, or retire those two role families.
+
+## Conversion surface, measured 2026-09-13
+
+The mass non-NSB-to-NSB conversion splits into four surfaces with very different readiness.
+
+**Naming - 979 rows owed, and the fallback is not broken, just generic.** National presets cover
+only three families: `light_tank_apc_chassis` (373), `light_tank_ifv_chassis` (199) and
+`medium_tank_chassis` (14, the USA/SOV mediums). **Ten of the twelve role families have zero
+national presets.** Cross-referencing the reverse map: of 1,593 country rows carrying a historical
+name, **979 have no designer design carrying that name**. Heaviest by family: `mbt_equipment` 301,
+`lt_equipment` 205, `sp_artillery_equipment` 93, `light_sp_artillery_equipment` 87,
+`spaag_equipment` 85, `medium_tank_destroyer_equipment` 58, `atgm_carrier_equipment` 51,
+`heavy_sp_artillery_equipment` 50, `ht_equipment` 28. Heaviest by TAG: MON 51, UKR 50, KOR 41,
+ITA 40, EGY 36, NLF 36, AFG 35, SAF 34, SWE 33, RAJ 32. Countries without a preset display the
+literal generic `Standard <role> <year>` (`CWIC_tank_designer_effects.txt:159-162,228-230,493-500,667-669,744-746,886-888`),
+so nothing is missing - it is unhistorical, which is the whole point of the item.
+
+**Entities - 2,008 of 2,349 aliases are now dead, and no surviving battalion has coverage.** The
+alias file keys on `<TAG>_<sub_unit>_<visual_level>_entity`, and its sub-unit tokens are the
+**eight deleted brigades** (1,928 aliases) plus `heavy_sp_anti_air_brigade` (80, a token retired
+with heavy AA) plus `light_armor` 179, `medium_armor` 84, `heavy_armor` 78. So 85% of the file
+now names sub-units that do not exist, and the seven surviving battalions plus the twelve carrier
+and support sub-units have **zero** aliases. 40 TAGs are covered. This is the most mechanical
+remaining work: remap the dead tokens onto the surviving consumers rather than authoring anything.
+
+**NSB OOB residue - 41 files, mostly unpaired.** 41 `_nsb` OOB files field a surviving battalion;
+only ENG_1949 and SOV_1949 clearly request the matching role variant, and designer stockpile
+grants appear in just ENG, HOL, NOR, SOV and USA. Direct `force_equipment_variants` residue is
+concentrated in MON_1949_nsb (`:56,66,76,86,96,106,116,125,134,144,155,168`) and MON_1980_nsb
+(`:59,72,85,98`), all legacy `light_artillery_equipment_*`. Disposition, and it matters: a gated
+legacy id is still a **declared** id, so the grant resolves and awards stock the profile cannot
+build - it is not the silent-drop shape of an undeclared token (`DECISIONS.md:1107-1118`).
+
+**2D art - the icon mechanism is now RESOLVED, and it changes the ceiling.** The production tab
+binds `spriteType = "GFX_technology_medium"` (`interface/countryproductionlineview.gui:1565-1570`,
+vanilla `:1564-1569`) - a code-resolved key, not an equipment-id literal. The engine resolves it
+through the **technology that enables the equipment**, and a country overrides it by declaring
+`GFX_<TAG>_<technology>_medium`. Vanilla proves the pattern with
+`GFX_JAP_motorized_equipment_1_medium` beside the generic form (vanilla
+`Technologies.gfx:158-165`), on a row that declares no `picture` of its own.
+
+**So per-country art for designer equipment is possible, and it is keyed on the NSB chassis
+technology, not on the design.** Per-design art remains impossible - confirming the earlier
+ruling for a different reason than the one recorded. Measured gap: **202 generic `GFX_nsb_*_medium`
+sprites exist and zero `GFX_<TAG>_nsb_*_medium` sprites exist**, so every country currently shows
+the same generic designer icon. Engine precedence between a country sprite and the generic one is
+the only part static evidence cannot settle; the probe is one texture, one country, one look at
+the production line.
+
+
 ### Validator contract
 
 `validate_legacy_armour_dlc_gates()` pins the 37 gated ids and the 7 exceptions by name. It
