@@ -2442,23 +2442,56 @@ already-triaged noise. So nothing is currently broken here; this item is additiv
 ### Vehicle images
 
 Three archetype `picture` values cover every tank family: `archetype_light_tank_equipment`
-(`tank_chassis.txt:10`, `tank_light.txt:13`), `archetype_mbt_equipment`
-(`tank_chassis.txt:305`, `tank_medium.txt:9`), `archetype_ht_equipment`
-(`tank_chassis.txt:597`, `tank_heavy.txt:9`), plus `archetype_motorized_equipment`
-(`mechanized.txt:11`) and `archetype_mechanized_heavy_equipment` (`mechanized_heavy.txt:12`).
+(`tank_chassis.txt:10`, `tank_light.txt:13`), `archetype_medium_tank_equipment`
+(`tank_chassis.txt:305`, `tank_medium.txt:9`) and `archetype_heavy_tank_equipment`
+(`tank_chassis.txt:597`, `tank_heavy.txt:9`), plus `archetype_motorized_equipment` on
+`mechanized.txt:11`, `mechanized_heavy.txt:12` and `mechanized_marine.txt:11`.
 The twelve role roots and all relocated legacy rows in `x_tank_chassis.txt` declare no
 `picture` and inherit.
 
-**Three of those five values resolve to no sprite anywhere.** Registered `GFX_archetype_*_medium`
-sprites in the mod (`interface/Technologies.gfx:975-991`) and vanilla are
-`archetype_light_tank_equipment`, `archetype_heavy_tank_equipment`,
-`archetype_medium_tank_equipment` and `archetype_motorized_equipment`. Nothing registers
-`archetype_mbt_equipment`, `archetype_ht_equipment` or `archetype_mechanized_heavy_equipment`,
-and the mod registers the medium size only. The engine logs nothing for this - grep of the
-2026-09-08 log for all three names returns zero lines - so if the MBT, heavy and heavy-carrier
-production icons are wrong in game it fails silently. **Confirm visually before fixing**: the
-fix is either renaming the picture value onto the registered sprite or registering the value,
-and which one is right depends on what the owner sees.
+**Five picture values resolved to no sprite anywhere - RESOLVED 2026-09-13.** Registered
+`GFX_archetype_*_medium` sprites across the mod (`interface/Technologies.gfx:975-991`) and the
+base game are `archetype_light_tank_equipment`, `archetype_medium_tank_equipment`,
+`archetype_heavy_tank_equipment`, `archetype_super_heavy_tank_equipment`,
+`archetype_modern_tank_equipment`, `archetype_motorized_equipment` and
+`archetype_motorized_rocket_equipment`. An audit of all 30 distinct `picture` values under
+`common/units/` found five armour families naming something outside that set, not three: the
+two originally measured plus `archetype_sht_equipment` and `archetype_mechanized_marine_equipment`.
+The engine logs nothing for any of them - grep of the 2026-09-08 log returns zero lines - so the
+wrong production icon was silently wrong.
+
+**Owner ruling: rename the picture value onto an already-registered sprite, which implies no new
+art.** Six declarations changed, one per line, nothing else touched:
+
+| Family | Was | Now |
+| --- | --- | --- |
+| `medium_tank_chassis` (`tank_chassis.txt:305`), `mbt_equipment` (`tank_medium.txt:9`) | `archetype_mbt_equipment` | `archetype_medium_tank_equipment` |
+| `heavy_tank_chassis` (`tank_chassis.txt:597`), `ht_equipment` (`tank_heavy.txt:9`) | `archetype_ht_equipment` | `archetype_heavy_tank_equipment` |
+| `sht_equipment` (`tank_super_heavy.txt:12`) | `archetype_sht_equipment` | `archetype_super_heavy_tank_equipment` |
+| `mechanized_heavy_equipment` (`mechanized_heavy.txt:12`) | `archetype_mechanized_heavy_equipment` | `archetype_motorized_equipment` |
+| `mechanized_marine_equipment` (`mechanized_marine.txt:11`) | `archetype_mechanized_marine_equipment` | `archetype_motorized_equipment` |
+
+The two mechanized families go to the motorized picture because **no `archetype_mechanized_*`
+sprite is registered anywhere and vanilla's own `mechanized.txt:7` uses
+`archetype_motorized_equipment`** - following vanilla rather than inventing a name. Both
+mechanized families therefore share one icon, which is exactly what vanilla does.
+
+**New validator contract, because this class of defect is invisible at runtime.**
+`validate_armour_archetype_pictures()` pins all ten armour families to an expected picture value
+and additionally fails if that value has no registered `GFX_<picture>_medium` sprite in the mod
+or in the literal vanilla set. The vanilla set is a literal because the validator must not depend
+on a Steam install path existing. Proven to bite: reverting `tank_heavy.txt` to
+`archetype_ht_equipment` produces both failures, the mismatch and the missing sprite.
+
+**Still unverified in game.** Static verification only - the rendered icons have not been seen.
+The rename can only improve matters, since the previous values resolved to nothing.
+
+**Out of scope and deliberately untouched:** the same audit found eight aircraft and helicopter
+picture values with no registered sprite - `archetype_jet_multirole_equipment`,
+`archetype_cv_jet_multirole_equipment` (3 sites), `archetype_jet_CAS_equipment`,
+`archetype_jet_interceptor_equipment` (2), `archetype_mach2stratbomber_equipment` (3),
+`archetype_rocket_interceptor_equipment`, `attack_helicopter_equipment` (2) and
+`scout_helicopter_equipment`. Same silent failure, different content owner. Reported, not fixed.
 
 Per-design art stays closed for tanks on the same evidence that closed it for carriers.
 Vanilla `interface/tank_profiles.gfx` is 6188 lines of enumerated
@@ -2677,8 +2710,8 @@ question of whether `need` can name a role root. Those are settled and unaffecte
 1. ~~Commit the phase 6/7 and flame-probe work.~~ **Done 2026-09-13, `2636424db7`.**
 2. ~~The flame probe.~~ **Shipped and owner-accepted 2026-09-13.** The amphibious role it was
    gating is ruled out; see the ruling above. Nothing downstream is blocked on it.
-3. Confirm the three unregistered archetype pictures in game - it is a cheap, possibly live
-   defect and it decides whether the image item starts as a repair or as new art.
-4. Legacy NSB gating, which is scripted work with a measured blast radius and no art dependency.
+3. ~~The unregistered archetype pictures.~~ **Fixed 2026-09-13** by renaming five picture values
+   onto registered sprites, with a new validator contract. Static only; icons unseen in game.
+4. **Legacy NSB gating - next.** Scripted work with a measured blast radius and no art dependency.
 5. Vehicle images as profile-sprite coverage, then 3D models as per-sub-unit alias coverage.
    Both are art-supply-bound; neither can promise per-design fidelity on current evidence.

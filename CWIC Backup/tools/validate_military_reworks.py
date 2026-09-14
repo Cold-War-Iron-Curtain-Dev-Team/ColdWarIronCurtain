@@ -5708,6 +5708,105 @@ def run_stockpile_negative_fixtures() -> None:
             raise AssertionError("stockpile contract rejected a valid derived role tier")
 
 
+# Measured 2026-09-13: three armour archetypes named a `picture` value that no
+# `GFX_<value>_medium` sprite registers, in this mod or in the base game, and the
+# engine logs nothing for it - the production icon is simply wrong. Owner ruling:
+# rename the picture value onto an already-registered sprite rather than register
+# the invented name, so no new art is implied. `archetype_mechanized_*` have no
+# registered sprite anywhere; vanilla's own mechanized row uses the motorized
+# picture, so the carriers follow vanilla.
+ARMOUR_ARCHETYPE_PICTURES = {
+    "light_tank_chassis": "archetype_light_tank_equipment",
+    "medium_tank_chassis": "archetype_medium_tank_equipment",
+    "heavy_tank_chassis": "archetype_heavy_tank_equipment",
+    "lt_equipment": "archetype_light_tank_equipment",
+    "mbt_equipment": "archetype_medium_tank_equipment",
+    "ht_equipment": "archetype_heavy_tank_equipment",
+    "sht_equipment": "archetype_super_heavy_tank_equipment",
+    "mechanized_equipment": "archetype_motorized_equipment",
+    "mechanized_heavy_equipment": "archetype_motorized_equipment",
+    "mechanized_marine_equipment": "archetype_motorized_equipment",
+}
+# Registered by the base game in `interface/*.gfx`. Kept as a literal set because
+# the validator must not depend on a Steam install path being present.
+VANILLA_ARCHETYPE_SPRITES = {
+    "archetype_light_tank_equipment",
+    "archetype_medium_tank_equipment",
+    "archetype_heavy_tank_equipment",
+    "archetype_super_heavy_tank_equipment",
+    "archetype_modern_tank_equipment",
+    "archetype_motorized_equipment",
+    "archetype_motorized_rocket_equipment",
+}
+
+
+def validate_armour_archetype_pictures() -> None:
+    """Every armour archetype picture must resolve to a registered sprite.
+
+    This failure mode is silent: an unregistered `picture` value produces no
+    `error.log` line, so only a static check catches it.
+    """
+    files = [
+        CHASSIS_FILE,
+        MOD / "common/units/equipment/tank_light.txt",
+        MOD / "common/units/equipment/tank_medium.txt",
+        MOD / "common/units/equipment/tank_heavy.txt",
+        MOD / "common/units/equipment/tank_super_heavy.txt",
+        MECHANIZED_FILE,
+        HEAVY_MECHANIZED_FILE,
+        MOD / "common/units/equipment/mechanized_marine.txt",
+    ]
+    mod_sprites = set()
+    for path in sorted((MOD / "interface").rglob("*.gfx")):
+        mod_sprites.update(
+            re.findall(r'\bname\s*=\s*"GFX_([A-Za-z0-9_]+)"', text(path))
+        )
+    seen: dict[str, str] = {}
+    for path in files:
+        code = code_only(text(path))
+        for family in ARMOUR_ARCHETYPE_PICTURES:
+            if family in seen:
+                continue
+            # Indentation is inconsistent across these files - `mechanized_heavy.txt`
+            # opens its archetype at column 0 - so the block is bounded by brace
+            # depth rather than by indent.
+            opener = re.search(
+                rf"(?m)^[ \t]*{re.escape(family)}\s*=\s*\{{", code
+            )
+            if not opener:
+                continue
+            depth = 0
+            for index in range(opener.end() - 1, len(code)):
+                if code[index] == "{":
+                    depth += 1
+                elif code[index] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+            block = code[opener.end() : index]
+            picture = re.search(r"\bpicture\s*=\s*([A-Za-z0-9_]+)", block)
+            if picture:
+                seen[family] = picture.group(1)
+    for family, expected in sorted(ARMOUR_ARCHETYPE_PICTURES.items()):
+        actual = seen.get(family)
+        if actual is None:
+            fail(f"armour family {family} declares no picture")
+            continue
+        if actual != expected:
+            fail(
+                f"armour family {family} picture is {actual}, expected {expected}"
+            )
+        if (
+            f"{actual}_medium" not in mod_sprites
+            and actual not in VANILLA_ARCHETYPE_SPRITES
+        ):
+            fail(
+                f"armour family {family} picture {actual} has no registered "
+                "GFX_<picture>_medium sprite - the production icon is silently wrong"
+            )
+
+
+validate_armour_archetype_pictures()
 validate_carrier_bookmarks()
 validate_carrier_roles()
 validate_carrier_battalions()
