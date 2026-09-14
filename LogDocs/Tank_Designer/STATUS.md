@@ -16,12 +16,13 @@ six rewired carrier battalions. Phases 1-5 of Finding 16's implementation order 
 and confirmed in game on all four USA profiles. `DECISIONS.md` carries the architecture,
 Finding 16 the measured blast radius.
 
-What remains is phase 7's artillery/AA half (the restructure the owner deferred), the
-historical coverage sweep, the deferred focus-grant variant mapping, and the three content
-items in "Next scope" - 3D models, vehicle images, and the legacy NSB duplicates. Phases 1-6
-and phase 7's carrier envelope are shipped. **The amphibious thread is closed for good by the
-owner's 2026-09-13 ruling**: marines and paratroopers get no custom vehicles, every APC and IFV
-serves them, and no amphibious role will be authored.
+What remains is the mass non-NSB to NSB conversion - historical OOBs, naming, 2D art and
+entities - plus the historical coverage sweep and the deferred focus-grant variant mapping.
+**The artillery/AA convergence shipped 2026-09-13 (Finding 26), so no standalone armour family
+is left: every armoured ground vehicle is a role on the light, medium or heavy hull.** Sixty-seven
+legacy rows are DLC-gated, leaving seven ratified exceptions. The amphibious thread is closed for
+good by the owner's 2026-09-13 ruling: marines and paratroopers get no custom vehicles, every APC
+and IFV serves them, and no amphibious role will be authored.
 
 ### Committed checkpoints
 
@@ -2603,8 +2604,100 @@ The artillery side is wider than this section previously claimed, which is furth
 gate it piecemeal.
 
 **So gating the support-armour half requires rewiring those battalions onto the role families
-first - which is the artillery/AA restructure the owner deferred.** Do not gate them before that
-lands.
+first.** That rewire is the artillery/AA convergence, and it **landed 2026-09-13** - see
+Finding 26. All 20 rows plus the ten this section did not know about are now gated.
+
+## Finding 26: the artillery/AA convergence - IMPLEMENTED 2026-09-13
+
+**Every armoured ground vehicle is now a role on the light, medium or heavy hull, with no
+standalone family left.** This is the last restructure the three-hull architecture owed, and it
+turned out far cheaper than the carrier cutover because phase 3 had already built the
+destination: the twelve role roots, all NSB chassis grants, the 53 role blueprint GUI files, the
+eight role AI recipes and every derived enum tier already existed. Nothing was created. Content
+moved into place.
+
+### What shipped
+
+| Surface | Change |
+| --- | --- |
+| `x_tank_chassis.txt` | All **30** legacy rows relocated into their role families, every inherited stat written out explicitly. Groups at `:981-1178` SPAAG, `:1182-1383` light SP artillery, `:1387-1589` ATGM carrier, `:1593-1796` SP artillery, `:1800-2004` medium TD, `:2008-2212` heavy SP artillery. |
+| `sp_aa.txt`, `sp_art.txt`, `light_sp_art.txt`, `heavy_sp_art.txt`, `tank_destroyer.txt`, `atgm_carrier.txt` | Six archetype roots survive as **empty shells**, zero members each - the shape `lt_equipment` has had since the legacy tank rows were reparented. They stay because MIO, idea and country-leader entries name five of the six. |
+| `CWIC-Anti-Air.txt`, `CWIC-Artillery.txt`, `CWIC-Anti-Tank.txt`, `CWIC-Support-Units.txt` | Seven battalions rewired onto role families, amounts unchanged: `spaag` and `spaag_support` to `light_tank_aa_chassis` (36/18), `sp_artillery` to `medium_tank_artillery_chassis` (18), `light_sp_artillery` to `light_tank_artillery_chassis` (18), `heavy_sp_artillery` to `heavy_tank_artillery_chassis` (18), `tank_destroyer` to `medium_tank_destroyer_chassis` (36), `atgm_carrier` to `light_tank_destroyer_chassis` (36). All stay `active = no`; sprites and categories untouched. |
+| `need_for_tank_roles.txt` | The **eight duplicate role brigades deleted** - light/medium/heavy tank destroyer, light/medium/heavy SP artillery, light/medium SP AA. The three armour battalions (`light_armor`, `medium_armor`, `heavy_armor`) are byte-identical. |
+| `NSB_armor.txt:82-89` | The eight `enable_subunits` entries for those brigades removed - they were dangling the moment the brigades went. The surviving battalions are enabled by their own legacy technologies on both profiles, so nothing replaces them. |
+| `script_enums.txt` | 30 legacy tier entries removed, 871 -> 841. The six root ids stay; every role derived tier was already enumerated. Nothing added. |
+| `x_tank_chassis.txt` (second pass) | All 30 relocated rows **DLC-gated**, which is what the convergence unlocked. |
+| `validate_military_reworks.py` | New relocation contract plus the extended gate map; see below. |
+
+### Which battalion survived, and why that choice
+
+Two complete sets existed: the legacy battalions (`active = no`, consuming legacy families) and
+the eight role brigades (`active = yes`, consuming role roots). They were functional duplicates.
+**The legacy ids survived because `history/` uses them and names the role brigades nowhere** - 43
+`_nsb` files name `sp_artillery` alone. Keeping the brigades instead would have meant rewriting
+division templates across a hundred-plus files for a rename. This is the same ruling phase 5 made
+for the carriers: one battalion serves both profiles, and it is the one the content already names.
+
+The deleted brigades' metadata is preserved here in case a later pass wants it: each carried
+`need = <its role chassis> = 40`, sprites `light_armor` / `medium_armor` / `heavy_armor`, and
+categories `category_tank_destroyers`, `category_self_propelled_artillery` or
+`category_self_propelled_anti_air` alongside `category_all_armor` and `category_army`.
+
+### `rocket_sp_artillery` is not an armour family and was excluded
+
+Measured, and it corrects the earlier assumption that it was a seventh family to converge: the
+sub-unit at `CWIC-Artillery.txt:621` consumes `motorized_rocket_equipment` from
+`rocket_artillery.txt:5`, **no `rocket_sp_artillery` equipment id exists anywhere**, and no
+technology declares `enable_equipments` for one. It is a motorized family wearing an artillery
+name. It, `rocket_sp_artillery_support` and `motorized_rocket_equipment` were left untouched and
+are out of scope for the three-hull architecture entirely.
+
+### Validator
+
+`validate_legacy_armour_roles()` pins the converged shape: each of the 30 rows must live only in
+`x_tank_chassis.txt`, must declare its mapped role archetype, must **not** be parented to a
+legacy archetype, and must state every stat explicitly - a literal key set, not a union derived
+from siblings, because a derived union weakens itself the moment a sibling loses a key. The six
+shells must keep zero members. The seven battalions must consume their mapped family and stay
+`active = no`; the three armour battalions must stay `active = yes`. The eight deleted brigade
+ids joined `UNSUPPORTED_IDS`, so reintroducing one fails.
+
+Both new contracts were proven to bite, not assumed: deleting `air_attack` from
+`spaag_equipment_1` produces `spaag_equipment_1 must state air_attack explicitly after the
+relocation`, and re-parenting it to `spaag_equipment` produces `must not be parented to legacy
+archetype spaag_equipment` plus the archetype mismatch. Both restored.
+
+### Three validator bugs the first gate run caught, all in new code
+
+Worth recording because each was a plausible-looking wrong assumption about ids:
+
+1. The relocation map keyed SPAAG as `sp_aa_equipment`, derived from the filename. The archetype
+   is `spaag_equipment`.
+2. The armour battalion check expected `light_tank` / `medium_tank` / `heavy_tank`. The ids are
+   `light_armor` / `medium_armor` / `heavy_armor`.
+3. It required `transport = <role family>` on all seven battalions. **These battalions ARE the
+   armour and carry no `transport`** - that key belongs to the infantry carriers. The check now
+   fails if one ever gains a `transport`.
+
+The eighth failure was real content: `NSB_armor.txt` still enabled the eight deleted brigades.
+The contract found it, which is the contract working.
+
+### Verification
+
+Self-test passes with the inventory line **unchanged** from baseline - a relocation moves no
+count, and the 135 historical designs, 299 modules and 20 slots all held. Independently
+re-verified rather than taken from the subagents: all 30 ids present in `x_tank_chassis.txt`,
+zero numbered members left in the six source files, all six roots present, and
+`spaag_equipment_1` - the highest-risk row, which previously inherited *everything* - now
+declares `air_attack`, `ap_attack`, `armor_value`, `breakthrough`, `build_cost_ic`, `defense`,
+`fuel_consumption`, `hard_attack`, `hardness`, `maximum_speed`, `reliability`, `resources`,
+`soft_attack` and `upgrades` explicitly. No BOM on any edited file.
+
+**Static verification only.** Owner QA owed, and it is a bigger surface than the last pass: on
+NSB confirm the production tab now shows no legacy artillery, SPAAG, TD or ATGM duplicates and
+that SPAAG/artillery/TD battalions still build from designer equipment; on non-NSB confirm those
+same battalions and the legacy rows behave exactly as before. Division templates in existing
+saves are not migrated - use fresh campaigns.
 
 ### Validator contract
 
@@ -2854,12 +2947,17 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
    gating is ruled out; see the ruling above. Nothing downstream is blocked on it.
 3. ~~The unregistered archetype pictures.~~ **Fixed 2026-09-13** by renaming five picture values
    onto registered sprites, with a new validator contract. Static only; icons unseen in game.
-4. ~~Legacy NSB gating.~~ **Shipped 2026-09-13** for the tank and carrier halves, 37 rows. The
-   artillery/SPAA/TD/ATGM half is blocked on the deferred artillery/AA restructure - see the
-   scope correction. Owner QA owed: NSB start shows designer armour with no legacy duplicates,
-   non-NSB start unchanged.
-5. **The mass non-NSB to NSB conversion** - historical OOBs, naming, 2D art and entities onto the
-   designer systems. Start from the measured per-country library above (9,965 technology art
-   files, 16,283 `GFX_<TAG>_<id>_medium` sprites, `<TAG>_<equipment_id>` loc keys), not from the
-   designer `picture` path, whose per-hull-tier limit does not apply to it.
-6. The artillery/AA restructure, which now also owns the remaining 20 legacy gates.
+4. ~~Legacy NSB gating.~~ **Complete 2026-09-13.** 37 tank and carrier rows first, then the
+   remaining 30 artillery/SPAAG/TD/ATGM rows once the convergence made them safe. **67 legacy
+   rows are now DLC-gated**; the only ungated rows are the seven ratified exceptions.
+5. ~~The artillery/AA restructure.~~ **Shipped 2026-09-13, Finding 26.** No standalone armour
+   family remains.
+6. **The mass non-NSB to NSB conversion - next.** Historical OOBs, naming, 2D art and entities
+   onto the designer systems. Start from `data/Historical_Vehicle_Reverse_Map.json` and the
+   measured per-country library (9,965 technology art files, 16,283 `GFX_<TAG>_<id>_medium`
+   sprites, `<TAG>_<equipment_id>` loc keys), not the designer `picture` path, whose
+   per-hull-tier limit does not apply to it. The convergence just removed six families from this
+   surface, so re-measure the reverse map's 1,468 rows before planning against it.
+7. The icon-resolution probe still owed: no `GFX_<TAG>_<equipment_id>_medium` sprite exists for
+   the rows that nonetheless render per-country photographs, so the resolution rule is unproven
+   and gates any per-country designer art.

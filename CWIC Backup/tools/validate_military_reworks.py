@@ -343,6 +343,68 @@ SCRIPT_OWNED_MODULES = {
 OOB_DIR = MOD / "history/units"
 HISTORY_DIR = MOD / "history/countries"
 EQUIPMENT_DIR = MOD / "common/units/equipment"
+# The legacy artillery, AA and destroyer rows now live in their designer role
+# families. Their archetype shells remain because other content names them.
+LEGACY_ARMOUR_ROLE_RELOCATIONS = {
+    "spaag_equipment": (
+        EQUIPMENT_DIR / "sp_aa.txt",
+        "light_tank_aa_chassis",
+        tuple(f"spaag_equipment_{tier}" for tier in range(1, 6)),
+    ),
+    "sp_artillery_equipment": (
+        EQUIPMENT_DIR / "sp_art.txt",
+        "medium_tank_artillery_chassis",
+        tuple(f"sp_artillery_equipment_{tier}" for tier in range(1, 6)),
+    ),
+    "light_sp_artillery_equipment": (
+        EQUIPMENT_DIR / "light_sp_art.txt",
+        "light_tank_artillery_chassis",
+        tuple(f"light_sp_artillery_equipment_{tier}" for tier in range(1, 6)),
+    ),
+    "heavy_sp_artillery_equipment": (
+        EQUIPMENT_DIR / "heavy_sp_art.txt",
+        "heavy_tank_artillery_chassis",
+        tuple(f"heavy_sp_artillery_equipment_{tier}" for tier in range(1, 6)),
+    ),
+    "medium_tank_destroyer_equipment": (
+        EQUIPMENT_DIR / "tank_destroyer.txt",
+        "medium_tank_destroyer_chassis",
+        tuple(f"medium_tank_destroyer_equipment_{tier}" for tier in range(1, 6)),
+    ),
+    "atgm_carrier_equipment": (
+        EQUIPMENT_DIR / "atgm_carrier.txt",
+        "light_tank_destroyer_chassis",
+        tuple(f"atgm_carrier_equipment_{tier}" for tier in range(5)),
+    ),
+}
+# The owner measured these direct stats on the surviving role-family siblings.
+# `resources` is a nested stat block; all other entries are scalar keys.
+LEGACY_ARMOUR_STAT_KEYS = (
+    "maximum_speed",
+    "defense",
+    "breakthrough",
+    "armor_value",
+    "soft_attack",
+    "hard_attack",
+    "ap_attack",
+    "build_cost_ic",
+    "resources",
+)
+LEGACY_SPAA_STAT_KEYS = LEGACY_ARMOUR_STAT_KEYS + ("air_attack",)
+TANK_ROLE_ARMOUR_BATTALIONS = {
+    "light_armor": "light_tank_chassis",
+    "medium_armor": "medium_tank_chassis",
+    "heavy_armor": "heavy_tank_chassis",
+}
+REWIRED_TANK_ROLE_BATTALIONS = {
+    "spaag": ("CWIC-Anti-Air.txt", "light_tank_aa_chassis"),
+    "spaag_support": ("CWIC-Support-Units.txt", "light_tank_aa_chassis"),
+    "sp_artillery": ("CWIC-Artillery.txt", "medium_tank_artillery_chassis"),
+    "light_sp_artillery": ("CWIC-Artillery.txt", "light_tank_artillery_chassis"),
+    "heavy_sp_artillery": ("CWIC-Artillery.txt", "heavy_tank_artillery_chassis"),
+    "tank_destroyer": ("CWIC-Anti-Tank.txt", "medium_tank_destroyer_chassis"),
+    "atgm_carrier": ("CWIC-Anti-Tank.txt", "light_tank_destroyer_chassis"),
+}
 # `add_equipment_to_stockpile` accepts type, amount, variant_name and producer.
 # `creator` is only valid on `force_equipment_variants` and
 # `add_equipment_production`; here the engine logs `Unexpected token: creator`
@@ -542,10 +604,10 @@ BOOKMARK_VARIANT_TECHS = {
     "medium_tank_destroyer_chassis_2": "nsb_main_battle_tanks1",
     "medium_tank_destroyer_chassis_3": "nsb_main_battle_tanks2",
 }
-# Shipped 2026-09-13: flame-family, IFV, ATGM, and retired heavy SPAAG ids stay
-# unsupported; APC uses `flame`, IFV uses `rocket`, and `amphibious` remains
-# deliberately unspent and reserved for a future dedicated amphibious
-# mechanized role.
+# Shipped 2026-09-13: flame-family, IFV, and retired role/brigade ids stay
+# unsupported; ATGM is a loadout on the destroyer role, while APC uses
+# `flame`, IFV uses `rocket`, and `amphibious` remains deliberately unspent
+# and reserved for a future dedicated amphibious mechanized role.
 UNSUPPORTED_IDS = {
     "light_tank_rocket_chassis",
     "medium_tank_rocket_chassis",
@@ -557,6 +619,14 @@ UNSUPPORTED_IDS = {
     "amphibious_mechanized_infantry",
     "category_amphibious_tanks",
     *REMOVED_TANK_TYPE_IDS,
+    "light_tank_destroyer_brigade",
+    "medium_tank_destroyer_brigade",
+    "heavy_tank_destroyer_brigade",
+    "light_sp_artillery_brigade",
+    "medium_sp_artillery_brigade",
+    "heavy_sp_artillery_brigade",
+    "light_sp_anti_air_brigade",
+    "medium_sp_anti_air_brigade",
     "light_flame_tank",
     "medium_flame_tank",
     "heavy_flame_tank",
@@ -1702,12 +1772,11 @@ LEGAL_TANK_DESIGNER_TYPE_TOKENS = frozenset(
     }
 )
 # `mechanized` is a vanilla equipment type but NOT a designer role - the
-# 2026-09-10 probe showed it never reaches the dropdown. It stays legal on the
-# standalone APC and IFV families only, where REFERENCE.md records it as load
-# bearing for land/transport classification and every `transport =
-# mechanized_equipment` consumer. Those families are phase 4 scope and must not
-# be remapped here; APC uses `flame`, while `amphibious` remains reserved for a
-# future dedicated amphibious mechanized role.
+# 2026-09-10 probe showed it never reaches the dropdown. It stays legal on
+# legacy mechanized family rows, where REFERENCE.md records it as load bearing
+# for land/transport classification and every `transport = mechanized_equipment`
+# consumer. Those rows are compatibility content, not designer role roots; APC
+# uses `flame`, while `amphibious` remains reserved for a future dedicated role.
 LEGAL_CARRIER_FAMILY_TYPE_TOKENS = LEGAL_TANK_DESIGNER_TYPE_TOKENS | {"mechanized"}
 
 
@@ -1750,8 +1819,8 @@ def tank_type_domain_token_errors(blocks: dict[str, str]) -> list[str]:
         "mechanized_heavy_equipment",
     }
     for name, block in blocks.items():
-        # The standalone carrier families keep `mechanized` for land/transport
-        # classification; they are phase 4 scope, not designer role roots.
+    # Legacy carrier family rows keep `mechanized` for land/transport
+    # classification; they are compatibility content, not designer role roots.
         legal = (
             LEGAL_CARRIER_FAMILY_TYPE_TOKENS
             if name in carrier_families or re.fullmatch(r"light_tank_(apc|ifv)_chassis_\d+", name)
@@ -3028,6 +3097,68 @@ def validate_focus_armour_grants(
     return checked
 
 
+def validate_legacy_armour_roles() -> None:
+    """Keep the six retired armour families as empty compatibility shells."""
+    role_rows = top_level_blocks(text(ROLE_CHASSIS_FILE), "equipments")
+    role_row_map = dict(role_rows)
+    legacy_roots = set(LEGACY_ARMOUR_ROLE_RELOCATIONS)
+    expected_rows = {
+        name: (root, target)
+        for root, (_source, target, names) in LEGACY_ARMOUR_ROLE_RELOCATIONS.items()
+        for name in names
+    }
+
+    locations: dict[str, list[tuple[Path, str]]] = {}
+    for path in sorted(EQUIPMENT_DIR.rglob("*.txt")):
+        for name, block in top_level_blocks(text(path), "equipments"):
+            if name in expected_rows:
+                locations.setdefault(name, []).append((path, block))
+            parent = direct_values(block, "archetype")
+            if parent and parent[0] in legacy_roots:
+                fail(f"{name} must not be parented to legacy archetype {parent[0]}")
+
+    for root, (source, target, names) in LEGACY_ARMOUR_ROLE_RELOCATIONS.items():
+        source_rows = top_level_blocks(text(source), "equipments")
+        source_map = dict(source_rows)
+        root_block = source_map.get(root)
+        if root_block is None:
+            fail(f"{root} archetype is missing")
+        elif direct_values(root_block, "is_archetype") != ["yes"]:
+            fail(f"{root} must remain an archetype shell")
+        members = [name for name, _ in source_rows if name != root]
+        if members:
+            fail(f"{root} archetype must have zero members; found {members}")
+        for name in names:
+            found = locations.get(name, [])
+            role_found = [
+                body for path, body in found if path == ROLE_CHASSIS_FILE
+            ]
+            if len(found) != 1 or len(role_found) != 1:
+                paths = [str(path.relative_to(ROOT)) for path, _ in found]
+                fail(
+                    f"{name} must live only in {ROLE_CHASSIS_FILE.name}; "
+                    f"found {paths or ['nowhere']}"
+                )
+            body = role_row_map.get(name)
+            if body is None:
+                continue
+            if direct_values(body, "archetype") != [target]:
+                fail(f"{name} must declare archetype = {target}")
+            stat_keys = (
+                LEGACY_SPAA_STAT_KEYS
+                if root == "spaag_equipment"
+                else LEGACY_ARMOUR_STAT_KEYS
+            )
+            for stat in stat_keys:
+                present = (
+                    bool(keyed_blocks(body, stat))
+                    if stat == "resources"
+                    else bool(direct_values(body, stat))
+                )
+                if not present:
+                    fail(f"{name} must state {stat} explicitly after the relocation")
+
+
 def validate_tank_rework() -> None:
     armor_techs = dict(top_level_blocks(text(TECH_DIR / "NSB_armor.txt"), "technologies"))
     module_techs = dict(top_level_blocks(text(TECH_DIR / "NSB_armor_modules.txt"), "technologies"))
@@ -3060,19 +3191,48 @@ def validate_tank_rework() -> None:
         if missing:
             fail(f"{technology} is missing supported chassis grants: {sorted(missing)}")
     roles = text(TANK_ROLE_FILE)
-    inactive_roles = sorted(
-        {
-            name
-            for name in re.findall(r"(?m)^\t(\w+)\s*=\s*\{", roles)
-            for block in keyed_blocks(roles, name)
-            if re.search(r"\bactive\s*=\s*no\b", block)
-        }
-    )
-    if inactive_roles:
-        fail(
-            "every tank role must stay active so non-NSB profiles keep them buildable; "
-            f"inactive: {inactive_roles}"
+    validate_legacy_armour_roles()
+    role_blocks = dict(top_level_blocks(roles, "sub_units"))
+    for battalion, role in TANK_ROLE_ARMOUR_BATTALIONS.items():
+        block = role_blocks.get(battalion)
+        if block is None:
+            fail(f"tank role battalion is missing: {battalion}")
+            continue
+        if direct_values(block, "active") != ["yes"]:
+            fail(f"{battalion} must remain active = yes")
+    for battalion, (filename, role) in REWIRED_TANK_ROLE_BATTALIONS.items():
+        blocks = dict(
+            top_level_blocks(text(MOD / "common/units" / filename), "sub_units")
         )
+        block = blocks.get(battalion)
+        if block is None:
+            fail(f"tank role battalion is missing: {battalion}")
+            continue
+        if direct_values(block, "active") != ["no"]:
+            fail(f"{battalion} must remain active = no")
+        # These battalions ARE the armour; they carry no `transport`, unlike the
+        # infantry carriers. Only `need` and `essential` resolve their family.
+        if direct_values(block, "transport"):
+            fail(f"{battalion} must not declare transport")
+        for key in ("need", "essential"):
+            bodies = keyed_blocks(block, key)
+            if not bodies and key == "essential":
+                continue
+            if len(bodies) != 1:
+                fail(f"{battalion} must declare exactly one {key} block")
+                continue
+            if not re.search(
+                rf"(?<![A-Za-z0-9_]){role}(?![A-Za-z0-9_])", bodies[0]
+            ):
+                fail(f"{battalion} {key} must name {role}")
+    retired = re.compile(
+        r"(?<![A-Za-z0-9_])(?:"
+        + "|".join(re.escape(root) for root in LEGACY_ARMOUR_ROLE_RELOCATIONS)
+        + r")(?![A-Za-z0-9_])"
+    )
+    for path in sorted((MOD / "common/units").glob("*.txt")):
+        if retired.search(code_only(text(path))):
+            fail(f"{path.name} still wires a land sub-unit to a retired armour family")
 
     definitions = {name: block for name, block in module_blocks if name != "limit"}
     for message in module_parent_errors(definitions):
@@ -5751,13 +5911,16 @@ LEGACY_ARMOUR_DLC_GATES = {
     ROLE_CHASSIS_FILE: (
         *(f"mechanized_equipment_{tier}" for tier in range(3, 11)),
         *(f"mechanized_heavy_equipment_{tier}" for tier in range(1, 9)),
+        # Gating these became safe only once the convergence landed: their
+        # battalions now consume role families that hold designer members, so an
+        # NSB template is no longer stranded when the legacy row is hidden.
+        *(f"spaag_equipment_{tier}" for tier in range(1, 6)),
+        *(f"sp_artillery_equipment_{tier}" for tier in range(1, 6)),
+        *(f"light_sp_artillery_equipment_{tier}" for tier in range(1, 6)),
+        *(f"heavy_sp_artillery_equipment_{tier}" for tier in range(1, 6)),
+        *(f"medium_tank_destroyer_equipment_{tier}" for tier in range(1, 6)),
+        *(f"atgm_carrier_equipment_{tier}" for tier in range(5)),
     ),
-    # Artillery, SPAA, tank destroyers and ATGM carriers are deliberately NOT
-    # gated. Their legacy battalions are enabled on both profiles by ordinary
-    # technologies (`artillery.txt:254,1276,1621,1980,3405`, `rocket.txt:1513`)
-    # and NSB division templates across `history/` still field them, so gating
-    # the equipment would leave those templates unproducible. Converging them
-    # onto the role families is the deferred artillery/AA restructure.
 }
 # Pre-designer WWII rows have no designer replacement; marine rows stay legacy
 # because marines ride any carrier.
