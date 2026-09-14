@@ -13,14 +13,10 @@ un_ai_vote_weights ={
     set_variable = {
         ai_un_voting_weight = 0
     }
-    var:UNS.un_nation_target = {
-        set_variable = {
-            PREV.target_badboy = badboy
-        }
-    }
-    subtract_from_variable = {
-        ai_un_voting_weight = target_badboy
-    }
+    # Infamy removed 2026-09-13. The AI used to subtract the target's badboy
+    # score here, so a country nobody liked was easier to vote against. Nothing
+    # generates or reads infamy any more - opinion, spheres and blocs carry
+    # that weight instead.
     meta_effect = {
         text = {
             add_to_variable = { ai_un_voting_weight = THIS.opinion@[CHECKTAG] }
@@ -221,114 +217,6 @@ un_ai_vote_weights ={
     # silently ignored. Pledges are applied from the vote buttons instead -
     # see cwic_un_apply_pledges in CWIC_un_pledges.txt.
 }
-monthly_infamy_calc = {
-    if = {
-		limit = { NOT = { has_variable = badboy } } # check to prevent error if empty
-		set_variable = { badboy = 0 }
-	}
-    clamp_variable = {
-        var = badboy
-        min = 0
-        max = 100
-    }
-    add_to_variable = {
-        badboy = generated_badboy_current
-    }
-    set_variable = {
-        generated_badboy = THIS.has_added_tension_amount 
-    }
-    set_variable = {
-        generated_badboy_current = generated_badboy 
-    }
-    multiply_variable = { generated_badboy_current = -1 }
-    add_to_variable = { badboy = generated_badboy }
-    if = {
-        limit = {
-            has_idea = gulag_politic
-        }
-        add_to_variable = {
-            badboy = 0.10
-        }
-    }
-    if = {
-        limit = {
-            has_idea = repression
-        }
-        add_to_variable = {
-            badboy = 0.05
-        }
-    }
-    if = {
-        limit = {
-            has_idea = gulag_politic_expanded
-        }
-        add_to_variable = {
-            badboy = 0.15
-        }
-    }
-    if = {
-        limit = {
-            has_idea = policy_religion_temp_0
-        }
-        add_to_variable = {
-            badboy = 0.1
-        }
-    }
-    if = {
-        limit = {
-            has_idea = policy_religion_temp_0a
-        }
-        add_to_variable = {
-            badboy = 0.1
-        }
-    }
-    if = {
-        limit = {
-            has_idea = policy_media_temp_0
-        }
-        add_to_variable = {
-            badboy = 0.1
-        }
-    }
-    if = {
-        limit = {
-            has_idea = policy_women_temp_0
-        }
-        add_to_variable = {
-            badboy = 0.1
-        }
-    }
-    if = {
-        limit = {
-            has_idea = policy_minorities_temp_0
-        }
-        add_to_variable = {
-            badboy = 0.15
-        }
-    }
-    if = {
-        limit = {
-            check_variable = { apartheidValue > 0 }
-        }
-        add_to_variable = {
-            badboy = 0.15
-        }
-    }
-    if = {
-        limit = {
-            check_variable = { segregationValue < 0 }
-        }
-        add_to_variable = {
-            badboy = 0.05
-        }
-    }
-        
-
-    subtract_from_variable = {
-        badboy = -0.25
-    }
-}
-
 UN_ai_vote_sorting = {
     un_ai_vote_weights = yes
 	if = {
@@ -350,6 +238,8 @@ UN_ai_vote_sorting = {
             if = {
                 limit = {
                     has_idea = UN_Security_Council_Member_Perm
+                    check_variable = { UNS.un_chamber = 1 }   # no veto in the Assembly
+                    NOT = { has_country_flag = un_veto_spent }
                     has_political_power > 249
                     check_variable = {
                         ai_un_voting_weight > 24
@@ -360,6 +250,7 @@ UN_ai_vote_sorting = {
                  add_to_variable = { UNS.un_no_count = 1 }
                 add_to_variable = { UNS.un_veto_count = 1 }
                 add_political_power = -250
+                set_country_flag = { flag = un_veto_spent days = 180 value = 1 }
                set_country_flag = UN_VETO_ONGOING
             }
             else_if = {
@@ -397,6 +288,8 @@ UN_ai_vote_sorting = {
             if = {
                 limit = {
                     has_idea = UN_Security_Council_Member_Perm
+                    check_variable = { UNS.un_chamber = 1 }   # no veto in the Assembly
+                    NOT = { has_country_flag = un_veto_spent }
                     has_political_power > 249
                     check_variable = {
                         ai_un_voting_weight > 49
@@ -407,6 +300,7 @@ UN_ai_vote_sorting = {
                  add_to_variable = { UNS.un_no_count = 1 }
                 add_to_variable = { UNS.un_veto_count = 1 }
                 add_political_power = -250
+                set_country_flag = { flag = un_veto_spent days = 180 value = 1 }
                set_country_flag = UN_VETO_ONGOING
             }
             else_if = {
@@ -444,6 +338,8 @@ UN_ai_vote_sorting = {
             if = {
                 limit = {
                     has_idea = UN_Security_Council_Member_Perm
+                    check_variable = { UNS.un_chamber = 1 }   # no veto in the Assembly
+                    NOT = { has_country_flag = un_veto_spent }
                     has_political_power > 249
                     check_variable = { ai_un_voting_weight < 0 }
                 }
@@ -452,6 +348,7 @@ UN_ai_vote_sorting = {
                  add_to_variable = { UNS.un_no_count = 1 }
                 add_to_variable = { UNS.un_veto_count = 1 }
                 add_political_power = -250
+                set_country_flag = { flag = un_veto_spent days = 180 value = 1 }
                set_country_flag = UN_VETO_ONGOING
             }
             else_if = {
@@ -483,6 +380,8 @@ UN_ai_vote_sorting = {
             if = {
                 limit = {
                     has_idea = UN_Security_Council_Member_Perm
+                    check_variable = { UNS.un_chamber = 1 }   # no veto in the Assembly
+                    NOT = { has_country_flag = un_veto_spent }
                     has_political_power > 249
                     check_variable = { ai_un_voting_weight > 74 }
                 }
@@ -491,6 +390,7 @@ UN_ai_vote_sorting = {
                  add_to_variable = { UNS.un_no_count = 1 }
                 add_to_variable = { UNS.un_veto_count = 1 }
                 add_political_power = -250
+                set_country_flag = { flag = un_veto_spent days = 180 value = 1 }
                set_country_flag = UN_VETO_ONGOING
             }
             else_if = {
@@ -526,6 +426,8 @@ UN_ai_vote_sorting = {
             if = {
                 limit = {
                     has_idea = UN_Security_Council_Member_Perm
+                    check_variable = { UNS.un_chamber = 1 }   # no veto in the Assembly
+                    NOT = { has_country_flag = un_veto_spent }
                     has_political_power > 249
                     check_variable = { ai_un_voting_weight < 0 }
                 }
@@ -534,6 +436,7 @@ UN_ai_vote_sorting = {
                  add_to_variable = { UNS.un_no_count = 1 }
                 add_to_variable = { UNS.un_veto_count = 1 }
                 add_political_power = -250
+                set_country_flag = { flag = un_veto_spent days = 180 value = 1 }
                set_country_flag = UN_VETO_ONGOING
             }
             else_if = {

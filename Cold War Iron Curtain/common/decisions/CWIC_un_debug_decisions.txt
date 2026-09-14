@@ -1,0 +1,131 @@
+debug_decisions = {
+
+	# ------------------------------------------------------------------
+	# THE CHINA SEAT
+	#
+	# The permanent seat is the UN_Security_Council_Member_Perm idea, not a tag.
+	# Move the idea and the flag, the vote and the veto move with it - which is
+	# what Resolution 2758 did in 1971.
+	#
+	# THE ORDER MATTERS. The first version of this removed the seat from the ROC
+	# and then checked whether the PRC existed; in a 1949 save it does not, so
+	# the seat was taken from one China and given to no one. Now the recipient is
+	# checked in `visible`, so a decision that cannot land is not offered at all.
+	# ------------------------------------------------------------------
+	cwic_debug_china_seat_to_prc = {
+		icon = generic_political_discourse
+		cost = 0
+		fire_only_once = no
+
+		visible = {
+			country_exists = PRC
+			CHI = { has_idea = UN_Security_Council_Member_Perm }
+		}
+
+		ai_will_do = { factor = 0 }
+
+		complete_effect = {
+			PRC = {
+				add_ideas = UN_Security_Council_Member_Perm
+				if = {
+					limit = { NOT = { has_idea = un_member } }
+					add_ideas = un_member
+				}
+				clr_country_flag = un_sc_elected
+			}
+			CHI = {
+				remove_ideas = UN_Security_Council_Member_Perm
+				clr_country_flag = un_sc_elected
+			}
+			# the panel reads UNS.un_sc_perm_seats - rebuild it now, or the flag
+			# does not change until the weekly refresh and it looks broken
+			UNS = { cwic_un_council_refresh = yes }
+		}
+	}
+
+	cwic_debug_china_seat_to_roc = {
+		icon = generic_political_discourse
+		cost = 0
+		fire_only_once = no
+
+		visible = {
+			country_exists = CHI
+			NOT = { CHI = { has_idea = UN_Security_Council_Member_Perm } }
+		}
+
+		ai_will_do = { factor = 0 }
+
+		complete_effect = {
+			CHI = {
+				add_ideas = UN_Security_Council_Member_Perm
+				if = {
+					limit = { NOT = { has_idea = un_member } }
+					add_ideas = un_member
+				}
+				clr_country_flag = un_sc_elected
+			}
+			if = {
+				limit = { country_exists = PRC }
+				PRC = {
+					remove_ideas = UN_Security_Council_Member_Perm
+					clr_country_flag = un_sc_elected
+				}
+			}
+			UNS = { cwic_un_council_refresh = yes }
+		}
+	}
+
+	# Rebuilds the five permanent seats from scratch, for a save where one of
+	# them has gone missing - which is exactly what the first version of the
+	# decision above did to the China seat.
+	cwic_debug_repair_permanent_seats = {
+		icon = generic_political_discourse
+		cost = 0
+		fire_only_once = no
+		ai_will_do = { factor = 0 }
+
+		complete_effect = {
+			every_country = {
+				limit = {
+					OR = { tag = USA  tag = SOV  tag = ENG  tag = FRA }
+					NOT = { has_idea = UN_Security_Council_Member_Perm }
+				}
+				add_ideas = UN_Security_Council_Member_Perm
+			}
+			# whichever China exists takes the fifth seat, ROC first
+			if = {
+				limit = {
+					NOT = { CHI = { has_idea = UN_Security_Council_Member_Perm } }
+					NOT = { PRC = { has_idea = UN_Security_Council_Member_Perm } }
+				}
+				if = {
+					limit = { country_exists = CHI }
+					CHI = { add_ideas = UN_Security_Council_Member_Perm }
+				}
+				else_if = {
+					limit = { country_exists = PRC }
+					PRC = { add_ideas = UN_Security_Council_Member_Perm }
+				}
+			}
+			every_country = {
+				limit = {
+					has_idea = UN_Security_Council_Member_Perm
+					NOT = { has_idea = un_member }
+				}
+				add_ideas = un_member
+			}
+			UNS = { cwic_un_council_refresh = yes }
+		}
+	}
+
+	# While testing the council: re-elect it on demand instead of waiting a year.
+	cwic_debug_reelect_council = {
+		icon = generic_political_discourse
+		cost = 0
+		fire_only_once = no
+		ai_will_do = { factor = 0 }
+		complete_effect = {
+			UNS = { cwic_un_elect_council = yes }
+		}
+	}
+}

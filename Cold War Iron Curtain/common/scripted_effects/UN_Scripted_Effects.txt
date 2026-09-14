@@ -82,6 +82,7 @@ UN_START_SCRIPTED_RESOLUTION = {
                 NOT = { has_country_flag = Current_UN_Vote }
             }
         }
+        cwic_un_set_chamber = yes
         UNS = {
             UN_CLEAR_CURRENT_VOTE_COUNTS = yes
             activate_mission = UN_Vote
@@ -133,12 +134,20 @@ UN_START_SCRIPTED_RESOLUTION = {
                 save_global_event_target_as = un_state_owner_global_target
             }
         }
+        # WHO IS IN THE ROOM. In the Assembly, every member. In the Council,
+        # the five permanent members and the ten elected ones - nobody else is
+        # entitled to a vote, which is the whole point of having two chambers.
         every_country = {
             limit = {
                 is_ai = yes
                 OR = {
                     has_idea = un_member
                     has_idea = UN_Security_Council_Member_Perm
+                }
+                OR = {
+                    check_variable = { UNS.un_chamber = 0 }
+                    has_idea = UN_Security_Council_Member_Perm
+                    has_country_flag = un_sc_elected
                 }
             }
             UN_ai_vote_sorting = yes
@@ -153,10 +162,30 @@ UN_START_SCRIPTED_RESOLUTION = {
 UN_RESOLVE_CURRENT_VOTE = {
     # Bank the result before anything clears the vote flags.
     cwic_un_award_points = yes
+
+    # WHAT CARRIES A RESOLUTION depends on which chamber heard it.
+    #   Assembly - a simple majority of the votes cast, and no veto exists.
+    #   Council  - nine of the fifteen, and any permanent member can stop it.
+    set_variable = { un_resolution_carried = 0 }
     if = {
         limit = {
+            check_variable = { un_chamber = 1 }
             check_variable = { un_veto_count < 1 }
+            check_variable = { un_yes_count > 8 }
+        }
+        set_variable = { un_resolution_carried = 1 }
+    }
+    if = {
+        limit = {
+            check_variable = { un_chamber = 0 }
             check_variable = { un_yes_count > un_no_count }
+        }
+        set_variable = { un_resolution_carried = 1 }
+    }
+
+    if = {
+        limit = {
+            check_variable = { un_resolution_carried = 1 }
         }
         add_to_array = { UNS.un_nation_proposal_historical = UNS.un_nation_proposal }
         add_to_array = { UNS.un_state_target_owner_historical = UNS.un_state_target_owner }
@@ -172,8 +201,8 @@ UN_RESOLVE_CURRENT_VOTE = {
     }
     if = {
         limit = {
+            check_variable = { un_resolution_carried = 0 }
             check_variable = { un_veto_count < 1 }
-            check_variable = { un_yes_count < un_no_count }
         }
         news_event = UN_RESOLUTION.29
     }

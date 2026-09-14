@@ -1,0 +1,52 @@
+# ============================================================
+# THE COLD WAR EMBARGO, 1949
+#
+# The Western strategic embargo on the Eastern bloc is the one trade fact of
+# 1949 the map should show on day one: the US export controls of 1948 and the
+# COCOM list agreed the following year, answered in kind. Without it the
+# embargo mechanic starts empty and the button reads as a curiosity.
+#
+# Two authored lists, same as the UN blocs - nothing here is computed from
+# ideology or spheres. Content moves a country by clearing or setting
+# trade_embargo_check the normal way.
+#
+# It also cleans up a leftover: Japan's history file embargoes JAP with EVERY
+# country from 1941 and only ever lifts it for the USA, so in 1949 the whole
+# world is still blockading occupied Japan. Same for the Ryukyus. Those pairs
+# are wiped first, then the East/West rule puts back the half that belongs.
+# ============================================================
+
+cwic_cold_war_embargo_startup = {
+	# 1. Wipe the WW2 leftovers, both directions, for everyone.
+	every_country = {
+		set_variable = { trade_embargo_check^JAP = 0 }
+		set_variable = { trade_embargo_check^RYU = 0 }
+		set_variable = { JAP.trade_embargo_check^THIS = 0 }
+		set_variable = { RYU.trade_embargo_check^THIS = 0 }
+	}
+
+	# 2. West embargoes East. Inner scope is the eastern country, PREV the
+	#    western one, and diplomatic_relation reads from the scope outwards -
+	#    so the relation set here is EAST -> WEST and the pass below is the
+	#    other half. The variables are written once, here, in both directions.
+	every_country = {
+		limit = { cwic_is_cold_war_west = yes }
+		every_country = {
+			limit = { cwic_is_cold_war_east = yes }
+			set_variable = { trade_embargo_check^PREV = 1 }
+			set_variable = { PREV.trade_embargo_check^THIS = 1 }
+			send_embargo = PREV
+			diplomatic_relation = { country = PREV relation = embargo active = yes }
+		}
+	}
+
+	# 3. The other half of every relation.
+	every_country = {
+		limit = { cwic_is_cold_war_east = yes }
+		every_country = {
+			limit = { cwic_is_cold_war_west = yes }
+			send_embargo = PREV
+			diplomatic_relation = { country = PREV relation = embargo active = yes }
+		}
+	}
+}

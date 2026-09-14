@@ -1,0 +1,40 @@
+# ============================================================
+# TWO CHAMBERS
+#
+# The mod used to vote one body: every member voted and any permanent member
+# could veto the result. That is two institutions welded together, and it made
+# lobbying pointless - you could win 72-0 and one veto ended it.
+#
+#   un_chamber = 0   GENERAL ASSEMBLY. Everyone votes. NOBODY can veto.
+#                    A simple majority of votes cast carries it.
+#   un_chamber = 1   SECURITY COUNCIL. Only the fifteen vote. A permanent
+#                    member may veto. Nine yes votes carry it.
+#
+# Enforcement is Council business; declarations, condemnations and admissions
+# are the Assembly's. Content can override by setting un_chamber itself after
+# un_action_set and before UN_START_SCRIPTED_RESOLUTION.
+# ============================================================
+
+cwic_un_set_chamber = {
+	# Assembly by default - most of what the UN does is say things.
+	set_variable = { UNS.un_chamber = 0 }
+
+	# Enforcement: ceasefires, sanctions, embargoes, intervention. These bind
+	# members and cost somebody something, so they belong to the Council.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { UNS.un_action_set = 0 }
+				check_variable = { UNS.un_action_set = 5 }
+				check_variable = { UNS.un_action_set = 9 }
+				UNS = { has_country_flag = un_council_business }
+			}
+		}
+		set_variable = { UNS.un_chamber = 1 }
+	}
+	UNS = { clr_country_flag = un_council_business }
+}
+
+# (The chamber restriction on who may vote is applied where the floor is
+#  assembled, in UN_START_SCRIPTED_RESOLUTION - not here. An effect defined and
+#  never called is how a mod grows a second, wrong copy of a rule.)

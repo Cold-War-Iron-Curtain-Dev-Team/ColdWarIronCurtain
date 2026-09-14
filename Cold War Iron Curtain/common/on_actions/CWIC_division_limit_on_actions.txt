@@ -35,11 +35,41 @@ on_actions = {
 				limit = {
 					tag = UNS
 				}
+				# The 1965 enlargement: six elected seats become ten. The panel has
+				# had the extra two seats all along, gated on a flag nothing set.
+				if = {
+					limit = {
+						date > 1966.1.1
+						NOT = { has_global_flag = un_sec_reform }
+					}
+					set_global_flag = un_sec_reform
+					cwic_un_elect_council = yes
+				}
+
+				# Elections every year (classes overlap, so the council changes by
+				# halves), and a weekly rebuild of the list the panel reads.
+				if = {
+					limit = { NOT = { has_country_flag = un_council_elected_recently } }
+					set_country_flag = { flag = un_council_elected_recently days = 365 value = 1 }
+					cwic_un_elect_council = yes
+				}
+				cwic_un_council_refresh = yes
+
+				# HISTORY IS NOT ON A TIMER. An authored resolution is a landmark:
+				# it convenes its own sitting the week the moment arrives, which is
+				# what an emergency special session is for (Uniting for Peace, 1950).
 				UN_HISTORICAL_RESOLUTION_WEEKLY_CHECK = yes
-				# AFTER the historical check on purpose: the generator only
-				# fires when nothing else is running, so authored resolutions
-				# always take the floor first. See CWIC_un_auto_resolutions.txt.
-				cwic_un_auto_resolution = yes
+
+				# THE ORDINARY FLOOR SITS EVERY FOUR MONTHS - three times a year.
+				# Fast enough that the UN is a place where things happen, slow enough
+				# that a player has 120 days to actually do what a bloc asked of them
+				# before the next vote. It was weekly, which meant the tab nagged and
+				# one purchase covered two dozen votes.
+				if = {
+					limit = { NOT = { has_country_flag = un_sitting_recently } }
+					set_country_flag = { flag = un_sitting_recently days = 120 value = 1 }
+					cwic_un_auto_resolution = yes
+				}
 			}
 
 			if = {

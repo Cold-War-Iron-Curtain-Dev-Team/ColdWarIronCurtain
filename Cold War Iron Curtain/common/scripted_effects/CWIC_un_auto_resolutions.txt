@@ -120,8 +120,72 @@ cwic_un_auto_resolution = {
 # when the victory screen does.
 # ============================================================
 cwic_un_award_points = {
+	# COLD WAR POINTS. Two things are scored, and they are not the same thing:
+	#
+	#   the SIDE  - every resolution says who it helps (un_res_favours: 1 the
+	#               United States, 2 the Soviet Union, 0 neither) and how much of
+	#               a win it is (un_res_weight: 1 routine, 2 notable, 3 landmark).
+	#               If it carries, that side scores. If it fails or is vetoed,
+	#               THE OTHER SIDE SCORES - blocking a resolution is a victory too,
+	#               which is what a veto is for.
+	#
+	#   the FLOOR - every country on the winning side still scores one point of
+	#               its own, so a middle power has a reason to turn up.
+	#
+	# Content sets un_res_favours and un_res_weight before starting a resolution;
+	# unset means nobody's win, which is correct for a ceasefire between clients
+	# of the same patron.
 	if = {
-		limit = { check_variable = { UNS.un_yes_count > UNS.un_no_count } }
+		limit = { NOT = { has_variable = UNS.un_res_weight } }
+		set_variable = { UNS.un_res_weight = 1 }
+	}
+	if = {
+		limit = { NOT = { has_variable = UNS.un_res_favours } }
+		set_variable = { UNS.un_res_favours = 0 }
+	}
+
+	set_variable = { UNS.un_res_carried = 0 }
+	if = {
+		limit = {
+			check_variable = { UNS.un_chamber = 1 }
+			check_variable = { UNS.un_veto_count < 1 }
+			check_variable = { UNS.un_yes_count > 8 }
+		}
+		set_variable = { UNS.un_res_carried = 1 }
+	}
+	if = {
+		limit = {
+			check_variable = { UNS.un_chamber = 0 }
+			check_variable = { UNS.un_yes_count > UNS.un_no_count }
+		}
+		set_variable = { UNS.un_res_carried = 1 }
+	}
+
+	# the superpower ledger
+	if = {
+		limit = { check_variable = { UNS.un_res_favours = 1 } }
+		if = {
+			limit = { check_variable = { UNS.un_res_carried = 1 } }
+			USA = { add_to_variable = { cwic_cold_war_points = UNS.un_res_weight } }
+		}
+		else = {
+			SOV = { add_to_variable = { cwic_cold_war_points = UNS.un_res_weight } }
+		}
+	}
+	if = {
+		limit = { check_variable = { UNS.un_res_favours = 2 } }
+		if = {
+			limit = { check_variable = { UNS.un_res_carried = 1 } }
+			SOV = { add_to_variable = { cwic_cold_war_points = UNS.un_res_weight } }
+		}
+		else = {
+			USA = { add_to_variable = { cwic_cold_war_points = UNS.un_res_weight } }
+		}
+	}
+
+	# and everyone who voted with the winning side
+	if = {
+		limit = { check_variable = { UNS.un_res_carried = 1 } }
 		every_country = {
 			limit = { has_country_flag = UN_YES_ONGOING }
 			add_to_variable = { cwic_cold_war_points = 1 }
@@ -133,4 +197,8 @@ cwic_un_award_points = {
 			add_to_variable = { cwic_cold_war_points = 1 }
 		}
 	}
+
+	# spent, so the next resolution starts clean
+	set_variable = { UNS.un_res_favours = 0 }
+	set_variable = { UNS.un_res_weight = 1 }
 }

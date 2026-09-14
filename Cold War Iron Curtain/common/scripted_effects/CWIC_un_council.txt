@@ -1,0 +1,89 @@
+# ============================================================
+# THE SECURITY COUNCIL - WHO IS ON IT, AND WHO CAN SEE IT
+#
+# Before this, the fifteen seats on the UN panel were fifteen pieces of ART.
+# The five permanent members were hardcoded and the ten elected seats read an
+# array - un_temp_seats - THAT NOTHING EVER FILLED, so ten of the fifteen seats
+# were permanently empty and no seat ever said who was sitting in it.
+#
+# This file fills the array, elects a new council every two years, and builds
+# the list the panel reads to show real flags.
+#
+# WHO SITS:
+#   PERMANENT - anyone with the UN_Security_Council_Member_Perm idea. That is
+#   content's business, not ours: it is how the China seat moves between ROC
+#   and the PRC, and how a content designer would seat anyone else.
+#
+#   ELECTED - eight seats, ten after the 1965 enlargement (the un_sec_reform
+#   global flag, which the weekly check now actually sets - it was gated on a
+#   flag nothing ever set). Bloc leaders are seated FIRST, because a bloc with
+#   a seat is a bloc worth lobbying, and the rest are drawn at random from UN
+#   members.
+# ============================================================
+
+# Rebuilds the display list and the bloc tallies. Cheap; runs weekly.
+cwic_un_council_refresh = {
+	# The five permanent seats, IN A FIXED ORDER, because they are drawn as a
+	# row of five tiles and a row that reshuffles itself every week is unreadable.
+	# USA, USSR, Britain, France, China - and the China seat is whoever holds the
+	# idea, so it becomes the PRC the moment content moves it there. Anyone else
+	# content makes permanent is appended after them.
+	clear_array = UNS.un_sc_perm_seats
+	if = { limit = { USA = { has_idea = UN_Security_Council_Member_Perm } } add_to_array = { UNS.un_sc_perm_seats = USA.id } }
+	if = { limit = { SOV = { has_idea = UN_Security_Council_Member_Perm } } add_to_array = { UNS.un_sc_perm_seats = SOV.id } }
+	if = { limit = { ENG = { has_idea = UN_Security_Council_Member_Perm } } add_to_array = { UNS.un_sc_perm_seats = ENG.id } }
+	if = { limit = { FRA = { has_idea = UN_Security_Council_Member_Perm } } add_to_array = { UNS.un_sc_perm_seats = FRA.id } }
+	if = { limit = { CHI = { has_idea = UN_Security_Council_Member_Perm } } add_to_array = { UNS.un_sc_perm_seats = CHI.id } }
+	if = { limit = { PRC = { has_idea = UN_Security_Council_Member_Perm } } add_to_array = { UNS.un_sc_perm_seats = PRC.id } }
+	every_country = {
+		limit = {
+			has_idea = UN_Security_Council_Member_Perm
+			NOT = { tag = USA }  NOT = { tag = SOV }  NOT = { tag = ENG }
+			NOT = { tag = FRA }  NOT = { tag = CHI }  NOT = { tag = PRC }
+		}
+		add_to_array = { UNS.un_sc_perm_seats = THIS.id }
+	}
+
+	# Everyone in the room, permanent and elected, for anything that wants the
+	# whole council in one array.
+	clear_array = UNS.un_sc_seats
+	for_each_loop = {
+		array = UNS.un_sc_perm_seats
+		value = cwic_seat_holder
+		add_to_array = { UNS.un_sc_seats = cwic_seat_holder }
+	}
+	for_each_loop = {
+		array = UNS.un_temp_seats
+		value = cwic_seat_holder
+		add_to_array = { UNS.un_sc_seats = cwic_seat_holder }
+	}
+
+	# Bloc leaders, and how many countries each one speaks for. Read by the
+	# bloc strip on the UN panel.
+	clear_array = UNS.cwic_bloc_leaders
+	every_country = {
+		limit = { has_country_flag = cwic_bloc_leader }
+		add_to_array = { UNS.cwic_bloc_leaders = THIS.id }
+		set_variable = { cwic_bloc_size = 1 }
+	}
+	every_country = {
+		limit = { has_variable = cwic_bloc_leader_of }
+		var:cwic_bloc_leader_of = {
+			add_to_variable = { cwic_bloc_size = 1 }
+		}
+	}
+}
+
+# The election is now HISTORICAL - see CWIC_un_elections.txt. What used to be
+# here drew ten countries at random, which is how Burma, British Honduras and
+# Surinam ended up on the Security Council. The real classes of 1949-2008 are
+# authored, and a country the mod lacks is replaced from its own continent.
+cwic_un_elect_council = {
+	cwic_un_elect_historical = yes
+	cwic_un_council_refresh = yes
+}
+
+# Game start: seat a council immediately, or the panel opens empty in 1949.
+cwic_un_council_startup = {
+	cwic_un_elect_council = yes
+}

@@ -7890,74 +7890,76 @@ scripted_map_modes = {
 		# UI stuff: MAPMODE_EMBARGO_MAP_MODE, MAPMODE_EMBARGO_MAP_MODE_NAME,
 		# MAPMODE_EMBARGO_MAP_MODE_DESCRIPTION, embargo_map_mode_tooltip,
 		# GFX_mapmode_buttons_deselected_small_embargo_map_mode
-		# NOTE: a `targets` filter belongs here for performance, but it takes
-		# TARGETED-DECISION syntax (target_array / targets / target_trigger), not
-		# an every_country block. Writing one the wrong way broke the parse for
-		# this whole file and every map mode after it got named from whatever
-		# token the parser landed on - MAPMODE_CHECK_..., MAPMODE_ROOT_N... .
-		# Left out rather than guessed at a second time.
+		#
+		# EVERYTHING RUNS INSIDE FROM = { }, AND THAT IS THE WHOLE FIX.
+		# The first version read ROOT.trade_embargo_check^FROM from the outer
+		# scope. That index does not resolve, so the mode lit up countries that
+		# had no embargo at all and missed the ones that did - it looked random
+		# because it was. The mod's own embargo button writes and reads the pair
+		# as ROOT.trade_embargo_check^THIS, so the map has to stand in the drawn
+		# country's scope to say the same thing. Temp variables do not cross a
+		# scope change either, so every write lives inside the block too.
+		#
+		# The CWIC variable is the authority - it is what the button sets and what
+		# every focus and event in the mod sets. is_embargoing is only a backstop
+		# for anything that used the vanilla effect on its own.
 		top = {
 			type = country
 			color = {
-				# grey: no trade quarrel with us
-				set_temp_variable = { red = 140 }
-				set_temp_variable = { green = 140 }
-				set_temp_variable = { blue = 140 }
-				set_temp_variable = { alpha = 0.20 }
+				FROM = {
+					# grey: no trade quarrel with us
+					set_temp_variable = { red = 130 }
+					set_temp_variable = { green = 130 }
+					set_temp_variable = { blue = 135 }
+					set_temp_variable = { alpha = 1.0 }
 
-				# Read the ENGINE relation, not just our own bookkeeping variable.
-				# The variable only knows about embargoes placed with our own
-				# button; is_embargoing / is_embargoed_by also catch content,
-				# events and the AI, which is what you actually want on a map.
-				set_temp_variable = { emb_out = 0 }
-				set_temp_variable = { emb_in = 0 }
-				if = {
-					limit = {
-						OR = {
-							check_variable = { ROOT.trade_embargo_check^FROM = 1 }
-							ROOT = { is_embargoing = FROM }
+					set_temp_variable = { emb_out = 0 }
+					set_temp_variable = { emb_in = 0 }
+					if = {   # we are embargoing them
+						limit = {
+							OR = {
+								check_variable = { ROOT.trade_embargo_check^THIS = 1 }
+								is_embargoed_by = ROOT
+							}
 						}
+						set_temp_variable = { emb_out = 1 }
 					}
-					set_temp_variable = { emb_out = 1 }
-				}
-				if = {
-					limit = {
-						OR = {
-							check_variable = { FROM.trade_embargo_check^ROOT = 1 }
-							ROOT = { is_embargoed_by = FROM }
+					if = {   # they are embargoing us
+						limit = {
+							OR = {
+								check_variable = { trade_embargo_check^ROOT = 1 }
+								is_embargoing = ROOT
+							}
 						}
+						set_temp_variable = { emb_in = 1 }
 					}
-					set_temp_variable = { emb_in = 1 }
-				}
 
-				if = {   # mutual — deep red
-					limit = {
-						check_variable = { emb_out = 1 }
-						check_variable = { emb_in = 1 }
+					if = {   # mutual - deep red
+						limit = {
+							check_variable = { emb_out = 1 }
+							check_variable = { emb_in = 1 }
+						}
+						set_temp_variable = { red = 150 }
+						set_temp_variable = { green = 15 }
+						set_temp_variable = { blue = 15 }
 					}
-					set_temp_variable = { red = 120 }
-					set_temp_variable = { green = 10 }
-					set_temp_variable = { blue = 10 }
-					set_temp_variable = { alpha = 0.85 }
-				}
-				else_if = {   # we embargo them — orange
-					limit = { check_variable = { emb_out = 1 } }
-					set_temp_variable = { red = 220 }
-					set_temp_variable = { green = 110 }
-					set_temp_variable = { blue = 30 }
-					set_temp_variable = { alpha = 0.75 }
-				}
-				else_if = {   # they embargo us — yellow
-					limit = { check_variable = { emb_in = 1 } }
-					set_temp_variable = { red = 230 }
-					set_temp_variable = { green = 200 }
-					set_temp_variable = { blue = 40 }
-					set_temp_variable = { alpha = 0.75 }
-				}
+					else_if = {   # we embargo them - orange
+						limit = { check_variable = { emb_out = 1 } }
+						set_temp_variable = { red = 230 }
+						set_temp_variable = { green = 110 }
+						set_temp_variable = { blue = 25 }
+					}
+					else_if = {   # they embargo us - yellow
+						limit = { check_variable = { emb_in = 1 } }
+						set_temp_variable = { red = 240 }
+						set_temp_variable = { green = 210 }
+						set_temp_variable = { blue = 40 }
+					}
 
-				divide_temp_variable = { red = 255 }
-				divide_temp_variable = { green = 255 }
-				divide_temp_variable = { blue = 255 }
+					divide_temp_variable = { red = 255 }
+					divide_temp_variable = { green = 255 }
+					divide_temp_variable = { blue = 255 }
+				}
 			}
 		}
 		bottom = { type = none }
@@ -7966,11 +7968,6 @@ scripted_map_modes = {
 		update_daily = yes   # was no, so it never refreshed after you embargoed anyone
 	}
 
-	# ============================================================
-	# UN VOTE. Who is voting which way on the resolution on the floor.
-	# Reads the same vote flags cwic_un_recount reads, so it can never
-	# disagree with the tab.
-	# ============================================================
 	un_vote_map_mode = {
 		top = {
 			type = country
@@ -7979,35 +7976,35 @@ scripted_map_modes = {
 				set_temp_variable = { red = 70 }
 				set_temp_variable = { green = 70 }
 				set_temp_variable = { blue = 70 }
-				set_temp_variable = { alpha = 0.15 }
+				set_temp_variable = { alpha = 1.0 }
 
 				if = {   # veto - deep red, it kills the resolution outright
 					limit = { FROM = { has_country_flag = UN_VETO_ONGOING } }
 					set_temp_variable = { red = 140 }
 					set_temp_variable = { green = 0 }
 					set_temp_variable = { blue = 20 }
-					set_temp_variable = { alpha = 0.9 }
+					set_temp_variable = { alpha = 1.0 }
 				}
 				else_if = {   # no
 					limit = { FROM = { has_country_flag = UN_NO_ONGOING } }
 					set_temp_variable = { red = 220 }
 					set_temp_variable = { green = 60 }
 					set_temp_variable = { blue = 60 }
-					set_temp_variable = { alpha = 0.75 }
+					set_temp_variable = { alpha = 1.0 }
 				}
 				else_if = {   # yes
 					limit = { FROM = { has_country_flag = UN_YES_ONGOING } }
 					set_temp_variable = { red = 70 }
 					set_temp_variable = { green = 210 }
 					set_temp_variable = { blue = 100 }
-					set_temp_variable = { alpha = 0.75 }
+					set_temp_variable = { alpha = 1.0 }
 				}
 				else_if = {   # abstaining - present, not committed
 					limit = { FROM = { has_country_flag = UN_ABSTAIN_ONGOING } }
 					set_temp_variable = { red = 200 }
 					set_temp_variable = { green = 200 }
 					set_temp_variable = { blue = 120 }
-					set_temp_variable = { alpha = 0.55 }
+					set_temp_variable = { alpha = 1.0 }
 				}
 				else_if = {   # a member who has not voted yet
 					limit = {
@@ -8021,7 +8018,7 @@ scripted_map_modes = {
 					set_temp_variable = { red = 150 }
 					set_temp_variable = { green = 150 }
 					set_temp_variable = { blue = 150 }
-					set_temp_variable = { alpha = 0.35 }
+					set_temp_variable = { alpha = 1.0 }
 				}
 
 				divide_temp_variable = { red = 255 }
@@ -8050,44 +8047,100 @@ scripted_map_modes = {
 		top = {
 			type = country
 			color = {
-				# unaligned - grey
-				set_temp_variable = { red = 120 }
-				set_temp_variable = { green = 120 }
-				set_temp_variable = { blue = 120 }
-				set_temp_variable = { alpha = 0.20 }
+				# Unaligned: dark grey, and the only thing on the map that is not
+				# solid. Everything in a bloc is opaque so blocs read at a glance.
+				set_temp_variable = { red = 70 }
+				set_temp_variable = { green = 70 }
+				set_temp_variable = { blue = 70 }
+				set_temp_variable = { alpha = 1.0 }
 
-				# whose colour are we wearing: our own if we lead, our
-				# leader's if we follow
+				# Whose colour are we wearing: our own if we lead, our leader's if
+				# we follow. bloc_id is the LEADER's country id either way.
 				set_temp_variable = { bloc_id = -1 }
+				set_temp_variable = { bloc_follower = 0 }
 				if = {
 					limit = { FROM = { has_country_flag = cwic_bloc_leader } }
 					set_temp_variable = { bloc_id = FROM.id }
-					set_temp_variable = { alpha = 0.95 }
+					set_temp_variable = { alpha = 1.0 }
 				}
 				else_if = {
 					limit = { FROM = { has_variable = cwic_bloc_leader_of } }
 					set_temp_variable = { bloc_id = FROM.cwic_bloc_leader_of }
-					set_temp_variable = { alpha = 0.55 }
+					set_temp_variable = { bloc_follower = 1 }
 				}
 
+				# Fallback slate for any bloc content invents after this file. Set
+				# BEFORE the chain, not as a trailing else_if - an else_if only ever
+				# pairs with the branch directly above it, so it would repaint every
+				# bloc that was not the last one in the list.
 				if = {
 					limit = { check_variable = { bloc_id > -1 } }
-					# three different multipliers off the same id so the
-					# channels do not move together and produce greys
-					set_temp_variable = { red = bloc_id }
-					multiply_temp_variable = { red = 53 }
-					modulo_temp_variable = { red = 200 }
-					add_to_temp_variable = { red = 55 }
+					set_temp_variable = { red = 130 }
+					set_temp_variable = { green = 140 }
+					set_temp_variable = { blue = 150 }
+				}
 
-					set_temp_variable = { green = bloc_id }
-					multiply_temp_variable = { green = 97 }
-					modulo_temp_variable = { green = 200 }
-					add_to_temp_variable = { green = 55 }
+				# AUTHORED COLOURS. The old version hashed the leader's id into RGB,
+				# which produced eight muddy pastels nobody could tell apart and that
+				# had nothing to do with the countries wearing them. A new bloc added
+				# by content gets a branch here, or it shows the fallback slate.
+				if = {   # the American caucus - blue
+					limit = { check_variable = { bloc_id = USA.id } }
+					set_temp_variable = { red = 60 }
+					set_temp_variable = { green = 105 }
+					set_temp_variable = { blue = 215 }
+				}
+				if = {   # Eastern European Group - red
+					limit = { check_variable = { bloc_id = SOV.id } }
+					set_temp_variable = { red = 205 }
+					set_temp_variable = { green = 45 }
+					set_temp_variable = { blue = 45 }
+				}
+				if = {   # Western Europe and Others - purple
+					limit = { check_variable = { bloc_id = ENG.id } }
+					set_temp_variable = { red = 150 }
+					set_temp_variable = { green = 80 }
+					set_temp_variable = { blue = 190 }
+				}
+				if = {   # Arab League - green
+					limit = { check_variable = { bloc_id = EGY.id } }
+					set_temp_variable = { red = 35 }
+					set_temp_variable = { green = 155 }
+					set_temp_variable = { blue = 90 }
+				}
+				if = {   # Latin America - gold
+					limit = { check_variable = { bloc_id = BRA.id } }
+					set_temp_variable = { red = 240 }
+					set_temp_variable = { green = 190 }
+					set_temp_variable = { blue = 60 }
+				}
+				if = {   # South and South-East Asia - saffron
+					limit = { check_variable = { bloc_id = RAJ.id } }
+					set_temp_variable = { red = 235 }
+					set_temp_variable = { green = 130 }
+					set_temp_variable = { blue = 45 }
+				}
+				if = {   # the Nordics - cyan
+					limit = { check_variable = { bloc_id = SWE.id } }
+					set_temp_variable = { red = 70 }
+					set_temp_variable = { green = 195 }
+					set_temp_variable = { blue = 215 }
+				}
+				if = {   # Africa - magenta
+					limit = { check_variable = { bloc_id = ETH.id } }
+					set_temp_variable = { red = 215 }
+					set_temp_variable = { green = 85 }
+					set_temp_variable = { blue = 160 }
+				}
 
-					set_temp_variable = { blue = bloc_id }
-					multiply_temp_variable = { blue = 149 }
-					modulo_temp_variable = { blue = 200 }
-					add_to_temp_variable = { blue = 55 }
+				# Followers wear the leader's colour darkened. Everything stays fully
+				# opaque - a faded alpha let the terrain through and the map turned
+				# into mud you could not read a bloc off.
+				if = {
+					limit = { check_variable = { bloc_follower = 1 } }
+					multiply_temp_variable = { red = 0.55 }
+					multiply_temp_variable = { green = 0.55 }
+					multiply_temp_variable = { blue = 0.55 }
 				}
 
 				divide_temp_variable = { red = 255 }
