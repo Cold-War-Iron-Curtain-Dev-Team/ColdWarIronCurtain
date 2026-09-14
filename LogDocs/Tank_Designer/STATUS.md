@@ -2508,11 +2508,15 @@ Art already shipped and currently reachable only as technology icons:
 plus national pieces such as `WGR_apc_2/3`, `WGR_ifv_2/3`, `SOV_apc_10`, `SOV_ifv_2..8`,
 `USA_ifv_3/4` and generic `mbt_0..9` under `gfx/interface/technologies/`.
 
-### Duplicate legacy vehicles on NSB
+### Duplicate legacy vehicles on NSB - IMPLEMENTED 2026-09-13, narrowed mid-pass
 
-Fifty-four numbered legacy rows are declared and **none of them carries `can_be_produced` or
-any DLC predicate**, so on an NSB profile every one sits in the production tab beside its
-designer replacement:
+**Shipped: 37 of the 64 legacy rows are now DLC-gated.** Read the scope correction below before
+extending this - the artillery/SPAA/TD/ATGM half was gated, measured to break NSB division
+templates, and reverted inside the same pass.
+
+Sixty-four numbered legacy rows are declared - the earlier count of 54 in this section was
+wrong - and before this pass **none carried `can_be_produced` or any DLC predicate**, so on an
+NSB profile every one sat in the production tab beside its designer replacement:
 
 | Family | Rows | Declared at |
 | --- | --- | --- |
@@ -2547,33 +2551,82 @@ artillery rows (eastern block `:765,792,818,842,869,895,918,944,969`, SP artille
 `:344-372`). **Gating, not deletion, is the only option that keeps these alive**, which matches
 the ratified position that the archetypes survive for non-NSB play.
 
-Proposed mapping, measured from the year fields and the ratified role table, not yet ruled on:
-post-1945 `lt_equipment`/`mbt_equipment`/`ht_equipment` rows map to the base light, medium and
-heavy hulls at the nearest ladder tier whose year does not exceed theirs;
-`mechanized_equipment_3..10` to `light_tank_apc_chassis`; `mechanized_heavy_equipment_1..8` to
-`light_tank_ifv_chassis`; `spaag_equipment_*` to `medium_tank_aa_chassis`;
-`sp_artillery_equipment_*` to `medium_tank_artillery_chassis`;
-`medium_tank_destroyer_equipment_*` to `medium_tank_destroyer_chassis`; `atgm_carrier_equipment_*`
-to the light destroyer role carrying the ATGM launcher, since ATGM is a loadout and not a role.
+### What shipped
 
-**Rows with no designer replacement, which must stay ungated:** the pre-1945 tank rows
-`lt_equipment_1` (1942, inherited) and `_2` (1944), `mbt_equipment_0` (1942) and `_1` (1944),
-`ht_equipment_1` (1942) and `_2` (1944); `mechanized_equipment_1..2` (1942/1944, the
-pre-designer WWII rows in the ratified exception set); and `mechanized_marine_equipment_1..5`,
-unlocked by `amphibious1..5` at `armor.txt:1767,1795,1830,1866,1901` for 1944/1950/1965/1985/2005 -
-the APC role family supplies marines mod-wide but nothing replaces these selectively.
+Thirty-seven rows gained `can_be_produced = { NOT = { has_dlc = "No Step Back" } }`, inserted
+immediately after the row's `year` line - or after its `archetype` line for `lt_equipment_1`,
+which declares no row-local year and inherits 1942 from its archetype:
 
-The gating shape on every replaced row is `can_be_produced = { NOT = { has_dlc = "No Step Back" } }`.
-The recorded blocker still stands: gating the carriers leaves an NSB bookmark start with no
-buildable carrier until a design exists, so this pass depends on the bookmark presets being the
-source of the starting design - which they now are.
+| File | Rows gated |
+| --- | ---: |
+| `tank_light.txt` | 6 (`lt_equipment_1..6`) |
+| `tank_medium.txt` | 10 (`mbt_equipment_0..9`) |
+| `tank_heavy.txt` | 5 (`ht_equipment_1..5`) |
+| `x_tank_chassis.txt` | 16 (`mechanized_equipment_3..10`, `mechanized_heavy_equipment_1..8`) |
 
-Validator sites any gating pass must edit: constants `LEGACY_ARMOUR_GRANT` `:473-475` and
-`UNMIGRATED_LEGACY_ARMOUR` `:477-480`; `validate_focus_armour_grants` `:2980`, filter `:2994-2999`,
-NSB fallback `:3000-3027`; `validate_carrier_battalions` `:5338`, retired-carrier regex `:5367-5371`;
-`validate_carrier_roles` `:5375`, legacy role rows `:5399-5411`; `validate_marine_carrier` `:5500`,
-marine rows `:5512-5535`; `validate_stockpile_grants` `:5650` with its transposed-legacy fixture
-at `:5698`.
+**Seven rows stay ungated, the ratified exception set:** `mechanized_equipment_1..2`, the
+pre-designer WWII rows with no designer replacement, and `mechanized_marine_equipment_1..5`,
+which stay legacy because marines ride any carrier under the 2026-09-13 ruling. Verified
+independently of the subagents that made the edits: none of the seven carries `has_dlc`, and the
+`duplicate_archetypes` block is untouched.
+
+These four families are safe to gate because their battalions consume a family that still holds
+designer members. The tank rows carry `archetype = light/medium/heavy_tank_chassis` and the three
+armour battalions `need` those hulls; the carrier rows were relocated into
+`light_tank_apc_chassis` / `light_tank_ifv_chassis`, which the carrier battalions name directly
+(`CWIC-Infantry.txt:158-165,235-242`, `CWIC-Special-Units.txt:99-106,278-285`,
+`CWIC-Support-Units.txt:122-127,457-462,937-941`). Nothing is stranded.
+
+### Scope correction: the artillery/SPAA/TD/ATGM half was gated and reverted
+
+All 20 rows in `sp_aa.txt`, `sp_art.txt`, `tank_destroyer.txt` and `atgm_carrier.txt` were gated
+in this pass and then **reverted to byte-identical**, because the premise that justified gating
+them was wrong.
+
+The premise was that their legacy battalions are all `active = no` and therefore unreachable. The
+first half is true - `CWIC-Anti-Air.txt` `spaag`, `CWIC-Artillery.txt` `sp_artillery` /
+`light_sp_artillery` / `heavy_sp_artillery`, `CWIC-Anti-Tank.txt` `tank_destroyer` /
+`atgm_carrier` and `CWIC-Support-Units.txt` `spaag_support` are every one `active = no`. The
+second half does not follow: **`active = no` means "enabled by technology", not "unreachable"**,
+and ordinary non-DLC technologies enable them on both profiles - `artillery.txt:254` (spaag),
+`:1276` (sp_artillery), `:1621` (light), `:1980` (heavy), `:3405` (tank_destroyer) and
+`rocket.txt:1513` (atgm_carrier).
+
+Then the measurement that settles it: **NSB division templates across `history/` still field
+those battalions** - 43 `_nsb` files name `sp_artillery`, 20 `light_sp_artillery`, 20
+`tank_destroyer`, 9 `spaag`, 9 `heavy_sp_artillery`, 3 `atgm_carrier`. Gating their equipment
+leaves every one of those templates unproducible on NSB. That is a regression, not a cleanup.
+
+The same scan turned up families the original inventory missed entirely:
+`light_sp_artillery_equipment_*`, `heavy_sp_artillery_equipment_*` and `rocket_sp_artillery`.
+The artillery side is wider than this section previously claimed, which is further reason not to
+gate it piecemeal.
+
+**So gating the support-armour half requires rewiring those battalions onto the role families
+first - which is the artillery/AA restructure the owner deferred.** Do not gate them before that
+lands.
+
+### Validator contract
+
+`validate_legacy_armour_dlc_gates()` pins the 37 gated ids and the 7 exceptions by name. It
+fails when a gated row loses its gate, when an exception gains one, when any row carries **two**
+`can_be_produced` blocks - the engine keeps the last and silently drops the first - and when an
+archetype root gates production by DLC. That last check is on a DLC predicate specifically, not
+on the presence of `can_be_produced`, because the three designer hulls carry a deliberately empty
+`can_be_produced = { }` at `tank_chassis.txt:7`. The first draft flagged those three as failures;
+that was the check being wrong, not the content.
+
+The excluded artillery families carry a comment at the map's end naming the technologies and the
+template exposure, so the next reader does not re-derive the revert.
+
+Proven to bite: deleting `ht_equipment_1`'s gate produces
+`legacy armour row tank_heavy.txt:ht_equipment_1 must declare can_be_produced`, then restored.
+
+**Verification: static only.** Self-test inventory line unchanged from baseline. No BOM on any
+edited file. The NSB bookmark start has a buildable carrier because the presets create the
+starting designs - but **that has not been confirmed in game**, and it is the one thing owner QA
+should check first: start an NSB bookmark and confirm the production tab offers designer armour
+and no legacy duplicates, and that a non-NSB start still offers the legacy rows.
 
 ### Finding 25: `flame` is free, and that reopens amphibious as a real designer role - 2026-09-13
 
@@ -2712,6 +2765,10 @@ question of whether `need` can name a role root. Those are settled and unaffecte
    gating is ruled out; see the ruling above. Nothing downstream is blocked on it.
 3. ~~The unregistered archetype pictures.~~ **Fixed 2026-09-13** by renaming five picture values
    onto registered sprites, with a new validator contract. Static only; icons unseen in game.
-4. **Legacy NSB gating - next.** Scripted work with a measured blast radius and no art dependency.
+4. ~~Legacy NSB gating.~~ **Shipped 2026-09-13** for the tank and carrier halves, 37 rows. The
+   artillery/SPAA/TD/ATGM half is blocked on the deferred artillery/AA restructure - see the
+   scope correction. Owner QA owed: NSB start shows designer armour with no legacy duplicates,
+   non-NSB start unchanged.
 5. Vehicle images as profile-sprite coverage, then 3D models as per-sub-unit alias coverage.
    Both are art-supply-bound; neither can promise per-design fidelity on current evidence.
+6. The artillery/AA restructure, which now also owns the remaining 20 legacy gates.
