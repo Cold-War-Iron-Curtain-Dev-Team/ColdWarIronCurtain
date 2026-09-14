@@ -32,6 +32,7 @@ report only the rows you need.
 | `data/2023 - CWIC Tank Rework Balance.xlsx` | 188 KB | **Frozen. Must stay byte-identical.** |
 | `data/2023 - CWIC Tank Rework Balance(Total Balance Sheet Minimal).csv` | 60 KB | The living balance mirror |
 | `data/APC_IFV_Bookmark_Mapping.md` | 103 KB | 572-row mapping table + 100 resolved OOB requests |
+| `data/Historical_Vehicle_Reverse_Map.json` | 402 KB | 77 legacy armour tiers joined to per-country art and historical names; 1,468 resolved country rows. Generated 2026-09-13, not tool-parsed |
 | `data/National_Tank_Preset_Manifest.json` | 10 KB | The 14 USA/SOV medium presets |
 | `data/Balance_Target_Manifest.md` | 12 KB | The frozen 40-row envelope manifest |
 | `data/Artillery_AA_Target_Manifest.md` | 5 KB | Frozen artillery/AA/AT/SAM targets |

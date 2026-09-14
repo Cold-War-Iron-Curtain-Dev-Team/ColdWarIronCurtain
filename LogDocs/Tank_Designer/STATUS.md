@@ -2805,6 +2805,48 @@ sharing the motorized icon, and it is no less safe: the texture files are alread
 `archetype_car_transport_equipment` and `archetype_mechanized_airborne_equipment` belong to
 non-armour families and were left alone.
 
+### The reverse map is BUILT 2026-09-13 - `data/Historical_Vehicle_Reverse_Map.json`
+
+The owner's idea works and is now a machine-readable manifest, 402 KB, 77 equipment tiers.
+**The join is `enable_equipments`**: a technology names the equipment it unlocks, the per-country
+art is `GFX_<TAG>_<technology>_medium`, and the historical name is `<TAG>_<equipment_id>` in
+`localisation/english/*_equipment_l_english.yml`. Technology is the hinge - art keys on the
+technology name, names key on the equipment id, and nothing joined them before.
+
+Measured supply: 16,526 `GFX_<TAG>_<tech>_medium` sprites, 6,897 per-country equipment names, and
+**1,468 country rows that resolve BOTH art and a historical name** for a legacy armour tier. Each
+manifest row carries the technology and its file, the equipment id and its file, the year, the
+family, the designer target family, and the per-country art path and name.
+
+| Family | Country rows with art + name |
+| --- | ---: |
+| `mechanized_equipment` | 364 |
+| `mbt_equipment` | 297 |
+| `lt_equipment` | 185 |
+| `mechanized_heavy_equipment` | 152 |
+| `sp_artillery_equipment` | 91 |
+| `mechanized_marine_equipment` | 84 |
+| `light_sp_artillery_equipment` | 83 |
+| `spaag_equipment` | 81 |
+| `medium_tank_destroyer_equipment` | 57 |
+| `heavy_sp_artillery_equipment` | 49 |
+| `ht_equipment` | 25 |
+| `atgm_carrier_equipment` | 0 |
+| `sht_equipment` | 0 |
+
+Two gaps, both known rather than guessed: the five `atgm_carrier_equipment_*` tiers have **no
+per-country art at all** - no `atgm_carrier_*` tech sprite exists - and the three
+`sht_equipment_*` tiers have **no per-country names**. `rocket_sp_artillery` does not appear
+because no technology declares `enable_equipments` for it; that family needs checking separately.
+
+**Every family maps onto a light, medium or heavy hull role**, which is what makes the conversion
+tractable - the manifest's `designer_target` column is filled for all 13 families with no
+remainder.
+
+The manifest is a data artefact for the conversion pass, not a decision. What still needs an
+owner ruling per row: whether a designer design inherits the legacy historical name, and whether
+per-country art can attach to designer equipment at all - see the icon-resolution question below.
+
 ### Suggested order
 
 1. ~~Commit the phase 6/7 and flame-probe work.~~ **Done 2026-09-13, `2636424db7`.**
