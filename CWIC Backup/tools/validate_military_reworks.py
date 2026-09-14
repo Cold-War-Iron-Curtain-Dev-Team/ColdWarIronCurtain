@@ -619,14 +619,17 @@ UNSUPPORTED_IDS = {
     "amphibious_mechanized_infantry",
     "category_amphibious_tanks",
     *REMOVED_TANK_TYPE_IDS,
+    # Six of the eight duplicate role brigades are retired. `heavy_tank_destroyer_brigade`
+    # and `medium_sp_anti_air_brigade` are NOT: no surviving legacy battalion consumes
+    # `heavy_tank_destroyer_chassis` or `medium_tank_aa_chassis`, so deleting them
+    # orphaned two role families and dropped Heavy Tank Destroyer and Medium SPAAG from
+    # the ratified battalion taxonomy. They are restored and must stay.
     "light_tank_destroyer_brigade",
     "medium_tank_destroyer_brigade",
-    "heavy_tank_destroyer_brigade",
     "light_sp_artillery_brigade",
     "medium_sp_artillery_brigade",
     "heavy_sp_artillery_brigade",
     "light_sp_anti_air_brigade",
-    "medium_sp_anti_air_brigade",
     "light_flame_tank",
     "medium_flame_tank",
     "heavy_flame_tank",
@@ -3190,6 +3193,27 @@ def validate_tank_rework() -> None:
         missing = expected - actual
         if missing:
             fail(f"{technology} is missing supported chassis grants: {sorted(missing)}")
+    # A role family with no consuming sub-unit is designer output that cannot reach
+    # the battlefield - the exact defect the 2026-09-13 brigade deletion introduced
+    # for `heavy_tank_destroyer_chassis` and `medium_tank_aa_chassis` before it was
+    # caught. Every declared role root must be named by some land sub-unit.
+    consumers = ""
+    for path in sorted((MOD / "common/units").glob("*.txt")):
+        consumers += code_only(text(path))
+    # `medium_tank_apc_chassis` and `medium_tank_ifv_chassis` are the Heavy APC and
+    # Heavy IFV roles. They have had no consuming battalion since phase 3 authored
+    # them - the carrier battalions all name the light roles - so their designer
+    # output cannot reach the battlefield either. That predates this pass and adding
+    # two battalions is owner-facing content, so it is named here rather than fixed
+    # silently. See `STATUS.md` Finding 27.
+    unconsumed_by_decision = {"medium_tank_apc_chassis", "medium_tank_ifv_chassis"}
+    for family, roles in FAMILY_ROLES.items():
+        for role in roles:
+            root = f"{family}_tank_{role}_chassis"
+            if root in unconsumed_by_decision:
+                continue
+            if not re.search(rf"(?<![A-Za-z0-9_]){root}(?![A-Za-z0-9_])", consumers):
+                fail(f"role family {root} has no sub-unit consuming it")
     roles = text(TANK_ROLE_FILE)
     validate_legacy_armour_roles()
     role_blocks = dict(top_level_blocks(roles, "sub_units"))
