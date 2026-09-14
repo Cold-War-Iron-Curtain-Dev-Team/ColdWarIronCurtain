@@ -5740,6 +5740,105 @@ VANILLA_ARCHETYPE_SPRITES = {
 }
 
 
+# NSB's designer rows otherwise sit beside their legacy counterparts in the
+# production tab, allowing both versions to be built on the same DLC profile.
+LEGACY_ARMOUR_DLC_GATES = {
+    EQUIPMENT_DIR / "tank_light.txt": tuple(f"lt_equipment_{tier}" for tier in range(1, 7)),
+    EQUIPMENT_DIR / "tank_medium.txt": tuple(f"mbt_equipment_{tier}" for tier in range(10)),
+    EQUIPMENT_DIR / "tank_heavy.txt": tuple(f"ht_equipment_{tier}" for tier in range(1, 6)),
+    ROLE_CHASSIS_FILE: (
+        *(f"mechanized_equipment_{tier}" for tier in range(3, 11)),
+        *(f"mechanized_heavy_equipment_{tier}" for tier in range(1, 9)),
+    ),
+    # Artillery, SPAA, tank destroyers and ATGM carriers are deliberately NOT
+    # gated. Their legacy battalions are enabled on both profiles by ordinary
+    # technologies (`artillery.txt:254,1276,1621,1980,3405`, `rocket.txt:1513`)
+    # and NSB division templates across `history/` still field them, so gating
+    # the equipment would leave those templates unproducible. Converging them
+    # onto the role families is the deferred artillery/AA restructure.
+}
+# Pre-designer WWII rows have no designer replacement; marine rows stay legacy
+# because marines ride any carrier.
+LEGACY_ARMOUR_UNGATED_EXCEPTIONS = frozenset(
+    {
+        "mechanized_equipment_1",
+        "mechanized_equipment_2",
+        *(f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)),
+    }
+)
+
+
+def validate_legacy_armour_dlc_gates() -> None:
+    """Keep legacy armour out of NSB production without orphaning non-NSB rows."""
+    equipment_blocks = {
+        path: dict(top_level_blocks(code_only(text(path)), "equipments"))
+        for path in LEGACY_ARMOUR_DLC_GATES
+    }
+    for path in (
+        CHASSIS_FILE,
+        ROLE_CHASSIS_FILE,
+        MECHANIZED_FILE,
+        HEAVY_MECHANIZED_FILE,
+        EQUIPMENT_DIR / "mechanized_marine.txt",
+    ):
+        equipment_blocks.setdefault(
+            path, dict(top_level_blocks(code_only(text(path)), "equipments"))
+        )
+
+    gates: dict[tuple[Path, str], list[str]] = {}
+    for path, blocks in equipment_blocks.items():
+        for equipment, block in blocks.items():
+            row_gates = top_level_named_blocks(
+                block, "can_be_produced", f"{path.name}:{equipment}"
+            )
+            gates[path, equipment] = row_gates
+            if len(row_gates) > 1:
+                fail(
+                    f"legacy armour row {path.name}:{equipment} has duplicate "
+                    "can_be_produced blocks"
+                )
+            # The three designer hulls carry a deliberately empty
+            # `can_be_produced = { }`, which is not a gate. Only a DLC predicate
+            # on an archetype would hide a whole family from a profile.
+            dlc_gates = [gate for gate in row_gates if "has_dlc" in gate]
+            if re.search(r"\bis_archetype\s*=\s*yes\b", block) and dlc_gates:
+                fail(
+                    f"legacy armour archetype {path.name}:{equipment} must not "
+                    "gate production by DLC"
+                )
+            if equipment in LEGACY_ARMOUR_UNGATED_EXCEPTIONS and dlc_gates:
+                fail(
+                    f"legacy armour exception {path.name}:{equipment} must not "
+                    "gate production by DLC"
+                )
+
+    for path, expected_rows in LEGACY_ARMOUR_DLC_GATES.items():
+        blocks = equipment_blocks[path]
+        for equipment in expected_rows:
+            block = blocks.get(equipment)
+            if block is None:
+                fail(f"legacy armour row {path.name}:{equipment} is missing")
+                continue
+            row_gates = gates[path, equipment]
+            if not row_gates:
+                fail(
+                    f"legacy armour row {path.name}:{equipment} must declare "
+                    "can_be_produced"
+                )
+                continue
+            if len(row_gates) > 1:
+                continue
+            gate = row_gates[0]
+            if (
+                not re.search(r"\bNOT\s*=\s*\{", gate)
+                or not re.search(r'\bhas_dlc\s*=\s*"No Step Back"', gate)
+            ):
+                fail(
+                    f"legacy armour row {path.name}:{equipment} must exclude "
+                    "No Step Back from production"
+                )
+
+
 def validate_armour_archetype_pictures() -> None:
     """Every armour archetype picture must resolve to a registered sprite.
 
@@ -5806,6 +5905,7 @@ def validate_armour_archetype_pictures() -> None:
             )
 
 
+validate_legacy_armour_dlc_gates()
 validate_armour_archetype_pictures()
 validate_carrier_bookmarks()
 validate_carrier_roles()
