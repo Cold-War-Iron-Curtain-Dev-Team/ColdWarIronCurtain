@@ -2758,6 +2758,53 @@ three earlier sessions got wrong. That is a cheap price for retiring a false con
 **Do not** use this ruling to reopen the flame blacklist, the role-token vocabulary, or the
 question of whether `need` can name a role root. Those are settled and unaffected.
 
+### Owner QA 2026-09-13: the gating works, and the remaining rows are the deferred half
+
+Owner capture of a non-NSB production tab still lists M16 Multiple Gun Motor Carriage, T66
+launcher, M36 Jackson, LVT-4 Water Buffalo, M40 Gun Motor Carriage, 105mm Howitzer Motor
+Carriage M7 and 155mm Howitzer Motor Carriage M41. **No new errors.**
+
+**Every one of those is a row this pass deliberately left ungated** - SPAA, rocket SP artillery,
+medium TD, heavy/light/medium SP artillery and a marine row. So the capture corroborates the
+scope correction rather than contradicting it: the tank and carrier halves are gated, the
+artillery/SPAA/TD/ATGM half waits on the artillery/AA restructure, and the marine rows are a
+ratified exception. Nothing here is a defect.
+
+### The mod already ships a per-country equipment art and naming library - 2026-09-13
+
+Found while checking that capture, and it materially changes the vehicle-image and naming scope
+recorded above. Both surfaces are larger and further along than this folder believed.
+
+**Naming.** Legacy equipment carries per-country historical names through `<TAG>_<equipment_id>`
+localisation keys, with `_short` variants: `ARG_spaag_equipment_1` is "M16 Multiple Gun Motor
+Carriage", `ARG_mechanized_marine_equipment_1` is "LVT-4 Water Buffalo" / "LVT-4", and the same
+ids recur across AUS, BRA, COL, CUB, GRE, INO and more in `localisation/english/*_equipment_l_english.yml`.
+This is a real, populated system. Designer equipment does not use it - designer names come from
+`create_equipment_variant`. Any "historical naming conversion" should be measured against these
+files first rather than designed from scratch.
+
+**Art.** `gfx/interface/technologies/` holds **9,965** files, including per-country per-tier
+carrier art such as `ADR_APC_9.png` and `ADR_ifv_7.png`, and `interface/*_techs.gfx` registers
+**16,283** `GFX_<TAG>_<id>_medium` sprites. The per-hull-tier icon limit recorded under "Vehicle
+images" was measured against the designer `picture` path only; it says nothing about this
+library, which is where any historical-image work should start.
+
+**Four archetype textures were shipped and never registered**, which is the real reason the
+picture values existed: `archetype_mechanized_equipment.dds`,
+`archetype_mechanized_heavy_equipment.dds`, `archetype_car_transport_equipment.dds` and
+`archetype_mechanized_airborne_equipment.dds` sit in `gfx/interface/` with no `spriteType`
+anywhere.
+
+**So the earlier mechanized fix was corrected, 2026-09-13.** Pointing the two mechanized families
+at the motorized picture was the right call on the evidence available at the time - no
+`archetype_mechanized_*` sprite existed - but the textures did. Both sprites are now registered
+in `interface/cwic_tank_rework_icons.gfx:2724-2725` and `mechanized.txt:11` and
+`mechanized_heavy.txt:12` carry their own art again. This restores intended art instead of
+sharing the motorized icon, and it is no less safe: the texture files are already in the repo.
+`mechanized_marine_equipment` has no texture of its own and stays on the motorized picture.
+`archetype_car_transport_equipment` and `archetype_mechanized_airborne_equipment` belong to
+non-armour families and were left alone.
+
 ### Suggested order
 
 1. ~~Commit the phase 6/7 and flame-probe work.~~ **Done 2026-09-13, `2636424db7`.**
@@ -2769,6 +2816,8 @@ question of whether `need` can name a role root. Those are settled and unaffecte
    artillery/SPAA/TD/ATGM half is blocked on the deferred artillery/AA restructure - see the
    scope correction. Owner QA owed: NSB start shows designer armour with no legacy duplicates,
    non-NSB start unchanged.
-5. Vehicle images as profile-sprite coverage, then 3D models as per-sub-unit alias coverage.
-   Both are art-supply-bound; neither can promise per-design fidelity on current evidence.
+5. **The mass non-NSB to NSB conversion** - historical OOBs, naming, 2D art and entities onto the
+   designer systems. Start from the measured per-country library above (9,965 technology art
+   files, 16,283 `GFX_<TAG>_<id>_medium` sprites, `<TAG>_<equipment_id>` loc keys), not from the
+   designer `picture` path, whose per-hull-tier limit does not apply to it.
 6. The artillery/AA restructure, which now also owns the remaining 20 legacy gates.
