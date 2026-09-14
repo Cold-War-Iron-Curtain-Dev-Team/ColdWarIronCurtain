@@ -894,6 +894,50 @@ def top_level_values(block: str, key: str) -> list[str]:
     return result
 
 
+def top_level_quoted_values(block: str, key: str) -> list[str]:
+    """Read quoted direct values from a balanced block."""
+    value = strip_script_comments(block)
+    opening = value.find("{")
+    if opening < 0:
+        raise ScriptParseError(f"missing opening brace while reading {key}")
+    ending = balanced_end(value, opening, key)
+    pattern = re.compile(
+        rf'(?<![A-Za-z0-9_]){re.escape(key)}\s*=\s*"([^"]*)"'
+    )
+    result: list[str] = []
+    index = opening + 1
+    depth = 0
+    quoted = False
+    escaped = False
+    while index < ending:
+        character = value[index]
+        if quoted:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                quoted = False
+            index += 1
+            continue
+        if character == '"':
+            quoted = True
+            index += 1
+            continue
+        if depth == 0:
+            match = pattern.match(value, index, ending)
+            if match:
+                result.append(match.group(1))
+                index = match.end()
+                continue
+        if character == "{":
+            depth += 1
+        elif character == "}":
+            depth -= 1
+        index += 1
+    return result
+
+
 def doctrine_content_digest(blocks: list[tuple[str, str]]) -> str:
     canonical: list[str] = []
     for name, block in blocks:
@@ -5892,6 +5936,103 @@ def run_stockpile_negative_fixtures() -> None:
             raise AssertionError("stockpile contract rejected a valid derived role tier")
 
 
+# As of 2026-09-13, 2,008 of 2,349 armour entity aliases named deleted
+# sub-units and nothing detected it: a missing entity alias produces no log line
+# and the game silently renders its default mesh instead.
+# Clone targets are checked against mod-declared entities, excluding this alias
+# file itself. Including the alias file creates a self-reference trap: its alias
+# outputs are `name` declarations that can make dangling clones look valid.
+ENTITY_ALIAS_DIR = MOD / "gfx/entities"
+ENTITY_ALIAS_FILE = ENTITY_ALIAS_DIR / "zz_CWIC_armor_entity_aliases.asset"
+ENTITY_ALIAS_TOKENS = frozenset(
+    {
+        "light_armor",
+        "medium_armor",
+        "heavy_armor",
+        "spaag",
+        "sp_artillery",
+        "light_sp_artillery",
+        "heavy_sp_artillery",
+        "tank_destroyer",
+        "atgm_carrier",
+        "medium_sp_anti_air_brigade",
+        "heavy_tank_destroyer_brigade",
+    }
+)
+ENTITY_ALIAS_NAME = re.compile(
+    r"^(?P<tag>[A-Z]{3})_(?P<sub_unit>[a-z0-9_]+)_(?P<visual_level>[0-9]+)_entity$"
+)
+
+
+def validate_entity_alias_contract() -> None:
+    """Keep the armour entity alias table inside its live referential contract."""
+    alias_relative = ENTITY_ALIAS_FILE.relative_to(ROOT)
+    misplaced = sorted(
+        path.name
+        for path in ENTITY_ALIAS_DIR.glob("*armor_entity_aliases.asset")
+        if path.is_file()
+        and path.name.endswith("CWIC_armor_entity_aliases.asset")
+        and path.name != ENTITY_ALIAS_FILE.name
+    )
+    for filename in misplaced:
+        fail(f"entity alias file must retain the zz_ prefix: {filename}")
+    if not ENTITY_ALIAS_FILE.is_file():
+        fail(f"missing required file: {alias_relative}")
+        return
+
+    raw = ENTITY_ALIAS_FILE.read_bytes()
+    if raw.startswith(b"\xef\xbb\xbf"):
+        fail("entity alias file must not contain a UTF-8 BOM")
+    alias_code = raw.decode("utf-8", errors="replace")
+    alias_blocks = keyed_blocks(alias_code, "entity")
+    if not alias_blocks:
+        fail(f"entity alias file declares no aliases: {alias_relative}")
+        return
+
+    declared_sub_units: set[str] = set()
+    for path in sorted((MOD / "common/units").glob("*.txt")):
+        declared_sub_units.update(
+            name for name, _ in top_level_blocks(code_only(text(path)), "sub_units")
+        )
+    if not declared_sub_units:
+        fail("no sub-unit declarations found under common/units/*.txt")
+
+    declared_entities: set[str] = set()
+    for path in sorted(ENTITY_ALIAS_DIR.glob("*.asset")):
+        if path == ENTITY_ALIAS_FILE:
+            continue
+        for block in keyed_blocks(text(path), "entity"):
+            declared_entities.update(
+                top_level_quoted_values(block, "name")
+            )
+
+    seen_tokens: set[str] = set()
+    for number, block in enumerate(alias_blocks, 1):
+        names = top_level_quoted_values(block, "name")
+        clones = top_level_quoted_values(block, "clone")
+        if len(names) != 1:
+            fail(f"entity alias block {number} must declare exactly one name")
+            continue
+        if len(clones) != 1:
+            fail(f"entity alias block {number} must declare exactly one clone")
+        elif clones[0] not in declared_entities:
+            fail(f"entity alias {names[0]} clones undeclared entity: {clones[0]}")
+        name = names[0]
+        match = ENTITY_ALIAS_NAME.fullmatch(name)
+        if not match:
+            fail(f"entity alias name has invalid shape: {name}")
+            continue
+        token = match["sub_unit"]
+        if token not in ENTITY_ALIAS_TOKENS:
+            fail(f"entity alias {name} uses unexpected sub-unit token: {token}")
+            continue
+        seen_tokens.add(token)
+        if token not in declared_sub_units:
+            fail(f"entity alias {name} names undeclared sub-unit: {token}")
+    for token in sorted(ENTITY_ALIAS_TOKENS - seen_tokens):
+        fail(f"entity alias token has no aliases: {token}")
+
+
 # Measured 2026-09-13: five armour archetypes named a `picture` value that no
 # `GFX_<value>_medium` sprite registers, in this mod or in the base game, and the
 # engine logs nothing for it - the production icon is simply wrong. The tank rows
@@ -6094,6 +6235,7 @@ def validate_armour_archetype_pictures() -> None:
             )
 
 
+validate_entity_alias_contract()
 validate_legacy_armour_dlc_gates()
 validate_armour_archetype_pictures()
 validate_carrier_bookmarks()
