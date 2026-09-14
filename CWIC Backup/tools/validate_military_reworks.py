@@ -5708,13 +5708,15 @@ def run_stockpile_negative_fixtures() -> None:
             raise AssertionError("stockpile contract rejected a valid derived role tier")
 
 
-# Measured 2026-09-13: three armour archetypes named a `picture` value that no
+# Measured 2026-09-13: five armour archetypes named a `picture` value that no
 # `GFX_<value>_medium` sprite registers, in this mod or in the base game, and the
-# engine logs nothing for it - the production icon is simply wrong. Owner ruling:
-# rename the picture value onto an already-registered sprite rather than register
-# the invented name, so no new art is implied. `archetype_mechanized_*` have no
-# registered sprite anywhere; vanilla's own mechanized row uses the motorized
-# picture, so the carriers follow vanilla.
+# engine logs nothing for it - the production icon is simply wrong. The tank rows
+# were renamed onto sprites the base game already registers. The two mechanized
+# rows are the other case: `gfx/interface/archetype_mechanized_equipment.dds` and
+# `archetype_mechanized_heavy_equipment.dds` were shipped and never registered, so
+# the sprites are registered in `cwic_tank_rework_icons.gfx` and the picture values
+# keep their own art. `mechanized_marine_equipment` has no texture of its own and
+# follows vanilla onto the motorized picture.
 ARMOUR_ARCHETYPE_PICTURES = {
     "light_tank_chassis": "archetype_light_tank_equipment",
     "medium_tank_chassis": "archetype_medium_tank_equipment",
@@ -5723,8 +5725,8 @@ ARMOUR_ARCHETYPE_PICTURES = {
     "mbt_equipment": "archetype_medium_tank_equipment",
     "ht_equipment": "archetype_heavy_tank_equipment",
     "sht_equipment": "archetype_super_heavy_tank_equipment",
-    "mechanized_equipment": "archetype_motorized_equipment",
-    "mechanized_heavy_equipment": "archetype_motorized_equipment",
+    "mechanized_equipment": "archetype_mechanized_equipment",
+    "mechanized_heavy_equipment": "archetype_mechanized_heavy_equipment",
     "mechanized_marine_equipment": "archetype_motorized_equipment",
 }
 # Registered by the base game in `interface/*.gfx`. Kept as a literal set because
