@@ -2896,7 +2896,7 @@ including USA. Closing it means authoring per-country sprites against the existi
 library - the art half of the conversion, and the one item still wanting a one-texture in-game
 probe to confirm engine precedence between the country sprite and the generic one.
 
-## Finding 30: the per-country designer art probe - STAGED 2026-09-13, owner run owed
+## Finding 30: the per-country designer art probe - ANSWERED 2026-09-14
 
 One sprite is declared and it tests two questions at once, because measuring the technology map
 first turned the second question into the important one.
@@ -3066,8 +3066,73 @@ and the generic snow tank.
 
 Either answer decides the whole art half. Do not author bulk sprites before it.
 
-**Do not start the bulk pass before the probe result is recorded here.** 2,116 declarations built
-on an unverified resolution rule is exactly the kind of work this folder exists to prevent.
+### Finding 30: probe 2 answered - the legacy chain outranks the designer technology
+
+Owner ruling 2026-09-14: the `M3A1 Half-Track Mk0` line **stays a half-track**, which is both the
+observed behaviour and the wanted one. Both probe sprites are removed from
+`interface/cwic_tank_rework_icons.gfx`.
+
+The decisive shape of this result: `light_tank_apc_chassis_2` is enabled by exactly one
+technology, `nsb_light_tanks1` (measured - `enable_equipments` across all tech files yields a
+single producer per tier), `GFX_USA_nsb_light_tanks1_medium` was declared pointing at a Patton,
+and the line still rendered `USA_apc_1.dds`. **The production icon is therefore not keyed on the
+technology that enables the equipment id.** It follows the family's legacy art. Probe 1 remains
+true and is a different surface: the designer *template list* does honour
+`GFX_<TAG>_<nsb technology>_medium`.
+
+**So the bulk 2,116-sprite pass is cancelled, not deferred.** Per-country production art already
+arrives through the legacy `*_techs.gfx` declarations the mod has shipped all along, because the
+convergence relocated the legacy rows into the role families.
+
+Structural symmetry was verified before concluding, and it is exact - so the artillery families
+are wired the same as the working APC one:
+
+| family | legacy tech -> row | relocated row archetype | USA sprites |
+|---|---|---|---|
+| APC | `mechanized_infantry`..`10` -> `mechanized_equipment_1..10` | `light_tank_apc_chassis` | 10 |
+| medium artillery | `sp_artillery_1..5` -> `sp_artillery_equipment_1..5` | `medium_tank_artillery_chassis` | 5 |
+| light artillery | `light_sp_artillery_1..5` -> same | `light_tank_artillery_chassis` | 5 |
+| heavy artillery | `heavy_sp_artillery_1..5` -> same | `heavy_tank_artillery_chassis` | 5 |
+| SPAA | `spaag_1..5` -> `spaag_equipment_1..5` | `light_tank_aa_chassis` | 5 |
+| TD | `tank_destroyer_1..5` -> `medium_tank_destroyer_equipment_1..5` | `medium_tank_destroyer_chassis` | 5 |
+
+One technology enables exactly one legacy row in every family, every relocated row names its role
+archetype, and the role roots carry no `picture` of their own. Nothing structural separates
+artillery from APC. Given that, **the "artillery renders generic" claim is now unsupported** and
+must not be acted on: it rests on reading row labels in a designer-list capture, and the
+`(Generic)` / `(United States of America)` suffixes there are preset *design template* labels,
+not icon fallbacks. That is the same misreading that produced the correction above. Re-check it on
+a production line before spending anything on it.
+
+### NSB OOB residue: re-measured, and the headline item was wrong
+
+The cited MON residue is **not residue**. `light_artillery_equipment_*` lives in
+`common/units/equipment/light_artillery.txt` under archetype `light_artillery_equipment` - towed
+artillery, never DLC-gated, never touched by the convergence. All 16 cited MON lines are
+out of scope.
+
+Re-measured properly, against the 68 rows that actually carry
+`can_be_produced = { NOT = { has_dlc = "No Step Back" } }`, scanning every `*_nsb.txt` for
+uncommented references: **2 files, 5 references, all ATGM.**
+
+- `SOV_1980_nsb.txt:1321-1323` - `atgm_carrier_equipment_1/2/3` stockpile grants
+- `NOR_1980_nsb.txt:364,369` - `atgm_carrier_equipment_0/1` stockpile grants
+
+These award stock an NSB profile cannot build. The year-to-tier map is unambiguous
+(`atgm_carrier_equipment_0/1/2/3` = 1960/1970/1980/1990; `light_tank_chassis_4/5/6/7` = the same
+four years), so the rewrite to `light_tank_destroyer_chassis_4..7` is mechanical.
+
+**Attempted and reverted.** The rewrite fires an existing contract:
+`starting tank variant set differs from NSB OOB references: missing=[light_tank_destroyer_chassis_4..7]`.
+An OOB may only name a tier some starting-variant preset creates, and
+`CWIC_national_tank_presets.txt` contains **zero** `light_tank_destroyer_chassis` presets. The
+ratified export inventory (`DECISIONS.md:1080-1087`) lists MBT, Light, Heavy, APC and IFV - **no
+ATGM or TD entry**. So there is no ratified target to map these five grants onto, and inventing
+ATGM loadouts and names is balance content, not a mechanical pass. Left as gated legacy grants;
+this needs the same kind of owner ruling the export inventory itself got.
+
+**Bulk pass cancelled by Finding 30, not merely deferred.** Per-country production art already
+resolves through the shipped legacy `*_techs.gfx` declarations.
 
 ## Conversion surface, measured 2026-09-13
 
