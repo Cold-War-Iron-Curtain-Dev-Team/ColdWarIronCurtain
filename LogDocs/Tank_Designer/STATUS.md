@@ -2896,6 +2896,79 @@ including USA. Closing it means authoring per-country sprites against the existi
 library - the art half of the conversion, and the one item still wanting a one-texture in-game
 probe to confirm engine precedence between the country sprite and the generic one.
 
+## Finding 30: the per-country designer art probe - STAGED 2026-09-13, owner run owed
+
+One sprite is declared and it tests two questions at once, because measuring the technology map
+first turned the second question into the important one.
+
+### The ceiling, measured before the probe was written
+
+`NSB_armor.txt` holds **23 technologies that enable armour chassis**, and **not one of them
+enables a single role tier**. Measured per block: `nsb_iw_armored_vehicles` at `:25` enables 15
+ids (`:26-40`, every family's tier 0); `nsb_light_tanks0..8` at `:130,159,199,239,279,319,359,399,439`
+enable 6 each (light tank plus the destroyer, artillery, AA, APC and IFV roles on that tier);
+`nsb_main_battle_tanks0..8` at `:508,537,577,619,659,699,739,779,819` enable 6 each; and
+`nsb_heavy_tanks0..3` at `:888,925,963,1004` enable 3 each. Distribution: **zero** technologies
+enable one role tier, four enable 3, nineteen enable 6 or more. 111 distinct equipment ids sit
+behind 23 technologies.
+
+**So the icon key is strictly coarser than the vehicle.** Because the production icon resolves
+through the enabling technology, one per-country sprite necessarily serves every role sharing that
+technology - a country's tier-1 light tank, tank destroyer, SP artillery, SPAA, APC and IFV would
+all show the same picture. Per-role per-country designer art is **impossible on this key**, and no
+amount of art fixes it; it would need one technology per role tier, which is a tech-tree
+restructure and 111 technologies where there are 23.
+
+This is the third time this project has measured an art ceiling and found a different mechanism
+than the previous one assumed. Recording the chain so it is not re-litigated: per-design art is
+impossible (the designer compositor is an enumerated hull/profile contract), per-equipment-row art
+is impossible (the row has no icon key of its own), and per-role art is impossible (the technology
+is shared). **What IS available is per-country, per-hull-class, per-tier** - which is 23 sprites
+per country.
+
+### The probe
+
+`interface/cwic_tank_rework_icons.gfx` declares one sprite, commented as a probe and marked for
+removal:
+
+```
+spriteType = { name = "GFX_USA_nsb_light_tanks0_medium" texturefile = "gfx/interface/technologies/USA_spaag_1.dds" }
+```
+
+Deliberately unmistakable art - the M16 halftrack photograph on a tank hull - so the result cannot
+be misread as a coincidence. The texture already ships; nothing was created.
+
+**What to look at, as USA on an NSB profile:** the production tab and the equipment tab for the
+**tier-1 light hull** rows. Three outcomes, each conclusive:
+
+1. **All six tier-1 light rows show the halftrack photo.** The override works and the ceiling is
+   confirmed as per-technology. Bulk work is then authorable and the granularity is settled.
+2. **Only some rows change.** There is a finer key than the technology after all, and it must be
+   identified before any bulk pass - this would be the best possible outcome and the least
+   expected.
+3. **Nothing changes.** Either the engine prefers the generic sprite, or `nsb_*` technologies do
+   not participate in the override the way legacy ones do. Either way the art half is blocked and
+   the 2,116-sprite plan below is void.
+
+Control: `nsb_light_tanks1` has no country sprite, so the **tier-2** light rows must keep the
+generic icon in every outcome. If tier 2 also changes, the resolution is not per-technology at all
+and the diagnosis is wrong.
+
+### Bulk cost, if outcome 1
+
+23 armour technologies x **92 country TAGs** that already own an `interface/<TAG>_techs.gfx` file =
+**2,116 sprite declarations**. There are 94 `*_techs.gfx` files; two are the non-TAG
+`ArmtraderEAST`/`ArmtraderWEST` namespaces and are not countries, so 92 is the figure to plan
+against.
+All 23 generic `GFX_nsb_*_medium` forms exist, so every declaration
+is an override of a known name rather than a new key. The art can be drawn from the shipped
+library - 9,965 files in `gfx/interface/technologies/` - so the pass is mapping and declaration,
+not asset creation, and the reverse map already resolves per-country art paths for the legacy
+tiers those sprites would reuse.
+
+**Do not start the bulk pass before the probe result is recorded here.** 2,116 declarations built
+on an unverified resolution rule is exactly the kind of work this folder exists to prevent.
+
 ## Conversion surface, measured 2026-09-13
 
 The mass non-NSB-to-NSB conversion splits into four surfaces with very different readiness.
