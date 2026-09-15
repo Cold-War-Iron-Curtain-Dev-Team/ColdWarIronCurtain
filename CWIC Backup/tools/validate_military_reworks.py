@@ -214,6 +214,9 @@ NATIONAL_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_national_tank_presets
 NATIONAL_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/National_Tank_Preset_Manifest.json"
 NATIONAL_PRESETS = json.loads(NATIONAL_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
 CARRIER_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/APC_IFV_Preset_Manifest.json"
+NAMING_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Tank_Naming_Preset_Manifest.json"
+NAMING_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_national_armour_naming_presets.txt"
+NAMING_PRESETS = json.loads(NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
 CARRIER_MANIFEST = json.loads(CARRIER_MANIFEST_FILE.read_text(encoding="utf-8"))
 CARRIER_PRESETS = CARRIER_MANIFEST["presets"]
 FOCUS_FILES = (
@@ -659,7 +662,7 @@ def bookmark_variant_names(equipment_type: str, producer: str) -> set[str]:
     """
     names = {
         preset["name"]
-        for preset in NATIONAL_PRESETS + CARRIER_PRESETS
+        for preset in NATIONAL_PRESETS + CARRIER_PRESETS + NAMING_PRESETS
         if (preset["type"], preset["producer"]) == (equipment_type, producer)
     }
     return names or {BOOKMARK_VARIANT_NAMES[equipment_type]}
@@ -2808,7 +2811,7 @@ def _variant_recipes() -> dict[tuple[str, str], dict[str, object]]:
     resolve per producer through `bookmark_variant_names`.
     """
     recipes: dict[tuple[str, str], dict[str, object]] = {}
-    for path in (VARIANT_EFFECT_FILE, FOCUS_EFFECT_FILE, NATIONAL_EFFECT_FILE):
+    for path in (VARIANT_EFFECT_FILE, FOCUS_EFFECT_FILE, NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE):
         for block in keyed_blocks(text(path), "create_equipment_variant"):
             name_match = re.search(r'(?m)^\s*name\s*=\s*"([^"]+)"', block)
             type_match = re.search(r"(?m)^\s*type\s*=\s*([A-Za-z0-9_]+)", block)
@@ -3615,6 +3618,7 @@ def validate_tank_rework() -> None:
 
 def validate_tank_qa_contracts(tank_techs: dict[str, str]) -> None:
     validate_national_tank_presets()
+    validate_national_armour_naming_presets()
     path = MOD / "common/scripted_effects/CWIC_tank_bookmark_research.txt"
     brace_balance(path)
     effect = text(path)
@@ -3673,6 +3677,110 @@ def validate_tank_qa_contracts(tank_techs: dict[str, str]) -> None:
             category = value if value in module_categories else module_category(value)
             if category not in TANK_SPECIAL_SLOT_CATEGORIES.get(index, set()):
                 fail(f"AI recipe places {value} in incompatible {slot}")
+
+
+def naming_localisation_entry(key: str) -> tuple[str | None, str | None, int | None]:
+    """First live English localisation entry for a legacy equipment name key.
+
+    Deterministic order so provenance cannot drift with directory listing order.
+    """
+    for path in sorted((MOD / "localisation/english").glob("*.yml")):
+        content = path.read_text(encoding="utf-8-sig", errors="replace")
+        for number, line in enumerate(content.splitlines(), 1):
+            match = re.match(r'\s*([A-Za-z0-9_]+):\d*\s*"([^"]*)"', line)
+            if match and match.group(1) == key:
+                return match.group(2), str(path.relative_to(ROOT)), number
+    return None, None, None
+
+
+def validate_national_armour_naming_presets() -> None:
+    """Pin the historical-name guards for the bookmark tank/SPAA/SPG/TD designs.
+
+    These exist to replace player-visible placeholders like "Standard Main Battle
+    Tank 1950". Every name must still be the live country localisation string for
+    the matching legacy tier, and every recipe must still equal the generic block
+    it suppresses - that equality is what makes the rename balance-neutral.
+    """
+    manifest = json.loads(NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))
+    presets, recipes = manifest["presets"], {r["generation"]: r for r in manifest["recipes"]}
+    national = code_only(text(NAMING_EFFECT_FILE))
+    generic = code_only(text(VARIANT_EFFECT_FILE))
+    national_effects = top_level_ranges("effects = {\n" + national + "\n}", "armour naming effects")
+    pairs = {(p["producer"], p["generation"]) for p in presets}
+    if len(pairs) != len(presets):
+        fail("armour naming presets must not repeat a producer/generation pair")
+    if {p["generation"] for p in presets} != set(recipes):
+        fail("armour naming recipes and presets must cover the same generations")
+        return
+    dispatcher = top_level_named_blocks("effects = {\n" + generic + "\n}", "cwic_create_starting_tank_variants", "dispatcher")
+    if len(dispatcher) != 1:
+        fail("armour naming dispatcher must occur exactly once")
+        return
+    generic_blocks = {}
+    for block in top_level_named_blocks(dispatcher[0], "if", "generic armour blocks"):
+        variants = top_level_named_blocks(block, "create_equipment_variant", "generic variant")
+        if len(variants) != 1:
+            continue
+        kinds = top_level_values(variants[0], "type")
+        if len(kinds) == 1:
+            generic_blocks.setdefault(kinds[0], []).append((block, variants[0]))
+    for generation, recipe in sorted(recipes.items()):
+        sources = generic_blocks.get(generation, [])
+        if len(sources) != 1:
+            fail(f"armour naming {generation} must shadow exactly one generic design")
+            continue
+        gblock, gvariant = sources[0]
+        gmods = dict(re.findall(r"(\w+)\s*=\s*(\w+)", top_level_named_blocks(gvariant, "modules", "generic modules")[0]))
+        if gmods != recipe["modules"]:
+            fail(f"armour naming {generation} recipe differs from the generic design it replaces")
+        glimits = top_level_named_blocks(gblock, "limit", "generic guard limit")
+        if len(glimits) != 1 or top_level_values(glimits[0], "has_tech") != [recipe["technology"]]:
+            fail(f"armour naming {generation} technology differs from the generic guard")
+        helper = f"cwic_create_national_{generation}_variants"
+        bodies = [body for name, _, _, body in national_effects if name == helper]
+        if len(bodies) != 1:
+            fail(f"armour naming helper {helper} must occur exactly once")
+            continue
+        guards = top_level_named_blocks(bodies[0], "if", helper)
+        expected = [p for p in presets if p["generation"] == generation]
+        if len(guards) != len(expected):
+            fail(f"armour naming helper {helper} guard count differs from manifest")
+        for preset in expected:
+            raw, path, line = naming_localisation_entry(preset["legacy_name_key"])
+            if (raw, path, line) != (preset["source_name"], preset["source_path"], preset["source_line"]):
+                fail(f"armour naming {preset['producer']}/{generation} provenance differs from live localisation")
+            elif unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().strip() != preset["name"]:
+                fail(f"armour naming {preset['producer']}/{generation} name differs from its localisation source")
+            matches = [g for g in guards if top_level_values(top_level_named_blocks(g, "limit", "guard limit")[0], "tag") == [preset["producer"]]]
+            if len(matches) != 1:
+                fail(f"armour naming {preset['producer']}/{generation} must have exactly one guard")
+                continue
+            guard = matches[0]
+            flag = f"cwic_starting_{generation}_created"
+            variant = top_level_named_blocks(guard, "create_equipment_variant", "naming variant")[0]
+            for required in ('has_dlc = "No Step Back"', f"has_tech = {recipe['technology']}",
+                             f"NOT = {{ has_country_flag = {flag} }}"):
+                if required not in guard:
+                    fail(f"armour naming {preset['producer']}/{generation} missing guard: {required}")
+            if top_level_values(guard, "set_country_flag") != [flag]:
+                fail(f"armour naming {preset['producer']}/{generation} must set the generic block's flag")
+            if guard.find("set_country_flag") < guard.find("create_equipment_variant"):
+                fail(f"armour naming {preset['producer']}/{generation} sets its flag before creation")
+            if re.findall(r'name\s*=\s*"([^"\n]*)"', variant) != [preset["name"]]:
+                fail(f"armour naming {preset['producer']}/{generation} wrong name")
+            for field, value in (("type", generation), ("allow_without_tech", "yes"),
+                                 ("parent_version", "0"), ("mark_older_equipment_obsolete", "yes")):
+                if top_level_values(variant, field) != [value]:
+                    fail(f"armour naming {preset['producer']}/{generation} wrong {field}")
+            mods = dict(re.findall(r"(\w+)\s*=\s*(\w+)", top_level_named_blocks(variant, "modules", "naming modules")[0]))
+            if mods != recipe["modules"]:
+                fail(f"armour naming {preset['producer']}/{generation} differs from the generic recipe")
+    for generation in sorted(recipes):
+        helper = f"cwic_create_national_{generation}_variants"
+        if top_level_values(dispatcher[0], helper) != ["yes"]:
+            fail(f"armour naming helper {helper} is not called by the bookmark dispatcher")
+        elif dispatcher[0].find(helper) > dispatcher[0].find(f"cwic_starting_{generation}_created"):
+            fail(f"armour naming helper {helper} runs after its own generic block")
 
 
 def validate_national_tank_presets(national_override: str | None = None, generic_override: str | None = None) -> None:
