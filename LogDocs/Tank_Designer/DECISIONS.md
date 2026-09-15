@@ -1422,9 +1422,21 @@ an exporter (CAP, CUM, WGR, USA), and those must carry the exporter's design nam
 placeholders - never the importing country's name. Renaming by file tag is wrong and the
 bootstrap-coverage contract catches it.
 
-**Result: 339 placeholder references to 127.** The remaining 127 are the 15 rows where
-localisation has no entry for that TAG and class, plus exporter-owned rows whose producer has no
-design. Extending them needs localisation entries authored first - content with an owner.
+**Result: 339 placeholder references to 2.** 212 were replaced in the first pass; the remaining
+125 were exporter-owned rows and fell out of the same mechanical rule once the worklist was keyed
+on the *resolved producer* rather than the OOB's file tag. CUM, CAP, WGR and FRA already had
+localisation for those tiers - they were never missing names, only missing presets. 106 presets
+now, 30 helpers.
+
+**The last 2 references need an owner decision, not code:**
+
+- `CHI_1980_nsb.txt:603` (`medium_tank_chassis_3`) - `CHI_mbt_equipment_3` exists but is
+  **commented out** at `equipment_country_l_english.yml:246-247`, as
+  `Tank, Combat, Full Tracked: 76-mm gun, M41A1` / `M41A1 Walker Bulldog`. Someone disabled it
+  deliberately, and plausibly for cause: the M41 is a light tank sitting on an MBT tier. Do not
+  uncomment it without asking.
+- `NOR_1980_nsb.txt:349` (`light_tank_aa_chassis_3`) - `NOR_spaag_equipment_3` is simply absent
+  while `_1` and `_2` exist. Needs a name authored.
 
 **`owner = "USA"` in `SOV_1949_nsb.txt` is intentional - do not "fix" it.** Owner ruling
 2026-09-14: those 45 forced variants represent Lend-Lease equipment the Soviets kept using after
