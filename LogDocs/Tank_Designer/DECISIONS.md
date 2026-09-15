@@ -1349,6 +1349,38 @@ balance acceptance remain unverified.
   zero in the module definition. Verify application and tooltip precision live before
   changing balance to address a display symptom.
 
+## Production icon resolution
+
+**Settled 2026-09-14 by two in-game probes, owner-run.** Two different surfaces use two
+different keys, and conflating them cost this project a 2,116-declaration plan:
+
+- **Designer template list** honours `GFX_<TAG>_<technology>_medium` for `nsb_*` chassis
+  technologies. Probe 1: `GFX_USA_nsb_light_tanks0_medium` rendered on the USA row with the
+  tooltip naming it.
+- **Production line** does *not* key on the technology that enables the equipment id. Probe 2
+  declared `GFX_USA_nsb_light_tanks1_medium` against `light_tank_apc_chassis_2`, whose sole
+  enabling technology is `nsb_light_tanks1`, and the line kept rendering the legacy half-track
+  (`USA_apc_1.dds` = `GFX_USA_mechanized_infantry_medium`). The family's legacy art wins.
+
+**Consequence, ratified: author no per-country `nsb_*` sprites.** Because the convergence
+relocated the legacy rows into the role families, the per-country art the mod already ships in
+`interface/*_techs.gfx` reaches the designer families for free. The owner confirms the resulting
+half-track on an early APC line is the wanted, historically consistent outcome. Both probe
+sprites are removed; do not re-stage them.
+
+## ATGM stockpile residue on NSB profiles
+
+**Open, needs an owner ruling - do not "fix" mechanically.** Five grants in two NSB OOBs name
+DLC-gated legacy ATGM rows: `SOV_1980_nsb.txt:1321-1323` and `NOR_1980_nsb.txt:364,369`. A gated
+id is still a declared id, so these resolve and award stock the profile cannot build.
+
+The obvious rewrite to `light_tank_destroyer_chassis_4..7` (the year map is exact: 1960/1970/1980/
+1990 on both sides) was applied and **reverted**, because it breaks the contract that an NSB OOB
+may only name a tier a starting-variant preset creates - and there are zero
+`light_tank_destroyer_chassis` presets. The ratified export inventory above covers MBT, Light,
+Heavy, APC and IFV only. Extending it to ATGM means authoring loadouts and historical names,
+which is balance content with an owner, exactly like the inventory itself.
+
 ## Retracted after measurement - do not reopen
 
 - **The AA and flamethrower sprites are not broken.** `tank_module_aa_gun{,_2,_3}.dds`,
