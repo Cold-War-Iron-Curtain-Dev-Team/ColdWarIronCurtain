@@ -1545,6 +1545,40 @@ A template can be forced with `override_model` (vanilla `common/national_focus/g
 So repairing the database entries is evidence-backed as *the* logged defect, but whether it is
 sufficient to make the right model default is an in-game question.
 
+## Legacy localisation linkage audit
+
+**Owner hypothesis 2026-09-14, confirmed and acted on:** a lot of per-country vehicle names were
+already authored in localisation but never linked into the NSB designer system.
+
+Measured across every English localisation file, keys of the shape
+`<TAG>_<legacy_family>_<index>` for the 12 armour families:
+
+| | count |
+|---|---|
+| legacy armour loc entries carrying a real name | 3,456 |
+| already linked to a designer preset before this pass | 678 |
+| **defined but unlinked** | **2,778** |
+
+86 TAGs, 12 families. Heaviest unlinked: `mbt_equipment` 586, `lt_equipment` 373,
+`mechanized_equipment` 341, `mechanized_marine_equipment` 223, `sp_artillery_equipment` 211.
+
+**1,304 of them are now linked**, taking the naming manifest from 106 presets to 1,410 across 30
+helpers and 86 TAGs. Same mechanical rule as before, so no new judgement: name from the
+localisation entry with file and line provenance, recipe copied verbatim from the generic block
+the guard suppresses, one guard per producer and tier, flag suppresses the placeholder.
+
+**What is deliberately left unlinked, and why:**
+
+- **1,214 entries name a tier that has no generic bookmark design.** The helper architecture
+  copies its recipe from the generic block it shadows; with no generic block there is no recipe to
+  copy and no placeholder to suppress. Linking these means authoring loadouts, which is balance
+  content with an owner - the same boundary the ATGM export inventory hit.
+- **13 candidates on APC and IFV chassis were dropped outright.** Those tiers are owned by the
+  carrier preset system (`cwic_create_national_apc_chassis_*_variants`), which has its own
+  manifest and contract. A second helper creating variants on the same chassis for the same TAG
+  would make `bookmark_variant_names` ambiguous and break the "bootstraps several designs" check.
+  One owner per tier.
+
 ## Retracted after measurement - do not reopen
 
 - **The AA and flamethrower sprites are not broken.** `tank_module_aa_gun{,_2,_3}.dds`,
