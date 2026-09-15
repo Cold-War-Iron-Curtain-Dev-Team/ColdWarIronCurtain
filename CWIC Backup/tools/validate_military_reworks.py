@@ -6109,6 +6109,32 @@ def validate_entity_alias_contract() -> None:
                 armour_hull_sub_units.add(name)
     if not declared_sub_units:
         fail("no sub-unit declarations found under common/units/*.txt")
+    # Vanilla sub-units this mod inherits without shadowing. common/units/
+    # sp_artillery_brigade.txt, tank_destroyer_brigade.txt and sp_anti-air_brigade.txt
+    # are vanilla files the mod never replaces, so these brigades are live in the
+    # loaded game even though the convergence removed the mod's own role brigades.
+    # The engine builds its equipment graphic database from live sub-units, so each
+    # needs <TAG>_<sub_unit>_<level>_entity or it logs equipment_model_util.cpp:76
+    # "includes invalid entity" and the default model entry is broken - which is why
+    # a correct model had to be chosen by hand. Declaring them here is the fix, so
+    # they are legal alias tokens despite not being declared under the mod's
+    # common/units. Their hulls are all mod-declared role chassis.
+    vanilla_inherited_sub_units = {
+        "airborne_light_armor",
+        "heavy_sp_artillery_brigade",
+        "light_sp_anti_air_brigade",
+        "light_sp_anti_air_support",
+        "light_sp_artillery_brigade",
+        "light_tank_destroyer_brigade",
+        "light_tank_destroyer_support",
+        "light_tank_recon",
+        "medium_sp_artillery_brigade",
+        "medium_tank_destroyer_brigade",
+        "medium_tank_destroyer_support",
+    }
+    declared_sub_units |= vanilla_inherited_sub_units
+    armour_hull_sub_units |= vanilla_inherited_sub_units
+
     # Coverage levels that predate this rework, counted as alias-or-native across
     # every source. They are not uniform and never were: some sub-units are covered
     # for more TAGs than the alias file itself names, because per-country entities

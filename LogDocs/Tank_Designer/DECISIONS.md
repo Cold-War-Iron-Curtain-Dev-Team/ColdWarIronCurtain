@@ -1502,6 +1502,49 @@ an owner.
 Contract proven by four negative fixtures: all aliases for a sub-unit removed, one TAG removed,
 a level hole, and a bumped legacy count.
 
+## Default 3D model selection
+
+**Root cause found 2026-09-14 in the live error log, not in the files.** The mod owner reported
+that correct models existed but had to be picked by hand in the 3D model selector. The decisive
+evidence is `equipment_model_util.cpp:76`:
+
+```
+Equipment graphic database model entries for type "Medium SP Artillery" includes
+invalid entity "USA_medium_sp_artillery_brigade_0_entity"
+```
+
+98 such lines, plus `Entity referenced in equipment graphic database does not exist` for other
+TAGs. **The engine builds its equipment graphic database from every live sub-unit and expects
+`<TAG>_<sub_unit>_<visual_level>_entity` for each.** A missing entry does not fall back silently -
+it makes the *default* model entry invalid, so the selector opens with nothing chosen.
+
+**Why those tokens are still live after the convergence deleted the mod's role brigades:**
+`common/units/sp_artillery_brigade.txt`, `tank_destroyer_brigade.txt`, `sp_anti-air_brigade.txt`,
+`recon.txt` and 36 other vanilla `common/units` files are **not shadowed by this mod**, so their
+sub-units load. 31 vanilla-only sub-units consume an armour hull; 11 have a hull the mod declares
+and now carry aliases. The fix is 2,283 aliases, table 6,371 -> 8,654, and the contract carries
+`vanilla_inherited_sub_units` so these are legal tokens despite not being declared under the mod's
+own `common/units`.
+
+**Level ceilings come from the union of mod and vanilla rows.** Vanilla declares a third visual
+level for the light tank destroyer hull that the mod's `atgm_carrier` rows stop short of, and the
+database iterates vanilla's levels too, so level 2 was logged invalid for five TAGs. Deriving
+ceilings from mod equipment alone is not sufficient.
+
+**Every armour entity name the logs called invalid now exists - 0 remaining.** 132 non-armour
+names remain invalid (16 `fighter_equipment`, 8 `battleship`, 8 `heavy_cruiser`, 7 `CAS_equipment`,
+plus `modern_armor` and `super_heavy_armor`, whose hulls this mod does not declare). Those are the
+same defect class in the air and naval subsystems, pre-existing and out of tank-designer scope.
+
+**What is still NOT proven.** No vanilla text file specifies the regular-division default
+resolution algorithm. The only documented chain is for raid `unit_model`
+(`common/raids/_documentation.md:39-45`: country-specific, then culture-specific, then basic, then
+default). The selector UI is `interface/divisiondesignerview.gui:1167-1333`, whose
+`best_match_button` (`:1300-1314`, tooltip `USE_DEFAULT_MODEL`) is C++-bound with no script hook.
+A template can be forced with `override_model` (vanilla `common/national_focus/germany.txt:9437`).
+So repairing the database entries is evidence-backed as *the* logged defect, but whether it is
+sufficient to make the right model default is an in-game question.
+
 ## Retracted after measurement - do not reopen
 
 - **The AA and flamethrower sprites are not broken.** `tank_module_aa_gun{,_2,_3}.dds`,
