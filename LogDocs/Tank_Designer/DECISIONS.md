@@ -1381,6 +1381,57 @@ may only name a tier a starting-variant preset creates - and there are zero
 Heavy, APC and IFV only. Extending it to ATGM means authoring loadouts and historical names,
 which is balance content with an owner, exactly like the inventory itself.
 
+## Armour naming presets
+
+**Ratified 2026-09-14, implemented.** Players saw placeholders like "Standard Main Battle
+Tank 1950" on NSB starting divisions. 339 such references existed across 66 NSB OOBs.
+
+**The name source is live country equipment localisation, not research.** The existing carrier
+preset contract already derives every national design name from an
+`equipment_country_l_english.yml` / `<TAG>_equipment_*.yml` entry and records file and line as
+provenance. The key shape is `<TAG>_<legacy_family>_<index>`, and the index is the designer tier
+index - `medium_tank_chassis_3` takes `<TAG>_mbt_equipment_3`. That resolves 89 of the 104
+placeholder rows mechanically. Six parallel scouts independently converged on the same entries,
+which is how the index rule was found; their service-history fallbacks were **not** used, because
+a name without a localisation entry cannot satisfy the provenance contract.
+
+**Loadouts are copied verbatim from the generic block each guard suppresses**, so a rename can
+never move a stat. The validator pins that equality rather than trusting it.
+
+**Architecture: a second system, not an extension of the first.**
+`validate_national_tank_presets()` pins `cwic_create_national_tank_variants` to exactly 14
+guards (USA/SOV medium 0-6) against a manifest, and the carrier validator hardcodes APC/IFV
+tiers 0-4 with `len(recipes) != 10`. Widening either would have weakened a pinned contract, so
+the naming system is separate and mirrors their shape:
+
+- `common/scripted_effects/CWIC_national_armour_naming_presets.txt` - 30 per-tier helpers,
+  89 guards.
+- `LogDocs/Tank_Designer/data/Tank_Naming_Preset_Manifest.json` - 89 presets, 30 recipes,
+  each with localisation provenance.
+- `validate_national_armour_naming_presets()` - name-from-provenance, recipe equality with the
+  shadowed generic block, one guard per producer, flag ordering, and dispatcher call ordering.
+  Proven to fire by breaking a name, a module and a flag, then reverting.
+
+Helpers are called at the top of `cwic_create_starting_tank_variants`; each sets the generic
+block's own `cwic_starting_<tier>_created` flag, which is what suppresses the placeholder. No
+exclusion lists were needed.
+
+**A name belongs to its producer, not to the OOB's country.** `oob_variant_producer` resolves
+`producer`, then `creator`, then `owner`, then the file tag. 100 references name a design owned by
+an exporter (CAP, CUM, WGR, USA), and those must carry the exporter's design name or stay
+placeholders - never the importing country's name. Renaming by file tag is wrong and the
+bootstrap-coverage contract catches it.
+
+**Result: 339 placeholder references to 127.** The remaining 127 are the 15 rows where
+localisation has no entry for that TAG and class, plus exporter-owned rows whose producer has no
+design. Extending them needs localisation entries authored first - content with an owner.
+
+**Found while doing this, not fixed:** `SOV_1949_nsb.txt` fields 45 forced variants marked
+`owner = "USA"` on Soviet light tanks and SPAA, so they now correctly display USA designs
+(`M5 Stuart`, `M16 Multiple Gun Motor Carriage`) in a Soviet OOB. The `owner` tag looks like a
+copy-paste error, but changing it moves equipment ownership, which is outside a naming pass.
+Needs an owner ruling.
+
 ## Retracted after measurement - do not reopen
 
 - **The AA and flamethrower sprites are not broken.** `tank_module_aa_gun{,_2,_3}.dds`,
