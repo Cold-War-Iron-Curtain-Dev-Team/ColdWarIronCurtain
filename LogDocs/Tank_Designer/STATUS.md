@@ -2904,13 +2904,14 @@ first turned the second question into the important one.
 ### The ceiling, measured before the probe was written
 
 `NSB_armor.txt` holds **23 technologies that enable armour chassis**, and **not one of them
-enables a single role tier**. Measured per block: `nsb_iw_armored_vehicles` at `:25` enables 15
-ids (`:26-40`, every family's tier 0); `nsb_light_tanks0..8` at `:130,159,199,239,279,319,359,399,439`
-enable 6 each (light tank plus the destroyer, artillery, AA, APC and IFV roles on that tier);
-`nsb_main_battle_tanks0..8` at `:508,537,577,619,659,699,739,779,819` enable 6 each; and
-`nsb_heavy_tanks0..3` at `:888,925,963,1004` enable 3 each. Distribution: **zero** technologies
-enable one role tier, four enable 3, nineteen enable 6 or more. 111 distinct equipment ids sit
-behind 23 technologies.
+enables a single role tier**. Measured per block, cited at the technology's opening line:
+`nsb_iw_armored_vehicles` at `:22` enables 15 ids (`:26-40`, every family's tier 0);
+`nsb_light_tanks0..8` at `:129,158,198,238,278,318,358,398,438` enable 6 each (light tank plus
+the destroyer, artillery, AA, APC and IFV roles on that tier); `nsb_main_battle_tanks0..8` at
+`:507,536,576,618,658,698,738,778,818` enable 6 each; and `nsb_heavy_tanks0..3` at
+`:887,924,961,1002` enable 3 each - heavy has no AA, APC or IFV role, so three is complete rather
+than short. Distribution: **zero** technologies enable one role tier, four enable 3, nineteen
+enable 6 or more. 111 distinct equipment ids sit behind 23 technologies.
 
 **So the icon key is strictly coarser than the vehicle.** Because the production icon resolves
 through the enabling technology, one per-country sprite necessarily serves every role sharing that
