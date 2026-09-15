@@ -2967,6 +2967,48 @@ library - 9,965 files in `gfx/interface/technologies/` - so the pass is mapping 
 not asset creation, and the reverse map already resolves per-country art paths for the legacy
 tiers those sprites would reuse.
 
+### Probe result, owner-run 2026-09-13: OUTCOME 2 - a finer key exists and it already works
+
+**The least expected outcome, and it makes the 2,116-declaration plan unnecessary.** Owner
+capture: USA light APC and medium tank production lines show correct US photographs - an M3
+half-track for `M3A1 Half-Track Mk0` and a Patton for `M46 Patton Mk0` - while the other role
+families still show generic art.
+
+**Those photos are not from the probe and not from any `nsb_*` sprite.** Traced to the exact
+file: the half-track image is `gfx/interface/technologies/USA_apc_1.dds`, registered as
+`GFX_USA_mechanized_infantry_medium` at `interface/USA_techs.gfx:177-179`. That is the
+**legacy** `mechanized_infantry` technology, not a designer technology. Confirmed by identifying
+the textures rather than by inference: `USA_apc_1.dds` is an olive-drab M3-type half-track with
+US star and period infantry, matching the capture exactly, while the generic
+`GFX_nsb_light_tanks1_medium` points at `lt_2.dds`, a light tank in snow - which is what the
+*generic* rows in the same capture show.
+
+**So the resolution key is the equipment's FAMILY, not the single technology that enables its own
+tier.** `light_tank_apc_chassis_2` is enabled only by `nsb_light_tanks1` (`NSB_armor.txt:164`),
+yet it renders the legacy mechanized technology's country icon - and the reason it can is the
+convergence: the relocated legacy `mechanized_equipment_*` rows now live inside
+`light_tank_apc_chassis`, so the family is reachable from the legacy `mechanized_infantry*`
+technologies, which carry 16,283 per-country sprites. **The restructure accidentally wired the
+existing per-country art library into the designer families.**
+
+Measured USA sprite coverage per legacy technology chain in `interface/USA_techs.gfx`:
+`mechanized_infantry` 10, `main_battle_tanks` 10, `light_tanks` 6, `sp_artillery` 5, `spaag` 5,
+`tank_destroyer` 5. So artillery, SPAA and tank destroyers **do** have USA art on the same
+pattern, and their relocated legacy rows landed in the role families in the same pass - yet those
+lines still render generic. That asymmetry is the next thing to measure and it is the whole
+remaining question: something distinguishes the carrier and base-hull families from the
+artillery/AA/TD ones. Candidates worth checking in order: the `parent` chain of the relocated
+rows, `visual_level`, whether the legacy tier the player actually holds differs, and whether the
+icon follows the design's `can_convert_from` lineage.
+
+**Two things NOT to do on this result.** Do not start the 2,116-sprite bulk pass - the art may
+already resolve for free once the asymmetry is understood, and authoring overrides would mask the
+real mechanism. And do not remove the probe sprite yet: whether
+`GFX_USA_nsb_light_tanks0_medium` fires for the **tier-1** light rows is still unanswered, and
+that is the one datum that separates "the designer technology key works too" from "only the
+legacy family key works". The M16 quad-gun half-track photograph is the tell; nothing else in the
+mod uses it on a tank hull.
+
 **Do not start the bulk pass before the probe result is recorded here.** 2,116 declarations built
 on an unverified resolution rule is exactly the kind of work this folder exists to prevent.
 
