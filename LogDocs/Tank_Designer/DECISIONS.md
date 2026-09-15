@@ -1426,11 +1426,52 @@ bootstrap-coverage contract catches it.
 localisation has no entry for that TAG and class, plus exporter-owned rows whose producer has no
 design. Extending them needs localisation entries authored first - content with an owner.
 
-**Found while doing this, not fixed:** `SOV_1949_nsb.txt` fields 45 forced variants marked
-`owner = "USA"` on Soviet light tanks and SPAA, so they now correctly display USA designs
-(`M5 Stuart`, `M16 Multiple Gun Motor Carriage`) in a Soviet OOB. The `owner` tag looks like a
-copy-paste error, but changing it moves equipment ownership, which is outside a naming pass.
-Needs an owner ruling.
+**`owner = "USA"` in `SOV_1949_nsb.txt` is intentional - do not "fix" it.** Owner ruling
+2026-09-14: those 45 forced variants represent Lend-Lease equipment the Soviets kept using after
+WWII. The naming pass therefore displays the USA designs (`M5 Stuart`,
+`M16 Multiple Gun Motor Carriage`) on those Soviet divisions, which is correct and is the point.
+A future pass that "corrects" the owner tag to SOV would destroy deliberate historical content.
+
+## Entity alias coverage
+
+**Implemented 2026-09-14.** 13 hull-consuming sub-units had **zero** aliases, so every one of
+them showed a default battlefield model. The alias key the engine derives is
+`<TAG>_<sub_unit>_<visual_level>_entity`; a miss is silent, which is why this needed a contract
+rather than a spot check. 4,640 aliases added across 40 TAGs, table 2,269 -> 6,932.
+
+**Clone target follows what the sub-unit fields, not merely its hull family.** Troop carriers
+take `mechanized_entity` (`units_vehicles.asset:50`) and the marine variant
+`mechanized_marine_entity` (`:68`). The obvious shortcut - clone the TAG's light armour entity,
+since APC hulls are light - would have put a **tank model under mechanized infantry**. Armour
+based support (HQ, armoured recon, armoured engineers) clones the entity that TAG already uses
+for the matching armour family, `spaag_support` clones that TAG's own `spaag` entity where it
+has one, and the generic entities in `units_tanks.asset` are the fallback for TAGs with no
+national model. Every clone target was checked to exist; all 64 are pre-existing.
+
+**Level counts are the consumed hull's `visual_level` ceiling plus one, and they differ per
+role:** APC and the light/medium tank hulls reach 9, **IFV only 7**, light AA and heavy only 4.
+A flat 10 everywhere - the first thing I generated - declares aliases for visual levels no
+equipment row can reach. `armored_infantry` and `mechanized_airborne` are IFV and take 8;
+`spaag_support` and `hq_heavy_armor` take 5.
+
+**23 pre-existing level holes fixed**, found while auditing: `SOV` light armour had no alias for
+levels 0-5, `AST`/`ENG` none for 3-5, `JOR` none for 4-5, `AFG`/`PER` none for 0. Same silent
+fallback, older cause.
+
+**The static `ENTITY_ALIAS_TOKENS` allowlist was deleted, not extended.** It was a snapshot of
+which sub-units happened to have aliases (11) and would have rejected all 13 new ones. The
+invariant it was really defending is now derived and stronger: every alias must name a declared
+sub-unit that actually consumes an armour hull, so typos and stale tokens still fail.
+
+**Legacy coverage is deliberately not uniform, and is pinned rather than papered over.** Eleven
+pre-designer tokens cover only some TAGs (`heavy_armor` 16/40, `atgm_carrier` 20/40,
+`medium_armor` 36/40, three at 39/40). Blanket uniformity would have failed on content that was
+never uniform, so `legacy_tag_counts` records each exact count: partial coverage cannot erode
+further, and any improvement forces a deliberate update. Shrinking that map is content work with
+an owner.
+
+Contract proven by four negative fixtures: all aliases for a sub-unit removed, one TAG removed,
+a level hole, and a bumped legacy count.
 
 ## Retracted after measurement - do not reopen
 

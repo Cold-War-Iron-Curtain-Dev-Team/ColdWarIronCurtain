@@ -6052,28 +6052,13 @@ def run_stockpile_negative_fixtures() -> None:
 # outputs are `name` declarations that can make dangling clones look valid.
 ENTITY_ALIAS_DIR = MOD / "gfx/entities"
 ENTITY_ALIAS_FILE = ENTITY_ALIAS_DIR / "zz_CWIC_armor_entity_aliases.asset"
-ENTITY_ALIAS_TOKENS = frozenset(
-    {
-        "light_armor",
-        "medium_armor",
-        "heavy_armor",
-        "spaag",
-        "sp_artillery",
-        "light_sp_artillery",
-        "heavy_sp_artillery",
-        "tank_destroyer",
-        "atgm_carrier",
-        "medium_sp_anti_air_brigade",
-        "heavy_tank_destroyer_brigade",
-    }
-)
 ENTITY_ALIAS_NAME = re.compile(
     r"^(?P<tag>[A-Z]{3})_(?P<sub_unit>[a-z0-9_]+)_(?P<visual_level>[0-9]+)_entity$"
 )
 
 
 def validate_entity_alias_contract() -> None:
-    """Keep the armour entity alias table inside its live referential contract."""
+    """Require aliases to cover armour-hull sub-units consistently."""
     alias_relative = ENTITY_ALIAS_FILE.relative_to(ROOT)
     misplaced = sorted(
         path.name
@@ -6097,13 +6082,48 @@ def validate_entity_alias_contract() -> None:
         fail(f"entity alias file declares no aliases: {alias_relative}")
         return
 
+    # Derive valid alias tokens from live definitions; a static allowlist would
+    # freeze the set as new hull-consuming sub-units gain aliases.
     declared_sub_units: set[str] = set()
+    armour_hull_sub_units: set[str] = set()
+    armour_hull_prefixes = (
+        "light_tank_",
+        "medium_tank_",
+        "heavy_tank_",
+        "mechanized_equipment",
+        "mechanized_heavy_equipment",
+        "mechanized_marine_equipment",
+    )
     for path in sorted((MOD / "common/units").glob("*.txt")):
-        declared_sub_units.update(
-            name for name, _ in top_level_blocks(code_only(text(path)), "sub_units")
-        )
+        for name, block in top_level_blocks(code_only(text(path)), "sub_units"):
+            declared_sub_units.add(name)
+            equipment_ids = {
+                equipment
+                for need in keyed_blocks(block, "need")
+                for equipment in re.findall(r"\b([A-Za-z0-9_]+)\s*=", need)
+            }
+            if any(
+                equipment.startswith(armour_hull_prefixes)
+                for equipment in equipment_ids
+            ):
+                armour_hull_sub_units.add(name)
     if not declared_sub_units:
         fail("no sub-unit declarations found under common/units/*.txt")
+    # These pre-designer coverage levels predate the rework and are not a
+    # regression. Shrinking this map is content work with an owner.
+    legacy_tag_counts = {
+        "atgm_carrier": 20,
+        "heavy_armor": 16,
+        "heavy_sp_artillery": 16,
+        "heavy_tank_destroyer_brigade": 16,
+        "light_armor": 20,
+        "light_sp_artillery": 20,
+        "spaag": 20,
+        "medium_armor": 36,
+        "medium_sp_anti_air_brigade": 39,
+        "sp_artillery": 39,
+        "tank_destroyer": 39,
+    }
 
     declared_entities: set[str] = set()
     for path in sorted(ENTITY_ALIAS_DIR.glob("*.asset")):
@@ -6114,7 +6134,9 @@ def validate_entity_alias_contract() -> None:
                 top_level_quoted_values(block, "name")
             )
 
-    seen_tokens: set[str] = set()
+    alias_tags: set[str] = set()
+    alias_levels: dict[tuple[str, str], list[int]] = {}
+
     for number, block in enumerate(alias_blocks, 1):
         names = top_level_quoted_values(block, "name")
         clones = top_level_quoted_values(block, "clone")
@@ -6131,14 +6153,45 @@ def validate_entity_alias_contract() -> None:
             fail(f"entity alias name has invalid shape: {name}")
             continue
         token = match["sub_unit"]
-        if token not in ENTITY_ALIAS_TOKENS:
-            fail(f"entity alias {name} uses unexpected sub-unit token: {token}")
-            continue
-        seen_tokens.add(token)
         if token not in declared_sub_units:
             fail(f"entity alias {name} names undeclared sub-unit: {token}")
-    for token in sorted(ENTITY_ALIAS_TOKENS - seen_tokens):
-        fail(f"entity alias token has no aliases: {token}")
+            continue
+        if token not in armour_hull_sub_units:
+            fail(
+                f"entity alias {name} names non-armour-hull sub-unit: {token}"
+            )
+            continue
+        tag = match["tag"]
+        alias_tags.add(tag)
+        alias_levels.setdefault((tag, token), []).append(
+            int(match["visual_level"])
+        )
+    covered_sub_units = {sub_unit for _, sub_unit in alias_levels}
+    for sub_unit in sorted(armour_hull_sub_units - covered_sub_units):
+        fail(f"entity alias table omits every alias for {sub_unit}")
+    for sub_unit in sorted(armour_hull_sub_units & covered_sub_units):
+        tags = {tag for tag, token in alias_levels if token == sub_unit}
+        actual_tag_count = len(tags)
+        expected_tag_count = legacy_tag_counts.get(sub_unit)
+        if expected_tag_count is not None:
+            if actual_tag_count != expected_tag_count:
+                fail(
+                    f"entity alias legacy coverage for {sub_unit} changed: "
+                    f"expected {expected_tag_count} TAGs, found {actual_tag_count}"
+                )
+            continue
+        missing_tag_count = len(alias_tags - tags)
+        if missing_tag_count:
+            fail(
+                f"entity alias table omits {missing_tag_count} TAG aliases for "
+                f"{sub_unit}"
+            )
+    for (tag, sub_unit), levels in sorted(alias_levels.items()):
+        if sorted(levels) != list(range(len(levels))):
+            fail(
+                f"entity alias {tag}_{sub_unit} has duplicate or non-contiguous "
+                "visual levels"
+            )
 
 
 # Measured 2026-09-13: five armour archetypes named a `picture` value that no
