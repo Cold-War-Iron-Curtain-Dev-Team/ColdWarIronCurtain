@@ -6097,6 +6097,46 @@ LEGACY_ARMOUR_UNGATED_EXCEPTIONS = frozenset(
     }
 )
 
+# Vanilla declares the designer blueprint overlay sprites - `GFX_TC_<chassis>` and
+# `GFX_TM_<chassis>_<slot>` - only for its own role chassis: aa, artillery and
+# destroyer. The carrier roles this mod invented have blueprint `.gui` files that
+# reference the same sprite shape, and nothing declared them, so opening an APC or
+# IFV designer logged six `Could not find sprite type` lines per open. The engine
+# renders the window anyway, which is why owner QA passed three times before the
+# log was read.
+CARRIER_BLUEPRINT_FAMILIES = (
+    "light_tank_apc_chassis",
+    "light_tank_ifv_chassis",
+    "medium_tank_apc_chassis",
+    "medium_tank_ifv_chassis",
+)
+CARRIER_BLUEPRINT_SLOTS = (
+    "armor_type_slot",
+    "engine_type_slot",
+    "main_armament_slot",
+    "suspension_type_slot",
+    "turret_type_slot",
+)
+
+
+def validate_carrier_blueprint_sprites() -> None:
+    """Mod-invented role chassis must declare their own blueprint overlay sprites."""
+    declared: set[str] = set()
+    for path in sorted((MOD / "interface").rglob("*.gfx")):
+        declared.update(re.findall(r'name\s*=\s*"(GFX_T[CM]_[A-Za-z0-9_]+)"', text(path)))
+    for family in CARRIER_BLUEPRINT_FAMILIES:
+        wanted = [f"GFX_TC_{family}"]
+        wanted += [f"GFX_TM_{family}_{slot}" for slot in CARRIER_BLUEPRINT_SLOTS]
+        for sprite in wanted:
+            if sprite not in declared:
+                fail(
+                    f"designer blueprint sprite {sprite} is not declared; opening the "
+                    "designer logs 'Could not find sprite type'"
+                )
+
+
+validate_carrier_blueprint_sprites()
+
 
 def validate_legacy_armour_dlc_gates() -> None:
     """Keep legacy armour out of NSB production without orphaning non-NSB rows."""

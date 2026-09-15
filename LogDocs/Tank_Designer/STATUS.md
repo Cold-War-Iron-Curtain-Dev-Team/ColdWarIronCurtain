@@ -2828,6 +2828,74 @@ The rendered models have not been confirmed in game, and that is the one thing o
 check: a division with SP artillery, SPAAG, tank destroyer and ATGM battalions should show
 country-appropriate armour models rather than the default mesh.
 
+## Finding 29: the carrier designers logged missing blueprint sprites - FIXED 2026-09-13
+
+Owner-reported: opening a carrier designer writes errors to the live `error.log`. Confirmed from
+the log rather than reasoned about - 42 lines, all `graphics.cpp:1351: Failed to create gui
+object. Could not find sprite type`, six distinct sprites repeated seven times as the designer
+was opened and closed:
+
+```
+GFX_TC_light_tank_apc_chassis
+GFX_TM_light_tank_apc_chassis_main_armament_slot
+GFX_TM_light_tank_apc_chassis_turret_type_slot
+GFX_TM_light_tank_apc_chassis_suspension_type_slot
+GFX_TM_light_tank_apc_chassis_armor_type_slot
+GFX_TM_light_tank_apc_chassis_engine_type_slot
+```
+
+**Cause: vanilla declares the designer blueprint overlay sprites only for its own role chassis.**
+`vanilla interface/tank_modules_blueprint_overlay.gfx` declares `GFX_TC_<chassis>` plus five
+`GFX_TM_<chassis>_<slot>` sprites for every aa, artillery and destroyer role - which is why those
+designers are silent - and the mod's four **invented** carrier roles have blueprint `.gui` files
+referencing the same sprite shape with nothing declaring them. Measured: the mod declared **zero**
+`GFX_T[CM]_*` sprites of its own before this pass.
+
+Only the APC appears in the log because that is the designer the owner opened; light IFV, medium
+APC and medium IFV had the identical 6-sprite hole.
+
+**Fix:** 24 sprites declared in `interface/cwic_tank_rework_icons.gfx` - one `GFX_TC_` plus five
+`GFX_TM_` per carrier family - pointing at the vanilla generic blueprint art of the hull each role
+sits on: `generic_light_tank_{blueprint,armor,engine,gun,suspension,turret}.dds` for the light
+roles and `generic_medium_tank_*` for the medium ones. All twelve textures verified present in the
+base game. Zero new assets.
+
+**Why three owner QA passes missed it:** the engine renders the designer window anyway. The
+missing sprite is cosmetic overlay art, so the only symptom is log noise - exactly the silent
+class `GOTCHAS.md` warns about, and the reason the log must be read even when the UI looks right.
+
+`validate_carrier_blueprint_sprites()` now fails when any of the 24 is undeclared, naming the
+sprite and the log line it would produce. Proven to bite by renaming one declaration, then
+restored.
+
+## The missing names and photos are two known gaps, not a new defect
+
+The same owner capture shows six role-family rows reading `Light SP Anti-Air`, `Light SP
+Artillery`, `Light Armored Per...`, `Medium SP Artillery`, `Medium Tank Dest...`, `Heavy SP
+Artillery` with generic icons. Both halves are already-measured items rather than regressions,
+and the NSB OOB pass will **not** fix either - worth stating plainly because that was the open
+question.
+
+**Names.** Those strings are the *chassis* localisation, which is what an equipment row displays
+when no design is bound to it. The designs themselves do exist and are correctly named in script:
+`USA_1949_nsb.txt:1590,1599,1608,1617,1626` request `Standard Main Battle Tank Destroyer 1942`,
+`Standard Light SPG 1942`, `Standard Main Battle SPG 1942`, `Standard Heavy SPG 1942` and
+`Standard Light SPAA 1942`, the generic effects create exactly those names
+(`CWIC_tank_designer_effects.txt:154-173` for the SPAA block), and USA's bootstrap grants the
+gating technologies before `set_oob`, in the right order and with a comment saying why
+(`USA - United States.txt:51-66`). So the wiring is sound and the naming gap is the measured one:
+**979 historical names have no designer design carrying them, and ten of twelve role families
+have zero national presets.** A country with none displays the literal `Standard <role> <year>`.
+
+**Photos.** Now fully explained by the resolved icon mechanism. The production icon is a
+code-resolved `GFX_technology_medium` keyed on the technology that enables the equipment, with the
+per-country override `GFX_<TAG>_<technology>_medium`. Designer equipment is enabled by the `nsb_*`
+chassis technologies, and **202 generic `GFX_nsb_*_medium` sprites exist against zero
+`GFX_<TAG>_nsb_*_medium`**. Every country therefore shows the same generic designer icon,
+including USA. Closing it means authoring per-country sprites against the existing 9,965-file art
+library - the art half of the conversion, and the one item still wanting a one-texture in-game
+probe to confirm engine precedence between the country sprite and the generic one.
+
 ## Conversion surface, measured 2026-09-13
 
 The mass non-NSB-to-NSB conversion splits into four surfaces with very different readiness.
