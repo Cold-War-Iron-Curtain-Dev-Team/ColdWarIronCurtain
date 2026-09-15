@@ -1609,6 +1609,47 @@ inert if the key is never requested again. Do not treat the underlying resolutio
 absent across 92 TAGs and 97 technologies. Only these 46 had art on disk; the rest need textures
 drawn, which is art work, not scripting. 3,885 already exist.
 
+## Production icons follow the equipment type category
+
+**Measured 2026-09-14 from the owner's production-tab capture, and it settles the artillery
+asymmetry once and for all - the technology is not the key.**
+
+Every row in that capture is a designer tier (localisation confirms: `light_tank_apc_chassis_2` =
+"Improved Light Armored Personnel Carrier", `light_tank_artillery_chassis_2` = "Improved Light SP
+Artillery"). Those two ids are enabled by **exactly the same technology**, `nsb_light_tanks1`, yet
+the artillery row renders the M52 self-propelled howitzer while the APC row renders a generic
+light tank photograph. Same technology, different art, so the icon cannot be technology-keyed.
+
+What differs is the `type` block on the role root (`x_tank_chassis.txt`):
+
+| role root | type | icon observed |
+|---|---|---|
+| `light_tank_chassis` | `armor light_armor` | light tank photo |
+| `light_tank_artillery_chassis` | `armor artillery` | M52, correct |
+| `light_tank_aa_chassis` | `armor anti_air` | M42, correct |
+| `light_tank_destroyer_chassis` | `armor anti_tank` | M56 Scorpion, correct |
+| `light_tank_apc_chassis` | `armor **flame**` | light tank hull photo, wrong |
+| `light_tank_ifv_chassis` | `armor **rocket**` | light tank hull photo, wrong |
+
+**The production icon follows the equipment type category.** Artillery, AA and tank destroyers
+work because their category matches what the vehicle actually is. APC and IFV are typed `flame`
+and `rocket` - tokens spent in phase 6/7 because no `mechanized` category token exists - so they
+inherit the hull's own art and can never show carrier art while typed that way.
+
+This also retires the old "artillery renders generic" thread completely: artillery was never
+broken, and no per-country `nsb_*` sprite could have fixed APC, because one armour technology
+enables six role tiers at once and cannot distinguish them.
+
+**Three options, all needing an owner ruling - do not guess:**
+
+1. **Accept it.** APC and IFV show their hull. Cheapest, and the names are correct.
+2. **Retype to `amphibious`.** It is the one unspent role token (`DECISIONS.md` final role-token
+   map) and its art is amphibious carriers - the LVT-4 row in the same capture proves that art
+   resolves. Closer to an APC than a flamethrower is, but it re-opens a token the owner
+   deliberately left unspent and changes designer role grouping.
+3. **Declare art for the `flame` and `rocket` categories per country**, if the engine exposes a
+   category sprite key. Unverified; would need a probe.
+
 ## Retracted after measurement - do not reopen
 
 - **The AA and flamethrower sprites are not broken.** `tank_module_aa_gun{,_2,_3}.dds`,
