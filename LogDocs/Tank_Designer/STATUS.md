@@ -3009,6 +3009,63 @@ that is the one datum that separates "the designer technology key works too" fro
 legacy family key works". The M16 quad-gun half-track photograph is the tell; nothing else in the
 mod uses it on a tank hull.
 
+### Probe 1 CONFIRMED and one earlier attribution corrected, 2026-09-13
+
+Owner capture with the debug tooltip visible: the `Mid-WW2 Light Tank (United States of America)`
+row in the designer template list shows the M16 quad-gun half-track photograph and the tooltip
+reads `GFX_USA_nsb_light_tanks0_medium`. **The per-country override fires for an `nsb_*` designer
+technology.** That is probe 1 answered affirmatively, and it means outcome 1 and outcome 2 are
+both true on different surfaces.
+
+**Correction to the previous entry:** the half-track in the first capture was this probe sprite,
+not evidence of family inheritance in the template list. The tooltip in that capture was
+positioned over the row beneath the one it described, and I read it as naming the row it covered.
+The family-inheritance evidence stands on the *production line* only, where the `M3A1 Half-Track
+Mk0` row shows `USA_apc_1.dds` - a dozer-bladed M3 with no quad mount, a different photograph
+from the probe's.
+
+### The artillery/AA/TD asymmetry: three candidates eliminated, one standing
+
+Measured, and the obvious explanations are all dead:
+
+- **Not missing art.** `interface/USA_techs.gfx` declares `GFX_USA_sp_artillery_1..5_medium`,
+  `GFX_USA_light_sp_artillery_1..5`, `GFX_USA_heavy_sp_artillery_1..5`, `GFX_USA_spaag_1..5` and
+  `GFX_USA_tank_destroyer_1..5` - 25 sprites across exactly the chains in question.
+- **Not missing technologies.** USA's own history grants `sp_artillery_1`, `sp_artillery_2`,
+  `spaag_1`, `spaag_2`, `tank_destroyer_1`, `tank_destroyer_2`, `light_sp_artillery_1` and
+  `heavy_sp_artillery_1`, so the player holds the technologies whose sprites exist.
+- **Not a name mismatch.** The sprite names match the technology ids exactly, the same way
+  `GFX_USA_mechanized_infantry_medium` matches `mechanized_infantry`.
+
+So the APC and artillery cases differ in something narrower. **The one candidate still standing:
+which technology the engine picks when several enable members of one family.** The APC family's
+legacy rows come from `mechanized_infantry*`, a 1942 chain; the artillery families' legacy rows
+come from `sp_artillery_*` and friends, but those families ALSO contain designer tiers enabled by
+`nsb_iw_armored_vehicles` and the `nsb_*` ladders, which have no country sprite. If the engine
+resolves the lowest-tier or first-declared enabling technology, artillery would land on an
+`nsb_*` key and fall back to generic while APC lands on the legacy one.
+
+That is a rule about engine selection order, and static files cannot settle it - the same limit
+the first icon investigation hit. **Probe 2 discriminates it with one sprite**, now staged beside
+probe 1:
+
+```
+spriteType = { name = "GFX_USA_nsb_light_tanks1_medium" texturefile = "gfx/interface/technologies/USA_mbt_1.dds" }
+```
+
+`light_tank_apc_chassis_2` is enabled only by `nsb_light_tanks1`, yet its production line
+currently renders the legacy half-track. Art is a Patton, unmistakable against both the half-track
+and the generic snow tank.
+
+- **The M3A1 line becomes a Patton** -> the production icon follows the designer technology, the
+  legacy half-track was arriving by some other route, and per-country designer sprites are the
+  lever for every family. The bulk plan returns, at 23 sprites per country.
+- **The M3A1 line stays a half-track** -> the family's legacy technology outranks the designer
+  one. Then the fix for artillery is not new art but making the artillery role families resolve
+  their legacy chain the way the carriers already do, which is far cheaper than 2,116 sprites.
+
+Either answer decides the whole art half. Do not author bulk sprites before it.
+
 **Do not start the bulk pass before the probe result is recorded here.** 2,116 declarations built
 on an unverified resolution rule is exactly the kind of work this folder exists to prevent.
 
