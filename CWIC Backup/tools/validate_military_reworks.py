@@ -6109,19 +6109,25 @@ def validate_entity_alias_contract() -> None:
                 armour_hull_sub_units.add(name)
     if not declared_sub_units:
         fail("no sub-unit declarations found under common/units/*.txt")
-    # These pre-designer coverage levels predate the rework and are not a
-    # regression. Shrinking this map is content work with an owner.
+    # Coverage levels that predate this rework, counted as alias-or-native across
+    # every source. They are not uniform and never were: some sub-units are covered
+    # for more TAGs than the alias file itself names, because per-country entities
+    # exist for countries that need no alias. Pinning the exact counts means partial
+    # coverage cannot erode further and any improvement forces a deliberate update.
+    # Shrinking this map is content work with an owner.
     legacy_tag_counts = {
+        "armored_infantry": 57,
         "atgm_carrier": 20,
-        "heavy_armor": 16,
-        "heavy_sp_artillery": 16,
+        "heavy_armor": 29,
+        "heavy_sp_artillery": 29,
         "heavy_tank_destroyer_brigade": 16,
-        "light_armor": 20,
+        "light_armor": 32,
         "light_sp_artillery": 20,
-        "spaag": 20,
-        "medium_armor": 36,
+        "mechanized_airborne": 57,
+        "mechanized_infantry": 44,
+        "mechanized_marine": 57,
         "medium_sp_anti_air_brigade": 39,
-        "sp_artillery": 39,
+        "spaag": 32,
         "tank_destroyer": 39,
     }
 
@@ -6133,6 +6139,24 @@ def validate_entity_alias_contract() -> None:
             declared_entities.update(
                 top_level_quoted_values(block, "name")
             )
+
+    # Coverage is alias-or-native. Several sub-units - armored_infantry,
+    # mechanized_airborne, mechanized_marine - already have per-country entities in
+    # the <TAG>_unit.asset files, so they need no alias. This file carries the zz_
+    # prefix and loads last, so aliasing one of those names would replace a national
+    # model with a generic one; native_overrides pins the pre-existing overrides so
+    # no new one can slip in.
+    native_levels: dict[tuple[str, str], set[int]] = {}
+    for entity_name in declared_entities:
+        parsed = ENTITY_ALIAS_NAME.fullmatch(entity_name)
+        if parsed and parsed["sub_unit"] in armour_hull_sub_units:
+            native_levels.setdefault(
+                (parsed["tag"], parsed["sub_unit"]), set()
+            ).add(int(parsed["visual_level"]))
+    # 140 aliases deliberately shadow a native entity; the zz_ prefix makes this
+    # file win. That is pre-existing legacy behaviour, pinned so a new override -
+    # which would silently replace a national model with a generic one - fails.
+    native_overrides = 140
 
     alias_tags: set[str] = set()
     alias_levels: dict[tuple[str, str], list[int]] = {}
@@ -6166,18 +6190,27 @@ def validate_entity_alias_contract() -> None:
         alias_levels.setdefault((tag, token), []).append(
             int(match["visual_level"])
         )
-    covered_sub_units = {sub_unit for _, sub_unit in alias_levels}
+    overrides = sum(
+        len(set(levels) & native_levels.get(pair, set()))
+        for pair, levels in alias_levels.items()
+    )
+    if overrides != native_overrides:
+        fail(
+            f"entity alias overrides of native entities changed: expected "
+            f"{native_overrides}, found {overrides}"
+        )
+    covered = {pair for pair in alias_levels} | set(native_levels)
+    covered_sub_units = {sub_unit for _, sub_unit in covered}
     for sub_unit in sorted(armour_hull_sub_units - covered_sub_units):
-        fail(f"entity alias table omits every alias for {sub_unit}")
+        fail(f"no entity of any kind covers {sub_unit}")
     for sub_unit in sorted(armour_hull_sub_units & covered_sub_units):
-        tags = {tag for tag, token in alias_levels if token == sub_unit}
-        actual_tag_count = len(tags)
+        tags = {tag for tag, token in covered if token == sub_unit}
         expected_tag_count = legacy_tag_counts.get(sub_unit)
         if expected_tag_count is not None:
-            if actual_tag_count != expected_tag_count:
+            if len(tags) != expected_tag_count:
                 fail(
                     f"entity alias legacy coverage for {sub_unit} changed: "
-                    f"expected {expected_tag_count} TAGs, found {actual_tag_count}"
+                    f"expected {expected_tag_count} TAGs, found {len(tags)}"
                 )
             continue
         missing_tag_count = len(alias_tags - tags)
@@ -6186,11 +6219,22 @@ def validate_entity_alias_contract() -> None:
                 f"entity alias table omits {missing_tag_count} TAG aliases for "
                 f"{sub_unit}"
             )
-    for (tag, sub_unit), levels in sorted(alias_levels.items()):
-        if sorted(levels) != list(range(len(levels))):
+    # Legacy native coverage is genuinely patchy - TUR_armored_infantry and many
+    # others declare only some levels - so contiguity is not an invariant of
+    # pre-existing content. It IS an invariant of the sub-units this alias file
+    # owns outright, where every level is generated from the hull's ceiling.
+    alias_owned = {
+        sub_unit
+        for _, sub_unit in alias_levels
+        if not any(token == sub_unit for _, token in native_levels)
+    }
+    for pair in sorted(alias_levels):
+        levels = sorted(alias_levels[pair])
+        if len(levels) != len(set(levels)):
+            fail(f"entity alias {pair[0]}_{pair[1]} declares a duplicate level")
+        elif pair[1] in alias_owned and levels != list(range(len(levels))):
             fail(
-                f"entity alias {tag}_{sub_unit} has duplicate or non-contiguous "
-                "visual levels"
+                f"entity alias {pair[0]}_{pair[1]} has non-contiguous visual levels"
             )
 
 

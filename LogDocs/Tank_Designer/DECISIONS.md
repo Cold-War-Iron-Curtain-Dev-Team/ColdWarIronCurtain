@@ -1466,9 +1466,26 @@ A flat 10 everywhere - the first thing I generated - declares aliases for visual
 equipment row can reach. `armored_infantry` and `mechanized_airborne` are IFV and take 8;
 `spaag_support` and `hq_heavy_armor` take 5.
 
-**23 pre-existing level holes fixed**, found while auditing: `SOV` light armour had no alias for
-levels 0-5, `AST`/`ENG` none for 3-5, `JOR` none for 4-5, `AFG`/`PER` none for 0. Same silent
-fallback, older cause.
+**Corrected 2026-09-14, same day: coverage is alias-or-native, and my first pass got this
+wrong.** Per-country entities also live in `<TAG>_unit.asset` and `*_units_*.asset`, and I had
+measured coverage from the alias file alone. Two consequences, both fixed:
+
+- **538 of the 4,640 aliases were overriding national models.** `armored_infantry`,
+  `mechanized_airborne`, `mechanized_marine` and five `mechanized_infantry` entries already had
+  per-country entities (410, 311, 181 and 5 pairs). Because this file carries the `zz_` prefix it
+  loads **last**, so those aliases replaced a national model with the generic one. Removed; 4,102
+  aliases remain, and nothing is declared here for a name a native asset already declares.
+- **The 23 "pre-existing level holes" were not holes.** `SOV_light_armor_0_entity` and friends are
+  declared natively (`SOV_units_tanks.asset:7`). Worse, my fill cloned
+  `SOV_light_armor_entity`, which itself clones `SOV_light_armor_0_entity` - a **circular clone**.
+  All 23 reverted.
+
+The contract now unions alias and native coverage. Three consequences worth knowing:
+contiguity is **not** an invariant of legacy content (`TUR_armored_infantry` and many others
+declare only some levels), so it is enforced only for the sub-units this file owns outright, where
+every level is generated from the hull ceiling; `legacy_tag_counts` holds alias-or-native counts,
+which is why several exceed the alias file's own 40 TAGs; and `native_overrides = 140` pins the
+pre-existing deliberate shadowing so a new override fails loudly.
 
 **The static `ENTITY_ALIAS_TOKENS` allowlist was deleted, not extended.** It was a snapshot of
 which sub-units happened to have aliases (11) and would have rejected all 13 new ones. The
