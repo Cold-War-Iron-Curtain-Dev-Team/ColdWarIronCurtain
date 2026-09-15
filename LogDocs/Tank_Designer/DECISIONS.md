@@ -1579,6 +1579,36 @@ the guard suppresses, one guard per producer and tier, flag suppresses the place
   would make `bookmark_variant_names` ambiguous and break the "bootstraps several designs" check.
   One owner per tier.
 
+## Per-country technology icon sprites
+
+**Implemented 2026-09-14** from the owner's screenshot: a US self-propelled gun showed a generic
+towed-artillery icon, tooltip `GFX_USA_improved_heavy_art_medium`. That sprite is declared
+nowhere; vanilla ships only the Soviet one (`interface/Technologies.gfx:3267-3270`, texture
+`SOV_imp_heavy_spart.dds`). Per Finding 30 the engine asks for `GFX_<TAG>_<technology>_medium` and
+falls back silently to the generic sprite, so this is a missing declaration, not missing art.
+
+**46 sprites added across 26 `interface/<TAG>_techs.gfx` files**, every one pointing at a texture
+already on disk. Two sources:
+
+- **33 derived from the mod's own convention.** For each armour technology that any country
+  already declares, the texture suffix was derived from the existing declarations
+  (`heavy_sp_artillery_1` -> `<TAG>_sp_hv_art_1`, `atgm_carrier_0` -> `<TAG>_atcar1`, and so on -
+  74 technologies have a derivable suffix), then every TAG missing that sprite was checked for the
+  matching file. Matching **must be case-insensitive and extension-agnostic**: the library mixes
+  `apc`/`APC`, `ifv`/`IFV`, `.dds`/`.png`/`.PNG`, and a strict match found only 29 of 33.
+- **13 `improved_heavy_art` declarations**, one per TAG that owns a heavy SP artillery texture.
+
+**An unresolved contradiction, recorded rather than papered over.** `improved_heavy_art` exists in
+**no mod file** - the mod's `common/technologies/armor.txt` fully replaces vanilla's, and the two
+technology sets are **disjoint** (48 mod ids, 50 vanilla ids, zero overlap). The engine
+nevertheless requested the key, so something still resolves vanilla armour technology names. The
+declaration is therefore empirical: it costs one line, fixes the photographed symptom, and is
+inert if the key is never requested again. Do not treat the underlying resolution as understood.
+
+**Scale check before anyone "finishes" this.** 5,039 per-country armour technology sprites are
+absent across 92 TAGs and 97 technologies. Only these 46 had art on disk; the rest need textures
+drawn, which is art work, not scripting. 3,885 already exist.
+
 ## Retracted after measurement - do not reopen
 
 - **The AA and flamethrower sprites are not broken.** `tank_module_aa_gun{,_2,_3}.dds`,
