@@ -6284,6 +6284,14 @@ ARMOUR_ARCHETYPE_PICTURES = {
     "mechanized_equipment": "archetype_mechanized_equipment",
     "mechanized_heavy_equipment": "archetype_mechanized_heavy_equipment",
     "mechanized_marine_equipment": "archetype_motorized_equipment",
+    # Owner ruling 2026-09-14: the production icon follows the equipment type category, and
+    # APC/IFV are typed flame/rocket because no mechanized category token exists, so they
+    # otherwise inherit the tank hull art. No flame or rocket sprite key exists to override,
+    # so the archetype picture carries the carrier art.
+    "light_tank_apc_chassis": "archetype_mechanized_equipment",
+    "medium_tank_apc_chassis": "archetype_mechanized_equipment",
+    "light_tank_ifv_chassis": "archetype_mechanized_heavy_equipment",
+    "medium_tank_ifv_chassis": "archetype_mechanized_heavy_equipment",
 }
 # Registered by the base game in `interface/*.gfx`. Kept as a literal set because
 # the validator must not depend on a Steam install path being present.
@@ -6448,6 +6456,9 @@ def validate_armour_archetype_pictures() -> None:
     """
     files = [
         CHASSIS_FILE,
+        # The role families (APC, IFV, and the artillery/AA/TD roots) live here, and
+        # the APC/IFV pictures carry their carrier art, so this file must be scanned.
+        MOD / "common/units/equipment/x_tank_chassis.txt",
         MOD / "common/units/equipment/tank_light.txt",
         MOD / "common/units/equipment/tank_medium.txt",
         MOD / "common/units/equipment/tank_heavy.txt",

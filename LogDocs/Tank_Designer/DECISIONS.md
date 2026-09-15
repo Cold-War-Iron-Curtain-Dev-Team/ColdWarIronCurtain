@@ -1640,7 +1640,34 @@ This also retires the old "artillery renders generic" thread completely: artille
 broken, and no per-country `nsb_*` sprite could have fixed APC, because one armour technology
 enables six role tiers at once and cannot distinguish them.
 
-**Three options, all needing an owner ruling - do not guess:**
+**Owner ruling 2026-09-14: full send on option 3.** Implemented in two halves.
+
+**Half 1 - the blank fire-support icons had a simpler cause than the category rule.** The
+production and designer views ask for *vanilla* fire-support technology keys, and ten of them had
+**no sprite at all in this mod, neither generic nor per-country**: `improved_light_art`,
+`improved_medium_art`, `improved_heavy_art`, `super_heavy_art`, `super_heavy_spaa`,
+`improved_medium_td`, `advanced_light_td`, `advanced_medium_td`, `modern_td`, `super_heavy_td`.
+Nothing declared means nothing renders, which is the transparency the owner saw - not a category
+problem and not missing art. 10 generic sprites now point at the legacy fire-support photographs
+in `cwic_tank_rework_icons.gfx`, and 177 per-country overrides across 46 `<TAG>_techs.gfx` files
+give each nation its own vehicle. Both the tech tree and the designer now draw from the same
+legacy photo set.
+
+**Half 2 - flame and rocket have no sprite key to declare.** Measured: the mod defines **no
+`flame` technology at all**, and the only rocket keys are `sp_rocket1..5` and vanilla
+`rocket_artillery*`, which belong to real rocket artillery - hijacking them would corrupt those
+icons. So a per-country flame/rocket sprite is not possible. The lever that does exist is the
+archetype `picture`, now set on all four carrier roots: `light_tank_apc_chassis` and
+`medium_tank_apc_chassis` to `archetype_mechanized_equipment`, `light_tank_ifv_chassis` and
+`medium_tank_ifv_chassis` to `archetype_mechanized_heavy_equipment`. All four sprites were already
+registered. `validate_armour_archetype_pictures()` now scans `x_tank_chassis.txt`, which it never
+did, and pins the four new entries.
+
+Whether the archetype picture outranks the hull technology sprite for these tiers is an in-game
+question - it is the only remaining lever, so if APC still shows a tank hull, the category rule
+below is the binding constraint and option 2 (retyping to `amphibious`) is the only fix left.
+
+**The three options as originally recorded:**
 
 1. **Accept it.** APC and IFV show their hull. Cheapest, and the names are correct.
 2. **Retype to `amphibious`.** It is the one unspent role token (`DECISIONS.md` final role-token
