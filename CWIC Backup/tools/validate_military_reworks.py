@@ -5370,13 +5370,24 @@ if len(variant_types) != len(set(variant_types)):
     )
     fail(f"duplicate starting tank variant types: {duplicates}")
 # The two directions are not the same defect. An OOB requesting a design nothing
-# creates is a silent break, so `missing` stays hard. A created design no OOB has
-# requested yet is legitimate content: the 16 starting designs authored 2026-09-17
-# gave five role families their first bookmark design, and the OOB requests that
-# will consume them are the conversion work still owed. They are named here rather
-# than the direction being dropped, so a misspelt generation still fails.
+# creates is a silent break, so that direction stays hard. A created design no OOB
+# requests is legitimate, but only for a measured reason - each entry below is a
+# design no order of battle CAN request today, not merely one nobody has got to.
+#
+# Measured 2026-09-17: of the five battalions consuming these families, only
+# `atgm_carrier` is fielded by any OOB at all. `medium_sp_anti_air_brigade`,
+# `heavy_tank_destroyer_brigade`, `heavy_mechanized_infantry` and
+# `heavy_armored_infantry` appear in zero OOBs, NSB or not, so a request for their
+# equipment would name a design no division in the game draws. Putting those
+# battalions into historical divisions is content and balance authoring, not
+# conversion, and it needs an owner ruling per formation.
+#
+# `light_tank_destroyer_chassis_5` left this set the same day: NOR and RAJ field
+# `atgm_carrier` in twenty divisions between them and now request it by name. SOV
+# declares two ATGM templates and instantiates neither, so it has nothing to carry
+# a request. The remaining light TD tiers are pre-ATGM eras no 1980 OOB wants.
 AWAITING_OOB_REQUESTS = frozenset(
-    {f"light_tank_destroyer_chassis_{tier}" for tier in range(6)}
+    {f"light_tank_destroyer_chassis_{tier}" for tier in range(5)}
     | {f"medium_tank_aa_chassis_{tier}" for tier in range(1, 7)}
     | {f"heavy_tank_destroyer_chassis_{tier}" for tier in range(1, 5)}
     | {f"medium_tank_apc_chassis_{tier}" for tier in range(7)}

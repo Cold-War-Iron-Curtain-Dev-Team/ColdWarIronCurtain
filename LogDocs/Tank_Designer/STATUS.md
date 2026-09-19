@@ -3528,6 +3528,44 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 38: the OOB requests - only one family could receive them, 2026-09-17
+
+**The "30 OOB requests" item was priced against designs, not against divisions, and that was
+the error.** A `force_equipment_variants` request only does anything in an order of battle
+whose divisions field the battalion that draws the family. Measured across every OOB, NSB and
+non-NSB:
+
+| Battalion | Family | OOBs fielding it |
+| --- | --- | ---: |
+| `atgm_carrier` | `light_tank_destroyer_chassis` | 9 total, 3 NSB |
+| `medium_sp_anti_air_brigade` | `medium_tank_aa_chassis` | **0** |
+| `heavy_tank_destroyer_brigade` | `heavy_tank_destroyer_chassis` | **0** |
+| `heavy_mechanized_infantry` | `medium_tank_apc_chassis` | **0** |
+| `heavy_armored_infantry` | `medium_tank_ifv_chassis` | **0** |
+
+Four of the five battalions appear in no order of battle at all, so 24 of the 30 requests
+cannot be written without first putting those battalions into historical divisions - content
+and balance authoring per formation, not conversion. That is an owner decision and is recorded
+as owed rather than guessed at.
+
+**What was authored: 20 requests across two countries.** NOR and RAJ field `atgm_carrier` in
+twelve and eight division instances respectively, and each now requests
+`light_tank_destroyer_chassis_5` by name - RAJ its historical `Landrover w/ MILAN`, NOR the
+generic `Standard Light Tank Destroyer 1970`, resolved through the ratified producer rule.
+SOV was excluded on evidence: it declares two ATGM templates and **instantiates neither**, so
+it has no division to carry a request.
+
+**A second contract fired and was satisfied, not worked around.** Adding RAJ's request failed
+`RAJ - British Raj.txt does not bootstrap the required chassis technologies and starting
+variants immediately before set_oob`, because a country requesting a variant must research its
+chassis before the OOB loads. `nsb_light_tanks4` was added to RAJ's bootstrap in sorted
+position. NOR needed no change - it already carried the technology.
+
+Inventory line moves for the first time this session: **38 -> 39 generic bookmark variants**
+and **560 -> 580 named OOB requests**. `AWAITING_OOB_REQUESTS` drops
+`light_tank_destroyer_chassis_5` and now carries the per-family reason each remaining entry
+cannot be requested, so the set documents a measurement rather than a backlog.
+
 ## Finding 37: conversion tranche 2 - the naming surface is closed, 2026-09-17
 
 **A null-year data gap was hiding 67 deliverable names, and finding it changed the shape of the
@@ -3949,9 +3987,16 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
 19. ~~QA for Findings 35 and 36.~~ **Owner playtest accepted 2026-09-17** - names appear
    correctly and the newly covered families behave. QA is still owed for the tranche 2 additions
    specifically: the three `light_tank_ifv_chassis_6/7/8` helpers and the 23 bookmark rows.
-20. **Next: the 30 OOB requests** for the starting designs authored in Finding 35, currently
-   permitted by the validator's `AWAITING_OOB_REQUESTS`. This is the last mechanical item in the
-   conversion and needs per-OOB judgement about which countries historically fielded each role.
+20. ~~The OOB requests.~~ **Done as far as it can go, 2026-09-17, Finding 38.** 20 requests
+   authored across NOR and RAJ for `light_tank_destroyer_chassis_5`, plus RAJ's missing
+   bootstrap technology. The other 24 are not writable: four of the five consuming battalions
+   appear in zero orders of battle.
+21. **Owner decision: put the four unfielded battalions into historical divisions.** Medium
+   SPAAG, Heavy Tank Destroyer, Heavy Mechanized Infantry and Heavy Armored Infantry exist,
+   are equippable and are AI-buildable, but no scripted order of battle fields any of them, so
+   no campaign starts with one. Deciding which formations historically had them is content and
+   balance work per country, and it is the last thing standing between this rework and being
+   fully live in scripted history.
 21. An owner decision on the 12 blocked carrier rows: either give carrier generic blocks the
    role-chassis flag name, or widen `carrier_source_inventory()` past its tier window. Both
    touch a ratified contract; neither is urgent.
