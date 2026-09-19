@@ -91,6 +91,18 @@ an amphibious role root is nameable the same way. The three priced amphibious op
 Finding 15 are obsolete: option 1's "full sixth family" cost collapses to one
 `duplicate_archetypes` block. Do not re-price that batch off the old finding.
 
+**Amended 2026-09-17, and this is a hard prerequisite rather than a nuance: a role root is a
+family only once it declares at least one plain member.** An equipment row with
+`archetype = <root>` must exist; tiers derived by `for_each` alone are not enough, and a
+sub-unit whose `need` names a root with no plain member is silently dropped from the division
+designer with nothing in `error.log`. The eight role families that worked had plain members only
+because the carrier cutover and the artillery convergence relocated legacy rows into them; the
+four that never received legacy content - both medium carriers, `medium_tank_aa_chassis` and
+`heavy_tank_destroyer_chassis` - were unusable until plain ladders were authored. Vanilla
+declares a plain ladder under every role family a sub-unit consumes and consumes none of its
+childless roots. **Any new role family therefore costs a `duplicate_archetypes` block *and* at
+least one equipment row.** See `STATUS.md` Finding 33; the validator now fails on it.
+
 ### Battalion taxonomy
 
 Line battalions, which make up the division's line:
@@ -508,6 +520,68 @@ deferred. The eight role brigades that already exist are technology-gated throug
 `enable_subunits`, which is the normal pattern - `active = no` on a sub-unit is not a
 disabled unit, and 59 of the mod's 91 land sub-units carry it.
 
+### Heavy carrier battalions, ratified 2026-09-17
+
+**Owner ruling, and it closes the Heavy APC / Heavy IFV question `STATUS.md` Finding 27
+left open.** The four Infantry Carrier battalions map one-to-one onto the four carrier
+role families, and the naming follows the hull rather than the vehicle generation:
+
+| Battalion | Id | Role family | Group | Enabled by |
+| --- | --- | --- | --- | --- |
+| Mechanized Infantry | `mechanized_infantry` | `light_tank_apc_chassis` | `mobile` | `mechanized_infantry` (1944) |
+| Heavy Mechanized Infantry | `heavy_mechanized_infantry` | `medium_tank_apc_chassis` | `mobile` | `mechanized_infantry` (1944) |
+| Armored Infantry | `armored_infantry` | `light_tank_ifv_chassis` | `armor` | `mechanized_heavy_infantry` (1947) |
+| Heavy Armored Infantry | `heavy_armored_infantry` | `medium_tank_ifv_chassis` | `armor` | `mechanized_heavy_infantry` (1947) |
+
+**APCs are mechanized, IFVs are armored.** The two existing ids are kept, so the ruling
+costs zero OOB edits - `mechanized_infantry` appears 2,366 times across 294 OOB files and
+`armored_infantry` 977 times across 163 - and the only change to them is that
+`armored_infantry` moves from `group = mobile` to `group = armor` and is relabelled
+"Armored Infantry". Its old label was "Heavy Mechanized Infantry", which the new Heavy APC
+battalion now carries, so the localisation move is a transfer rather than an invention.
+
+**The battalion unlocks with its hull, not with its historical debut year - corrected
+2026-09-17 the same day.** The first ruling gated Heavy Mechanized on `mechanized_infantry8`
+(1985) and Heavy Armored on `mechanized_heavy_infantry8` (2005), the two chains' own Heavy
+APC and Heavy IFV years from the xlsx `Roles` tab. Owner QA showed why that is wrong in
+practice rather than in principle: `medium_tank_apc_chassis_0` and `medium_tank_ifv_chassis_0`
+unlock with `nsb_iw_armored_vehicles` in 1939 and every later tier tracks the MBT ladder, so
+the gate left an NSB player producing Heavy APCs for up to 46 years with no battalion to field
+them in - Finding 27's designable-but-unusable class, time-shifted.
+
+**The enabler is the sibling's own technology, chosen by evidence rather than by architecture.**
+An intermediate attempt put both entries on `nsb_iw_armored_vehicles`, which looked right - it
+is the technology that enables the hull tiers, and 463 country-history files grant it - and
+owner QA showed neither battalion. So each heavy battalion now sits in the same
+`enable_subunits` block as its light sibling: `mechanized_infantry` (1944) for Heavy APC and
+`mechanized_heavy_infantry` (1947) for Heavy IFV. **Those two blocks are the only enablers in
+this mod with direct in-game proof**, because the battalions they enable are visible in the
+owner's QA screenshots. Prefer a proven enabler over an architecturally tidy one; see
+`STATUS.md` Finding 31 for why the NSB root's behaviour is unobservable from the unit lists.
+**A battalion is gated by the hull that equips it, not by the vehicle generation its name
+refers to**, and 1944/1947 is earlier than every medium carrier tier a player can field, so the
+principle holds. No new technology is authored either way, and the designer hull tiers still
+carry the generation years.
+
+**The NSB-only ruling is void, and the legacy ladders it deferred were mandatory.** The
+2026-09-17 ruling accepted Heavy APC and Heavy IFV being equippable on No Step Back only,
+because all 23 relocated legacy carrier rows had landed in the two light roles and authoring
+heavy-carrier ladders looked like optional new content. The missing rows turned out to be the
+reason the two battalions never appeared on **either** profile - a role family with no plain
+member cannot satisfy a `need` at all, see the amendment under the three-hull restructure. Four
+plain rows now serve the two carrier families (`heavy_apc_equipment_1..3`,
+`heavy_ifv_equipment_1`), gated `NOT = { has_dlc = "No Step Back" }` on the legacy pattern, so
+**all four carrier battalions serve both profiles** and the 2026-09-12 symmetry rule holds
+everywhere. The other rejected option - gating the battalions behind NSB hull technologies -
+stays rejected; it would have hidden the defect rather than fixed it.
+
+**Stats extend the light sibling, they do not restate it.** Each heavy battalion copies its
+light sibling and pays for the medium hull with +0.02 supply consumption, +0.25 weight and
+2 more strength: Heavy Mechanized 0.16 / 1.25 / 32 against Mechanized 0.14 / 1.0 / 30, and
+Heavy Armored 0.18 / 1.5 / 37 against Armored 0.16 / 1.25 / 35. Terrain tables, manpower,
+training time, organisation and combat width are the sibling's unchanged. This is authored
+balance, not a measured envelope - no live test backs it.
+
 ### Carrier armour envelope, ratified 2026-09-12
 
 **No carrier may exceed 70% of the same-year medium tank hull's armour, on either DLC
@@ -517,6 +591,27 @@ inherited, not introduced: a 2005 IFV carried 80 armour against the 2010 MBT's 7
 `mechanized_heavy_equipment_8` carried the same 80, so the cutover reproduced it faithfully
 and nothing flagged it. Same-year means the newest medium tier whose year does not exceed
 the carrier's, the same not-later-than-year rule the tier mapping uses.
+
+**Scope corrected 2026-09-17: the cap is LIGHT-HULL-ONLY.** Owner ruling. As originally
+written the rule was unsatisfiable for the two medium carrier families, not merely tight: the
+cap was authored when both carriers lived on the **light** hull, where base armour is 5 to 27.5
+and a 70%-of-medium ceiling bites. Heavy APC and Heavy IFV are medium-hull roles, so they
+inherit the medium hull's own 30/35/40/45/50/55/60 - which is 100% of the number the cap takes
+70% of. Measured across tiers 0-6 with the lightest role-admitted armour module and the
+lightest superstructure, APC breached by 9.5 to 14 and IFV by 16.5 to 21 at **every** tier; no
+legal module combination complied.
+
+**A medium-hull carrier is therefore capped by its own hull, not by 70% of it.** That preserves
+the rule's actual intent - the inversion it was written to kill was a carrier out-armouring the
+tank it rides on - while letting the ratified Infantry Carrier taxonomy ship complete. The two
+rejected readings: keeping the cap and abandoning the medium carriers' starting designs would
+leave two of twelve role families permanently half-live, and restating it as 70% of the
+same-hull tank still fails, because a role inherits its hull's armour before any module applies.
+
+Consequence, applied the same day: the fourteen Heavy APC / Heavy IFV bookmark starting designs
+are integrated, so all five previously uncovered role families now have one. See `STATUS.md`
+Finding 35. The validator's `carrier_armour_cap_errors` continues to check the light-hull
+carrier rungs and the relocated legacy rows, which is exactly the scope this correction defines.
 
 IFV armour therefore becomes 22 / 25 / 28 / 31 / 35 / 39 / 44 / 49 across the eight
 generations, against caps of 28 / 31.5 / 31.5 / 35 / 38.5 / 42 / 45.5 / 49. APC armour is
@@ -1067,6 +1162,46 @@ country scope
   -> cwic_create_starting_tank_variants = yes
   -> set_oob = <bookmark NSB OOB>
 ```
+
+## Research-time armour naming, ratified 2026-09-17
+
+**A historical name is delivered either at a bookmark or on research completion, and the two
+mechanisms are disjoint by generation.** Owner approval, and it closes the class rather than the
+instance: the bookmark dispatcher can only rename a design it creates, and it only creates tiers
+a bookmark date reaches, so every name for a later tier was undeliverable by any number of
+preset rows. 386 named designs across 22 generations and 48 TAGs now arrive when the country
+finishes researching the chassis tier.
+
+**Where each name lives is decided by the generation, never by preference.** If the bookmark
+dispatcher creates the generation, the name belongs to
+`CWIC_national_armour_naming_presets.txt`. If it does not, the name belongs to
+`CWIC_research_armour_naming.txt`. Authoring the same `(producer, generation)` in both would
+give the country two designs with one name, which is why the research manifest is built with a
+duplicate-name filter against all three live preset manifests.
+
+**The guard shape is the bookmark shape, deliberately.** `has_dlc = "No Step Back"`, the tag,
+`NOT = { has_country_flag = cwic_named_<generation>_created }`, then create, then set the flag.
+Flag-after-creation is load-bearing: the reverse order means a reload finds the flag set and
+never creates the design. One `has_tech` never appears in these guards, because the hook already
+fires on that technology's completion.
+
+**Exactly one technology per guard elsewhere, too.** `create_equipment_variant` carries
+`allow_without_tech = yes`, which covers the mounted MODULES as well as the chassis. A second
+`has_tech` for a module's own technology is a validator failure. This was tried and reverted
+this session; do not reintroduce it.
+
+**One recipe per generation, shared by every country on it.** Only the name differs. Authoring
+per-country recipes would make 386 balance claims instead of 22 and would break the equality the
+naming contract checks.
+
+**Provenance is the reason these names are trustworthy.** Every row records
+`legacy_name_key`, `source_path`, `source_line` and the raw `source_name`, and `name` is that
+string NFKD-normalised to ASCII. `validate_research_armour_naming()` re-reads the live
+localisation on every run, so a moved or edited line fails the build instead of silently
+changing a vehicle's name.
+
+A `(producer, generation)` collision - one country with several legacy names mapping to one
+generation - resolves to the **newest legacy tier year**. 35 collisions were resolved that way.
 
 ## Legacy focus armour grants
 

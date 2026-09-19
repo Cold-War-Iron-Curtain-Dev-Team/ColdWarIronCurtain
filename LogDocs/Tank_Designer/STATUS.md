@@ -1,6 +1,6 @@
 # Status
 
-Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-12.
+Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-17.
 
 ## Where the project stands
 
@@ -23,6 +23,22 @@ is left: every armoured ground vehicle is a role on the light, medium or heavy h
 legacy rows are DLC-gated, leaving seven ratified exceptions. The amphibious thread is closed for
 good by the owner's 2026-09-13 ruling: marines and paratroopers get no custom vehicles, every APC
 and IFV serves them, and no amphibious role will be authored.
+
+**All twelve role families now have a consuming battalion AND a plain equipment member, as of
+2026-09-17 (Findings 31 and 33).** The Heavy APC and Heavy IFV roles gained
+`heavy_mechanized_infantry` and `heavy_armored_infantry`. Chasing why those two would not appear
+in game found the deeper defect: **a `duplicate_archetypes` role root whose only members are
+derived tiers cannot satisfy a sub-unit's `need`**, which had also left `medium_sp_anti_air_brigade`
+and `heavy_tank_destroyer_brigade` unequippable since 2026-09-13. Six plain equipment rows and a
+new validator contract close it. The session also found the baseline red on an untouched tree
+from a stale negative fixture - Finding 32.
+
+**Conversion tranche 1 and research-time naming shipped 2026-09-17 (Findings 35 and 36).** All
+fifteen chassis families now have a bookmark starting design - five had none at any tier, which
+meant five battalions began every campaign with nothing to build - and historical names are no
+longer limited to tiers a bookmark date reaches: 386 named designs across 22 generations arrive
+on research completion. The 2026-09-13 conversion measurement is superseded; the naming debt
+was 672 rows, not 979, and only 4 of them were ever addable under the bookmark contract.
 
 ### Committed checkpoints
 
@@ -2742,11 +2758,233 @@ light roles (`CWIC-Infantry.txt:158-165,235-242`, `CWIC-Special-Units.txt:99-106
 designable and unusable, and have been for three sessions.
 
 The ratified battalion taxonomy lists Heavy APC and Heavy IFV under Infantry Carrier, so this is
-a real gap rather than an intentional omission. **It is not fixed here**: closing it means
-authoring two new battalions with stats, categories and combat width, which is owner-facing
-content and balance, not a cutover. It is named in the validator as
-`unconsumed_by_decision` so the contract still guards the other ten, and it needs an owner ruling:
-author Heavy APC / Heavy IFV battalions, or retire those two role families.
+a real gap rather than an intentional omission. **Closed 2026-09-17 by Finding 31**: both roles
+now have a battalion, the `unconsumed_by_decision` exception is deleted, and all twelve role
+families are guarded by the contract.
+
+## Finding 31: the Heavy APC and Heavy IFV battalions - IMPLEMENTED 2026-09-17
+
+Owner ruling, recorded in full in `DECISIONS.md` "Heavy carrier battalions". APCs are
+mechanized and IFVs are armored: `mechanized_infantry` (APC) and the new
+`heavy_mechanized_infantry` (Heavy APC) stay in `group = mobile`, while `armored_infantry`
+(IFV) moves to `group = armor` and the new `heavy_armored_infantry` (Heavy IFV) joins it
+there. The two existing ids are untouched, so the 2,366 `mechanized_infantry` and 977
+`armored_infantry` OOB references cost nothing.
+
+What changed, six files:
+
+| File | Change |
+| --- | --- |
+| `common/units/CWIC-Infantry.txt` | `heavy_mechanized_infantry` and `heavy_armored_infantry` authored; `armored_infantry` regrouped to `armor` |
+| `common/technologies/NSB_armor.txt` | both battalions added to `nsb_iw_armored_vehicles`' `enable_subunits`, beside `light_armor`/`medium_armor`/`heavy_armor` |
+| `localisation/english/unit_l_english.yml` | `armored_infantry` relabelled "Armored Infantry"; its old "Heavy Mechanized Infantry" label transferred to the new Heavy APC battalion; two name and two desc keys added |
+| `gfx/entities/zz_CWIC_armor_entity_aliases.asset` | 800 aliases: 40 TAGs x 10 visual levels x 2 sub-units, cloning `<TAG>_mechanized_entity` for the 22 TAGs that declare one and `mechanized_entity` for the rest |
+| `CWIC Backup/tools/validate_military_reworks.py` | both battalions added to `CARRIER_BATTALIONS`; `unconsumed_by_decision` deleted; two new per-battalion contracts |
+
+**The alias file was not optional, and the contract said so before the battalions shipped.**
+Adding the two sub-units failed the self-test immediately with
+`no entity of any kind covers heavy_armored_infantry` - Finding 28's coverage rule fires for
+any sub-unit whose `need` names an armour hull, and a sub-unit with no entity renders a
+default mesh with no log line. Ten levels because both roles sit on the ten-tier medium hull;
+40 TAGs because a sub-unit the alias file owns outright must cover every TAG the file names.
+No alias shadows a national entity, so the pinned `native_overrides = 140` is unchanged.
+
+**Two new contracts, both for silent-failure classes this pass could have shipped into.** A
+carrier battalion declared `active = no` must be named by some live `enable_subunits` block,
+and must have an English name key. Either omission produces a battalion that is invisible or
+renders as its raw id, and the engine logs neither. New helper `enabled_subunits()` reads
+every `common/technologies/*.txt`, skipping the parked doctrine directory for the same reason
+the doctrine contracts do. No negative fixture: both checks read the real tree rather than a
+mutated string, and giving them a text seam means restructuring `validate_carrier_battalions()`.
+
+**Heavy APC and Heavy IFV were ruled NSB-only, and that ruling is now void.** It rested on the
+two medium carrier families having no non-NSB-producible member, which turned out to be the
+very thing that made the battalions unreachable on *either* profile. The legacy ladders
+authored below serve both profiles, so "one battalion serves both profiles" holds for all four
+carrier battalions after all, and the owner's 2026-09-17 acceptance of the asymmetry is moot
+rather than overridden.
+
+**Owner QA 2026-09-17: Mechanized Infantry and Armored Infantry appeared in their proper
+groups; the two heavy battalions were not selectable. The cause was the era gate, and the gate
+is now moved.** Neither enabling tech was DLC-gated and both `enable_subunits` blocks were
+live, so the only cause was that `mechanized_infantry8` starts 1985 (needs `hardware_V`) and
+`mechanized_heavy_infantry8` starts 2005 (needs `hardware_XII`), against 1944 and 1947 for the
+two light battalions' techs. **An `active = no` sub-unit whose technology is unresearched is
+absent from the division designer, not greyed out**, which is why it read as a missing unlock.
+
+**First attempt: `nsb_iw_armored_vehicles`. It did not work, and the reason it looked safe is
+worth keeping.** Both entries were moved onto the NSB armour root beside `light_armor`,
+`medium_armor` and `heavy_armor`, which 463 country-history files grant. Owner QA with every
+hull researched still showed neither battalion, and `error.log` named neither id.
+
+**The evidence that broke the tie, and it is a reasoning trap this folder should not repeat.**
+`light_armor`, `medium_armor` and `heavy_armor` are **also** enabled by legacy `armor.txt`
+technologies (`:720`, `:49`, `:431`), so their presence in game proves nothing about whether
+the NSB root's `enable_subunits` fires. The only two sub-units that technology enables
+exclusively - `heavy_tank_destroyer_brigade` and `medium_sp_anti_air_brigade` - are
+`group = armor_combat_support` and never appear in the line-battalion lists, so the screenshots
+could not confirm them either. **There was no positive evidence for that block at all; it was
+picked because it looked architecturally right.**
+
+**Resolved by using the only enablers with direct in-game proof.** `heavy_mechanized_infantry`
+now sits in `mechanized_infantry`'s `enable_subunits` (`armor.txt:955-958`, 1944) and
+`heavy_armored_infantry` in `mechanized_heavy_infantry`'s (`:1397-1400`, 1947) - the exact two
+blocks that enable `mechanized_infantry` and `armored_infantry`, both of which the owner's QA
+screenshots show live in their proper groups. The NSB-root entries are removed, so each
+battalion has one enabler. This still satisfies the ruling that a battalion unlocks with its
+hull rather than its generation year: 1944 and 1947 are earlier than every medium carrier tier
+a player can field.
+
+**Both gate moves were wrong. The owner's `active = yes` probe settled it 2026-09-17: the
+battalions did not appear even with the technology taken out of the question, so enablement was
+never the cause.**
+
+## Finding 33: a role family whose only members are derived tiers cannot satisfy a `need`
+
+**This is the real defect, it predates the battalions, and it invalidates a ratified claim.**
+`DECISIONS.md` Finding 15 established that "a role root **is** a family" nameable by a sub-unit's
+`need`. That is false on its own. A `duplicate_archetypes` role root needs **at least one plain
+member** - an equipment row declaring `archetype = <root>` - before a sub-unit can draw from it.
+Tiers derived by `for_each` are not enough, and the engine logs nothing at all.
+
+The measurement that proves it, across the twelve role families:
+
+| Role family | Plain member rows | Battalion in game |
+| --- | ---: | --- |
+| `light_tank_apc_chassis` | 15 | present |
+| `light_tank_ifv_chassis` | 8 | present |
+| `light_tank_aa_chassis`, `light_tank_artillery_chassis`, `light_tank_destroyer_chassis` | 5 each | present |
+| `medium_tank_artillery_chassis`, `medium_tank_destroyer_chassis` | 5 each | present |
+| `heavy_tank_artillery_chassis` | 5 | present |
+| **`medium_tank_apc_chassis`** | **0** | absent |
+| **`medium_tank_ifv_chassis`** | **0** | absent |
+| **`medium_tank_aa_chassis`** | **0** | absent, unobservable |
+| **`heavy_tank_destroyer_chassis`** | **0** | absent, unobservable |
+
+The split is exact: every family with a plain member works, every family without one does not.
+Vanilla agrees and is the reason the shape was never in doubt for the eight that work - it
+declares `medium_tank_aa_equipment_1..3` under `medium_tank_aa_chassis` and a plain ladder under
+every other role family a sub-unit consumes, while its childless roots (`*_amphibious_chassis`,
+`*_flame_chassis`) have no consuming sub-unit at all. The eight working mod families only have
+plain members by accident of history: they received relocated legacy rows in the 2026-09-12
+carrier cutover and the 2026-09-13 artillery convergence. The four that never had legacy content
+never got any.
+
+**Two of the four were already broken before this session.** `medium_sp_anti_air_brigade` and
+`heavy_tank_destroyer_brigade`, restored on 2026-09-13 by Finding 27 precisely so their designer
+output could reach the battlefield, have been unequippable since - and invisibly so, because both
+are `group = armor_combat_support` and never render in the line-battalion lists the owner's QA
+screenshots show. Finding 27 fixed the symptom it could see and left the same defect in place.
+
+**Fix: six plain members, one ladder per orphaned family.** In `x_tank_chassis.txt`, all gated
+`NOT = { has_dlc = "No Step Back" }` on the legacy pattern, each researchable from the sibling's
+own technology, each with name, short and description localisation:
+
+| Family | Rows | Years | Enabled by |
+| --- | --- | --- | --- |
+| `medium_tank_apc_chassis` | `heavy_apc_equipment_1..3` | 1985 / 1995 / 2005 | `mechanized_infantry8/9/10` |
+| `medium_tank_ifv_chassis` | `heavy_ifv_equipment_1` | 2005 | `mechanized_heavy_infantry8` |
+| `medium_tank_aa_chassis` | `medium_spaag_equipment_1` | 2000 | `spaag_5` |
+| `heavy_tank_destroyer_chassis` | `heavy_tank_destroyer_equipment_1` | 1950 | `tank_destroyer_1` |
+
+Stats are priced off the surviving sibling rung moved onto the heavier hull, not invented from
+nothing: the Heavy APC ladder off `mechanized_equipment_8/9/10`, Heavy IFV off
+`mechanized_heavy_equipment_8`, medium SPAAG off `spaag_equipment_5`, heavy TD off
+`medium_tank_destroyer_equipment_5`. Carrier armour stays inside the ratified 70% same-year
+medium hull cap - 42 against 60 in 1985, 45 against 65 in 1995, 49 against 70 in 2005. This is
+authored balance; no live test backs the numbers.
+
+**New contract, and it is the durable deliverable.** `validate_tank_rework()` now fails with
+`role family <root> is consumed by a sub-unit but declares no plain member` whenever a family
+some sub-unit names holds only derived tiers. It found the SPAAG and tank-destroyer cases
+immediately, which is how they were fixed in the same pass rather than discovered three sessions
+later. **Guarding consumption alone was not enough: a family can be consumed and still be
+unusable.**
+
+**Owner QA 2026-09-17: ACCEPTED.** All four carrier battalions are selectable and draw the right
+family, confirmed from the division designer tooltips: Mechanized Infantry pulls
+`Light Armored Personnel Carrier` x50, Heavy Mechanized Infantry `Heavy Armored Personnel
+Carrier` x50, Armored Infantry `Light Infantry Fighting Vehicle` x50 and Heavy Armored Infantry
+`Heavy Infantry Fighting Vehicle` x50, each with `infantry_equipment` x200. The stat ladder
+lands in the intended order - defence 60.7 / 68.8 / 94.5 / 101.2 and production cost 800 / 1050
+/ 1500 / 1700 across Mechanized, Heavy Mechanized, Armored and Heavy Armored - so the
+sibling-plus-medium-hull pricing reads correctly in game. Heavy Tank Destroyer and Medium SPAAG
+are equippable again. The heavy pair becomes available late because their plain members start
+1985 and 2005; that is the authored ladder, not a defect.
+
+**Icon and sprite mismatches on the new battalions and equipment rows are explicitly out of
+scope by owner direction 2026-09-17** - Heavy Mechanized Infantry showing a heavy-tank
+silhouette and the shared carrier art are accepted. This project is on functional behaviour;
+do not open art work for them.
+
+Still owed: the four battalions have no OOB references, so no scripted order of battle fields
+them; art and per-country names for the heavy carriers and the six new equipment rows are ruled
+out of scope. AI templates were closed the same day - see Finding 34.
+
+## Finding 34: the deferred AI pass - templates were the whole gap, 2026-09-17
+
+Owner direction after Finding 33's acceptance, taking the AI pass that had been deferred
+"until the remaining designer content is in". It is in: no standalone armour family remains and
+all twelve role families are both consumed and equippable.
+
+**Measured first, and the deferral turned out to be half unnecessary.** `common/ai_equipment/generic_tank.txt`
+is **already complete** - 135 `target_variant` blocks covering all twelve role families across
+their full tier ladders, `medium_tank_apc_chassis_0..9` and `medium_tank_ifv_chassis_0..9`
+included, each with its `_history` counterpart. The AI has always known how to *design* the
+reworked content. The gap was entirely in `common/ai_templates/`, where nothing named the two
+new battalions, so the AI would never field them.
+
+**A live defect found by the same audit, and it predates the battalions.** The generic light
+armour template gated `can_upgrade_in_field` on `has_equipment = { lt_equipment < 500 }`.
+`lt_equipment` is one of the archetypes the legacy reparenting left with **zero members**, so
+the trigger could never be satisfied and the AI could never upgrade a light armour division in
+the field. Repointed at `light_tank_chassis`, the family `light_armor` actually draws.
+
+**Three tech-gated variants added, not date-gated.** A date gate would have the AI adopt a
+template it cannot fill; these only outrank their predecessors once the equipment exists:
+
+| File | Variant | Composition |
+| --- | --- | --- |
+| `generic.txt` | `heavy_mech_armor_default` | 6 medium armour, 2 Heavy Armored, 1 Heavy Mechanized |
+| `templates_stellar.txt` | `armor_medium_contemporary` ("MBT Division 00") | the 1980 variant with both carriers swapped heavy |
+| `templates_stellar.txt` | `infantry_mech_contemporary` ("Mechanized Division 00") | the 1980 mech division with both carriers swapped heavy |
+| `templates_USA.txt` | `usa_heavy_mech` | 3 Heavy Mechanized, 2 Heavy Armored, 5 medium armour, 3 SP artillery |
+
+All four gate on `has_tech = mechanized_infantry8` **and** `mechanized_heavy_infantry8`, the
+technologies that unlock the plain members Finding 33 authored, and both exist on either DLC
+profile.
+
+**`heavy_tank_destroyer_brigade` and `medium_sp_anti_air_brigade` were deliberately left out of
+the AI templates.** Both are enabled only by `nsb_iw_armored_vehicles`, so a template naming
+them would be unfillable for a non-NSB AI - the inverse of the bug just fixed. Giving them AI
+usage needs a both-profiles enabler first, which is a separate decision.
+
+**New contract: `validate_ai_templates()`.** Every `regiments`/`support` entry must name a
+declared sub-unit, every `has_tech` gate must name a declared technology, and every
+`has_equipment` gate must name a family with at least one equipment member. That last rule is
+what the `lt_equipment` defect needed, and the class is the same silent one as Findings 31 and
+33: the file parses, the division never appears. Fourteen of the sixteen `ai_templates` files are
+0 bytes and only `generic.txt`, `templates_USA.txt` and `templates_stellar.txt` carry content -
+worth knowing before planning per-country AI work.
+
+Static verification only; no AI behaviour has been observed in game. What would confirm it is a
+post-2005 campaign where an AI major fields a division containing Heavy Mechanized or Heavy
+Armored Infantry.
+
+## Finding 32: the baseline was red before this session touched anything
+
+**A validator edit shipped a fixture whose premise a later content commit invalidated, and it
+failed on a clean tree.** `run_tank_negative_fixtures()` asserted that FIN resolves the generic
+bookmark name on `medium_tank_chassis_3`, proving a USA/SOV national preset cannot leak to
+another producer. Commit `bb4e0e6df2` then added 1,410 naming presets, one of which gives FIN
+a `T-54B` on exactly that chassis, so `bookmark_variant_name` correctly returned a national
+name and the fixture raised `national preset leaked into another producer` with no content
+defect behind it. The main validation body passed throughout; only the fixture failed.
+
+The fixture now measures its own unmapped producer - every preset producer minus those with a
+preset on that chassis - instead of hardcoding a tag, so the invariant survives the naming
+manifest growing. **A hardcoded tag inside a negative fixture is a latent baseline failure
+whenever the content it asserts absence from is still being authored.**
 
 ## Finding 28: the entity alias remap - IMPLEMENTED 2026-09-13
 
@@ -3134,7 +3372,232 @@ this needs the same kind of owner ruling the export inventory itself got.
 **Bulk pass cancelled by Finding 30, not merely deferred.** Per-country production art already
 resolves through the shipped legacy `*_techs.gfx` declarations.
 
-## Conversion surface, measured 2026-09-13
+## Finding 35: conversion tranche 1 - the naming debt was mostly unreachable, 2026-09-17
+
+**The 2026-09-13 conversion measurement below is superseded. Re-measured against the current
+tree because three commits and this session landed after it, and the headline number was wrong
+in both directions.** Every figure here was computed directly, not read out of a document - a
+scout that sourced its answer from `DECISIONS.md` reported 289 and missed a family, which is
+why these are the main agent's own numbers.
+
+| Quantity | 2026-09-13 | Now |
+| --- | --- | --- |
+| Reverse-map rows with a historical name | 1,593 | 1,593 |
+| ... linked to a preset design | not measured | 921 |
+| ... unlinked (the "naming debt") | 979 | **672** |
+| Preset rows across the three manifests | not measured | 1,410 naming + 14 national + 572 carrier |
+| Distinct `(producer, type)` pairs | not measured | 1,889 |
+| Chassis families with zero preset coverage | "ten of twelve" | **five** |
+
+**The debt is overwhelmingly not addressable by the naming system, and that is the finding.**
+All 672 rows classified by what would have to exist for the name to be deliverable:
+
+| Class | Rows |
+| --- | ---: |
+| Belongs to the carrier preset pipeline, not the naming pipeline | 350 |
+| Target tier has no generic bookmark block, so there is no design to rename | 277 |
+| Producer already holds a different name on that generation | 38 |
+| **Addable under today's contract** | **4** |
+| Tier unresolvable - reverse-map row carries no year | 3 |
+
+**Why 277 are structurally unreachable.** The naming system can only rename a design the
+generic dispatcher already creates at a bookmark, and the dispatcher only creates tiers a
+bookmark date can reach - the ladders stop at light tier 5 (1970) and medium tier 6 (1980). A
+1990 or 2000 legacy vehicle has no starting design to carry its name, and no mechanism exists
+to name a design a country builds mid-campaign. **Delivering those names needs a new
+mechanism, not more preset rows.** Owner decision; nothing here assumes it.
+
+### The five uncovered families, and what this tranche did about them
+
+The five families with zero naming coverage were exactly the five with **no generic bookmark
+block at any tier**: `light_tank_destroyer_chassis`, `medium_tank_aa_chassis`,
+`heavy_tank_destroyer_chassis`, `medium_tank_apc_chassis`, `medium_tank_ifv_chassis`. The
+consequence is worse than missing names: on an NSB profile these families had **no starting
+design**, so `atgm_carrier`, `medium_sp_anti_air_brigade`, `heavy_tank_destroyer_brigade`,
+`heavy_mechanized_infantry` and `heavy_armored_infantry` began every campaign with nothing to
+build. The naming debt was a symptom of that.
+
+**Sixteen generic starting designs authored**, recipes proposed in parallel by three subagents
+and integrated by the main agent into the single dispatcher file:
+
+| Family | Tiers | Armament story |
+| --- | --- | --- |
+| `light_tank_destroyer_chassis` | 0-5 | `tank_light_cannon0` to tier 4; tier 5 (1970) mounts `tank_atgm_launcher_cannon` with `gl_atgm_0p` in slot 7, per the ratified "ATGM is a loadout" rule |
+| `medium_tank_aa_chassis` | 1-6 | `tank_anti_air_cannon` with `tank_aa_ammo_1` in slot 2, mirroring `light_tank_aa_chassis_1..3` |
+| `heavy_tank_destroyer_chassis` | 1-4 | `tank_heavy_cannon0` in `heavy_fixed_superstructure`, mirroring `medium_tank_destroyer_chassis_1..3` |
+
+Tier 0 is skipped for medium SPAAG and heavy TD because the era's ammunition and heavy-cannon
+modules do not exist that early. All 16 are registered in `BOOKMARK_VARIANT_NAMES` and
+`BOOKMARK_VARIANT_TECHS`; the created-variant set is now 47, while the inventory line's "38
+generic bookmark variants" counts OOB *references*, which is why that number does not move.
+
+**One instruction the main agent gave the subagents was wrong, and the validator caught it.**
+`create_equipment_variant` carries `allow_without_tech = yes`, which covers the mounted modules
+and not merely the chassis - so a starting design may legally mount an unresearched module, and
+the contract requires **exactly one** chassis technology per guard (`:5332`). The extra
+`has_tech = nsb_gun_launcher0` added to the light TD tier 5 guard was reverted. Do not "fix" a
+single-tech guard again.
+
+**The OOB-reference check is now split by direction.** It asserted set equality between created
+variants and NSB OOB requests, which made authoring a starting design ahead of its OOB request
+a failure. An OOB requesting a design nothing creates is a silent break and stays hard; a
+created design nobody requests yet is legitimate and is named in `AWAITING_OOB_REQUESTS`, so a
+misspelt generation still fails. Those 16 OOB requests are conversion work still owed.
+
+### The two medium carrier families - blocked on a ratified contradiction, then RESOLVED
+
+`medium_tank_apc_chassis` and `medium_tank_ifv_chassis` initially got **no** starting designs:
+the subagent stopped rather than author non-compliant blocks, correctly. The ratified carrier
+armour envelope capped a carrier at **70% of the same-year medium tank hull**, and these two
+families *are* medium-hull roles, so they inherit 30/35/40/45/50/55/60 against caps of
+21/24.5/28/31.5/35/38.5/42. Even the lightest role-admitted armour module plus the lightest
+superstructure breached every tier - APC by 9.5 to 14, IFV by 16.5 to 21. **The rule was
+unsatisfiable by construction, not merely tight**, because it was written when both carrier
+families lived on the light hull.
+
+**Owner ruled the cap light-hull-only, 2026-09-17**, so a medium-hull carrier is capped by its
+own hull. The fourteen blocks were then integrated, taking this tranche to **30 new starting
+designs** and giving all five previously uncovered role families a bookmark design. Two
+corrections were applied to the proposal during integration: the multi-technology guards were
+reduced to the single chassis technology (`allow_without_tech` covers modules), and
+`engine_type_slot = tank_gasoline_engine` was changed to `Petrol_0`, since Finding 2 established
+that the bare gasoline engine is the pre-WW2 parent and every starting design routes to
+`Petrol_0`.
+
+**One tension recorded rather than resolved:** the ratified generation years put Heavy APC at
+1985 and Heavy IFV at 2005, but the full tier ladder 0-6 now carries starting designs, so a 1949
+bookmark can seed a "Standard Heavy APC 1939". That follows from the owner's earlier ruling that
+these battalions unlock with their hull at 1944/1947 rather than at their generation year - both
+bookmarks need something to build. The alternative, authoring only tiers 5-6, would leave the
+1949 bookmark's Heavy Mechanized battalion empty.
+
+### Finding 36: research-time naming - the 277 unreachable names are now deliverable
+
+**Owner approved building the mechanism, 2026-09-17.** The bookmark dispatcher can only rename
+a design it creates, and it only creates tiers a bookmark date reaches, so every historical name
+for a later tier was undeliverable by any preset. This is the mechanism that fixes the class,
+not just the 277 rows that motivated it.
+
+**How it works.** One scripted effect per chassis generation in the new
+`common/scripted_effects/CWIC_research_armour_naming.txt`, called from that tier's own enabling
+technology through `on_research_complete` in `NSB_armor.txt`. Each per-country guard requires
+`has_dlc = "No Step Back"`, the country tag, and the absence of a
+`cwic_named_<generation>_created` flag, then creates the named variant and sets the flag - the
+same guard-then-flag ordering the bookmark naming presets use, so a reload cannot duplicate the
+design.
+
+**What shipped:** 22 generations, 386 named designs, 48 country tags, 22 `on_research_complete`
+hooks across 11 technologies.
+
+| Step | Count |
+| --- | ---: |
+| Reverse-map rows carrying a historical name | 1,593 |
+| Dropped: the `(tag, name)` pair is already delivered by a live preset | 921 |
+| In scope for research-time naming | 427 |
+| Dropped: `(producer, generation)` collision, newest legacy tier wins | 35 |
+| **Named designs authored** | **386** |
+
+The 22 recipes were proposed in parallel by two subagents - 13 light-hull, 9 medium and heavy -
+and every module was re-verified by the main agent against the live module definitions: all 22
+recipes legal, zero undeclared module ids, zero illegal special-slot placements.
+
+**New contract `validate_research_armour_naming()`, and it was proven to fire rather than
+assumed.** It pins one helper per generation, that some technology actually calls each helper,
+the recipe's module ids and special-slot categories, per-country guard count against the
+manifest, the `has_dlc` and flag guards, flag-after-creation ordering, the variant fields, and
+that every name still equals its live localisation string with its recorded file and line.
+Negative check run: renaming Cuba's `heavy_tank_artillery_chassis_4` design to a non-historical
+string produced `research naming CUB/heavy_tank_artillery_chassis_4 wrong name`, then reverted.
+
+**Provenance is machine-checked, which is what makes the names trustworthy.** Every row carries
+`legacy_name_key`, `source_path`, `source_line` and the raw `source_name`; `name` is that string
+NFKD-normalised to ASCII. A 40-row independent sample was re-read from the live `.yml` files by
+the main agent: zero mismatches. If a translator moves a line, the validator fails rather than
+the name silently drifting.
+
+**Two subagent corrections worth keeping.** The manifest agent's first run produced 474
+candidates against my 427 because I had not stated the duplicate-name filter - a name already
+delivered by a live preset must not be re-created at research time, or the country gets two
+designs with one name. The light-recipe agent revised its artifact after I had already
+integrated it, advancing the AA fire-control radar to `Radar_2` (1980) and `Radar_4` (2000); the
+effects file and manifest were regenerated from the revised recipes rather than left stale.
+
+**Owner playtest 2026-09-17: ACCEPTED.** Historical names appear correctly in game and the
+newly covered families behave as intended, so Findings 35 and 36 are confirmed live rather than
+statically. That closes the research-time mechanism: the guard-then-flag ordering, the
+`on_research_complete` hooks and the provenance-checked names all work against a real campaign.
+Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
+
+## Finding 37: conversion tranche 2 - the naming surface is closed, 2026-09-17
+
+**A null-year data gap was hiding 67 deliverable names, and finding it changed the shape of the
+tranche.** Six reverse-map tiers carried `"year": null`, so nothing could map them to a designer
+generation and every historical name under them was invisible to all three pipelines. Cause:
+the 2026-09-13 generator missed `mechanized_heavy_equipment_4..8` because those rows declare
+`<id>\t= {` with a **tab before the equals sign**, and missed `lt_equipment_1` because it lives
+in `tank_light.txt` rather than `x_tank_chassis.txt` and declares no `year` at all - its 1942
+comes from its technology `light_tanks_1`. Six values repaired in place; the diff is exactly six
+lines, the file was not reformatted.
+
+**The remaining debt, fully classified.** After the year fix, every reverse-map row carrying a
+historical name falls into exactly one bucket:
+
+| Bucket | Rows | Disposition |
+| --- | ---: | --- |
+| Already delivered by a live preset | 1,282 | done |
+| Added to the research mechanism this pass | 67 | **shipped** |
+| Added to the bookmark naming pipeline this pass | 23 | **shipped** |
+| The country already has a named design on that generation | 203 | closed by design |
+| Carrier generations, blocked by the legacy-flag contract | 12 | recorded below |
+
+**The 203 are not owed.** They are cases where one country's several legacy vehicles map to a
+single designer tier - the country already receives a historical name there, just not every one
+of them. Delivering the rest would need more than one design per producer per generation, which
+both naming contracts prohibit by unique `(producer, generation)`.
+
+**Twelve carrier rows are blocked, and the reason is structural.** `light_tank_apc_chassis_2/3/4`
+and `light_tank_ifv_chassis_2/4` cannot join the tank naming pipeline: their generic blocks
+still set the **legacy** flag `cwic_starting_apc_chassis_N_created`, per the 2026-09-11 ruling
+that a carrier generation is a bookmark index while `type` names the migrated role chassis. The
+naming contract derives its flag from the generation, so the strings do not meet. They cannot
+join the carrier pipeline either: `validate_carrier_bookmarks` pins the preset set to exactly
+the 572 pairs derived from live localisation by `carrier_source_inventory()`, and these rows sit
+outside its tier window - the inventory maps legacy level to tier with `apc = level - 3`, so
+`mechanized_equipment_1` and `_2` produce negative tiers and are dropped. Closing them means
+changing one of those two contracts, which is an owner decision, not a cutover.
+
+**What shipped.** Research-time naming grew from 386 to **453** designs over 25 generations:
+three new helpers for `light_tank_ifv_chassis_6/7/8`, whose recipes mirror the APC siblings of
+the same tier with IFV-admitted armament and superstructure (`ifv_autocannon_4/5/6`,
+`ifv_rear_ramp_compartment` / `ifv_spall_lined_compartment` / `ifv_modular_fighting_capsule`)
+plus a missile in slot 7, wired into `nsb_light_tanks5/6/7`. The bookmark naming pipeline grew
+by 23 rows over five generations, with two new recipes copied verbatim from the generic blocks
+they shadow, as that contract requires.
+
+**One self-inflicted incident, recorded because the recovery is the lesson.** A `git checkout`
+used to undo an experiment reverted `CWIC_tank_designer_effects.txt` to HEAD and silently
+destroyed the 30 uncommitted starting designs from Finding 35. They were rebuilt from the
+subagent artifacts under `local://` with the same normalisations, and the validator confirmed
+the restoration by failing on exactly the two missing helper calls and nothing else. **Do not
+`git checkout` a file in this tree while the session's work is uncommitted** - much of it has
+never been committed and the artifacts are the only other copy.
+
+Static verification only: self-test passes, inventory line unchanged, `git diff --check` clean,
+zero non-ASCII added, no BOM on any edited script or manifest.
+
+### The MON "OOB residue" was miscategorised, and there is nothing to migrate
+
+The 16 `force_equipment_variants` sites in `MON_1949_nsb.txt` and `MON_1980_nsb.txt` request
+`light_artillery_equipment_1`/`_3`, which is **towed infantry artillery** - not one of the
+fifteen designer chassis families, and with no `archetype` pointing at any role family. Its
+consumer `light_artillery_support` (`CWIC-Support-Units.txt:1043,1078`) legitimately draws it.
+The 2026-09-13 note filed these as NSB residue by pattern-matching the `_equipment_N` suffix.
+All 16 left unchanged; `history/units/` verified byte-identical to HEAD.
+
+Static verification only: self-test passes, inventory line unchanged. No bookmark has been
+started, so none of the 16 new designs has been seen in a production tab.
+
+## Conversion surface, measured 2026-09-13 - SUPERSEDED by Finding 35, 2026-09-17
 
 The mass non-NSB-to-NSB conversion splits into four surfaces with very different readiness.
 
@@ -3445,3 +3908,50 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
 7. The icon-resolution probe still owed: no `GFX_<TAG>_<equipment_id>_medium` sprite exists for
    the rows that nonetheless render per-country photographs, so the resolution rule is unproven
    and gates any per-country designer art.
+8. ~~Heavy APC / Heavy IFV battalions.~~ **Shipped 2026-09-17, Finding 31**, with the plain-member
+   defect behind their invisibility fixed the same day in Finding 33. Owner QA confirmed the
+   group split and both light battalions in game; two gate moves and an `active = yes` probe
+   proved enablement was never the cause.
+9. ~~Legacy implementation for the heavy carrier battalions.~~ **Done 2026-09-17 as part of
+   Finding 33**, because it was the fix rather than deferrable content: `heavy_apc_equipment_1..3`
+   and `heavy_ifv_equipment_1` serve both DLC profiles, so the NSB-only ruling is void.
+10. ~~QA for Finding 33.~~ **Owner-accepted 2026-09-17.** All four carrier battalions plus Heavy
+   Tank Destroyer and Medium SPAAG confirmed selectable, drawing the right family, with the
+   intended stat and cost ordering. Icons and sprites for the new content are ruled out of
+   scope: functional behaviour only.
+11. ~~Per-country art for the six new equipment rows.~~ **Out of scope, owner ruling
+   2026-09-17.** Their generic names and shared sprites are accepted; only the historical-name
+   half of this remains, and it belongs to the mass conversion at item 6.
+12. ~~AI production and division templates.~~ **Done 2026-09-17, Finding 34.** `ai_equipment`
+   needed nothing - it was already complete at 135 variants. Four tech-gated templates now
+   field the heavy carriers, a dead `lt_equipment` upgrade trigger is fixed, and
+   `validate_ai_templates()` guards the class. Static only; AI behaviour unobserved.
+13. **Next: the mass non-NSB to NSB conversion, item 6.** It is now the only large functional
+   item left. Two smaller ones remain beside it: the focus-grant historical variant mapping
+   (Finding 1's deferred follow-up, 314 grants on generic `CWIC Export ...` names) and OOB
+   references for the four carrier battalions, which no scripted order of battle fields yet.
+14. A both-profiles enabler for `heavy_tank_destroyer_brigade` and `medium_sp_anti_air_brigade`.
+   Only `nsb_iw_armored_vehicles` enables them, so they are NSB-only and were kept out of the AI
+   templates to avoid an unfillable non-NSB division. Needs an owner decision, not a cutover.
+15. ~~Conversion tranche 1.~~ **Done 2026-09-17, Finding 35.** Thirty bookmark starting designs
+   gave all five previously uncovered role families one; the naming debt re-measured to 672 rows
+   of which only 4 were addable under the bookmark contract.
+16. ~~The carrier armour cap.~~ **Ruled light-hull-only 2026-09-17.** It was unsatisfiable for
+   medium-hull carriers by construction; they are now capped by their own hull, which unblocked
+   the fourteen Heavy APC / Heavy IFV starting designs.
+17. ~~Mid-campaign naming.~~ **Built 2026-09-17, Finding 36.** 386 named designs across 22
+   generations and 48 TAGs, delivered through `on_research_complete`, with
+   `validate_research_armour_naming()` pinning provenance against live localisation.
+18. ~~Tranche 2 naming.~~ **Done 2026-09-17, Finding 37.** The reverse-map null-year gap is
+   closed, research-time naming is 453 designs over 25 generations, and the bookmark pipeline
+   gained 23 rows. Every remaining reverse-map name is classified: 203 closed by design, 12
+   blocked by the carrier legacy-flag contract.
+19. ~~QA for Findings 35 and 36.~~ **Owner playtest accepted 2026-09-17** - names appear
+   correctly and the newly covered families behave. QA is still owed for the tranche 2 additions
+   specifically: the three `light_tank_ifv_chassis_6/7/8` helpers and the 23 bookmark rows.
+20. **Next: the 30 OOB requests** for the starting designs authored in Finding 35, currently
+   permitted by the validator's `AWAITING_OOB_REQUESTS`. This is the last mechanical item in the
+   conversion and needs per-OOB judgement about which countries historically fielded each role.
+21. An owner decision on the 12 blocked carrier rows: either give carrier generic blocks the
+   role-chassis flag name, or widen `carrier_source_inventory()` past its tier window. Both
+   touch a ratified contract; neither is urgent.
