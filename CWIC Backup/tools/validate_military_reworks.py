@@ -217,6 +217,8 @@ CARRIER_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/APC_IFV_Preset_Manife
 NAMING_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Tank_Naming_Preset_Manifest.json"
 NAMING_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_national_armour_naming_presets.txt"
 NAMING_PRESETS = json.loads(NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
+RESEARCH_NAMING_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Research_Naming_Manifest.json"
+RESEARCH_NAMING_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_research_armour_naming.txt"
 CARRIER_MANIFEST = json.loads(CARRIER_MANIFEST_FILE.read_text(encoding="utf-8"))
 CARRIER_PRESETS = CARRIER_MANIFEST["presets"]
 FOCUS_FILES = (
@@ -574,6 +576,39 @@ BOOKMARK_VARIANT_NAMES = {
     "medium_tank_destroyer_chassis_1": "Standard Main Battle Tank Destroyer 1942",
     "medium_tank_destroyer_chassis_2": "Standard Main Battle Tank Destroyer 1944",
     "medium_tank_destroyer_chassis_3": "Standard Main Battle Tank Destroyer 1950",
+    # The five role families that had no bookmark starting design at all, 2026-09-17.
+    # Light TD, medium SPAAG and heavy TD landed first; the two medium carrier families
+    # followed once the owner ruled the carrier armour cap light-hull-only.
+    "medium_tank_apc_chassis_0": "Standard Heavy APC 1939",
+    "medium_tank_apc_chassis_1": "Standard Heavy APC 1942",
+    "medium_tank_apc_chassis_2": "Standard Heavy APC 1944",
+    "medium_tank_apc_chassis_3": "Standard Heavy APC 1950",
+    "medium_tank_apc_chassis_4": "Standard Heavy APC 1960",
+    "medium_tank_apc_chassis_5": "Standard Heavy APC 1970",
+    "medium_tank_apc_chassis_6": "Standard Heavy APC 1980",
+    "medium_tank_ifv_chassis_0": "Standard Heavy IFV 1939",
+    "medium_tank_ifv_chassis_1": "Standard Heavy IFV 1942",
+    "medium_tank_ifv_chassis_2": "Standard Heavy IFV 1944",
+    "medium_tank_ifv_chassis_3": "Standard Heavy IFV 1950",
+    "medium_tank_ifv_chassis_4": "Standard Heavy IFV 1960",
+    "medium_tank_ifv_chassis_5": "Standard Heavy IFV 1970",
+    "medium_tank_ifv_chassis_6": "Standard Heavy IFV 1980",
+    "heavy_tank_destroyer_chassis_1": "Standard Heavy Tank Destroyer 1942",
+    "heavy_tank_destroyer_chassis_2": "Standard Heavy Tank Destroyer 1944",
+    "heavy_tank_destroyer_chassis_3": "Standard Heavy Tank Destroyer 1950",
+    "heavy_tank_destroyer_chassis_4": "Standard Heavy Tank Destroyer 1955",
+    "light_tank_destroyer_chassis_0": "Standard Light Tank Destroyer 1939",
+    "light_tank_destroyer_chassis_1": "Standard Light Tank Destroyer 1942",
+    "light_tank_destroyer_chassis_2": "Standard Light Tank Destroyer 1944",
+    "light_tank_destroyer_chassis_3": "Standard Light Tank Destroyer 1950",
+    "light_tank_destroyer_chassis_4": "Standard Light Tank Destroyer 1960",
+    "light_tank_destroyer_chassis_5": "Standard Light Tank Destroyer 1970",
+    "medium_tank_aa_chassis_1": "Standard Main Battle SPAA 1942",
+    "medium_tank_aa_chassis_2": "Standard Main Battle SPAA 1944",
+    "medium_tank_aa_chassis_3": "Standard Main Battle SPAA 1950",
+    "medium_tank_aa_chassis_4": "Standard Main Battle SPAA 1960",
+    "medium_tank_aa_chassis_5": "Standard Main Battle SPAA 1970",
+    "medium_tank_aa_chassis_6": "Standard Main Battle SPAA 1980",
 }
 BOOKMARK_VARIANT_TECHS = {
     "heavy_tank_artillery_chassis_1": "nsb_heavy_tanks0",
@@ -606,6 +641,36 @@ BOOKMARK_VARIANT_TECHS = {
     "medium_tank_destroyer_chassis_1": "nsb_main_battle_tanks0",
     "medium_tank_destroyer_chassis_2": "nsb_main_battle_tanks1",
     "medium_tank_destroyer_chassis_3": "nsb_main_battle_tanks2",
+    "medium_tank_apc_chassis_0": "nsb_iw_armored_vehicles",
+    "medium_tank_apc_chassis_1": "nsb_main_battle_tanks0",
+    "medium_tank_apc_chassis_2": "nsb_main_battle_tanks1",
+    "medium_tank_apc_chassis_3": "nsb_main_battle_tanks2",
+    "medium_tank_apc_chassis_4": "nsb_main_battle_tanks3",
+    "medium_tank_apc_chassis_5": "nsb_main_battle_tanks4",
+    "medium_tank_apc_chassis_6": "nsb_main_battle_tanks5",
+    "medium_tank_ifv_chassis_0": "nsb_iw_armored_vehicles",
+    "medium_tank_ifv_chassis_1": "nsb_main_battle_tanks0",
+    "medium_tank_ifv_chassis_2": "nsb_main_battle_tanks1",
+    "medium_tank_ifv_chassis_3": "nsb_main_battle_tanks2",
+    "medium_tank_ifv_chassis_4": "nsb_main_battle_tanks3",
+    "medium_tank_ifv_chassis_5": "nsb_main_battle_tanks4",
+    "medium_tank_ifv_chassis_6": "nsb_main_battle_tanks5",
+    "heavy_tank_destroyer_chassis_1": "nsb_heavy_tanks0",
+    "heavy_tank_destroyer_chassis_2": "nsb_heavy_tanks1",
+    "heavy_tank_destroyer_chassis_3": "nsb_heavy_tanks2",
+    "heavy_tank_destroyer_chassis_4": "nsb_heavy_tanks3",
+    "light_tank_destroyer_chassis_0": "nsb_iw_armored_vehicles",
+    "light_tank_destroyer_chassis_1": "nsb_light_tanks0",
+    "light_tank_destroyer_chassis_2": "nsb_light_tanks1",
+    "light_tank_destroyer_chassis_3": "nsb_light_tanks2",
+    "light_tank_destroyer_chassis_4": "nsb_light_tanks3",
+    "light_tank_destroyer_chassis_5": "nsb_light_tanks4",
+    "medium_tank_aa_chassis_1": "nsb_main_battle_tanks0",
+    "medium_tank_aa_chassis_2": "nsb_main_battle_tanks1",
+    "medium_tank_aa_chassis_3": "nsb_main_battle_tanks2",
+    "medium_tank_aa_chassis_4": "nsb_main_battle_tanks3",
+    "medium_tank_aa_chassis_5": "nsb_main_battle_tanks4",
+    "medium_tank_aa_chassis_6": "nsb_main_battle_tanks5",
 }
 # Shipped 2026-09-13: flame-family, IFV, and retired role/brigade ids stay
 # unsupported; ATGM is a loadout on the destroyer role, while APC uses
@@ -3247,20 +3312,38 @@ def validate_tank_rework() -> None:
     consumers = ""
     for path in sorted((MOD / "common/units").glob("*.txt")):
         consumers += code_only(text(path))
-    # `medium_tank_apc_chassis` and `medium_tank_ifv_chassis` are the Heavy APC and
-    # Heavy IFV roles. They have had no consuming battalion since phase 3 authored
-    # them - the carrier battalions all name the light roles - so their designer
-    # output cannot reach the battlefield either. That predates this pass and adding
-    # two battalions is owner-facing content, so it is named here rather than fixed
-    # silently. See `STATUS.md` Finding 27.
-    unconsumed_by_decision = {"medium_tank_apc_chassis", "medium_tank_ifv_chassis"}
+    # The Heavy APC and Heavy IFV roles gained their battalions 2026-09-17
+    # (`heavy_mechanized_infantry`, `heavy_armored_infantry`), so the exception this
+    # check carried for `medium_tank_apc_chassis` and `medium_tank_ifv_chassis` is
+    # gone and all twelve role families are guarded. See `STATUS.md` Finding 31.
     for family, roles in FAMILY_ROLES.items():
         for role in roles:
             root = f"{family}_tank_{role}_chassis"
-            if root in unconsumed_by_decision:
-                continue
             if not re.search(rf"(?<![A-Za-z0-9_]){root}(?![A-Za-z0-9_])", consumers):
                 fail(f"role family {root} has no sub-unit consuming it")
+    # A consumed role family also needs at least one plain member. Established
+    # 2026-09-17 the hard way: `medium_tank_apc_chassis` and `medium_tank_ifv_chassis`
+    # held only tiers derived by `duplicate_archetypes`, and their battalions never
+    # appeared in the division designer even with `active = yes` and a researched
+    # enabling technology. The engine logs nothing. Vanilla declares plain members for
+    # every role family a sub-unit consumes - `medium_tank_aa_equipment_1..3` under
+    # `medium_tank_aa_chassis` - and so does every mod role family that works. This
+    # supersedes Finding 15's claim that a role root is nameable by `need` on its own.
+    plain_members: dict[str, int] = {}
+    for path in sorted((MOD / "common/units/equipment").glob("*.txt")):
+        for _, block in top_level_blocks(code_only(text(path)), "equipments"):
+            for parent in direct_values(block, "archetype"):
+                plain_members[parent] = plain_members.get(parent, 0) + 1
+    for family, roles in FAMILY_ROLES.items():
+        for role in roles:
+            root = f"{family}_tank_{role}_chassis"
+            if not re.search(rf"(?<![A-Za-z0-9_]){root}(?![A-Za-z0-9_])", consumers):
+                continue
+            if not plain_members.get(root):
+                fail(
+                    f"role family {root} is consumed by a sub-unit but declares no plain "
+                    f"member; only derived tiers cannot satisfy a `need`"
+                )
     roles = text(TANK_ROLE_FILE)
     validate_legacy_armour_roles()
     role_blocks = dict(top_level_blocks(roles, "sub_units"))
@@ -4373,7 +4456,16 @@ def run_tank_negative_fixtures() -> None:
             raise AssertionError(f"upgrade parent stats stacked for {module}")
     if bookmark_variant_name("medium_tank_chassis_3", "SOV") != "T-55":
         raise AssertionError("Soviet named preset lookup failed")
-    if bookmark_variant_name("medium_tank_chassis_3", "FIN") != BOOKMARK_VARIANT_NAMES["medium_tank_chassis_3"]:
+    # A producer with no preset on the chassis must fall back to the generic bookmark
+    # name. The tag is measured rather than hardcoded: the 2026-09-14 naming presets gave
+    # FIN a T-54B on this chassis, which silently turned a hardcoded FIN here into a
+    # baseline failure with no content defect behind it.
+    every_preset = NATIONAL_PRESETS + CARRIER_PRESETS + NAMING_PRESETS
+    mapped = {p["producer"] for p in every_preset if p["type"] == "medium_tank_chassis_3"}
+    unmapped = sorted({p["producer"] for p in every_preset} - mapped)
+    if not unmapped:
+        raise AssertionError("every producer now presets medium_tank_chassis_3")
+    if bookmark_variant_name("medium_tank_chassis_3", unmapped[0]) != BOOKMARK_VARIANT_NAMES["medium_tank_chassis_3"]:
         raise AssertionError("national preset leaked into another producer")
 
     national = text(NATIONAL_EFFECT_FILE)
@@ -5277,11 +5369,29 @@ if len(variant_types) != len(set(variant_types)):
         name for name, count in Counter(variant_types).items() if count > 1
     )
     fail(f"duplicate starting tank variant types: {duplicates}")
-if set(variant_types) != oob_refs:
+# The two directions are not the same defect. An OOB requesting a design nothing
+# creates is a silent break, so `missing` stays hard. A created design no OOB has
+# requested yet is legitimate content: the 16 starting designs authored 2026-09-17
+# gave five role families their first bookmark design, and the OOB requests that
+# will consume them are the conversion work still owed. They are named here rather
+# than the direction being dropped, so a misspelt generation still fails.
+AWAITING_OOB_REQUESTS = frozenset(
+    {f"light_tank_destroyer_chassis_{tier}" for tier in range(6)}
+    | {f"medium_tank_aa_chassis_{tier}" for tier in range(1, 7)}
+    | {f"heavy_tank_destroyer_chassis_{tier}" for tier in range(1, 5)}
+    | {f"medium_tank_apc_chassis_{tier}" for tier in range(7)}
+    | {f"medium_tank_ifv_chassis_{tier}" for tier in range(7)}
+)
+if oob_refs - set(variant_types):
     fail(
-        "starting tank variant set differs from NSB OOB references: "
-        f"missing={sorted(oob_refs - set(variant_types))}, "
-        f"unused={sorted(set(variant_types) - oob_refs)}"
+        "NSB OOBs request starting tank variants nothing creates: "
+        f"{sorted(oob_refs - set(variant_types))}"
+    )
+unrequested = set(variant_types) - oob_refs - AWAITING_OOB_REQUESTS
+if unrequested:
+    fail(
+        "starting tank variants no NSB OOB requests and not named as awaiting "
+        f"conversion: {sorted(unrequested)}"
     )
 if set(variant_types) != set(BOOKMARK_VARIANT_NAMES):
     fail(
@@ -5637,13 +5747,176 @@ def carrier_armour_cap_errors(label: str, year: int, armour: float) -> list[str]
 
 CARRIER_BATTALIONS = {
     "mechanized_infantry": ("CWIC-Infantry.txt", "light_tank_apc_chassis"),
+    "heavy_mechanized_infantry": ("CWIC-Infantry.txt", "medium_tank_apc_chassis"),
     "armored_infantry": ("CWIC-Infantry.txt", "light_tank_ifv_chassis"),
+    "heavy_armored_infantry": ("CWIC-Infantry.txt", "medium_tank_ifv_chassis"),
     "mechanized_airborne": ("CWIC-Special-Units.txt", "light_tank_ifv_chassis"),
     "engineer_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
     "recon_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
     "field_hospital_mechanized": ("CWIC-Support-Units.txt", "light_tank_apc_chassis"),
     "mechanized_marine": ("CWIC-Special-Units.txt", "light_tank_apc_chassis"),
 }
+
+
+def enabled_subunits() -> set[str]:
+    """Every sub-unit some live technology enables.
+
+    The parked doctrine rework directory is skipped for the same reason the
+    doctrine contracts skip it: the game does not load it.
+    """
+    names: set[str] = set()
+    for path in sorted(TECH_DIR.glob("*.txt")):
+        for body in keyed_blocks(code_only(text(path)), "enable_subunits"):
+            names.update(body.split())
+    return names
+
+
+def equipment_family_has_member(family: str) -> bool:
+    """True when some equipment row declares `archetype = family`."""
+    for path in sorted((MOD / "common/units/equipment").glob("*.txt")):
+        for _, block in top_level_blocks(code_only(text(path)), "equipments"):
+            if family in direct_values(block, "archetype"):
+                return True
+    return False
+
+
+def validate_ai_templates() -> None:
+    """Every AI division template must name live sub-units and live technologies.
+
+    Added 2026-09-17 with the AI production pass. An `ai_templates` entry naming a
+    battalion the rework removed, or gating on a technology that no longer exists,
+    parses cleanly and simply never produces the division - the same silent class as
+    the battalion and role-family defects. It also caught a live one: the generic
+    light armour template gated `can_upgrade_in_field` on `lt_equipment`, an archetype
+    the reparenting left with zero members, so the AI could never upgrade it.
+    """
+    sub_units: set[str] = set()
+    for path in sorted((MOD / "common/units").glob("*.txt")):
+        content = code_only(text(path))
+        for name, _ in top_level_blocks(content, "sub_units"):
+            sub_units.add(name)
+    technologies: set[str] = set()
+    for path in sorted(TECH_DIR.glob("*.txt")):
+        for name, _ in top_level_blocks(code_only(text(path)), "technologies"):
+            technologies.add(name)
+    for path in sorted((MOD / "common/ai_templates").glob("*.txt")):
+        content = code_only(text(path))
+        brace_balance(path)
+        for key in ("regiments", "support"):
+            for body in keyed_blocks(content, key):
+                for unit in re.findall(r"(\w+)\s*=\s*\d+", body):
+                    if unit not in sub_units:
+                        fail(f"{path.name} {key} names an undeclared sub-unit: {unit}")
+        for technology in re.findall(r"has_tech\s*=\s*(\w+)", content):
+            if technology not in technologies:
+                fail(f"{path.name} gates on an undeclared technology: {technology}")
+        for archetype in re.findall(r"has_equipment\s*=\s*\{\s*(\w+)", content):
+            if not equipment_family_has_member(archetype):
+                fail(
+                    f"{path.name} gates has_equipment on {archetype}, which has no "
+                    f"equipment member and can never be satisfied"
+                )
+
+
+def validate_research_armour_naming() -> None:
+    """Historical names delivered on research completion rather than at a bookmark.
+
+    Authored 2026-09-17. The bookmark dispatcher can only rename a design it creates,
+    and it only creates tiers a bookmark date reaches, so 386 historical names for
+    later tiers were undeliverable by any preset. This mechanism names the design when
+    the country finishes researching that chassis tier.
+
+    The failure modes are all silent, which is why each is pinned: a helper no
+    technology calls never fires, a guard without the creation flag re-creates the
+    design on every reload, a name whose localisation moved is no longer historical,
+    and a recipe naming a module the slot does not admit is rejected by the engine
+    with the design half-built.
+    """
+    manifest = json.loads(RESEARCH_NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))
+    presets = manifest["presets"]
+    recipes = {recipe["generation"]: recipe for recipe in manifest["recipes"]}
+    effects = code_only(text(RESEARCH_NAMING_EFFECT_FILE))
+    technologies = code_only(text(TECH_DIR / "NSB_armor.txt"))
+
+    pairs = {(preset["producer"], preset["generation"]) for preset in presets}
+    if len(pairs) != len(presets):
+        fail("research naming presets must not repeat a producer/generation pair")
+    generations = {preset["generation"] for preset in presets}
+    if generations != set(recipes):
+        fail("research naming recipes and presets must cover the same generations")
+        return
+
+    for generation in sorted(generations):
+        recipe = recipes[generation]
+        helper = f"cwic_name_{generation}_variants"
+        bodies = top_level_named_blocks(
+            "effects = {\n" + effects + "\n}", helper, "research naming helper"
+        )
+        if len(bodies) != 1:
+            fail(f"research naming helper {helper} must occur exactly once")
+            continue
+        # A helper nothing calls is dead content the engine never reports.
+        if not re.search(rf"(?<![A-Za-z0-9_]){helper}\s*=\s*yes", technologies):
+            fail(f"research naming helper {helper} is never called by a technology")
+        if recipe["technology"] not in technology_ids:
+            fail(f"research naming {generation} names an undeclared technology")
+        for slot, module in recipe["modules"].items():
+            if module not in module_ids:
+                fail(f"research naming {generation} recipe uses undefined module {module}")
+                continue
+            if not slot.startswith("tank_special_slot_"):
+                continue
+            index = int(slot.rsplit("_", 1)[1])
+            category = module_category(module)
+            if category not in TANK_SPECIAL_SLOT_CATEGORIES.get(index, set()):
+                fail(
+                    f"research naming {generation} puts {module} ({category}) in "
+                    f"{slot}, which does not admit it"
+                )
+        guards = top_level_named_blocks(bodies[0], "if", helper)
+        expected = [preset for preset in presets if preset["generation"] == generation]
+        if len(guards) != len(expected):
+            fail(f"research naming helper {helper} guard count differs from manifest")
+        flag = f"cwic_named_{generation}_created"
+        for preset in expected:
+            raw, path, line = naming_localisation_entry(preset["legacy_name_key"])
+            if (raw, path, line) != (preset["source_name"], preset["source_path"], preset["source_line"]):
+                fail(
+                    f"research naming {preset['producer']}/{generation} provenance "
+                    f"differs from live localisation"
+                )
+            elif unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().strip() != preset["name"]:
+                fail(
+                    f"research naming {preset['producer']}/{generation} name differs "
+                    f"from its localisation source"
+                )
+            matches = [
+                guard for guard in guards
+                if top_level_values(
+                    top_level_named_blocks(guard, "limit", "guard limit")[0], "tag"
+                ) == [preset["producer"]]
+            ]
+            if len(matches) != 1:
+                fail(f"research naming {preset['producer']}/{generation} must have exactly one guard")
+                continue
+            guard = matches[0]
+            for required in ('has_dlc = "No Step Back"', f"NOT = {{ has_country_flag = {flag} }}"):
+                if required not in guard:
+                    fail(f"research naming {preset['producer']}/{generation} missing guard: {required}")
+            if top_level_values(guard, "set_country_flag") != [flag]:
+                fail(f"research naming {preset['producer']}/{generation} must set its creation flag")
+            elif guard.find("set_country_flag") < guard.find("create_equipment_variant"):
+                fail(f"research naming {preset['producer']}/{generation} sets its flag before creation")
+            variant = top_level_named_blocks(guard, "create_equipment_variant", "naming variant")[0]
+            if re.findall(r'name\s*=\s*"([^"\n]*)"', variant) != [preset["name"]]:
+                fail(f"research naming {preset['producer']}/{generation} wrong name")
+            for field, value in (("type", generation), ("allow_without_tech", "yes"),
+                                 ("parent_version", "0"), ("mark_older_equipment_obsolete", "yes")):
+                if top_level_values(variant, field) != [value]:
+                    fail(f"research naming {preset['producer']}/{generation} wrong {field}")
+            mounted = dict(re.findall(r"(\w+)\s*=\s*(\w+)", top_level_named_blocks(variant, "modules", "naming modules")[0]))
+            if mounted != recipe["modules"]:
+                fail(f"research naming {preset['producer']}/{generation} differs from its recipe")
 
 
 def validate_carrier_battalions() -> None:
@@ -5675,6 +5948,14 @@ def validate_carrier_battalions() -> None:
                 continue
             if not re.search(rf"(?<![A-Za-z0-9_]){role}(?![A-Za-z0-9_])", bodies[0]):
                 fail(f"{battalion} {key} must name {role}")
+        # An `active = no` battalion that no technology enables is dead content and
+        # the engine logs nothing for it; so is one with no name key, which renders
+        # as the raw id. Both are how `heavy_mechanized_infantry` and
+        # `heavy_armored_infantry` could have shipped invisible on 2026-09-17.
+        if direct_values(block, "active") == ["no"] and battalion not in enabled_subunits():
+            fail(f"{battalion} is active = no and no technology enables it")
+        if naming_localisation_entry(battalion)[0] is None:
+            fail(f"{battalion} has no English localisation name")
     retired = re.compile(
         r"(?<![A-Za-z0-9_])mechanized(?:_heavy|_marine)?_equipment(?![A-Za-z0-9_])"
     )
@@ -6523,6 +6804,8 @@ validate_armour_archetype_pictures()
 validate_carrier_bookmarks()
 validate_carrier_roles()
 validate_carrier_battalions()
+validate_research_armour_naming()
+validate_ai_templates()
 validate_marine_carrier()
 validate_designer_window_coverage()
 stockpile_grant_count = sum(
