@@ -3920,21 +3920,56 @@ def validate_national_tank_presets(national_override: str | None = None, generic
         fail("national presets must bootstrap before generic presets")
 
 
+# The reverse map and the legacy localisation key on the loc prefix `MBZ`, while the
+# declared country tag is `MZB`. Comparing the two spaces without this mapping reports
+# five delivered Mozambican carrier names as missing - an error made twice while
+# measuring the conversion debt, so the alias lives in one place and is pinned.
+CARRIER_SOURCE_TAG_ALIASES = {"MBZ": "MZB"}
+
+
+# Legacy carrier level -> carrier generation, 2026-09-17. Two owner rulings widened
+# this beyond the original arithmetic, and both are recorded as tables rather than
+# offsets because the marine ladder is not evenly spaced.
+#
+# Levels 1 and 2 are CLAMPED onto tier 0 rather than dropped. The old rule was
+# `apc tier = level - 3`, which sent the 1942 and 1944 half-tracks to negative tiers
+# and silently discarded four countries' historical names. Clamping means levels 1,
+# 2 and 3 share tier 0, so a country with names at several of them resolves by the
+# ratified newest-wins rule.
+#
+# Marine equipment joins the pipeline. `mechanized_marine_equipment_*` was relocated
+# into `light_tank_apc_chassis` by the 2026-09-12 carrier cutover and every APC is a
+# marine transport, so by our own architecture these are carriers; only this regex
+# disagreed. Its levels are not evenly spaced - 1944, 1950, 1965, 1985, 2005 - so the
+# map is derived from those years against the APC generation ladder rather than from
+# an offset.
+MARINE_LEVEL_TIERS = {1: 0, 2: 1, 3: 3, 4: 5, 5: 7}
+
+
 def carrier_source_inventory() -> dict[tuple[str, str], list[tuple[str, str, int, str]]]:
     """Inventory live legacy localisation independently of the authored manifest."""
     inventory: dict[tuple[str, str], list[tuple[str, str, int, str]]] = {}
-    pattern = re.compile(r'^\s*(([A-Z]{3})_(mechanized(?:_heavy)?_equipment)_(\d+)):\d*\s*"([^"]*)"')
+    pattern = re.compile(
+        r'^\s*(([A-Z]{3})_(mechanized(?:_heavy|_marine)?_equipment)_(\d+)):\d*\s*"([^"]*)"'
+    )
     for path in sorted((MOD / "localisation/english").glob("*.yml")):
         for line_number, line in enumerate(text(path).splitlines(), 1):
             match = pattern.match(line)
             if not match:
                 continue
             key, tag, legacy, level, name = match.groups()
-            family, offset = ("ifv", 1) if "heavy" in legacy else ("apc", 3)
-            tier = int(level) - offset
+            if "marine" in legacy:
+                tier = MARINE_LEVEL_TIERS.get(int(level))
+                if tier is None:
+                    continue
+                family = "apc"
+            else:
+                family = "ifv" if "heavy" in legacy else "apc"
+                offset = 1 if family == "ifv" else 3
+                tier = max(int(level) - offset, 0)
             if not 0 <= tier <= 7:
                 continue
-            tag = {"MBZ": "MZB"}.get(tag, tag)
+            tag = CARRIER_SOURCE_TAG_ALIASES.get(tag, tag)
             inventory.setdefault((tag, f"{family}_chassis_{tier}"), []).append(
                 (key, str(path.relative_to(ROOT)), line_number, name)
             )
@@ -3977,9 +4012,12 @@ def validate_carrier_bookmarks(national_override: str | None = None,
     pairs = {(p["producer"], p["generation"]) for p in presets}
     inventory = carrier_source_inventory()
     expected_pairs = {pair for pair in inventory if pair[1] in wanted}
-    if len(presets) != 572 or len(pairs) != len(presets) or pairs != expected_pairs:
-        fail("carrier national preset coverage must equal the 572 source-derived bookmark pairs without duplicates")
-    if manifest.get("source_tag_aliases") != {"MBZ": "MZB"}:
+    # 572 -> 587 on 2026-09-17: the owner widened the source inventory to admit the
+    # marine carrier family and to clamp legacy levels 1-2 onto tier 0 instead of
+    # discarding them. The count stays pinned so a silent coverage change still fails.
+    if len(presets) != 587 or len(pairs) != len(presets) or pairs != expected_pairs:
+        fail("carrier national preset coverage must equal the 587 source-derived bookmark pairs without duplicates")
+    if manifest.get("source_tag_aliases") != CARRIER_SOURCE_TAG_ALIASES:
         fail("carrier source tag alias must remain MBZ -> MZB")
     country_tags = set()
     for path in (MOD / "common/country_tags").glob("*.txt"):
@@ -4092,7 +4130,13 @@ def validate_carrier_bookmarks(national_override: str | None = None,
             sources = inventory.get(pair, [])
             # Detailed country files precede the consolidated fallback; duplicate
             # ALB/MBZ keys retain their first occurrence. No legacy loc is rewritten.
-            selected = sorted(sources, key=lambda row: (Path(row[1]).name == "equipment_country_l_english.yml", row[1], row[2]))
+            # Newest legacy level names the generation, then detailed country files
+            # ahead of the consolidated fallback. The level term was added 2026-09-17
+            # with the clamp that folds legacy levels 1-2 onto tier 0: without it the
+            # oldest vehicle in a pair wins, which downgraded 45 in-game designs - the
+            # 1947 BTR-40 became a 1942 ZiS-42 truck. Verified to reproduce every
+            # pre-existing name exactly while admitting the widened sources.
+            selected = sorted(sources, key=lambda row: (-int(row[0].rsplit("_", 1)[1]), Path(row[1]).name == "equipment_country_l_english.yml", row[1], row[2]))
             if not selected:
                 fail(f"carrier {pair} lacks live source provenance")
                 continue
