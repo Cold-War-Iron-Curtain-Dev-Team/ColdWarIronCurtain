@@ -5592,11 +5592,18 @@ for tier in range(1, 8):
         fail(f"{name} still has a cumulative legacy-only MBT dependency")
 
 armor_text = code_only(text(TECH_DIR / "armor.txt"))
+# Owner ruling 2026-09-17 reversed the both-folders requirement. Marines consume
+# `light_tank_apc_chassis` by the 2026-09-12 ruling, so on NSB their transport is
+# designer-supplied and the legacy marine chain is redundant duplicate content in
+# the designer tab. The chain is now non-NSB only, like every other legacy armour
+# chain, and the contract pins that direction instead.
 for tier in range(1, 6):
     name = f"amphibious{tier}"
     block = next((value for tech, value, _ in technology_blocks if tech == name), "")
-    if "name = armour_folder" not in block or "name = nsb_armor_folder" not in block:
-        fail(f"{name} is not exposed in both armor folder configurations")
+    if "name = armour_folder" not in block:
+        fail(f"{name} must stay in the legacy armour folder")
+    if "name = nsb_armor_folder" in block:
+        fail(f"{name} must not appear in the NSB designer folder")
 # The 2026-09-09 amphibious-role ratification does not override the technology
 # gate; the legacy mechanized_marine remains inactive by default.
 if not re.search(r"mechanized_marine\s*=\s*\{[\s\S]*?\bactive\s*=\s*no", code_only(text(MOD / "common/units/CWIC-Special-Units.txt"))):
