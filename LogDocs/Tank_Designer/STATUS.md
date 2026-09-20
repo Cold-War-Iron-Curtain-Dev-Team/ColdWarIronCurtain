@@ -3528,6 +3528,57 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 43: the fire-support tree converged onto the designer hulls, 2026-09-17
+
+**Owner ruling: a fire-support technology must unlock the era's modules AND leave the player a
+design.** On NSB the branch researched into nothing visible, because its legacy vehicle is
+unbuildable there and the designer counterpart is built by hand.
+
+**Scope, derived independently by the main agent and matched exactly by the subagent survey:**
+25 of the 85 technologies in `artillery.txt` are in scope - the SPAA, SP artillery and
+tank-destroyer tiers. The other 60 are towed artillery, infantry anti-tank, missiles or naval
+and are deliberately untouched. `rocket.txt` holds no fire-support vehicles at all.
+
+**Mapping uses the legacy equipment row's year, not the technology's `start_year`** - the
+ratified not-later-than rule, applied to the vehicle rather than to the research date. The two
+diverge in places: `tank_destroyer_1` starts 1940 but enables a 1950 vehicle. That is a pacing
+oddity, recorded and not silently corrected.
+
+**What each technology now does:**
+
+| Half | Coverage |
+| --- | --- |
+| `enable_equipment_modules` | all **25**, granting the era's main armament plus the ammunition its gun needs - AA ammunition for SPAA, HE for artillery, kinetic and HE for tank destroyers |
+| research-time design | **19 technologies** calling **16 helpers** in the new `CWIC_firesupport_designs.txt` |
+
+**The helpers reuse the bookmark flag `cwic_starting_<generation>_created` deliberately.** A
+country that already received that design at a bookmark start never receives a duplicate; the
+helper only fires for a country researching into a generation it did not start with. Recipes
+are copied from the generic bookmark block where one exists and otherwise from the
+research-naming recipe authored earlier the same day - which is what made 12 of the 16 possible.
+
+**Eight generations get modules but no design, and the reason is that nothing describes them
+yet:** `light_tank_aa_chassis_0` and `_5`, `light_tank_artillery_chassis_5`,
+`medium_tank_artillery_chassis_0` and `_5`, `medium_tank_aa_chassis_8`,
+`heavy_tank_artillery_chassis_2`, `heavy_tank_destroyer_chassis_3`. None has a bookmark block or
+a research-naming recipe, so authoring one is a balance decision rather than a cutover. The
+module grant still makes those technologies meaningful on NSB.
+
+**Two subagents disagreed on tier numbering** - one used hull-technology shorthand, the other
+actual chassis ids - so the mapping used here is the main agent's own, computed from live
+equipment years against the ratified ladders, with the artifacts used only as input. The module
+grants were verified against `00_tank_modules.txt`: 25 technologies, zero undeclared ids.
+
+Static verification only: self-test passes, inventory line unchanged.
+
+### Marine chain, closed 2026-09-17
+
+Owner reversed the 2026-09-12 both-folders ruling. Marines consume `light_tank_apc_chassis`, so
+on NSB their transport is designer-supplied and the legacy chain was redundant duplicate
+content. `amphibious1..5` leave `nsb_armor_folder`, and the validator contract now pins the
+opposite direction: the chain must stay in the legacy folder and must NOT appear in the designer
+folder. **The NSB armour tab is now purely designer content.**
+
 ## Finding 41: polish pass 1 - the NSB tree cleanup and a real error-log defect
 
 Owner playtest 2026-09-17 compared the two profiles side by side. Non-NSB is clean; NSB still
