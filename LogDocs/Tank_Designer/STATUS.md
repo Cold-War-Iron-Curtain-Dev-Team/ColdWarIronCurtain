@@ -3528,6 +3528,55 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 41: polish pass 1 - the NSB tree cleanup and a real error-log defect
+
+Owner playtest 2026-09-17 compared the two profiles side by side. Non-NSB is clean; NSB still
+showed legacy vehicle technologies beside the designer hulls, and the error counter read 2952
+against 2484.
+
+**The duplicate tech cards were a folder problem, not a gating problem.** No technology in
+`armor.txt`, `artillery.txt`, `rocket.txt` or `NSB_armor.txt` uses `allow`, `allow_branch` or
+`has_dlc` at all. The legacy APC and IFV chains simply declared **both** `armour_folder` and
+`nsb_armor_folder`, so they rendered in the designer tab. Eighteen technologies -
+`mechanized_infantry` and `mechanized_infantry2..10`, `mechanized_heavy_infantry` and
+`mechanized_heavy_infantry2..8` - lost their `nsb_armor_folder` block. They remain fully
+researchable on non-NSB, where they are the only armour.
+
+**Re-homing had to come first, and this is the trap.** `mechanized_infantry` and
+`mechanized_heavy_infantry` are what `enable_subunits` the four carrier battalions. Hiding them
+on NSB would have removed Mechanized, Heavy Mechanized, Armored and Heavy Armored Infantry from
+every NSB campaign. All four are now also enabled by `nsb_iw_armored_vehicles`: deliberate dual
+enablement, one enabler per profile, whichever completes first.
+
+**The marine chain stays in both folders, because a ratified contract says so.**
+`amphibious1..5` were stripped with the rest and the validator failed with
+`amphibious<N> is not exposed in both armor folder configurations` (`:5594-5599`). That check
+exists so marine transport can be researched on either profile. The removal was reverted rather
+than the contract overridden - so the `LVT-4`, `LVTP-5` and `LVTP-7` cards the owner saw in the
+NSB tab are still there, by prior ruling. Closing that needs an owner decision, not a cutover.
+
+### Finding 42: 36 equipment ids were missing from the bonus-type enum
+
+**A real defect of ours, found by measuring the error log rather than assuming it was noise.**
+The live `error.log` is the owner's NSB session - 2,952 parsed records, matching the counter
+exactly. Normalising the messages surfaced 36 instances of
+`equipment_database.cpp:656: <id> is an equipment type or equipment category but is not in
+script enum script_enum_equipment_bonus_type`.
+
+Six are the plain members authored 2026-09-17 - `heavy_apc_equipment_1..3`,
+`heavy_ifv_equipment_1`, `medium_spaag_equipment_1`, `heavy_tank_destroyer_equipment_1` - so
+this pass introduced them and `DECISIONS.md` Gate B had already stated the rule. The other 30
+predate the session: the relocated legacy `spaag_equipment_*`, `sp_artillery_equipment_*`,
+`light_sp_artillery_equipment_*`, `atgm_carrier_equipment_*` and `medium_tank_destroyer_equipment_*`
+rows have never been enumerated. All 36 are now declared in `script_enums.txt`.
+
+The rest of the 2,952 is the already-triaged graphics noise: 168 records name our ids and every
+one is the base game's `equipment_graphic_database` complaining about vanilla role chassis this
+mod removed, or per-country entities for `light_armor` / `heavy_armor` that were never authored.
+No record names a battalion, a designer chassis family or a scripted effect of ours.
+
+Static verification only: self-test passes, inventory line unchanged.
+
 ## Finding 40: the carrier source inventory widened - and the near-miss that mattered
 
 **Owner rulings 2026-09-17 closed the last naming gap, and the item was smaller and stranger
