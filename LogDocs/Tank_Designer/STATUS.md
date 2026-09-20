@@ -3528,6 +3528,53 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 40: the carrier source inventory widened - and the near-miss that mattered
+
+**Owner rulings 2026-09-17 closed the last naming gap, and the item was smaller and stranger
+than it looked.** The "12 blocked carrier rows" re-measured to 14, which split three ways:
+
+- **Six were a measurement artifact.** The carrier manifest carries a ratified source-tag alias
+  `MBZ -> MZB`: `MBZ_*` is the localisation prefix, `MZB` the declared country tag. Five of
+  those names were already live under `MZB` and only looked missing because the comparison used
+  the loc prefix. The sixth, `BMP-1P`, collides with MZB's existing `BMP-1` on the same
+  generation and is closed by design like the other 203.
+- **Four were marine equipment.** `carrier_source_inventory()` matched only
+  `mechanized(_heavy)_equipment`, so the marine family never entered the pipeline even though
+  the 2026-09-12 cutover had relocated it into `light_tank_apc_chassis`.
+- **Four were below the window.** The inventory mapped `apc tier = level - 3`, so legacy levels
+  1 and 2 produced negative tiers and were silently discarded.
+
+**All three are fixed.** Marine equipment joins the inventory on a year-derived table -
+`MARINE_LEVEL_TIERS = {1: 0, 2: 1, 3: 3, 4: 5, 5: 7}`, because its 1944/1950/1965/1985/2005
+ladder is not evenly spaced - levels 1 and 2 clamp onto tier 0 instead of being dropped, and
+the tag alias now lives in one constant, `CARRIER_SOURCE_TAG_ALIASES`, used by both the
+inventory and the manifest pin so the same misreading cannot recur.
+
+Coverage moves from **572 to 587 source-derived pairs**, adding 15 national carrier designs
+across ARG, AUS, CHI, IND, INS, JOR, LEB, MAO, PAK, SIA, SPR (two), SWI, VEN and WGR. The
+pinned count moves with it, so a silent coverage change still fails.
+
+### The near-miss, and it is the part worth remembering
+
+**Widening the inventory silently renamed 70 existing designs and downgraded 45 of them.** The
+selection rule that decides which source names a pair sorted only by file precedence, so once
+older legacy levels joined a pair, the OLDEST vehicle won: `CUM`'s 1947 `BTR-40` became a 1942
+`ZiS-42` truck, and `CAP`'s `M3A1 Half-Track` became an `M2 Half-Track`, across 45 live OOB
+requests. Nothing about that is a naming improvement - it is a content regression, and it
+surfaced only because the OOB contract failed loudly on names its producers no longer created.
+
+The fix is a better rule, not an accepted loss: **the newest legacy level names the generation**,
+with file precedence as the tie-break. That is the same newest-wins rule already ratified for
+collisions elsewhere. Verified before adopting it: the new rule reproduces **every one of the
+572 pre-existing names exactly, zero differences against HEAD**, while still admitting the 15
+new pairs. The manifest diff adds rows and provenance and renames nothing.
+
+**A widening that changes a selection input can rewrite existing content.** Check the delta
+against HEAD before adopting one, not just whether the validator passes.
+
+Static verification only: self-test passes, national presets 586 -> 601, everything else on the
+inventory line unchanged.
+
 ## Finding 39: the unfielded battalions reach scripted history, 2026-09-17
 
 **The NSB-only enabler that blocked two of them is gone.** `heavy_tank_destroyer_brigade` and
@@ -4033,9 +4080,11 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
    Guards Tank Division as the ISU-152, both profiles. Heavy Mechanized and Heavy Armored
    Infantry are deliberately left unfielded: their 1985 and 2005 generations postdate both
    bookmarks, so a scripted 1980 formation carrying one would be invented history.
-22. An owner decision on the 12 blocked carrier rows: either give carrier generic blocks the
-   role-chassis flag name, or widen `carrier_source_inventory()` past its tier window. Both
-   touch a ratified contract; neither is urgent.
+22. ~~The blocked carrier rows.~~ **Done 2026-09-17, Finding 40.** The inventory was widened
+   rather than the flag contract touched: marine equipment joins the pipeline, legacy levels
+   1-2 clamp onto tier 0, and the `MBZ -> MZB` alias is a shared constant. 572 -> 587 pairs,
+   15 new national carrier designs, and the selection rule now takes the newest legacy level so
+   the widening renames nothing.
 23. **The final playtest.** Everything planned is implemented. Note the profile limit: the
    designer, all 30 starting designs and both naming mechanisms are behind
    `has_dlc = "No Step Back"`, so a non-NSB session can only exercise the legacy path - the six
