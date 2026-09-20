@@ -3528,6 +3528,43 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 39: the unfielded battalions reach scripted history, 2026-09-17
+
+**The NSB-only enabler that blocked two of them is gone.** `heavy_tank_destroyer_brigade` and
+`medium_sp_anti_air_brigade` were enabled only by `nsb_iw_armored_vehicles`, which made them
+unusable on a non-NSB profile and is why Finding 34 kept them out of the AI templates. They now
+sit in the same `enable_subunits` blocks as their surviving siblings - `tank_destroyer_1` and
+`spaag_1` in `artillery.txt`, both present on either profile - and the NSB-root entries are
+removed so each has one enabler. This closes suggested-order item 14.
+
+**Two of the four are now fielded in scripted history, on historical grounds rather than to
+satisfy a counter:**
+
+| Battalion | Where | Basis |
+| --- | --- | --- |
+| `medium_sp_anti_air_brigade` | WGR `Panzer-Division`, 1980 both profiles | the Gepard, standard divisional SPAAG of the 1980 Bundeswehr |
+| `heavy_tank_destroyer_brigade` | SOV `Gvardeyskaya Tankovaya Diviziya`, 1949 both profiles | the ISU-152, still the Guards tank division's heavy tank destroyer |
+
+Each occupies a free grid slot in an existing template rather than displacing a battalion, and
+each was applied to the `_nsb` and non-NSB files together, because the mod deliberately keeps
+the two profiles' division templates identical.
+
+**Heavy Mechanized and Heavy Armored Infantry are deliberately NOT fielded, and this is the
+honest answer rather than a gap.** Their ratified generation years are 1985 and 2005; both
+bookmarks are 1949 and 1980. There is no 1980 formation that historically carried a heavy APC -
+the IDF's Nagmashot arrives 1983 and Achzarit later still - so putting one into a 1980 order of
+battle would be inventing history to make a number move. They remain player-designable,
+equippable on both profiles and AI-buildable from the tech-gated templates, which is the
+correct state for a capability that postdates every bookmark.
+
+**The AI now fields both restored brigades.** `armor_medium_contemporary` and
+`infantry_mech_contemporary` in `templates_stellar.txt` gain one each, which was only safe once
+the both-profiles enabler landed - under the old NSB-only enabler this would have handed a
+non-NSB AI an unfillable division.
+
+Static verification only: self-test passes, inventory line unchanged from the OOB pass at 39
+generic bookmark variants and 580 named OOB requests.
+
 ## Finding 38: the OOB requests - only one family could receive them, 2026-09-17
 
 **The "30 OOB requests" item was priced against designs, not against divisions, and that was
@@ -3968,9 +4005,9 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
    item left. Two smaller ones remain beside it: the focus-grant historical variant mapping
    (Finding 1's deferred follow-up, 314 grants on generic `CWIC Export ...` names) and OOB
    references for the four carrier battalions, which no scripted order of battle fields yet.
-14. A both-profiles enabler for `heavy_tank_destroyer_brigade` and `medium_sp_anti_air_brigade`.
-   Only `nsb_iw_armored_vehicles` enables them, so they are NSB-only and were kept out of the AI
-   templates to avoid an unfillable non-NSB division. Needs an owner decision, not a cutover.
+14. ~~A both-profiles enabler for `heavy_tank_destroyer_brigade` and
+   `medium_sp_anti_air_brigade`.~~ **Done 2026-09-17, Finding 39.** Both moved onto
+   `tank_destroyer_1` and `spaag_1`, so they work on either profile and the AI can field them.
 15. ~~Conversion tranche 1.~~ **Done 2026-09-17, Finding 35.** Thirty bookmark starting designs
    gave all five previously uncovered role families one; the naming debt re-measured to 672 rows
    of which only 4 were addable under the bookmark contract.
@@ -3991,12 +4028,16 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
    authored across NOR and RAJ for `light_tank_destroyer_chassis_5`, plus RAJ's missing
    bootstrap technology. The other 24 are not writable: four of the five consuming battalions
    appear in zero orders of battle.
-21. **Owner decision: put the four unfielded battalions into historical divisions.** Medium
-   SPAAG, Heavy Tank Destroyer, Heavy Mechanized Infantry and Heavy Armored Infantry exist,
-   are equippable and are AI-buildable, but no scripted order of battle fields any of them, so
-   no campaign starts with one. Deciding which formations historically had them is content and
-   balance work per country, and it is the last thing standing between this rework and being
-   fully live in scripted history.
-21. An owner decision on the 12 blocked carrier rows: either give carrier generic blocks the
+21. ~~Put the unfielded battalions into historical divisions.~~ **Done 2026-09-17, Finding 39.**
+   Medium SPAAG goes to the WGR Panzer-Division as the Gepard, Heavy Tank Destroyer to the SOV
+   Guards Tank Division as the ISU-152, both profiles. Heavy Mechanized and Heavy Armored
+   Infantry are deliberately left unfielded: their 1985 and 2005 generations postdate both
+   bookmarks, so a scripted 1980 formation carrying one would be invented history.
+22. An owner decision on the 12 blocked carrier rows: either give carrier generic blocks the
    role-chassis flag name, or widen `carrier_source_inventory()` past its tier window. Both
    touch a ratified contract; neither is urgent.
+23. **The final playtest.** Everything planned is implemented. Note the profile limit: the
+   designer, all 30 starting designs and both naming mechanisms are behind
+   `has_dlc = "No Step Back"`, so a non-NSB session can only exercise the legacy path - the six
+   new legacy equipment rows, the four carrier battalions and their group split, and the two
+   newly fielded brigades.
