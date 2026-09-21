@@ -1,0 +1,83 @@
+###########################################################################
+# Regime Change Opportunity - one trigger per opportunity
+# Scope: THIS = target, ROOT = sender
+#
+# Each trigger = "the button should exist on this target right now".
+# The "done" flag is on the sender, so once used, the button vanishes
+# from every target of that opportunity at once (PDG and GRE, etc.).
+#
+# ADDING AN OPPORTUNITY:
+#   1. write its trigger here
+#   2. add it to RCO_any below
+#   3. add one else_if in RCO_fire (scripted_effects/RCO_effects.txt)
+###########################################################################
+ 
+RCO_SOV_greece = {
+	OR = {
+		original_tag = PDG
+		original_tag = GRE
+	}
+	ROOT = {
+		original_tag = SOV
+		NOT = { has_country_flag = SOV_Percentage_agreement }
+	}
+	PDG = { surrender_progress > 0.4 }
+}
+ 
+RCO_SOV_china = {
+	OR = {
+		original_tag = PRC
+		original_tag = CHI
+	}
+	ROOT = {
+		original_tag = SOV
+		NOT = { has_country_flag = SOV_Manchurian_Interventon }
+	}
+	PRC = { surrender_progress > 0.79 }
+}
+ 
+RCO_SOV_wgr49 = {
+	original_tag = WGR
+	date < 1951.1.1
+	ROOT = {
+		original_tag = SOV
+		NOT = { has_country_flag = SOV_WGR49_interfered }
+	}
+}
+
+RCO_SOV_Yug = {
+	original_tag = YUG
+	date < 1953.1.1
+	PDG = { owns_state = 47 }
+	ROOT = {
+		original_tag = SOV
+		NOT = { has_country_flag = SOV_YUG_Invasion }
+	}
+}
+ 
+RCO_SOV_stalin_note = {
+	OR = {
+		original_tag = WGR
+		original_tag = DDR
+	}
+	date > 1952.1.1
+	ROOT = {
+		original_tag = SOV
+		NOT = { has_country_flag = SOV_Stalin_Note }
+		has_country_leader = { name = "Joseph Stalin" ruling_only = yes }
+	}
+	WGR = {
+		NOT = { has_country_leader = { character = WGR_Maximillian_Reimann ruling_only = yes } }
+	}
+}
+ 
+### Aggregate - the only trigger the diplomatic action uses ###
+RCO_any = {
+	OR = {
+		RCO_SOV_greece = yes
+		RCO_SOV_china = yes
+		RCO_SOV_wgr49 = yes
+		RCO_SOV_stalin_note = yes
+		RCO_SOV_Yug = yes
+	}
+}

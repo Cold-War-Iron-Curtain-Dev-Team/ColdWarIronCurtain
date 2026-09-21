@@ -157,11 +157,13 @@ country_event = { #Percentage go or not
 	desc = sov_percentage_agreement.1.desc
 	picture = GFX_SOV_STL_1
 	is_triggered_only = yes
+	immediate = {
+		set_country_flag = SOV_Percentage_agreement
+	}
 	option = {
 		name = sov_percentage_agreement.1.a
-		set_country_flag = SOV_Followed_Percentage_Agreements
-		mark_focus_tree_layout_dirty = yes
-		complete_national_focus = SOV_gpa_honour_the_agreement
+		add_stability = 0.035
+		add_threat = -5
 		ai_chance = {
 			factor = 99
 			modifier = {
@@ -172,9 +174,42 @@ country_event = { #Percentage go or not
 	}
 	option = {
 		name = sov_percentage_agreement.1.b
-		set_country_flag = SOV_Rejected_Percentage_Agreements
-		mark_focus_tree_layout_dirty = yes
-		complete_national_focus = SOV_gci_intervene_in_greece
+		if = {
+			limit = {
+				country_exists = PDG
+			}
+			every_country = {
+				limit = {
+					is_in_faction_with = SOV
+				}
+				add_to_war = {
+					targeted_alliance = PDG
+					enemy = GRE
+					hostility_reason = asked_to_join
+				}
+			}
+		}
+		else = {
+			declare_war_on = {
+				target = GRE
+				type = annex_everything
+			}
+			GRE = { 1672 = { transfer_state_to = PDG } }
+		}
+		add_to_faction = PDG
+		PDG = {
+			add_ideas = soviet_advisors
+			add_manpower = 25000
+			remove_ideas = cold_war_civil_war_ideological_idea
+		}
+		add_to_array = { sphere_tag_list = PDG.id }
+		PDG = {
+			set_country_flag = Is_In_Sphere
+			set_variable = {
+				Sphere_Leader = SOV.id
+			}
+		}
+		set_global_flag = PDG_INTERVENTION
 	}
 }
 
