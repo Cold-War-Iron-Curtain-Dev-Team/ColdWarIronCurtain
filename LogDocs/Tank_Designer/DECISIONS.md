@@ -1169,16 +1169,27 @@ country scope
 A zero-byte file at a base game path is a deletion, not a fall-through. `00_tank_icons.txt`
 carries CWIC's own pools; `validate_designer_graphic_db()` enforces it.
 
-**Keyed on role chassis archetypes, not per-tier types.** This mod's generations are created
-dynamically by the designer, so per-tier keys would need regenerating whenever a tier is added.
-One archetype pool covers every tier of its family.
+**Keyed on the exact per-generation equipment type, one icon and one model per pool.** Keying
+the role archetype is NOT sufficient and was wrong in the first pass: for a derived type such as
+`light_tank_destroyer_chassis_3` the engine treats the hull as the archetype, and an archetype
+pool outranks a family-type pool, so every role design kept plain tank hull art even though the
+proper icons were now reachable. A per-generation type key outranks both, and it also pins which
+generation's art appears instead of letting the engine pick from an ordered list.
 
 **Scope is tanks only.** The plane, ship and HQ files in that folder carry the identical defect
 and are deliberately left blank; restoring them is separate content work with an owner.
 
-**APC and IFV borrow the nearest existing family** because no APC or IFV designer art exists in
-the mod: APC takes the carrier hull sprites and `mechanized` entities, IFV takes `atgm_carrier`
-sprites and the armoured infantry entities. Dedicated art remains an open content gap.
+**APC and IFV carry models only, never icons.** Their production icon already comes from
+`archetype_mechanized_equipment` and `archetype_mechanized_heavy_equipment` under the 2026-09-14
+ruling; an icon pool here overrides that and loses the mechanized art. Models point at the
+`mechanized`, `mechanized_infantry` and armoured infantry entity families.
+
+**`carrier_hull`, `carrier_hull_light` and `carrier_hull_super` are NAVAL families.** They are
+aircraft carrier hulls for the ship designer, not armoured personnel carriers. A first pass on
+2026-09-21 mapped APC and IFV onto them on the strength of the name alone and put aircraft
+carriers in the tank designer. The contract now fails on any `carrier_hull` reference. There is
+no APC or IFV designer sprite family in this mod; that remains an open art gap.
+
 
 **Uneven coverage is pinned, not hidden.** 26 of 95 TAGs have all 15 roles and 19 have fewer than
 five. Countries without art behave exactly as they did before; the contract does not demand

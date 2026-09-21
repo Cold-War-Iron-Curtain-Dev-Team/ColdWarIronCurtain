@@ -3528,6 +3528,41 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 46: three defects in the first graphic database pass, 2026-09-21
+
+Owner playtest of Finding 45 returned three defects. All three are now fixed; two were my errors
+of inference and one was a misunderstanding of the engine's sort order.
+
+**1. APC and IFV showed aircraft carriers.** `carrier_hull`, `carrier_hull_light` and
+`carrier_hull_super` are NAVAL families for the ship designer. I mapped APC and IFV onto them on
+the strength of the family name alone, without checking a single member - `GFX_ENG_carrier_hull_0`
+is a Royal Navy aircraft carrier. Worse, the icon pools overrode the mechanized production art
+those families already had from `archetype_mechanized_equipment` under the 2026-09-14 ruling,
+which is why the old mechanized and heavy mechanized pictures disappeared. **APC and IFV now
+carry models only and no icons at all**, restoring that art. The contract fails on any
+`carrier_hull` reference.
+
+**2. The proper role icons were reachable but never the default.** Archetype keying was the
+defect. For a derived type such as `light_tank_destroyer_chassis_3`, the engine treats
+`light_tank_chassis` as the archetype, and per the documented sort order **an archetype pool
+outranks a family-type pool** - so the plain tank hull won every time and the tank destroyer art
+sat one rank below, visible in the selector but never chosen.
+
+**3. Generation mismatch** had the same root: an archetype pool holds every tier's art in one
+ordered list, so the engine picked from that list rather than matching the design's generation.
+
+**Both are fixed by keying the exact per-generation equipment type with exactly one icon and one
+model per pool.** A type key outranks the hull archetype, and a single-entry pool removes the
+choice entirely. File goes 1,370 pools -> 8,890, one per country per role per generation.
+Generations map by index into each family's available levels and clamp at the top, so a country
+whose sprite family stops at level 4 repeats that art for tiers above it rather than going blank.
+
+The contract now also rejects any archetype-shaped key, so this specific regression cannot
+return silently.
+
+Static verification only: self-test green at 8,890 pools, every sprite and entity name resolving.
+Whether each generation's art now looks right is the owner's call.
+
 ## Finding 45: the designer had no art because we deleted it, 2026-09-21
 
 **Root cause: all 25 files under `gfx/interface/equipmentdesigner/graphic_db/` are zero bytes.**
