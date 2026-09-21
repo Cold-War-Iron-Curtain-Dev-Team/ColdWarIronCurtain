@@ -6859,6 +6859,81 @@ def validate_armour_archetype_pictures() -> None:
                 "GFX_<picture>_medium sprite - the production icon is silently wrong"
             )
 
+DESIGNER_GRAPHIC_DB = (
+    MOD / "gfx/interface/equipmentdesigner/graphic_db/00_tank_icons.txt"
+)
+DESIGNER_GRAPHIC_ROLES = {
+    "light_tank_chassis",
+    "medium_tank_chassis",
+    "heavy_tank_chassis",
+    "light_tank_aa_chassis",
+    "medium_tank_aa_chassis",
+    "light_tank_artillery_chassis",
+    "medium_tank_artillery_chassis",
+    "heavy_tank_artillery_chassis",
+    "light_tank_destroyer_chassis",
+    "medium_tank_destroyer_chassis",
+    "heavy_tank_destroyer_chassis",
+    "light_tank_apc_chassis",
+    "medium_tank_apc_chassis",
+    "light_tank_ifv_chassis",
+    "medium_tank_ifv_chassis",
+}
+designer_graphic_pools = 0
+
+
+def validate_designer_graphic_db() -> None:
+    """The tank designer graphic database must exist and resolve.
+
+    A same-path file replaces the base game's wholesale, so an empty override does not
+    inherit vanilla pools - it deletes every icon and model the designer can offer. This
+    contract pins that the database is non-empty, keys only role chassis this mod declares,
+    and never names a sprite or entity that is not registered.
+    """
+
+    global designer_graphic_pools
+    if not DESIGNER_GRAPHIC_DB.exists():
+        fail("tank designer graphic database is missing")
+        return
+    body = text(DESIGNER_GRAPHIC_DB)
+    if not body.strip():
+        fail(
+            "tank designer graphic database is empty - an empty override deletes the base "
+            "game pools rather than inheriting them, leaving every design without art"
+        )
+        return
+    if body.startswith("\ufeff"):
+        fail("tank designer graphic database must not carry a byte order mark")
+
+    sprites: set[str] = set()
+    for path in sorted((MOD / "interface").rglob("*.gfx")):
+        sprites.update(re.findall(r'name\s*=\s*"(GFX_[A-Za-z0-9_]+)"', text(path)))
+    entities: set[str] = set()
+    for path in sorted((MOD / "gfx/entities").rglob("*.asset")):
+        entities.update(re.findall(r'name\s*=\s*"([A-Za-z0-9_]+_entity)"', text(path)))
+    for role in sorted(set(re.findall(r"\n\t(\w+) = \{", body))):
+        if role not in DESIGNER_GRAPHIC_ROLES:
+            fail(
+                f"tank designer graphic database keys {role}, which is not a role chassis "
+                "this mod declares"
+            )
+    for icon in sorted(set(re.findall(r"\n\t{4}(GFX_\w+)", body))):
+        if icon not in sprites:
+            fail(f"tank designer graphic database names unregistered sprite {icon}")
+    for entity in sorted(set(re.findall(r"\n\t{4}(\w+_entity)", body))):
+        if entity not in entities:
+            fail(f"tank designer graphic database names unregistered entity {entity}")
+
+    covered = set(re.findall(r"\n\t(\w+) = \{", body))
+    missing = DESIGNER_GRAPHIC_ROLES - covered
+    if missing:
+        fail(
+            "tank designer graphic database covers no country for "
+            + ", ".join(sorted(missing))
+        )
+    designer_graphic_pools = body.count("pool = {")
+
+
 
 validate_entity_alias_contract()
 validate_legacy_armour_dlc_gates()
@@ -6870,6 +6945,7 @@ validate_research_armour_naming()
 validate_ai_templates()
 validate_marine_carrier()
 validate_designer_window_coverage()
+validate_designer_graphic_db()
 stockpile_grant_count = sum(
     len(stockpile_grants(code_only(text(path))))
     for path in sorted(MOD.rglob("*.txt"))
@@ -6900,7 +6976,8 @@ print(
     f"{len(oob_files_with_tanks)} NSB OOBs, {history_bootstrap_sites} country-history "
     f"bootstrap sites, {stockpile_grant_count} stockpile grants, "
     f"{len(APC_LADDER) + len(IFV_LADDER)} carrier superstructure rungs, "
-    f"{len(MARINE_ROWS)} relocated marine rows, and "
+    f"{len(MARINE_ROWS)} relocated marine rows, "
+    f"{designer_graphic_pools} designer graphic pools, and "
     f"{TANK_DESIGNER_POSITIONS} designer slots checked."
 )
 if balance_report:
