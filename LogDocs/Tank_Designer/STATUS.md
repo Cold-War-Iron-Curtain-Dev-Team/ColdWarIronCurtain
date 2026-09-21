@@ -3528,6 +3528,43 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 44: fire-support coverage completed, and an indentation defect worth naming
+
+**All 25 in-scope fire-support technologies now grant modules AND a design.** The eight
+generations left without a design in Finding 43 were authored by mirroring the nearest sibling
+tier that had a recipe - `light_tank_aa_chassis_0` from `_1`, `_5` from `_3`,
+`light_tank_artillery_chassis_5` from `_4`, `medium_tank_artillery_chassis_0` from `_1`, `_5`
+from `_3`, `medium_tank_aa_chassis_8` from `_6`, `heavy_tank_artillery_chassis_2` from `_1`,
+and `heavy_tank_destroyer_chassis_3` from `_2`. Each helper records the sibling it mirrors.
+Helpers go 16 -> 24 and technology calls 19 -> 27.
+
+**The defect that surfaced while doing it: 10 of the 68 generic blocks sat one tab shallower
+than the rest of the dispatcher.** The medium SPAAG and heavy tank destroyer blocks integrated
+on 2026-09-17 came in at two tabs where every sibling uses three. The engine does not care -
+but the main agent's own parser silently skipped all ten, which is why those two families
+looked recipe-less when they were not. Normalised to three tabs; the dispatcher is now
+uniform at 68 blocks.
+
+**Whitespace inconsistency in a generated file is not cosmetic when tooling parses that file.**
+Both this session's parsers and the validator's block readers key on indentation depth.
+
+### The pacing divergence, measured
+
+Research date against vehicle year across all 25 in-scope technologies: **17 align exactly**,
+and the 8 that do not split into two unrelated shapes.
+
+| Shape | Technologies | Gap |
+| --- | --- | --- |
+| Systematic: the whole medium SP artillery branch researches five years AFTER its vehicle | `sp_artillery_1..5` | -5 at every tier |
+| Ragged: no consistent offset | `tank_destroyer_1` +10, `_2` +5, `_3`/`_4` 0, `_5` -5 | drift |
+
+The first looks deliberate - a uniform branch-wide offset. The second does not: `tank_destroyer_1`
+becomes researchable in 1940 and unlocks a 1950 vehicle. **Neither is changed here**; the
+mapping used the vehicle year per the ratified rule, so the designs are correct either way, and
+moving research dates is a pacing decision for the owner.
+
+Static verification only: self-test passes, inventory line unchanged.
+
 ## Finding 43: the fire-support tree converged onto the designer hulls, 2026-09-17
 
 **Owner ruling: a fire-support technology must unlock the era's modules AND leave the player a
