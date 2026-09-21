@@ -1163,6 +1163,27 @@ country scope
   -> set_oob = <bookmark NSB OOB>
 ```
 
+## Fire-support pacing stays as authored, ratified 2026-09-17
+
+**Research dates are not realigned to vehicle years. Both divergences are accepted as existing
+balance.** Measured across the 25 in-scope fire-support technologies: 17 align exactly, and the
+8 that do not fall into two unrelated shapes.
+
+**The medium SP artillery branch researches five years after its vehicle, at every tier.** A
+uniform branch-wide offset is a design choice rather than drift, and the light and heavy
+artillery branches being exactly aligned does not make medium wrong. Left alone.
+
+**The tank destroyer branch drifts - `tank_destroyer_1` +10, `_2` +5, `_3`/`_4` 0, `_5` -5.**
+This one is genuinely uneven, and `tank_destroyer_1` is researchable in 1940 while unlocking a
+1950 vehicle. Still left alone, because the fix is worse than the oddity: `tank_destroyer_1`
+enables both the `tank_destroyer` and `heavy_tank_destroyer_brigade` battalions, so moving it to
+1950 would remove both from every 1949 campaign.
+
+**This does not affect any design.** Generation mapping uses the legacy equipment row's year
+under the ratified not-later-than rule, so the vehicle a technology creates is correct
+regardless of when the technology becomes researchable. The divergence is a research-pacing
+question only. Do not re-derive it as a designer defect.
+
 ## Research-time armour naming, ratified 2026-09-17
 
 **A historical name is delivered either at a bookmark or on research completion, and the two
