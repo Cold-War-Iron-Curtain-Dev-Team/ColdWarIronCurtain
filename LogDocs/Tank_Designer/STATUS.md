@@ -3528,6 +3528,77 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 45: the designer had no art because we deleted it, 2026-09-21
+
+**Root cause: all 25 files under `gfx/interface/equipmentdesigner/graphic_db/` are zero bytes.**
+A mod file at the same path as a base game file REPLACES it. A zero-byte override therefore
+deletes every icon, 3D model and blueprint pool the base game would supply, for tanks, planes,
+ships and HQs alike. The files were created empty in `62c7d85bad` and extended in `15a6ef9c72`,
+commit message "error log clean up": the trade was made deliberately, to silence "unknown
+equipment type" warnings.
+
+**The folder's own `_equipment_type_warnings.info` contained the misdiagnosis**, asserting that
+"the mod's graphic database files are empty, so the base game's graphic database is used". That
+is false, and it is why the defect read as safe to ignore for three months. Corrected in place,
+along with the matching line in root `GOTCHAS.md`.
+
+**This is NOT the entity alias system repaired on 2026-09-14.** That fixed
+`<TAG>_<sub_unit>_<level>_entity` names for the division model selector. The graphic database is
+the designer-side pool, a separate system keyed on equipment type.
+
+### How vanilla repaints a design automatically
+
+Per `gfx/interface/equipmentdesigner/graphic_db/_documentation.info`: root keys are `default`, a
+continent, or a TAG; below them, keys are equipment types or archetypes; each holds `pool` blocks
+with `limit`, `weight`, `icons` and `models`, filterable by `sub_units`, `ideologies` and
+`cultures`. Resolution runs country, then continent, then generic, type before archetype.
+
+**Switching role changes the equipment type, so the pool changes and the art follows. There is no
+script hook and none is needed.** This is the mechanism the owner observed in vanilla.
+
+### What was authored
+
+`00_tank_icons.txt`, 455,600 bytes: 95 country blocks, 1,370 pools, 3,691 icons and 6,997 model
+entries, all drawn from sprite and entity families this mod already ships. **Keyed on the role
+chassis archetype, not per-tier types**, because this mod's generations are created dynamically
+by the designer, so one archetype pool covers every tier.
+
+| Role chassis | TAGs covered of 95 |
+| --- | --- |
+| light / medium hull | 82 |
+| heavy hull | 49 |
+| light / medium SPAA | 65 |
+| light SP artillery | 70 |
+| medium SP artillery | 73 |
+| heavy SP artillery | 58 |
+| light / medium / heavy tank destroyer | 70 / 69 / 65 |
+| light / medium APC | 53 / 63 |
+| light / medium IFV | 66 / 65 |
+
+26 TAGs have all 15 roles. **APC and IFV have no dedicated designer art anywhere in the mod**, so
+per the owner ruling they borrow the nearest family: APC from the carrier hull sprites and the
+`mechanized` entities, IFV from `atgm_carrier` sprites and the armoured infantry entities.
+
+**Coverage is deliberately uneven and pinned rather than papered over.** 19 TAGs have fewer than
+five roles covered; those countries fall back to whatever the engine picks, exactly as before.
+
+`validate_designer_graphic_db()` fails if the file is emptied again, gains a BOM, keys a chassis
+this mod does not declare, or names an unregistered sprite or entity. Negative fixture run: the
+file was truncated, the contract failed with the empty-override message, and the file was
+restored byte-exact.
+
+### The APC/IFV role switch is mostly correct already
+
+Role permission is `allow_equipment_type` / `forbid_equipment_type` on modules. All 34 APC and
+IFV modules already carry the allow side and the loc keys are already overridden. The friction is
+structural: APC is typed `flame` and IFV `rocket`, and every tank gun carries
+`forbid_equipment_type = { flame rocket }`, so a gun-armed tank cannot switch until the gun comes
+off. **That is identical to vanilla's tank destroyer behaviour and is not a defect.** Whether the
+residual "refresh and rename" friction the owner reported disappears now that the art resolves is
+an in-game question, unproven here.
+
+Static verification only. Nothing about icon choice or visual quality is claimed.
+
 ## Finding 44: fire-support coverage completed, and an indentation defect worth naming
 
 **All 25 in-scope fire-support technologies now grant modules AND a design.** The eight

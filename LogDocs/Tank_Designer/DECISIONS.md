@@ -1163,6 +1163,32 @@ country scope
   -> set_oob = <bookmark NSB OOB>
 ```
 
+## Designer graphic database, ratified 2026-09-21
+
+**The tank designer graphic database is authored by this mod and must never be blanked again.**
+A zero-byte file at a base game path is a deletion, not a fall-through. `00_tank_icons.txt`
+carries CWIC's own pools; `validate_designer_graphic_db()` enforces it.
+
+**Keyed on role chassis archetypes, not per-tier types.** This mod's generations are created
+dynamically by the designer, so per-tier keys would need regenerating whenever a tier is added.
+One archetype pool covers every tier of its family.
+
+**Scope is tanks only.** The plane, ship and HQ files in that folder carry the identical defect
+and are deliberately left blank; restoring them is separate content work with an owner.
+
+**APC and IFV borrow the nearest existing family** because no APC or IFV designer art exists in
+the mod: APC takes the carrier hull sprites and `mechanized` entities, IFV takes `atgm_carrier`
+sprites and the armoured infantry entities. Dedicated art remains an open content gap.
+
+**Uneven coverage is pinned, not hidden.** 26 of 95 TAGs have all 15 roles and 19 have fewer than
+five. Countries without art behave exactly as they did before; the contract does not demand
+uniformity, so partial coverage cannot erode silently but also does not block work.
+
+**Role switching is not scripted and must not be.** The engine repaints from equipment type, and
+`allow_equipment_type` / `forbid_equipment_type` on modules decide which roles a design may
+switch to. APC being typed `flame` and IFV `rocket` means gun-armed tanks are blocked from those
+roles until the gun is removed - vanilla's own behaviour for tank destroyers, and not a bug.
+
 ## Fire-support pacing stays as authored, ratified 2026-09-17
 
 **Research dates are not realigned to vehicle years. Both divergences are accepted as existing

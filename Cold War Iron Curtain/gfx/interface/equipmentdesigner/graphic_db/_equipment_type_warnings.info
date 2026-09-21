@@ -23,13 +23,24 @@ The game logs warnings about "Unknown equipment type" for equipment types with n
 3. **Graphic Database Lookup**:
    - The equipment graphic database system tries to look up graphics for all referenced equipment types during game initialization
    - Since these dynamically-generated types don't exist yet, the system logs "Unknown equipment type" warnings
-   - The mod's graphic database files are empty, so the base game's graphic database is used, which also references these types
+   - CORRECTED 2026-09-21: an empty file in this folder does NOT fall through to the base game.
+     A mod file at the same path REPLACES the base game's file, so a zero-byte override deletes
+     every pool it would have provided. That is what left designs without icons, 3D models or
+     role-following art.
 
 ## Resolution
-**These warnings are safe to ignore.** They occur because:
-- The equipment types will be created dynamically when players design equipment
-- The graphic database will handle these types at runtime through archetype inheritance
-- The warnings don't affect gameplay functionality
+**The "unknown equipment type" warnings themselves are still safe to ignore** - those types are
+created dynamically by the designer and the database resolves them at runtime through archetype
+inheritance.
+
+**Blanking these files to silence them was not.** `00_tank_icons.txt` now carries this mod's own
+tank pools, keyed on role chassis archetypes and built from the sprite and entity families the
+mod already ships. It is pinned by `validate_designer_graphic_db()` in
+`CWIC Backup/tools/validate_military_reworks.py`, which fails if the file is emptied again or
+names a sprite or entity that is not registered.
+
+The plane, ship and HQ files in this folder are still zero-byte overrides and still have the
+same defect. Restoring them is unstarted work, deliberately out of the tank designer's scope.
 
 ## Technical Details
 - Equipment types are defined in: `common/units/equipment/`
