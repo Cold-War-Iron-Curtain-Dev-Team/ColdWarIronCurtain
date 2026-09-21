@@ -6911,11 +6911,19 @@ def validate_designer_graphic_db() -> None:
     entities: set[str] = set()
     for path in sorted((MOD / "gfx/entities").rglob("*.asset")):
         entities.update(re.findall(r'name\s*=\s*"([A-Za-z0-9_]+_entity)"', text(path)))
-    for role in sorted(set(re.findall(r"\n\t(\w+) = \{", body))):
+    keyed = set(re.findall(r"\n\t(\w+_chassis)_\d+ = \{", body))
+    for role in sorted(keyed):
         if role not in DESIGNER_GRAPHIC_ROLES:
             fail(
                 f"tank designer graphic database keys {role}, which is not a role chassis "
                 "this mod declares"
+            )
+    for key in sorted(set(re.findall(r"\n\t(\w+) = \{", body))):
+        if not re.fullmatch(r"\w+_chassis_\d+", key):
+            fail(
+                f"tank designer graphic database key {key} is not a per-generation equipment "
+                "type; archetype keys are outranked by the hull and leave role designs with "
+                "plain tank art"
             )
     for icon in sorted(set(re.findall(r"\n\t{4}(GFX_\w+)", body))):
         if icon not in sprites:
@@ -6923,9 +6931,13 @@ def validate_designer_graphic_db() -> None:
     for entity in sorted(set(re.findall(r"\n\t{4}(\w+_entity)", body))):
         if entity not in entities:
             fail(f"tank designer graphic database names unregistered entity {entity}")
+    if any("carrier_hull" in name for name in re.findall(r"\w+", body)):
+        fail(
+            "tank designer graphic database references a carrier_hull family - those are "
+            "naval hulls, not armoured personnel carriers"
+        )
 
-    covered = set(re.findall(r"\n\t(\w+) = \{", body))
-    missing = DESIGNER_GRAPHIC_ROLES - covered
+    missing = DESIGNER_GRAPHIC_ROLES - keyed
     if missing:
         fail(
             "tank designer graphic database covers no country for "
