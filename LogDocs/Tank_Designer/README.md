@@ -57,15 +57,18 @@ python3 "CWIC Backup/tools/loc_audit_1.py" --check
 git diff --check
 ```
 
-Current expected pass line, re-measured 2026-09-12:
+Current expected pass line, re-measured 2026-09-22:
 
 ```
 1317 technologies, 299 tank modules, 135 historical tank designs,
-38 generic bookmark variants, 586 national presets and
-560 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
-6220 stockpile grants, 16 carrier superstructure rungs,
-5 relocated marine rows, and 20 designer slots checked
+39 bookmarked chassis types, 601 national presets and
+579 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
+6219 stockpile grants, 16 carrier superstructure rungs,
+5 relocated marine rows, 17449 designer graphic pools, and 20 designer slots checked
 ```
+
+`gfx/interface/equipmentdesigner/graphic_db/00_tank_icons.txt` is generated. Edit
+`CWIC Backup/tools/build_designer_graphic_db.py` and rerun it; the validator fails on a stale file.
 
 **Twenty is an engine cap, not a design choice.** `pos_custom_module_slot_window_20`
 never renders. See `STATUS.md` Finding 17.
