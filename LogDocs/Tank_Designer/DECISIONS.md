@@ -1163,37 +1163,66 @@ country scope
   -> set_oob = <bookmark NSB OOB>
 ```
 
-## Designer graphic database, ratified 2026-09-21
+## Designer graphic database, ratified 2026-09-21, revised 2026-09-22
 
 **The tank designer graphic database is authored by this mod and must never be blanked again.**
 A zero-byte file at a base game path is a deletion, not a fall-through. `00_tank_icons.txt`
 carries CWIC's own pools; `validate_designer_graphic_db()` enforces it.
 
-**Keyed on the exact per-generation equipment type, one icon and one model per pool.** Keying
-the role archetype is NOT sufficient and was wrong in the first pass: for a derived type such as
+**It is generated, not hand-edited.** `CWIC Backup/tools/build_designer_graphic_db.py` writes
+it; the validator fails if the file differs from the builder's output. Models already in the file
+are carried over by the builder, so the icon rules can change without losing them.
+
+**Keyed on the exact per-generation equipment type.** Keying the role archetype is NOT
+sufficient and was wrong in the first pass: for a derived type such as
 `light_tank_destroyer_chassis_3` the engine treats the hull as the archetype, and an archetype
-pool outranks a family-type pool, so every role design kept plain tank hull art even though the
-proper icons were now reachable. A per-generation type key outranks both, and it also pins which
-generation's art appears instead of letting the engine pick from an ordered list.
+pool outranks a family-type pool, so every role design kept plain tank hull art. A
+per-generation type key outranks both.
 
-**Scope is tanks only.** The plane, ship and HQ files in that folder carry the identical defect
-and are deliberately left blank; restoring them is separate content work with an owner.
+**The art is the non-NSB technology library, matched by YEAR.** Each role maps to one legacy
+sprite family (`light_tanks_N`, `main_battle_tanks_N`, `heavy_tanks_N`, `spaag_N`,
+`light_sp_artillery_N`, `sp_artillery_N`, `heavy_sp_artillery_N`, `tank_destroyer_N`,
+`atgm_carrier_N`, `mechanized_infantryN`, `mechanized_heavy_infantryN`). A generation takes the
+tier whose legacy equipment year is nearest the generation's year, ties to the older tier. The
+2026-09-21 pass mapped by index and clamped, which put a 1960 light tank on the 1950 hull; that
+is the "hard-limited by generation" defect the owner reported.
 
-**APC and IFV carry models only, never icons.** Their production icon already comes from
-`archetype_mechanized_equipment` and `archetype_mechanized_heavy_equipment` under the 2026-09-14
-ruling; an icon pool here overrides that and loses the mechanized art. Models point at the
-`mechanized`, `mechanized_infantry` and armoured infantry entity families.
+- **Light TD** is `tank_destroyer_1` before 1960 and the `atgm_carrier` ladder after. Non-NSB
+  had no pre-ATGM light tank destroyer art.
+- **Heavy APC and Heavy IFV** (`medium_tank_apc/ifv_chassis`) use the same mechanized ladders
+  as their light roles; the year rule lands them on the heavy legacy tiers
+  (`mechanized_infantry8..10`, `mechanized_heavy_infantry8`) from 1990.
+- **Medium SPAA** uses `spaag`; **heavy TD** uses `tank_destroyer`.
+
+**A country uses its own art only within 10 years of the generation.** Otherwise it gets no pool
+for that key and the `default` block's generic art for the right generation wins, rather than a
+country photograph thirty years out of date.
+
+**Every pool offers alternates.** The first pool is the Equipment Match; a weight-0.5 pool lists
+the rest of that country's family for that role, so the player can still pick another picture.
+Weight outranks scope, so the alternates never displace the match.
+
+**The `default` root is mandatory.** It carries every role and generation with generic art, so a
+country with no art for a role gets that role's picture instead of falling through to the plain
+tank hull. The validator requires it complete.
+
+**APC and IFV carry icons - this REVERSES the 2026-09-21 "models only" rule.** Owner playtest
+2026-09-22: `M3A1 Half-Track Mk0` showed `GFX_USA_light_tanks_3_medium` in the designer. With no
+icon on the type key the designer fell through to the light hull family; the archetype picture
+never reached the designer. Their icons are now the mechanized families themselves, which is the
+same art the production tab showed, so nothing is lost. The validator fails if any role key
+names an icon outside its own art family - the exact regression in that capture.
 
 **`carrier_hull`, `carrier_hull_light` and `carrier_hull_super` are NAVAL families.** They are
 aircraft carrier hulls for the ship designer, not armoured personnel carriers. A first pass on
 2026-09-21 mapped APC and IFV onto them on the strength of the name alone and put aircraft
-carriers in the tank designer. The contract now fails on any `carrier_hull` reference. There is
-no APC or IFV designer sprite family in this mod; that remains an open art gap.
+carriers in the tank designer. The contract fails on any `carrier_hull` reference.
 
+**Scope is tanks only.** The plane, ship and HQ files in that folder carry the identical defect
+and are deliberately left blank; restoring them is separate content work with an owner.
 
-**Uneven coverage is pinned, not hidden.** 26 of 95 TAGs have all 15 roles and 19 have fewer than
-five. Countries without art behave exactly as they did before; the contract does not demand
-uniformity, so partial coverage cannot erode silently but also does not block work.
+**Coverage is still uneven by country, and that is now harmless.** 97 TAG blocks carry their own
+art where it exists; everything else resolves to the `default` block at the right generation.
 
 **Role switching is not scripted and must not be.** The engine repaints from equipment type, and
 `allow_equipment_type` / `forbid_equipment_type` on modules decide which roles a design may
@@ -1573,6 +1602,35 @@ may only name a tier a starting-variant preset creates - and there are zero
 `light_tank_destroyer_chassis` presets. The ratified export inventory above covers MBT, Light,
 Heavy, APC and IFV only. Extending it to ATGM means authoring loadouts and historical names,
 which is balance content with an owner, exactly like the inventory itself.
+
+## No generic starting designs, ratified 2026-09-22
+
+**Owner ruling: only historical national presets are created. Every generic "Standard ..."
+design is gone.** They cluttered the production menu (`Standard Light Tank Destroyer 1939`
+through `1970` beside the national designs) and named nothing real.
+
+- **Bookmark placeholders:** all 68 blocks deleted from `cwic_create_starting_tank_variants`.
+  The dispatcher now only calls national helpers. A country with no national preset on a
+  chassis starts with no design on it and designs its own; the AI does so from
+  `generic_tank.txt`.
+- **Fire-support research designs:** `CWIC_firesupport_designs.txt` and its 25
+  `on_research_complete` hooks are deleted. **This reverses the 2026-09-17 ruling** that a
+  fire-support technology must leave the player a design. Research now unlocks modules; the
+  research-time national names (Finding 36) still arrive where a country has one.
+- **Consumers repointed, not dropped:** NOR's twelve ATGM brigades force the new NOR preset
+  `M113F1 w/ BGM-71 TOW` (live source `NOR_atgm_carrier_equipment_1`); NOR's 150 generic 1950
+  SPAA folded into its M42 Duster stockpile (250 -> 400); CHI's 500 generic 1950 MBTs are now
+  its own M48A1, with its bootstrap moved from `nsb_main_battle_tanks2` to `3`.
+- The naming and carrier manifests keep their recipes: they were copied from the placeholders,
+  and every national preset must still equal them, which is what keeps the names
+  balance-neutral. `has_generic_design` in the carrier manifest is now a legacy field name
+  meaning "owns the light hull tier".
+- The validator fails on any `create_equipment_variant` named `Standard ...` anywhere under
+  `common/`, and on any design the dispatcher creates directly.
+
+**The 2026-09-11 rule "a bookmark chassis holds exactly one generic design" above is void** -
+there are none. Its tier-ownership half still decides which generation maps a shared tier to
+its technology.
 
 ## Armour naming presets
 

@@ -545,71 +545,6 @@ UNMIGRATED_LEGACY_ARMOUR = frozenset(
     {"mechanized_equipment", "mechanized_equipment_1", "mechanized_equipment_2"}
     | {f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)}
 )
-BOOKMARK_VARIANT_NAMES = {
-    "heavy_tank_artillery_chassis_1": "Standard Heavy SPG 1942",
-    "heavy_tank_artillery_chassis_3": "Standard Heavy SPG 1950",
-    "heavy_tank_chassis_1": "Standard Heavy Tank 1942",
-    "heavy_tank_chassis_2": "Standard Heavy Tank 1944",
-    "heavy_tank_chassis_3": "Standard Heavy Tank 1950",
-    "heavy_tank_chassis_4": "Standard Heavy Tank 1955",
-    "light_tank_aa_chassis_1": "Standard Light SPAA 1942",
-    "light_tank_aa_chassis_2": "Standard Light SPAA 1944",
-    "light_tank_aa_chassis_3": "Standard Light SPAA 1950",
-    "light_tank_artillery_chassis_1": "Standard Light SPG 1942",
-    "light_tank_artillery_chassis_2": "Standard Light SPG 1944",
-    "light_tank_artillery_chassis_3": "Standard Light SPG 1950",
-    "light_tank_chassis_1": "Standard Light Tank 1942",
-    "light_tank_chassis_2": "Standard Light Tank 1944",
-    "light_tank_chassis_3": "Standard Light Tank 1950",
-    "light_tank_chassis_4": "Standard Light Tank 1960",
-    "light_tank_chassis_5": "Standard Light Tank 1970",
-    "medium_tank_artillery_chassis_1": "Standard Main Battle SPG 1942",
-    "medium_tank_artillery_chassis_2": "Standard Main Battle SPG 1944",
-    "medium_tank_artillery_chassis_3": "Standard Main Battle SPG 1950",
-    "medium_tank_chassis_0": "Standard Main Battle Tank 1939",
-    "medium_tank_chassis_1": "Standard Main Battle Tank 1942",
-    "medium_tank_chassis_2": "Standard Main Battle Tank 1944",
-    "medium_tank_chassis_3": "Standard Main Battle Tank 1950",
-    "medium_tank_chassis_4": "Standard Main Battle Tank 1960",
-    "medium_tank_chassis_5": "Standard Main Battle Tank 1970",
-    "medium_tank_chassis_6": "Standard Main Battle Tank 1980",
-    "medium_tank_destroyer_chassis_1": "Standard Main Battle Tank Destroyer 1942",
-    "medium_tank_destroyer_chassis_2": "Standard Main Battle Tank Destroyer 1944",
-    "medium_tank_destroyer_chassis_3": "Standard Main Battle Tank Destroyer 1950",
-    # The five role families that had no bookmark starting design at all, 2026-09-17.
-    # Light TD, medium SPAAG and heavy TD landed first; the two medium carrier families
-    # followed once the owner ruled the carrier armour cap light-hull-only.
-    "medium_tank_apc_chassis_0": "Standard Heavy APC 1939",
-    "medium_tank_apc_chassis_1": "Standard Heavy APC 1942",
-    "medium_tank_apc_chassis_2": "Standard Heavy APC 1944",
-    "medium_tank_apc_chassis_3": "Standard Heavy APC 1950",
-    "medium_tank_apc_chassis_4": "Standard Heavy APC 1960",
-    "medium_tank_apc_chassis_5": "Standard Heavy APC 1970",
-    "medium_tank_apc_chassis_6": "Standard Heavy APC 1980",
-    "medium_tank_ifv_chassis_0": "Standard Heavy IFV 1939",
-    "medium_tank_ifv_chassis_1": "Standard Heavy IFV 1942",
-    "medium_tank_ifv_chassis_2": "Standard Heavy IFV 1944",
-    "medium_tank_ifv_chassis_3": "Standard Heavy IFV 1950",
-    "medium_tank_ifv_chassis_4": "Standard Heavy IFV 1960",
-    "medium_tank_ifv_chassis_5": "Standard Heavy IFV 1970",
-    "medium_tank_ifv_chassis_6": "Standard Heavy IFV 1980",
-    "heavy_tank_destroyer_chassis_1": "Standard Heavy Tank Destroyer 1942",
-    "heavy_tank_destroyer_chassis_2": "Standard Heavy Tank Destroyer 1944",
-    "heavy_tank_destroyer_chassis_3": "Standard Heavy Tank Destroyer 1950",
-    "heavy_tank_destroyer_chassis_4": "Standard Heavy Tank Destroyer 1955",
-    "light_tank_destroyer_chassis_0": "Standard Light Tank Destroyer 1939",
-    "light_tank_destroyer_chassis_1": "Standard Light Tank Destroyer 1942",
-    "light_tank_destroyer_chassis_2": "Standard Light Tank Destroyer 1944",
-    "light_tank_destroyer_chassis_3": "Standard Light Tank Destroyer 1950",
-    "light_tank_destroyer_chassis_4": "Standard Light Tank Destroyer 1960",
-    "light_tank_destroyer_chassis_5": "Standard Light Tank Destroyer 1970",
-    "medium_tank_aa_chassis_1": "Standard Main Battle SPAA 1942",
-    "medium_tank_aa_chassis_2": "Standard Main Battle SPAA 1944",
-    "medium_tank_aa_chassis_3": "Standard Main Battle SPAA 1950",
-    "medium_tank_aa_chassis_4": "Standard Main Battle SPAA 1960",
-    "medium_tank_aa_chassis_5": "Standard Main Battle SPAA 1970",
-    "medium_tank_aa_chassis_6": "Standard Main Battle SPAA 1980",
-}
 BOOKMARK_VARIANT_TECHS = {
     "heavy_tank_artillery_chassis_1": "nsb_heavy_tanks0",
     "heavy_tank_artillery_chassis_3": "nsb_heavy_tanks2",
@@ -706,12 +641,9 @@ UNSUPPORTED_IDS = {
 }
 
 
-# Two carrier generations share a light hull tier after the 2026-09-11 cutover,
-# and only the generation that owns the tier carries a generic bookmark design,
-# so the later one must not overwrite the map with a null name.
-BOOKMARK_VARIANT_NAMES.update(
-    {r["type"]: r["generic_name"] for r in CARRIER_MANIFEST["recipes"] if r["has_generic_design"]}
-)
+# Two carrier generations share a light hull tier after the 2026-09-11 cutover;
+# only the generation that owns the tier (`has_generic_design`, a legacy field name
+# from before the 2026-09-22 generic removal) maps the tier to its technology.
 BOOKMARK_VARIANT_TECHS.update(
     {r["type"]: r["technology"] for r in CARRIER_MANIFEST["recipes"] if r["has_generic_design"]}
 )
@@ -730,7 +662,7 @@ def bookmark_variant_names(equipment_type: str, producer: str) -> set[str]:
         for preset in NATIONAL_PRESETS + CARRIER_PRESETS + NAMING_PRESETS
         if (preset["type"], preset["producer"]) == (equipment_type, producer)
     }
-    return names or {BOOKMARK_VARIANT_NAMES[equipment_type]}
+    return names
 
 
 def bookmark_variant_name(equipment_type: str, producer: str) -> str:
@@ -2845,18 +2777,21 @@ ENVELOPE_METRICS = (
     "fuel_consumption",
     "build_cost_ic",
 )
+# Targets sample the baseline recipe of a bookmark generation. The recipes are the ones
+# the generic placeholders carried until the 2026-09-22 removal, kept in the naming
+# manifest because every national preset on that generation must equal them.
 ENVELOPE_RECIPE_MAP = {
-    "Heavy Tank I": "Standard Heavy Tank 1942",
-    "Heavy Tank II": "Standard Heavy Tank 1944",
-    "Heavy Tank IV": "Standard Heavy Tank 1950",
-    "Heavy Tank V": "Standard Heavy Tank 1955",
-    "WWII Tank 1": "Standard Main Battle Tank 1942",
-    "WWII Tank 2": "Standard Main Battle Tank 1944",
-    "MBT II": "Standard Main Battle Tank 1950",
-    "MBT III": "Standard Main Battle Tank 1960",
-    "Light Tank I": "Standard Light Tank 1942",
-    "Light Tank II": "Standard Light Tank 1944",
-    "Light Tank IV": "Standard Light Tank 1960",
+    "Heavy Tank I": "heavy_tank_chassis_1",
+    "Heavy Tank II": "heavy_tank_chassis_2",
+    "Heavy Tank IV": "heavy_tank_chassis_3",
+    "Heavy Tank V": "heavy_tank_chassis_4",
+    "WWII Tank 1": "medium_tank_chassis_1",
+    "WWII Tank 2": "medium_tank_chassis_2",
+    "MBT II": "medium_tank_chassis_3",
+    "MBT III": "medium_tank_chassis_4",
+    "Light Tank I": "light_tank_chassis_1",
+    "Light Tank II": "light_tank_chassis_2",
+    "Light Tank IV": "light_tank_chassis_4",
 }
 
 
@@ -2916,20 +2851,6 @@ def _variant_recipes() -> dict[tuple[str, str], dict[str, object]]:
                 continue
             recipes.setdefault(key, record)
     return recipes
-
-
-def _variant_recipes_by_name() -> dict[str, dict[str, object]]:
-    """Name-only view for the envelope map, which samples unique tank designs."""
-    by_name: dict[str, dict[str, object]] = {}
-    for (name, _chassis), record in _variant_recipes().items():
-        if record.get("ambiguous"):
-            by_name[name] = {"name": name, "ambiguous": True}
-            continue
-        if name in by_name and by_name[name].get("slots") != record["slots"]:
-            by_name[name] = {"name": name, "ambiguous": True}
-            continue
-        by_name.setdefault(name, record)
-    return by_name
 
 
 def _effective_module_operations(module: str, trail: tuple[str, ...] = ()) -> tuple[dict[str, float], dict[str, float], set[str]]:
@@ -3002,7 +2923,16 @@ def _format_estimate(value: float, metric: str) -> str:
 
 
 def tank_envelope_report() -> str:
-    recipes = _variant_recipes_by_name()
+    recipes = {}
+    for recipe in json.loads(NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))["recipes"]:
+        slots = [(slot, module) for slot, module in recipe["modules"].items() if module != "empty"]
+        recipes[recipe["generation"]] = {
+            "name": recipe["generation"],
+            "type": recipe["generation"],
+            "slots": slots,
+            "loadouts": [slots],
+            "source": NAMING_MANIFEST_FILE.name,
+        }
     if not recipes:
         fail("tank envelope report found no selected tank recipes")
         return ""
@@ -3030,8 +2960,8 @@ def tank_envelope_report() -> str:
     ]
     role_counts = Counter()
     for recipe in recipes.values():
-        name = recipe["name"]
-        role_counts["SPAA" if "SPAA" in name else "SPG" if "SPG" in name else "tank"] += 1
+        kind = recipe["type"]
+        role_counts["SPAA" if "_aa_" in kind else "SPG" if "artillery" in kind else "tank"] += 1
     lines.append(
         "Recipe role separation: "
         + ", ".join(f"{role}={role_counts[role]}" for role in ("tank", "SPAA", "SPG"))
@@ -3779,10 +3709,10 @@ def naming_localisation_entry(key: str) -> tuple[str | None, str | None, int | N
 def validate_national_armour_naming_presets() -> None:
     """Pin the historical-name guards for the bookmark tank/SPAA/SPG/TD designs.
 
-    These exist to replace player-visible placeholders like "Standard Main Battle
-    Tank 1950". Every name must still be the live country localisation string for
-    the matching legacy tier, and every recipe must still equal the generic block
-    it suppresses - that equality is what makes the rename balance-neutral.
+    Every name must still be the live country localisation string for the matching
+    legacy tier, and every preset must equal its manifest recipe. The recipes were
+    copied from the generic placeholders the owner removed on 2026-09-22, which is
+    what kept the historical names balance-neutral.
     """
     manifest = json.loads(NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))
     presets, recipes = manifest["presets"], {r["generation"]: r for r in manifest["recipes"]}
@@ -3799,26 +3729,9 @@ def validate_national_armour_naming_presets() -> None:
     if len(dispatcher) != 1:
         fail("armour naming dispatcher must occur exactly once")
         return
-    generic_blocks = {}
-    for block in top_level_named_blocks(dispatcher[0], "if", "generic armour blocks"):
-        variants = top_level_named_blocks(block, "create_equipment_variant", "generic variant")
-        if len(variants) != 1:
-            continue
-        kinds = top_level_values(variants[0], "type")
-        if len(kinds) == 1:
-            generic_blocks.setdefault(kinds[0], []).append((block, variants[0]))
     for generation, recipe in sorted(recipes.items()):
-        sources = generic_blocks.get(generation, [])
-        if len(sources) != 1:
-            fail(f"armour naming {generation} must shadow exactly one generic design")
-            continue
-        gblock, gvariant = sources[0]
-        gmods = dict(re.findall(r"(\w+)\s*=\s*(\w+)", top_level_named_blocks(gvariant, "modules", "generic modules")[0]))
-        if gmods != recipe["modules"]:
-            fail(f"armour naming {generation} recipe differs from the generic design it replaces")
-        glimits = top_level_named_blocks(gblock, "limit", "generic guard limit")
-        if len(glimits) != 1 or top_level_values(glimits[0], "has_tech") != [recipe["technology"]]:
-            fail(f"armour naming {generation} technology differs from the generic guard")
+        if recipe["technology"] != BOOKMARK_VARIANT_TECHS.get(generation):
+            fail(f"armour naming {generation} technology differs from its bookmark chassis technology")
         helper = f"cwic_create_national_{generation}_variants"
         bodies = [body for name, _, _, body in national_effects if name == helper]
         if len(bodies) != 1:
@@ -3846,7 +3759,7 @@ def validate_national_armour_naming_presets() -> None:
                 if required not in guard:
                     fail(f"armour naming {preset['producer']}/{generation} missing guard: {required}")
             if top_level_values(guard, "set_country_flag") != [flag]:
-                fail(f"armour naming {preset['producer']}/{generation} must set the generic block's flag")
+                fail(f"armour naming {preset['producer']}/{generation} must set its generation's creation flag")
             if guard.find("set_country_flag") < guard.find("create_equipment_variant"):
                 fail(f"armour naming {preset['producer']}/{generation} sets its flag before creation")
             if re.findall(r'name\s*=\s*"([^"\n]*)"', variant) != [preset["name"]]:
@@ -3857,13 +3770,11 @@ def validate_national_armour_naming_presets() -> None:
                     fail(f"armour naming {preset['producer']}/{generation} wrong {field}")
             mods = dict(re.findall(r"(\w+)\s*=\s*(\w+)", top_level_named_blocks(variant, "modules", "naming modules")[0]))
             if mods != recipe["modules"]:
-                fail(f"armour naming {preset['producer']}/{generation} differs from the generic recipe")
+                fail(f"armour naming {preset['producer']}/{generation} differs from its manifest recipe")
     for generation in sorted(recipes):
         helper = f"cwic_create_national_{generation}_variants"
         if top_level_values(dispatcher[0], helper) != ["yes"]:
             fail(f"armour naming helper {helper} is not called by the bookmark dispatcher")
-        elif dispatcher[0].find(helper) > dispatcher[0].find(f"cwic_starting_{generation}_created"):
-            fail(f"armour naming helper {helper} runs after its own generic block")
 
 
 def validate_national_tank_presets(national_override: str | None = None, generic_override: str | None = None) -> None:
@@ -3900,24 +3811,10 @@ def validate_national_tank_presets(national_override: str | None = None, generic
             fail(f"national preset {name} {message}")
         if not re.search(rf'(?m)^\s*{re.escape(preset["legacy_name_key"])}:\d*\s*"{re.escape(name)}"', legacy_loc):
             fail(f"national preset {name} differs from existing country equipment name")
-    for guard in keyed_blocks(generic, "if"):
-        types = re.findall(r"\btype\s*=\s*(\w+)", guard)
-        if len(types) != 1:
-            continue
-        kind = types[0]
-        # Carrier guards key their flag on the bookmark generation, not on the
-        # equipment id, because two generations share a light hull tier after the
-        # 2026-09-11 cutover. `validate_carrier_bookmarks.check_guard` pins those
-        # flags, their idempotence and their ordering.
-        if re.match(r"light_tank_(?:apc|ifv)_chassis_\d", kind):
-            continue
-        flag = f"cwic_starting_{kind}_created"
-        if f"NOT = {{ has_country_flag = {flag} }}" not in guard or f"set_country_flag = {flag}" not in guard:
-            fail(f"generic preset {kind} is not idempotent")
-        if ("USA", kind) in pairs and "NOT = { OR = { tag = USA tag = SOV } }" not in guard:
-            fail(f"generic preset {kind} must exclude national preset producers")
-    if generic.find("cwic_create_national_tank_variants = yes") < 0 or generic.find("cwic_create_national_tank_variants = yes") > generic.find("create_equipment_variant ="):
-        fail("national presets must bootstrap before generic presets")
+    if "create_equipment_variant" in code_only(generic):
+        fail("the bookmark dispatcher creates a generic design; only national presets may be bootstrapped")
+    if "cwic_create_national_tank_variants = yes" not in code_only(generic):
+        fail("the bookmark dispatcher never calls the national presets")
 
 
 # The reverse map and the legacy localisation key on the loc prefix `MBZ`, while the
@@ -4006,7 +3903,7 @@ def validate_carrier_bookmarks(national_override: str | None = None,
         fail("carrier recipes must cover exactly APC/IFV bookmark generations 0-4")
         return
     if {r["generation"] for r in recipes if r["has_generic_design"]} != generic_generations:
-        fail("exactly the eight generations that own a light hull tier may carry a generic design")
+        fail("exactly the eight generations that own a light hull tier may map it to a technology")
         return
     presets = manifest["presets"]
     pairs = {(p["producer"], p["generation"]) for p in presets}
@@ -4175,34 +4072,18 @@ def validate_carrier_bookmarks(national_override: str | None = None,
             if values and (values != ["yes"] or len(positions) != 1):
                 fail(f"carrier dispatcher must call {helper} with yes")
             ordered_events.extend((position, "national", kind) for position in positions)
-    for key, start, _, body in children:
-        if key == "if":
-            variants = top_level_named_blocks(body, "create_equipment_variant")
-            types = top_level_values(variants[0], "type") if len(variants) == 1 else []
-            generic_for_type = {
-                r["type"]: r["generation"] for r in recipes if r["has_generic_design"]
-            }
-            if types and types[0] in generic_for_type:
-                kind = generic_for_type[types[0]]
-                ordered_events.append((start, "generic", kind))
-                check_guard(body, recipe_map[kind], recipe_map[kind]["generic_name"], None)
+    if any(key == "if" for key, _, _, _ in children):
+        fail("carrier dispatcher creates a generic fallback; only national presets may be bootstrapped")
     events = [(mode, kind) for _, mode, kind in sorted(ordered_events)]
     expected_events = [
-        event
-        for family in ("apc", "ifv")
-        for tier in range(5)
-        for event in (("national", f"{family}_chassis_{tier}"), ("generic", f"{family}_chassis_{tier}"))
-        if event[0] == "national" or event[1] in generic_generations
+        ("national", f"{family}_chassis_{tier}") for family in ("apc", "ifv") for tier in range(5)
     ]
     if events != expected_events:
-        fail("carrier dispatcher must interleave national then fallback per ascending tier, with each family contiguous")
+        fail("carrier dispatcher must call the national helpers per ascending tier, with each family contiguous")
     # Execute the validated event model for actual and synthetic partial national
     # coverage. Flags persist across calls; obsolescence affects only that family.
-    # Coverage is asserted per chassis tier, not per generation: after the
-    # 2026-09-11 cutover two generations share a tier, and the generation that
-    # does not own the tier has no generic fallback of its own. A country with no
-    # national preset for it still fields a design on that tier through the
-    # owning generation, which is the property that actually matters in game.
+    # Since the 2026-09-22 generic removal a country creates exactly the carrier
+    # generations it has national presets for, and nothing on the others.
     chassis_of = {generation: recipe["type"] for generation, recipe in recipe_map.items()}
     for coverage in [{kind for tag, kind in pairs if tag == producer} for producer in {tag for tag, _ in pairs}] + [set(), wanted, {"apc_chassis_4", "ifv_chassis_3"}]:
         flags: set[str] = set()
@@ -4221,10 +4102,15 @@ def validate_carrier_bookmarks(national_override: str | None = None,
         simulate(first)
         if before != created:
             fail("carrier initialization must be idempotent under partial national coverage")
-        if {chassis_of[kind] for kind in created} != {chassis_of[kind] for kind in first}:
-            fail("carrier initialization must cover every unlocked carrier chassis tier")
+        if set(created) != first & coverage:
+            fail("carrier initialization must create exactly the unlocked generations a country has presets for")
         simulate(wanted)
-        if active != {family: chassis_of[f"{family}_chassis_4"] for family in ("apc", "ifv")}:
+        newest = {
+            family: chassis_of[max((k for k in coverage if k.startswith(family)), key=lambda k: int(k[-1]))]
+            for family in ("apc", "ifv")
+            if any(k.startswith(family) for k in coverage)
+        }
+        if active != newest:
             fail("carrier initialization must preserve newest-only visibility after new hull unlocks")
 
     actual_requests = Counter()
@@ -4500,16 +4386,15 @@ def run_tank_negative_fixtures() -> None:
             raise AssertionError(f"upgrade parent stats stacked for {module}")
     if bookmark_variant_name("medium_tank_chassis_3", "SOV") != "T-55":
         raise AssertionError("Soviet named preset lookup failed")
-    # A producer with no preset on the chassis must fall back to the generic bookmark
-    # name. The tag is measured rather than hardcoded: the 2026-09-14 naming presets gave
-    # FIN a T-54B on this chassis, which silently turned a hardcoded FIN here into a
-    # baseline failure with no content defect behind it.
+    # A producer with no preset on the chassis bootstraps nothing on it: the generic
+    # placeholders were removed by owner ruling 2026-09-22. The tag is measured rather
+    # than hardcoded, because naming presets keep widening per-chassis coverage.
     every_preset = NATIONAL_PRESETS + CARRIER_PRESETS + NAMING_PRESETS
     mapped = {p["producer"] for p in every_preset if p["type"] == "medium_tank_chassis_3"}
     unmapped = sorted({p["producer"] for p in every_preset} - mapped)
     if not unmapped:
         raise AssertionError("every producer now presets medium_tank_chassis_3")
-    if bookmark_variant_name("medium_tank_chassis_3", unmapped[0]) != BOOKMARK_VARIANT_NAMES["medium_tank_chassis_3"]:
+    if bookmark_variant_names("medium_tank_chassis_3", unmapped[0]):
         raise AssertionError("national preset leaked into another producer")
 
     national = text(NATIONAL_EFFECT_FILE)
@@ -4518,7 +4403,12 @@ def run_tank_negative_fixtures() -> None:
         ("wrong producer", national.replace("tag = USA", "tag = FIN", 1), generic),
         ("stale slot", national.replace("tank_special_slot_1 =", "special_type_slot_1 =", 1), generic),
         ("missing guard", national.replace("NOT = { has_country_flag", "NOT = { wrong_flag", 1), generic),
-        ("duplicate generic", national, generic.replace("NOT = { OR = { tag = USA tag = SOV } }", "", 1)),
+        ("dispatcher skips national", national, generic.replace("cwic_create_national_tank_variants = yes", "", 1)),
+        ("generic placeholder", national, generic.replace(
+            "cwic_create_national_tank_variants = yes",
+            'cwic_create_national_tank_variants = yes\n\tcreate_equipment_variant = { name = "Standard Light Tank 1942" type = light_tank_chassis_1 }',
+            1,
+        )),
     ):
         previous_errors = len(errors)
         validate_national_tank_presets(mutated_national, mutated_generic)
@@ -5241,7 +5131,7 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
             type_match = re.search(
                 r"\btype\s*=\s*([A-Za-z0-9_]+)", code_only(block)
             )
-            if not type_match or type_match.group(1) not in BOOKMARK_VARIANT_NAMES:
+            if not type_match or type_match.group(1) not in BOOKMARK_VARIANT_TECHS:
                 continue
             tank_type = type_match.group(1)
             name_match = re.search(
@@ -5261,7 +5151,7 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
             versioned_oob_requests += 1
 
     for block in keyed_blocks(value, "force_equipment_variants"):
-        for tank_type in BOOKMARK_VARIANT_NAMES:
+        for tank_type in BOOKMARK_VARIANT_TECHS:
             for variant_request in keyed_blocks(block, tank_type):
                 name_match = re.search(
                     r'\bversion_name\s*=\s*"([^"]+)"',
@@ -5344,118 +5234,20 @@ if unbootstrapped_producers:
         f"{sorted(unbootstrapped_producers)}"
     )
 
-variant_effect_text = text(VARIANT_EFFECT_FILE)
-variant_blocks = keyed_blocks(variant_effect_text, "create_equipment_variant")
-variant_guard_techs: dict[str, list[str]] = {}
-for guarded_block in keyed_blocks(variant_effect_text, "if"):
-    guarded_variants = keyed_blocks(guarded_block, "create_equipment_variant")
-    if len(guarded_variants) != 1:
-        fail("each starting tank variant guard must contain exactly one variant")
-        continue
-    guarded_type = re.search(
-        r"^\s*type\s*=\s*([A-Za-z0-9_]+)",
-        guarded_variants[0],
-        re.MULTILINE,
-    )
-    if guarded_type:
-        variant_guard_techs[guarded_type.group(1)] = re.findall(
-            r"\bhas_tech\s*=\s*([A-Za-z0-9_]+)", guarded_block
-        )
-variant_types: list[str] = []
-for block in variant_blocks:
-    type_match = re.search(r"^\s*type\s*=\s*([A-Za-z0-9_]+)", block, re.MULTILINE)
-    if not type_match:
-        fail("starting tank create_equipment_variant block has no type")
-        continue
-    variant_type = type_match.group(1)
-    variant_types.append(variant_type)
-    name_match = re.search(r'^\s*name\s*=\s*"([^"]+)"', block, re.MULTILINE)
-    if not name_match or name_match.group(1) != BOOKMARK_VARIANT_NAMES.get(variant_type):
-        fail(
-            f"starting variant {variant_type} does not use its stable bookmark name"
-        )
-    if not re.search(r"^\s*allow_without_tech\s*=\s*yes\b", block, re.MULTILINE):
-        fail(
-            f"starting variant {variant_type} can be skipped before OOB tech state settles"
-        )
-    slots = set(
-        re.findall(
-            r"^\s*([A-Za-z0-9_]+_slot(?:_[0-9]+)?)\s*=\s*([A-Za-z0-9_]+)",
-            block,
-            re.MULTILINE,
-        )
-    )
-    slot_names = {slot for slot, _ in slots}
-    if not REQUIRED_VARIANT_SLOTS <= slot_names:
-        fail(
-            f"starting variant {variant_type} has wrong required slots: "
-            f"{sorted(slot_names)}"
-        )
-    for slot, module in slots:
-        if module == "empty" and slot.startswith("tank_special_slot_"):
-            continue
-        if module not in module_ids:
-            fail(f"starting variant {variant_type} uses undefined module {module}")
-    ammunition_error = ammunition_requirement_error(
-        dict(slots).get("main_armament_slot", ""),
-        {module for _, module in slots},
-    )
-    if ammunition_error:
-        fail(f"starting variant {variant_type} {ammunition_error}")
-    variant_techs = variant_guard_techs.get(variant_type, [])
-    if variant_techs != [BOOKMARK_VARIANT_TECHS.get(variant_type)]:
-        fail(f"starting variant {variant_type} has the wrong chassis technology guard")
-    for tech in variant_techs:
-        if tech not in technology_set:
-            fail(f"starting variant {variant_type} is gated by undefined tech {tech}")
-if len(variant_types) != len(set(variant_types)):
-    duplicates = sorted(
-        name for name, count in Counter(variant_types).items() if count > 1
-    )
-    fail(f"duplicate starting tank variant types: {duplicates}")
-# The two directions are not the same defect. An OOB requesting a design nothing
-# creates is a silent break, so that direction stays hard. A created design no OOB
-# requests is legitimate, but only for a measured reason - each entry below is a
-# design no order of battle CAN request today, not merely one nobody has got to.
-#
-# Measured 2026-09-17: of the five battalions consuming these families, only
-# `atgm_carrier` is fielded by any OOB at all. `medium_sp_anti_air_brigade`,
-# `heavy_tank_destroyer_brigade`, `heavy_mechanized_infantry` and
-# `heavy_armored_infantry` appear in zero OOBs, NSB or not, so a request for their
-# equipment would name a design no division in the game draws. Putting those
-# battalions into historical divisions is content and balance authoring, not
-# conversion, and it needs an owner ruling per formation.
-#
-# `light_tank_destroyer_chassis_5` left this set the same day: NOR and RAJ field
-# `atgm_carrier` in twenty divisions between them and now request it by name. SOV
-# declares two ATGM templates and instantiates neither, so it has nothing to carry
-# a request. The remaining light TD tiers are pre-ATGM eras no 1980 OOB wants.
-AWAITING_OOB_REQUESTS = frozenset(
-    {f"light_tank_destroyer_chassis_{tier}" for tier in range(5)}
-    | {f"medium_tank_aa_chassis_{tier}" for tier in range(1, 7)}
-    | {f"heavy_tank_destroyer_chassis_{tier}" for tier in range(1, 5)}
-    | {f"medium_tank_apc_chassis_{tier}" for tier in range(7)}
-    | {f"medium_tank_ifv_chassis_{tier}" for tier in range(7)}
-)
-if oob_refs - set(variant_types):
-    fail(
-        "NSB OOBs request starting tank variants nothing creates: "
-        f"{sorted(oob_refs - set(variant_types))}"
-    )
-unrequested = set(variant_types) - oob_refs - AWAITING_OOB_REQUESTS
-if unrequested:
-    fail(
-        "starting tank variants no NSB OOB requests and not named as awaiting "
-        f"conversion: {sorted(unrequested)}"
-    )
-if set(variant_types) != set(BOOKMARK_VARIANT_NAMES):
-    fail(
-        "starting tank variant name map differs from created variants: "
-        f"missing={sorted(set(variant_types) - set(BOOKMARK_VARIANT_NAMES))}, "
-        f"unused={sorted(set(BOOKMARK_VARIANT_NAMES) - set(variant_types))}"
-    )
-if set(BOOKMARK_VARIANT_TECHS) != set(BOOKMARK_VARIANT_NAMES):
-    fail("starting tank variant technology map differs from its name map")
+# Owner ruling 2026-09-22: the bookmark bootstraps historical national presets only.
+# Every generic "Standard ..." placeholder is gone, from the bookmark dispatcher and from
+# fire-support research alike, so any create_equipment_variant carrying that name
+# anywhere in the mod is the regression.
+for path in sorted((MOD / "common").rglob("*.txt")):
+    for block in keyed_blocks(code_only(text(path)), "create_equipment_variant"):
+        placeholder = re.search(r'\bname\s*=\s*"(Standard [^"]*)"', block)
+        if placeholder:
+            fail(
+                f"{path.relative_to(MOD)} creates the generic placeholder {placeholder.group(1)!r}; "
+                "only historical national presets may be created"
+            )
+if "create_equipment_variant" in code_only(text(VARIANT_EFFECT_FILE)):
+    fail("the starting tank variant effect creates a design directly; it may only dispatch national presets")
 
 ai_text = code_only(text(AI_FILE))
 ai_types = set(re.findall(r"^\s*type\s*=\s*([A-Za-z0-9_]+)", ai_text, re.MULTILINE))
@@ -6943,6 +6735,40 @@ def validate_designer_graphic_db() -> None:
             "tank designer graphic database covers no country for "
             + ", ".join(sorted(missing))
         )
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import build_designer_graphic_db as graphic_db_builder
+
+    families = {
+        role: tuple(tech for tech, _ in tiers) for role, _, tiers in graphic_db_builder.ROLES
+    }
+    default_block = re.search(r"^default = \{\n(.*?)^\}", body, re.M | re.S)
+    if not default_block:
+        fail(
+            "tank designer graphic database has no default block - countries without their own "
+            "role art fall through to the plain tank hull"
+        )
+    else:
+        default_keys = set(re.findall(r"^\t(\w+_chassis_\d+) = \{", default_block.group(1), re.M))
+        for role, hull, _ in graphic_db_builder.ROLES:
+            for generation in range(len(graphic_db_builder.HULL_YEARS[hull])):
+                if f"{role}_{generation}" not in default_keys:
+                    fail(f"tank designer graphic database default block lacks {role}_{generation}")
+    for key, inner in re.findall(r"^\t(\w+_chassis)_\d+ = \{\n(.*?)^\t\}", body, re.M | re.S):
+        allowed = families.get(key, ())
+        for icon in re.findall(r"^\t{4}(GFX_\w+)", inner, re.M):
+            tech = re.sub(r"^GFX_(?:[A-Z][A-Z0-9]{2}_)?|_medium$", "", icon)
+            if tech not in allowed:
+                fail(
+                    f"tank designer graphic database gives {key} the icon {icon}, which is not "
+                    "that role's non-NSB art family"
+                )
+                break
+    if graphic_db_builder.build() != body:
+        fail(
+            "tank designer graphic database is stale against build_designer_graphic_db.py; "
+            "rerun the builder"
+        )
     designer_graphic_pools = body.count("pool = {")
 
 
@@ -6982,7 +6808,7 @@ if errors:
 print(
     "Military rework validation passed: "
     f"{len(technology_set)} technologies, {len(module_ids)} tank modules, "
-    f"{len(expected_types)} historical tank designs, {len(oob_refs)} generic bookmark variants, "
+    f"{len(expected_types)} historical tank designs, {len(oob_refs)} bookmarked chassis types, "
     f"{len(NATIONAL_PRESETS) + len(CARRIER_PRESETS)} national presets "
     f"and {versioned_oob_requests} named OOB requests across "
     f"{len(oob_files_with_tanks)} NSB OOBs, {history_bootstrap_sites} country-history "
