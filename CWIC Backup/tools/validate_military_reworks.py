@@ -44,6 +44,10 @@ TECH_DIR = MOD / "common/technologies"
 # structural gridbox checks below are kept; the edge comparison is not.
 TECH_FOLDER_X_GRIDBOX = {
     "nsb_armor_folder": {
+        -2: "nsb_iw_armored_vehicles_tree",
+        0: "nsb_iw_armored_vehicles_tree",
+        2: "nsb_iw_armored_vehicles_tree",
+        4: "nsb_iw_armored_vehicles_tree",
         6: "nsb_iw_armored_vehicles_tree",
         8: "nsb_iw_armored_vehicles_tree",
         -9: "nsb_engines_tree",
@@ -5358,8 +5362,9 @@ blueprint_dir = MOD / "interface/equipmentdesigner/tanks"
 blueprint_files = sorted(blueprint_dir.glob("*.gui"))
 # Owner decision 2026-09-11 carrier cutover deletes the two standalone carrier
 # designer windows, `equipment_designer_mechanized_equipment` and its heavy
-# twin, because those archetypes no longer carry module slots; 83 survive.
-if len(blueprint_files) != 83:
+# twin, because those archetypes no longer carry module slots; 83 survive. The 84th
+# is the 2026-09-23 per-generation probe, `equipment_designer_medium_tank_chassis_3_usa`.
+if len(blueprint_files) != 84:
     fail(f"tank blueprint file count changed: {len(blueprint_files)}")
 expected_blueprint_slots = [
     f"tank_special_slot_{index}" for index in range(1, TANK_SPECIAL_SLOT_COUNT + 1)
@@ -6740,9 +6745,7 @@ def validate_designer_graphic_db() -> None:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import build_designer_graphic_db as graphic_db_builder
 
-    families = {
-        role: tuple(tech for tech, _ in tiers) for role, _, tiers in graphic_db_builder.ROLES
-    }
+    families = {role: tuple(tech for tech, _ in tiers) for role, tiers, _ in graphic_db_builder.ROLES}
     default_block = re.search(r"^default = \{\n(.*?)^\}", body, re.M | re.S)
     if not default_block:
         fail(
@@ -6751,8 +6754,8 @@ def validate_designer_graphic_db() -> None:
         )
     else:
         default_keys = set(re.findall(r"^\t(\w+_chassis_\d+) = \{", default_block.group(1), re.M))
-        for role, hull, _ in graphic_db_builder.ROLES:
-            for generation in range(len(graphic_db_builder.HULL_YEARS[hull])):
+        for role, _, ladder in graphic_db_builder.ROLES:
+            for generation in range(len(ladder)):
                 if f"{role}_{generation}" not in default_keys:
                     fail(f"tank designer graphic database default block lacks {role}_{generation}")
     for key, inner in re.findall(r"^\t(\w+_chassis)_\d+ = \{\n(.*?)^\t\}", body, re.M | re.S):
@@ -6777,22 +6780,42 @@ matched_design_icons = 0
 
 
 def validate_design_equipment_match_icons() -> None:
-    """Every national design must carry the graphic database's Equipment Match icon.
+    """Every national design must carry the picture of the legacy row its name came from.
 
     A scripted variant without `icon` is not repainted from the database, so its production
-    and designer picture fall back instead of showing the pool the designer offers first.
-    The match is the first icon of the country's weight-1 pool for the exact type, else of
-    the `default` pool - the same order the engine sorts the database in.
+    and designer picture fall back instead of showing the pool the designer offers. The icon is
+    the country's art for the design's `legacy_name_key` tier, else the generic art for it; a
+    name with no art in the role family (marine rows) takes the database's Equipment Match - the
+    first icon of the country's weight-1 pool for the exact type, else of the `default` pool.
+    Either way the icon must be one the designer offers for that type. Every block also sets
+    `show_position = no`, or the name gains a `Mk0` suffix.
     """
 
     global matched_design_icons
+    import build_designer_graphic_db as graphic_db_builder
+
+    sprites = graphic_db_builder.registered_sprites()
+    families = {role: tiers for role, tiers, _ in graphic_db_builder.ROLES}
     matches: dict[tuple[str, str], str] = {}
+    offered: dict[tuple[str, str], set[str]] = {}
     for scope, inner in re.findall(r"^(\w+) = \{\n(.*?)^\}", text(DESIGNER_GRAPHIC_DB), re.M | re.S):
         for key, pools in re.findall(r"^\t(\w+) = \{\n(.*?)^\t\}", inner, re.M | re.S):
             for pool in re.findall(r"^\t\tpool = \{\n(.*?)^\t\t\}", pools, re.M | re.S):
                 icons = re.findall(r"^\t{4}(GFX_\w+)", pool, re.M)
+                offered.setdefault((scope, key), set()).update(icons)
                 if icons and not re.search(r"^\t{3}weight\s*=", pool, re.M):
                     matches.setdefault((scope, key), icons[0])
+    legacy = {
+        (preset["producer"], preset["type"], preset["name"]): re.sub(
+            r"^[A-Z][A-Z0-9]{2}_|_short$", "", preset["legacy_name_key"]
+        )
+        for preset in (
+            NATIONAL_PRESETS
+            + CARRIER_PRESETS
+            + NAMING_PRESETS
+            + json.loads(RESEARCH_NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
+        )
+    }
     for path in (NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE, RESEARCH_NAMING_EFFECT_FILE):
         code = code_only(text(path))
         for offset, block in located_keyed_blocks(code, "create_equipment_variant"):
@@ -6801,18 +6824,33 @@ def validate_design_equipment_match_icons() -> None:
             name = re.search(r'\bname\s*=\s*"([^"]+)"', block)
             label = f"{path.name} {name.group(1) if name else '?'}"
             equipment = re.search(r"\btype\s*=\s*(\w+)", block)
-            if len(tags) != 1 or not equipment:
+            if len(tags) != 1 or not equipment or not name:
                 fail(f"{label} is not guarded by exactly one country tag")
                 continue
-            expected = matches.get((tags[0], equipment.group(1))) or matches.get(
-                ("default", equipment.group(1))
+            if re.findall(r"\bshow_position\s*=\s*(\w+)", block) != ["no"]:
+                fail(f"{label} ({tags[0]}) must set show_position = no exactly once")
+            tag, kind = tags[0], equipment.group(1)
+            source = legacy.get((tag, kind, name.group(1)))
+            if source is None:
+                fail(f"{label} ({tag} {kind}) has no manifest legacy_name_key")
+                continue
+            tiers = families.get(re.sub(r"_\d+$", "", kind), [])
+            target = next(
+                (tier for tier in tiers if tier[0] == graphic_db_builder.LEGACY_ART.get(source)), None
+            )
+            scope = tag if (tag, kind) in matches else "default"
+            expected = (
+                graphic_db_builder.art(tag, tiers, target, sprites)
+                or graphic_db_builder.art(None, tiers, target, sprites)
+                if target
+                else matches.get((scope, kind))
             )
             icons = re.findall(r'\bicon\s*=\s*"([^"]+)"', block)
             if icons != [expected]:
-                fail(
-                    f"{label} ({tags[0]} {equipment.group(1)}) icon {icons} is not the "
-                    f"Equipment Match {expected}"
-                )
+                fail(f"{label} ({tag} {kind}, {source}) icon {icons} is not {expected}")
+                continue
+            if expected not in offered.get((scope, kind), ()):
+                fail(f"{label} ({tag} {kind}) icon {expected} is not offered by the designer pool")
                 continue
             matched_design_icons += 1
 
