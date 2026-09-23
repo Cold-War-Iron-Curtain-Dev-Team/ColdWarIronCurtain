@@ -3528,6 +3528,107 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 48: Equipment Match icons on national designs, and the armour tab layout, 2026-09-22
+
+Owner QA of Finding 47: USA/SOV 1949 OOBs are complete, but scripted designs did not take the
+Equipment Match icon the designer lists for them; the fire-support tab is fine; the armour hull
+and armour gun/module tabs overlap. IFV routing was queried and is as ratified: light hull ->
+`light_tank_ifv_chassis` -> Armored Infantry, medium hull -> `medium_tank_ifv_chassis` (Heavy
+IFV) -> Heavy Armored Infantry, drawing `mechanized_heavy_infantryN` art.
+
+### Icons
+
+Cause: none of the 2,488 country-guarded `create_equipment_variant` blocks set `icon`. Vanilla
+history sets it on every scripted tank design; without it the database pool is offered in the
+designer but never applied. Each block in `CWIC_national_tank_presets.txt` (601),
+`CWIC_national_armour_naming_presets.txt` (1,434) and `CWIC_research_armour_naming.txt` (453)
+now ends with `icon = "<Equipment Match>"`: the first icon of the tag's weight-1 pool for the
+exact type, else the `default` pool's (2,388 country, 100 default). The 16 tag-agnostic
+`CWIC Export` designs in `CWIC_tank_focus_effects.txt` are obsolete, producer-agnostic and left
+without. `USA` M3A1 resolves to `GFX_USA_mechanized_infantry2_medium` (`USA_apc_2.dds`), also a
+half-track, so the 2026-09-14 half-track ruling holds.
+
+`validate_design_equipment_match_icons()` recomputes the match from `00_tank_icons.txt` and
+fails on a missing, extra or stale icon, so rebuilding the database with different art fails
+until the presets follow. Negative run: the USA M4 Sherman icon swapped to
+`GFX_USA_light_tanks_1_medium` failed with the Equipment Match message; file restored byte-exact.
+
+### Tech tree layout
+
+Measured from the owner's 2026-09-22 captures (0.572 screen px per GUI px, +-20 px): gridbox
+contents do not sit at their declared origins. The effective x of slot 0 is declared + ~305 for
+the first gridbox of each folder, + ~765 for the second, + ~1165-1210 for the third, regardless
+of declared x or content extent. Year-label containers do sit at their declared x. So labels
+and techs in different gridboxes cannot be aligned from the declared numbers; only relative moves
+are predictable. This is the unexplained part of Finding 18, now quantified, not solved.
+
+| Defect | Change |
+| --- | --- |
+| APC/IFV hulls 0 (1947) and 1 (1950) one row apart; pictures overlapped | `nsb_apc_hulls0`, `nsb_ifv_hulls0` start 1947 -> 1944, row `@1944` (owner ruling below) |
+| Special Capabilities 0 (1945) over 1 (1950) | `nsb_special_capabilities0` start 1945 -> 1944, row `@1944` |
+| Four-track cramped against the early cold war heavy tank | `nsb_suspension_multi_track` x 18 -> 20 |
+| Super-heavy gun stranded at x 16 beside the ammunition group | `nsb_superheavy_guns1` x 16 -> 10, beside its parent `nsb_heavy_guns4` |
+| Armour mid year column drawn over the heavy tank / four-track | `nsb_armor_small_year_mid` x 1950 -> 2480, left of the engines |
+| Armour right year column drawn over the ERA column | `nsb_armor_small_year_right` x 4000 -> 3820 |
+| Gun-tab mid year column crowded by the super-heavy move | `nsb_armor_modules_small_year_mid` x 1450 -> 2010, left of the AP ammunition |
+| Loader year column drawn over HEAT ammunition | `nsb_armor_modules_small_year_mid_left` x 3100 -> 4240, left of the loaders |
+
+`@1947` (`NSB_armor.txt`) and `@1945` (`NSB_armor_modules.txt`) lost their last user and are
+removed. The validator's folder-x partition gained `20` for the armour folder. Both 1980
+bookmark `set_technology` lists already grant all three moved technologies. `nsb_ifv_hulls0` is
+still gated on `mechanized_heavy_infantry` and `nsb_apc_hulls0` on `mechanized_infantry`, so the
+earlier start year only lowers the ahead-of-time penalty once those are held.
+
+### Validator delta
+
+```
+before: ... 17449 designer graphic pools, and 20 designer slots checked
+after:  ... 17449 designer graphic pools, 2488 Equipment Match design icons, and 20 designer slots checked
+```
+
+Every other count unchanged. **Static verification only.** Nothing was seen in game. Owner QA owed:
+
+1. USA and SOV 1949: production lines and the designer show the Equipment Match picture for every
+   OOB design, including role designs (SPAA, SP artillery, TD, APC, IFV).
+2. Armour tab: no year column over a technology; APC/IFV first hulls on the 1944 row, clear of the
+   1950 hulls; four-track clear of the heavy tank.
+3. Gun/module tab: super-heavy gun beside the heavy gun at 1955; the two moved year columns sit in
+   empty space left of AP ammunition and of the loaders; Special Capabilities 0 on the 1944 row.
+4. If a moved label lands wrong, move it by the observed error: label x and technology x in the
+   same folder shift one-for-one.
+
+### Owner QA of the above, same day
+
+USA armour accepted: naming, icons and designs are correct and accurate. Two new defects:
+
+**Every module technology enabled Mechanized Infantry.** 51 technologies in
+`NSB_armor_modules.txt` (50 under `nsb_tank_design`, `nsb_low_pressure_guns`) carried
+`enable_subunits = { mechanized_infantry }`, a 2023 pattern copied forward into night vision and
+special capabilities. The battalion's NSB enabler is `nsb_iw_armored_vehicles`, which also
+enables the other three carrier battalions and the three tank battalions. All 464 history,
+effect, focus and decision files that grant a module technology also grant
+`nsb_iw_armored_vehicles`, so nothing loses the battalion. All 51 blocks removed; the validator
+now fails on any `enable_subunits` in that file.
+
+**The APC/IFV module technologies read as extra hulls.** `nsb_apc_hulls0..7` and
+`nsb_ifv_hulls0..7` only enable superstructure and armament modules for the APC/IFV roles on the
+light and medium hulls. They were named "... APC Hull" / "... IFV Hull", and their icons were
+180x65 vehicle photographs (`apc_N.dds`, `ifv_N.dds`) drawn in a 72px small-item box. Now:
+
+- Names are the superstructure each unlocks (`APC Open Troop Bay` ... `APC Modular Troop Capsule`,
+  `IFV Fighting Compartment` ... `IFV Modular Fighting Capsule`); descriptions list every module
+  enabled, generated from `enable_equipment_modules` and module localisation.
+- Four new 64x64 icons in `gfx/interface/technologies/cwic_tank_rework/`
+  (`nsb_carrier_open_bay`, `_apc_compartment`, `_ifv_compartment`, `_frontal_powerpack`), each the
+  designer's own module icon for that superstructure centred on the tech-icon canvas. Each tier
+  takes the icon of the superstructure it unlocks, so tiers sharing a module picture share an icon.
+- Technology ids, positions and gates are unchanged, so no reference moves. They stay in their
+  own two columns at the left of the armour tab rather than moving to the module tab: they descend
+  from `nsb_iw_armored_vehicles`, and a cross-folder move would change gridbox ownership in a way
+  Finding 48's measurements cannot predict.
+
+Static verification only; the validator was run in its non-writing form because a game was live.
+
 ## Finding 47: designer art rebuilt from the non-NSB library, generic presets removed, 2026-09-22
 
 Owner scope: icons were hard-limited by generation, hulls showed pictures that did not line up,

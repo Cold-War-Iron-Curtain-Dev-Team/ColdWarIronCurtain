@@ -57,14 +57,15 @@ python3 "CWIC Backup/tools/loc_audit_1.py" --check
 git diff --check
 ```
 
-Current expected pass line, re-measured 2026-09-22:
+Current expected pass line, re-measured 2026-09-22 after Finding 48:
 
 ```
 1317 technologies, 299 tank modules, 135 historical tank designs,
 39 bookmarked chassis types, 601 national presets and
 579 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
 6219 stockpile grants, 16 carrier superstructure rungs,
-5 relocated marine rows, 17449 designer graphic pools, and 20 designer slots checked
+5 relocated marine rows, 17449 designer graphic pools,
+2488 Equipment Match design icons, and 20 designer slots checked
 ```
 
 `gfx/interface/equipmentdesigner/graphic_db/00_tank_icons.txt` is generated. Edit
