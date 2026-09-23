@@ -1,6 +1,6 @@
 # Status
 
-Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-22.
+Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-23.
 
 ## Where the project stands
 
@@ -3527,6 +3527,116 @@ newly covered families behave as intended, so Findings 35 and 36 are confirmed l
 statically. That closes the research-time mechanism: the guard-then-flag ordering, the
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
+
+## Finding 50: armour tab condensed, and the first custom blueprint art, 2026-09-23
+
+Owner QA of Finding 49: icons accepted as satisfactory. Owner's own same-day edits, verified by
+them in game and left as they made them: suspension unlock rows, four-track reparented off the
+heavy hull onto `nsb_suspension1`, an invisible `placeholder` container widening both armour
+tabs, and the designer's design-team button moved.
+
+### APC/IFV columns sat 340 px from the hulls
+
+The carriers, hulls and `nsb_iw_armored_vehicles` share one gridbox (every one fits 40 screen
+px per slot at 0.572 scale from the same origin), so the gap was nine empty slots between APC
+x -6 and the light tank x 6. Condensed by moving everything right of the carriers 8 slots
+(560 GUI px) left and keeping every relative position:
+
+| Element | Before | After |
+| --- | --- | --- |
+| Light / medium / heavy hull technologies, `nsb_iw_armored_vehicles` (23 techs) | x 6 / 8 / 10 / 12 / 14 / 16 | x -2 / 0 / 2 / 4 / 6 / 8 |
+| `nsb_engines_tree`, `nsb_armor_tree` gridboxes | 1200, 2400 | 640, 1840 |
+| Year columns `mid_left`, `mid`, `right` | 1020, 2480, 3820 | 460, 1920, 3260 |
+| Owner's armour-tab `placeholder` | 5700 | 5140 |
+
+APC (-6), IFV (-9) and the left year column stay put. The year column between the carriers and
+the hulls should now start about 20 screen px after the APC labels (estimated from the capture). The validator's folder-x map gained -2, 0,
+2 and 4. The modules tab is unchanged. **Static only**: this relies on Finding 48's measurement
+that a gridbox's contents move one-for-one with its declared x; nothing was seen in game after
+the change.
+
+Open, not requested: moving four-track to the engines tree left roughly seven empty slots between
+the early cold war heavy tank and the `mid` year column.
+
+### Custom blueprint background and the 1950 USA medium hull outline
+
+- **Background:** `GFX_cwic_tank_blueprint_background`, now set as the `equipment_preview` background in
+  `tank_designer_view.gui`, which replaces vanilla's `GFX_generic_tank_blueprint_background` for
+  every design.
+- **Hull:** `equipment_designer_medium_tank_chassis_3_usa` in the new
+  `interface/equipmentdesigner/tanks/tank_chassis_medium_tank_chassis_3_usa.gui` draws
+  `GFX_TC_medium_tank_chassis_3_usa`. The window is resolved `equipment_designer_<type>[_TAG]`
+  before `<archetype>[_TAG]`, the same per-type key vanilla uses for plane airframes
+  (`equipment_designer_small_plane_airframe_0_eng`); **whether the tank designer honours the
+  per-type key is the thing this test settles.** It only replaces USA `medium_tank_chassis_3`
+  (`M47 Patton`, `nsb_main_battle_tanks2`). Every other medium generation and role keeps the
+  vanilla USA outline.
+- The slot `@highlight` windows are kept but empty, because there is no module overlay art. Hovering a slot shows
+  nothing rather than the vanilla USA medium tank's gun.
+- Textures: `gfx/interface/equipmentdesigner/tanks/cwic/`, 508x248 uncompressed BGRA DDS, no
+  mips, the same header and channel masks as vanilla's blueprints. The owner's art is 508x206,
+  which matches the band above the middle module row (preview y 50 to 250). It is placed
+  unscaled at the top. The background's last 42 rows are filled with a mirror of the art's
+  bottom rows; the hull's are transparent.
+- The validator's blueprint file count is 83 -> 84.
+
+Owner QA owed: the new background on every designer; USA 1950 medium hull (open `M47 Patton`
+or a new design on it) shows the new outline aligned in the preview; USA 1942 and 1960 medium
+hulls still show vanilla's; `error.log` has no `Could not find sprite type` for the two new
+sprites.
+
+## Finding 49: design pictures follow their names, and the `Mk0` suffix is gone, 2026-09-23
+
+Owner report, SOV, verified in game against photographs: `BTR-40` (light APC hull 2) showed
+`SOV_apc_2` instead of `_3`, `ASU-57` (medium TD hull 2) `SOV_tank_destroyer_1` instead of `_2`,
+`2S7 Pion` (heavy SPG hull 3) `SOV_sp_hv_art_1` instead of `_3`, `ZSU-57-2` (light SPAA hull 2)
+`SOV_spaag_1` instead of `_2`. Every preset name also carried a `Mk0` suffix.
+
+**Cause: the Equipment Match was chosen by year, the names by legacy row.** Finding 47 matched
+each hull to the legacy tier nearest its year; the naming manifests put each legacy row's name
+on a hull by a different ladder. Wherever the two ladders are offset they disagree. Measured
+against every manifest `legacy_name_key`: 1,036 of the 2,488 national designs carried art from a
+different legacy row than their name, on every role except light/heavy tanks and light TD. On
+SOV alone that was 17 designs, including `T-44` and `T-54` one medium row behind; on USA the same
+pattern, including `M26 Pershing` on the Sherman row's art.
+
+**Fix, in `DECISIONS.md` "Designer graphic database":**
+
+- `build_designer_graphic_db.py`: `ROLES` now carries an explicit per-generation ladder taken
+  from the national names; `HULL_YEARS` is removed. Shared `art()` picks a country's picture for
+  a tier; `LEGACY_ART` maps legacy equipment ids to art tiers. Database rebuilt.
+- All 2,488 blocks: `icon` is the design's own legacy row (1,036 changed), and
+  `show_position = no` follows `parent_version = 0` (2,487 added, 1 was the owner's ZSU-37 test).
+- `validate_design_equipment_match_icons()` now derives the icon from the manifest
+  `legacy_name_key`, requires the designer pool for that type to offer it, and requires exactly
+  one `show_position = no`.
+
+All 40 SOV designs now carry the art number of their own legacy row. Changed on SOV: `T-44`,
+`T-54`, `BTR-40`, `BTR-60PB`, `BTR-70`, `BTR-50PK`, `BMP-1`, `BMP-1P`, `2S7 Pion`, `ZSU-57-2`,
+`ZSU-23-4 Shilka`, `Su-100P`, `2S1 Gvozdika`, `Su-152G`, `2S3M Akatsia-M`, `ASU-57`, `ASU-85`;
+USA has the 17 counterparts. **This moves icons on the USA armour the owner accepted on
+2026-09-22** (`M26 Pershing`, `M46 Patton`, `M3A1 Half-Track` and the role designs); they are
+now the art of their own legacy row.
+
+### Validator delta
+
+```
+before: ... 17449 designer graphic pools, 2488 Equipment Match design icons, and 20 designer slots checked
+after:  ... 17548 designer graphic pools, 2488 Equipment Match design icons, and 20 designer slots checked
+```
+
+Every other count unchanged. Pools rose by 99: the new ladder, and a country tolerance now measured
+from the target tier rather than the hull year, change which countries get a pool of their own.
+Negative run: SOV `BTR-40` with its icon reverted to `mechanized_infantry2` and AFG `BTR-40`
+without `show_position = no` failed on exactly those two messages; file restored byte-exact.
+**Static verification only**; nothing was seen in game after the change.
+
+Owner QA owed:
+
+1. SOV and USA 1949 and 1980: every design's production and designer picture is its own vehicle;
+   no name carries `Mk0`.
+2. `BTR-60P` and `BTR-60PB` (both APC hull 4) show different pictures.
+3. A new player design on each role hull opens on the ladder's picture.
 
 ## Finding 48: Equipment Match icons on national designs, and the armour tab layout, 2026-09-22
 

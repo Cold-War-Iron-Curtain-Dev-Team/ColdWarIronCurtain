@@ -1163,7 +1163,7 @@ country scope
   -> set_oob = <bookmark NSB OOB>
 ```
 
-## Designer graphic database, ratified 2026-09-21, revised 2026-09-22
+## Designer graphic database, ratified 2026-09-21, revised 2026-09-22 and 2026-09-23
 
 **The tank designer graphic database is authored by this mod and must never be blanked again.**
 A zero-byte file at a base game path is a deletion, not a fall-through. `00_tank_icons.txt`
@@ -1179,24 +1179,34 @@ sufficient and was wrong in the first pass: for a derived type such as
 pool outranks a family-type pool, so every role design kept plain tank hull art. A
 per-generation type key outranks both.
 
-**The art is the non-NSB technology library, matched by YEAR.** Each role maps to one legacy
-sprite family (`light_tanks_N`, `main_battle_tanks_N`, `heavy_tanks_N`, `spaag_N`,
-`light_sp_artillery_N`, `sp_artillery_N`, `heavy_sp_artillery_N`, `tank_destroyer_N`,
-`atgm_carrier_N`, `mechanized_infantryN`, `mechanized_heavy_infantryN`). A generation takes the
-tier whose legacy equipment year is nearest the generation's year, ties to the older tier. The
-2026-09-21 pass mapped by index and clamped, which put a 1960 light tank on the 1950 hull; that
-is the "hard-limited by generation" defect the owner reported.
+**The art is the non-NSB technology library, matched to the NAMES on each hull - revised
+2026-09-23.** Each role maps to one legacy sprite family (`light_tanks_N`, `main_battle_tanks_N`,
+`heavy_tanks_N`, `spaag_N`, `light_sp_artillery_N`, `sp_artillery_N`, `heavy_sp_artillery_N`,
+`tank_destroyer_N`, `atgm_carrier_N`, `mechanized_infantryN`, `mechanized_heavy_infantryN`). A
+generation's Equipment Match is the legacy row the national names on that hull come from - the
+`legacy_name_key` in the naming, carrier and research manifests - so a hull's picture and its
+historical names share one row. `ROLES` in the builder carries the ladder explicitly per role.
 
-- **Light TD** is `tank_destroyer_1` before 1960 and the `atgm_carrier` ladder after. Non-NSB
+The 2026-09-22 rule, nearest legacy YEAR, is superseded because it disagreed with the naming
+wherever the hull ladder (1939/1942/1944/1950...) is offset from the legacy ladder
+(1942/1944/1947/1950...). The owner found four on SOV by in-game and photo comparison on
+2026-09-23: `BTR-40` carried `SOV_apc_2` (should be `_3`), `ZSU-57-2` `SOV_spaag_1` (`_2`),
+`ASU-57` `SOV_tank_destroyer_1` (`_2`), `2S7 Pion` `SOV_sp_hv_art_1` (`_3`). The same offset gave
+`M26 Pershing` and `T-44` the `mbt_equipment_0` (Sherman / T-34-85) row's art. The 2026-09-21
+index-and-clamp pass is still wrong for the reason recorded then; the names are the index that
+was missing.
+
+- A generation with no national names takes the nearest tier by year, clamped between its named
+  neighbours. An unnamed role (medium SPAA, Heavy APC/IFV, heavy TD) mirrors its named sibling.
+- Heavy SP artillery 4 is the one hull where two rows compete (`heavy_sp_artillery_4` 3 names,
+  `_5` 10 names). It takes `_4`: with `_5`, CUB/EGY/PER own `_4` art but no `_5`, drop to the
+  `default` pool, and their own design's picture would not be offered.
+- **Light TD** is `tank_destroyer_1` before hull 4 and the `atgm_carrier` ladder after. Non-NSB
   had no pre-ATGM light tank destroyer art.
-- **Heavy APC and Heavy IFV** (`medium_tank_apc/ifv_chassis`) use the same mechanized ladders
-  as their light roles; the year rule lands them on the heavy legacy tiers
-  (`mechanized_infantry8..10`, `mechanized_heavy_infantry8`) from 1990.
-- **Medium SPAA** uses `spaag`; **heavy TD** uses `tank_destroyer`.
 
-**A country uses its own art only within 10 years of the generation.** Otherwise it gets no pool
-for that key and the `default` block's generic art for the right generation wins, rather than a
-country photograph thirty years out of date.
+**A country uses its own art only within 10 years of the target tier** (was: of the generation
+year). Otherwise it gets no pool for that key and the `default` block's generic art for the tier
+wins, rather than a country photograph thirty years out of date.
 
 **Every pool offers alternates.** The first pool is the Equipment Match; a weight-0.5 pool lists
 the rest of that country's family for that role, so the player can still pick another picture.
@@ -1229,13 +1239,25 @@ art where it exists; everything else resolves to the `default` block at the righ
 switch to. APC being typed `flame` and IFV `rocket` means gun-armed tanks are blocked from those
 roles until the gun is removed - vanilla's own behaviour for tank destroyers, and not a bug.
 
-**Every national design names its Equipment Match icon explicitly, ratified 2026-09-22.** A
+**Every national design names its icon explicitly, ratified 2026-09-22, revised 2026-09-23.** A
 scripted `create_equipment_variant` without `icon` is shown the pool in the designer but does not
 take it (owner QA, USA/SOV 1949). Vanilla sets `icon` on every scripted tank design, and so do
 all 2,488 country-guarded blocks in the three preset/naming effect files. The value is derived,
-not chosen: first icon of the tag's weight-1 pool for the exact type, else the `default` pool's.
-`validate_design_equipment_match_icons()` pins it, so a database rebuild that moves art must be
-followed by the presets. Models are not set; the designer's "Default Model" stays dynamic.
+not chosen, and since 2026-09-23 it is **the design's own legacy row**, not the hull's: the
+builder's `art()` applied to the design's `legacy_name_key` tier (country art for that tier, else
+its nearest within 10 years, else the generic art). Two hulls carry two carrier generations -
+APC hull 4 (`mechanized_equipment_5`/`_6`, 76 countries) and IFV hull 3 (`_2`/`_3`, 32) - so
+`BTR-60P` and `BTR-60PB` on one hull now show different pictures; one icon per hull could not.
+Names with no art in the role family (11 marine rows) keep the hull's Equipment Match.
+`validate_design_equipment_match_icons()` pins the icon AND that the designer pool for that type
+offers it. Models are not set; the designer's "Default Model" stays dynamic.
+
+**Every national design sets `show_position = no`, ratified 2026-09-23.** The engine defaults it
+on and appends the design's position, so every preset read `BTR-40 Mk0`. Owner live test on
+`ZSU-37` (SOV): `show_position = no` removes the suffix. All 2,488 blocks carry it after
+`parent_version = 0`; the same validator fails a block without exactly one `show_position = no`.
+The 16 obsolete `CWIC Export` designs in `CWIC_tank_focus_effects.txt` are out of scope and
+unchanged.
 
 ## Armour tech tree rows and label columns, ratified 2026-09-22
 
@@ -1259,6 +1281,29 @@ modules and nothing else; the validator fails on `enable_subunits` in `NSB_armor
 does not have. They are named after the superstructure they unlock and use that module's designer
 icon. The ids keep the historical `hulls` suffix because 778 references across the mod use them;
 do not rename the ids for presentation.
+
+**The carriers sit against the hulls, 2026-09-23 (owner direction).** Carriers, hulls and
+`nsb_iw_armored_vehicles` share one gridbox. The condense moved everything right of the carriers
+left as one block: hull technology x minus 8, and every gridbox, year column and placeholder minus
+560 GUI px. Nothing was moved alone. Shift the whole block the same way for any future
+condense; moving one column independently breaks row alignment across gridboxes.
+
+## Designer blueprint art, started 2026-09-23
+
+**Custom blueprints go per equipment TYPE and TAG:** `equipment_designer_<type>_<tag>`, in its
+own `interface/equipmentdesigner/tanks/tank_chassis_<type>_<tag>.gui`, drawing a `GFX_TC_<type>_<tag>`
+sprite. The lookup order is `<type>[_TAG]` then `<archetype>[_TAG]`, so a generation-specific
+outline replaces only that generation and every other tier falls back to the archetype window.
+The first one is USA `medium_tank_chassis_3`. The owner's QA confirms whether the tank designer
+honours the per-type key, as vanilla's plane designer does.
+
+**Art is authored at 508x206 and shipped at 508x248.** 206 is the visible band above the middle
+module row. The DDS is padded at the bottom, never scaled, and is uncompressed 32-bit BGRA without
+mips, matching vanilla. Until an outline has module overlay art its slot `@highlight` windows stay
+empty rather than borrowing another vehicle's overlay.
+
+**The designer background is `GFX_cwic_tank_blueprint_background`, set in
+`tank_designer_view.gui`.** Vanilla's sprite name is not redeclared.
 
 ## Fire-support pacing stays as authored, ratified 2026-09-17
 
