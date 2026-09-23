@@ -55,6 +55,7 @@ TECH_FOLDER_X_GRIDBOX = {
         15: "nsb_engines_tree",
         16: "nsb_engines_tree",
         18: "nsb_engines_tree",
+        20: "nsb_iw_armored_vehicles_tree",
         22: "nsb_armor_tree",
         26: "nsb_armor_tree",
         30: "nsb_armor_tree",
@@ -6772,6 +6773,49 @@ def validate_designer_graphic_db() -> None:
     designer_graphic_pools = body.count("pool = {")
 
 
+matched_design_icons = 0
+
+
+def validate_design_equipment_match_icons() -> None:
+    """Every national design must carry the graphic database's Equipment Match icon.
+
+    A scripted variant without `icon` is not repainted from the database, so its production
+    and designer picture fall back instead of showing the pool the designer offers first.
+    The match is the first icon of the country's weight-1 pool for the exact type, else of
+    the `default` pool - the same order the engine sorts the database in.
+    """
+
+    global matched_design_icons
+    matches: dict[tuple[str, str], str] = {}
+    for scope, inner in re.findall(r"^(\w+) = \{\n(.*?)^\}", text(DESIGNER_GRAPHIC_DB), re.M | re.S):
+        for key, pools in re.findall(r"^\t(\w+) = \{\n(.*?)^\t\}", inner, re.M | re.S):
+            for pool in re.findall(r"^\t\tpool = \{\n(.*?)^\t\t\}", pools, re.M | re.S):
+                icons = re.findall(r"^\t{4}(GFX_\w+)", pool, re.M)
+                if icons and not re.search(r"^\t{3}weight\s*=", pool, re.M):
+                    matches.setdefault((scope, key), icons[0])
+    for path in (NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE, RESEARCH_NAMING_EFFECT_FILE):
+        code = code_only(text(path))
+        for offset, block in located_keyed_blocks(code, "create_equipment_variant"):
+            limit = code[code.rfind("limit = {", 0, offset) : offset]
+            tags = re.findall(r"\btag\s*=\s*([A-Z][A-Z0-9]{2})\b", limit)
+            name = re.search(r'\bname\s*=\s*"([^"]+)"', block)
+            label = f"{path.name} {name.group(1) if name else '?'}"
+            equipment = re.search(r"\btype\s*=\s*(\w+)", block)
+            if len(tags) != 1 or not equipment:
+                fail(f"{label} is not guarded by exactly one country tag")
+                continue
+            expected = matches.get((tags[0], equipment.group(1))) or matches.get(
+                ("default", equipment.group(1))
+            )
+            icons = re.findall(r'\bicon\s*=\s*"([^"]+)"', block)
+            if icons != [expected]:
+                fail(
+                    f"{label} ({tags[0]} {equipment.group(1)}) icon {icons} is not the "
+                    f"Equipment Match {expected}"
+                )
+                continue
+            matched_design_icons += 1
+
 
 validate_entity_alias_contract()
 validate_legacy_armour_dlc_gates()
@@ -6784,6 +6828,11 @@ validate_ai_templates()
 validate_marine_carrier()
 validate_designer_window_coverage()
 validate_designer_graphic_db()
+validate_design_equipment_match_icons()
+# Owner QA 2026-09-22: every module technology also enabled Mechanized Infantry, which
+# `nsb_iw_armored_vehicles` already enables for every NSB country that holds any of them.
+if keyed_blocks(code_only(text(TECH_DIR / "NSB_armor_modules.txt")), "enable_subunits"):
+    fail("NSB_armor_modules.txt technologies unlock modules only; sub-units belong to nsb_iw_armored_vehicles")
 stockpile_grant_count = sum(
     len(stockpile_grants(code_only(text(path))))
     for path in sorted(MOD.rglob("*.txt"))
@@ -6815,7 +6864,8 @@ print(
     f"bootstrap sites, {stockpile_grant_count} stockpile grants, "
     f"{len(APC_LADDER) + len(IFV_LADDER)} carrier superstructure rungs, "
     f"{len(MARINE_ROWS)} relocated marine rows, "
-    f"{designer_graphic_pools} designer graphic pools, and "
+    f"{designer_graphic_pools} designer graphic pools, "
+    f"{matched_design_icons} Equipment Match design icons, and "
     f"{TANK_DESIGNER_POSITIONS} designer slots checked."
 )
 if balance_report:

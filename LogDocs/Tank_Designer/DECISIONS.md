@@ -1229,6 +1229,37 @@ art where it exists; everything else resolves to the `default` block at the righ
 switch to. APC being typed `flame` and IFV `rocket` means gun-armed tanks are blocked from those
 roles until the gun is removed - vanilla's own behaviour for tank destroyers, and not a bug.
 
+**Every national design names its Equipment Match icon explicitly, ratified 2026-09-22.** A
+scripted `create_equipment_variant` without `icon` is shown the pool in the designer but does not
+take it (owner QA, USA/SOV 1949). Vanilla sets `icon` on every scripted tank design, and so do
+all 2,488 country-guarded blocks in the three preset/naming effect files. The value is derived,
+not chosen: first icon of the tag's weight-1 pool for the exact type, else the `default` pool's.
+`validate_design_equipment_match_icons()` pins it, so a database rebuild that moves art must be
+followed by the presets. Models are not set; the designer's "Default Model" stays dynamic.
+
+## Armour tech tree rows and label columns, ratified 2026-09-22
+
+**Two first tiers moved to the 1944 row rather than breaking row == start year.** Owner ruling:
+`nsb_apc_hulls0`, `nsb_ifv_hulls0` (1947) and `nsb_special_capabilities0` (1945) start 1944 on
+the `@1944` row. One row above their 1950 successors their pictures overlapped, and a sideways
+offset would split a family across columns. The APC/IFV hulls stay gated on their legacy
+mechanized technologies. `CARRIER_GENERATION_YEARS` keeps 1947: it is the vehicle generation for
+the armour cap, not the research date.
+
+**Year columns are placed from observed positions, not declared gridbox x.** Gridbox contents render
+~305 / ~765 / ~1165-1210 px right of their declared origin for the first / second / third gridbox
+in a folder (Finding 48); label containers render where declared. Place a year column by
+measuring a capture, and keep it in empty space left of its group.
+
+**Carrier battalions are enabled by `nsb_iw_armored_vehicles` alone.** Module technologies unlock
+modules and nothing else; the validator fails on `enable_subunits` in `NSB_armor_modules.txt`.
+
+**`nsb_apc_hulls*` / `nsb_ifv_hulls*` are presented as module unlocks, not hulls.** Owner QA
+2026-09-22: the hull naming and vehicle photographs implied a fourth and fifth hull the designer
+does not have. They are named after the superstructure they unlock and use that module's designer
+icon. The ids keep the historical `hulls` suffix because 778 references across the mod use them;
+do not rename the ids for presentation.
+
 ## Fire-support pacing stays as authored, ratified 2026-09-17
 
 **Research dates are not realigned to vehicle years. Both divergences are accepted as existing
