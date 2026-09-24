@@ -33,7 +33,9 @@ report only the rows you need.
 | `data/2023 - CWIC Tank Rework Balance(Total Balance Sheet Minimal).csv` | 60 KB | The living balance mirror |
 | `data/APC_IFV_Bookmark_Mapping.md` | 103 KB | 572-row mapping table + 100 resolved OOB requests |
 | `data/Historical_Vehicle_Reverse_Map.json` | 402 KB | 77 legacy armour tiers joined to per-country art and historical names; 1,468 resolved country rows. Generated 2026-09-13, not tool-parsed |
+| `data/Blueprint_Vehicle_Map.csv` | 1.5 MB | 2,488 national designs + 135 chassis types mapped to blueprint outline keys and source art. Snapshot, not tool-parsed. STATUS Finding 52 |
 | `data/National_Tank_Preset_Manifest.json` | 10 KB | The 14 USA/SOV medium presets |
+| `data/Armour_Supply_Manifest.json` | 90 KB | 188 producer/legacy-tier designs behind every focus, event and decision armour hand-over. STATUS Finding 53 |
 | `data/Balance_Target_Manifest.md` | 12 KB | The frozen 40-row envelope manifest |
 | `data/Artillery_AA_Target_Manifest.md` | 5 KB | Frozen artillery/AA/AT/SAM targets |
 
@@ -57,15 +59,15 @@ python3 "CWIC Backup/tools/loc_audit_1.py" --check
 git diff --check
 ```
 
-Current expected pass line, re-measured 2026-09-23 after Finding 49:
+Current expected pass line, re-measured 2026-09-24 after Finding 53:
 
 ```
 1317 technologies, 299 tank modules, 135 historical tank designs,
 39 bookmarked chassis types, 601 national presets and
 579 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
-6219 stockpile grants, 16 carrier superstructure rungs,
+6661 stockpile grants, 16 carrier superstructure rungs,
 5 relocated marine rows, 17548 designer graphic pools,
-2488 Equipment Match design icons, and 20 designer slots checked
+2676 Equipment Match design icons, 1579 armour hand-overs, and 20 designer slots checked
 ```
 
 `gfx/interface/equipmentdesigner/graphic_db/00_tank_icons.txt` is generated. Edit
@@ -90,8 +92,8 @@ APC and IFV negative fixtures write to the real `mechanized.txt` and
 `mechanized_heavy.txt`; a `-debug` game hot-reloads them and logs 2380 spurious
 `A limit for category X already exists` lines. See `STATUS.md` Finding 8.
 
-`git diff --check` reporting trailing whitespace in `GRE - Greece.txt` is expected;
-that file is CRLF in the index.
+`git diff --check` reporting trailing whitespace in `GRE - Greece.txt` or
+`common/national_focus/60s_LBA.txt` is expected; both files are CRLF in the index.
 
 The localisation audit covers 22 SEA files, not all tank localisation.
 

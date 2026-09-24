@@ -214,7 +214,10 @@ TANK_RECUT_MODULE_CATEGORIES = {
 AI_FILE = MOD / "common/ai_equipment/generic_tank.txt"
 ENUM_FILE = MOD / "common/script_enums.txt"
 VARIANT_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_tank_designer_effects.txt"
-FOCUS_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_tank_focus_effects.txt"
+SUPPLY_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_armour_supply_effects.txt"
+SUPPLY_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Armour_Supply_Manifest.json"
+SUPPLY_MANIFEST = json.loads(SUPPLY_MANIFEST_FILE.read_text(encoding="utf-8"))
+SUPPLY_DESIGNS = SUPPLY_MANIFEST["designs"]
 NATIONAL_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_national_tank_presets.txt"
 NATIONAL_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/National_Tank_Preset_Manifest.json"
 NATIONAL_PRESETS = json.loads(NATIONAL_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
@@ -232,6 +235,8 @@ FOCUS_FILES = (
     MOD / "common/national_focus/50s_FIN.txt",
 )
 NATIONAL_FOCUS_DIR = MOD / "common/national_focus"
+# Focuses, events and decisions: every place a country is handed armour at runtime.
+ARMOUR_GRANT_DIRS = (NATIONAL_FOCUS_DIR, MOD / "events", MOD / "common/decisions")
 LEGACY_ARMOUR_GRANT_PATH_EXCEPTIONS = frozenset(
     {
         "Cold War Iron Curtain/common/national_focus/FOR HOTFIX/70s_Pak_Notes_for_Reference_Only_Do_Not_Delete.txt",
@@ -522,34 +527,44 @@ SECONDARY_ICON_PATHS = {
     "cwic_secondary_hmg": "gfx/interface/equipmentdesigner/tanks/Modules/Other Modules/HMG.png",
     "cwic_secondary_autocannon": "gfx/interface/equipmentdesigner/tanks/Modules/SPAAG/AFV Autocannons/Light autocannon 1960.png",
 }
-EXPORT_VARIANTS = {
-    "CWIC Export Main Battle Tank 1942": "medium_tank_chassis_1",
-    "CWIC Export Main Battle Tank 1944": "medium_tank_chassis_2",
-    "CWIC Export Main Battle Tank 1950": "medium_tank_chassis_3",
-    "CWIC Export Main Battle Tank 1960": "medium_tank_chassis_4",
-    "CWIC Export Main Battle Tank 1970": "medium_tank_chassis_5",
-    "CWIC Export Main Battle Tank 1980": "medium_tank_chassis_6",
-    "CWIC Export Light Tank 1942": "light_tank_chassis_1",
-    "CWIC Export Light Tank 1944": "light_tank_chassis_2",
-    "CWIC Export Heavy Tank 1942": "heavy_tank_chassis_1",
-    "CWIC Export Heavy Tank 1944": "heavy_tank_chassis_2",
-    # The 1960 and 1965 carrier exports share light hull tier 4 after the
-    # 2026-09-11 cutover, and both remain distinct named export designs.
-    "CWIC Export Armored Personnel Carrier 1947": "light_tank_apc_chassis_2",
-    "CWIC Export Armored Personnel Carrier 1950": "light_tank_apc_chassis_3",
-    "CWIC Export Armored Personnel Carrier 1960": "light_tank_apc_chassis_4",
-    "CWIC Export Armored Personnel Carrier 1965": "light_tank_apc_chassis_4",
-    "CWIC Export Infantry Fighting Vehicle 1950": "light_tank_ifv_chassis_3",
-    "CWIC Export Infantry Fighting Vehicle 1965": "light_tank_ifv_chassis_4",
-}
-LEGACY_ARMOUR_GRANT = re.compile(
-    r"^(?:lt_equipment|mbt_equipment|ht_equipment|mechanized_equipment"
-    r"|mechanized_heavy_equipment|mechanized_marine_equipment)(?:_\d+)?$"
+# Every legacy armour tier the NSB profile DLC-gates. A hand-over of one of these is
+# empty on NSB unless it has a designer sibling branch.
+GATED_LEGACY_ARMOUR = re.compile(
+    r"^(?:lt_equipment|mbt_equipment|ht_equipment|mechanized_equipment|mechanized_heavy_equipment"
+    r"|spaag_equipment|sp_artillery_equipment|light_sp_artillery_equipment"
+    r"|heavy_sp_artillery_equipment|atgm_carrier_equipment|medium_tank_destroyer_equipment)_\d+$"
 )
+DESIGNER_ARMOUR_TYPE = re.compile(r"^(?:light|medium|heavy)_tank_(?:\w+_)?chassis_\d+$")
 UNMIGRATED_LEGACY_ARMOUR = frozenset(
     {"mechanized_equipment", "mechanized_equipment_1", "mechanized_equipment_2"}
     | {f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)}
 )
+# A legacy armour technology and the NSB technology that enables the designer generation
+# its equipment maps to in Armour_Supply_Manifest.json `generation_map`.
+LEGACY_ARMOUR_TECH_COUNTERPARTS = {
+    "main_battle_tanks": "nsb_iw_armored_vehicles",
+    **{f"main_battle_tanks_{tier}": f"nsb_main_battle_tanks{tier - 1}" for tier in range(1, 7)},
+    "main_battle_tanks_7": "nsb_main_battle_tanks5",
+    **{f"light_tanks_{tier}": f"nsb_light_tanks{tier - 1}" for tier in range(1, 6)},
+    **{f"heavy_tanks_{tier}": f"nsb_heavy_tanks{tier - 1}" for tier in range(1, 5)},
+    "heavy_tanks_5": "nsb_heavy_tanks3",
+}
+# Equipment bonus keys and technology bonus categories that name armour but reach nothing:
+# every legacy archetype below lost its members to a designer family, and no technology
+# carries a `cat_*` armour category any more. Keyed to what now holds those rows.
+RETIRED_ARMOUR_BONUS_KEYS = {
+    "mbt_equipment": "medium_tank_chassis",
+    "lt_equipment": "light_tank_chassis",
+    "ht_equipment": "heavy_tank_chassis",
+    "mechanized_equipment": "light_tank_apc_chassis",
+    "mechanized_heavy_equipment": "light_tank_ifv_chassis",
+    "spaag_equipment": "light_tank_aa_chassis",
+    "sp_artillery_equipment": "medium_tank_artillery_chassis",
+    "light_sp_artillery_equipment": "light_tank_artillery_chassis",
+    "heavy_sp_artillery_equipment": "heavy_tank_artillery_chassis",
+    "atgm_carrier_equipment": "light_tank_destroyer_chassis",
+    "medium_tank_destroyer_equipment": "medium_tank_destroyer_chassis",
+}
 BOOKMARK_VARIANT_TECHS = {
     "heavy_tank_artillery_chassis_1": "nsb_heavy_tanks0",
     "heavy_tank_artillery_chassis_3": "nsb_heavy_tanks2",
@@ -2194,16 +2209,6 @@ def tank_self_loop_ids(technologies: dict[str, str]) -> set[str]:
     }
 
 
-def export_variant_map(value: str) -> dict[str, str]:
-    variants: dict[str, str] = {}
-    for block in keyed_blocks(value, "create_equipment_variant"):
-        name_match = re.search(r"(?m)^\s*name\s*=\s*\"([^\"]+)\"", block)
-        type_match = re.search(r"(?m)^\s*type\s*=\s*([A-Za-z0-9_]+)", block)
-        if name_match and type_match:
-            variants[name_match.group(1)] = type_match.group(1)
-    return variants
-
-
 def missing_ammunition_categories(installed_categories: set[str]) -> set[str]:
     return ammo_categories - installed_categories
 
@@ -2816,7 +2821,7 @@ def _variant_recipes() -> dict[tuple[str, str], dict[str, object]]:
     resolve per producer through `bookmark_variant_names`.
     """
     recipes: dict[tuple[str, str], dict[str, object]] = {}
-    for path in (VARIANT_EFFECT_FILE, FOCUS_EFFECT_FILE, NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE):
+    for path in (VARIANT_EFFECT_FILE, SUPPLY_EFFECT_FILE, NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE):
         for block in keyed_blocks(text(path), "create_equipment_variant"):
             name_match = re.search(r'(?m)^\s*name\s*=\s*"([^"]+)"', block)
             type_match = re.search(r"(?m)^\s*type\s*=\s*([A-Za-z0-9_]+)", block)
@@ -3073,78 +3078,301 @@ def nearest_containing_span(
     return min(containing, key=lambda span: span[2] - span[1], default=None)
 
 
-def validate_focus_armour_grants(
-    overrides: dict[str, str] | None = None,
-) -> int:
-    checked = 0
-    overrides = overrides or {}
-    for path in sorted(NATIONAL_FOCUS_DIR.rglob("*.txt")):
-        relative = str(path.relative_to(ROOT))
-        if relative in LEGACY_ARMOUR_GRANT_PATH_EXCEPTIONS:
-            continue
-        value = strip_script_comments(overrides.get(relative, text(path)))
-        if not re.search(r"\badd_equipment_to_stockpile\s*=\s*\{", value):
-            continue
-        spans = named_block_spans(value, relative)
-        for grant in (span for span in spans if span[0] == "add_equipment_to_stockpile"):
-            type_values = top_level_values(grant[3], "type")
-            if len(type_values) != 1 or not LEGACY_ARMOUR_GRANT.fullmatch(type_values[0]):
-                continue
-            equipment_type = type_values[0]
-            if equipment_type in UNMIGRATED_LEGACY_ARMOUR:
-                continue
-            legacy_else = (
-                nearest_containing_span(spans, grant[1], grant[2], "else")
-                or nearest_containing_span(spans, grant[1], grant[2], "else_if")
-            )
-            if legacy_else is None:
-                fail(f"{relative}:{value[:grant[1]].count(chr(10)) + 1} legacy {equipment_type} grant lacks an NSB fallback branch")
-                continue
-            parent = nearest_containing_span(spans, legacy_else[1], legacy_else[2])
-            if parent is None:
-                fail(f"{relative} legacy {equipment_type} grant has no conditional parent")
-                continue
-            parent_text = value[parent[1] : parent[2] + 1]
-            children = top_level_ranges(parent_text, f"{relative} conditional parent")
-            else_children = [
-                (start, end, child) for name, start, end, child in children
-                if name in {"else", "else_if"}
-                and parent[1] + start <= grant[1] <= parent[1] + end
-            ]
-            preceding_if = [
-                child for name, start, end, child in children
-                if name == "if"
-                and else_children
-                and parent[1] + end < parent[1] + else_children[0][0]
-                and 'has_dlc = "No Step Back"' in child
-            ]
-            if not else_children or not preceding_if:
-                fail(f"{relative}:{value[:grant[1]].count(chr(10)) + 1} legacy {equipment_type} grant lacks a sibling NSB designer branch")
+def quoted_values(block: str, key: str) -> list[str]:
+    """Quoted `key = "..."` values; `top_level_values` skips quoted strings by design."""
+    return re.findall(rf'(?<![A-Za-z0-9_]){re.escape(key)}\s*=\s*"([^"]*)"', block)
 
-        for grant in (span for span in spans if span[0] == "add_equipment_to_stockpile"):
-            variant_values = top_level_values(grant[3], "variant_name")
-            type_values = top_level_values(grant[3], "type")
-            if len(variant_values) != 1 or not variant_values[0].startswith("CWIC Export "):
+
+def nearest_country_scope(
+    spans: list[tuple[str, int, int, str]], start: int, end: int
+) -> tuple[str, int, int, str] | None:
+    containing = [
+        span for span in spans
+        if re.fullmatch(r"[A-Z][A-Z0-9]{2}", span[0]) and span[1] <= start and end <= span[2]
+    ]
+    return min(containing, key=lambda span: span[2] - span[1], default=None)
+
+
+def has_designer_sibling(spans: list[tuple[str, int, int, str]], value: str, start: int, end: int) -> bool:
+    """True when [start, end] sits in an else/else_if whose preceding sibling is the NSB branch."""
+    legacy_else = (
+        nearest_containing_span(spans, start, end, "else")
+        or nearest_containing_span(spans, start, end, "else_if")
+    )
+    if legacy_else is None:
+        return False
+    parent = nearest_containing_span(spans, legacy_else[1], legacy_else[2])
+    if parent is None:
+        return False
+    children = top_level_ranges(value[parent[1] : parent[2] + 1], "conditional parent")
+    else_children = [
+        (child_start, child_end) for name, child_start, child_end, _ in children
+        if name in {"else", "else_if"} and parent[1] + child_start <= start <= parent[1] + child_end
+    ]
+    return bool(else_children) and any(
+        name == "if" and child_end < else_children[0][0] and 'has_dlc = "No Step Back"' in child
+        for name, _, child_end, child in children
+    )
+
+
+def validate_armour_grants(overrides: dict[str, str] | None = None) -> set[tuple[str, str]]:
+    """Every armour hand-over in a focus, event or decision works on both DLC profiles.
+
+    A gated legacy tier is empty on NSB, so it must sit in the legacy branch of an NSB
+    split. A designer hand-over must name a design in Armour_Supply_Manifest.json, and the
+    NSB branch must have the producer (or licensor) call that design's supply helper first,
+    or `variant_name` resolves against a design the producer does not own.
+    Returns the (producer, legacy tier) rows actually handed over.
+    """
+    global armour_handover_count
+    overrides = overrides or {}
+    designs: dict[tuple[str, str, str], set[str]] = {}
+    for row in SUPPLY_DESIGNS:
+        designs.setdefault((row["producer"], row["type"], row["name"]), set()).add(row["legacy"])
+    used: set[tuple[str, str]] = set()
+    for directory in ARMOUR_GRANT_DIRS:
+        for path in sorted(directory.rglob("*.txt")):
+            relative = str(path.relative_to(ROOT))
+            if relative in LEGACY_ARMOUR_GRANT_PATH_EXCEPTIONS:
                 continue
-            variant, equipment_type = variant_values[0], type_values[0] if len(type_values) == 1 else ""
-            expected_type = EXPORT_VARIANTS.get(variant)
-            if expected_type != equipment_type:
-                fail(f"{relative}:{value[:grant[1]].count(chr(10)) + 1} export grant has wrong type for {variant}")
+            source = overrides.get(relative, text(path))
+            if "add_equipment_to_stockpile" not in source and "create_production_license" not in source:
                 continue
-            designer_if = nearest_containing_span(spans, grant[1], grant[2], "if")
-            if designer_if is None or 'has_dlc = "No Step Back"' not in designer_if[3]:
-                fail(f"{relative}:{value[:grant[1]].count(chr(10)) + 1} export grant lacks its NSB branch")
+            value = strip_script_comments(source)
+            spans = named_block_spans(value, relative)
+            for name, start, end, block in spans:
+                if name not in {"add_equipment_to_stockpile", "create_production_license"}:
+                    continue
+                line = value[:start].count("\n") + 1
+                if name == "add_equipment_to_stockpile":
+                    holder = block
+                    producers = top_level_values(block, "producer")
+                    producer = producers[0] if len(producers) == 1 else None
+                    names = quoted_values(block, "variant_name")
+                else:
+                    equipment = top_level_named_blocks(block, "equipment", relative)
+                    if len(equipment) != 1:
+                        continue
+                    holder = equipment[0]
+                    scope = nearest_country_scope(spans, start, end)
+                    producer = scope[0] if scope else None
+                    names = quoted_values(holder, "version_name")
+                kinds = top_level_values(holder, "type")
+                if len(kinds) != 1:
+                    continue
+                kind = kinds[0]
+                if GATED_LEGACY_ARMOUR.fullmatch(kind) and kind not in UNMIGRATED_LEGACY_ARMOUR:
+                    armour_handover_count += 1
+                    if not has_designer_sibling(spans, value, start, end):
+                        fail(f"{relative}:{line} legacy {kind} {name} lacks a sibling NSB designer branch")
+                    continue
+                if not DESIGNER_ARMOUR_TYPE.fullmatch(kind):
+                    continue
+                armour_handover_count += 1
+                if len(names) != 1:
+                    fail(f"{relative}:{line} {name} of {kind} must name the design it hands over")
+                    continue
+                legacies = designs.get((producer, kind, names[0]))
+                if not legacies:
+                    fail(f'{relative}:{line} {producer} {kind} "{names[0]}" is not an armour supply design')
+                    continue
+                branch = nearest_containing_span(spans, start, end, "if")
+                limits = top_level_named_blocks(branch[3], "limit", relative) if branch else []
+                if (
+                    not limits
+                    or 'has_dlc = "No Step Back"' not in limits[0]
+                    or 'NOT = { has_dlc = "No Step Back" }' in limits[0]
+                ):
+                    fail(f'{relative}:{line} "{names[0]}" is handed over outside an NSB branch')
+                    continue
+                supplied = set()
+                for call in re.finditer(r"\bcwic_supply_(\w+)\s*=\s*yes\b", value[branch[1] : start]):
+                    position = branch[1] + call.start()
+                    scope = nearest_country_scope(spans, position, position)
+                    if scope is not None and scope[0] == producer and call.group(1) in legacies:
+                        supplied.add(call.group(1))
+                if not supplied:
+                    helpers = ", ".join(sorted(f"cwic_supply_{legacy}" for legacy in legacies))
+                    fail(f'{relative}:{line} {producer} does not call {helpers} before handing over "{names[0]}"')
+                used.update((producer, legacy) for legacy in supplied)
+    return used
+
+
+armour_handover_count = 0
+
+
+def canonical_armour_guards() -> dict[tuple[str, str, str], tuple[str, str]]:
+    """(tag, type, name) -> (flag, create_equipment_variant block) for every national preset."""
+    guards: dict[tuple[str, str, str], tuple[str, str]] = {}
+    for path in (NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE, RESEARCH_NAMING_EFFECT_FILE):
+        code = code_only(text(path))
+        for _, _, _, helper in top_level_ranges("effects = {\n" + code + "\n}", path.name):
+            for guard in top_level_named_blocks(helper, "if", path.name):
+                limits = top_level_named_blocks(guard, "limit", path.name)
+                variants = top_level_named_blocks(guard, "create_equipment_variant", path.name)
+                flags = top_level_values(guard, "set_country_flag")
+                tags = top_level_values(limits[0], "tag") if limits else []
+                if len(tags) != 1 or len(variants) != 1 or len(flags) != 1:
+                    continue
+                names = quoted_values(variants[0], "name")
+                kinds = top_level_values(variants[0], "type")
+                if names and kinds:
+                    guards[(tags[0], kinds[0], names[0])] = (flags[0], variants[0])
+    return guards
+
+
+def normalized_script(block: str) -> str:
+    block = re.sub(r"\bmark_older_equipment_obsolete\s*=\s*yes\b", "", strip_script_comments(block))
+    return re.sub(r"\s+", " ", block).strip()
+
+
+def validate_armour_supply(
+    effect: str | None = None,
+    designs: list[dict] | None = None,
+    used: set[tuple[str, str]] | None = None,
+) -> None:
+    """Pin CWIC_armour_supply_effects.txt to Armour_Supply_Manifest.json.
+
+    A canonical row pre-empts a national preset: same recipe, same name and the same
+    flag, so the bookmark or research hook can never create the design twice. A supplied
+    row names a tier no preset covers, from live localisation, on its generation's recipe.
+    Neither archives the design: it is the producer's own vehicle.
+    """
+    effect = code_only(text(SUPPLY_EFFECT_FILE) if effect is None else effect)
+    designs = SUPPLY_DESIGNS if designs is None else designs
+    generation = SUPPLY_MANIFEST["generation_map"]
+    helpers = top_level_ranges("effects = {\n" + effect + "\n}", "armour supply effects")
+    helper_names = [name for name, *_ in helpers]
+    wanted = {f"cwic_supply_{row['legacy']}" for row in designs}
+    if len(helper_names) != len(set(helper_names)) or set(helper_names) != wanted:
+        fail(f"armour supply helpers differ from the manifest: {sorted(set(helper_names) ^ wanted)}")
+    bodies = {name: body for name, _, _, body in helpers}
+    canonical = canonical_armour_guards()
+    rows_per_helper = Counter(f"cwic_supply_{row['legacy']}" for row in designs)
+    for helper, body in bodies.items():
+        hidden = top_level_named_blocks(body, "hidden_effect", helper)
+        if len(hidden) != 1:
+            fail(f"{helper} must create its designs inside one hidden_effect")
+        elif len(top_level_named_blocks(hidden[0], "if", helper)) != rows_per_helper[helper]:
+            fail(f"{helper} guard count differs from the manifest")
+    seen: set[tuple[str, str]] = set()
+    for row in designs:
+        producer, legacy, kind, name, flag = (row[key] for key in ("producer", "legacy", "type", "name", "flag"))
+        label = f"armour supply {producer}/{legacy}"
+        if (producer, legacy) in seen:
+            fail(f"{label} is listed twice")
+        seen.add((producer, legacy))
+        if used is not None and (producer, legacy) not in used:
+            fail(f"{label} is never handed over by a focus, event or decision")
+        hidden = top_level_named_blocks(bodies.get(f"cwic_supply_{legacy}", "x = { }"), "hidden_effect", label)
+        guards = [
+            guard for guard in (top_level_named_blocks(hidden[0], "if", label) if hidden else [])
+            if top_level_values((top_level_named_blocks(guard, "limit", label) or ["x = { }"])[0], "tag") == [producer]
+        ]
+        if len(guards) != 1:
+            fail(f"{label} must have exactly one guard")
+            continue
+        guard = guards[0]
+        limit = top_level_named_blocks(guard, "limit", label)[0]
+        for required in ('has_dlc = "No Step Back"', f"NOT = {{ has_country_flag = {flag} }}"):
+            if required not in limit:
+                fail(f"{label} guard lacks {required}")
+        if top_level_values(guard, "set_country_flag") != [flag]:
+            fail(f"{label} must set {flag}")
+        variants = top_level_named_blocks(guard, "create_equipment_variant", label)
+        if len(variants) != 1:
+            fail(f"{label} must create exactly one design")
+            continue
+        variant = variants[0]
+        if quoted_values(variant, "name") != [name] or top_level_values(variant, "type") != [kind]:
+            fail(f'{label} must create "{name}" on {kind}')
+        if re.search(r"\b(?:obsolete|mark_older_equipment_obsolete)\s*=", variant):
+            fail(f"{label} must neither archive the design nor obsolete the producer's older ones")
+        for key, expected in (("allow_without_tech", "yes"), ("parent_version", "0"), ("show_position", "no")):
+            if top_level_values(variant, key) != [expected]:
+                fail(f"{label} must set {key} = {expected}")
+        if row["source"] == "canonical":
+            preset = canonical.get((producer, kind, name))
+            if preset is None:
+                fail(f'{label} names "{name}", which no national preset creates')
+            elif preset[0] != flag:
+                fail(f"{label} must share the preset's flag {preset[0]}")
+            elif normalized_script(preset[1]) != normalized_script(variant):
+                fail(f"{label} differs from the national preset it pre-empts")
+            continue
+        if (producer, kind, name) in canonical:
+            fail(f"{label} duplicates a national preset; resolve it as canonical")
+        if flag != f"cwic_supplied_{legacy}_created":
+            fail(f"{label} must use flag cwic_supplied_{legacy}_created")
+        if generation.get(legacy) != kind:
+            fail(f"{label} must use its generation {generation.get(legacy)}")
+        raw, source_path, source_line = naming_localisation_entry(row["legacy_name_key"])
+        if (raw, source_path, source_line) != (row["source_name"], row["source_path"], row["source_line"]):
+            fail(f"{label} name provenance differs from live localisation")
+        elif unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().strip() != name:
+            fail(f"{label} name differs from its localisation source")
+        template = canonical.get(tuple(row["template"].split("/", 2)))
+        if template is None or recipe_modules(template[1], label) != recipe_modules(variant, label):
+            fail(f"{label} must mount its template's recipe {row['template']}")
+
+
+def recipe_modules(block: str, label: str) -> str:
+    return normalized_script((top_level_named_blocks(block, "modules", label) or [""])[0])
+
+
+def validate_armour_bonus_targets() -> None:
+    """Armour bonuses must reach armour on both profiles.
+
+    An equipment bonus keyed on a retired legacy archetype applies to nothing - those rows
+    now belong to designer families - and a technology bonus on a category no technology
+    carries is likewise inert. A legacy armour technology is never researched on NSB, so a
+    bonus or grant naming one needs its NSB counterpart.
+    """
+    carried: set[str] = set()
+    for path in sorted(TECH_DIR.glob("*.txt")):
+        for block in keyed_blocks(text(path), "categories"):
+            carried.update(re.findall(r"[A-Za-z0-9_]+", block[block.find("{") + 1 : -1]))
+    for path in sorted((MOD / "common").rglob("*.txt")) + sorted((MOD / "events").rglob("*.txt")):
+        relative = str(path.relative_to(ROOT))
+        if (
+            relative in LEGACY_ARMOUR_GRANT_PATH_EXCEPTIONS
+            or path.is_relative_to(MOD / "common/units")
+            or path.is_relative_to(TECH_DIR)
+        ):
+            continue
+        source = text(path)
+        if "equipment_bonus" in source:
+            for block in keyed_blocks(source, "equipment_bonus"):
+                for key, *_ in top_level_ranges(block, relative):
+                    if key in RETIRED_ARMOUR_BONUS_KEYS:
+                        fail(f"{relative} equipment bonus on {key} reaches nothing; key it on {RETIRED_ARMOUR_BONUS_KEYS[key]}")
+        if "add_tech_bonus" in source:
+            for block in keyed_blocks(source, "add_tech_bonus"):
+                for category in top_level_values(block, "category"):
+                    if re.search(r"armou?r|tank|mechanized", category) and category not in carried:
+                        fail(f"{relative} technology bonus on {category} reaches no technology")
+                technologies = top_level_values(block, "technology")
+                for technology in technologies:
+                    counterpart = LEGACY_ARMOUR_TECH_COUNTERPARTS.get(technology)
+                    if counterpart and counterpart not in technologies:
+                        fail(f"{relative} technology bonus on {technology} lacks its NSB counterpart {counterpart}")
+    for directory in ARMOUR_GRANT_DIRS:
+        for path in sorted(directory.rglob("*.txt")):
+            relative = str(path.relative_to(ROOT))
+            source = text(path)
+            if relative in LEGACY_ARMOUR_GRANT_PATH_EXCEPTIONS or "set_technology" not in source:
                 continue
-            producer_values = top_level_values(grant[3], "producer")
-            helper = "cwic_create_" + re.sub(r"[^A-Za-z0-9]+", "_", variant).lower().strip("_")[len("cwic_"):]
-            producer_blocks = (
-                top_level_named_blocks(designer_if[3], producer_values[0], relative)
-                if len(producer_values) == 1
-                else []
-            )
-            if not any(top_level_values(block, helper) == ["yes"] for block in producer_blocks):
-                fail(f"{relative}:{value[:grant[1]].count(chr(10)) + 1} export grant lacks producer helper {helper}")
-    return checked
+            value = strip_script_comments(source)
+            spans = named_block_spans(value, relative)
+            for name, start, end, block in spans:
+                if name != "set_technology":
+                    continue
+                legacy = [
+                    technology for technology in re.findall(r"([A-Za-z0-9_]+)\s*=\s*1\b", block)
+                    if technology in LEGACY_ARMOUR_TECH_COUNTERPARTS
+                ]
+                if legacy and not has_designer_sibling(spans, value, start, end):
+                    fail(f"{relative}:{value[:start].count(chr(10)) + 1} grants {legacy[0]} with no NSB counterpart branch")
 
 
 def validate_legacy_armour_roles() -> None:
@@ -3557,44 +3785,31 @@ def validate_tank_rework() -> None:
     if removed_blueprints:
         fail(f"removed tank designer GUI files remain: {removed_blueprints}")
 
-    variant_text = text(FOCUS_EFFECT_FILE)
-    variants = export_variant_map(variant_text)
-    for block in keyed_blocks(variant_text, "create_equipment_variant"):
-        name_match = re.search(r"(?m)^\s*name\s*=\s*\"([^\"]+)\"", block)
-        if name_match and ("allow_without_tech = yes" not in block or "parent_version = 0" not in block):
-            fail(f"export variant {name_match.group(1)} lacks the stable no-tech contract")
-        if name_match and "obsolete = yes" not in block:
-            fail(f"export variant {name_match.group(1)} must be archived in its producer's production list")
-    if variants != EXPORT_VARIANTS:
-        fail(f"export variant map differs from contract: {variants}")
-    for helper in EXPORT_VARIANTS:
-        flag = re.sub(r"[^A-Za-z0-9]+", "_", helper).lower().strip("_") + "_created"
-        if "set_country_flag = " + flag not in variant_text:
-            fail(f"export variant {helper} lacks its producer flag guard")
-    validate_focus_armour_grants()
+    validate_armour_supply(used=validate_armour_grants())
+    validate_armour_bonus_targets()
     focus_contracts = {
-        "BRA_american_tanks": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "CWIC Export Main Battle Tank 1950"),
-        "BRA_soviet_tanks": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "CWIC Export Main Battle Tank 1950"),
-        "GRE_heavy_weapons_tanks_arty": ("nsb_main_battle_tanks1", "medium_tank_chassis_2", "CWIC Export Main Battle Tank 1944"),
-        "FIN_Acquire_Soviet_T55s": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "CWIC Export Main Battle Tank 1950"),
+        "BRA_american_tanks": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "Tank, Combat, Full Tracked: 90-mm Gun, M47"),
+        "BRA_soviet_tanks": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "T-55"),
+        "GRE_heavy_weapons_tanks_arty": ("nsb_main_battle_tanks1", "medium_tank_chassis_2", "M46 Patton"),
+        "FIN_Acquire_Soviet_T55s": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "T-55"),
     }
     focus_stockpiles = {
         "BRA_american_tanks": (
-            ("medium_tank_chassis_3", "CWIC Export Main Battle Tank 1950"),
-            ("light_tank_chassis_1", "CWIC Export Light Tank 1942"),
-            ("heavy_tank_chassis_2", "CWIC Export Heavy Tank 1944"),
+            ("medium_tank_chassis_3", "Tank, Combat, Full Tracked: 90-mm Gun, M47"),
+            ("light_tank_chassis_1", "M5 Stuart"),
+            ("heavy_tank_chassis_2", "T26E4 Super Pershing"),
         ),
         "BRA_soviet_tanks": (
-            ("medium_tank_chassis_3", "CWIC Export Main Battle Tank 1950"),
-            ("light_tank_chassis_1", "CWIC Export Light Tank 1942"),
-            ("heavy_tank_chassis_2", "CWIC Export Heavy Tank 1944"),
+            ("medium_tank_chassis_3", "T-55"),
+            ("light_tank_chassis_1", "T-60"),
+            ("heavy_tank_chassis_2", "IS-3"),
         ),
         "GRE_heavy_weapons_tanks_arty": (
-            ("light_tank_chassis_2", "CWIC Export Light Tank 1944"),
-            ("medium_tank_chassis_2", "CWIC Export Main Battle Tank 1944"),
+            ("light_tank_chassis_3", "Tank, Combat, Full Tracked: 76-mm gun, M41"),
+            ("medium_tank_chassis_2", "M46 Patton"),
         ),
         "FIN_Acquire_Soviet_T55s": (
-            ("medium_tank_chassis_3", "CWIC Export Main Battle Tank 1950"),
+            ("medium_tank_chassis_3", "T-55"),
         ),
     }
     for path in FOCUS_FILES:
@@ -3614,7 +3829,7 @@ def validate_tank_rework() -> None:
                 if 'has_dlc = "No Step Back"' not in nsb_limit or 'NOT = { has_dlc = "No Step Back" }' not in legacy_limit:
                     fail(f"{focus} rewards lack mutually exclusive DLC conditions")
             if technology not in block or chassis not in block or variant not in block:
-                fail(f"{focus} lacks its NSB technology, chassis, or export variant branch")
+                fail(f"{focus} lacks its NSB technology, chassis, or historical design branch")
             stockpile_blocks = keyed_blocks(block, "add_equipment_to_stockpile")
             for equipment_type, variant_name in focus_stockpiles[focus]:
                 selected = any(
@@ -3678,9 +3893,6 @@ def validate_tank_qa_contracts(tank_techs: dict[str, str]) -> None:
     limits = keyed_blocks(focus, "limit")
     if len(limits) != 2 or 'has_dlc = "No Step Back"' not in limits[0] or 'NOT = { has_dlc = "No Step Back" }' not in limits[1]:
         fail("Finnish tank focus rewards must select mutually exclusive DLC branches")
-    for helper in top_level_blocks("effects = {\n" + text(FOCUS_EFFECT_FILE) + "\n}", "effects"):
-        if not top_level_named_blocks(helper[1], "hidden_effect", helper[0]):
-            fail(f"export setup helper {helper[0]} must hide internal variant creation")
     for (name, _chassis), recipe in _variant_recipes().items():
         for loadout in recipe["loadouts"]:
             for slot, module in loadout:
@@ -4508,20 +4720,52 @@ def run_tank_negative_fixtures() -> None:
     def rejected(condition: bool, label: str) -> None:
         if not condition:
             raise AssertionError(f"tank negative fixture was accepted: {label}")
-    focus_path = NATIONAL_FOCUS_DIR / "1950s_Afghanistan.txt"
+    def rejected_by(check, *args, **kwargs) -> bool:
+        global armour_handover_count
+        previous_errors, previous_count = len(errors), armour_handover_count
+        check(*args, **kwargs)
+        found = len(errors) > previous_errors
+        del errors[previous_errors:]
+        armour_handover_count = previous_count
+        return found
+
+    focus_path = NATIONAL_FOCUS_DIR / "1950s_BUL.txt"
+    focus_key = str(focus_path.relative_to(ROOT))
     focus_source = text(focus_path)
-    helper_position = focus_source.find("cwic_create_export_main_battle_tank_1950")
+    helper_position = focus_source.find("cwic_supply_mbt_equipment_3")
     limit_position = focus_source.rfind('has_dlc = "No Step Back"', 0, helper_position)
     malformed_focus = (
         focus_source[:limit_position]
         + focus_source[limit_position:].replace('has_dlc = "No Step Back"', 'has_dlc = "Other DLC"', 1)
     )
-    previous_errors = len(errors)
-    validate_focus_armour_grants({str(focus_path.relative_to(ROOT)): malformed_focus})
-    rejected_malformed_focus = len(errors) > previous_errors
-    del errors[previous_errors:]
-    if not rejected_malformed_focus:
-        raise AssertionError("focus armour grant contract accepted a missing NSB gate")
+    rejected(rejected_by(validate_armour_grants, {focus_key: malformed_focus}), "armour hand-over without its NSB gate")
+    rejected(
+        rejected_by(validate_armour_grants, {focus_key: focus_source.replace('variant_name = "T-55"', 'variant_name = "T-55 Fixture"', 1)}),
+        "armour hand-over naming a design its producer is never given",
+    )
+    rejected(
+        rejected_by(
+            validate_armour_grants,
+            {focus_key: focus_source[:helper_position] + "cwic_supply_mbt_equipment_2" + focus_source[helper_position + len("cwic_supply_mbt_equipment_3"):]},
+        ),
+        "armour hand-over supplied from another legacy tier",
+    )
+    supplied_row = next(row for row in SUPPLY_DESIGNS if row["source"] == "supplied")
+    canonical_row = next(row for row in SUPPLY_DESIGNS if row["source"] == "canonical")
+    rejected(
+        rejected_by(validate_armour_supply, designs=[{**row, "name": row["name"] + " Fixture"} if row is supplied_row else row for row in SUPPLY_DESIGNS]),
+        "supplied design name drifting from its localisation",
+    )
+    supply_source = text(SUPPLY_EFFECT_FILE)
+    canonical_guard = supply_source.find(f'name = "{canonical_row["name"]}"')
+    rejected(
+        rejected_by(validate_armour_supply, effect=supply_source[:canonical_guard] + supply_source[canonical_guard:].replace("tank_special_slot_1 = ", "tank_special_slot_1 = fixture_", 1)),
+        "canonical supply design diverging from the preset it pre-empts",
+    )
+    rejected(
+        rejected_by(validate_armour_supply, used=set()),
+        "supply design no focus, event or decision hands over",
+    )
 
     armor_techs = dict(top_level_blocks(text(TECH_DIR / "NSB_armor.txt"), "technologies"))
     module_techs = dict(top_level_blocks(text(TECH_DIR / "NSB_armor_modules.txt"), "technologies"))
@@ -4630,10 +4874,6 @@ def run_tank_negative_fixtures() -> None:
     )
     rejected("fixture_self_loop" in tank_self_loop_ids(self_loop_fixture), "tank technology self-loop")
 
-    variant_fixture = export_variant_map(text(FOCUS_EFFECT_FILE))
-    variant_fixture["Undefined Export"] = "medium_tank_chassis_3"
-    rejected(variant_fixture != EXPORT_VARIANTS, "undefined export variant")
-
     rejected(bool(missing_ammunition_categories({"tank_ammo_kinetic"})), "missing ammunition category")
     rejected(
         bool(
@@ -4736,7 +4976,7 @@ key_files = doctrine_files + [
     AI_FILE,
     ENUM_FILE,
     VARIANT_EFFECT_FILE,
-    FOCUS_EFFECT_FILE,
+    SUPPLY_EFFECT_FILE,
     TANK_ROLE_FILE,
     TANK_ICON_FILE,
     TANK_LOC_FILE,
@@ -6814,9 +7054,10 @@ def validate_design_equipment_match_icons() -> None:
             + CARRIER_PRESETS
             + NAMING_PRESETS
             + json.loads(RESEARCH_NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
+            + [row for row in SUPPLY_DESIGNS if row["source"] == "supplied"]
         )
     }
-    for path in (NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE, RESEARCH_NAMING_EFFECT_FILE):
+    for path in (NATIONAL_EFFECT_FILE, NAMING_EFFECT_FILE, RESEARCH_NAMING_EFFECT_FILE, SUPPLY_EFFECT_FILE):
         code = code_only(text(path))
         for offset, block in located_keyed_blocks(code, "create_equipment_variant"):
             limit = code[code.rfind("limit = {", 0, offset) : offset]
@@ -6903,7 +7144,8 @@ print(
     f"{len(APC_LADDER) + len(IFV_LADDER)} carrier superstructure rungs, "
     f"{len(MARINE_ROWS)} relocated marine rows, "
     f"{designer_graphic_pools} designer graphic pools, "
-    f"{matched_design_icons} Equipment Match design icons, and "
+    f"{matched_design_icons} Equipment Match design icons, "
+    f"{armour_handover_count} armour hand-overs, and "
     f"{TANK_DESIGNER_POSITIONS} designer slots checked."
 )
 if balance_report:

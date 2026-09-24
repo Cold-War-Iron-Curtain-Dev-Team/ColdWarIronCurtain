@@ -190,9 +190,9 @@ created last. The national helper runs first; generic medium creation excludes U
 
 Preserve ascending order, and verify that new APC/IFV roles do not incorrectly obsolete
 a different role in the same family. Older designs must remain resolvable for starting
-units, stockpiles and named requests - obsolescence is not deletion. Export presets are
-created with `obsolete = yes` in `CWIC_tank_focus_effects.txt` and were not the cause of
-bookmark spam.
+units, stockpiles and named requests - obsolescence is not deletion. Supply designs in
+`CWIC_armour_supply_effects.txt` omit `mark_older_equipment_obsolete`, so a mid-game hand-over
+never obsoletes the producer's existing designs.
 
 ## The ammunition contract
 
@@ -298,7 +298,7 @@ Under `Cold War Iron Curtain/`:
 | `common/scripted_effects/CWIC_tank_designer_effects.txt` | Generic bookmark variant creation |
 | `common/scripted_effects/CWIC_national_tank_presets.txt` | National presets |
 | `common/scripted_effects/CWIC_tank_bookmark_research.txt` | 1980 major-producer grants |
-| `common/scripted_effects/CWIC_tank_focus_effects.txt` | Focus rewards and exports |
+| `common/scripted_effects/CWIC_armour_supply_effects.txt` | Producer designs for focus, event and decision armour hand-overs; pinned by `data/Armour_Supply_Manifest.json` |
 | `common/script_enums.txt` | `script_enum_equipment_bonus_type` |
 | `history/countries/`, `history/units/*_nsb.txt` | Bootstrap sites and OOBs |
 | `interface/equipmentdesigner/tanks/` | Designer GUI windows |
