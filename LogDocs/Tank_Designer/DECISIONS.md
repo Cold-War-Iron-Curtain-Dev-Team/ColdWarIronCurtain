@@ -1264,8 +1264,9 @@ offers it. Models are not set; the designer's "Default Model" stays dynamic.
 on and appends the design's position, so every preset read `BTR-40 Mk0`. Owner live test on
 `ZSU-37` (SOV): `show_position = no` removes the suffix. All 2,488 blocks carry it after
 `parent_version = 0`; the same validator fails a block without exactly one `show_position = no`.
-The 16 obsolete `CWIC Export` designs in `CWIC_tank_focus_effects.txt` are out of scope and
-unchanged.
+The 16 `CWIC Export` designs were retired 2026-09-24; the 188 supply guards that replaced them in
+`CWIC_armour_supply_effects.txt` carry `show_position = no` and an Equipment Match icon under the
+same contracts.
 
 ## Armour tech tree rows and label columns, ratified 2026-09-22
 
@@ -1309,6 +1310,16 @@ honours the per-type key, as vanilla's plane designer does.
 module row. The DDS is padded at the bottom, never scaled, and is uncompressed 32-bit BGRA without
 mips, matching vanilla. Until an outline has module overlay art its slot `@highlight` windows stay
 empty rather than borrowing another vehicle's overlay.
+
+**`data/Blueprint_Vehicle_Map.csv` is the worklist for outlines.** One row per national design plus
+one untagged row per chassis type, keyed by `chassis_type` + `tag` to its `blueprint_target_*`
+names. Draw one outline per key, not per vehicle. Where several names share a key, the outline
+depicts the row whose `legacy_row` is newest, unless the owner picks otherwise. See `STATUS.md`
+Finding 52.
+
+**Stylized blueprint-style production icons, TNO-like, are deferred and not rejected.** The same
+CSV carries blank `stylized_icon_*` columns for them. When that work starts it gets its own
+naming convention, and `equipment_match_icon` keeps the source-art picture until a stylized one ships.
 
 **The designer background is `GFX_cwic_tank_blueprint_background`, set in
 `tank_designer_view.gui`.** Vanilla's sprite name is not redeclared.
@@ -1374,39 +1385,61 @@ changing a vehicle's name.
 A `(producer, generation)` collision - one country with several legacy names mapping to one
 generation - resolves to the **newest legacy tier year**. 35 collisions were resolved that way.
 
-## Legacy focus armour grants
+## Legacy armour hand-overs, ratified 2026-09-08, revised 2026-09-24
 
-**Ratified 2026-09-08.** On an NSB profile, a legacy armour focus grant maps to
-the largest designer chassis whose introduction year is no later than the legacy
-equipment year. The producer creates one obsolete, no-tech export variant for
-that chassis, and the focus grants that producer-owned variant. The non-NSB
-branch remains the original legacy equipment grant unchanged. Producer
-resolution follows the established producer, creator, owner, OOB-tag order.
+**Revised 2026-09-24 (`STATUS.md` Finding 53); it supersedes the 2026-09-08 export design.** On
+NSB, every focus, event or decision that hands over a DLC-gated legacy armour tier - stockpile or
+production licence - gets an `if = { limit = { has_dlc = "No Step Back" } }` branch before the
+unchanged legacy `else`. The NSB branch has the producer (or licensor) call
+`cwic_supply_<legacy tier> = yes`, then hands over that producer's historical design by
+`variant_name` / `version_name`. There is no generic export design.
 
-The export inventory required by the current grants is:
+**The design is the producer's national preset for that tier when one exists.** The supply guard
+is the preset block verbatim, minus `mark_older_equipment_obsolete`, behind the preset's own flag,
+so the design is reused if the bookmark made it and created once if not; the bookmark and
+research hooks then never make a second copy. Only when no preset exists does the guard supply a
+new design: named from the live localisation the non-NSB game shows for that producer's tier
+(the generic tier name if the producer has none), on the producer's own preset recipe for that
+hull else the hull's first preset, flagged `cwic_supplied_<tier>_created`. Both are pinned in
+`data/Armour_Supply_Manifest.json`; change the manifest and `CWIC_armour_supply_effects.txt`
+together - the validator fails on any divergence, and on a row nothing hands over.
 
-- Main Battle Tank: 1942, 1944, 1950, 1960, 1970 and 1980.
-- Light Tank: 1942 and 1944.
-- Heavy Tank: 1942 and 1944.
-- APC: 1947, 1950, 1960 and 1965.
-- IFV: 1950 and 1965.
+**The hull is the national preset ladder's, not the year rule.** The 2026-09-08 rule (largest
+hull whose year is no later than the legacy row's) disagreed with the ladder every bookmark and
+OOB uses on 125 of 332 hand-overs, so a focus M4 Sherman landed on a different hull from every
+M4 Sherman preset. The manifest's `generation_map` pins the ladder for supplied rows.
 
-All export variants use the established obsolete baseline loadouts. The eight
-equipment-type exceptions remain legacy grants: `mechanized_equipment`,
-`mechanized_equipment_1`, `mechanized_equipment_2`, and
-`mechanized_marine_equipment_1..5`. The first three are pre-designer WWII rows
-without replacements; the marine rows remain legacy until a designer vehicle
-supplies the marine sub-unit. The 11 explicitly reference-only focus paths are
-excluded from this migration and from its validator contract: `FOR HOTFIX/`,
-`Need Finished/`, `OUTDATED_PRC_60s.txt`, `Old/`, `Toberemoved/`, and
-`Trees for 0.35/`.
+**Supply designs are not archived.** The retired exports carried `obsolete = yes` because they were
+placeholders. A supplied design is the producer's real vehicle and stays in its list.
+[INFERENCE] The engine should still refuse production before the hull is researched; not observed.
 
-**Deferred follow-up.** The current focus effects use generic `CWIC Export ...`
-`variant_name` values instead of historical preset variants. This is
-immersion-breaking and does not track the legacy equipment identity. A future
-session must research and map each focus effect/equipment grant to its
-historical variant counterpart. The research cost is intentionally deferred;
-no historical mapping is part of this migration.
+Exceptions unchanged: `mechanized_equipment`, `mechanized_equipment_1`, `mechanized_equipment_2`
+and `mechanized_marine_equipment_1..5` stay legacy grants because the numbered rows are ungated and
+still produce on NSB. The 11 reference-only focus paths stay excluded: `FOR HOTFIX/`, `Need Finished/`,
+`OUTDATED_PRC_60s.txt`, `Old/`, `Toberemoved/`, and `Trees for 0.35/`.
+
+**Legacy tank technologies need their NSB counterpart.** A `set_technology` of `main_battle_tanks_N`,
+`light_tanks_N` or `heavy_tanks_N` is split by DLC the same way, and a research bonus on one also
+lists its counterpart: the NSB technology that enables the hull its equipment maps to
+(`main_battle_tanks_N` -> `nsb_main_battle_tanksN-1`, `light_tanks_N` -> `nsb_light_tanksN-1`,
+`heavy_tanks_N` -> `nsb_heavy_tanksN-1`, `heavy_tanks_5` -> `nsb_heavy_tanks3`,
+`main_battle_tanks_7` -> `nsb_main_battle_tanks5`). Legacy `mechanized_infantry*` technologies are
+shared by both profiles and need nothing.
+
+## Armour bonuses target designer families, ratified 2026-09-24
+
+**An equipment bonus names the designer family, never a legacy armour archetype.** Every legacy
+archetype (`mbt_equipment`, `lt_equipment`, `ht_equipment`, `mechanized_equipment`,
+`mechanized_heavy_equipment`, the SP artillery, SPAA, TD and ATGM carrier roots) has zero members:
+its rows belong to a designer family on both profiles. So `medium_tank_chassis` reaches the legacy
+rows on non-NSB and designer tanks on NSB, and `mbt_equipment` reaches nothing on either. The
+mapping is `RETIRED_ARMOUR_BONUS_KEYS` in the validator. Reviving the 175 dead bonuses changes both
+profiles' balance. That is taken as restoring authored content under the delegated design
+judgment; the owner has not reviewed the balance effect.
+
+**A technology bonus names a category a technology carries.** The `cat_*_armor` categories are
+carried only by legacy `armor.txt`, and `cat_mechanized_equipment` by nothing. Use `armor_light`,
+`armor_medium`, `armor_heavy` and `infantry_vehicles_apc`, which both trees carry.
 
 ## Stockpile grants
 

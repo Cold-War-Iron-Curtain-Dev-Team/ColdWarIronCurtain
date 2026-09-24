@@ -1,6 +1,6 @@
 # Status
 
-Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-23.
+Branch `tank-designer-and-doctrine-rework-test`. Last updated 2026-09-24.
 
 ## Where the project stands
 
@@ -40,6 +40,13 @@ longer limited to tiers a bookmark date reaches: 386 named designs across 22 gen
 on research completion. The 2026-09-13 conversion measurement is superseded; the naming debt
 was 672 rows, not 979, and only 4 of them were ever addable under the bookmark contract.
 
+**Every armour hand-over in focuses, events and decisions now works on NSB and names a real
+vehicle, as of 2026-09-24 (Finding 53).** `BUL_Soviet_T55s` hands over Comecon's `T-55`, not
+`CWIC Export Main Battle Tank 1950`. The sweep also found 437 event and decision grants that awarded
+nothing on NSB (the whole weapon-purchasing market included), 175 equipment bonuses and 11
+technology bonuses that reach nothing on either profile, and 26 legacy tank-technology references
+with no NSB counterpart. All of them are fixed, and owner in-game QA accepted them 2026-09-24.
+
 ### Committed checkpoints
 
 | Commit | Change |
@@ -78,6 +85,79 @@ Two failures the first gate run reported, both resolved:
    `T-34-85` (historically correct), `BUL_1949_nsb.txt:183,193` to `T-44` (Bulgaria did
    not field T-44s; the request's chassis tier, not the name, is the ahistorical part).
    These were latent breakage, not a regression.
+
+## Merge readiness inventory, 2026-09-24
+
+Owner question: can the branch merge into `development-branch`? **Verdict: yes, mechanically,
+with three pre-merge housekeeping items and a known-open list that is content work, not a
+blocker.** Everything below was measured, not assumed.
+
+### Merge mechanics
+
+- Branch is 84 commits ahead of and 24 behind `origin/development-branch` (base `4a999ae3f3`,
+  2026-09-03), and one local commit ahead of its own remote. Finding 53 is uncommitted.
+- A trial merge of the branch **plus the uncommitted Finding 53 work** conflicts in exactly three
+  files, all SOV focus trees: `SOV_Chinese_Civil_War_Branch.txt` and `SOV_Korean_War_Branch.txt`
+  (deleted on `development-branch` by `d9f64b66e4`, which moved those branches into
+  `common/decisions/SOV.txt`) and `SOV_Stalin.txt`. Our side of all three is Finding 1/53 armour
+  branches plus one doctrine category line that no longer exists upstream. **Resolution: take
+  `development-branch`'s side of all three.**
+- On that resolved tree, `--tank-self-test` **passes**: 6639 stockpile grants and 1573 armour
+  hand-overs. The six fewer hand-overs are the deleted SOV branches, and upstream's new SOV decisions
+  add no ungated legacy armour. Static only; the merged tree was not launched.
+
+### Pre-merge housekeeping
+
+1. **Commit Finding 53** (170 tracked files plus `CWIC_armour_supply_effects.txt` and
+   `data/Armour_Supply_Manifest.json`). Leave `.gitignore` unstaged; it is someone else's work.
+2. **`interface/popupwindow.gui` is already committed on this branch** (`660f8984ae`, +16 lines, two
+   hidden `iconType`s). README lists it as carrying other people's work. The owner must confirm
+   it belongs in the merge.
+3. **Non-English localisation was edited on this branch** (`ff036b399b`, `73c23beb19`): 72 lines deleted
+   across `french/`, `japanese/` and `russian/` `designer_l_*` / `tank_modules_l_*`. Every deleted
+   key names a removed vanilla chassis (modern, super-heavy, amphibious), so it is cleanup, but it breaks
+   the English-only rule. Tell the translation owners, or revert those hunks before merging.
+
+### Known-open, grouped as the owner asked
+
+**3D models - the weakest area.**
+- `zz_CWIC_armor_entity_aliases.asset` loads last, and the validator pins 140 aliases that shadow a
+  national entity (`native_overrides = 140`). Measured on the merged tree, 63 of those names are
+  `<TAG>_tank_destroyer_0..4_entity` for 13 Warsaw Pact tags, where `<TAG>_units_tanks.asset`
+  authors real TD models (`SOV_tank_destroyer_1_mesh`, `b742529647`, 2026-07-12). The alias clones
+  the tag's medium tank over them. The fresh log shows 141
+  `Duplicate of ..._entity added to entity system` lines for these tags. Recommended fix before or
+  right after merging: drop every alias whose name a national asset already declares, and lower the
+  pin to 0. Authored models then win; it needs one in-game look at a Warsaw Pact TD battalion.
+- Twelve hull-consuming sub-units still have zero aliases (Finding 28 "Coverage still owed"), so
+  they render the default mesh. This is content authoring.
+- Rendered battlefield models have never been confirmed in game for SP artillery, SPAAG, TD or ATGM
+  battalions (Finding 28).
+
+**GFX.**
+- The per-type blueprint lookup (`<type>_<tag>`) is unconfirmed in game. Only USA `M47 Patton` has a
+  custom blueprint, and 2,320 national designs fall back to the untagged root outline (Finding 52).
+  That is a worklist, not a defect.
+- The 16 zero-byte plane, ship and HQ `graphic_db` files are identical on `development-branch`, so
+  this branch did not cause them. The 8 blank tank files are intentional and validator-pinned;
+  `00_tank_icons.txt` replaces them.
+- Fresh owner log, 2026-09-24 13:47: **0** `Couldnt find texticon` lines, so Finding 21's spam is
+  gone in practice. The 8 `JAP_light_armor_*_entity` graphic-database misses come from vanilla
+  `dlc025_axis_armor_pack`, not this mod; the mod's `00_tank_icons.txt` references 4,499 entities
+  and all resolve.
+
+**Edge cases not yet exercised.**
+- A producer receiving a supplied design before researching its hull (Finding 53 risk 1).
+- The French and West German 1949 starts, every non-USA tag at either bookmark, and long-run AI
+  production and factory assignment for `land_apc` / `land_ifv` ("Not yet verified, any batch").
+- Tranche 2 QA: `light_tank_ifv_chassis_6/7/8` research helpers and the 23 bookmark rows.
+- Designer UI at 1920x1080 and 2560x1440, at 1.0x and 2.4x.
+
+**Content still owed, none of it merge-blocking.** Owner ruling on the ATGM stockpile residue
+(`DECISIONS.md`). OOB references for the four carrier battalions, and 16 awaiting OOB requests.
+The mass non-NSB to NSB conversion. The `--tank-balance-report` command is red on clean `HEAD`
+(module mirror missing 20 ids plus the retired `flamethrower` row). No balance acceptance exists
+for any designer content.
 
 ## Open findings
 
@@ -125,12 +205,9 @@ The 11 explicitly reference-only focus paths remain outside this contract:
 and `Trees for 0.35/`. Static validation passed; no live QA or balance acceptance
 is claimed for this migration.
 
-Deferred follow-up: the migrated NSB focus effects currently use generic
-`CWIC Export ...` `variant_name` values rather than historical preset variants.
-This is immersion-breaking and does not track the legacy equipment identity.
-Another session must research and map each focus effect/equipment grant to its
-historical variant counterpart. This is intentionally deferred because the
-research cost is high; no mapping is implemented in this pass.
+~~Deferred follow-up: generic `CWIC Export ...` `variant_name` values instead of historical
+preset variants.~~ **Resolved 2026-09-24 by Finding 53.** Every grant now hands over the
+producer's historical design, and the export designs and the year-rule chassis mapping are gone.
 
 ### Finding 2: base gasoline engine outranked the CWIC petrol ladder - resolved
 
@@ -3528,6 +3605,177 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 53: armour hand-overs name the producer's real vehicle, and what the sweep found, 2026-09-24
+
+Owner scope: sweep every focus, event and other piece of content that hands out armour, and make
+the NSB reward accurate - a Soviet T-55 focus should give T-55s, not a generic hull. Finding 1's
+deferred follow-up is closed by this. `DECISIONS.md` "Legacy armour hand-overs" carries the rules.
+
+### What the sweep measured
+
+| Surface | Sites | State before | Now |
+| --- | ---: | --- | --- |
+| Focus grants and licences on `CWIC Export ...` designs | 323 + 9 | worked on NSB, generic name, year-rule hull | producer's historical design |
+| Event grants of DLC-gated legacy tiers, 16 files | 72 | **empty on NSB** | NSB branch added |
+| Decision grants, 6 files: 360 in the four weapon-purchasing markets, 4 WGR, 1 Ethiopia | 365 | **empty on NSB** - the player paid and received nothing | NSB branch added |
+| Focus legacy grants and licences with no NSB branch | 5 + 17 | empty on NSB | NSB branch added |
+| `equipment_bonus` keyed on `mbt_equipment`, `lt_equipment` and 9 other legacy archetypes, 35 files | 175 | **inert on both profiles** | keyed on the designer family |
+| `add_tech_bonus` on `cat_*_armor` / `cat_mechanized_equipment` | 11 | inert on NSB / on both | `armor_*` / `infantry_vehicles_apc` |
+| Legacy tank technology rewards | 14 grants, 10 research bonuses, 2 option triggers | empty on NSB | NSB counterpart added |
+
+The equipment-bonus row is the surprise. Every legacy armour archetype lost all of its members when
+the rows were reparented onto designer families (`dbf084d049`, July, already on
+`development-branch`), so an idea such as `lt_equipment = { build_cost_ic = -0.1 }` has applied to
+nothing on either profile since then. `cat_medium_armor`, `cat_light_armor` and `cat_heavy_armor`
+are carried only by legacy `armor.txt` technologies, and **no technology carries
+`cat_mechanized_equipment`** - so Finding 5's `BRA_50s.txt:3601` repair to that category still
+applied to nothing. On the legacy tree the `armor_*` categories cover the same technologies as the
+`cat_*` ones, except that `cat_heavy_armor` also reached the two super-heavy technologies; the one
+`cat_heavy_armor` bonus (`60sgeneric.txt`) loses them.
+
+### The mechanism
+
+`common/scripted_effects/CWIC_armour_supply_effects.txt` replaces `CWIC_tank_focus_effects.txt`:
+44 helpers `cwic_supply_<legacy tier>`, 188 per-producer guards, pinned by
+`data/Armour_Supply_Manifest.json`. An NSB hand-over reads:
+
+```
+CUM = { cwic_supply_mbt_equipment_3 = yes }
+add_equipment_to_stockpile = { type = medium_tank_chassis_3 amount = 200 producer = CUM variant_name = "T-55" }
+```
+
+Each (producer, legacy tier) resolves once:
+
+- **110 canonical rows.** The producer already has a national preset for that tier - bookmark,
+  research-time, USA/SOV medium or carrier. The guard is that preset's block verbatim, minus
+  `mark_older_equipment_obsolete`, behind the preset's own flag. If the bookmark already made the
+  design it is reused; if not, it is created once and the bookmark or research hook can never make
+  a second copy.
+- **78 supplied rows.** No preset exists, mostly for the four manufacturer blocs' post-1980 stock.
+  The name is the live localisation the non-NSB game shows for that producer's tier (`CUM` T-80U,
+  `CAP` M1A1, `MAO` ZTZ96), or the generic tier name where the bloc has none (`IND` and `MAO`
+  SP artillery, SPAA and ATGM carriers). The recipe is the producer's own preset on that hull,
+  else the hull's first preset, and the flag is `cwic_supplied_<tier>_created`.
+
+The hull is the one the national preset ladder uses, not Finding 1's year rule. They disagreed on
+125 of the 332 existing hand-overs - for example the year rule put M4 Sherman grants on
+`medium_tank_chassis_1` while every M4 Sherman preset is on `_0`. `generation_map` in the
+manifest pins the ladder for supplied rows.
+
+### Content defects fixed on the way
+
+- `FRA_1950s.txt:5569` granted the archetype `mbt_equipment` ("Receive M47 Patton from the US"),
+  which is not buildable on either profile. Now `mbt_equipment_3`, USA's M47.
+- `INO_Utilize_M3_Stuart` granted `light_tank_chassis_1` with no design name and no DLC branch.
+  Now the standard pair: legacy `lt_equipment_1`, NSB USA `M5 Stuart` and ENG `M3 Honey (Stuart)`.
+- `GRE_heavy_weapons_tanks_arty` gated its NSB branch on `nsb_light_tanks1` while granting the M41
+  from the 1950 hull; the gate is now `nsb_light_tanks2`, the counterpart of legacy `light_tanks_3`.
+
+### Validator
+
+`validate_focus_armour_grants()` and the `EXPORT_VARIANTS` contract are replaced by three:
+
+- `validate_armour_grants()` scans focuses, **events and decisions** - the old contract covered
+  focuses only, which is how 437 empty grants went unseen. A gated legacy tier must sit in the legacy
+  branch of an NSB split. A designer hand-over must name a manifest design, sit in the NSB branch,
+  and follow a supply call scoped on its producer or licensor.
+- `validate_armour_supply()` pins helpers and guards to the manifest. Canonical guards must equal
+  their preset; supplied names must equal live localisation at the recorded file and line; no guard
+  may archive its design; every row must be handed over somewhere.
+- `validate_armour_bonus_targets()` fails on an equipment bonus keyed on a retired legacy archetype,
+  an armour technology-bonus category no technology carries, a research bonus on a legacy tank
+  technology without its NSB counterpart, and a legacy tank-technology grant outside a DLC split.
+
+The Equipment Match icon contract now covers the supply file. Six new negative fixtures: missing
+NSB gate, a name the producer is never given, a supply call for the wrong tier, supplied-name
+drift, a canonical guard diverging from its preset, and an unused row.
+
+**The old export-name check had never run.** It read `variant_name` with `top_level_values()`,
+which skips quoted strings by design, so `startswith("CWIC Export ")` never matched. The new
+contract reads quoted values with `quoted_values()`.
+
+```
+before: ... 6219 stockpile grants, ... 2488 Equipment Match design icons, and 20 designer slots checked
+after:  ... 6661 stockpile grants, ... 2676 Equipment Match design icons, 1579 armour hand-overs, and 20 designer slots checked
+```
+
+Every other count is unchanged. Localisation audit clean; workbook SHA unchanged. The
+`--tank-balance-report --tank-module-balance-report --tank-envelope-report` run fails with the
+same five module-mirror errors on a clean `HEAD` worktree (`flamethrower` row 330 and 20 module
+ids missing from both CSV mirrors), so this pass did not cause them. They are open.
+
+### Owner QA 2026-09-24: ACCEPTED
+
+Owner tested focus, event and decision hand-overs in game and all came back correct; the finding is
+resolved. Behaviour is accepted, not balance. The early-production question and the non-NSB effect
+of the revived bonuses below were not called out in that test and stay open as edge cases.
+
+### Risks recorded at implementation
+
+Static verification only at the time. No balance is claimed.
+
+- **Early designs on real producers.** A supplied or canonical design is created on the producer
+  when the hand-over fires, without `obsolete = yes`. SOV handing over T-55s in a 1949 campaign
+  therefore owns a T-55 design before it researches that hull. [INFERENCE] The engine should refuse
+  production until the hull technology is researched; that has not been observed. If it does not,
+  the fix is to gate the guard on the hull technology and fall back to an archived copy.
+- **Stats moved.** Every old export mounted the same baseline (`tank_*_cannon0`, `Bogie_0`,
+  `Armor_0_W`, pre-WW2 gasoline engine) whatever its year. Hand-overs now carry the national
+  preset's recipe, so a focus T-55 is the preset T-55. [INFERENCE] Most rewards got stronger; not
+  measured.
+- **Revived bonuses change the non-NSB game too.** The 175 equipment bonuses were inert on both
+  profiles; they now apply on both.
+- **What to check in game:** complete `BUL_Soviet_T55s` and `FIN_Acquire_Soviet_T55s` on NSB
+  (T-55s arrive, the FIN licence resolves); buy `WP_CUM_mbt_equipment_4` (T-62s arrive, CUM gets no
+  duplicate); fire `ENG_event.24` on both profiles; check `error.log` for `create_equipment_variant`
+  or `variant_name` lines.
+
+Out of scope and unchanged: the ratified ungated legacy exceptions (`mechanized_equipment_1/2`,
+`mechanized_marine_equipment_1..5`), which still produce on NSB, and the 11 reference-only focus
+paths.
+
+## Finding 52: blueprint vehicle map, the worklist for per-vehicle outlines, 2026-09-23
+
+Owner scope: list every historical vehicle each designer blueprint has to depict, like the 1950 USA
+medium outline in Finding 50, and leave room for stylized blueprint-style production icons later.
+Those icons are recorded, not authored: drawing ~2,400 of them is beyond what this workflow can
+produce.
+
+`data/Blueprint_Vehicle_Map.csv` has 2,623 rows, ASCII with LF line endings. Query it; do not read it.
+
+- **135 `generic` rows,** one per designer chassis type: light 6 roles x 10, medium 6 x 10, heavy
+  3 x 5. These are the untagged fallback outlines. 70 types have no national design:
+  `medium_tank_apc`, `medium_tank_ifv`, `medium_tank_aa`, `heavy_tank_destroyer`, and tiers no
+  bookmark or research name reaches.
+- **2,488 `national` rows,** one per `create_equipment_variant` in
+  `CWIC_national_armour_naming_presets.txt` (1,434), `CWIC_national_tank_presets.txt` (601) and
+  `CWIC_research_armour_naming.txt` (453). The 16 `CWIC Export` focus designs are excluded. Each
+  row is joined on (producer, type, name) to its manifest for `legacy_row` and `name_source`, and
+  all 2,488 join. The 14 USA/SOV medium presets record a localisation key rather than file:line.
+- **Blueprint key** = `chassis_type` + `tag`: 2,380 distinct keys across 87 tags.
+  `designs_on_blueprint_key` > 1 means several names share one outline, for example SOV
+  `BTR-60P` and `BTR-60PB` on `light_tank_apc_chassis_4`.
+- `blueprint_now_*` is the window the engine resolves today. Lookup order assumed: `<type>_<tag>`,
+  `<type>`, `<root>_<tag>`, `<root>`. **The per-type step is still unconfirmed in game** (Finding 50
+  QA). 168 national rows resolve to a vanilla major's outline; 2,320 resolve to the untagged root.
+- `blueprint_target_*` follows the `DECISIONS.md` naming: window, GUI file, `GFX_TC_` sprite and
+  `cwic/cwic_<tag>_<type>_blueprint.dds`. The only `custom_shipped` row is USA `M47 Patton`, and its
+  derived texture path matches the shipped sprite exactly.
+- `equipment_match_icon` and `icon_source_texture` are the current production picture and its DDS,
+  resolved through mod-over-vanilla `.gfx`. This is the art to trace for either outline.
+- `stylized_icon_sprite` / `_texture` are blank and `stylized_icon_status` is `not_started`
+  everywhere. No naming convention has been ratified for these icons.
+
+It is a snapshot generated from the three scripted-effects files, so a rename or a new preset makes
+it stale. The validator does not read it.
+
+Static only: no game file changed. The pre-edit baseline passed on the README pass line, unchanged.
+That run happened while an owner `-debug` session (started from the launcher) was live, which the
+README forbids: its fixtures rewrite `mechanized.txt` / `mechanized_heavy.txt`, so that session's
+`error.log` may hold the spurious `A limit for category X already exists` lines from Finding 8. Both
+files were left clean. The post-edit run was skipped for the same reason; this change touches no
+file the validator reads.
+
 ## Finding 51: two Soviet prototypes replaced, and ASU-57 reclassified, 2026-09-23
 
 Soviet dev report: `Su-100P` and `Su-152G` are prototypes, not service designs. **Neither the
@@ -4614,9 +4862,9 @@ per-country art can attach to designer equipment at all - see the icon-resolutio
    field the heavy carriers, a dead `lt_equipment` upgrade trigger is fixed, and
    `validate_ai_templates()` guards the class. Static only; AI behaviour unobserved.
 13. **Next: the mass non-NSB to NSB conversion, item 6.** It is now the only large functional
-   item left. Two smaller ones remain beside it: the focus-grant historical variant mapping
-   (Finding 1's deferred follow-up, 314 grants on generic `CWIC Export ...` names) and OOB
-   references for the four carrier battalions, which no scripted order of battle fields yet.
+   item left. One smaller one remains beside it: OOB references for the four carrier battalions,
+   which no scripted order of battle fields yet. ~~The focus-grant historical variant mapping~~ is
+   **done 2026-09-24, Finding 53**, widened to events and decisions.
 14. ~~A both-profiles enabler for `heavy_tank_destroyer_brigade` and
    `medium_sp_anti_air_brigade`.~~ **Done 2026-09-17, Finding 39.** Both moved onto
    `tank_destroyer_1` and `spaag_1`, so they work on either profile and the AI can field them.
