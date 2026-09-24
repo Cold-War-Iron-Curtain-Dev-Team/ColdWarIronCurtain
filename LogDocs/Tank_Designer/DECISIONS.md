@@ -1128,6 +1128,14 @@ already exists in the repo for exactly this. Source targets are frozen in `BALAN
 **Workbook is frozen; the CSV is the living balance mirror** with explicit reviewed
 overrides.
 
+## Historical names are corrected at their localisation source, ratified 2026-09-23
+
+A national preset's name is the live localisation string of its legacy tier, and the validator
+enforces it. A wrong or ahistorical name is fixed in that localisation key for every country using
+it. Then the naming manifest, the preset block, any scripted `variant_name` and the tier's
+sprite follow. Both DLC profiles therefore show the same name. There is no NSB-only override list.
+First applied in `STATUS.md` Finding 51: Su-100P -> ASU-57, ASU-57 -> SU-100, Su-152G -> SU-152.
+
 ## Producer resolution
 
 A design's producer resolves as **producer, then creator, then owner, then the OOB

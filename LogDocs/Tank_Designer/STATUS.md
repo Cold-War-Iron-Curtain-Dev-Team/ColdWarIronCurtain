@@ -3528,6 +3528,48 @@ statically. That closes the research-time mechanism: the guard-then-flag orderin
 `on_research_complete` hooks and the provenance-checked names all work against a real campaign.
 Balance of the 22 authored recipes is still unexercised - acceptance covers behaviour, not stats.
 
+## Finding 51: two Soviet prototypes replaced, and ASU-57 reclassified, 2026-09-23
+
+Soviet dev report: `Su-100P` and `Su-152G` are prototypes, not service designs. **Neither the
+design docs nor this project chose those names.** They are the tier-2 strings from the 2019
+non-NSB localisation (`32c5031311`, "Equipment Descriptions/Naming Work"). The Finding 35 naming
+pass copies a legacy tier's live localisation string verbatim and checks that it exists, not
+that it is historically right.
+
+Owner rulings: fix at the source localisation, for every country using the names; ASU-57 is an
+airborne assault gun and moves to light SP artillery, freeing the medium tank destroyer slot for
+SU-100. All three are hull tier 2 (1944), so recipes, hulls, research gates and creation flags
+are unchanged.
+
+| Legacy key (tier 2) | Before | After | Countries |
+| --- | --- | --- | --- |
+| `<TAG>_light_sp_artillery_equipment_2` | Su-100P | ASU-57 | ADR AFG CUM EGY IRQ MON PRC SOV SYR UKR |
+| `<TAG>_medium_tank_destroyer_equipment_2` | ASU-57 | SU-100 | AFG CUM MON SOV UKR |
+| `<TAG>_sp_artillery_equipment_2` | Su-152G | SU-152 | ADR AFG CUM CZE IRQ MON PRC SOV UKR |
+
+Changed together: 48 localisation lines across 10 English files (name and `_short`),
+`Tank_Naming_Preset_Manifest.json` (24 presets, `name` / `source_name` / `raw_source_name`), the 24
+preset blocks, `Historical_Vehicle_Reverse_Map.json`, and the one scripted grant naming a renamed
+design: `SOV_1980_nsb.txt` stockpile `medium_tank_destroyer_chassis_2` "ASU-57" -> "SU-100" (amount
+1000 unchanged). The non-NSB game shows the new names too. Commented-out lines were left alone.
+
+Pictures, repointed in the country `_techs.gfx` sprites so NSB and non-NSB agree:
+`GFX_<TAG>_light_sp_artillery_2_medium` (10 tags, ADR twice) -> `SOV_tank_destroyer_2.dds`, the
+ASU-57 photo; `GFX_<TAG>_tank_destroyer_2_medium` (5 tags) -> `ROM_tank_destroyer_1.dds`, the
+SU-100 photo (Soviet dev confirmed). **SU-152 has no photo in the library**, so every
+`sp_artillery_2` sprite still shows the Su-152G prototype (IRQ: the Egyptian T-34 SPG). This needs
+art. `EGY_sp_lt_art_2.dds` (an Egyptian SU-100) is now unreferenced and kept. Sprite names are
+unchanged, so the graphic database and preset icons do not move.
+
+Heavy SP artillery tier 2 `2B1 Oka` is also a prototype and stays by owner ruling: the Soviet
+Union fielded no 1950s heavy SP artillery, and the name is a deliberate placeholder in place of
+a generic one. No preset uses it. Owner considers the armour name mapping complete.
+
+Validation: `--tank-self-test` passes with the pass line unchanged (601 national presets, 2488
+Equipment Match design icons), so the naming provenance contract accepts the new localisation;
+`loc_audit_1.py --check` clean; BOM, line endings and ASCII unchanged in every touched file.
+Static only; nothing seen in game.
+
 ## Finding 50: armour tab condensed, and the first custom blueprint art, 2026-09-23
 
 Owner QA of Finding 49: icons accepted as satisfactory. Owner's own same-day edits, verified by
