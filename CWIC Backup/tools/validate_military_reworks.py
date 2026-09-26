@@ -3201,6 +3201,21 @@ def validate_armour_grants(overrides: dict[str, str] | None = None) -> set[tuple
 armour_handover_count = 0
 
 
+def history_supply_calls() -> dict[str, list[tuple[str, str]]]:
+    """set_oob target -> (tag, legacy tier) supplied between the starting variants and set_oob.
+
+    A bookmark stockpile of a tier no national preset covers is created this way, so the OOB
+    it loads can stock the producer's design by name.
+    """
+    calls: dict[str, list[tuple[str, str]]] = {}
+    for path in sorted(HISTORY_DIR.glob("*.txt")):
+        for match in re.finditer(r'((?:[ \t]*cwic_supply_\w+ = yes\n)+)[ \t]*set_oob = "(\w+)"', text(path)):
+            calls.setdefault(match.group(2), []).extend(
+                (path.name[:3], legacy) for legacy in re.findall(r"cwic_supply_(\w+) = yes", match.group(1))
+            )
+    return calls
+
+
 def canonical_armour_guards() -> dict[tuple[str, str, str], tuple[str, str]]:
     """(tag, type, name) -> (flag, create_equipment_variant block) for every national preset."""
     guards: dict[tuple[str, str, str], tuple[str, str]] = {}
@@ -3304,8 +3319,8 @@ def validate_armour_supply(
             fail(f"{label} duplicates a national preset; resolve it as canonical")
         if flag != f"cwic_supplied_{legacy}_created":
             fail(f"{label} must use flag cwic_supplied_{legacy}_created")
-        if generation.get(legacy) != kind:
-            fail(f"{label} must use its generation {generation.get(legacy)}")
+        if generation.get(legacy) != kind and not row.get("hull_override"):
+            fail(f"{label} must use its generation {generation.get(legacy)} or record a hull_override reason")
         raw, source_path, source_line = naming_localisation_entry(row["legacy_name_key"])
         if (raw, source_path, source_line) != (row["source_name"], row["source_path"], row["source_line"]):
             fail(f"{label} name provenance differs from live localisation")
@@ -3785,7 +3800,10 @@ def validate_tank_rework() -> None:
     if removed_blueprints:
         fail(f"removed tank designer GUI files remain: {removed_blueprints}")
 
-    validate_armour_supply(used=validate_armour_grants())
+    validate_armour_supply(
+        used=validate_armour_grants()
+        | {pair for pairs in history_supply_calls().values() for pair in pairs}
+    )
     validate_armour_bonus_targets()
     focus_contracts = {
         "BRA_american_tanks": ("nsb_main_battle_tanks2", "medium_tank_chassis_3", "Tank, Combat, Full Tracked: 90-mm Gun, M47"),
@@ -5313,6 +5331,15 @@ oob_required_techs: dict[str, set[str]] = {}
 foreign_producer_techs: dict[tuple[str, str], set[str]] = {}
 oob_files_with_tanks: list[Path] = []
 versioned_oob_requests = 0
+supply_rows = {(row["producer"], row["legacy"]): row for row in SUPPLY_DESIGNS}
+history_supplied: dict[str, set[tuple[str, str, str]]] = {}
+for oob, calls in history_supply_calls().items():
+    for tag, legacy in calls:
+        row = supply_rows.get((tag, legacy))
+        if row is None:
+            fail(f"{tag} history supplies {legacy} before {oob}, but no {tag} armour supply design exists")
+            continue
+        history_supplied.setdefault(oob, set()).add((row["type"], tag, row["name"]))
 for path in sorted(OOB_DIR.glob("*_nsb.txt")):
     value = code_only(text(path))
     refs = set(OOB_TANK_PATTERN.findall(value))
@@ -5358,6 +5385,8 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
 
     def record_request(block: str, equipment_type: str, name: str | None) -> None:
         creator = oob_variant_producer(block, path.stem[:3])
+        if (equipment_type, creator, name) in history_supplied.get(path.stem, set()):
+            return
         technology = request_tech(equipment_type, creator, name)
         if technology is None:
             return
@@ -5376,7 +5405,8 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
             type_match = re.search(
                 r"\btype\s*=\s*([A-Za-z0-9_]+)", code_only(block)
             )
-            if not type_match or type_match.group(1) not in BOOKMARK_VARIANT_TECHS:
+            supplied_types = {kind for kind, _, _ in history_supplied.get(path.stem, set())}
+            if not type_match or type_match.group(1) not in BOOKMARK_VARIANT_TECHS.keys() | supplied_types:
                 continue
             tank_type = type_match.group(1)
             name_match = re.search(
@@ -5387,7 +5417,10 @@ for path in sorted(OOB_DIR.glob("*_nsb.txt")):
                     f"{path.name} {effect} request for {tank_type} does not select "
                     f"an explicit variant with {field}"
                 )
-            elif name_match.group(1) not in bookmark_variant_names(tank_type, oob_variant_producer(block, path.stem[:3])):
+            elif name_match.group(1) not in bookmark_variant_names(tank_type, oob_variant_producer(block, path.stem[:3])) | {
+                name for kind, tag, name in history_supplied.get(path.stem, set())
+                if (kind, tag) == (tank_type, oob_variant_producer(block, path.stem[:3]))
+            }:
                 fail(
                     f"{path.name} {effect} request asks for {tank_type} variant "
                     f"{name_match.group(1)!r}, which no bootstrap creates"
@@ -5459,7 +5492,8 @@ for path in sorted(HISTORY_DIR.glob("*.txt")):
                 "",
             ]
         )
-        if not value[: match.start()].endswith(expected):
+        before = re.sub(r"(?:[ \t]*cwic_supply_\w+ = yes\n)+$", "", value[: match.start()])
+        if not before.endswith(expected):
             fail(
                 f"{path.name} does not bootstrap the required chassis technologies and "
                 f"starting variants immediately before set_oob = \"{oob}\""
@@ -6551,8 +6585,7 @@ def validate_entity_alias_contract() -> None:
     # mechanized_airborne, mechanized_marine - already have per-country entities in
     # the <TAG>_unit.asset files, so they need no alias. This file carries the zz_
     # prefix and loads last, so aliasing one of those names would replace a national
-    # model with a generic one; native_overrides pins the pre-existing overrides so
-    # no new one can slip in.
+    # model with a generic one. No alias may shadow a native entity.
     native_levels: dict[tuple[str, str], set[int]] = {}
     for entity_name in declared_entities:
         parsed = ENTITY_ALIAS_NAME.fullmatch(entity_name)
@@ -6560,10 +6593,8 @@ def validate_entity_alias_contract() -> None:
             native_levels.setdefault(
                 (parsed["tag"], parsed["sub_unit"]), set()
             ).add(int(parsed["visual_level"]))
-    # 140 aliases deliberately shadow a native entity; the zz_ prefix makes this
-    # file win. That is pre-existing legacy behaviour, pinned so a new override -
-    # which would silently replace a national model with a generic one - fails.
-    native_overrides = 140
+    # 140 aliases once shadowed national SP artillery, TD and SPAA models with a clone of
+    # the tag's medium tank; they were removed 2026-09-24 so the authored models win.
 
     alias_tags: set[str] = set()
     alias_levels: dict[tuple[str, str], list[int]] = {}
@@ -6601,11 +6632,8 @@ def validate_entity_alias_contract() -> None:
         len(set(levels) & native_levels.get(pair, set()))
         for pair, levels in alias_levels.items()
     )
-    if overrides != native_overrides:
-        fail(
-            f"entity alias overrides of native entities changed: expected "
-            f"{native_overrides}, found {overrides}"
-        )
+    if overrides:
+        fail(f"{overrides} entity aliases shadow a native entity and would replace a national model")
     covered = {pair for pair in alias_levels} | set(native_levels)
     covered_sub_units = {sub_unit for _, sub_unit in covered}
     for sub_unit in sorted(armour_hull_sub_units - covered_sub_units):

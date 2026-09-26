@@ -95,7 +95,8 @@ blocker.** Everything below was measured, not assumed.
 ### Merge mechanics
 
 - Branch is 84 commits ahead of and 24 behind `origin/development-branch` (base `4a999ae3f3`,
-  2026-09-03), and one local commit ahead of its own remote. Finding 53 is uncommitted.
+  2026-09-03). Finding 53 is committed (`3cb1c640e7`); the 3D model fix and ATGM ruling below follow in the next commit.
+  Nothing is pushed.
 - A trial merge of the branch **plus the uncommitted Finding 53 work** conflicts in exactly three
   files, all SOV focus trees: `SOV_Chinese_Civil_War_Branch.txt` and `SOV_Korean_War_Branch.txt`
   (deleted on `development-branch` by `d9f64b66e4`, which moved those branches into
@@ -106,33 +107,42 @@ blocker.** Everything below was measured, not assumed.
   hand-overs. The six fewer hand-overs are the deleted SOV branches, and upstream's new SOV decisions
   add no ungated legacy armour. Static only; the merged tree was not launched.
 
-### Pre-merge housekeeping
+### Pre-merge housekeeping - done 2026-09-24
 
-1. **Commit Finding 53** (170 tracked files plus `CWIC_armour_supply_effects.txt` and
-   `data/Armour_Supply_Manifest.json`). Leave `.gitignore` unstaged; it is someone else's work.
-2. **`interface/popupwindow.gui` is already committed on this branch** (`660f8984ae`, +16 lines, two
-   hidden `iconType`s). README lists it as carrying other people's work. The owner must confirm
-   it belongs in the merge.
-3. **Non-English localisation was edited on this branch** (`ff036b399b`, `73c23beb19`): 72 lines deleted
-   across `french/`, `japanese/` and `russian/` `designer_l_*` / `tank_modules_l_*`. Every deleted
-   key names a removed vanilla chassis (modern, super-heavy, amphibious), so it is cleanup, but it breaks
-   the English-only rule. Tell the translation owners, or revert those hunks before merging.
+1. **Finding 53 committed** as `3cb1c640e7`. `.gitignore` left unstaged; it is someone else's work.
+2. **`interface/popupwindow.gui`** (`660f8984ae`, +16 lines): owner ruling, it merges with the rest
+   of the content this one time.
+3. **The non-English localisation deletions** (`ff036b399b`, `73c23beb19`, 72 lines of retired
+   modern, super-heavy and amphibious chassis keys in `french/`, `japanese/` and `russian/`): owner
+   ruling, they merge with the rest this one time. The English-only rule still stands.
+
+### 3D models - national models no longer shadowed, 2026-09-24
+
+`zz_CWIC_armor_entity_aliases.asset` loads last, and 140 of its aliases shared a name with an entity
+that a country's own asset file declares: 72 `sp_artillery`, 63 `tank_destroyer` and 5 `spaag`
+entities across 18 tags. Each clone was the tag's medium tank, so for example USA SP artillery and
+every Warsaw Pact TD authored in `b742529647` (2026-07-12) rendered as a medium tank.
+
+**All 140 are deleted, together with the 27 section headers they left empty.** 9,454 -> 9,314 aliases.
+`validate_entity_alias_contract()` no longer pins `native_overrides = 140`; it now fails on any
+alias that shadows a native entity, and a re-added `ALB_tank_destroyer_0_entity` alias was run to
+prove it fires. Alias-or-native coverage is unchanged, because the native entity covers every
+deleted slot. The self-test inventory line is unchanged.
+
+Not touched: 118 aliases share a name with a **vanilla** national entity (for example
+`AST_medium_armor_0_entity`). Those replace WWII-era vanilla models with the mod's Cold War clones,
+which is the point of the file.
+
+**Owner QA wanted:** a Warsaw Pact tank destroyer battalion and a USA SP artillery battalion should
+now show their own models. The 141 `Duplicate of ..._entity` log lines should drop for those tags.
 
 ### Known-open, grouped as the owner asked
 
-**3D models - the weakest area.**
-- `zz_CWIC_armor_entity_aliases.asset` loads last, and the validator pins 140 aliases that shadow a
-  national entity (`native_overrides = 140`). Measured on the merged tree, 63 of those names are
-  `<TAG>_tank_destroyer_0..4_entity` for 13 Warsaw Pact tags, where `<TAG>_units_tanks.asset`
-  authors real TD models (`SOV_tank_destroyer_1_mesh`, `b742529647`, 2026-07-12). The alias clones
-  the tag's medium tank over them. The fresh log shows 141
-  `Duplicate of ..._entity added to entity system` lines for these tags. Recommended fix before or
-  right after merging: drop every alias whose name a national asset already declares, and lower the
-  pin to 0. Authored models then win; it needs one in-game look at a Warsaw Pact TD battalion.
+**3D models.**
 - Twelve hull-consuming sub-units still have zero aliases (Finding 28 "Coverage still owed"), so
   they render the default mesh. This is content authoring.
-- Rendered battlefield models have never been confirmed in game for SP artillery, SPAAG, TD or ATGM
-  battalions (Finding 28).
+- Rendered battlefield models are not yet confirmed in game for SP artillery, SPAAG, TD or ATGM
+  battalions (Finding 28); the QA above covers part of it.
 
 **GFX.**
 - The per-type blueprint lookup (`<type>_<tag>`) is unconfirmed in game. Only USA `M47 Patton` has a
@@ -146,18 +156,32 @@ blocker.** Everything below was measured, not assumed.
   `dlc025_axis_armor_pack`, not this mod; the mod's `00_tank_icons.txt` references 4,499 entities
   and all resolve.
 
-**Edge cases not yet exercised.**
-- A producer receiving a supplied design before researching its hull (Finding 53 risk 1).
-- The French and West German 1949 starts, every non-USA tag at either bookmark, and long-run AI
-  production and factory assignment for `land_apc` / `land_ifv` ("Not yet verified, any batch").
-- Tranche 2 QA: `light_tank_ifv_chassis_6/7/8` research helpers and the 23 bookmark rows.
-- Designer UI at 1920x1080 and 2560x1440, at 1.0x and 2.4x.
+**Edge cases - owner dispositions 2026-09-24.**
+- A producer receiving a supplied design before researching its hull: **accepted as is.** Gating it
+  would break more gameplay than it protects.
+- The French and West German 1949 starts, non-USA tags, and long-run AI production for
+  `land_apc` / `land_ifv`: **covered by the owner's planned AI 1949-1980 playthrough.**
+- Tranche 2 QA (`light_tank_ifv_chassis_6/7/8` helpers, 23 bookmark rows) and the designer UI at
+  1920x1080 and 2560x1440, at 1.0x and 2.4x: **handed to other contributors**; both need in-depth research.
 
-**Content still owed, none of it merge-blocking.** Owner ruling on the ATGM stockpile residue
-(`DECISIONS.md`). OOB references for the four carrier battalions, and 16 awaiting OOB requests.
-The mass non-NSB to NSB conversion. The `--tank-balance-report` command is red on clean `HEAD`
-(module mirror missing 20 ids plus the retired `flamethrower` row). No balance acceptance exists
-for any designer content.
+**Owner rulings 2026-09-24.**
+- **ATGM stockpile residue: resolved.** The five SOV and NOR 1980 NSB grants now stock the 9P133
+  Malyutka, 9P148 Konkurs, 9P149 Shturm, Willys MB w/ ENTAC and M113F1 TOW designs. The Shturm is on
+  the 1980 hull by owner choice. The rule and mechanism are in `DECISIONS.md`. The supply manifest grows
+  188 -> 192 rows. Static only.
+- **Heavy Mechanized and Heavy Armored Infantry stay out of starting armies.** The Finding 39 ruling
+  stands; no change.
+
+**Content still owed, none of it merge-blocking.** The mass non-NSB to NSB conversion. The
+`--tank-balance-report` command is red on clean `HEAD` (module mirror missing 20 ids plus the retired
+`flamethrower` row). No balance acceptance exists for any designer content.
+
+**Correction to this inventory's first draft.** It listed "OOB references for the four carrier
+battalions, and 16 awaiting OOB requests". Both were stale. `mechanized_infantry` and
+`armored_infantry` are fielded in 56 and 26 NSB OOBs. Only `heavy_mechanized_infantry` and
+`heavy_armored_infantry` appear in none, which Finding 39 ruled deliberate. The 16 awaiting requests
+were for the generic designs that `3fc96704b7` (Finding 47) deleted, along with
+`AWAITING_OOB_REQUESTS`.
 
 ## Open findings
 
