@@ -30,7 +30,7 @@ if "--help" in sys.argv:
         "--doctrine-self-test and --tank-self-test add in-memory negative fixtures.\n"
         "--tank-balance-report additionally reads the untracked workbook at the repository "
         "root and prints the reviewed scope; the tracked manifest is "
-        "LogDocs/Tank_Designer/data/Balance_Target_Manifest.md."
+        "CWIC Backup/tools/tank_designer_data/Balance_Target_Manifest.md."
     )
     sys.exit(0)
 
@@ -215,17 +215,17 @@ AI_FILE = MOD / "common/ai_equipment/generic_tank.txt"
 ENUM_FILE = MOD / "common/script_enums.txt"
 VARIANT_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_tank_designer_effects.txt"
 SUPPLY_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_armour_supply_effects.txt"
-SUPPLY_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Armour_Supply_Manifest.json"
+SUPPLY_MANIFEST_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/Armour_Supply_Manifest.json"
 SUPPLY_MANIFEST = json.loads(SUPPLY_MANIFEST_FILE.read_text(encoding="utf-8"))
 SUPPLY_DESIGNS = SUPPLY_MANIFEST["designs"]
 NATIONAL_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_national_tank_presets.txt"
-NATIONAL_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/National_Tank_Preset_Manifest.json"
+NATIONAL_MANIFEST_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/National_Tank_Preset_Manifest.json"
 NATIONAL_PRESETS = json.loads(NATIONAL_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
-CARRIER_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/APC_IFV_Preset_Manifest.json"
-NAMING_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Tank_Naming_Preset_Manifest.json"
+CARRIER_MANIFEST_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/APC_IFV_Preset_Manifest.json"
+NAMING_MANIFEST_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/Tank_Naming_Preset_Manifest.json"
 NAMING_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_national_armour_naming_presets.txt"
 NAMING_PRESETS = json.loads(NAMING_MANIFEST_FILE.read_text(encoding="utf-8"))["presets"]
-RESEARCH_NAMING_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Research_Naming_Manifest.json"
+RESEARCH_NAMING_MANIFEST_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/Research_Naming_Manifest.json"
 RESEARCH_NAMING_EFFECT_FILE = MOD / "common/scripted_effects/CWIC_research_armour_naming.txt"
 CARRIER_MANIFEST = json.loads(CARRIER_MANIFEST_FILE.read_text(encoding="utf-8"))
 CARRIER_PRESETS = CARRIER_MANIFEST["presets"]
@@ -255,9 +255,9 @@ LEGACY_ARMOUR_GRANT_PATH_EXCEPTIONS = frozenset(
 TANK_ROLE_FILE = MOD / "common/units/need_for_tank_roles.txt"
 TANK_ICON_FILE = MOD / "interface/cwic_tank_rework_icons.gfx"
 TANK_LOC_FILE = MOD / "localisation/english/tank_modules_l_english.yml"
-BALANCE_MANIFEST_FILE = ROOT / "LogDocs/Tank_Designer/data/Balance_Target_Manifest.md"
-BALANCE_WORKBOOK_FILE = ROOT / "LogDocs/Tank_Designer/data/2023 - CWIC Tank Rework Balance.xlsx"
-BALANCE_CSV_FILE = ROOT / "LogDocs/Tank_Designer/data/2023 - CWIC Tank Rework Balance(Total Balance Sheet Minimal).csv"
+BALANCE_MANIFEST_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/Balance_Target_Manifest.md"
+BALANCE_WORKBOOK_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/2023 - CWIC Tank Rework Balance.xlsx"
+BALANCE_CSV_FILE = ROOT / "CWIC Backup/tools/tank_designer_data/2023 - CWIC Tank Rework Balance(Total Balance Sheet Minimal).csv"
 BALANCE_METRICS = (
     ("reliability", "C", True),
     ("hardness", "D", True),
