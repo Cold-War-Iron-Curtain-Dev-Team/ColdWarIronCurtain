@@ -16,17 +16,8 @@ duplicate_archetypes = {
 	}
 
 	light_tank_artillery_chassis = {
-		archetype = medium_tank_chassis
-		type = { armor artillery }
-		for_each = {
-			variant_name = { find_and_replace = { "chassis" "equipment" } }
-			hardness = { set = 0.5 }
-		}
-	}
-
-	light_tank_rocket_chassis = {
 		archetype = light_tank_chassis
-		type = { armor rocket }
+		type = { armor artillery }
 		for_each = {
 			variant_name = { find_and_replace = { "chassis" "equipment" } }
 			hardness = { set = 0.5 }
@@ -41,13 +32,36 @@ duplicate_archetypes = {
 		}
 	}
 
-	light_tank_flame_chassis = {
+	light_tank_apc_chassis = {
 		archetype = light_tank_chassis
+		# Owner ruling 2026-09-14: APC and IFV are typed flame and rocket because no
+		# mechanized category token exists, and the production icon follows that category, so
+		# these families otherwise inherit the tank hull's own art. No flame or rocket sprite
+		# key exists to override, so the archetype picture carries the carrier art instead.
+		picture = archetype_mechanized_equipment
 		type = { armor flame }
 		for_each = {
 			variant_name = { find_and_replace = { "chassis" "equipment" } }
+			hardness = { set = 0.5 }
 		}
 	}
+
+	light_tank_ifv_chassis = {
+		archetype = light_tank_chassis
+		# Owner ruling 2026-09-14: APC and IFV are typed flame and rocket because no
+		# mechanized category token exists, and the production icon follows that category, so
+		# these families otherwise inherit the tank hull's own art. No flame or rocket sprite
+		# key exists to override, so the archetype picture carries the carrier art instead.
+		picture = archetype_mechanized_heavy_equipment
+		type = { armor rocket }
+		for_each = {
+			variant_name = { find_and_replace = { "chassis" "equipment" } }
+			hardness = { set = 0.6 }
+		}
+	}
+
+
+
 
 	# medium_tank / MBT
 
@@ -60,14 +74,6 @@ duplicate_archetypes = {
 		}
 	}
 
-	medium_tank_heavy_artillery_chassis = {
-		archetype = medium_tank_chassis
-		type = { armor artillery }
-		for_each = {
-			variant_name = { find_and_replace = { "chassis" "equipment" } }
-			hardness = { set = 0.65 }
-		}
-	}
 	medium_tank_artillery_chassis = {
 		archetype = medium_tank_chassis
 		type = { armor artillery }
@@ -76,15 +82,6 @@ duplicate_archetypes = {
 			hardness = { set = 0.65 }
 		}
 	}
-	medium_tank_rocket_chassis = {
-		archetype = medium_tank_chassis
-		type = { armor rocket }
-		for_each = {
-			variant_name = { find_and_replace = { "chassis" "equipment" } }
-			hardness = { set = 0.65 }
-		}
-	}
-
 	medium_tank_destroyer_chassis = {
 		archetype = medium_tank_chassis
 		type = { armor anti_tank }
@@ -93,37 +90,43 @@ duplicate_archetypes = {
 		}
 	}
 
-	medium_tank_flame_chassis = {
+	medium_tank_apc_chassis = {
 		archetype = medium_tank_chassis
+		# Owner ruling 2026-09-14: APC and IFV are typed flame and rocket because no
+		# mechanized category token exists, and the production icon follows that category, so
+		# these families otherwise inherit the tank hull's own art. No flame or rocket sprite
+		# key exists to override, so the archetype picture carries the carrier art instead.
+		picture = archetype_mechanized_equipment
 		type = { armor flame }
 		for_each = {
 			variant_name = { find_and_replace = { "chassis" "equipment" } }
+			hardness = { set = 0.3 }
 		}
 	}
+
+	medium_tank_ifv_chassis = {
+		archetype = medium_tank_chassis
+		# Owner ruling 2026-09-14: APC and IFV are typed flame and rocket because no
+		# mechanized category token exists, and the production icon follows that category, so
+		# these families otherwise inherit the tank hull's own art. No flame or rocket sprite
+		# key exists to override, so the archetype picture carries the carrier art instead.
+		picture = archetype_mechanized_heavy_equipment
+		type = { armor rocket }
+		for_each = {
+			variant_name = { find_and_replace = { "chassis" "equipment" } }
+			hardness = { set = 0.5 }
+		}
+	}
+
+
+
 
 	# heavy_tank
 
-	heavy_tank_aa_chassis = {
-		archetype = heavy_tank_chassis
-		type = { armor anti_air }
-		for_each = {
-			variant_name = { find_and_replace = { "chassis" "equipment" } }
-			hardness = { set = 0.8 }
-		}
-	}
 
 	heavy_tank_artillery_chassis = {
 		archetype = heavy_tank_chassis
 		type = { armor artillery }
-		for_each = {
-			variant_name = { find_and_replace = { "chassis" "equipment" } }
-			hardness = { set = 0.8 }
-		}
-	}
-
-	heavy_tank_rocket_chassis = {
-		archetype = heavy_tank_chassis
-		type = { armor rocket }
 		for_each = {
 			variant_name = { find_and_replace = { "chassis" "equipment" } }
 			hardness = { set = 0.8 }
@@ -138,11 +141,2431 @@ duplicate_archetypes = {
 		}
 	}
 
-	heavy_tank_flame_chassis = {
-		archetype = heavy_tank_chassis
-		type = { armor flame }
-		for_each = {
-			variant_name = { find_and_replace = { "chassis" "equipment" } }
+}
+
+# Legacy carrier equipment, relocated 2026-09-12 into the carrier role families.
+# The mod already does this for tanks - `lt_equipment_1..6` carry
+# `archetype = light_tank_chassis` - and vanilla declares plain members of a
+# duplicated archetype the same way, e.g. `light_tank_aa_equipment_1`. Declaring
+# them here rather than in mechanized.txt is a load-order requirement: the role
+# archetypes do not exist until this file is evaluated.
+#
+# Every stat the retired archetype used to supply is written out explicitly, so
+# a non-NSB game fields exactly the carriers it fielded before.
+equipments = {
+
+	mechanized_equipment_1 = {
+		year = 1942
+
+		archetype = light_tank_apc_chassis
+		priority = 40
+		visual_level = 0
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		maximum_speed = 12
+		# 10 matches the light hull today; stated so a hull re-price cannot move it.
+		armor_value = 10
+		reliability = 0.955
+		defense = 10
+		breakthrough = 4
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		build_cost_ic = 5
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		resources = {
+			coal = 2
+			steel = 2
+		}
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_2 = {
+		year = 1944
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_1
+		priority = 40
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 13
+
+		#Defensive Abilities
+		defense = 13
+		breakthrough = 5
+		armor_value = 12
+
+		build_cost_ic = 6
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_3 = {
+		year = 1947
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_2
+		priority = 40
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 13
+
+		#Defensive Abilities
+		defense = 15
+		breakthrough = 6
+		armor_value = 15
+
+		build_cost_ic = 8
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_4 = {
+		year = 1950
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_3
+		priority = 40
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 14
+
+		#Defensive Abilities
+		defense = 18
+		breakthrough = 7
+		armor_value = 18
+
+		build_cost_ic = 9
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_5 = {
+		year = 1960
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_4
+		priority = 40
+		visual_level = 4
+
+		#Misc Abilities
+		maximum_speed = 15
+
+		#Defensive Abilities
+		defense = 18
+		breakthrough = 7
+		armor_value = 22
+
+		build_cost_ic = 10
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_6 = {
+		year = 1965
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_5
+
+		priority = 40
+		visual_level = 5
+
+		#Misc Abilities
+		maximum_speed = 16
+
+		#Defensive Abilities
+		defense = 20
+		breakthrough = 8
+		armor_value = 24
+
+		build_cost_ic = 11
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_7 = {
+		year = 1975
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_6
+
+		priority = 40
+		visual_level = 6
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 20
+		breakthrough = 8
+		armor_value = 28
+
+
+		build_cost_ic = 13
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_8 = {
+		year = 1985
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_7
+
+		priority = 40
+		visual_level = 7
+
+		#Misc Abilities
+		maximum_speed = 19
+
+		#Defensive Abilities
+		defense = 20
+		breakthrough = 8
+		armor_value = 32
+
+		build_cost_ic = 14
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_9 = {
+		year = 1995
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_8
+
+		priority = 40
+		visual_level = 8
+
+		#Misc Abilities
+		maximum_speed = 20
+
+		#Defensive Abilities
+		defense = 23
+		breakthrough = 9
+		armor_value = 36
+
+
+		build_cost_ic = 15
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_equipment_10 = {
+		year = 2005
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_equipment_9
+
+		priority = 40
+		visual_level = 9
+
+		#Misc Abilities
+		maximum_speed = 22
+
+		#Defensive Abilities
+		defense = 23
+		breakthrough = 9
+		armor_value = 40
+
+		build_cost_ic = 17
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 1.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_1 = {
+		year = 1947
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		priority = 45
+		visual_level = 0
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		maximum_speed = 12
+		reliability = 0.955
+		defense = 30
+		breakthrough = 12
+		hardness = 0.6
+		armor_value = 22
+		soft_attack = 9
+		hard_attack = 6
+		ap_attack = 15
+		build_cost_ic = 12.5
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_2 = {
+		year = 1950
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_1
+		priority = 45
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 13
+
+		#Defensive Abilities
+		defense = 35
+		breakthrough = 14
+		armor_value = 25
+
+		#Offensive Abilities
+		soft_attack = 10
+		hard_attack = 7
+		ap_attack = 18
+
+		build_cost_ic = 14
+		resources = {
+			coal = 2
+			steel = 3
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_3 = {
+		year = 1955
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_2
+		priority = 45
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 14
+
+		#Defensive Abilities
+		defense = 36
+		breakthrough = 14
+		armor_value = 28
+
+		#Offensive Abilities
+		soft_attack = 10
+		hard_attack = 7
+		ap_attack = 20
+
+		build_cost_ic = 17
+		resources = {
+			coal = 2
+			steel = 3
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_4	= {
+		year = 1965
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_3
+		priority = 45
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 14
+
+		#Defensive Abilities
+		defense = 40
+		breakthrough = 16
+		armor_value = 31
+
+		#Offensive Abilities
+		soft_attack = 12
+		hard_attack = 8
+		ap_attack = 24
+
+		build_cost_ic = 19
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_5	= {
+		year = 1975
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_4
+		priority = 45
+		visual_level = 4
+
+		#Misc Abilities
+		maximum_speed = 15
+
+		#Defensive Abilities
+		defense = 40
+		breakthrough = 16
+		armor_value = 35
+
+		#Offensive Abilities
+		soft_attack = 12
+		hard_attack = 8
+		ap_attack = 26
+
+		build_cost_ic = 21
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_6	= {
+		year = 1985
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_5
+		priority = 45
+		visual_level = 5
+
+		#Misc Abilities
+		maximum_speed = 17
+
+		#Defensive Abilities
+		defense = 41
+		breakthrough = 16
+		armor_value = 39
+
+		#Offensive Abilities
+		soft_attack = 12
+		hard_attack = 8
+		ap_attack = 30
+
+		build_cost_ic = 23
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_7	= {
+		year = 1995
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_6
+		priority = 45
+		visual_level = 6
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 45
+		breakthrough = 18
+		armor_value = 44
+
+		#Offensive Abilities
+		soft_attack = 14
+		hard_attack = 9
+		ap_attack = 32
+
+		build_cost_ic = 25
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	mechanized_heavy_equipment_8	= {
+		year = 2005
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_ifv_chassis
+		parent = mechanized_heavy_equipment_7
+		priority = 45
+		visual_level = 7
+
+		#Misc Abilities
+		maximum_speed = 19
+
+		#Defensive Abilities
+		defense = 45
+		breakthrough = 18
+		armor_value = 49
+
+		#Offensive Abilities
+		soft_attack = 14
+		hard_attack = 9
+		ap_attack = 34
+
+		build_cost_ic = 28
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired mechanized_heavy_equipment archetype, made explicit
+		# by the 2026-09-12 relocation so the effective stats do not move.
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.6
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	# Heavy APC and Heavy IFV legacy ladders, authored 2026-09-17. They exist because a
+	# `duplicate_archetypes` role root whose only members are derived tiers is not a
+	# resolvable `need` target: `medium_tank_apc_chassis` and `medium_tank_ifv_chassis` had
+	# zero plain members, and their battalions never appeared in the division designer even
+	# with `active = yes`. Vanilla declares plain members for every role family a sub-unit
+	# consumes - `medium_tank_aa_equipment_1..3` under `medium_tank_aa_chassis` - and every
+	# mod role family that works has them too. Armour stays inside the 70% same-year medium
+	# hull cap: 42 against 60 in 1985, 45 against 65 in 1995, 49 against 70 in 2005.
+	heavy_apc_equipment_1 = {
+		year = 1985
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_apc_chassis
+		priority = 40
+		visual_level = 0
+
+		#Misc Abilities
+		maximum_speed = 17
+
+		#Defensive Abilities
+		defense = 26
+		breakthrough = 10
+		armor_value = 42
+
+		build_cost_ic = 19
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 2.2
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	heavy_apc_equipment_2 = {
+		year = 1995
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_apc_chassis
+		parent = heavy_apc_equipment_1
+		priority = 40
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 29
+		breakthrough = 11
+		armor_value = 45
+
+		build_cost_ic = 21
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 2.2
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	heavy_apc_equipment_3 = {
+		year = 2005
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_apc_chassis
+		parent = heavy_apc_equipment_2
+		priority = 40
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 31
+		breakthrough = 12
+		armor_value = 49
+
+		build_cost_ic = 23
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		reliability = 0.955
+		hardness = 0.5
+		soft_attack = 0
+		hard_attack = 0
+		air_attack = 0
+		fuel_consumption = 2.2
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	heavy_ifv_equipment_1 = {
+		year = 2005
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_ifv_chassis
+		priority = 45
+		visual_level = 0
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 50
+		breakthrough = 20
+		armor_value = 49
+
+		#Offensive Abilities
+		soft_attack = 16
+		hard_attack = 11
+		ap_attack = 38
+
+		build_cost_ic = 32
+		resources = {
+			coal = 2
+			steel = 4
+			aluminium = 1
+		}
+
+		reliability = 0.955
+		hardness = 0.6
+		fuel_consumption = 2.8
+		lend_lease_cost = 5
+		upgrades = {
+		}
+	}
+
+	# `medium_sp_anti_air_brigade` and `heavy_tank_destroyer_brigade` were restored on
+	# 2026-09-13 (Finding 27) onto role families that never had legacy rows, so they hit the
+	# same defect as the heavy carriers and nothing could observe it: both are
+	# `group = armor_combat_support` and never render in the line-battalion lists. One plain
+	# member each, priced off the surviving sibling ladder - the light SPAAG's 2000 rung and
+	# the medium tank destroyer's 1995 rung - moved onto the heavier hull.
+	medium_spaag_equipment_1 = {
+		year = 2000
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_aa_chassis
+		priority = 30
+		visual_level = 0
+
+		#Misc Abilities
+		maximum_speed = 20
+
+		#Defensive Abilities
+		defense = 25
+		breakthrough = 19
+		armor_value = 45
+
+		#Offensive Abilities
+		soft_attack = 25
+		hard_attack = 12
+		ap_attack = 22
+		air_attack = 27
+
+		build_cost_ic = 27
+		resources = {
+			coal = 2
+			steel = 3
+			aluminium = 1
+		}
+
+		fuel_consumption = 1.4
+		reliability = 0.955
+		hardness = 0.5
+		lend_lease_cost = 5
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_aa_upgrade
+		}
+	}
+
+	heavy_tank_destroyer_equipment_1 = {
+		year = 1950
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = heavy_tank_destroyer_chassis
+		priority = 42
+		visual_level = 0
+
+		#Misc Abilities
+		maximum_speed = 14
+
+		#Defensive Abilities
+		defense = 20
+		breakthrough = 25
+		armor_value = 60
+
+		#Offensive Abilities
+		soft_attack = 40
+		hard_attack = 32
+		ap_attack = 46
+
+		build_cost_ic = 30
+		resources = {
+			coal = 2
+			aluminium = 1
+			steel = 5
+		}
+
+		reliability = 0.955
+		hardness = 0.65
+		air_attack = 0
+		lend_lease_cost = 25
+		fuel_consumption = 2.4
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	mechanized_marine_equipment_1 = {
+		year = 1944
+
+		archetype = light_tank_apc_chassis
+		priority = 46
+		visual_level = 0
+
+		maximum_speed = 10
+		reliability = 0.95
+		defense = 25
+		breakthrough = 11
+		hardness = 0.5
+		armor_value = 24
+		soft_attack = 4
+		hard_attack = 3
+		ap_attack = 14
+		air_attack = 0
+		lend_lease_cost = 5
+		build_cost_ic = 7
+		resources = {
+			coal = 2
+			aluminium = 3
+		}
+		fuel_consumption = 2.6
+		upgrades = {
+		}
+	}
+
+	mechanized_marine_equipment_2 = {
+		year = 1950
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_marine_equipment_1
+		priority = 46
+		visual_level = 1
+
+		maximum_speed = 10
+		reliability = 0.95
+		defense = 36
+		breakthrough = 16
+		hardness = 0.5
+		armor_value = 31
+		soft_attack = 5
+		hard_attack = 4
+		ap_attack = 18
+		air_attack = 0
+		lend_lease_cost = 5
+		build_cost_ic = 10
+		resources = {
+			coal = 2
+			aluminium = 3
+		}
+		fuel_consumption = 2.6
+		upgrades = {
+		}
+	}
+
+	mechanized_marine_equipment_3 = {
+		year = 1965
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_marine_equipment_2
+		priority = 46
+		visual_level = 2
+
+		maximum_speed = 12
+		reliability = 0.95
+		defense = 40
+		breakthrough = 18
+		hardness = 0.5
+		armor_value = 35
+		soft_attack = 6
+		hard_attack = 5
+		ap_attack = 24
+		air_attack = 0
+		lend_lease_cost = 5
+		build_cost_ic = 14
+		resources = {
+			coal = 2
+			aluminium = 3
+		}
+		fuel_consumption = 2.6
+		upgrades = {
+		}
+	}
+
+	mechanized_marine_equipment_4 = {
+		year = 1985
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_marine_equipment_3
+		priority = 46
+		visual_level = 3
+
+		maximum_speed = 14
+		reliability = 0.95
+		defense = 41
+		breakthrough = 18
+		hardness = 0.5
+		armor_value = 42
+		soft_attack = 6
+		hard_attack = 6
+		ap_attack = 30
+		air_attack = 0
+		lend_lease_cost = 5
+		build_cost_ic = 17
+		resources = {
+			coal = 2
+			aluminium = 3
+		}
+		fuel_consumption = 2.6
+		upgrades = {
+		}
+	}
+
+	mechanized_marine_equipment_5 = {
+		year = 2005
+
+		archetype = light_tank_apc_chassis
+		parent = mechanized_marine_equipment_4
+		priority = 46
+		visual_level = 4
+
+		maximum_speed = 16
+		reliability = 0.95
+		defense = 45
+		breakthrough = 20
+		hardness = 0.5
+		armor_value = 49
+		soft_attack = 7
+		hard_attack = 6
+		ap_attack = 34
+		air_attack = 0
+		lend_lease_cost = 5
+		build_cost_ic = 20
+		resources = {
+			coal = 2
+			aluminium = 3
+		}
+		fuel_consumption = 2.6
+		upgrades = {
+		}
+	}
+# Legacy SPAAG rows relocated into the light AA role family; they live here because
+# the role archetype does not exist until this file is evaluated (load order).
+	spaag_equipment_1 = {
+		year = 1940
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_aa_chassis
+		priority = 30
+		visual_level = 0
+
+		can_convert_from = {
+			lt_equipment_1
+		}
+
+		# Values inherited from the retired spaag_equipment archetype.
+		maximum_speed = 7
+		reliability = 0.955
+		defense = 13
+		breakthrough = 10
+		hardness = 0.5
+		armor_value = 10
+		soft_attack = 12
+		hard_attack = 5
+		ap_attack = 12
+		air_attack = 12
+		build_cost_ic = 8
+		resources = {
+			coal = 2
+			steel = 2
+		}
+		fuel_consumption = 1
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_aa_upgrade
+		}
+	}
+
+	spaag_equipment_2 = {
+		year = 1955
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_aa_chassis
+		parent = spaag_equipment_1
+		priority = 30
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 11
+
+		#Defensive Abilities
+		defense = 15
+		breakthrough = 12
+		armor_value = 15
+
+		#Offensive Abilities
+		soft_attack = 14
+		hard_attack = 6
+		ap_attack = 14
+		air_attack = 14
+
+		build_cost_ic = 11
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		fuel_consumption = 1
+		# Values inherited from the retired spaag_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_aa_upgrade
+		}
+	}
+
+	spaag_equipment_3 = {
+		year = 1970
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_aa_chassis
+		parent = spaag_equipment_2
+		priority = 30
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 16
+
+		#Defensive Abilities
+		defense = 18
+		breakthrough = 14
+		armor_value = 22
+
+		#Offensive Abilities
+		soft_attack = 17
+		hard_attack = 8
+		ap_attack = 16
+		air_attack = 16
+
+		build_cost_ic = 15
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		fuel_consumption = 1
+		# Values inherited from the retired spaag_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_aa_upgrade
+		}
+	}
+
+	spaag_equipment_4 = {
+		year = 1985
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_aa_chassis
+		parent = spaag_equipment_3
+		priority = 30
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 22
+
+		#Defensive Abilities
+		defense = 20
+		breakthrough = 16
+		armor_value = 28
+
+		#Offensive Abilities
+		soft_attack = 20
+		hard_attack = 9
+		ap_attack = 18
+		air_attack = 20
+
+		build_cost_ic = 19
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		fuel_consumption = 1
+		# Values inherited from the retired spaag_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_aa_upgrade
+		}
+	}
+
+	spaag_equipment_5 = {
+		year = 2000
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_aa_chassis
+		parent = spaag_equipment_4
+		priority = 30
+		visual_level = 4
+
+		#Misc Abilities
+		maximum_speed = 22
+
+		#Defensive Abilities
+		defense = 23
+		breakthrough = 18
+		armor_value = 36
+
+		#Offensive Abilities
+		soft_attack = 23
+		hard_attack = 11
+		ap_attack = 20
+		air_attack = 24
+
+		build_cost_ic = 23
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		fuel_consumption = 1
+		# Values inherited from the retired spaag_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_aa_upgrade
+		}
+	}
+
+# Legacy light SP artillery rows relocated into the light artillery role family;
+# they live here because the role archetype does not exist until this file is evaluated.
+	light_sp_artillery_equipment_1 = {
+		year = 1945
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_artillery_chassis
+		priority = 48
+		visual_level = 0
+
+		can_convert_from = {
+			mbt_equipment_0
+		}
+
+		# Values inherited from the retired light_sp_artillery_equipment archetype.
+		maximum_speed = 14
+		reliability = 0.955
+		defense = 10
+		breakthrough = 7
+		hardness = 0.3
+		armor_value = 10
+		soft_attack = 24
+		hard_attack = 6
+		ap_attack = 12
+		air_attack = 0
+		lend_lease_cost = 15
+		build_cost_ic = 7.5
+		resources = {
+			coal = 2
+			steel = 2
+		}
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	light_sp_artillery_equipment_2 = {
+		year = 1960
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_artillery_chassis
+		parent = light_sp_artillery_equipment_1
+		priority = 48
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 16
+
+		#Defensive Abilities
+		defense = 12
+		breakthrough = 8
+		armor_value = 15
+
+		#Offensive Abilities
+		soft_attack = 27
+		hard_attack = 8
+		ap_attack = 14
+
+		build_cost_ic = 11.25
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		# Values inherited from the retired light_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.3
+		air_attack = 0
+		lend_lease_cost = 15
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	light_sp_artillery_equipment_3 = {
+		year = 1975
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_artillery_chassis
+		parent = light_sp_artillery_equipment_2
+		priority = 48
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 17
+
+		#Defensive Abilities
+		defense = 14
+		breakthrough = 10
+		armor_value = 22
+
+		#Offensive Abilities
+		soft_attack = 33
+		hard_attack = 10
+		ap_attack = 16
+
+		build_cost_ic = 15
+		resources = {
+			coal = 2
+			steel = 2
+		}
+
+		# Values inherited from the retired light_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.3
+		air_attack = 0
+		lend_lease_cost = 15
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	light_sp_artillery_equipment_4 = {
+		year = 1990
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_artillery_chassis
+		parent = light_sp_artillery_equipment_3
+		priority = 48
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 16
+		breakthrough = 11
+		armor_value = 28
+
+		#Offensive Abilities
+		soft_attack = 39
+		hard_attack = 12
+		ap_attack = 18
+
+		build_cost_ic = 18.75
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired light_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.3
+		air_attack = 0
+		lend_lease_cost = 15
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	light_sp_artillery_equipment_5 = {
+		year = 2005
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_artillery_chassis
+		parent = light_sp_artillery_equipment_4
+		priority = 48
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 18
+		breakthrough = 13
+		armor_value = 36
+
+		#Offensive Abilities
+		soft_attack = 45
+		hard_attack = 14
+		ap_attack = 20
+
+		build_cost_ic = 22.5
+		resources = {
+			coal = 2
+			steel = 2
+			aluminium = 1
+		}
+
+		# Values inherited from the retired light_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.3
+		air_attack = 0
+		lend_lease_cost = 15
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+# Legacy ATGM carrier rows relocated into the light destroyer role family; they
+# live here because the role archetype does not exist until this file is evaluated.
+	atgm_carrier_equipment_0 = {
+		year = 1960
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_destroyer_chassis
+		priority = 42
+		visual_level = 0
+
+		# Values inherited from the retired atgm_carrier_equipment archetype.
+		maximum_speed = 15
+		reliability = 0.955
+		defense = 18
+		breakthrough = 21
+		hardness = 0.5
+		armor_value = 22
+		soft_attack = 8
+		hard_attack = 44
+		ap_attack = 61
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		build_cost_ic = 25
+		resources = {
+			coal = 3
+			aluminium = 2
+			steel = 3
+		}
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	atgm_carrier_equipment_1 = {
+		year = 1970
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_destroyer_chassis
+		parent = atgm_carrier_equipment_0
+		priority = 42
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 16
+
+		#Defensive Abilities
+		defense = 21
+		breakthrough = 25
+		armor_value = 24
+
+		#Offensive Abilities
+		soft_attack = 9
+		hard_attack = 50
+		ap_attack = 70
+
+		build_cost_ic = 30
+		resources = {
+			coal = 3
+			aluminium = 2
+			steel = 3
+		}
+
+		# Values inherited from the retired atgm_carrier_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	atgm_carrier_equipment_2 = {
+		year = 1980
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_destroyer_chassis
+		parent = atgm_carrier_equipment_1
+		priority = 42
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 25
+		breakthrough = 28
+		armor_value = 28
+
+		#Offensive Abilities
+		soft_attack = 11
+		hard_attack = 59
+		ap_attack = 84
+
+		build_cost_ic = 35
+		resources = {
+			coal = 3
+			aluminium = 2
+			steel = 3
+		}
+
+		# Values inherited from the retired atgm_carrier_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	atgm_carrier_equipment_3 = {
+		year = 1990
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_destroyer_chassis
+		parent = atgm_carrier_equipment_2
+		priority = 42
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 19
+
+		#Defensive Abilities
+		defense = 28
+		breakthrough = 32
+		armor_value = 32
+
+		#Offensive Abilities
+		soft_attack = 12
+		hard_attack = 70
+		ap_attack = 95
+
+		build_cost_ic = 40
+		resources = {
+			coal = 3
+			tungsten = 1
+			aluminium = 2
+			steel = 3
+		}
+
+		# Values inherited from the retired atgm_carrier_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	atgm_carrier_equipment_4 = {
+		year = 2000
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = light_tank_destroyer_chassis
+		parent = atgm_carrier_equipment_3
+		priority = 42
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 20
+
+		#Defensive Abilities
+		defense = 32
+		breakthrough = 36
+		armor_value = 36
+
+		#Offensive Abilities
+		soft_attack = 14
+		hard_attack = 82
+		ap_attack = 108
+
+		build_cost_ic = 45
+		resources = {
+			coal = 3
+			tungsten = 1
+			aluminium = 2
+			steel = 3
+		}
+
+		# Values inherited from the retired atgm_carrier_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+# Legacy SP artillery rows relocated into the medium artillery role family; they
+# live here because the role archetype does not exist until this file is evaluated.
+	sp_artillery_equipment_1 = {
+		year = 1940
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_artillery_chassis
+		priority = 48
+		visual_level = 0
+
+		can_convert_from = {
+			mbt_equipment_0
+		}
+
+		# Values inherited from the retired sp_artillery_equipment archetype.
+		maximum_speed = 12
+		reliability = 0.955
+		defense = 7.5
+		breakthrough = 8
+		hardness = 0.5
+		armor_value = 10
+		soft_attack = 32
+		hard_attack = 6
+		ap_attack = 12
+		air_attack = 0
+		lend_lease_cost = 12
+		build_cost_ic = 9
+		resources = {
+			coal = 1
+			steel = 3
+		}
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	sp_artillery_equipment_2 = {
+		year = 1955
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_artillery_chassis
+		parent = sp_artillery_equipment_1
+		priority = 48
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 13
+
+		#Defensive Abilities
+		defense = 9
+		breakthrough = 10
+		armor_value = 15
+
+		#Offensive Abilities
+		soft_attack = 36
+		hard_attack = 8
+		ap_attack = 14
+
+		build_cost_ic = 13.5
+		resources = {
+			coal = 1
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 12
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	sp_artillery_equipment_3 = {
+		year = 1970
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_artillery_chassis
+		parent = sp_artillery_equipment_2
+		priority = 48
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 14
+
+		#Defensive Abilities
+		defense = 10.5
+		breakthrough = 11
+		armor_value = 22
+
+		#Offensive Abilities
+		soft_attack = 44
+		hard_attack = 10
+		ap_attack = 16
+
+		build_cost_ic = 18
+		resources = {
+			coal = 1
+			steel = 3
+			aluminium = 1
+		}
+
+		# Values inherited from the retired sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 12
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	sp_artillery_equipment_4 = {
+		year = 1985
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_artillery_chassis
+		parent = sp_artillery_equipment_3
+		priority = 48
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 15
+
+		#Defensive Abilities
+		defense = 12
+		breakthrough = 13
+		armor_value = 28
+
+		#Offensive Abilities
+		soft_attack = 52
+		hard_attack = 12
+		ap_attack = 18
+
+		build_cost_ic = 22.5
+		resources = {
+			coal = 1
+			steel = 4
+			aluminium = 1
+		}
+
+		# Values inherited from the retired sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 12
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	sp_artillery_equipment_5 = {
+		year = 2000
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_artillery_chassis
+		parent = sp_artillery_equipment_4
+		priority = 48
+		visual_level = 4
+
+		#Misc Abilities
+		maximum_speed = 15
+
+		#Defensive Abilities
+		defense = 13.5
+		breakthrough = 14
+		armor_value = 36
+
+		#Offensive Abilities
+		soft_attack = 60
+		hard_attack = 14
+		ap_attack = 20
+
+		build_cost_ic = 27
+		resources = {
+			coal = 1
+			steel = 4
+			aluminium = 1
+		}
+
+		# Values inherited from the retired sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 12
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+# Legacy tank destroyer rows relocated into the medium destroyer role family;
+# they live here because the role archetype does not exist until this file is evaluated.
+	medium_tank_destroyer_equipment_1 = {
+		year = 1950
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_destroyer_chassis
+		priority = 42
+		visual_level = 0
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+
+		#Misc Abilities
+		maximum_speed = 13
+		reliability = 0.955
+
+		#Defensive Abilities
+		defense = 10
+		breakthrough = 13
+		hardness = 0.65
+		armor_value = 15
+
+		#Offensive Abilities
+		soft_attack = 12
+		hard_attack = 15
+		ap_attack = 30
+		air_attack = 0
+
+		lend_lease_cost = 5
+		build_cost_ic = 9
+		resources = {
+			coal = 2
+			steel = 3
+		}
+		fuel_consumption = 1.8
+	}
+
+	medium_tank_destroyer_equipment_2 = {
+		year = 1960
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_destroyer_chassis
+		parent = medium_tank_destroyer_equipment_1
+		priority = 42
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 14
+
+		#Defensive Abilities
+		defense = 12
+		breakthrough = 15
+		armor_value = 23
+
+		#Offensive Abilities
+		soft_attack = 14
+		hard_attack = 20
+		ap_attack = 35
+
+		build_cost_ic = 13.5
+		resources = {
+			coal = 2
+			aluminium = 1
+			steel = 3
+		}
+
+		# Values inherited from the retired medium_tank_destroyer_equipment archetype.
+		reliability = 0.955
+		hardness = 0.65
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	medium_tank_destroyer_equipment_3 = {
+		year = 1970
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_destroyer_chassis
+		parent = medium_tank_destroyer_equipment_2
+		priority = 42
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 15
+
+		#Defensive Abilities
+		defense = 14
+		breakthrough = 18
+		armor_value = 33
+
+		#Offensive Abilities
+		soft_attack = 17
+		hard_attack = 25
+		ap_attack = 40
+
+		build_cost_ic = 18
+		resources = {
+			coal = 2
+			aluminium = 1
+			steel = 4
+		}
+
+		# Values inherited from the retired medium_tank_destroyer_equipment archetype.
+		reliability = 0.955
+		hardness = 0.65
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	medium_tank_destroyer_equipment_4 = {
+		year = 1985
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_destroyer_chassis
+		parent = medium_tank_destroyer_equipment_3
+		priority = 42
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 16
+
+		#Defensive Abilities
+		defense = 16
+		breakthrough = 20
+		armor_value = 42
+
+		#Offensive Abilities
+		soft_attack = 30
+		hard_attack = 30
+		ap_attack = 45
+
+		build_cost_ic = 22.5
+		resources = {
+			coal = 2
+			aluminium = 1
+			steel = 4
+		}
+
+		# Values inherited from the retired medium_tank_destroyer_equipment archetype.
+		reliability = 0.955
+		hardness = 0.65
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	medium_tank_destroyer_equipment_5 = {
+		year = 1995
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = medium_tank_destroyer_chassis
+		parent = medium_tank_destroyer_equipment_4
+		priority = 42
+		visual_level = 4
+
+		#Misc Abilities
+		maximum_speed = 18
+
+		#Defensive Abilities
+		defense = 18
+		breakthrough = 23
+		armor_value = 54
+
+		#Offensive Abilities
+		soft_attack = 46
+		hard_attack = 35
+		ap_attack = 50
+
+		build_cost_ic = 27
+		resources = {
+			coal = 2
+			aluminium = 1
+			steel = 4
+		}
+
+		# Values inherited from the retired medium_tank_destroyer_equipment archetype.
+		reliability = 0.955
+		hardness = 0.65
+		air_attack = 0
+		lend_lease_cost = 5
+		fuel_consumption = 1.8
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+# Legacy heavy SP artillery rows relocated into the heavy artillery role family;
+# they live here because the role archetype does not exist until this file is evaluated.
+	heavy_sp_artillery_equipment_1 = {
+		year = 1945
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = heavy_tank_artillery_chassis
+		priority = 48
+		visual_level = 0
+
+		can_convert_from = {
+			mbt_equipment_0
+		}
+
+		# Values inherited from the retired heavy_sp_artillery_equipment archetype.
+		maximum_speed = 10
+		reliability = 0.955
+		defense = 5
+		breakthrough = 9
+		hardness = 0.5
+		armor_value = 10
+		soft_attack = 40
+		hard_attack = 9
+		ap_attack = 6
+		air_attack = 0
+		lend_lease_cost = 25
+		build_cost_ic = 12.5
+		fuel_consumption = 2.6
+		resources = {
+			coal = 2
+			aluminium = 1
+			steel = 4
+		}
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	heavy_sp_artillery_equipment_2 = {
+		year = 1960
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = heavy_tank_artillery_chassis
+		parent = heavy_sp_artillery_equipment_1
+		priority = 48
+		visual_level = 1
+
+		#Misc Abilities
+		maximum_speed = 10
+
+		#Defensive Abilities
+		defense = 6
+		breakthrough = 11
+		armor_value = 15
+
+		#Offensive Abilities
+		soft_attack = 45
+		hard_attack = 12
+		ap_attack = 7
+
+		build_cost_ic = 18.75
+		resources = {
+			coal = 2
+			steel = 4
+			aluminium = 1
+		}
+
+		# Values inherited from the retired heavy_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 25
+		fuel_consumption = 2.6
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	heavy_sp_artillery_equipment_3 = {
+		year = 1975
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = heavy_tank_artillery_chassis
+		parent = heavy_sp_artillery_equipment_2
+		priority = 48
+		visual_level = 2
+
+		#Misc Abilities
+		maximum_speed = 11
+
+		#Defensive Abilities
+		defense = 7
+		breakthrough = 13
+		armor_value = 22
+
+		#Offensive Abilities
+		soft_attack = 55
+		hard_attack = 15
+		ap_attack = 8
+
+		build_cost_ic = 25
+		resources = {
+			coal = 2
+			steel = 4
+			aluminium = 1
+		}
+
+		# Values inherited from the retired heavy_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 25
+		fuel_consumption = 2.6
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	heavy_sp_artillery_equipment_4 = {
+		year = 1990
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = heavy_tank_artillery_chassis
+		parent = heavy_sp_artillery_equipment_3
+		priority = 48
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 12
+
+		#Defensive Abilities
+		defense = 8
+		breakthrough = 14
+		armor_value = 28
+
+		#Offensive Abilities
+		soft_attack = 65
+		hard_attack = 18
+		ap_attack = 9
+
+		build_cost_ic = 31.25
+		resources = {
+			coal = 2
+			steel = 5
+			aluminium = 1
+		}
+
+		# Values inherited from the retired heavy_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 25
+		fuel_consumption = 2.6
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
+		}
+	}
+
+	heavy_sp_artillery_equipment_5 = {
+		year = 2005
+		can_be_produced = {
+			NOT = { has_dlc = "No Step Back" }
+		}
+
+		archetype = heavy_tank_artillery_chassis
+		parent = heavy_sp_artillery_equipment_4
+		priority = 48
+		visual_level = 3
+
+		#Misc Abilities
+		maximum_speed = 12
+
+		#Defensive Abilities
+		defense = 9
+		breakthrough = 16
+		armor_value = 36
+
+		#Offensive Abilities
+		soft_attack = 75
+		hard_attack = 21
+		ap_attack = 10
+
+		build_cost_ic = 37.5
+		resources = {
+			coal = 2
+			steel = 5
+			aluminium = 1
+		}
+
+		# Values inherited from the retired heavy_sp_artillery_equipment archetype.
+		reliability = 0.955
+		hardness = 0.5
+		air_attack = 0
+		lend_lease_cost = 25
+		fuel_consumption = 2.6
+		upgrades = {
+			tank_reliability_upgrade
+			tank_engine_upgrade
+			tank_armor_upgrade
+			tank_art_upgrade
 		}
 	}
 }
