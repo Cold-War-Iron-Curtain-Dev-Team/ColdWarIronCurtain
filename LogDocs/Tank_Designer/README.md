@@ -35,7 +35,7 @@ report only the rows you need.
 | `data/Historical_Vehicle_Reverse_Map.json` | 402 KB | 77 legacy armour tiers joined to per-country art and historical names; 1,468 resolved country rows. Generated 2026-09-13, not tool-parsed |
 | `data/Blueprint_Vehicle_Map.csv` | 1.5 MB | 2,488 national designs + 135 chassis types mapped to blueprint outline keys and source art. Snapshot, not tool-parsed. STATUS Finding 52 |
 | `data/National_Tank_Preset_Manifest.json` | 10 KB | The 14 USA/SOV medium presets |
-| `data/Armour_Supply_Manifest.json` | 90 KB | 188 producer/legacy-tier designs behind every focus, event and decision armour hand-over. STATUS Finding 53 |
+| `data/Armour_Supply_Manifest.json` | 90 KB | 192 producer/legacy-tier designs behind every focus, event, decision and bookmark-stockpile armour hand-over. STATUS Finding 53 |
 | `data/Balance_Target_Manifest.md` | 12 KB | The frozen 40-row envelope manifest |
 | `data/Artillery_AA_Target_Manifest.md` | 5 KB | Frozen artillery/AA/AT/SAM targets |
 
@@ -59,15 +59,15 @@ python3 "CWIC Backup/tools/loc_audit_1.py" --check
 git diff --check
 ```
 
-Current expected pass line, re-measured 2026-09-24 after Finding 53:
+Current expected pass line, re-measured 2026-09-24 after the ATGM stockpile conversion:
 
 ```
 1317 technologies, 299 tank modules, 135 historical tank designs,
-39 bookmarked chassis types, 601 national presets and
-579 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
+41 bookmarked chassis types, 601 national presets and
+584 named OOB requests across 68 NSB OOBs, 76 country-history bootstrap sites,
 6661 stockpile grants, 16 carrier superstructure rungs,
 5 relocated marine rows, 17548 designer graphic pools,
-2676 Equipment Match design icons, 1579 armour hand-overs, and 20 designer slots checked
+2680 Equipment Match design icons, 1579 armour hand-overs, and 20 designer slots checked
 ```
 
 `gfx/interface/equipmentdesigner/graphic_db/00_tank_icons.txt` is generated. Edit

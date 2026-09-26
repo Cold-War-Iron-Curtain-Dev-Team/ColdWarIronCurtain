@@ -1411,7 +1411,8 @@ M4 Sherman preset. The manifest's `generation_map` pins the ladder for supplied 
 
 **Supply designs are not archived.** The retired exports carried `obsolete = yes` because they were
 placeholders. A supplied design is the producer's real vehicle and stays in its list.
-[INFERENCE] The engine should still refuse production before the hull is researched; not observed.
+Owner ruling 2026-09-24: a producer owning a supplied design before it researches the hull is
+accepted. Do not gate the guard on the hull technology; that breaks more gameplay than it protects.
 
 Exceptions unchanged: `mechanized_equipment`, `mechanized_equipment_1`, `mechanized_equipment_2`
 and `mechanized_marine_equipment_1..5` stay legacy grants because the numbered rows are ungated and
@@ -1707,18 +1708,29 @@ relocated the legacy rows into the role families, the per-country art the mod al
 half-track on an early APC line is the wanted, historically consistent outcome. Both probe
 sprites are removed; do not re-stage them.
 
-## ATGM stockpile residue on NSB profiles
+## ATGM stockpile residue on NSB profiles - resolved 2026-09-24
 
-**Open, needs an owner ruling - do not "fix" mechanically.** Five grants in two NSB OOBs name
-DLC-gated legacy ATGM rows: `SOV_1980_nsb.txt:1321-1323` and `NOR_1980_nsb.txt:364,369`. A gated
-id is still a declared id, so these resolve and award stock the profile cannot build.
+**Owner ruling: convert the stock to named designer vehicles, with the Shturm on the 1980 hull.**
+The five NSB grants of DLC-gated legacy ATGM rows now stock each producer's own design:
 
-The obvious rewrite to `light_tank_destroyer_chassis_4..7` (the year map is exact: 1960/1970/1980/
-1990 on both sides) was applied and **reverted**, because it breaks the contract that an NSB OOB
-may only name a tier a starting-variant preset creates - and there are zero
-`light_tank_destroyer_chassis` presets. The ratified export inventory above covers MBT, Light,
-Heavy, APC and IFV only. Extending it to ATGM means authoring loadouts and historical names,
-which is balance content with an owner, exactly like the inventory itself.
+| OOB | Amount | Design | Hull |
+| --- | ---: | --- | --- |
+| `SOV_1980_nsb` | 500 | 9P133 Malyutka | `light_tank_destroyer_chassis_5` |
+| `SOV_1980_nsb` | 1,121 | 9P148 Konkurs | `light_tank_destroyer_chassis_6` |
+| `SOV_1980_nsb` | 527 | 9P149 Shturm with Ataka | `light_tank_destroyer_chassis_6` |
+| `NOR_1980_nsb` | 50 | Willys MB w/ ENTAC | `light_tank_destroyer_chassis_4` |
+| `NOR_1980_nsb` | 150 | M113F1 w/ BGM-71 TOW | `light_tank_destroyer_chassis_5` |
+
+The Shturm's legacy tier maps to the 1990 hull. It entered service in 1979, so the owner kept it on
+the 1980 hull beside the Konkurs; its manifest row records that as `hull_override`.
+
+**Mechanism: bookmark supply, not a preset.** The M113F1 TOW is NOR's existing bookmark preset.
+The other four are `Armour_Supply_Manifest.json` supplied rows, created by `cwic_supply_<tier>`
+calls placed between `cwic_create_starting_tank_variants` and `set_oob` in the country history.
+The preset system could not carry them: generation 6 is research-delivered, and one producer
+needs two designs on it. The bootstrap contract accepts supply calls in that position, an OOB may
+stock a design its history supplies there, and such a design adds no chassis technology to the
+bootstrap because it is created `allow_without_tech`.
 
 ## No generic starting designs, ratified 2026-09-22
 
@@ -1852,8 +1864,10 @@ The contract now unions alias and native coverage. Three consequences worth know
 contiguity is **not** an invariant of legacy content (`TUR_armored_infantry` and many others
 declare only some levels), so it is enforced only for the sub-units this file owns outright, where
 every level is generated from the hull ceiling; `legacy_tag_counts` holds alias-or-native counts,
-which is why several exceed the alias file's own 40 TAGs; and `native_overrides = 140` pins the
-pre-existing deliberate shadowing so a new override fails loudly.
+which is why several exceed the alias file's own 40 TAGs. **Revised 2026-09-24: no alias may shadow a
+national entity.** The 140 that `native_overrides` once pinned cloned the tag's medium tank over
+authored SP artillery, TD and SPAA models, so they were deleted and the pin is now zero. Aliases that
+share a name with a *vanilla* national entity are allowed: they replace WWII models with Cold War ones.
 
 **The static `ENTITY_ALIAS_TOKENS` allowlist was deleted, not extended.** It was a snapshot of
 which sub-units happened to have aliases (11) and would have rejected all 13 new ones. The
