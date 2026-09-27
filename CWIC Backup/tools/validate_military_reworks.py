@@ -6513,6 +6513,9 @@ def validate_entity_alias_contract() -> None:
     # freeze the set as new hull-consuming sub-units gain aliases.
     declared_sub_units: set[str] = set()
     armour_hull_sub_units: set[str] = set()
+    # Sub-units that render through `sprite = mechanized` and consume a carrier role, keyed
+    # to that role: they fall back to the national APC/IFV art for the hull's era.
+    carrier_sprite_sub_units: dict[str, str] = {}
     armour_hull_prefixes = (
         "light_tank_",
         "medium_tank_",
@@ -6534,6 +6537,12 @@ def validate_entity_alias_contract() -> None:
                 for equipment in equipment_ids
             ):
                 armour_hull_sub_units.add(name)
+            carrier_roles = sorted(
+                equipment for equipment in equipment_ids
+                if re.fullmatch(r"(?:light|medium)_tank_(?:apc|ifv)_chassis", equipment)
+            )
+            if top_level_values(block, "sprite") == ["mechanized"] and carrier_roles:
+                carrier_sprite_sub_units[name] = carrier_roles[0]
     if not declared_sub_units:
         fail("no sub-unit declarations found under common/units/*.txt")
     # Vanilla sub-units this mod inherits without shadowing. common/units/
@@ -6599,12 +6608,55 @@ def validate_entity_alias_contract() -> None:
     # prefix and loads last, so aliasing one of those names would replace a national
     # model with a generic one. No alias may shadow a native entity.
     native_levels: dict[tuple[str, str], set[int]] = {}
+    native_untiered: set[tuple[str, str]] = set()
     for entity_name in declared_entities:
         parsed = ENTITY_ALIAS_NAME.fullmatch(entity_name)
-        if parsed and parsed["sub_unit"] in armour_hull_sub_units:
+        if parsed:
             native_levels.setdefault(
                 (parsed["tag"], parsed["sub_unit"]), set()
             ).add(int(parsed["visual_level"]))
+        elif untiered := re.fullmatch(r"([A-Z]{3})_([a-z0-9_]+)_entity", entity_name):
+            native_untiered.add((untiered.group(1), untiered.group(2)))
+
+    # Vanilla-inherited brigades and support companies have no national art of their own;
+    # the mod's matching role sub-unit carries it.
+    national_model_fallbacks = {
+        "light_sp_artillery_brigade": ("light_sp_artillery",),
+        "medium_sp_artillery_brigade": ("sp_artillery",),
+        "heavy_sp_artillery_brigade": ("heavy_sp_artillery",),
+        "light_tank_destroyer_brigade": ("tank_destroyer",),
+        "light_tank_destroyer_support": ("tank_destroyer",),
+        "medium_tank_destroyer_brigade": ("tank_destroyer",),
+        "medium_tank_destroyer_support": ("tank_destroyer",),
+        "heavy_tank_destroyer_brigade": ("tank_destroyer",),
+        "light_sp_anti_air_brigade": ("spaag",),
+        "light_sp_anti_air_support": ("spaag",),
+        "spaag_support": ("spaag",),
+    }
+
+    import build_designer_graphic_db as graphic_db_builder
+
+    def national_model(tag: str, sub_unit: str, level: int) -> str | None:
+        """The tag's own model an alias must clone: its nearest authored level at or
+        below this one, else its untiered model; brigades fall back to their role
+        sub-unit's art and carrier sub-units to the national APC/IFV art of the hull
+        generation's era. The alias file loads last, so a generic clone here would hide
+        authored art."""
+        candidates = [(sub_unit, level)] + [
+            (token, level) for token in national_model_fallbacks.get(sub_unit, ())
+        ]
+        if sub_unit in carrier_sprite_sub_units:
+            role = carrier_sprite_sub_units[sub_unit]
+            era = graphic_db_builder.carrier_art_index(role, level)
+            candidates += [(token, era) for token in graphic_db_builder.CARRIER_ART[role]]
+        for token, wanted in candidates:
+            levels = native_levels.get((tag, token), set())
+            lower = [value for value in levels if value <= wanted]
+            if lower or (levels and (tag, token) not in native_untiered):
+                return f"{tag}_{token}_{max(lower) if lower else min(levels)}_entity"
+            if (tag, token) in native_untiered:
+                return f"{tag}_{token}_entity"
+        return None
     # 140 aliases once shadowed national SP artillery, TD and SPAA models with a clone of
     # the tag's medium tank; they were removed 2026-09-24 so the authored models win.
 
@@ -6640,13 +6692,18 @@ def validate_entity_alias_contract() -> None:
         alias_levels.setdefault((tag, token), []).append(
             int(match["visual_level"])
         )
+        expected_clone = national_model(tag, token, int(match["visual_level"]))
+        if expected_clone and clones != [expected_clone]:
+            fail(f"entity alias {name} clones {clones} instead of the national model {expected_clone}")
     overrides = sum(
         len(set(levels) & native_levels.get(pair, set()))
         for pair, levels in alias_levels.items()
     )
     if overrides:
         fail(f"{overrides} entity aliases shadow a native entity and would replace a national model")
-    covered = {pair for pair in alias_levels} | set(native_levels)
+    covered = {pair for pair in alias_levels} | {
+        pair for pair in native_levels if pair[1] in armour_hull_sub_units
+    }
     covered_sub_units = {sub_unit for _, sub_unit in covered}
     for sub_unit in sorted(armour_hull_sub_units - covered_sub_units):
         fail(f"no entity of any kind covers {sub_unit}")
@@ -6745,6 +6802,8 @@ LEGACY_ARMOUR_DLC_GATES = {
         *(f"heavy_sp_artillery_equipment_{tier}" for tier in range(1, 6)),
         *(f"medium_tank_destroyer_equipment_{tier}" for tier in range(1, 6)),
         *(f"atgm_carrier_equipment_{tier}" for tier in range(5)),
+        # Marines ride any APC, so on NSB a designer carrier replaces these rows.
+        *(f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)),
     ),
 }
 # Pre-designer WWII rows have no designer replacement.
@@ -6795,8 +6854,6 @@ def validate_legacy_armour_dlc_gates() -> None:
     """Keep legacy armour out of NSB production without orphaning non-NSB rows."""
     equipment_blocks = {
         path: dict(top_level_blocks(code_only(text(path)), "equipments"))
-        # Marines ride any APC, so on NSB a designer carrier replaces these rows.
-        *(f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)),
         for path in LEGACY_ARMOUR_DLC_GATES
     }
     for path in (

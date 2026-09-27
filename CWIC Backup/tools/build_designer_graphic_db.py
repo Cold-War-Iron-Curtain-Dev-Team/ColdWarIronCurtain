@@ -78,6 +78,48 @@ LEGACY_ART = {
     **{f"mechanized_heavy_equipment_{n}": tech for n, (tech, _) in enumerate(IFV, 1)},
 }
 
+# Carrier designs take national APC/IFV models by era, not by hull tier. The national entities
+# are numbered after the legacy row they depict (<TAG>_mechanized_<k>_entity is
+# mechanized_equipment_k), and each hull generation's ladder position is that row, so a carrier
+# shows the model of the legacy vehicle its generation stands for.
+CARRIER_ART = {
+    "light_tank_apc_chassis": ("mechanized",),
+    "medium_tank_apc_chassis": ("mechanized",),
+    "light_tank_ifv_chassis": ("armored_infantry", "mechanized"),
+    "medium_tank_ifv_chassis": ("armored_infantry", "mechanized"),
+}
+
+
+def carrier_art_index(role: str, generation: int) -> int:
+    """Legacy row number (= national entity index) a carrier hull generation depicts."""
+    ladder = next(ladder for name, _, ladder in ROLES if name == role)
+    return ladder[min(generation, len(ladder) - 1)]
+
+
+def national_entities() -> set[str]:
+    """Entity names authored in the mod, excluding the generated alias file."""
+    names: set[str] = set()
+    for path in sorted((MOD / "gfx/entities").glob("*.asset")):
+        if path.name.startswith("zz_CWIC_armor_entity_aliases"):
+            continue
+        names.update(re.findall(r'\bname\s*=\s*"?(\w+_entity)\b', read(path)))
+    return names
+
+
+def carrier_model(tag: str, role: str, generation: int, entities: set[str]) -> str | None:
+    """The tag's nearest authored model at or below the generation's era, else its untiered one."""
+    index = carrier_art_index(role, generation)
+    for token in CARRIER_ART[role]:
+        levels = [n for n in range(16) if f"{tag}_{token}_{n}_entity" in entities]
+        lower = [n for n in levels if n <= index]
+        untiered = f"{tag}_{token}_entity" in entities
+        if lower or (levels and not untiered):
+            return f"{tag}_{token}_{max(lower) if lower else min(levels)}_entity"
+        if untiered:
+            return f"{tag}_{token}_entity"
+    return None
+
+
 COUNTRY_TOLERANCE = 10
 ALTERNATE_WEIGHT = 0.5
 
@@ -129,7 +171,9 @@ def existing_models() -> dict[tuple[str, str], list[str]]:
         elif in_models and re.match(r"^\t{3}\}", line):
             in_models = False
         elif in_models and (m := re.match(r"^\t{4}(\w+)", line)):
-            models.setdefault((tag, key), []).append(m.group(1))
+            pool = models.setdefault((tag, key), [])
+            if m.group(1) not in pool:
+                pool.append(m.group(1))
     return models
 
 
@@ -156,6 +200,7 @@ def art(tag: str | None, tiers: list[tuple[str, int]], target: tuple[str, int], 
 def build() -> str:
     sprites = registered_sprites()
     models = existing_models()
+    entities = national_entities()
     tags = sorted(
         {
             m.group(1)
@@ -163,7 +208,7 @@ def build() -> str:
             if (m := re.match(r"GFX_([A-Z][A-Z0-9]{2})_(\w+)_medium$", name))
             and any(m.group(2) == tech for _, tiers, _ in ROLES for tech, _ in tiers)
         }
-        | {tag for tag, _ in models}
+        | {tag for tag, _ in models if tag != "default"}
     )
 
     out = [HEADER]
@@ -177,7 +222,11 @@ def build() -> str:
                 match = art(tag, tiers, tiers[position - 1], sprites)
                 if match:
                     icons = [match] + [icon for icon in owned if icon != match]
-                pool_models = models.get((tag, key), []) if tag else []
+                pool_models = models.get((tag or "default", key), [])
+                if tag and role in CARRIER_ART:
+                    era_model = carrier_model(tag, role, generation, entities)
+                    if era_model:
+                        pool_models = [era_model]
                 if not icons and not pool_models:
                     continue
                 lines.append(f"\t{key} = {{")

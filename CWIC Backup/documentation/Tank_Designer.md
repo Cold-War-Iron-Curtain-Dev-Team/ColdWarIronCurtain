@@ -147,17 +147,69 @@ Recipes are shared per generation; only the name differs per country.
 
 ## 3D models
 
-- The battlefield model is `<TAG>_<sub_unit>_<visual_level>_entity`. A missing entity is silent and
-  leaves the default-model selector empty.
+- The battlefield model is looked up as `<TAG>_<sub_unit>_<visual_level>_entity`. If that name
+  doesn't exist, the lookup falls back to the sub-unit's `sprite`, `<TAG>_<sprite>_<visual_level>_entity`.
+  National APC art is sprite-named (`<TAG>_mechanized_<n>_entity`); no sub-unit is called
+  `mechanized`. A missing entity is silent and leaves the default-model selector empty.
 - National models live in `gfx/entities/<TAG>_*.asset`.
-  `gfx/entities/zz_CWIC_armor_entity_aliases.asset` fills gaps by cloning. The `zz_` prefix makes it
-  load last.
-- **Never alias a name that a national asset already declares.** The alias would overwrite the
-  national model. Aliasing over *vanilla* WWII entities is intended.
+  `gfx/entities/zz_CWIC_armor_entity_aliases.asset` gives every hull-consuming sub-unit a name for
+  each tag and level. The `zz_` prefix makes it load last. Do not delete aliases: the designer's
+  default model entry needs the sub-unit-named entity to exist.
+- **An alias must clone the tag's own art when any exists.** The validator enforces this order:
+  1. the sub-unit's nearest national level at or below;
+  2. its untiered national model;
+  3. for base-game brigades and support companies, the matching mod sub-unit's art
+     (`*_sp_artillery_brigade` -> `light_sp_artillery` / `sp_artillery` / `heavy_sp_artillery`,
+     `*_tank_destroyer_*` -> `tank_destroyer`, `*_sp_anti_air_*` and `spaag_support` -> `spaag`);
+  4. for APC/IFV sub-units on `sprite = mechanized`, the national `armored_infantry` / `mechanized`
+     art for the hull generation's era.
+
+  A generic clone (`mechanized_entity`, `light_armor_entity`, ...) is only for tags with no art.
+  Never alias a name that a national asset declares: the alias would overwrite it.
+- **Carrier model levels follow the era, not the hull tier.** National carrier entities are numbered
+  after the legacy row they depict: `<TAG>_mechanized_<k>_entity` is `mechanized_equipment_k`, and
+  `<TAG>_armored_infantry_<k>_entity` is `mechanized_heavy_equipment_k`. Each hull generation shows
+  the row its APC/IFV ladder in `build_designer_graphic_db.py` points at (`carrier_art_index`). A
+  1980 light APC, for example, shows index 8. New carrier art should use that numbering.
+- The designer's model choices are the `models` lists in `00_tank_icons.txt`. Carrier roles are
+  generated from `CARRIER_ART`. Other roles keep whatever the file already lists, so edit those in
+  place and rerun the builder. The `default` scope offers `mechanized_entity` for APC/IFV roles.
 - Troop carriers clone `mechanized_entity` (marines: `mechanized_marine_entity`), never a tank.
+  `recon_armored` fields light tanks and keeps a light-tank model.
 - Level count is the consumed hull's max `visual_level` + 1, including vanilla rows. IFV reaches 7;
   light AA and heavy reach 4.
 - To force a model on a template, use `override_model`.
+
+### Broken model references (for the 3D modeller)
+
+Found in the 2026-09-26 audit. These predate the tank designer work and nothing in the mod fixes
+them.
+
+Entities whose `pdxmesh` names a mesh that no `.gfx`/`.asset` defines:
+
+| Entity | File | Missing mesh |
+| --- | --- | --- |
+| `FIN_medium_armor_entity` | `gfx/entities/FIN_units_tanks.asset` | `sov_t44_mesh` |
+| `SOV_tank_destroyer_1_entity` | `gfx/entities/units_tanks.asset` | `SOV_tank_destroyer_2_mesh` |
+| `WGR_medium_armor_0_entity`, `WGR_medium_armor_1_entity` | `gfx/entities/WGR_units_tanks.asset` | `WGRmodernarmor_mesh` |
+
+Mesh definitions whose `file` is not shipped (not in the mod, not in the base game):
+
+| Mesh | Defined in | Missing file |
+| --- | --- | --- |
+| `EGY_t34_mesh`, `SYR_t34_mesh`, `t34VIN_mesh` | `EGY_tanks.gfx`, `SYR_tanks.gfx`, `VIN_tanks.gfx` | `gfx/models/units/tanks/T34PRC.mesh` |
+| `EGY_t55_mesh`, `SYR_t55_mesh` | `EGY_tanks.gfx`, `SYR_tanks.gfx` | `gfx/models/units/tanks/t55.mesh` |
+| `KOR_m24_mesh` | `KOR_tanks.gfx` | `gfx/models/units/tanks/KOR_m24.mesh` |
+| `t44KPA_mesh` | `KPA_tanks.gfx` | `gfx/models/units/tanks/KPA_tank_T44.mesh` |
+| `t34MON_mesh`, `t34YUG_mesh` | `MON_tanks.gfx`, `YUG_tanks.gfx` | `gfx/models/units/tanks/T34GDR.mesh` |
+| `T54MON_mesh`, `T54VIN_mesh` | `MON_tanks.gfx`, `VIN_tanks.gfx` | `gfx/models/units/tanks/t50.mesh` |
+| `NOR_Leo1_mesh`, `leopard_mesh` | `NOR_tanks.gfx`, `WGR_tanks.gfx` | `gfx/models/units/tanks/leopard.mesh` |
+| `t72SYR_mesh` | `SYR_tanks.gfx` | `gfx/models/units/tanks/T-72.mesh` |
+| `T55VIN_mesh` | `VIN_tanks.gfx` | `gfx/models/units/tanks/T-54.mesh` |
+| `GEN_T90_mesh` | `tanks.gfx` | `gfx/models/units/tanks/T90.mesh`: the file exists with different letter case; Linux will not load it |
+
+All `.gfx` files above are under `gfx/entities/`. Either ship the mesh at that path or point the
+definition at an existing one. Check with `find -iname` before assuming a file is missing.
 
 ## Tech tree
 
