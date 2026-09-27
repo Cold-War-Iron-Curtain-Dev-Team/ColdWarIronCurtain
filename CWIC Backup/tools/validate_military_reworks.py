@@ -531,13 +531,13 @@ SECONDARY_ICON_PATHS = {
 # empty on NSB unless it has a designer sibling branch.
 GATED_LEGACY_ARMOUR = re.compile(
     r"^(?:lt_equipment|mbt_equipment|ht_equipment|mechanized_equipment|mechanized_heavy_equipment"
+    r"|mechanized_marine_equipment"
     r"|spaag_equipment|sp_artillery_equipment|light_sp_artillery_equipment"
     r"|heavy_sp_artillery_equipment|atgm_carrier_equipment|medium_tank_destroyer_equipment)_\d+$"
 )
 DESIGNER_ARMOUR_TYPE = re.compile(r"^(?:light|medium|heavy)_tank_(?:\w+_)?chassis_\d+$")
 UNMIGRATED_LEGACY_ARMOUR = frozenset(
     {"mechanized_equipment", "mechanized_equipment_1", "mechanized_equipment_2"}
-    | {f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)}
 )
 # A legacy armour technology and the NSB technology that enables the designer generation
 # its equipment maps to in Armour_Supply_Manifest.json `generation_map`.
@@ -557,6 +557,7 @@ RETIRED_ARMOUR_BONUS_KEYS = {
     "lt_equipment": "light_tank_chassis",
     "ht_equipment": "heavy_tank_chassis",
     "mechanized_equipment": "light_tank_apc_chassis",
+    "mechanized_marine_equipment": "light_tank_apc_chassis",
     "mechanized_heavy_equipment": "light_tank_ifv_chassis",
     "spaag_equipment": "light_tank_aa_chassis",
     "sp_artillery_equipment": "medium_tank_artillery_chassis",
@@ -4349,6 +4350,15 @@ def validate_carrier_bookmarks(national_override: str | None = None,
             fail("carrier initialization must preserve newest-only visibility after new hull unlocks")
 
     actual_requests = Counter()
+    # Marine carriers are history-supplied designs pinned by the armour supply
+    # contract, not by the 2026-09-08 carrier migration.
+    supply_names = {(row["producer"], row["legacy"]): (row["type"], row["name"]) for row in SUPPLY_DESIGNS}
+    history_supplied_requests = {
+        (f"Cold War Iron Curtain/history/units/{oob}.txt", supply_names[tag, legacy][0], tag, supply_names[tag, legacy][1])
+        for oob, pairs in history_supply_calls().items()
+        for tag, legacy in pairs
+        if (tag, legacy) in supply_names
+    }
     for path in sorted(OOB_DIR.glob("*_nsb.txt")):
         relative = str(path.relative_to(ROOT))
         value = code_only((oob_overrides or {}).get(relative, text(path)))
@@ -4364,7 +4374,9 @@ def validate_carrier_bookmarks(national_override: str | None = None,
                         block, "variant_name" if key.endswith("stockpile") else "version_name",
                         f"{relative} {key}",
                     )
-                    actual_requests[(relative, kinds[0], oob_variant_producer(block, path.stem[:3]), name[0] if len(name) == 1 else "")] += 1
+                    request = (relative, kinds[0], oob_variant_producer(block, path.stem[:3]), name[0] if len(name) == 1 else "")
+                    if request not in history_supplied_requests:
+                        actual_requests[request] += 1
         for block in keyed_blocks(value, "force_equipment_variants"):
             for kind, _, _, request in top_level_ranges(block, "carrier forced requests"):
                 if re.fullmatch(r'light_tank_(?:apc|ifv)_chassis_\d+', kind):
@@ -6735,15 +6747,8 @@ LEGACY_ARMOUR_DLC_GATES = {
         *(f"atgm_carrier_equipment_{tier}" for tier in range(5)),
     ),
 }
-# Pre-designer WWII rows have no designer replacement; marine rows stay legacy
-# because marines ride any carrier.
-LEGACY_ARMOUR_UNGATED_EXCEPTIONS = frozenset(
-    {
-        "mechanized_equipment_1",
-        "mechanized_equipment_2",
-        *(f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)),
-    }
-)
+# Pre-designer WWII rows have no designer replacement.
+LEGACY_ARMOUR_UNGATED_EXCEPTIONS = frozenset({"mechanized_equipment_1", "mechanized_equipment_2"})
 
 # Vanilla declares the designer blueprint overlay sprites - `GFX_TC_<chassis>` and
 # `GFX_TM_<chassis>_<slot>` - only for its own role chassis: aa, artillery and
@@ -6790,6 +6795,8 @@ def validate_legacy_armour_dlc_gates() -> None:
     """Keep legacy armour out of NSB production without orphaning non-NSB rows."""
     equipment_blocks = {
         path: dict(top_level_blocks(code_only(text(path)), "equipments"))
+        # Marines ride any APC, so on NSB a designer carrier replaces these rows.
+        *(f"mechanized_marine_equipment_{tier}" for tier in range(1, 6)),
         for path in LEGACY_ARMOUR_DLC_GATES
     }
     for path in (
