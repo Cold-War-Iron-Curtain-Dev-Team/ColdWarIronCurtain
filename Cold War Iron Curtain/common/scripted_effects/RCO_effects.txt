@@ -1,0 +1,86 @@
+###########################################################################
+# Regime Change Opportunities (RCO) - effects
+###########################################################################
+
+# Scope: ROOT = sender. Generic - never grows.
+# Called daily from on_actions and right after RCO_fire.
+# Opens/closes the per-sender flag RCO_open_<sender tag> on every target,
+# and keeps the sender's RCO_any_open flag + RCO_targets array (topbar alert).
+RCO_sync = {
+	every_country = {
+		limit = {
+			RCO_any = yes
+			NOT = { has_country_flag = RCO_open_@ROOT }
+		}
+		set_country_flag = RCO_open_@ROOT
+		ROOT = { clr_country_flag = RCO_alert_dismissed }	# new opportunity -> re-show alert
+		log = "[GetDateText] RCO open: target=[This.GetTag] sender=[Root.GetTag]"
+	}
+	every_country = {
+		limit = {
+			has_country_flag = RCO_open_@ROOT
+			RCO_any = no
+		}
+		clr_country_flag = RCO_open_@ROOT
+		log = "[GetDateText] RCO closed: target=[This.GetTag] sender=[Root.GetTag]"
+	}
+	# Rebuild the sender's list of open targets (shown in the alert tooltip)
+	ROOT = { clear_array = RCO_targets }
+	every_country = {
+		limit = { has_country_flag = RCO_open_@ROOT }
+		add_to_array = { ROOT.RCO_targets = THIS }
+	}
+	ROOT = {
+		if = {
+			limit = { check_variable = { RCO_targets^num > 0 } }
+			set_country_flag = RCO_any_open
+		}
+		else = {
+			clr_country_flag = RCO_any_open
+		}
+	}
+}
+
+# Scope: THIS = target, ROOT = sender (called from complete_effect).
+# One branch per opportunity, on the SAME triggers as RCO_any, so the
+# branch that runs is always the one that made the button appear.
+RCO_fire = {
+	if = {
+		limit = { RCO_SOV_greece = yes }
+		ROOT = {
+			country_event = sov_percentage_agreement.1
+			set_country_flag = SOV_Percentage_agreement
+		}
+	}
+	else_if = {
+		limit = { RCO_SOV_china = yes }
+		ROOT = {
+			PRC_Lose_CCW = yes
+			set_country_flag = SOV_Manchurian_Interventon
+		}
+	}
+	else_if = {
+		limit = { RCO_SOV_wgr49 = yes }
+		ROOT = {
+			country_event = SOV_WGR.1
+			set_country_flag = SOV_WGR49_interfered
+		}
+	}
+	else_if = {
+		limit = { RCO_SOV_stalin_note = yes }
+		ROOT = {
+			country_event = StalinNotes.1
+			set_country_flag = SOV_Stalin_Note
+		}
+	}
+	else_if = {
+		limit = { RCO_SOV_Yug = yes }
+		ROOT = {
+			YUG = { country_event = TUR_SOV.11 }
+			set_country_flag = SOV_YUG_Invasion
+		}
+	}
+	# Re-sync now: closes the button on EVERY target this opportunity
+	# covered (e.g. PDG after using it on GRE), not just THIS.
+	RCO_sync = yes
+}
