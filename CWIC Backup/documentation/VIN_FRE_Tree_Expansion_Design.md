@@ -1001,3 +1001,163 @@ choice-bypass defects are early-stop regressions. AI allocation, pacing,
 force-health, and score problems are recorded and carried through the complete
 run so the next fix pass has comparable evidence. Engine acceptance remains
 pending review of both preserved logs and the completed checkoff.
+
+## 2026-09-28 review of the 2026-09-02 combined run
+
+The 2 September AFK `human_ai` run (`_local/logs/game.log`/`error.log`,
+1949-05-23 to 1956-09-14) is the combined acceptance run defined above. Its
+checkoff is recorded in `Indochina_AFK_Playtest.md`. Review used telemetry
+only; no visual observation was available.
+
+### Engine-accepted by this run
+
+- Primary-campaign and CEFEO-operation lifecycle: 15 launches, 15 results, no
+  `IC_AFK|FAIL`, all armistice and limited-operation cleanups at zero remaining
+  wars, all four objective-marker lifecycles added and removed, hidden VIN AI
+  buffs absent and participant envelopes exact at every launch.
+- THO declaration-day deployment in both Cao Bang and Lang Son.
+- Hirondelle as an ownership-neutral airborne raid (clean, no war).
+- Castor/Pollux timing: airhead 1953-12-28, Pollux resolved 1954-01-09,
+  campaign `3` launched 1954-02-15. Castor callbacks from Brochet (clean,
+  discount 15) and Na San (failure, surcharge 15) applied.
+- Atlante full posture to a stalled result, and Final Push consumption of the
+  Mouette/Atlante terminals.
+- Authoritative post-Dien Bien Phu choice: briefing 1954-03-11, negotiations
+  selected 03-22, peace gate and a single `GENEVA_SOURCE|INVITE` 04-11,
+  scripted Geneva concluded 06-25. No premature peace conference.
+- Struggle calibration: final Communist margin `+135` (target `+100`-`+200`),
+  Communist leverage 300, delegate weights VIN 54 / VIE 43.
+- The 21 August runtime repairs did not recur; no rework-local parser errors.
+
+Results: Cao-Bac clean day 36; Vinh Yen clean 12; Mao Khe failure 36; Day River
+failure 51; Hoa Binh clean 105; Northwest clean 71; Na San clean 11; Dien Bien
+Phu clean 24. Brochet clean, Hirondelle clean, Mouette failure, Pollux column
+lost, Atlante stalled, Pathet Lao raid stalemate at day 90.
+
+### Balance queue (open)
+
+1. Metropole Patience sits at 0 from early 1952 to Geneva (brief 10 at
+   campaign `3` launch) while CEFEO AI holds 700-1,200 unspent War Credits. At
+   0, subsidies are Cut and the wind-down decision is available. Probable
+   upstream cause of item 2, because GONO tiers above the minimum require
+   Patience above 65 or full Castor [inference, not logged].
+2. Dien Bien Phu fell on day 24. The scripted fort floor cannot finish before
+   day 55, so ordinary combat took the camp. Standard hold AI demand is only
+   ratio 0.8 / priority 750 (`FRA.txt`). The chosen posture is not logged.
+3. Vinh Yen and Na San fell in 12 and 11 days. AI strategies are correct, but
+   no scripted launch-time garrison exists (only Dien Bien Phu spawns GONO).
+4. NLF held 12-13 divisions through 1953, then collapsed by 1954-04-27, while
+   VIE reached 44 divisions with wartime army cap 9999. Dak Doa never
+   launched; the log does not show which gate failed (NLF was alive after the
+   1954-02-10 date gate), so add gate telemetry in the next pass.
+
+### Minor defects (open)
+
+- `events/Indochina_Flavor_Events.txt:343` completes missing focus
+  `SIA_Coup_Succeeds`.
+- LAO unit `Kong Pathom` needs unavailable motorized equipment.
+- `vin_campaign_finish` calls `fre_lorraine_response_cleanup` unconditionally,
+  logging Lorraine cleanup and clearing its state after every campaign.
+- Unlocked-template warning at `VIN_50s.txt:4944`.
+- The Dien Bien Phu response telemetry does not record the chosen posture.
+
+### Not covered
+
+Outcome-journal rendering, Mouette map behavior, Northwest corridor/MEO
+behavior, the campaign-`3` Tonkin reserve, supersession payouts, Dak Doa,
+Northwest recovery (campaign `9`), alternate Castor/Dien Bien Phu/Lorraine/
+Hoa Binh terminals, and southern escalation after Dien Bien Phu.
+
+### Testing constraint
+
+As of 2026-09-28 no tester time is available for AFK or player-led runs. Work
+continues without engine runs: balance, defect, and content patches are
+statically verified and each records what its test must cover. One
+consolidated playtest will later cover the accumulated batch plus the
+not-covered list above.
+
+### Unbuilt design content
+
+First Nghia Lo; Bretagne; Adolphe; Camargue; Lower Laos / northeast Cambodia;
+Mang Yang and Chu Dreh passes; VIN move on Lai Chau; FRE reject-Dien-Bien-Phu
+hedgehog network; Royal Lao and Cambodian army branch; Charles Chanson/Sa Dec;
+VIN Luang Prabang all-in; Soviet-versus-Chinese patronage as a campaign input;
+Section 9.1 conversion of VIN army focuses into campaign inputs; the second
+overextension tier; deletion of unassigned legacy adjacency rules.
+
+## 2026-09-28 review of the 2026-09-28 AFK run
+
+Logs preserved at `_local/logs/2026-09-28/` (run 1949-05-23 to 1962). Tag
+reminder: `LAO` is the Pathet Lao, `LOS` is the Royal Lao starting tag.
+
+### Confirmed again
+
+- Lifecycle: 43 `PASS`, no `FAIL`; every campaign/operation recorded one
+  result; THO declaration posts passed.
+- Castor established 1953-12-26; campaign `3` launched 1954-03-03 (67-day
+  preparation window). Pollux column loss.
+- Atlante reached `central_success` (first engine coverage of that terminal).
+- Post-DBP authority: `GENEVA_SOURCE|DEFERRED ... reason=VIN_post_DBP_choice_unresolved`
+  on 1954-04-01, negotiations chosen 04-07.
+- Map outcome as observed by the user: Diem in power in VIE, historical
+  partition shape, apart from Laos.
+
+### New findings
+
+1. **Pathet Lao conquered the Kingdom of Laos.** The raid resolved as
+   `attacker_victory` on day 83 (1953-06-19) after a royal capital (`670` or
+   `1198`) fell. `ic_laos_raid_attacker_victory` in `IC_Laos_Raid_Effects.txt`
+   sets the result, awards +50 Communist / -25 pro-France score and 100 phase-A
+   points, and runs cleanup, but, unlike stalemate and total failure, it
+   neither calls `ic_laos_raid_ceasefire` nor defines a settlement. The LAO-LOS
+   war therefore continued: LOS had collapsed by 1953-10-29 and LAO reached 17
+   divisions. Geneva then adds +100 Communist leverage for the same flag.
+   Open design question: whether attacker victory should be a bounded
+   capital-fall settlement or an intended conquest branch.
+2. **Struggle overshoot returned:** final margin `+498` (target `+100`-`+200`),
+   Communist leverage 550 (previous run 300), delegate weights VIN 135 / VIE 25.
+   The margin moved from `+103` (1953-05) to `+353` (1953-10) across the Laos
+   victory, and the leverage reached 250 by 1953-10. The Laos award is one
+   confirmed contributor; the remainder is unattributed.
+3. **Geneva closed through `GENEVA_SOURCE|AUTO_RESOLVE` (source 2) on
+   1954-08-07**, not the focus-owned invite: NLF was still alive, so the
+   negotiations queue never passed the peace gate. The date is historically
+   plausible and the post-choice fallback is legitimate, but the
+   negotiations route itself did not close the war.
+4. Pacing worsened: Northwest clean day 24, Vinh Yen 15, Na San 11, Dien Bien
+   Phu 18. Cao-Bac clean 23, Hoa Binh clean 105, Mao Khe and Day River failed.
+5. Metropole Patience again hovered at 0-2 from early 1952 through Geneva
+   while War Credits sat at 1,070-1,340.
+6. NLF fell from 10 to 5 divisions by 1954-04 and collapsed after Geneva;
+   VIE reached 46.
+7. New adjacent errors: `ic_pulse` (`IC_scripted_effects.txt:7529-7541`) fails
+   to spawn three FRA `Division d'Infanterie` divisions on 1952-10-22 (FRA
+   template not found); missing Siam focuses at
+   `Indochina_Flavor_Events.txt:562-563` (in addition to `:343`); LAO
+   `Kong Pathom` motorized equipment persists.
+
+### Pathet Lao raid hardening (code-complete 2026-09-28, untested)
+
+User decision: conquest after attacker victory is intended, but it must be
+hard to reach. Changes:
+
+- `laos_raid_attacker_holds_capital` is replaced by
+  `laos_raid_attacker_holds_both_capitals`: VIN, LAO, or NLF must control both
+  capital provinces, Vientiane `1464` and Luang Prabang `4613`. This gates
+  the daily victory check and the deadline resolution. LOS capitulation or
+  disappearance still counts as victory.
+- Raid launch fortifies both capital provinces to bunker level 2 (not removed
+  afterward) and adds the state modifier `laos_raid_capital_defense` (+20%
+  defence, +15% max dig-in, +30% local supplies, +10% local org regain) to
+  states `670` and `1198`. Raid cleanup removes the modifier.
+- `LOS_hold_the_capitals`: both capitals now get priority-1100 front control
+  and unit requests of 1000; Phongsaly, Sam Neua, and state `1750` get -500.
+  The border-wide LAO/VIN unit requests (400/350) and the `garrison 500`
+  strategy are removed; border front control no longer makes manual attacks.
+- Mission, event, and news localisation now says both capitals are needed.
+
+Consolidated-playtest checks: the raid ends in stalemate or failure unless
+both capitals fall; LOS divisions stand in `1464`/`4613` rather than on the
+border (for example province `13738`); the modifier disappears at cleanup.
+Static checks: brace balance, `git diff --check`, localisation BOM and ASCII.
+`tools/loc_audit.py` no longer exists in the repo.
