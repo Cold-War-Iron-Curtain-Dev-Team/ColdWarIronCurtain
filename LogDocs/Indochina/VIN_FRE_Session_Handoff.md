@@ -567,18 +567,21 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Superseded by the 2026-09-29 section below. Remaining order:
+Updated 2026-09-30. Remaining order:
 
-1. Next consolidated AFK/player run: verify the 2026-09-29 playtest checks
-   (ledger checks 1-13) together with the Pathet Lao raid hardening and the
-   older not-covered list. Also run one FRE-player game that picks the
-   hedgehog network, since the historical AI never does.
-2. Tune only with evidence from more than one run: a single run can be an
-   outlier. Tune the Struggle writer from `SCORE_WRITE`/`SCORE_UNTRACED` data,
-   and the Nghia Lo and hedgehog values from checks 10-12.
-3. Next unbuilt content (ledger, "Unbuilt design content"): Bretagne, Adolphe,
-   Camargue, Lower Laos / northeast Cambodia, Mang Yang and Chu Dreh, and the
-   VIN move on Lai Chau.
+1. Next consolidated AFK/player run: verify ledger checks 1-16 that are still
+   open (2 and 14 negotiations/failsafe, 9 and 13 visual, 11 Northwest supply
+   callback, 12 hedgehogs, 15 locked template, 16 Dak Doa staging) together
+   with the Pathet Lao raid hardening and the older not-covered list. Also run
+   one FRE-player game that picks the hedgehog network, since the historical
+   AI never does.
+2. Tune only with evidence from more than one run. The 2026-09-29 run gives
+   the first data point: Struggle writer 3 carries about 70% of Communist
+   gain, and untraced Pro-France/Pro-Independence writes are not small. Dak
+   Doa never launched because NLF never held province `10180`.
+3. Next unbuilt content (ledger, "Unbuilt design content"): VIN move on Lai
+   Chau, then Bretagne, Adolphe, Camargue, Mang Yang and Chu Dreh, and Lower
+   Laos / northeast Cambodia. Start only when the user asks.
 4. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
@@ -655,3 +658,17 @@ tick, before Geneva launched, so NLF was never annexed. Fixed in
 `ic_failsafe_theatre_unfinished_trigger`: queued negotiations now count as
 unfinished content. Verify with ledger check 14 in the next run; the affected
 save is not repaired.
+
+## 2026-09-30 commit, run scoring, and template lock
+
+The whole 2026-09-29 batch is committed (`87801f6193`) after static checks.
+The 2026-09-29 run is scored against ledger checks 1-13 in the ledger's
+2026-09-30 section. Passes: Patience (3), Dien Bien Phu garrison and duration
+(4), launch garrisons and Vinh Yen/Na San duration (5), VIE cap (6), defect
+errors (7), and Nghia Lo lifecycle (10). Open: Dak Doa never launched because
+NLF never held staging province `10180` (8, now check 16). Not covered: the
+Northwest supply callback (11) is not logged, and hedgehogs (12).
+
+User decision: `Trung doan Bo binh Infantry` is locked (`is_locked = yes` in
+`history/units/VIN_1949.txt`), which closes the `VIN_50s.txt` unlocked-template
+warning. Statically verified only; ledger check 15.
