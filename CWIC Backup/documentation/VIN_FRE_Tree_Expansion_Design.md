@@ -1677,3 +1677,114 @@ Statically verified only; no engine run.
     appears near Paksong, the result is `contained`, and the unit is gone
     after `RESULT`.
 26. Regroupment: `nlf_regrouped` appears even if `reason=already_at_peace`.
+
+## 2026-10-01 content pass: remaining unbuilt design list
+
+Code-complete and statically verified only; no engine run. These are
+first-pass values and are not tuned. The lead fixed one engine-invalid
+equipment type (`anti_air_equipment_1` became `auto_cannon_equipment_1`).
+Struggle writers 27 (Luang Prabang), 30 (Chanson) and 31 (associated armies)
+are used; 28 and 29 are reserved and unused.
+
+### Severe overextension tier and VIN Luang Prabang all-in
+
+- `VIN_Campaign_Overextension_Severe` replaces the ordinary tier and never
+  stacks with it. Values: -70% attack, -45% defense, -55% org, -45% speed,
+  -60% planning, +110% supply consumption, +90% out-of-supply, -20%
+  reinforce, +45% attrition.
+  - It applies while a campaign runs and VIN holds Vientiane-state ground, or
+    the delta core (4075, 4119) outside campaigns 5-7.
+  - It clears on withdrawal and in common cleanup.
+  - Approved deviation: the ordinary tier already equals the CEFEO severe
+    package, so this tier is stronger than both.
+- `VIN_All_In_Luang_Prabang` is an alternative to the historical Pathet Lao
+  raid event.
+  - It launches the same raid with 3 extra Pathet Lao divisions, extra
+    equipment, a deadline 30 days longer, Luang Prabang-first AI and -40
+    Campaign Supply.
+  - Severe applies only when VIN itself holds ground beyond Luang Prabang. The
+    raid's own overextension modifier is suspended while severe applies.
+  - Success: Communist +40, and Lai Chau and Dien Bien Phu each get +10
+    supply at launch.
+  - Failure: VIN -50 Campaign Supply, and CEFEO gets Castor -15 on both
+    prices.
+  - Raid ownership and the two-capitals conquest rule are unchanged. The
+    historical AI never takes the focus. The Laos raid missions disappear
+    from the UI at day 90 of the longer raid; this is cosmetic.
+
+### Section 9.1: VIN army focuses as campaign inputs
+
+`vin_campaign_apply_command_inputs` runs once per launch, after deadline
+initialisation in `vin_campaign_declare_war`. A per-launch flag guards it.
+Seven army and command focuses set `VIN_Cmd_Input_*` flags with tooltips
+instead of their duplicated flat bonuses. Totals are clamped to +30 supply
+and +7 clean days, and campaign 9 is skipped. `VIN_improve_drv_army` lost its
+out-of-supply, speed, max-planning and planning-speed bonuses. Empty leading
+`completion_reward` blocks were removed. Log: `IC_AFK|CAMPAIGN_INPUTS`.
+
+### Chinese versus Soviet patronage
+
+`VIN_Chinese_Patronage` (historical) and `VIN_Soviet_Patronage` are mutually
+exclusive and available from 1950.
+
+| | Chinese | Soviet |
+|---|---|---|
+| Campaign supply per launch | +15 | +5 |
+| Deliveries | Rifles and support equipment, monthly | Artillery and anti-air guns, monthly |
+| Other | | Quality idea, PP, doctrine and artillery research bonuses |
+| Geneva communist leverage (once) | +25 | +40 |
+
+### Charles Chanson and Sa Dec
+
+The existing `FRE_Charles_Chanson` is used. A dated roll on 1951-07-31 kills
+him 85% of the time.
+- Death: -3 Patience, and Dak Doa gets +10 supply.
+- Survival: opens `FRE_Chanson_Pacification` and makes Camargue cheaper
+  (30/60/100) with a 6-day hold.
+
+`VIE_Historical.10` now reads the roll.
+
+### Royal Lao and Cambodian armies
+
+`FRE_Associated_State_Armies` is mutually exclusive with
+`FRE_Arm_the_National_Army` and is player-only.
+- It costs 60 War Credits. Royal Laos and Cambodia each get 2 divisions,
+  manpower and equipment, and the State of Vietnam's wartime cap drops from
+  30 to 25.
+- Lower Laos resolves `contained`. The raid capitals get bunker level 4.
+- Geneva gets +30 ethnic leverage, and Pro-France +10.
+- There are no wars, transfers or faction changes involving Laos or
+  Cambodia.
+
+### Legacy adjacency deletion
+
+The 12 unassigned northern rules and the base `INDOCHINESE_WAR` rule were
+deleted from `map/adjacency_rules.txt`, together with 3 flag or rule loc
+keys. Kept, because they are still assigned in the CSV: `LAOS_VINH`, `LAOS`,
+`DIVIDE` and `DIVIDE_SWF`. No movement change is expected.
+
+### Engine-unproven syntax to watch
+
+- `create_unit` inside `random_owned_controlled_state`.
+- `has_template`.
+- `num_divisions` in `set_variable`.
+- `set_building_level` at level 4.
+- The `Kong Phan`/`Kong Pathom` templates for extra Pathet Lao divisions.
+
+### Consolidated-playtest checks added
+
+27. Severe tier: `OVEREXTENSION|tier=severe|state=apply|clear` only with a
+    real cause. No `LP_all_in_severe_tier_has_cause` or
+    `raid_modifier_suspended_under_severe` FAIL.
+28. All-in (player or non-historical AI): `LAUNCH`, `STAGE` and `RESULT`
+    lines, then `CALLBACK|package=Castor|source=Luang_Prabang` on failure or
+    the campaign supply callbacks on success.
+29. `CAMPAIGN_INPUTS` on every launch, with values within the clamps. No
+    double application after a re-declare.
+30. `PATRONAGE|choice=chinese` for the historical AI, monthly
+    `PATRONAGE_DELIVERY` lines, and `PASS|check=Patronage_exclusive`.
+31. `CHANSON|outcome=..|roll=..` near 1951-07-31. On survival, the
+    pacification focus appears and Camargue prices are 30/60/100.
+32. Associated armies (player FRE): `ASSOCIATED_ARMIES|choice=associated`,
+    the divisions spawn, the VIE cap is 25, and Lower Laos is `contained`.
+33. Map: no adjacency errors in error.log, and northern movement as before.

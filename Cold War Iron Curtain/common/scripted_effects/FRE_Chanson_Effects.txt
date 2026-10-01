@@ -1,0 +1,92 @@
+fre_chanson_daily_tick = {
+	if = {
+		limit = { FRE_chanson_roll_due_trigger = yes }
+		fre_chanson_resolve = yes
+	}
+}
+
+fre_chanson_resolve = {
+	set_temp_variable = { ic_chanson_kill_pct = 85 }
+	if = {
+		limit = { is_historical_focus_on = no }
+		set_temp_variable = { ic_chanson_kill_pct = 65 }
+	}
+	set_temp_variable = { ic_chanson_roll = random }
+	multiply_temp_variable = { ic_chanson_roll = 100 }
+	if = {
+		limit = { check_variable = { ic_chanson_roll < ic_chanson_kill_pct } }
+		fre_chanson_apply_death = yes
+	}
+	else = { fre_chanson_apply_survival = yes }
+}
+
+fre_chanson_apply_death = {
+	set_country_flag = FRE_Chanson_Killed
+	if = {
+		limit = { has_character = FRE_Charles_Chanson }
+		retire_character = FRE_Charles_Chanson
+	}
+	set_temp_variable = { fre_patience_delta = -3 }
+	fre_metropole_patience_change = yes
+	if = {
+		limit = { country_exists = NLF }
+		NLF = { set_country_flag = NLF_Chanson_Ascendancy }
+	}
+	set_temp_variable = { ic_trace_writer = 30 }
+	set_temp_variable = { ic_trace_communist = 5 }
+	ic_afk_trace_score_pair = yes
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 5 tooltip = Add_to_Communist_Victory_Points_TT }
+			indochina_struggle_recalculate_total_anti_communist_score = yes
+		}
+	}
+	log = "IC_AFK|CHANSON|date=[GetDateText]|outcome=killed|roll=[?ic_chanson_roll|0]|kill_pct=[?ic_chanson_kill_pct|0]|patience=[?FRE_Metropole_Patience|0]"
+	country_event = { id = IC_Chanson.1 hours = 6 }
+}
+
+fre_chanson_apply_survival = {
+	set_country_flag = FRE_Chanson_Survived
+	set_temp_variable = { ic_trace_writer = 30 }
+	set_temp_variable = { ic_trace_pro_france = 5 }
+	ic_afk_trace_score_pair = yes
+	if = {
+		limit = { country_exists = FRA }
+		FRA = {
+			add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 5 tooltip = Add_to_French_Victory_Points_TT }
+			indochina_struggle_recalculate_total_anti_communist_score = yes
+		}
+	}
+	log = "IC_AFK|CHANSON|date=[GetDateText]|outcome=survived|roll=[?ic_chanson_roll|0]|kill_pct=[?ic_chanson_kill_pct|0]|patience=[?FRE_Metropole_Patience|0]"
+	country_event = { id = IC_Chanson.2 hours = 6 }
+}
+
+fre_chanson_pacification_complete = {
+	if = {
+		limit = { FRE_chanson_window_trigger = yes }
+		set_country_flag = FRE_Chanson_Pacification_Done
+		add_ideas = FRE_Chanson_Pacification_Program
+		if = {
+			limit = { country_exists = VIE }
+			VIE = { add_stability = 0.03 }
+		}
+		set_temp_variable = { ic_chanson_nlf_present = 0 }
+		if = {
+			limit = { country_exists = NLF }
+			set_temp_variable = { ic_chanson_nlf_present = 1 }
+			NLF = { add_ideas = NLF_Chanson_Pacification_Pressure }
+		}
+		set_temp_variable = { ic_trace_writer = 30 }
+		set_temp_variable = { ic_trace_pro_france = 10 }
+		ic_afk_trace_score_pair = yes
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 10 tooltip = Add_to_French_Victory_Points_TT }
+				indochina_struggle_recalculate_total_anti_communist_score = yes
+			}
+		}
+		log = "IC_AFK|CHANSON_PACIFICATION|date=[GetDateText]|nlf_pressure=[?ic_chanson_nlf_present|0]"
+	}
+}
