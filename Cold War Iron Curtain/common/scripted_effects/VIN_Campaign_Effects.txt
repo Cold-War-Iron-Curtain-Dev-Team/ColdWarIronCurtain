@@ -203,6 +203,10 @@ vin_campaign_apply_planned_offensive = {
 		limit = { check_variable = { VIN_camp_current = 10 } }
 		1761 = { vin_campaign_open_planned_state = yes }
 	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 11 } }
+		671 = { vin_campaign_open_planned_state = yes }
+	}
 }
 
 vin_campaign_sync_rear_supply_state = {
@@ -270,6 +274,7 @@ vin_campaign_sync_objective_modifiers = {
 		else_if = { limit = { check_variable = { VIN_camp_current = 7 } } 786 = { vin_apply_contested_objective = yes } }
 		else_if = { limit = { check_variable = { VIN_camp_current = 8 } } 671 = { vin_apply_contested_objective = yes } }
 		else_if = { limit = { check_variable = { VIN_camp_current = 10 } } 1761 = { vin_apply_contested_objective = yes } }
+		else_if = { limit = { check_variable = { VIN_camp_current = 11 } } 671 = { vin_apply_contested_objective = yes } }
 	}
 	vin_campaign_sync_rear_supply = yes
 	671 = {
@@ -482,6 +487,11 @@ vin_campaign_declare_war = {
 		set_variable = { VIN_camp_deadline_y = 40 }
 	}
 	else_if = {
+		limit = { check_variable = { VIN_camp_current = 11 } }
+		set_variable = { VIN_camp_deadline_x = 30 }
+		set_variable = { VIN_camp_deadline_y = 45 }
+	}
+	else_if = {
 		limit = { check_variable = { VIN_camp_current = 9 } }
 		set_variable = { VIN_camp_deadline_x = -1 }	# every recovery success is costly
 		set_variable = { VIN_camp_deadline_y = 120 }
@@ -544,6 +554,7 @@ vin_campaign_declare_war = {
 				check_variable = { VIN_camp_current = 5 }
 				check_variable = { VIN_camp_current = 8 }
 				check_variable = { VIN_camp_current = 10 }
+				check_variable = { VIN_camp_current = 11 }
 			}
 			country_exists = TAI
 		}
@@ -612,6 +623,7 @@ vin_campaign_declare_war = {
 	else_if = { limit = { check_variable = { VIN_camp_current = 7 } } activate_mission = VIN_Day_River_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 8 } } activate_mission = VIN_Na_San_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 10 } } activate_mission = VIN_Nghia_Lo_Objective }
+	else_if = { limit = { check_variable = { VIN_camp_current = 11 } } activate_mission = VIN_Lai_Chau_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 9 } } activate_mission = VIN_Northwest_Recovery_Objective }
 	else = { activate_mission = VIN_Campaign_Objective_Timer }
 	if = {
@@ -627,10 +639,18 @@ vin_campaign_declare_war = {
 			OR = {
 				AND = { check_variable = { VIN_camp_current > 4 } check_variable = { VIN_camp_current < 9 } }
 				check_variable = { VIN_camp_current = 10 }
+				check_variable = { VIN_camp_current = 11 }
 			}
 			country_exists = FRE
 		}
 		FRE = { fre_preparation_response_begin = yes }
+	}
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current = 11 }
+			country_exists = FRE
+		}
+		FRE = { fre_pollux_lai_chau_offer = yes }
 	}
 	ic_afk_validation_vin_launch_tick = yes
 }
@@ -680,6 +700,14 @@ vin_limited_campaign_add_objective_vps = {
 		1761 = { add_victory_points = { province = 13773 value = 1 } }
 		set_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo
 	}
+	else_if = {
+		limit = {
+			check_variable = { VIN_camp_current = 11 }
+			NOT = { has_country_flag = VIN_Temporary_Objective_VP_Lai_Chau }
+		}
+		671 = { add_victory_points = { province = 13765 value = 1 } }
+		set_country_flag = VIN_Temporary_Objective_VP_Lai_Chau
+	}
 }
 
 vin_limited_campaign_remove_objective_vps = {
@@ -711,6 +739,11 @@ vin_limited_campaign_remove_objective_vps = {
 		limit = { has_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo }
 		1761 = { add_victory_points = { province = 13773 value = -1 } }
 		clr_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo
+	}
+	if = {
+		limit = { has_country_flag = VIN_Temporary_Objective_VP_Lai_Chau }
+		671 = { add_victory_points = { province = 13765 value = -1 } }
+		clr_country_flag = VIN_Temporary_Objective_VP_Lai_Chau
 	}
 }
 
@@ -989,6 +1022,19 @@ vin_campaign_record_result = {
 		else = { set_country_flag = VIN_Campaign_Nghia_Lo_Result_Superseded }
 	}
 	else_if = {
+		limit = { check_variable = { VIN_camp_current = 11 } }
+		clr_country_flag = VIN_Campaign_Lai_Chau_Result_Clean
+		clr_country_flag = VIN_Campaign_Lai_Chau_Result_Costly
+		clr_country_flag = VIN_Campaign_Lai_Chau_Result_Aborted
+		clr_country_flag = VIN_Campaign_Lai_Chau_Result_Failure
+		clr_country_flag = VIN_Campaign_Lai_Chau_Result_Superseded
+		if = { limit = { check_variable = { VIN_camp_last_outcome = 1 } } set_country_flag = VIN_Campaign_Lai_Chau_Result_Clean }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 2 } } set_country_flag = VIN_Campaign_Lai_Chau_Result_Costly }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 3 } } set_country_flag = VIN_Campaign_Lai_Chau_Result_Aborted }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 4 } } set_country_flag = VIN_Campaign_Lai_Chau_Result_Failure }
+		else = { set_country_flag = VIN_Campaign_Lai_Chau_Result_Superseded }
+	}
+	else_if = {
 		limit = { check_variable = { VIN_camp_current = 9 } }
 		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Costly
 		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Aborted
@@ -1031,6 +1077,7 @@ vin_campaign_resolve = {
 			OR = {
 				AND = { check_variable = { VIN_camp_current > 4 } check_variable = { VIN_camp_current < 9 } }
 				check_variable = { VIN_camp_current = 10 }
+				check_variable = { VIN_camp_current = 11 }
 			}
 			country_exists = FRE
 		}
@@ -1322,6 +1369,11 @@ vin_campaign_finish = {
 		set_country_flag = VIN_Campaign_Cooldown_Nghia_Lo
 	}
 	if = {
+		limit = { has_country_flag = VIN_Campaign_Lai_Chau_Active }
+		clr_country_flag = VIN_Campaign_Lai_Chau_Active
+		set_country_flag = VIN_Campaign_Cooldown_Lai_Chau
+	}
+	if = {
 		limit = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active }
 		clr_country_flag = VIN_Campaign_Northwest_Recovery_Active
 		set_country_flag = VIN_Campaign_Cooldown_Northwest_Recovery
@@ -1365,6 +1417,7 @@ vin_campaign_finish = {
 	remove_mission = VIN_Day_River_Objective
 	remove_mission = VIN_Na_San_Objective
 	remove_mission = VIN_Nghia_Lo_Objective
+	remove_mission = VIN_Lai_Chau_Objective
 	remove_mission = VIN_Northwest_Recovery_Objective
 	set_variable = { VIN_camp_timer_days = 0 }
 }

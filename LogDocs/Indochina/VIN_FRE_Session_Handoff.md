@@ -567,21 +567,27 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-09-30. Remaining order:
+Updated 2026-09-30 (after the content pass). Remaining order:
 
-1. Next consolidated AFK/player run: verify ledger checks 1-16 that are still
-   open (2 and 14 negotiations/failsafe, 9 and 13 visual, 11 Northwest supply
-   callback, 12 hedgehogs, 15 locked template, 16 Dak Doa staging) together
-   with the Pathet Lao raid hardening and the older not-covered list. Also run
-   one FRE-player game that picks the hedgehog network, since the historical
-   AI never does.
-2. Tune only with evidence from more than one run. The 2026-09-29 run gives
-   the first data point: Struggle writer 3 carries about 70% of Communist
-   gain, and untraced Pro-France/Pro-Independence writes are not small. Dak
-   Doa never launched because NLF never held province `10180`.
-3. Next unbuilt content (ledger, "Unbuilt design content"): VIN move on Lai
-   Chau, then Bretagne, Adolphe, Camargue, Mang Yang and Chu Dreh, and Lower
-   Laos / northeast Cambodia. Start only when the user asks.
+1. Next consolidated AFK run: score ledger checks 1-22. Still open from
+   before: 2 and 14 (negotiations/failsafe), 9 and 13 (visual), 11, 12, 15
+   and 16. New: 17-22 for the 2026-09-30 content pass. Also cover the Pathet
+   Lao raid hardening and the older not-covered list. For check 12, either run
+   one AFK game with `effect ic_afk_force_hedgehog_enable = yes` entered
+   before 1953-11, or play one FRE game that picks the hedgehog network.
+2. Tune only with evidence from more than one run. Watch first: free clean
+   results for Bretagne/Camargue, Lower Laos never `contained` under AI, the
+   Struggle writer-3 share, and the Dak Doa `10180` staging.
+3. Remaining unbuilt design content (ledger, "Unbuilt design content"):
+   - Royal Lao and Cambodian army branch
+   - Charles Chanson/Sa Dec
+   - VIN Luang Prabang all-in
+   - patronage as a campaign input
+   - Section 9.1 conversion
+   - second overextension tier
+   - legacy adjacency deletion
+
+   Start only when the user asks.
 4. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
@@ -672,3 +678,25 @@ Northwest supply callback (11) is not logged, and hedgehogs (12).
 User decision: `Trung doan Bo binh Infantry` is locked (`is_locked = yes` in
 `history/units/VIN_1949.txt`), which closes the `VIN_50s.txt` unlocked-template
 warning. Statically verified only; ledger check 15.
+
+## 2026-09-30 content pass
+
+Full record in the ledger's "2026-09-30 content pass". Statically verified
+only; values are first-pass. User-chosen shapes:
+
+- VIN limited campaign `11`, the move on Lai Chau. It holds `13765` for 5
+  days and offers Pollux early.
+- Numbered FRE operations `5` Bretagne, `6` Adolphe and `7` Camargue.
+- An Atlante-linked Lower Laos diversion with no war against Royal Lao or
+  Cambodia.
+- Mang Yang and Chu Dreh as post-Dien Bien Phu CEFEO ambush packages with
+  no war.
+
+AFK coverage was widened in the same pass:
+
+- Campaign `1` supply and the Nghia Lo bonus.
+- `PREP_TIER`, garrison-removal checks, and Pollux/Atlante stage logs.
+- More Struggle writers routed (codes 16-26).
+- An opt-in console switch that makes the AI pick the hedgehog network.
+
+New playtest checks are 17-22.
