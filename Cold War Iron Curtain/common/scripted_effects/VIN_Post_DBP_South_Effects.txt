@@ -109,7 +109,7 @@ vin_post_dbp_focus_geneva_queue_tick = {
 			set_country_flag = VIN_Post_DBP_NLF_Stood_Down
 			log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_released|reason=stand_down"
 		}
-		VIE = { white_peace = NLF }
+		vin_post_dbp_nlf_regroupment = yes
 	}
 	if = {
 		limit = {
@@ -149,6 +149,36 @@ vin_post_dbp_focus_geneva_queue_tick = {
 		}
 		clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 	}
+}
+
+vin_post_dbp_nlf_regroupment = {
+	set_temp_variable = { regroup_divisions = 0 }
+	if = { limit = { NLF = { num_divisions > 0 } } set_temp_variable = { regroup_divisions = 1 } }
+	VIE = {
+		white_peace = NLF
+		annex_country = { target = NLF transfer_troops = no }
+	}
+	set_country_flag = VIN_Post_DBP_NLF_Regrouped
+	set_global_flag = geneva_nlf_outcome_applied
+	add_manpower = 20000
+	if = {
+		limit = { check_variable = { regroup_divisions > 0 } }
+		capital_scope = {
+			create_unit = {
+				division = "name = \"Southern Regroupment Regiment\" division_template = \"Trung doan Bo binh Infantry\" start_experience_factor = 0.4 start_equipment_factor = 0.7"
+				owner = VIN
+			}
+			create_unit = {
+				division = "name = \"Southern Regroupment Regiment\" division_template = \"Trung doan Bo binh Infantry\" start_experience_factor = 0.4 start_equipment_factor = 0.7"
+				owner = VIN
+			}
+		}
+	}
+	country_event = { id = VIN_South.10 hours = 1 }
+	if = { limit = { country_exists = VIE } VIE = { country_event = { id = VIN_South.11 hours = 1 } } }
+	set_temp_variable = { regroup_nlf_left = 0 }
+	if = { limit = { country_exists = NLF } set_temp_variable = { regroup_nlf_left = 1 } }
+	log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_regrouped|nlf_had_divisions=[?regroup_divisions|0]|nlf_exists_after=[?regroup_nlf_left|0]"
 }
 
 vin_post_dbp_fund_southern_war = {

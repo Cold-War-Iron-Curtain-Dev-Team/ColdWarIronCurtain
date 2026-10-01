@@ -700,3 +700,13 @@ AFK coverage was widened in the same pass:
 - An opt-in console switch that makes the AI pick the hedgehog network.
 
 New playtest checks are 17-22.
+
+## 2026-10-01 run review: negotiations end in regroupment
+
+Logs in `_local/logs/2026-10-01/`; ignore everything after 1958. Check 14
+passed: Geneva launched on the stand-down day and annexed NLF on 1954-10-06.
+The user-visible problem was that NLF stayed alive at peace for months after
+a bare white peace, and the focus showed nothing. User decision: the
+stand-down now ends in regroupment. VIE annexes NLF without its troops, VIN
+gets manpower and 2 regiments, and both sides get an event. The focus now
+has a tooltip. Full record in the ledger; new check 23.

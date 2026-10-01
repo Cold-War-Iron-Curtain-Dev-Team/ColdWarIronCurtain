@@ -1600,3 +1600,44 @@ them at finish. The generic ledger is routed through writer `16`.
     sharply for Pro-France.
 22. Forced hedgehog run (console opt-in): check 12 lines appear, Castor is
     never taken, and Lai Chau stays available as the fortified-base assault.
+
+## 2026-10-01 review of the 2026-10-01 AFK run: negotiations end in regroupment
+
+Logs preserved at `_local/logs/2026-10-01/`. Everything after 1958 is ignored
+(the run was left going too long; NLF returns in later, unrelated content).
+
+Telemetry: Dien Bien Phu clean on day 32 (1954-04-10). Negotiations were
+chosen 1954-04-24 (`nlf_stand_down_ordered`). The stand-down released NLF on
+1954-07-23, and the same day logged `focus_queue=consumed|peace_gate=passed`
+and `GENEVA_SOURCE|INVITE`. Geneva concluded on 1954-10-06
+(`END|result=scripted_Geneva_concluded`) and annexed NLF into VIE; NLF has no
+`ARMY_CAP` line from 1954-10 to 1958. Check 14 passes: there is no
+"forcing the terminator" line.
+
+User finding: the negotiations focus seemed to do nothing, and NLF
+white-peaced with VIE oddly. Cause: `VIN_Push_for_Negotiations` showed no
+effect tooltip, and the stand-down ended in a bare `white_peace`. That left a
+live NLF at peace, holding the south, for 2.5 months until Geneva annexed it.
+
+User decision: the stand-down ends in regroupment. In
+`vin_post_dbp_focus_geneva_queue_tick`, the white peace is replaced by the
+new `vin_post_dbp_nlf_regroupment`:
+
+- VIE white-peaces NLF, then annexes it with `transfer_troops = no`.
+- VIN gains 20,000 manpower, plus 2 "Southern Regroupment Regiment" divisions
+  (`Trung doan Bo binh Infantry`) at its capital if NLF still had divisions.
+- It sets `VIN_Post_DBP_NLF_Regrouped` and `geneva_nlf_outcome_applied`, so
+  Geneva does not score regroupment as a southern defeat.
+- Events `VIN_South.10` (VIN) and `VIN_South.11` (VIE) report it.
+- The focus gains the tooltip `VIN_Push_for_Negotiations_Regroupment_tt`.
+  Loc is in `IC_Post_DBP_l_english.yml`.
+
+The 90-day delay, the Geneva gate and the post-DBP latch are unchanged.
+Statically verified only.
+
+### Consolidated-playtest checks added
+
+23. After negotiations: `nlf_released`, then
+    `stage=nlf_regrouped|nlf_had_divisions=..|nlf_exists_after=0` the same
+    day, then `INVITE`. NLF has no `ARMY_CAP` line afterwards, VIN gains 2
+    regiments, both events show, and the Geneva NLF line is not "defeated".
