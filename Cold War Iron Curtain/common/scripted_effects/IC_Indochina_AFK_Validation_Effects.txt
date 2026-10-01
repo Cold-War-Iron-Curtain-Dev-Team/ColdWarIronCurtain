@@ -6,6 +6,9 @@ ic_afk_validation_initialize = {
 		set_variable = { global.ic_afk_heartbeat_days = 0 }
 		set_variable = { global.ic_afk_force_days = 0 }
 		set_variable = { global.ic_afk_force_signature = -1 }
+		set_variable = { global.ic_afk_pollux_stage_last = 0 }
+		set_variable = { global.ic_afk_atlante_stage_last = 0 }
+		set_variable = { global.ic_afk_garrison_check_wait = 0 }
 		set_variable = { global.ic_afk_prev_communist = StruggleInvolvedNationsIndochinaCommunistScore }
 		set_variable = { global.ic_afk_prev_pro_france = StruggleInvolvedNationsIndochinaProFranceScore }
 		set_variable = { global.ic_afk_prev_pro_independence = StruggleInvolvedNationsIndochinaProIndependenceScore }
@@ -121,10 +124,11 @@ ic_afk_validation_vin_balance_contract = {
 				check_variable = { VIN_camp_current = 7 }
 				AND = { check_variable = { VIN_camp_current = 8 } country_exists = TAI has_war_with = TAI }
 				AND = { check_variable = { VIN_camp_current = 10 } country_exists = TAI has_war_with = TAI }
+				AND = { check_variable = { VIN_camp_current = 11 } country_exists = TAI has_war_with = TAI }
 			}
 			OR = { check_variable = { VIN_camp_current = 2 } NOT = { country_exists = TAM } TAM = { NOT = { has_war_with = ROOT } } }
 			OR = { check_variable = { VIN_camp_current = 4 } NOT = { country_exists = THO } THO = { NOT = { has_war_with = ROOT } } }
-			OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 3 } check_variable = { VIN_camp_current = 5 } check_variable = { VIN_camp_current = 8 } check_variable = { VIN_camp_current = 10 } NOT = { country_exists = TAI } TAI = { NOT = { has_war_with = ROOT } } }
+			OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 3 } check_variable = { VIN_camp_current = 5 } check_variable = { VIN_camp_current = 8 } check_variable = { VIN_camp_current = 10 } check_variable = { VIN_camp_current = 11 } NOT = { country_exists = TAI } TAI = { NOT = { has_war_with = ROOT } } }
 			OR = { NOT = { country_exists = NUN } NUN = { NOT = { has_war_with = ROOT } } }
 		}
 		log = "IC_AFK|PASS|date=[GetDateText]|check=VIN_campaign_participant_envelope|campaign=[?VIN_camp_current|0]"
@@ -183,7 +187,9 @@ ic_afk_validation_vin_launch_tick = {
 	if = {
 		limit = { has_country_flag = VIN_Campaign_Tay_Bac_Active NOT = { has_global_flag = IC_AFK_Seen_VIN_1_Launch } }
 		set_global_flag = IC_AFK_Seen_VIN_1_Launch
-		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=VIN|campaign=1|name=Northwest|deadline_clean=[?VIN_camp_deadline_x|0]|deadline_final=[?VIN_camp_deadline_y|0]"
+		set_temp_variable = { ic_afk_nghia_lo_bonus = 0 }
+		if = { limit = { OR = { has_country_flag = VIN_Campaign_Nghia_Lo_Result_Clean has_country_flag = VIN_Campaign_Nghia_Lo_Result_Costly } } set_temp_variable = { ic_afk_nghia_lo_bonus = 1 } }
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=VIN|campaign=1|name=Northwest|deadline_clean=[?VIN_camp_deadline_x|0]|deadline_final=[?VIN_camp_deadline_y|0]|supply=[?VIN_Campaign_Supply|0]|nghia_lo_bonus=[?ic_afk_nghia_lo_bonus|0]"
 		ic_afk_validation_vin_balance_contract = yes
 	}
 	if = {
@@ -239,6 +245,7 @@ ic_afk_validation_vin_launch_tick = {
 		if = { limit = { has_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo } log = "IC_AFK|PASS|date=[GetDateText]|check=Nghia_Lo_objective_marker_active|province=13773" }
 		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Nghia_Lo_objective_marker_active|province=13773" }
 	}
+	ic_afk_validation_vin_lai_chau_launch = yes
 	if = {
 		limit = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active NOT = { has_global_flag = IC_AFK_Seen_VIN_9_Launch } }
 		set_global_flag = IC_AFK_Seen_VIN_9_Launch
@@ -332,6 +339,7 @@ ic_afk_validation_vin_result_tick = {
 		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Nghia_Lo_marker_removed_after_finish" }
 		set_variable = { global.ic_afk_vin_cleanup_campaign = 10 }
 	}
+	ic_afk_validation_vin_lai_chau_result = yes
 	if = {
 		limit = { VIN_northwest_recovery_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_VIN_9_Result } }
 		set_global_flag = IC_AFK_Seen_VIN_9_Result
@@ -382,6 +390,32 @@ ic_afk_validation_vin_result_tick = {
 		if = { limit = { has_country_flag = VIN_Campaign_Dien_Bien_Result_Failure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=3|name=Dien_Bien_Phu|outcome=failure|day=[?VIN_camp_days_elapsed|0]" }
 		if = { limit = { has_country_flag = VIN_Campaign_Dien_Bien_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=3|name=Dien_Bien_Phu|outcome=superseded|day=[?VIN_camp_days_elapsed|0]" }
 		set_variable = { global.ic_afk_vin_cleanup_campaign = 3 }
+	}
+}
+
+ic_afk_validation_vin_lai_chau_launch = {
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Lai_Chau_Active NOT = { has_global_flag = IC_AFK_Seen_VIN_11_Launch } }
+		set_global_flag = IC_AFK_Seen_VIN_11_Launch
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=VIN|campaign=11|name=Lai_Chau|hold=[?VIN_camp_objective_hold_days|0]/5|deadline_clean=[?VIN_camp_deadline_x|0]|deadline_final=[?VIN_camp_deadline_y|0]"
+		ic_afk_validation_vin_balance_contract = yes
+		if = { limit = { has_country_flag = VIN_Temporary_Objective_VP_Lai_Chau } log = "IC_AFK|PASS|date=[GetDateText]|check=Lai_Chau_objective_marker_active|province=13765" }
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Lai_Chau_objective_marker_active|province=13765" }
+	}
+}
+
+ic_afk_validation_vin_lai_chau_result = {
+	if = {
+		limit = { VIN_lai_chau_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_VIN_11_Result } }
+		set_global_flag = IC_AFK_Seen_VIN_11_Result
+		if = { limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Clean } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=11|name=Lai_Chau|outcome=clean|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Costly } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=11|name=Lai_Chau|outcome=costly|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Aborted } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=11|name=Lai_Chau|outcome=aborted|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Failure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=11|name=Lai_Chau|outcome=failure|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=11|name=Lai_Chau|outcome=superseded|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Temporary_Objective_VP_Lai_Chau } log = "IC_AFK|FAIL|date=[GetDateText]|check=Lai_Chau_marker_removed_after_finish" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Lai_Chau_marker_removed_after_finish" }
+		set_variable = { global.ic_afk_vin_cleanup_campaign = 11 }
 	}
 }
 
@@ -592,6 +626,144 @@ ic_afk_validation_fre_late_packages_tick = {
 	}
 }
 
+ic_afk_validation_fre_stage_tick = {
+	if = {
+		limit = { has_country_flag = FRE_Pollux_Evacuation_Active }
+		set_temp_variable = { ic_afk_stage_gap = FRE_Pollux_Days_Elapsed }
+		subtract_from_temp_variable = { ic_afk_stage_gap = global.ic_afk_pollux_stage_last }
+		if = {
+			limit = { check_variable = { ic_afk_stage_gap > 6 } }
+			set_variable = { global.ic_afk_pollux_stage_last = FRE_Pollux_Days_Elapsed }
+			set_temp_variable = { ic_afk_stage_objective = 0 }
+			if = { limit = { has_country_flag = FRE_Pollux_Posture_Escort fre_pollux_corridor_open_trigger = yes } set_temp_variable = { ic_afk_stage_objective = 1 } }
+			if = { limit = { has_country_flag = FRE_Pollux_Posture_Airlift fre_dbp_french_aligned_controls_camp_trigger = yes } set_temp_variable = { ic_afk_stage_objective = 1 } }
+			if = { limit = { has_country_flag = FRE_Pollux_Posture_Historical } log = "IC_AFK|POLLUX_STAGE|date=[GetDateText]|day=[?FRE_Pollux_Days_Elapsed|0]|hold=[?FRE_Pollux_Hold_Days|0]|posture=historical_split|objective_held=[?ic_afk_stage_objective|0]" }
+			else_if = { limit = { has_country_flag = FRE_Pollux_Posture_Escort } log = "IC_AFK|POLLUX_STAGE|date=[GetDateText]|day=[?FRE_Pollux_Days_Elapsed|0]|hold=[?FRE_Pollux_Hold_Days|0]|posture=escort|objective_held=[?ic_afk_stage_objective|0]" }
+			else = { log = "IC_AFK|POLLUX_STAGE|date=[GetDateText]|day=[?FRE_Pollux_Days_Elapsed|0]|hold=[?FRE_Pollux_Hold_Days|0]|posture=airlift|objective_held=[?ic_afk_stage_objective|0]" }
+		}
+	}
+	else = { set_variable = { global.ic_afk_pollux_stage_last = 0 } }
+	if = {
+		limit = { has_country_flag = FRE_Atlante_Offensive_Active }
+		set_temp_variable = { ic_afk_stage_gap = FRE_Atlante_Days_Elapsed }
+		subtract_from_temp_variable = { ic_afk_stage_gap = global.ic_afk_atlante_stage_last }
+		if = {
+			limit = { check_variable = { ic_afk_stage_gap > 6 } }
+			set_variable = { global.ic_afk_atlante_stage_last = FRE_Atlante_Days_Elapsed }
+			set_temp_variable = { ic_afk_stage_objective = 0 }
+			if = { limit = { has_country_flag = FRE_Atlante_Posture_Full fre_atlante_full_objective_trigger = yes } set_temp_variable = { ic_afk_stage_objective = 1 } }
+			if = { limit = { has_country_flag = FRE_Atlante_Posture_Vietnamese fre_atlante_vietnamese_objective_trigger = yes } set_temp_variable = { ic_afk_stage_objective = 1 } }
+			if = { limit = { has_country_flag = FRE_Atlante_Posture_Full } log = "IC_AFK|ATLANTE_STAGE|date=[GetDateText]|day=[?FRE_Atlante_Days_Elapsed|0]|hold=[?FRE_Atlante_Hold_Days|0]|posture=full|objective_held=[?ic_afk_stage_objective|0]" }
+			else = { log = "IC_AFK|ATLANTE_STAGE|date=[GetDateText]|day=[?FRE_Atlante_Days_Elapsed|0]|hold=[?FRE_Atlante_Hold_Days|0]|posture=vietnamese_led|objective_held=[?ic_afk_stage_objective|0]" }
+		}
+	}
+	else = { set_variable = { global.ic_afk_atlante_stage_last = 0 } }
+
+	if = {
+		limit = { OR = { has_country_flag = FRE_Operation_Pollux_Result_Preserved has_country_flag = FRE_Operation_Pollux_Result_Column_Loss has_country_flag = FRE_Operation_Pollux_Result_Superseded } NOT = { has_global_flag = IC_AFK_Seen_Pollux_Terminal_Reason } }
+		set_global_flag = IC_AFK_Seen_Pollux_Terminal_Reason
+		if = {
+			limit = { has_country_flag = FRE_Operation_Pollux_Result_Preserved }
+			if = { limit = { has_country_flag = FRE_Pollux_Result_Preserved_Escort } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=preserved|reason=corridor_held_escort" }
+			else = { log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=preserved|reason=camp_held_airlift" }
+		}
+		else_if = {
+			limit = { has_country_flag = FRE_Operation_Pollux_Result_Column_Loss }
+			if = { limit = { has_country_flag = FRE_Pollux_Result_Column_Loss_Origin } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=column_loss|reason=lai_chau_lost_before_launch" }
+			else_if = { limit = { has_country_flag = FRE_Pollux_Result_Column_Loss_Unfunded } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=column_loss|reason=unfunded" }
+			else_if = { limit = { has_country_flag = FRE_Pollux_Result_Column_Loss_Escort } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=column_loss|reason=corridor_not_held_escort" }
+			else_if = { limit = { has_country_flag = FRE_Pollux_Result_Column_Loss_Airlift } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=column_loss|reason=camp_not_held_airlift" }
+			else_if = { limit = { has_country_flag = FRE_Pollux_Result_Column_Loss_Historical } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=column_loss|reason=historical_split" }
+			else = { log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=column_loss|reason=unclassified" }
+		}
+		else = {
+			if = { limit = { has_global_flag = Indochina_War_Over } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=war_over" }
+			else_if = { limit = { has_global_flag = geneva_conference_concluded } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=geneva_concluded" }
+			else_if = { limit = { check_variable = { global.Indochina_War_Active_Phase > 8 } } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=phase_closed" }
+			else_if = { limit = { NOT = { country_exists = VIN } } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=vin_missing" }
+			else_if = { limit = { NOT = { country_exists = TAI } } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=tai_missing" }
+			else_if = { limit = { VIN = { has_country_flag = VIN_Campaign_Dien_Bien_Active } } log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=dien_bien_phu_campaign_launched" }
+			else = { log = "IC_AFK|POLLUX_TERMINAL|date=[GetDateText]|outcome=superseded|reason=camp_lost_or_not_established" }
+		}
+	}
+	if = {
+		limit = { fre_atlante_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_Atlante_Terminal_Reason } }
+		set_global_flag = IC_AFK_Seen_Atlante_Terminal_Reason
+		if = {
+			limit = { has_country_flag = FRE_Operation_Atlante_Result_Central_Success }
+			log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=central_success|reason=full_objectives_held"
+		}
+		else_if = {
+			limit = { has_country_flag = FRE_Operation_Atlante_Result_Vietnamese_Foothold }
+			log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=vietnamese_foothold|reason=northern_objective_held"
+		}
+		else_if = {
+			limit = { has_country_flag = FRE_Operation_Atlante_Result_Northern_Priority }
+			log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=northern_priority|reason=northern_priority_chosen"
+		}
+		else_if = {
+			limit = { has_country_flag = FRE_Operation_Atlante_Result_Stalled }
+			if = { limit = { has_country_flag = FRE_Atlante_Result_Stalled_Full } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=stalled|reason=deadline_hold_short_full" }
+			else_if = { limit = { has_country_flag = FRE_Atlante_Result_Stalled_Vietnamese } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=stalled|reason=deadline_hold_short_vietnamese_led" }
+			else = { log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=stalled|reason=unfunded" }
+		}
+		else = {
+			if = { limit = { has_global_flag = Indochina_War_Over } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=superseded|reason=war_over" }
+			else_if = { limit = { has_global_flag = geneva_conference_concluded } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=superseded|reason=geneva_concluded" }
+			else_if = { limit = { check_variable = { global.Indochina_War_Active_Phase > 8 } } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=superseded|reason=phase_closed" }
+			else_if = { limit = { NOT = { country_exists = VIE } } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=superseded|reason=vie_missing" }
+			else_if = { limit = { NOT = { country_exists = NLF } } log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=superseded|reason=nlf_missing" }
+			else = { log = "IC_AFK|ATLANTE_TERMINAL|date=[GetDateText]|outcome=superseded|reason=vie_nlf_war_ended" }
+		}
+	}
+	if = {
+		limit = { has_global_flag = IC_AFK_Force_Hedgehog has_country_flag = FRE_Hedgehog_Network_Chosen NOT = { has_global_flag = IC_AFK_Seen_Forced_Hedgehog_Check } }
+		set_global_flag = IC_AFK_Seen_Forced_Hedgehog_Check
+		log = "IC_AFK|PASS|date=[GetDateText]|check=Forced_hedgehog_chosen_by_AI"
+	}
+	if = {
+		limit = { has_global_flag = IC_AFK_Force_Hedgehog has_country_flag = FRE_Operation_Castor_Launched NOT = { has_global_flag = IC_AFK_Seen_Forced_Hedgehog_Check } }
+		set_global_flag = IC_AFK_Seen_Forced_Hedgehog_Check
+		log = "IC_AFK|FAIL|date=[GetDateText]|check=Forced_hedgehog_chosen_by_AI|detail=castor_launched"
+	}
+}
+
+ic_afk_validation_garrison_removal_tick = {
+	if = {
+		limit = { check_variable = { global.ic_afk_garrison_check_wait > 1 } }
+		subtract_from_variable = { global.ic_afk_garrison_check_wait = 1 }
+	}
+	else_if = {
+		limit = { check_variable = { global.ic_afk_garrison_check_wait = 1 } }
+		set_variable = { global.ic_afk_garrison_check_wait = 0 }
+		if = {
+			limit = { has_global_flag = FRE_Preparation_Garrison_Deployed }
+			log = "IC_AFK|INFO|date=[GetDateText]|check=Launch_garrison_removed_skipped|campaign=[?global.ic_afk_garrison_check_campaign|0]|reason=redeployed_for_campaign_[?global.ic_afk_garrison_campaign|0]"
+		}
+		else = {
+			set_temp_variable = { ic_afk_garrison_left = 0 }
+			if = { limit = { country_exists = FRE FRE = { has_template = "Groupe de Defense Locale" } } add_to_temp_variable = { ic_afk_garrison_left = 1 } }
+			if = { limit = { country_exists = TAI TAI = { has_template = "Groupe de Defense Locale" } } add_to_temp_variable = { ic_afk_garrison_left = 1 } }
+			if = { limit = { country_exists = VIE VIE = { has_template = "Groupe de Defense Locale" } } add_to_temp_variable = { ic_afk_garrison_left = 1 } }
+			if = {
+				limit = { check_variable = { ic_afk_garrison_left = 0 } }
+				log = "IC_AFK|PASS|date=[GetDateText]|check=Launch_garrison_removed|campaign=[?global.ic_afk_garrison_check_campaign|0]|owners_with_template=0"
+			}
+			else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Launch_garrison_removed|campaign=[?global.ic_afk_garrison_check_campaign|0]|owners_with_template=[?ic_afk_garrison_left|0]" }
+		}
+	}
+}
+
+ic_afk_force_hedgehog_enable = {
+	set_global_flag = IC_AFK_Force_Hedgehog
+	log = "IC_AFK|FORCE_HEDGEHOG|date=[GetDateText]|state=enabled"
+}
+
+ic_afk_force_hedgehog_disable = {
+	clr_global_flag = IC_AFK_Force_Hedgehog
+	log = "IC_AFK|FORCE_HEDGEHOG|date=[GetDateText]|state=disabled"
+}
+
 ic_afk_placement_snapshot = {
 	set_temp_variable = { ic_afk_p1760 = 0 }	# Ha Noi
 	if = { limit = { divisions_in_state = { state = 1760 size > 0 } } set_temp_variable = { ic_afk_p1760 = 1 } }
@@ -752,6 +924,75 @@ ic_afk_force_observer_tick = {
 	}
 }
 
+ic_afk_validation_fre_highlands_tick = {
+	if = {
+		limit = { has_country_flag = FRE_Highlands_Mang_Yang_Active NOT = { has_global_flag = IC_AFK_Seen_Mang_Yang_Launch } }
+		set_global_flag = IC_AFK_Seen_Mang_Yang_Launch
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Posture_Road } log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|package=Mang_Yang|choice=road|credits=[?FRE_War_Credits|0]|patience=[?FRE_Metropole_Patience|0]" }
+		else_if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Posture_Airlift } log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|package=Mang_Yang|choice=airlift|credits=[?FRE_War_Credits|0]|patience=[?FRE_Metropole_Patience|0]" }
+		else_if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Posture_Hold } log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|package=Mang_Yang|choice=hold|credits=[?FRE_War_Credits|0]|patience=[?FRE_Metropole_Patience|0]" }
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Mang_Yang_posture_selected" }
+	}
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = FRE_Highlands_Mang_Yang_Result_Destroyed
+				has_country_flag = FRE_Highlands_Mang_Yang_Result_Mauled
+				has_country_flag = FRE_Highlands_Mang_Yang_Result_Escaped
+				has_country_flag = FRE_Highlands_Mang_Yang_Result_Airlifted
+				has_country_flag = FRE_Highlands_Mang_Yang_Result_Held
+				has_country_flag = FRE_Highlands_Mang_Yang_Result_Superseded
+			}
+			NOT = { has_global_flag = IC_AFK_Seen_Mang_Yang_Result }
+		}
+		set_global_flag = IC_AFK_Seen_Mang_Yang_Result
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Destroyed } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Mang_Yang|outcome=destroyed" }
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Mauled } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Mang_Yang|outcome=mauled" }
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Escaped } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Mang_Yang|outcome=escaped" }
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Airlifted } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Mang_Yang|outcome=airlifted" }
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Held } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Mang_Yang|outcome=held" }
+		if = { limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Mang_Yang|outcome=superseded" }
+		if = {
+			limit = { OR = { has_country_flag = FRE_Highlands_Mang_Yang_Active has_country_flag = FRE_Highlands_Mang_Yang_Choice_Pending } }
+			log = "IC_AFK|FAIL|date=[GetDateText]|check=Mang_Yang_active_cleanup"
+		}
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Mang_Yang_active_cleanup" }
+		if = {
+			limit = { has_country_flag = FRE_Highlands_Mang_Yang_Result_Destroyed }
+			if = { limit = { has_country_flag = FRE_Highlands_GM100_Deployed } log = "IC_AFK|FAIL|date=[GetDateText]|check=Mang_Yang_unit_cleanup" }
+			else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Mang_Yang_unit_cleanup" }
+		}
+	}
+	if = {
+		limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Active NOT = { has_global_flag = IC_AFK_Seen_Chu_Dreh_Launch } }
+		set_global_flag = IC_AFK_Seen_Chu_Dreh_Launch
+		if = { limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Posture_Road } log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|package=Chu_Dreh|choice=road|credits=[?FRE_War_Credits|0]|patience=[?FRE_Metropole_Patience|0]" }
+		else_if = { limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Posture_Hold } log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|package=Chu_Dreh|choice=hold|credits=[?FRE_War_Credits|0]|patience=[?FRE_Metropole_Patience|0]" }
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Chu_Dreh_posture_selected" }
+	}
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = FRE_Highlands_Chu_Dreh_Result_Mauled
+				has_country_flag = FRE_Highlands_Chu_Dreh_Result_Escaped
+				has_country_flag = FRE_Highlands_Chu_Dreh_Result_Held
+				has_country_flag = FRE_Highlands_Chu_Dreh_Result_Superseded
+			}
+			NOT = { has_global_flag = IC_AFK_Seen_Chu_Dreh_Result }
+		}
+		set_global_flag = IC_AFK_Seen_Chu_Dreh_Result
+		if = { limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Result_Mauled } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Chu_Dreh|outcome=mauled" }
+		if = { limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Result_Escaped } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Chu_Dreh|outcome=escaped" }
+		if = { limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Result_Held } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Chu_Dreh|outcome=held" }
+		if = { limit = { has_country_flag = FRE_Highlands_Chu_Dreh_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|package=Chu_Dreh|outcome=superseded" }
+		if = {
+			limit = { OR = { has_country_flag = FRE_Highlands_Chu_Dreh_Active has_country_flag = FRE_Highlands_Chu_Dreh_Choice_Pending } }
+			log = "IC_AFK|FAIL|date=[GetDateText]|check=Chu_Dreh_active_cleanup"
+		}
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Chu_Dreh_active_cleanup" }
+	}
+}
+
 ic_afk_validation_dak_doa_tick = {
 	if = {
 		limit = { has_country_flag = VIN_Campaign_Dak_Doa_Active NOT = { has_global_flag = IC_AFK_Seen_Dak_Doa_Launch } }
@@ -852,8 +1093,13 @@ ic_afk_validation_daily_tick = {
 		else = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=MEO|status=collapsed" }
 	}
 	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_vin_launch_tick = yes ic_afk_validation_vin_result_tick = yes ic_afk_validation_vin_cleanup_tick = yes ic_afk_validation_vin_post_dbp_strategy_tick = yes } }
+	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_lower_laos_tick = yes } }
 	if = { limit = { country_exists = NLF } NLF = { ic_afk_validation_dak_doa_tick = yes } }
 	if = { limit = { country_exists = FRE } FRE = { ic_afk_validation_fre_limited_tick = yes ic_afk_validation_fre_late_packages_tick = yes } }
+	if = { limit = { country_exists = FRE } FRE = { ic_afk_validation_fre_new_operations_tick = yes } }
+	if = { limit = { country_exists = FRE } FRE = { ic_afk_validation_fre_stage_tick = yes } }
+	if = { limit = { country_exists = FRE } FRE = { ic_afk_validation_fre_highlands_tick = yes } }
+	ic_afk_validation_garrison_removal_tick = yes
 	ic_afk_validation_laos_raid_tick = yes
 	ic_afk_force_observer_tick = yes
 	if = {
@@ -930,5 +1176,137 @@ ic_afk_validation_peace_conference_start = {
 	else_if = {
 		limit = { OR = { ROOT = { ic_failsafe_theatre_tag_trigger = yes } FROM = { ic_failsafe_theatre_tag_trigger = yes } } }
 		log = "IC_AFK|INFO|date=[GetDateText]|check=later_theatre_peace_conference_after_scripted_end|winner=[ROOT.GetTag]|loser=[FROM.GetTag]"
+	}
+}
+
+ic_afk_validation_lower_laos_tick = {
+	if = {
+		limit = { has_country_flag = VIN_Lower_Laos_Diversion_Active NOT = { has_global_flag = IC_AFK_Seen_Lower_Laos_Launch } }
+		set_global_flag = IC_AFK_Seen_Lower_Laos_Launch
+		set_temp_variable = { ic_afk_ll_atlante = 0 }
+		if = { limit = { country_exists = FRE FRE = { has_country_flag = FRE_Atlante_Offensive_Active } } set_temp_variable = { ic_afk_ll_atlante = 1 } }
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=VIN|package=Lower_Laos|days=45|atlante_active=[?ic_afk_ll_atlante|0]|supply=[?VIN_Campaign_Supply|0]"
+		if = {
+			limit = { check_variable = { ic_afk_ll_atlante = 1 } }
+			if = { limit = { FRE = { has_idea = FRE_Lower_Laos_Reserves_Diverted } has_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied } log = "IC_AFK|PASS|date=[GetDateText]|check=Lower_Laos_atlante_pressure_applied|hold_extension=[?FRE.FRE_Atlante_Hold_Extension|0]" }
+			else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Lower_Laos_atlante_pressure_applied" }
+		}
+	}
+	if = {
+		limit = { vin_lower_laos_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_Lower_Laos_Result } }
+		set_global_flag = IC_AFK_Seen_Lower_Laos_Result
+		if = { limit = { has_country_flag = VIN_Lower_Laos_Result_Pressure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|package=Lower_Laos|outcome=pressure|days=[?VIN_Lower_Laos_Days|0]|supply=[?VIN_Campaign_Supply|0]" }
+		if = { limit = { has_country_flag = VIN_Lower_Laos_Result_Contained } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|package=Lower_Laos|outcome=contained|days=[?VIN_Lower_Laos_Days|0]|supply=[?VIN_Campaign_Supply|0]" }
+		if = { limit = { has_country_flag = VIN_Lower_Laos_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|package=Lower_Laos|outcome=superseded|days=[?VIN_Lower_Laos_Days|0]|supply=[?VIN_Campaign_Supply|0]" }
+		if = { limit = { has_country_flag = VIN_Lower_Laos_Diversion_Active } log = "IC_AFK|FAIL|date=[GetDateText]|check=Lower_Laos_package_cleared" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Lower_Laos_package_cleared" }
+		if = {
+			limit = { country_exists = FRE FRE = { has_idea = FRE_Lower_Laos_Reserves_Diverted } }
+			log = "IC_AFK|FAIL|date=[GetDateText]|check=Lower_Laos_idea_removed"
+		}
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Lower_Laos_idea_removed" }
+		if = {
+			limit = {
+				OR = {
+					AND = { country_exists = LOS has_war_with = LOS }
+					AND = { country_exists = CAM has_war_with = CAM }
+				}
+			}
+			log = "IC_AFK|FAIL|date=[GetDateText]|check=Lower_Laos_no_war_with_LOS_or_CAM"
+		}
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Lower_Laos_no_war_with_LOS_or_CAM" }
+	}
+}
+
+ic_afk_validation_fre_new_operations_tick = {
+	set_temp_variable = { ic_afk_fre_new_result = 0 }
+	if = {
+		limit = { has_country_flag = FRE_Limited_Operation_Active check_variable = { FRE_op_current = 5 } NOT = { has_global_flag = IC_AFK_Seen_FRE_5_Launch } }
+		set_global_flag = IC_AFK_Seen_FRE_5_Launch
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|operation=5|name=Bretagne|tier=[?FRE_op_commitment_tier|0]|deadline=[?FRE_op_deadline_y|0]"
+		if = { limit = { has_global_flag = Laos_Raid_Active } log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_operation_blocked_during_Laos_raid|operation=5" }
+		ic_afk_validation_fre_balance_contract = yes
+	}
+	if = {
+		limit = { has_country_flag = FRE_Limited_Operation_Active check_variable = { FRE_op_current = 6 } NOT = { has_global_flag = IC_AFK_Seen_FRE_6_Launch } }
+		set_global_flag = IC_AFK_Seen_FRE_6_Launch
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|operation=6|name=Adolphe|tier=[?FRE_op_commitment_tier|0]|deadline=[?FRE_op_deadline_y|0]"
+		if = { limit = { has_global_flag = Laos_Raid_Active } log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_operation_blocked_during_Laos_raid|operation=6" }
+		ic_afk_validation_fre_balance_contract = yes
+	}
+	if = {
+		limit = { has_country_flag = FRE_Limited_Operation_Active check_variable = { FRE_op_current = 7 } NOT = { has_global_flag = IC_AFK_Seen_FRE_7_Launch } }
+		set_global_flag = IC_AFK_Seen_FRE_7_Launch
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=FRE|operation=7|name=Camargue|tier=[?FRE_op_commitment_tier|0]|deadline=[?FRE_op_deadline_y|0]"
+		if = { limit = { has_global_flag = Laos_Raid_Active } log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_operation_blocked_during_Laos_raid|operation=7" }
+		if = {
+			limit = { OR = { has_country_flag = FRE_Camargue_Garrison_Deployed NOT = { country_exists = VIE } } }
+			log = "IC_AFK|PASS|date=[GetDateText]|check=Camargue_garrison_deployed_or_VIE_absent|operation=7"
+		}
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Camargue_garrison_deployed_or_VIE_absent|operation=7" }
+		ic_afk_validation_fre_balance_contract = yes
+	}
+	if = {
+		limit = { FRE_bretagne_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_FRE_5_Result } }
+		set_global_flag = IC_AFK_Seen_FRE_5_Result
+		set_temp_variable = { ic_afk_fre_new_result = 1 }
+		if = { limit = { has_country_flag = FRE_Operation_Bretagne_Result_Clean } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=5|name=Bretagne|outcome=clean" }
+		if = { limit = { has_country_flag = FRE_Operation_Bretagne_Result_Costly } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=5|name=Bretagne|outcome=costly" }
+		if = { limit = { has_country_flag = FRE_Operation_Bretagne_Result_Aborted } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=5|name=Bretagne|outcome=aborted" }
+		if = { limit = { has_country_flag = FRE_Operation_Bretagne_Result_Failure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=5|name=Bretagne|outcome=failure" }
+		if = { limit = { has_country_flag = FRE_Operation_Bretagne_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=5|name=Bretagne|outcome=superseded" }
+		if = { limit = { has_country_flag = FRE_Mission_Operation_Bretagne_Activated } log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_operation_marker_removed|operation=5" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_operation_marker_removed|operation=5" }
+	}
+	if = {
+		limit = { FRE_adolphe_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_FRE_6_Result } }
+		set_global_flag = IC_AFK_Seen_FRE_6_Result
+		set_temp_variable = { ic_afk_fre_new_result = 1 }
+		if = { limit = { has_country_flag = FRE_Operation_Adolphe_Result_Clean } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=6|name=Adolphe|outcome=clean" }
+		if = { limit = { has_country_flag = FRE_Operation_Adolphe_Result_Costly } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=6|name=Adolphe|outcome=costly" }
+		if = { limit = { has_country_flag = FRE_Operation_Adolphe_Result_Aborted } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=6|name=Adolphe|outcome=aborted" }
+		if = { limit = { has_country_flag = FRE_Operation_Adolphe_Result_Failure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=6|name=Adolphe|outcome=failure" }
+		if = { limit = { has_country_flag = FRE_Operation_Adolphe_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=6|name=Adolphe|outcome=superseded" }
+		if = { limit = { has_country_flag = FRE_Mission_Operation_Adolphe_Activated } log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_operation_marker_removed|operation=6" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_operation_marker_removed|operation=6" }
+		if = {
+			limit = {
+				OR = {
+					AND = { has_country_flag = FRE_Operation_Adolphe_Result_Clean has_country_flag = FRE_Adolphe_Sortie_Success }
+					AND = { NOT = { has_country_flag = FRE_Operation_Adolphe_Result_Clean } NOT = { has_country_flag = FRE_Adolphe_Sortie_Success } }
+				}
+			}
+			log = "IC_AFK|PASS|date=[GetDateText]|check=Adolphe_sortie_flag_matches_result|operation=6"
+		}
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Adolphe_sortie_flag_matches_result|operation=6" }
+	}
+	if = {
+		limit = { FRE_camargue_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_FRE_7_Result } }
+		set_global_flag = IC_AFK_Seen_FRE_7_Result
+		set_temp_variable = { ic_afk_fre_new_result = 1 }
+		if = { limit = { has_country_flag = FRE_Operation_Camargue_Result_Clean } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=7|name=Camargue|outcome=clean" }
+		if = { limit = { has_country_flag = FRE_Operation_Camargue_Result_Costly } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=7|name=Camargue|outcome=costly" }
+		if = { limit = { has_country_flag = FRE_Operation_Camargue_Result_Aborted } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=7|name=Camargue|outcome=aborted" }
+		if = { limit = { has_country_flag = FRE_Operation_Camargue_Result_Failure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=7|name=Camargue|outcome=failure" }
+		if = { limit = { has_country_flag = FRE_Operation_Camargue_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=FRE|operation=7|name=Camargue|outcome=superseded" }
+		if = { limit = { has_country_flag = FRE_Mission_Operation_Camargue_Activated } log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_operation_marker_removed|operation=7" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_operation_marker_removed|operation=7" }
+		if = { limit = { has_country_flag = FRE_Camargue_Garrison_Deployed } log = "IC_AFK|FAIL|date=[GetDateText]|check=Camargue_garrison_removed|operation=7" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Camargue_garrison_removed|operation=7" }
+	}
+	if = {
+		limit = { NOT = { has_country_flag = FRE_Limited_Operation_Active } OR = { FRE_bretagne_terminal_trigger = yes FRE_adolphe_terminal_trigger = yes FRE_camargue_terminal_trigger = yes } }
+		if = { limit = { OR = { has_idea = FRE_Limited_Operation_Light has_idea = FRE_Limited_Operation_Standard has_idea = FRE_Limited_Operation_Maximum } NOT = { has_global_flag = IC_AFK_Failed_FRE_Commitment_Cleanup } } set_global_flag = IC_AFK_Failed_FRE_Commitment_Cleanup log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_limited_operation_commitment_cleanup" }
+	}
+	if = {
+		limit = { check_variable = { ic_afk_fre_new_result = 1 } }
+		set_temp_variable = { ic_afk_operation_wars = 0 }
+		if = { limit = { country_exists = VIN has_war_with = VIN } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
+		if = { limit = { country_exists = TAI TAI = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
+		if = { limit = { country_exists = TAM TAM = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
+		if = { limit = { country_exists = NUN NUN = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
+		if = { limit = { country_exists = THO THO = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
+		if = { limit = { check_variable = { ic_afk_operation_wars = 0 } NOT = { has_country_flag = FRE_Limited_Operation_Owns_War } } log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=0" }
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=[?ic_afk_operation_wars|0]" }
 	}
 }

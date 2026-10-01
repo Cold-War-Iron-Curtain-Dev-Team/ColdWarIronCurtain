@@ -1450,3 +1450,153 @@ change).
     requirement in `VIN_dak_doa_available_trigger` is the blocker to fix (AI
     allocation toward `10180` or a different staging contract); do not change
     it from this single run.
+
+## 2026-09-30 content pass: Lai Chau, Bretagne/Adolphe/Camargue, Lower Laos, highlands ambushes, AFK coverage
+
+Code-complete and statically verified only; no engine run. These are
+first-pass values and are not tuned. User decisions on shape (2026-09-30):
+Lai Chau is VIN limited campaign `11`; Bretagne/Adolphe/Camargue are numbered
+FRE operations `5`/`6`/`7`; Lower Laos is an Atlante-linked diversion with no
+war; Mang Yang and Chu Dreh are FRE ambush packages with no war. None of
+these transfers territory, makes peace outside the existing owned-war
+cleanup, or writes the Geneva recorder or the post-DBP latch. None declares
+war on `LOS` or `CAM`.
+
+### VIN campaign `11`: the move on Lai Chau
+
+- Focus `VIN_Strike_Lai_Chau` (VIN_50s (47,11), after `VIN_Assault_Na_San`).
+  Available after 1953-11-20 with Castor success or the hedgehog network,
+  13765 French-aligned held, Tai Federation alive, Dien Bien Phu (campaign
+  `3`) not started, the live window, no campaign running, and the cooldown
+  ready.
+- VIN must hold province `13765` for 5 days; deadlines 30/45 on both routes.
+  Cooldown is 14 days. VIN declares on and owns the TAI war; the shared
+  armistice cleans it up. The Struggle payout uses the shared writer `11`.
+- CEFEO response is `FRE_Preparation.6` with a launch garrison at `13765` and
+  an optional airborne relief. A VIN clean or costly result gives Dien Bien
+  Phu +15 Campaign Supply at launch.
+- Pollux coupling is `fre_pollux_lai_chau_offer`. On Lai Chau launch, an
+  unlaunched Pollux whose prerequisites are met is offered at once through
+  the existing `fre_pollux_focus_complete`. If VIN has already taken Lai
+  Chau, the existing origin-lost result applies. The Pollux focus is bypassed
+  once Pollux is launched. The Pollux lifecycle is otherwise unchanged.
+
+### FRE operations `5`/`6`/`7`
+
+All three use the shared resolver in `FRE_Operation_Effects.txt`. Focuses
+are relative to `FRE_The_Situation_in_Route_Coloniale_4`.
+
+| Op | Focus slot | Available | Objective (French-aligned hold) | Deadlines | Clean reward |
+|---|---|---|---|---|---|
+| 5 Bretagne | (-1,3) | 1952-11-15; Lorraine result or Na San prepared | `13753` and `1185`, 7 days | 30/45 | VIN -15 Campaign Supply |
+| 6 Adolphe | (-4,3) | 1953-03-15; Na San terminal, `13757` held | `13754`, 5 days | 20/30 | VIN -10 Campaign Supply; `FRE_Adolphe_Sortie_Success` adds +1 preparation tier (cap unchanged) |
+| 7 Camargue | (5,3) | 1953-07-01; Brochet or Hirondelle terminal | `4379` and `16445`, 7 days | 25/40 | State of Vietnam +0.03 stability and war support; Pro-Independence +10 (writer `17`) |
+
+Camargue spawns 2 State of Vietnam divisions at `4379` on launch and removes
+them at finish. The generic ledger is routed through writer `16`.
+
+### Lower Laos diversion
+
+- Focus `VIN_Lower_Laos_Offensive` (VIN_50s (18,10), no prerequisite).
+  Available from 1953-12-15 once Atlante has launched, or from 1954-02-15 as
+  a fallback.
+- It is a 45-day VIN package that costs 20 Campaign Supply. While Atlante is
+  active, it adds +4 to Atlante's hold gate and applies
+  `FRE_Lower_Laos_Reserves_Diverted` (org -4%, supply consumption +6%,
+  reinforce -4%).
+- Result `contained` (VIN +10 supply) if any CEFEO division entered state
+  `1796` or `1187` during the package. Otherwise `pressure`, which gives
+  Communist +15 (writer `18`).
+
+### Mang Yang and Chu Dreh
+
+- New files: `FRE_Highlands_Effects.txt`, `FRE_Highlands_Triggers.txt` and
+  `events/FRE_Highlands_Events.txt`. The tick runs from the existing FRE
+  block of `on_daily_VIN`.
+- **Mang Yang** opens after Dien Bien Phu is terminal, with 1954-07-01 as a
+  fallback. CEFEO chooses a road column, an airlift (60 credits, -3 Patience)
+  or holding An Khe, with `GM 100` at `16443`. A risk roll after 5 days is
+  weighted by enemy control of `1328`/`16442` and the Dak Doa result.
+  Outcomes: destroyed (Communist +20), mauled (+10), escaped (Pro-France +5),
+  airlifted, or held. All use writer `19`.
+- **Chu Dreh** opens on 1954-07-10, or 14 days after Mang Yang resolves.
+  `GM 42` runs from Pleiku `16442` toward Ban Me Thuot `1605`. Outcomes:
+  mauled, escaped or held, using writer `20`.
+- Both packages are superseded, with no reward, when the window closes.
+
+### AFK coverage added
+
+- The campaign `1` LAUNCH line now carries `supply=` and `nghia_lo_bonus=`.
+  The bonus also logs as `CALLBACK|campaign=1|source=Nghia_Lo`.
+- New records:
+  - `PREP_TIER` with every input flag.
+  - `LAUNCH_GARRISON_REMOVED` with a PASS/FAIL check one tick later (template-presence test).
+  - `POLLUX_STAGE` and `ATLANTE_STAGE` every 7 days, plus the terminal `reason=`.
+  - `POLLUX_OFFER`.
+- Writer routing keeps the same amounts:
+  - `16` FRE limited-operation ledger
+  - `22` Pollux
+  - `23` Atlante
+  - `24` Dien Bien Phu response
+  - `25` Northwest/Lorraine response
+  - `26` Geneva-preparations decision
+  - `21` is reserved. The next free code is `27`.
+- Opt-in hedgehog forcing. Run `effect ic_afk_force_hedgehog_enable = yes`
+  in the console before about 1953-11. Castor then becomes unavailable to the
+  AI, and the hedgehog `ai_will_do` rises to x1000. Default runs are
+  unchanged.
+
+### Static verification
+
+- `git diff --check` is clean, braces balance in every changed `.txt`, no
+  script file gained a BOM, and the four new `.yml` files have a BOM and only
+  `§` beyond ASCII.
+- Every new effect, trigger, idea, mission, event and loc key has one
+  definition, and every new `= yes` call resolves. The two hedgehog console
+  effects have no caller by design.
+- An existing duplicate of `FRE_Ops.1.t/.d` in `FRE_events_l_english.yml`
+  and `French_Indochina_l_english.yml` predates this pass and is unchanged.
+
+### Open risks to watch
+
+- Camargue and Bretagne objectives are already French-aligned at start, so a
+  clean result may accrue without fighting (the Brochet precedent). Add a
+  clearing condition if the run shows free clean results.
+- AI CEFEO may ignore `front_control` on fronts without VIN units, which
+  makes Lower Laos `contained` unreachable for the AI.
+- `FRE_Preparation.6` and `FRE_Pollux.1` reach CEFEO within about a day of
+  each other.
+- The campaign and operation journal rows each gained a line; check that they
+  still fit.
+- Engine-unproven syntax: `delete_units` by template, `random` as a 0-1
+  variable, `has_template` absence, and `create_unit` into another country's
+  state.
+- Every province id here comes from centroid computation; confirm names
+  in-game.
+
+### Consolidated-playtest checks added
+
+17. Lai Chau: `LAUNCH|..|campaign=11|name=Lai_Chau|hold=0/5|deadline_clean=30|deadline_final=45`,
+    `LAUNCH_GARRISON|..|campaign=11`, `POLLUX_OFFER|source=Lai_Chau|stage=..`,
+    one `RESULT|..|campaign=11`, marker and armistice PASS lines, and
+    `CALLBACK|campaign=3|source=Lai_Chau` after a VIN clean or costly result.
+    Dien Bien Phu still launches when Lai Chau never runs.
+18. FRE ops `5`/`6`/`7`: one `LAUNCH|owner=FRE|operation=N|name=<Name>` and
+    one `RESULT` each; owned war cleaned; Camargue
+    `LAUNCH_GARRISON|operation=7|owner=VIE|divisions=2`, removed at finish.
+    Record the day of each clean result to test the free-result risk.
+19. Lower Laos: `LAUNCH|owner=VIN|package=Lower_Laos|..|atlante_active=..`.
+    If Atlante is active, `PASS|check=Lower_Laos_atlante_pressure_applied|hold_extension=4`.
+    Then `RESULT|package=Lower_Laos|outcome=pressure|contained` and
+    `PASS|check=Lower_Laos_idea_removed`.
+20. Highlands: `LAUNCH|owner=FRE|package=Mang_Yang|choice=road`,
+    `HIGHLANDS_ROLL`, `RESULT|package=Mang_Yang|outcome=..`, and the
+    `Mang_Yang_active_cleanup`/`unit_cleanup` PASS lines. Chu Dreh follows
+    the same pattern. No war, no Geneva write, and writers `19`/`20` only.
+21. AFK coverage: campaign `1` LAUNCH `supply=`/`nghia_lo_bonus=` (closes
+    check 11 when Nghia Lo succeeds), `PREP_TIER` per preparation,
+    `LAUNCH_GARRISON_REMOVED` with no `campaign=0 removed=0`, and
+    `POLLUX_STAGE`/`ATLANTE_STAGE` every 7 days. `SCORE_UNTRACED` drops
+    sharply for Pro-France.
+22. Forced hedgehog run (console opt-in): check 12 lines appear, Castor is
+    never taken, and Lai Chau stays available as the fortified-base assault.

@@ -1,0 +1,124 @@
+fre_lower_laos_cleanup = {
+	if = {
+		limit = { has_idea = FRE_Lower_Laos_Reserves_Diverted }
+		remove_ideas = FRE_Lower_Laos_Reserves_Diverted
+	}
+}
+
+vin_lower_laos_apply_atlante_pressure = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied }
+			country_exists = FRE
+			FRE = { has_country_flag = FRE_Atlante_Offensive_Active }
+		}
+		set_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied
+		FRE = {
+			if = {
+				limit = { NOT = { has_variable = FRE_Atlante_Hold_Extension } }
+				set_variable = { FRE_Atlante_Hold_Extension = 0 }
+			}
+			add_to_variable = { FRE_Atlante_Hold_Extension = 4 }
+			if = {
+				limit = { NOT = { has_idea = FRE_Lower_Laos_Reserves_Diverted } }
+				add_ideas = FRE_Lower_Laos_Reserves_Diverted
+			}
+		}
+	}
+}
+
+vin_lower_laos_begin = {
+	if = {
+		limit = {
+			vin_lower_laos_live_window_trigger = yes
+			NOT = { has_country_flag = VIN_Lower_Laos_Diversion_Active }
+			NOT = { has_country_flag = VIN_Lower_Laos_Offensive_Launched }
+		}
+		set_country_flag = VIN_Lower_Laos_Offensive_Launched
+		set_country_flag = VIN_Lower_Laos_Diversion_Active
+		clr_country_flag = VIN_Lower_Laos_Result_Pressure
+		clr_country_flag = VIN_Lower_Laos_Result_Contained
+		clr_country_flag = VIN_Lower_Laos_Result_Superseded
+		clr_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen
+		clr_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied
+		set_variable = { VIN_Lower_Laos_Days = 0 }
+		set_temp_variable = { vin_supply_amount = -20 }
+		vin_change_campaign_supply = yes
+		vin_lower_laos_apply_atlante_pressure = yes
+	}
+	else = {
+		set_country_flag = VIN_Lower_Laos_Focus_Superseded
+		set_country_flag = VIN_Lower_Laos_Result_Superseded
+	}
+}
+
+vin_lower_laos_finish = {
+	clr_country_flag = VIN_Lower_Laos_Diversion_Active
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_lower_laos_cleanup = yes }
+	}
+}
+
+vin_lower_laos_resolve = {
+	if = {
+		limit = { has_country_flag = VIN_Lower_Laos_Diversion_Active }
+		clr_country_flag = VIN_Lower_Laos_Result_Pressure
+		clr_country_flag = VIN_Lower_Laos_Result_Contained
+		clr_country_flag = VIN_Lower_Laos_Result_Superseded
+		if = {
+			limit = { check_variable = { vin_lower_laos_outcome = 1 } }
+			set_country_flag = VIN_Lower_Laos_Result_Pressure
+			if = {
+				limit = { country_exists = FRA }
+				set_temp_variable = { ic_trace_writer = 18 }
+				set_temp_variable = { ic_trace_amount = 15 }
+				ic_afk_trace_score_communist = yes
+				FRA = {
+					add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 15 tooltip = Add_to_Communist_Victory_Points_TT }
+					indochina_struggle_recalculate_total_anti_communist_score = yes
+				}
+			}
+		}
+		else_if = {
+			limit = { check_variable = { vin_lower_laos_outcome = 2 } }
+			set_country_flag = VIN_Lower_Laos_Result_Contained
+			set_temp_variable = { vin_supply_amount = 10 }
+			vin_change_campaign_supply = yes
+		}
+		else = { set_country_flag = VIN_Lower_Laos_Result_Superseded }
+		vin_lower_laos_finish = yes
+	}
+}
+
+vin_lower_laos_daily_tick = {
+	if = {
+		limit = { has_country_flag = VIN_Lower_Laos_Diversion_Active }
+		add_to_variable = { VIN_Lower_Laos_Days = 1 }
+		if = {
+			limit = { NOT = { vin_lower_laos_live_window_trigger = yes } }
+			set_temp_variable = { vin_lower_laos_outcome = 3 }
+			vin_lower_laos_resolve = yes
+		}
+		else = {
+			vin_lower_laos_apply_atlante_pressure = yes
+			if = {
+				limit = {
+					NOT = { has_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen }
+					country_exists = FRE
+					FRE = { vin_lower_laos_fre_garrison_present_trigger = yes }
+				}
+				set_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen
+			}
+			if = {
+				limit = { NOT = { check_variable = { VIN_Lower_Laos_Days < 45 } } }
+				if = {
+					limit = { has_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen }
+					set_temp_variable = { vin_lower_laos_outcome = 2 }
+				}
+				else = { set_temp_variable = { vin_lower_laos_outcome = 1 } }
+				vin_lower_laos_resolve = yes
+			}
+		}
+	}
+}

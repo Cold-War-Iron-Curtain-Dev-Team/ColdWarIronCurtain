@@ -1150,6 +1150,46 @@ focus_tree = {
 		}
 	}
 	focus = {
+		id = VIN_Lower_Laos_Offensive
+		icon = GFX_prepare_operations_against_the_sip_song_tai
+		cost = 2.0
+		relative_position_id = VIN_Fate_of_Kieu_Cong_Cung_Revisionists
+		x = 3
+		y = 2
+		continue_if_invalid = yes
+		available = {
+			vin_lower_laos_available_trigger = yes
+			OR = {
+				is_ai = no
+				date > 1954.02.14
+				AND = {
+					country_exists = FRE
+					FRE = { has_country_flag = FRE_Atlante_Offensive_Active }
+				}
+			}
+		}
+		bypass = {
+			OR = {
+				has_global_flag = Indochina_War_Over
+				has_global_flag = geneva_conference_concluded
+				check_variable = { global.Indochina_War_Active_Phase > 8 }
+			}
+		}
+		completion_reward = {
+			custom_effect_tooltip = VIN_Lower_Laos_Offensive_tt
+			hidden_effect = { vin_lower_laos_begin = yes }
+		}
+		ai_will_do = {
+			base = 1
+			modifier = { factor = 25 is_historical_focus_on = yes }
+			modifier = {
+				factor = 10
+				country_exists = FRE
+				FRE = { has_country_flag = FRE_Atlante_Offensive_Active }
+			}
+		}
+	}
+	focus = {
 		id = VIN_Bac_Tien
 		icon = GFX_generic_focus_politics_banned_publication
 		cost = 5.6
@@ -5691,6 +5731,7 @@ focus_tree = {
 				custom_effect_tooltip = VIN_Nghia_Lo_Northwest_Bonus_tt
 				set_temp_variable = { vin_supply_amount = 25 }
 				vin_change_campaign_supply = yes
+				log = "IC_AFK|CALLBACK|date=[GetDateText]|campaign=1|source=Nghia_Lo|supply_bonus=25"
 			}
 		}
 	}
@@ -5774,6 +5815,46 @@ focus_tree = {
 		}
 	}
 	focus = {
+		id = VIN_Strike_Lai_Chau
+		icon = GFX_prepare_operations_against_the_sip_song_tai
+		prerequisite = { focus = VIN_Assault_Na_San }
+		cost = 1.4
+		relative_position_id = VIN_Assault_Na_San
+		x = 1
+		y = 1
+		ai_will_do = { base = 1 modifier = { factor = 25 is_historical_focus_on = yes } }
+		continue_if_invalid = yes
+		available = {
+			date > 1953.11.20
+			country_exists = TAI
+			fre_pollux_french_aligned_controls_lai_chau_trigger = yes
+			VIN_lai_chau_castor_or_hedgehog_trigger = yes
+			NOT = { VIN_lai_chau_dien_bien_started_trigger = yes }
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_no_campaign_running_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+		}
+		bypass = { OR = { has_global_flag = Indochina_War_Over geneva_conference_available_trigger = yes VIN_lai_chau_terminal_trigger = yes NOT = { country_exists = TAI } controls_province = 13765 VIN_lai_chau_dien_bien_started_trigger = yes } }
+		will_lead_to_war_with = TAI
+		completion_reward = {
+			if = {
+				limit = {
+					VIN_indochina_campaign_window_trigger = yes
+					VIN_no_campaign_running_trigger = yes
+					country_exists = TAI
+					fre_pollux_french_aligned_controls_lai_chau_trigger = yes
+					NOT = { VIN_lai_chau_dien_bien_started_trigger = yes }
+				}
+				set_country_flag = VIN_Campaign_Lai_Chau_Active
+				set_temp_variable = { vin_camp_id = 11 }
+				vin_campaign_begin = yes
+				custom_effect_tooltip = VIN_Camp_War_Lai_Chau_tt
+				hidden_effect = { vin_campaign_declare_war = yes }
+			}
+			else = { set_country_flag = VIN_Lai_Chau_Focus_Superseded }
+		}
+	}
+	focus = {
 		id = VIN_Prepare_Dien
 		icon = GFX_usa_50_approaching_a_conclusion
 		prerequisite = {
@@ -5853,6 +5934,20 @@ focus_tree = {
 					limit = { country_exists = FRE }
 					fre_tai_highlands_relief = yes
 					fre_dbp_fortify_camp = yes
+				}
+				if = {
+					limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Clean }
+					custom_effect_tooltip = VIN_Lai_Chau_Dien_Bien_Bonus_tt
+					set_temp_variable = { vin_supply_amount = 15 }
+					vin_change_campaign_supply = yes
+					log = "IC_AFK|CALLBACK|campaign=3|source=Lai_Chau|date=[GetDateText]|result=clean|supply=15"
+				}
+				else_if = {
+					limit = { has_country_flag = VIN_Campaign_Lai_Chau_Result_Costly }
+					custom_effect_tooltip = VIN_Lai_Chau_Dien_Bien_Bonus_tt
+					set_temp_variable = { vin_supply_amount = 15 }
+					vin_change_campaign_supply = yes
+					log = "IC_AFK|CALLBACK|campaign=3|source=Lai_Chau|date=[GetDateText]|result=costly|supply=15"
 				}
 				set_country_flag = VIN_Campaign_Dien_Bien_Active
 				set_temp_variable = { vin_camp_id = 3 }
