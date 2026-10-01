@@ -567,27 +567,21 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-09-30 (after the content pass). Remaining order:
+Updated 2026-10-01 (all design content built). Remaining order:
 
-1. Next consolidated AFK run: score ledger checks 1-26. Still open from
+1. Next consolidated AFK run: score ledger checks 1-33. Still open from
    before: 9 and 13 (visual), 11, 12, 15 and 16 (14 passed 2026-10-01).
-   New: 17-22 (content pass), 23 (regroupment), 24-26 (fix-ups). Also cover the Pathet
-   Lao raid hardening and the older not-covered list. For check 12, either run
-   one AFK game with `effect ic_afk_force_hedgehog_enable = yes` entered
-   before 1953-11, or play one FRE game that picks the hedgehog network.
-2. Tune only with evidence from more than one run. Watch first: free clean
-   results for Bretagne/Camargue, Lower Laos never `contained` under AI, the
-   Struggle writer-3 share, and the Dak Doa `10180` staging.
-3. Remaining unbuilt design content (ledger, "Unbuilt design content"):
-   - Royal Lao and Cambodian army branch
-   - Charles Chanson/Sa Dec
-   - VIN Luang Prabang all-in
-   - patronage as a campaign input
-   - Section 9.1 conversion
-   - second overextension tier
-   - legacy adjacency deletion
-
-   Start only when the user asks.
+   New: 17-22 (content pass), 23 (regroupment), 24-26 (fix-ups), 27-33
+   (remaining design content). Also cover the Pathet Lao raid hardening and
+   the older not-covered list. Player-only paths (hedgehogs, Luang Prabang
+   all-in, associated-state armies, Soviet patronage) need one player game or
+   console forcing; for hedgehogs use `effect ic_afk_force_hedgehog_enable = yes`
+   before 1953-11.
+2. Tune only with evidence from more than one run. Watch first: Bretagne and
+   Camargue contest rates, Lower Laos outcomes, the campaign-input totals,
+   the Struggle writer-3 share, and the Dak Doa `10180` staging.
+3. The design's unbuilt list is empty. New content needs a new design
+   decision from the user.
 4. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
