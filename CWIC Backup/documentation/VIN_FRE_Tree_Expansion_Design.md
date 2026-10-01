@@ -1161,3 +1161,247 @@ both capitals fall; LOS divisions stand in `1464`/`4613` rather than on the
 border (for example province `13738`); the modifier disappears at cleanup.
 Static checks: brace balance, `git diff --check`, localisation BOM and ASCII.
 `tools/loc_audit.py` no longer exists in the repo.
+
+## 2026-09-29 tracing, negotiations gate, balance and defect pass
+
+Code-complete, statically verified only (brace balance, `git diff --check`,
+script files without BOM, localisation BOM and ASCII, one definition per new
+name). No engine run.
+
+### Struggle writer tracing
+
+Evidence from the 2026-09-28 run: 136 `SCORE_DELTA` lines, dominated by
+Communist `+25` steps roughly monthly. `indochina_struggle_vin_focus_standard`
+(+25) has 226 call sites (VIN_50s 166, VIN_FORPOL 85 across all tiers), while
+pro-France focus grants have 12. The VIN focus tree is the leading
+structural suspect; the new tracing will confirm or reject it.
+
+- `IC_AFK|SCORE_WRITE|track|amount|writer|root` is logged by every
+  `indochina_struggle_award_*` / `grant_*` primitive, the raid award/penalty
+  wrappers, the communist-victory preparation award, VIN campaign results,
+  Laos raid results, USA levers, VIN post-DBP southern funding, and Dak Doa.
+  Helpers: `ic_afk_trace_score_<track>` and `ic_afk_trace_score_pair`
+  (`IC_Indochina_AFK_Validation_Effects.txt`).
+- Writer codes: 1 phase-point award, 2 generic grant, 3/4/5/6 VIN focus
+  standard/major/breakthrough/capstone, 7 raid actor, 8 raid victim, 9 raid
+  penalty, 10 communist-victory preparation, 11 VIN campaign result, 12 Laos
+  raid result, 13 USA lever, 14 VIN post-DBP southern funding, 15 Dak Doa.
+- The daily observer subtracts traced writes and logs the remainder as
+  `IC_AFK|SCORE_UNTRACED` (legacy event options, FRE response packages, the
+  `FRA_1950s` -200 focus, clamp-to-zero corrections).
+- `IC_AFK|LEVERAGE_WRITE` is logged by every `geneva_add_*_leverage` effect.
+- `SCORE_AWARD` is retired in favour of `SCORE_WRITE` (writer 10).
+- Fixed: `indochina_raid_award_actor` tested `FRA.ic_award` instead of the
+  pro-independence array, so pro-independence raid actors never scored. This
+  slightly raises pro-independence score.
+
+### Negotiations gate (user decision: NLF must be dealt with first)
+
+Root cause: `vin_post_dbp_focus_geneva_queue_tick` waits for
+`geneva_conference_vietnam_at_peace_trigger` (VIN and VIE both at peace). The
+only repair released a zero-division NLF, so an NLF with about 5 divisions kept
+VIE at war, and the AI-only wrap-up timer fired `AUTO_RESOLVE`. VIN funding of
+NLF was not involved: `vin_post_dbp_fund_southern_war` belongs to the
+Carry the Revolution South branch, which was not chosen.
+
+Change (user chose "defeat or VIN stand-down"): the first queue tick sets
+`VIN_Post_DBP_NLF_Stand_Down_Ordered` and a 90-day
+`VIN_Post_DBP_NLF_Stand_Down_Pending`. Once VIN is at peace, a disarmed NLF is
+released at once; otherwise VIE and NLF white-peace when the delay expires
+(`VIN_Post_DBP_NLF_Stood_Down`). The Geneva peace gate itself is unchanged.
+`indochina_war_still_being_fought_trigger` holds the wrap-up timer while the
+stand-down is pending. `stage=gate_blocked` records whether VIN or VIE still
+blocks the gate afterwards. The `VIN_Push_for_Negotiations` description
+now explains the stand-down.
+
+### Balance
+
+- Patience: nine Metropole request decisions get AI factor 0 through
+  `FRE_ai_patience_request_hold_trigger` (AI, Patience below 45).
+  Administrative Support is exempt because mission political power depends on
+  it. New `FRE_Fund_Metropole_Information_Service`: 150 War Credits for +8
+  Patience, 60-day cooldown. The AI takes it only above a 450-credit reserve,
+  when credits are not short for an operation, and while Patience is 70 or
+  below. It logs `FRE_PATIENCE_SINK`. The heartbeat logs `METROPOLE`.
+- Dien Bien Phu: the GONO floor is three groupements at every tier. Tier 1
+  adds the BMEE, and tier 2 adds a 3e Groupement plus the stocks. Every
+  deployment logs `DBP_GARRISON`. New
+  `FRE_dien_bien_standard_hold` (ratio 1.0, priority 900, request 650,
+  theatre demand 25) and `TAI_dien_bien_standard_hold` (0.9/950/550). Each
+  posture logs `DBP_POSTURE`.
+- Vinh Yen / Na San: `fre_preparation_deploy_garrison` spawns
+  `Groupe de Defense Locale` divisions for the controller (FRE, TAI or VIE) of
+  `1761`/`671` at launch: 2 plus the preparation tier (up to 4), placed at
+  `12075`/`13757`. `fre_preparation_disband_garrison` in
+  `vin_campaign_finish` and CEFEO dissolution deletes them, and they never
+  touch ownership. Deployments log `LAUNCH_GARRISON`.
+- VIE: `CWIC_indochina_wartime_cap_active` (AI VIE, at war, Indochina War not
+  over) sets `CWIC_max_divisions = 30` and lets the weekly demobilisation loop
+  run in wartime at the 3% disband rate. The Korean War exemption does not
+  apply to it.
+
+### Defects
+
+- Lorraine cleanup in `vin_campaign_finish` now runs only when a Lorraine
+  flag or idea is present.
+- The Siam flavour events no longer complete 13 focuses that do not exist
+  (`SIA_Coup_Succeeds` and others). They had no other readers.
+- `Kong Pathom` (both LAO OOBs): artillery, which needs `motorized_equipment`
+  in this mod, is replaced with a third militia.
+- Phase 2 (`IC_scripted_effects.txt`): FRA now spawns its three Tonkin
+  divisions from a scripted `Division de Marche du Tonkin` template, not the
+  history template `Division d'Infanterie` that could not be resolved.
+- `VIN_Formalize_Tieu`: the empty duplicate `completion_reward` is removed.
+  The `add_units_to_division_template` "unlocked template" warning remains:
+  fixing it means locking `Trung doan Bo binh Infantry`, which is a design
+  decision.
+
+### Consolidated-playtest checks added
+
+1. `SCORE_WRITE` totals per writer between 1953-05 and 1953-10 account for the
+   margin rise, and `SCORE_UNTRACED` stays small. Report the writer-3 share.
+2. After negotiations: `stage=nlf_stand_down_ordered`, then `nlf_released`
+   within 90 days (if VIN is at peace), then
+   `focus_queue=consumed|peace_gate=passed` and `GENEVA_SOURCE|INVITE`, with no
+   `AUTO_RESOLVE`.
+3. `METROPOLE` Patience stays above 0 through 1952-1954, `FRE_PATIENCE_SINK`
+   fires, and War Credits no longer sit above 1,000.
+4. `DBP_GARRISON` tier and at least 3 groupements, `DBP_POSTURE` logged, and
+   Dien Bien Phu holds past day 24.
+5. `LAUNCH_GARRISON` for campaigns 5 and 8, the garrisons are gone after
+   `RESULT`, and Vinh Yen/Na San last past days 12/11.
+6. VIE `ARMY_CAP` shows cap 30 in wartime with divisions converging to 30,
+   and NLF is still alive at the post-DBP choice.
+7. No Lorraine cleanup log after non-Northwest campaigns; no `Kong Pathom`
+   locked-equipment error; no Siam missing-focus errors; no Phase 2
+   malformed-token error.
+8. `IC_AFK|DAK_DOA_GATE` (every 30 days after 1954-02-10 until Dak Doa
+   launches) names the failing input: prerequisite focus, NLF/FUL/FRE
+   existence, NLF wider southern war, or NLF control of province `10180`.
+
+## 2026-09-29 content pass: first Nghia Lo and the hedgehog network
+
+Code-complete, statically verified only. User decisions: Nghia Lo is a VIN
+limited campaign with a CEFEO response. The hedgehog network is a focus that
+excludes Castor and leaves Geneva's Dien Bien Phu outcome unrecorded. Values are
+first-pass and are not tuned from one run.
+
+### First Nghia Lo (VIN campaign `10`)
+
+- Nghia Lo is province `13773` in Hoang Lien Son (`1761`), which is inside the
+  Northwest envelope but not one of its five objectives. The province was
+  chosen from map centroids, not from an in-game check (see check 9).
+  `VICTORY_POINTS_13773` names it.
+- Focus `VIN_Strike_Nghia_Lo`, below the Day River at tree position (47,9).
+  It needs the Day River focus, a date after 1951-09-25, a French-aligned
+  `1761` that VIN does not own, and the campaign window, idle and cooldown
+  gates. It is optional: `VIN_Liberate_Duyen` does not require it. After the
+  theatre closes, completion sets `VIN_Nghia_Lo_Focus_Superseded` and launches
+  nothing.
+- The campaign follows the Vinh Yen/Na San pattern and goes through the shared
+  resolver and cleanup. It opens its own TAI war. VIN must hold `13773` for 5
+  days: clean by day 25, final deadline day 40. The objective VP is temporary,
+  the battle clock is the `VIN_Nghia_Lo_Objective` mission, and the cooldown is
+  30 days. No territory changes hands, and the general payout by outcome is
+  used. Overextension lets VIN hold every Northwest corridor province except
+  Nghia Lo itself.
+- CEFEO response: `FRE_Preparation.5`. Tier 1 if de Lattre is in command.
+  Tu Le airborne relief (2 transports, 30 War Credits) raises the tier to 2 and
+  adds a relief group. The launch garrison is 1 plus the tier, owned by the
+  controller, at `13773`. `fre_preparation_disband_garrison` removes all of it.
+  Results: `FRE_Nghia_Lo_Result_*` and `FRE_Nghia_Lo_Defensive_Success`.
+- Optional follow-on effects:
+  - A held Nghia Lo adds 1 to the Na San preparation tier (still capped at 2).
+  - A VIN clean or costly result gives the Northwest campaign +25 Campaign
+    Supply at launch.
+- AI: `VIN_campaign_nghia_lo_push` and `FRE_TAI_defend_nghia_lo`; the focus
+  is in the VIN historical AI list after the Day River. France is called into
+  the war as for Na San. The campaign journal has a new Nghia Lo line.
+- Telemetry: `LAUNCH`/`RESULT` for campaign `10`, the marker PASS/FAIL,
+  the participant-envelope check, `LAUNCH_GARRISON|campaign=10`, and
+  `NGHIA_LO_RELIEF`.
+
+### Hedgehog network (FRE, excludes Castor)
+
+- Focus `FRE_Hedgehog_Network` at (15,4), with the same prerequisites as
+  Castor. The two are mutually exclusive. It becomes available from 1953-11-01
+  under the same live and idle gates, with `671` French-held and at least 120
+  War Credits. The historical AI never picks it.
+- Cost: 120 War Credits, 4 Patience and 3,000 manpower. It sets bunker level 3
+  at Na San `13757`, Lai Chau `13765` and Luang Prabang `4613`, and adds
+  `FRE_Hedgehog_Base` (defence +10%, dig-in +10%, local supplies +25%) to
+  states `671` and `1198`. Each base gets `Groupement de Herisson` garrisons
+  owned by the controller (FRE or TAI; LOS or FRE at Luang Prabang): 2 each if
+  Patience is above 65, otherwise 1, and Na San gets one more after
+  `FRE_Na_San_Success`. The garrisons stay for the rest of the war and are
+  removed at CEFEO dissolution (`fre_hedgehog_network_cleanup`).
+- Dien Bien Phu: `fre_dbp_fortify_camp` builds nothing when
+  `FRE_Hedgehog_Network_Chosen` is set. There is no bunker, no GONO and no
+  siege floor, and the same applies to the legacy `SWF_Indochina_War.17`
+  launch. The Dien Bien Phu response package is skipped, and
+  `vin_dbp_record_outcome` is skipped for campaign `3`. Geneva therefore sees
+  no Dien Bien Phu outcome, and the post-DBP choice latch
+  (`geneva_outcome_dbp = 2`) never opens. VIN's Dien Bien Phu campaign still
+  exists, and still takes state `671` on a win. VIN AI weight for
+  `VIN_Prepare_Dien` is ×0.3 once hedgehogs are chosen.
+- Pollux and Atlante now take either Castor or the hedgehog focus as their
+  prerequisite. Pollux is skipped (bypassed) when hedgehogs are chosen, so
+  Final Push stays reachable.
+- Telemetry: `IC_AFK|HEDGEHOG|stage=established|superseded_at_completion|dbp_camp_not_built|cleanup`.
+
+### Not changed
+
+Geneva outcome values, Castor, the GONO logic, and the Dien Bien Phu response
+package when Castor is chosen.
+
+### Consolidated-playtest checks added
+
+9. Nghia Lo: province `13773` shows as "Nghia Lo" near the historical site
+   between the Red and Black Rivers. If not, correct the province before
+   balancing.
+10. Campaign `10`: one `LAUNCH` and one `RESULT`, full armistice, the marker
+    removed, `LAUNCH_GARRISON|campaign=10` and, if chosen, `NGHIA_LO_RELIEF`.
+    The garrison is gone after the result, and the 30-day cooldown then lets
+    `VIN_Liberate_Duyen` launch.
+11. Callbacks: the Na San preparation tier includes the Nghia Lo bonus, and the
+    Northwest launch shows +25 Campaign Supply after a VIN Nghia Lo success.
+12. Hedgehogs (player FRE or a forced non-historical AI):
+    `HEDGEHOG|stage=established`, bunkers at the three bases, Castor locked,
+    and Pollux bypassed. If VIN attacks the valley:
+    `HEDGEHOG|stage=dbp_camp_not_built`, no `DBP_GARRISON`, no
+    `DBP_POSTURE`, no `GENEVA_SOURCE|DEFERRED` for the post-DBP choice, and
+    Geneva shows the Dien Bien Phu battle as undecided.
+13. The campaign journal still fits its window with the extra Nghia Lo line.
+
+## 2026-09-29 review of the 2026-09-29 AFK run: NLF survives the war
+
+Logs preserved at `_local/logs/2026-09-29/`. User observation: NLF still
+exists at peace with VIE, and VIE cannot complete its independence focus.
+
+Telemetry: Dien Bien Phu clean on day 45 (1954-08-27). Negotiations were
+chosen 1954-09-18 (`stage=nlf_stand_down_ordered`). The stand-down white peace
+fired on schedule, 1954-12-17 (`nlf_released|reason=stand_down`, NLF 13
+divisions). In the same tick the Indochina failsafe routed
+("decisive evidence found"), found no ending, and forced the
+never-ending-conflict terminator (`END|result=Indochina_War_Over|phase=100`).
+No `GENEVA_SOURCE|INVITE` followed. Only the Geneva ending annexes NLF, so NLF
+was left standing.
+
+Root cause: the white peace ended the last theatre war. After 1954-07-21,
+`ic_failsafe_theatre_unfinished_trigger` did not count the queued
+negotiations as pending content, so the peace hook let the failsafe mutate
+before the queue tick reached its Geneva launch block.
+
+Fix: `ic_failsafe_theatre_unfinished_trigger` treats
+`VIN_Post_DBP_Focus_Geneva_Queued` as unfinished until 1957-01-01. The
+failsafe now skips, and the queue tick launches Geneva in the same tick.
+
+Other results: Nghia Lo clean on day 22 (first engine coverage of campaign
+`10`), Northwest failure then Recovery costly, Na San costly on day 41,
+Castor success. error.log has no new rework errors; the `VIN_50s.txt`
+unlocked-template warning remains.
+
+Consolidated-playtest check 14: after `nlf_released`, the same day shows
+`GENEVA_SOURCE|INVITE` and then the Geneva ending, and NLF is annexed. There is
+no "forcing the terminator" line. Saves that already have `Indochina_War_Over`
+are not repaired.

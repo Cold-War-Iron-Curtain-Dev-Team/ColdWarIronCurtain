@@ -40,10 +40,134 @@ fre_preparation_response_begin = {
 		if = { limit = { has_country_flag = FRE_Na_San_Prepared } set_variable = { fre_preparation_tier = 1 } }
 		if = { limit = { has_country_flag = FRE_Hoa_Binh_Mobile_Groups_Preserved } add_to_variable = { fre_preparation_tier = 1 } clr_country_flag = FRE_Hoa_Binh_Mobile_Groups_Preserved }
 		if = { limit = { has_country_flag = FRE_Lorraine_Result_Withheld } add_to_variable = { fre_preparation_tier = 1 } }
+		if = { limit = { has_country_flag = FRE_Nghia_Lo_Defensive_Success } add_to_variable = { fre_preparation_tier = 1 } }
 		clamp_variable = { var = fre_preparation_tier min = 0 max = 2 }
 		country_event = { id = FRE_Preparation.4 hours = 8 }
 	}
+	else_if = {
+		limit = { VIN = { check_variable = { VIN_camp_current = 10 } } }
+		if = { limit = { has_country_flag = FRE_De_Lattre_In_Command } set_variable = { fre_preparation_tier = 1 } }
+		country_event = { id = FRE_Preparation.5 hours = 8 }
+	}
 	fre_preparation_apply_idea = yes
+	fre_preparation_deploy_garrison = yes
+}
+
+fre_preparation_deploy_garrison = {
+	fre_preparation_disband_garrison = yes
+	set_temp_variable = { prep_garrison_size = 2 }
+	add_to_temp_variable = { prep_garrison_size = fre_preparation_tier }
+	if = {
+		limit = { VIN = { check_variable = { VIN_camp_current = 5 } } 1761 = { indochina_french_held_state_trigger = yes } }
+		1761 = {
+			if = { limit = { is_controlled_by = FRE } set_temp_variable = { prep_garrison_owner = 1 } }
+			else_if = { limit = { is_controlled_by = TAI } set_temp_variable = { prep_garrison_owner = 2 } }
+			else_if = { limit = { is_controlled_by = VIE } set_temp_variable = { prep_garrison_owner = 3 } }
+		}
+		fre_preparation_garrison_prepare_owner = yes
+		set_temp_variable = { prep_garrison_i = 0 }
+		while_loop_effect = {
+			limit = { check_variable = { prep_garrison_i < prep_garrison_size } check_variable = { prep_garrison_owner > 0 } }
+			1761 = {
+				if = { limit = { check_variable = { prep_garrison_owner = 1 } } create_unit = { division = "name = \"Groupe de Defense de Vinh Yen\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.4 start_equipment_factor = 1.0" owner = FRE allow_spawning_on_enemy_provs = yes prioritize_location = 12075 } }
+				else_if = { limit = { check_variable = { prep_garrison_owner = 2 } } create_unit = { division = "name = \"Groupe de Defense de Vinh Yen\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.35 start_equipment_factor = 1.0" owner = TAI allow_spawning_on_enemy_provs = yes prioritize_location = 12075 } }
+				else = { create_unit = { division = "name = \"Groupe de Defense de Vinh Yen\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.3 start_equipment_factor = 1.0" owner = VIE allow_spawning_on_enemy_provs = yes prioritize_location = 12075 } }
+			}
+			add_to_temp_variable = { prep_garrison_i = 1 }
+		}
+		log = "IC_AFK|LAUNCH_GARRISON|date=[GetDateText]|campaign=5|owner_code=[?prep_garrison_owner|0]|divisions=[?prep_garrison_size|0]|tier=[?fre_preparation_tier|0]"
+	}
+	else_if = {
+		limit = { VIN = { check_variable = { VIN_camp_current = 8 } } 671 = { indochina_french_held_state_trigger = yes } }
+		671 = {
+			if = { limit = { is_controlled_by = FRE } set_temp_variable = { prep_garrison_owner = 1 } }
+			else_if = { limit = { is_controlled_by = TAI } set_temp_variable = { prep_garrison_owner = 2 } }
+			else_if = { limit = { is_controlled_by = VIE } set_temp_variable = { prep_garrison_owner = 3 } }
+		}
+		fre_preparation_garrison_prepare_owner = yes
+		set_temp_variable = { prep_garrison_i = 0 }
+		while_loop_effect = {
+			limit = { check_variable = { prep_garrison_i < prep_garrison_size } check_variable = { prep_garrison_owner > 0 } }
+			671 = {
+				if = { limit = { check_variable = { prep_garrison_owner = 1 } } create_unit = { division = "name = \"Groupe de Defense de Na San\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.4 start_equipment_factor = 1.0" owner = FRE allow_spawning_on_enemy_provs = yes prioritize_location = 13757 } }
+				else_if = { limit = { check_variable = { prep_garrison_owner = 2 } } create_unit = { division = "name = \"Groupe de Defense de Na San\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.35 start_equipment_factor = 1.0" owner = TAI allow_spawning_on_enemy_provs = yes prioritize_location = 13757 } }
+				else = { create_unit = { division = "name = \"Groupe de Defense de Na San\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.3 start_equipment_factor = 1.0" owner = VIE allow_spawning_on_enemy_provs = yes prioritize_location = 13757 } }
+			}
+			add_to_temp_variable = { prep_garrison_i = 1 }
+		}
+		log = "IC_AFK|LAUNCH_GARRISON|date=[GetDateText]|campaign=8|owner_code=[?prep_garrison_owner|0]|divisions=[?prep_garrison_size|0]|tier=[?fre_preparation_tier|0]"
+	}
+	else_if = {
+		limit = { VIN = { check_variable = { VIN_camp_current = 10 } } 1761 = { indochina_french_held_state_trigger = yes } }
+		subtract_from_temp_variable = { prep_garrison_size = 1 }
+		1761 = {
+			if = { limit = { is_controlled_by = FRE } set_temp_variable = { prep_garrison_owner = 1 } }
+			else_if = { limit = { is_controlled_by = TAI } set_temp_variable = { prep_garrison_owner = 2 } }
+			else_if = { limit = { is_controlled_by = VIE } set_temp_variable = { prep_garrison_owner = 3 } }
+		}
+		fre_preparation_garrison_prepare_owner = yes
+		set_temp_variable = { prep_garrison_i = 0 }
+		while_loop_effect = {
+			limit = { check_variable = { prep_garrison_i < prep_garrison_size } check_variable = { prep_garrison_owner > 0 } }
+			1761 = { fre_preparation_spawn_nghia_lo_unit = yes }
+			add_to_temp_variable = { prep_garrison_i = 1 }
+		}
+		log = "IC_AFK|LAUNCH_GARRISON|date=[GetDateText]|campaign=10|owner_code=[?prep_garrison_owner|0]|divisions=[?prep_garrison_size|0]|tier=[?fre_preparation_tier|0]"
+	}
+}
+
+fre_preparation_spawn_nghia_lo_unit = {
+	if = { limit = { check_variable = { prep_garrison_owner = 1 } } create_unit = { division = "name = \"Poste de Nghia Lo\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.4 start_equipment_factor = 1.0" owner = FRE allow_spawning_on_enemy_provs = yes prioritize_location = 13773 } }
+	else_if = { limit = { check_variable = { prep_garrison_owner = 2 } } create_unit = { division = "name = \"Poste de Nghia Lo\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.35 start_equipment_factor = 1.0" owner = TAI allow_spawning_on_enemy_provs = yes prioritize_location = 13773 } }
+	else_if = { limit = { check_variable = { prep_garrison_owner = 3 } } create_unit = { division = "name = \"Poste de Nghia Lo\" division_template = \"Groupe de Defense Locale\" start_experience_factor = 0.3 start_equipment_factor = 1.0" owner = VIE allow_spawning_on_enemy_provs = yes prioritize_location = 13773 } }
+}
+
+fre_preparation_nghia_lo_airborne_relief = {
+	set_country_flag = FRE_Nghia_Lo_Airborne_Relief
+	if = {
+		limit = { 1761 = { indochina_french_held_state_trigger = yes } }
+		1761 = {
+			if = { limit = { is_controlled_by = FRE } set_temp_variable = { prep_garrison_owner = 1 } }
+			else_if = { limit = { is_controlled_by = TAI } set_temp_variable = { prep_garrison_owner = 2 } }
+			else_if = { limit = { is_controlled_by = VIE } set_temp_variable = { prep_garrison_owner = 3 } }
+		}
+		if = { limit = { NOT = { has_global_flag = FRE_Preparation_Garrison_Deployed } } fre_preparation_garrison_prepare_owner = yes }
+		1761 = { fre_preparation_spawn_nghia_lo_unit = yes }
+		log = "IC_AFK|NGHIA_LO_RELIEF|date=[GetDateText]|owner_code=[?prep_garrison_owner|0]"
+	}
+}
+
+fre_preparation_garrison_prepare_owner = {
+	if = { limit = { check_variable = { prep_garrison_owner = 1 } } FRE = { fre_preparation_garrison_template = yes } }
+	else_if = { limit = { check_variable = { prep_garrison_owner = 2 } } TAI = { fre_preparation_garrison_template = yes } }
+	else_if = { limit = { check_variable = { prep_garrison_owner = 3 } } VIE = { fre_preparation_garrison_template = yes } }
+	if = { limit = { check_variable = { prep_garrison_owner > 0 } } set_global_flag = FRE_Preparation_Garrison_Deployed }
+}
+
+fre_preparation_garrison_template = {
+	division_template = {
+		name = "Groupe de Defense Locale"
+		regiments = {
+			infantry = { x = 0 y = 0 }
+			infantry = { x = 0 y = 1 }
+			infantry = { x = 1 y = 0 }
+			artillery = { x = 2 y = 0 }
+		}
+		support = {
+			engineer = { x = 0 y = 0 }
+		}
+		priority = 0
+	}
+}
+
+fre_preparation_disband_garrison = {
+	if = {
+		limit = { has_global_flag = FRE_Preparation_Garrison_Deployed }
+		clr_global_flag = FRE_Preparation_Garrison_Deployed
+		if = { limit = { country_exists = FRE } FRE = { delete_unit_template_and_units = { division_template = "Groupe de Defense Locale" } } }
+		if = { limit = { country_exists = TAI } TAI = { delete_unit_template_and_units = { division_template = "Groupe de Defense Locale" } } }
+		if = { limit = { country_exists = VIE } VIE = { delete_unit_template_and_units = { division_template = "Groupe de Defense Locale" } } }
+	}
 }
 
 fre_preparation_resolve_from_campaign = {
@@ -98,6 +222,18 @@ fre_preparation_resolve_from_campaign = {
 		else_if = { limit = { check_variable = { fre_defensive_outcome = 2 } } set_country_flag = FRE_Na_San_Result_Costly set_country_flag = FRE_Na_San_Success }
 		else_if = { limit = { check_variable = { fre_defensive_outcome = 5 } } set_country_flag = FRE_Na_San_Result_Superseded }
 		else = { set_country_flag = FRE_Na_San_Result_Failure set_country_flag = FRE_Na_San_Failure }
+	}
+	else_if = {
+		limit = { VIN = { check_variable = { VIN_camp_current = 10 } } }
+		clr_country_flag = FRE_Nghia_Lo_Result_Clean
+		clr_country_flag = FRE_Nghia_Lo_Result_Costly
+		clr_country_flag = FRE_Nghia_Lo_Result_Failure
+		clr_country_flag = FRE_Nghia_Lo_Result_Superseded
+		clr_country_flag = FRE_Nghia_Lo_Defensive_Success
+		if = { limit = { check_variable = { fre_defensive_outcome = 1 } } set_country_flag = FRE_Nghia_Lo_Result_Clean set_country_flag = FRE_Nghia_Lo_Defensive_Success }
+		else_if = { limit = { check_variable = { fre_defensive_outcome = 2 } } set_country_flag = FRE_Nghia_Lo_Result_Costly set_country_flag = FRE_Nghia_Lo_Defensive_Success }
+		else_if = { limit = { check_variable = { fre_defensive_outcome = 5 } } set_country_flag = FRE_Nghia_Lo_Result_Superseded }
+		else = { set_country_flag = FRE_Nghia_Lo_Result_Failure }
 	}
 }
 

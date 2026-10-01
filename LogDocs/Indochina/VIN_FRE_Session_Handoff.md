@@ -567,16 +567,18 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-1. Balance pass without engine runs: the Patience economy and AI War Credit use;
-   a Patience-independent Dien Bien Phu garrison floor and stronger standard
-   posture demand; scripted launch-time garrisons for Vinh Yen and Na San; a
-   VIE wartime army cap and/or NLF sustainment so NLF survives to Geneva.
-2. In the same pass, fix the minor defects: `SIA_Coup_Succeeds`, the LAO
-   `Kong Pathom` equipment, the unconditional Lorraine cleanup, and logging of
-   the chosen Dien Bien Phu posture. Add Dak Doa gate telemetry: it never
-   launched although NLF was alive after its 1954-02-10 date gate.
-3. Then resume unbuilt content, beginning with first Nghia Lo and the FRE
-   reject-Dien-Bien-Phu branch.
+Superseded by the 2026-09-29 section below. Remaining order:
+
+1. Next consolidated AFK/player run: verify the 2026-09-29 playtest checks
+   (ledger checks 1-13) together with the Pathet Lao raid hardening and the
+   older not-covered list. Also run one FRE-player game that picks the
+   hedgehog network, since the historical AI never does.
+2. Tune only with evidence from more than one run: a single run can be an
+   outlier. Tune the Struggle writer from `SCORE_WRITE`/`SCORE_UNTRACED` data,
+   and the Nghia Lo and hedgehog values from checks 10-12.
+3. Next unbuilt content (ledger, "Unbuilt design content"): Bretagne, Adolphe,
+   Camargue, Lower Laos / northeast Cambodia, Mang Yang and Chu Dreh, and the
+   VIN move on Lai Chau.
 4. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
@@ -597,3 +599,59 @@ It adds three items to the next pass, ahead of the balance work above:
 
 Also fix the `ic_pulse` FRA `Division d'Infanterie` spawn and the Siam focus
 completions at `Indochina_Flavor_Events.txt:343,562-563`.
+
+## 2026-09-29 tracing, negotiations gate, balance and defect pass
+
+Full record in the design ledger's 2026-09-29 section. Statically verified
+only; no engine run.
+
+- Struggle tracing: `SCORE_WRITE` (with writer codes), `SCORE_UNTRACED`, and
+  `LEVERAGE_WRITE`. `SCORE_AWARD` is retired. The pro-independence raid-award
+  array bug is fixed.
+- Negotiations gate: the cause was VIE's war with a surviving NLF, which kept
+  the at-peace gate closed. VIN funding was not involved. User decision: NLF
+  is dealt with by defeat or by a VIN-ordered stand-down, which is a VIE-NLF
+  white peace 90 days after negotiations are chosen. The Geneva gate itself is
+  unchanged, and the wrap-up timer waits during the stand-down.
+- Balance: AI Metropole requests are held below 45 Patience, and a new
+  War-Credits-to-Patience decision is added. The GONO floor is 3 groupements
+  at every Patience level. There is new standard-hold AI demand for FRE and
+  TAI. Vinh Yen and Na San get scripted, ownership-neutral launch garrisons.
+  The AI State of Vietnam has a 30-division cap during the war, enforced by
+  the demobilisation loop.
+- Defects: Lorraine cleanup is now conditional, the dead Siam focus
+  completions are removed, `Kong Pathom` no longer needs motorized equipment,
+  the Phase 2 FRA spawn uses a scripted template, `VIN_Formalize_Tieu` has one
+  reward block, and the Dien Bien Phu posture and Dak Doa gate
+  (`DAK_DOA_GATE`) are logged.
+- Left open: the `VIN_50s.txt` "unlocked template" warning. Fixing it means
+  locking `Trung doan Bo binh Infantry`, which is a design decision.
+
+## 2026-09-29 content pass: first Nghia Lo and the hedgehog network
+
+Full record in the design ledger's "2026-09-29 content pass". Statically
+verified only; the values are first-pass and not tuned.
+
+- First Nghia Lo is VIN campaign `10` (`VIN_Strike_Nghia_Lo`). VIN must hold
+  province `13773` for 5 days. It never changes ownership and uses the shared
+  resolver and cleanup. CEFEO responds through `FRE_Preparation.5`, with an
+  optional Tu Le airborne relief and a scripted launch garrison. A held Nghia
+  Lo helps the Na San preparation; a VIN success gives the Northwest campaign
+  +25 Campaign Supply.
+- `FRE_Hedgehog_Network` excludes Castor. It fortifies and garrisons Na San,
+  Lai Chau and Luang Prabang. With it, no Dien Bien Phu camp, GONO garrison or
+  response package exists, and nothing is recorded to Geneva for Dien Bien
+  Phu, so the post-DBP latch never opens. Pollux and Atlante accept either
+  focus, and Pollux is skipped when hedgehogs are chosen.
+- Province `13773` was identified from map centroids; confirm it in-game
+  first (ledger check 9).
+
+## 2026-09-29 AFK run review: NLF left standing
+
+Logs in `_local/logs/2026-09-29/`; full record in the ledger's matching
+section. The negotiations stand-down worked, but its white peace let the
+Indochina failsafe force the never-ending-conflict terminator in the same
+tick, before Geneva launched, so NLF was never annexed. Fixed in
+`ic_failsafe_theatre_unfinished_trigger`: queued negotiations now count as
+unfinished content. Verify with ledger check 14 in the next run; the affected
+save is not repaired.
