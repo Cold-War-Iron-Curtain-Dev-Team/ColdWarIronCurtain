@@ -4933,8 +4933,6 @@ focus_tree = {
 	}
 	focus = {
 		id = VIN_Formalize_Tieu
-		completion_reward = {
-		}
 		icon = GFX_Generic_Diplomacy_1
 		prerequisite = {
 			focus = VIN_Mass_Defectors
@@ -5527,6 +5525,43 @@ focus_tree = {
 		}
 	}
 	focus = {
+		id = VIN_Strike_Nghia_Lo
+		icon = GFX_prepare_operations_against_the_sip_song_tai
+		prerequisite = { focus = VIN_The_Battle_of_the_Day_River }
+		cost = 1.4
+		relative_position_id = VIN_The_Battle_of_the_Day_River
+		x = 0
+		y = 1
+		ai_will_do = { base = 1 modifier = { factor = 25 is_historical_focus_on = yes } }
+		continue_if_invalid = yes
+		available = {
+			date > 1951.09.25
+			country_exists = TAI
+			NOT = { owns_state = 1761 }
+			1761 = { indochina_french_held_state_trigger = yes }
+			VIN_indochina_campaign_window_trigger = yes
+			VIN_no_campaign_running_trigger = yes
+			VIN_campaign_cooldown_ready_trigger = yes
+		}
+		bypass = { OR = { has_global_flag = Indochina_War_Over geneva_conference_available_trigger = yes VIN_nghia_lo_terminal_trigger = yes NOT = { country_exists = TAI } owns_state = 1761 } }
+		will_lead_to_war_with = TAI
+		completion_reward = {
+			if = {
+				limit = {
+					VIN_indochina_campaign_window_trigger = yes
+					VIN_no_campaign_running_trigger = yes
+					country_exists = TAI
+				}
+				set_country_flag = VIN_Campaign_Nghia_Lo_Active
+				set_temp_variable = { vin_camp_id = 10 }
+				vin_campaign_begin = yes
+				custom_effect_tooltip = VIN_Camp_War_Nghia_Lo_tt
+				hidden_effect = { vin_campaign_declare_war = yes }
+			}
+			else = { set_country_flag = VIN_Nghia_Lo_Focus_Superseded }
+		}
+	}
+	focus = {
 		id = VIN_Liberate_Duyen
 		icon = GFX_MEO_dig_out_gun_caches
 		prerequisite = {
@@ -5646,6 +5681,17 @@ focus_tree = {
 					}
 				}
 			}
+			if = {
+				limit = {
+					OR = {
+						has_country_flag = VIN_Campaign_Nghia_Lo_Result_Clean
+						has_country_flag = VIN_Campaign_Nghia_Lo_Result_Costly
+					}
+				}
+				custom_effect_tooltip = VIN_Nghia_Lo_Northwest_Bonus_tt
+				set_temp_variable = { vin_supply_amount = 25 }
+				vin_change_campaign_supply = yes
+			}
 		}
 	}
 	focus = {
@@ -5747,6 +5793,10 @@ focus_tree = {
 			modifier = {
 				factor = 5
 				NOT = { has_global_flag = Indochina_War_Over }
+			}
+			modifier = {
+				factor = 0.3
+				fre_hedgehog_network_chosen_trigger = yes
 			}
 		}
 		x = 0

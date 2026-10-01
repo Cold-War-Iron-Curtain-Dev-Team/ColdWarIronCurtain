@@ -199,6 +199,10 @@ vin_campaign_apply_planned_offensive = {
 		limit = { check_variable = { VIN_camp_current = 8 } }
 		671 = { vin_campaign_open_planned_state = yes }
 	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 10 } }
+		1761 = { vin_campaign_open_planned_state = yes }
+	}
 }
 
 vin_campaign_sync_rear_supply_state = {
@@ -265,6 +269,7 @@ vin_campaign_sync_objective_modifiers = {
 		else_if = { limit = { check_variable = { VIN_camp_current = 6 } } 786 = { vin_apply_contested_objective = yes } }
 		else_if = { limit = { check_variable = { VIN_camp_current = 7 } } 786 = { vin_apply_contested_objective = yes } }
 		else_if = { limit = { check_variable = { VIN_camp_current = 8 } } 671 = { vin_apply_contested_objective = yes } }
+		else_if = { limit = { check_variable = { VIN_camp_current = 10 } } 1761 = { vin_apply_contested_objective = yes } }
 	}
 	vin_campaign_sync_rear_supply = yes
 	671 = {
@@ -472,6 +477,11 @@ vin_campaign_declare_war = {
 		set_variable = { VIN_camp_deadline_y = 45 }
 	}
 	else_if = {
+		limit = { check_variable = { VIN_camp_current = 10 } }
+		set_variable = { VIN_camp_deadline_x = 25 }
+		set_variable = { VIN_camp_deadline_y = 40 }
+	}
+	else_if = {
 		limit = { check_variable = { VIN_camp_current = 9 } }
 		set_variable = { VIN_camp_deadline_x = -1 }	# every recovery success is costly
 		set_variable = { VIN_camp_deadline_y = 120 }
@@ -533,6 +543,7 @@ vin_campaign_declare_war = {
 			OR = {
 				check_variable = { VIN_camp_current = 5 }
 				check_variable = { VIN_camp_current = 8 }
+				check_variable = { VIN_camp_current = 10 }
 			}
 			country_exists = TAI
 		}
@@ -589,7 +600,10 @@ vin_campaign_declare_war = {
 			FRE = {
 				fre_castor_handoff_to_campaign = yes
 				fre_pollux_handoff_to_campaign = yes
-				fre_dbp_response_begin = yes
+				if = {
+					limit = { NOT = { has_country_flag = FRE_Hedgehog_Network_Chosen } }
+					fre_dbp_response_begin = yes
+				}
 			}
 		}
 	}
@@ -597,6 +611,7 @@ vin_campaign_declare_war = {
 	else_if = { limit = { check_variable = { VIN_camp_current = 6 } } activate_mission = VIN_Mao_Khe_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 7 } } activate_mission = VIN_Day_River_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 8 } } activate_mission = VIN_Na_San_Objective }
+	else_if = { limit = { check_variable = { VIN_camp_current = 10 } } activate_mission = VIN_Nghia_Lo_Objective }
 	else_if = { limit = { check_variable = { VIN_camp_current = 9 } } activate_mission = VIN_Northwest_Recovery_Objective }
 	else = { activate_mission = VIN_Campaign_Objective_Timer }
 	if = {
@@ -609,8 +624,10 @@ vin_campaign_declare_war = {
 	}
 	if = {
 		limit = {
-			check_variable = { VIN_camp_current > 4 }
-			check_variable = { VIN_camp_current < 9 }
+			OR = {
+				AND = { check_variable = { VIN_camp_current > 4 } check_variable = { VIN_camp_current < 9 } }
+				check_variable = { VIN_camp_current = 10 }
+			}
 			country_exists = FRE
 		}
 		FRE = { fre_preparation_response_begin = yes }
@@ -655,6 +672,14 @@ vin_limited_campaign_add_objective_vps = {
 		671 = { add_victory_points = { province = 13757 value = 1 } }
 		set_country_flag = VIN_Temporary_Objective_VP_Na_San
 	}
+	else_if = {
+		limit = {
+			check_variable = { VIN_camp_current = 10 }
+			NOT = { has_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo }
+		}
+		1761 = { add_victory_points = { province = 13773 value = 1 } }
+		set_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo
+	}
 }
 
 vin_limited_campaign_remove_objective_vps = {
@@ -681,6 +706,11 @@ vin_limited_campaign_remove_objective_vps = {
 		limit = { has_country_flag = VIN_Temporary_Objective_VP_Na_San }
 		671 = { add_victory_points = { province = 13757 value = -1 } }
 		clr_country_flag = VIN_Temporary_Objective_VP_Na_San
+	}
+	if = {
+		limit = { has_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo }
+		1761 = { add_victory_points = { province = 13773 value = -1 } }
+		clr_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo
 	}
 }
 
@@ -946,6 +976,19 @@ vin_campaign_record_result = {
 		else = { set_country_flag = VIN_Campaign_Na_San_Result_Superseded }
 	}
 	else_if = {
+		limit = { check_variable = { VIN_camp_current = 10 } }
+		clr_country_flag = VIN_Campaign_Nghia_Lo_Result_Clean
+		clr_country_flag = VIN_Campaign_Nghia_Lo_Result_Costly
+		clr_country_flag = VIN_Campaign_Nghia_Lo_Result_Aborted
+		clr_country_flag = VIN_Campaign_Nghia_Lo_Result_Failure
+		clr_country_flag = VIN_Campaign_Nghia_Lo_Result_Superseded
+		if = { limit = { check_variable = { VIN_camp_last_outcome = 1 } } set_country_flag = VIN_Campaign_Nghia_Lo_Result_Clean }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 2 } } set_country_flag = VIN_Campaign_Nghia_Lo_Result_Costly }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 3 } } set_country_flag = VIN_Campaign_Nghia_Lo_Result_Aborted }
+		else_if = { limit = { check_variable = { VIN_camp_last_outcome = 4 } } set_country_flag = VIN_Campaign_Nghia_Lo_Result_Failure }
+		else = { set_country_flag = VIN_Campaign_Nghia_Lo_Result_Superseded }
+	}
+	else_if = {
 		limit = { check_variable = { VIN_camp_current = 9 } }
 		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Costly
 		clr_country_flag = VIN_Campaign_Northwest_Recovery_Result_Aborted
@@ -985,8 +1028,10 @@ vin_campaign_resolve = {
 	}
 	if = {
 		limit = {
-			check_variable = { VIN_camp_current > 4 }
-			check_variable = { VIN_camp_current < 9 }
+			OR = {
+				AND = { check_variable = { VIN_camp_current > 4 } check_variable = { VIN_camp_current < 9 } }
+				check_variable = { VIN_camp_current = 10 }
+			}
 			country_exists = FRE
 		}
 		FRE = { fre_preparation_resolve_from_campaign = yes }
@@ -996,6 +1041,7 @@ vin_campaign_resolve = {
 		limit = {
 			check_variable = { VIN_camp_current = 3 }
 			NOT = { check_variable = { VIN_camp_last_outcome = 5 } }
+			NOT = { fre_hedgehog_network_chosen_trigger = yes }
 		}
 		vin_dbp_record_outcome = yes
 	}
@@ -1048,6 +1094,10 @@ vin_campaign_resolve = {
 		limit = { check_variable = { VIN_camp_last_outcome = 1 } }
 		set_temp_variable = { indochina_phase_amount = 100 }
 		indochina_struggle_escalate = yes
+		set_temp_variable = { ic_trace_writer = 11 }
+		set_temp_variable = { ic_trace_communist = 25 }
+		set_temp_variable = { ic_trace_pro_france = -10 }
+		ic_afk_trace_score_pair = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaCommunistScore = 25
@@ -1080,6 +1130,10 @@ vin_campaign_resolve = {
 		limit = { check_variable = { VIN_camp_last_outcome = 2 } }
 		set_temp_variable = { indochina_phase_amount = 50 }
 		indochina_struggle_escalate = yes
+		set_temp_variable = { ic_trace_writer = 11 }
+		set_temp_variable = { ic_trace_communist = 10 }
+		set_temp_variable = { ic_trace_pro_france = -5 }
+		ic_afk_trace_score_pair = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaCommunistScore = 10
@@ -1102,6 +1156,10 @@ vin_campaign_resolve = {
 	}
 	else_if = {
 		limit = { check_variable = { VIN_camp_last_outcome = 3 } }
+		set_temp_variable = { ic_trace_writer = 11 }
+		set_temp_variable = { ic_trace_communist = -10 }
+		set_temp_variable = { ic_trace_pro_france = 10 }
+		ic_afk_trace_score_pair = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaCommunistScore = -10
@@ -1117,6 +1175,10 @@ vin_campaign_resolve = {
 		limit = { check_variable = { VIN_camp_last_outcome = 4 } }
 		set_temp_variable = { indochina_phase_amount = 50 }
 		indochina_struggle_deescalate = yes
+		set_temp_variable = { ic_trace_writer = 11 }
+		set_temp_variable = { ic_trace_communist = -20 }
+		set_temp_variable = { ic_trace_pro_france = 20 }
+		ic_afk_trace_score_pair = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaCommunistScore = -20
@@ -1192,12 +1254,27 @@ vin_campaign_finish = {
 	if = {
 		limit = { country_exists = FRE }
 		FRE = {
-			fre_lorraine_response_cleanup = yes
+			if = {
+				limit = {
+					OR = {
+						has_country_flag = FRE_Lorraine_Response_Active
+						has_country_flag = FRE_Lorraine_Response_Deep
+						has_country_flag = FRE_Lorraine_Response_Limited
+						has_country_flag = FRE_Lorraine_Response_Withheld
+						has_country_flag = FRE_Lorraine_Objective_Achieved
+						has_country_flag = FRE_Mission_Operation_Lorraine_Activated
+						has_idea = FRE_Lorraine_Deep_Columns
+						has_idea = FRE_Northwest_Concentrated_Defence
+					}
+				}
+				fre_lorraine_response_cleanup = yes
+			}
 			fre_hoa_binh_response_cleanup = yes
 			fre_dbp_response_cleanup = yes
 			fre_preparation_response_cleanup = yes
 		}
 	}
+	fre_preparation_disband_garrison = yes
 	clr_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
 	if = {
 		limit = { has_country_flag = VIN_Campaign_Cao_Bac_Active }
@@ -1238,6 +1315,11 @@ vin_campaign_finish = {
 		limit = { has_country_flag = VIN_Campaign_Na_San_Active }
 		clr_country_flag = VIN_Campaign_Na_San_Active
 		set_country_flag = VIN_Campaign_Cooldown_Na_San
+	}
+	if = {
+		limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Active }
+		clr_country_flag = VIN_Campaign_Nghia_Lo_Active
+		set_country_flag = VIN_Campaign_Cooldown_Nghia_Lo
 	}
 	if = {
 		limit = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active }
@@ -1282,6 +1364,7 @@ vin_campaign_finish = {
 	remove_mission = VIN_Mao_Khe_Objective
 	remove_mission = VIN_Day_River_Objective
 	remove_mission = VIN_Na_San_Objective
+	remove_mission = VIN_Nghia_Lo_Objective
 	remove_mission = VIN_Northwest_Recovery_Objective
 	set_variable = { VIN_camp_timer_days = 0 }
 }
@@ -1316,6 +1399,18 @@ vin_dbp_record_outcome = {
 }
 
 fre_dbp_fortify_camp = {
+	if = {
+		limit = { fre_hedgehog_network_chosen_trigger = yes }
+		set_variable = { global.VIN_dbp_siege_days = 0 }
+		set_variable = { global.VIN_dbp_fort_level = 0 }
+		log = "IC_AFK|HEDGEHOG|date=[GetDateText]|stage=dbp_camp_not_built"
+	}
+	else = {
+		fre_dbp_fortify_valley_camp = yes
+	}
+}
+
+fre_dbp_fortify_valley_camp = {
 	671 = {
 		set_victory_points = {
 			province = 13765
@@ -1346,7 +1441,7 @@ fre_dbp_deploy_gono = {
 		log = "[GetDateText]: fre_dbp_deploy_gono re-entered and refused - the valley already has its garrison"
 	}
 	else = {
-		set_temp_variable = { gono_tier = 1 }	# 2 battalions of the group base, 3 at tier 1, 4 at tier 2
+		set_temp_variable = { gono_tier = 1 }	# floor: 3 groupements at every tier; +1 at tier 1, +2 and stocks at tier 2
 		if = {
 			limit = { country_exists = FRE  FRE = { check_variable = { FRE_Metropole_Patience > 65 } } }
 			set_temp_variable = { gono_tier = 2 }
@@ -1387,12 +1482,18 @@ fre_dbp_deploy_gono = {
 					allow_spawning_on_enemy_provs = yes
 					prioritize_location = 4529
 				}
+				create_unit = {
+					division = "name = \"GONO - Groupement Aeroporte\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.65 start_equipment_factor = 1.0"
+					owner = FRE
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
 			}
 			if = {
 				limit = { check_variable = { gono_tier > 0 } }
 				671 = {
 					create_unit = {
-						division = "name = \"GONO - Groupement Aeroporte\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.65 start_equipment_factor = 1.0"
+						division = "name = \"GONO - Bataillon de Marche Etranger\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
 						owner = FRE
 						allow_spawning_on_enemy_provs = yes
 						prioritize_location = 4529
@@ -1403,7 +1504,7 @@ fre_dbp_deploy_gono = {
 				limit = { check_variable = { gono_tier > 1 } }
 				671 = {
 					create_unit = {
-						division = "name = \"GONO - Bataillon de Marche Etranger\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
+						division = "name = \"GONO - 3e Groupement\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.55 start_equipment_factor = 1.0"
 						owner = FRE
 						allow_spawning_on_enemy_provs = yes
 						prioritize_location = 4529
@@ -1414,6 +1515,7 @@ fre_dbp_deploy_gono = {
 					add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = FRA }
 				}
 			}
+			log = "IC_AFK|DBP_GARRISON|date=[GetDateText]|owner=FRE|tier=[?gono_tier|0]|patience=[?FRE.FRE_Metropole_Patience|0]"
 			news_event = { id = SWF_Indochina_War.32 hours = 3 }
 		}
 		else_if = {
@@ -1433,12 +1535,18 @@ fre_dbp_deploy_gono = {
 					allow_spawning_on_enemy_provs = yes
 					prioritize_location = 4529
 				}
+				create_unit = {
+					division = "name = \"GONO - Groupement Aeroporte\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.65 start_equipment_factor = 1.0"
+					owner = TAI
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4529
+				}
 			}
 			if = {
 				limit = { check_variable = { gono_tier > 0 } }
 				671 = {
 					create_unit = {
-						division = "name = \"GONO - Groupement Aeroporte\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.65 start_equipment_factor = 1.0"
+						division = "name = \"GONO - Bataillon de Marche Etranger\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
 						owner = TAI
 						allow_spawning_on_enemy_provs = yes
 						prioritize_location = 4529
@@ -1449,7 +1557,7 @@ fre_dbp_deploy_gono = {
 				limit = { check_variable = { gono_tier > 1 } }
 				671 = {
 					create_unit = {
-						division = "name = \"GONO - Bataillon de Marche Etranger\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.6 start_equipment_factor = 1.0"
+						division = "name = \"GONO - 3e Groupement\" division_template = \"Groupement Operationnel du Nord-Ouest\" start_experience_factor = 0.55 start_equipment_factor = 1.0"
 						owner = TAI
 						allow_spawning_on_enemy_provs = yes
 						prioritize_location = 4529
@@ -1460,6 +1568,7 @@ fre_dbp_deploy_gono = {
 					add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 200 producer = FRA }
 				}
 			}
+			log = "IC_AFK|DBP_GARRISON|date=[GetDateText]|owner=TAI|tier=[?gono_tier|0]|patience=[?FRE.FRE_Metropole_Patience|0]"
 			news_event = { id = SWF_Indochina_War.32 hours = 3 }
 		}
 	}

@@ -33,11 +33,72 @@ ic_afk_validation_score_delta_tick = {
 			}
 		}
 		log = "IC_AFK|SCORE_DELTA|date=[GetDateText]|source=daily_ledger_observer|communist=[?ic_afk_delta_communist|0]|pro_france=[?ic_afk_delta_pro_france|0]|pro_independence=[?ic_afk_delta_pro_independence|0]|pro_ethnic=[?ic_afk_delta_pro_ethnic|0]|phase=[?global.Indochina_War_Active_Phase|0]"
+		subtract_from_temp_variable = { ic_afk_delta_communist = global.ic_afk_traced_communist }
+		subtract_from_temp_variable = { ic_afk_delta_pro_france = global.ic_afk_traced_pro_france }
+		subtract_from_temp_variable = { ic_afk_delta_pro_independence = global.ic_afk_traced_pro_independence }
+		subtract_from_temp_variable = { ic_afk_delta_pro_ethnic = global.ic_afk_traced_pro_ethnic }
+		if = {
+			limit = {
+				OR = {
+					NOT = { check_variable = { ic_afk_delta_communist = 0 } }
+					NOT = { check_variable = { ic_afk_delta_pro_france = 0 } }
+					NOT = { check_variable = { ic_afk_delta_pro_independence = 0 } }
+					NOT = { check_variable = { ic_afk_delta_pro_ethnic = 0 } }
+				}
+			}
+			log = "IC_AFK|SCORE_UNTRACED|date=[GetDateText]|communist=[?ic_afk_delta_communist|0]|pro_france=[?ic_afk_delta_pro_france|0]|pro_independence=[?ic_afk_delta_pro_independence|0]|pro_ethnic=[?ic_afk_delta_pro_ethnic|0]"
+		}
 	}
 	set_variable = { global.ic_afk_prev_communist = StruggleInvolvedNationsIndochinaCommunistScore }
 	set_variable = { global.ic_afk_prev_pro_france = StruggleInvolvedNationsIndochinaProFranceScore }
 	set_variable = { global.ic_afk_prev_pro_independence = StruggleInvolvedNationsIndochinaProIndependenceScore }
 	set_variable = { global.ic_afk_prev_pro_ethnic = StruggleInvolvedNationsIndochinaProEthnicScore }
+	set_variable = { global.ic_afk_traced_communist = 0 }
+	set_variable = { global.ic_afk_traced_pro_france = 0 }
+	set_variable = { global.ic_afk_traced_pro_independence = 0 }
+	set_variable = { global.ic_afk_traced_pro_ethnic = 0 }
+}
+
+ic_afk_trace_score_communist = {
+	add_to_variable = { global.ic_afk_traced_communist = ic_trace_amount }
+	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=communist|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	set_temp_variable = { ic_trace_writer = 0 }
+}
+
+ic_afk_trace_score_pro_france = {
+	add_to_variable = { global.ic_afk_traced_pro_france = ic_trace_amount }
+	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_france|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	set_temp_variable = { ic_trace_writer = 0 }
+}
+
+ic_afk_trace_score_pro_independence = {
+	add_to_variable = { global.ic_afk_traced_pro_independence = ic_trace_amount }
+	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_independence|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	set_temp_variable = { ic_trace_writer = 0 }
+}
+
+ic_afk_trace_score_pro_ethnic = {
+	add_to_variable = { global.ic_afk_traced_pro_ethnic = ic_trace_amount }
+	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_ethnic|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	set_temp_variable = { ic_trace_writer = 0 }
+}
+
+ic_afk_trace_score_pair = {
+	set_temp_variable = { ic_trace_pair_writer = ic_trace_writer }
+	if = {
+		limit = { NOT = { check_variable = { ic_trace_communist = 0 } } }
+		set_temp_variable = { ic_trace_amount = ic_trace_communist }
+		ic_afk_trace_score_communist = yes
+	}
+	if = {
+		limit = { NOT = { check_variable = { ic_trace_pro_france = 0 } } }
+		set_temp_variable = { ic_trace_writer = ic_trace_pair_writer }
+		set_temp_variable = { ic_trace_amount = ic_trace_pro_france }
+		ic_afk_trace_score_pro_france = yes
+	}
+	set_temp_variable = { ic_trace_writer = 0 }
+	set_temp_variable = { ic_trace_communist = 0 }
+	set_temp_variable = { ic_trace_pro_france = 0 }
 }
 
 ic_afk_validation_vin_balance_contract = {
@@ -59,10 +120,11 @@ ic_afk_validation_vin_balance_contract = {
 				check_variable = { VIN_camp_current = 6 }
 				check_variable = { VIN_camp_current = 7 }
 				AND = { check_variable = { VIN_camp_current = 8 } country_exists = TAI has_war_with = TAI }
+				AND = { check_variable = { VIN_camp_current = 10 } country_exists = TAI has_war_with = TAI }
 			}
 			OR = { check_variable = { VIN_camp_current = 2 } NOT = { country_exists = TAM } TAM = { NOT = { has_war_with = ROOT } } }
 			OR = { check_variable = { VIN_camp_current = 4 } NOT = { country_exists = THO } THO = { NOT = { has_war_with = ROOT } } }
-			OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 3 } check_variable = { VIN_camp_current = 5 } check_variable = { VIN_camp_current = 8 } NOT = { country_exists = TAI } TAI = { NOT = { has_war_with = ROOT } } }
+			OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 3 } check_variable = { VIN_camp_current = 5 } check_variable = { VIN_camp_current = 8 } check_variable = { VIN_camp_current = 10 } NOT = { country_exists = TAI } TAI = { NOT = { has_war_with = ROOT } } }
 			OR = { NOT = { country_exists = NUN } NUN = { NOT = { has_war_with = ROOT } } }
 		}
 		log = "IC_AFK|PASS|date=[GetDateText]|check=VIN_campaign_participant_envelope|campaign=[?VIN_camp_current|0]"
@@ -170,6 +232,14 @@ ic_afk_validation_vin_launch_tick = {
 		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Na_San_objective_marker_active|province=13757" }
 	}
 	if = {
+		limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Active NOT = { has_global_flag = IC_AFK_Seen_VIN_10_Launch } }
+		set_global_flag = IC_AFK_Seen_VIN_10_Launch
+		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=VIN|campaign=10|name=Nghia_Lo|hold=[?VIN_camp_objective_hold_days|0]/5|deadline_clean=[?VIN_camp_deadline_x|0]|deadline_final=[?VIN_camp_deadline_y|0]"
+		ic_afk_validation_vin_balance_contract = yes
+		if = { limit = { has_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo } log = "IC_AFK|PASS|date=[GetDateText]|check=Nghia_Lo_objective_marker_active|province=13773" }
+		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=Nghia_Lo_objective_marker_active|province=13773" }
+	}
+	if = {
 		limit = { has_country_flag = VIN_Campaign_Northwest_Recovery_Active NOT = { has_global_flag = IC_AFK_Seen_VIN_9_Launch } }
 		set_global_flag = IC_AFK_Seen_VIN_9_Launch
 		log = "IC_AFK|LAUNCH|date=[GetDateText]|owner=VIN|campaign=9|name=Northwest_Recovery|hold=[?VIN_camp_objective_hold_days|0]/5|deadline_final=[?VIN_camp_deadline_y|0]|supply=[?VIN_Campaign_Supply|0]|pp=[?political_power|0]"
@@ -249,6 +319,18 @@ ic_afk_validation_vin_result_tick = {
 		if = { limit = { has_country_flag = VIN_Temporary_Objective_VP_Na_San } log = "IC_AFK|FAIL|date=[GetDateText]|check=Na_San_marker_removed_after_finish" }
 		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Na_San_marker_removed_after_finish" }
 		set_variable = { global.ic_afk_vin_cleanup_campaign = 8 }
+	}
+	if = {
+		limit = { VIN_nghia_lo_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_VIN_10_Result } }
+		set_global_flag = IC_AFK_Seen_VIN_10_Result
+		if = { limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Result_Clean } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=10|name=Nghia_Lo|outcome=clean|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Result_Costly } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=10|name=Nghia_Lo|outcome=costly|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Result_Aborted } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=10|name=Nghia_Lo|outcome=aborted|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Result_Failure } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=10|name=Nghia_Lo|outcome=failure|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Campaign_Nghia_Lo_Result_Superseded } log = "IC_AFK|RESULT|date=[GetDateText]|owner=VIN|campaign=10|name=Nghia_Lo|outcome=superseded|day=[?VIN_camp_days_elapsed|0]" }
+		if = { limit = { has_country_flag = VIN_Temporary_Objective_VP_Nghia_Lo } log = "IC_AFK|FAIL|date=[GetDateText]|check=Nghia_Lo_marker_removed_after_finish" }
+		else = { log = "IC_AFK|PASS|date=[GetDateText]|check=Nghia_Lo_marker_removed_after_finish" }
+		set_variable = { global.ic_afk_vin_cleanup_campaign = 10 }
 	}
 	if = {
 		limit = { VIN_northwest_recovery_terminal_trigger = yes NOT = { has_global_flag = IC_AFK_Seen_VIN_9_Result } }
@@ -693,9 +775,48 @@ ic_afk_validation_dak_doa_tick = {
 	}
 }
 
+ic_afk_validation_dak_doa_gate_tick = {
+	if = {
+		limit = {
+			date > 1954.02.10
+			country_exists = VIN
+			VIN = { NOT = { has_completed_focus = VIN_Dak_Doa_Offensive } }
+			NOT = { has_global_flag = IC_AFK_Seen_Dak_Doa_Launch }
+		}
+		add_to_variable = { global.ic_afk_dak_doa_gate_days = 1 }
+		if = {
+			limit = { check_variable = { global.ic_afk_dak_doa_gate_days > 29 } }
+			set_variable = { global.ic_afk_dak_doa_gate_days = 0 }
+			set_temp_variable = { g_prereq = 0 }
+			set_temp_variable = { g_nlf = 0 }
+			set_temp_variable = { g_ful = 0 }
+			set_temp_variable = { g_fre = 0 }
+			set_temp_variable = { g_wider = 0 }
+			set_temp_variable = { g_10180 = 0 }
+			set_temp_variable = { g_ready = 0 }
+			VIN = {
+				if = { limit = { OR = { has_completed_focus = VIN_Promote_Le_Duc_Tho_Orthodoxy has_completed_focus = VIN_Retain_Nguyen_Binh_United_Front } } set_temp_variable = { g_prereq = 1 } }
+				if = { limit = { VIN_dak_doa_available_trigger = yes } set_temp_variable = { g_ready = 1 } }
+			}
+			if = { limit = { country_exists = NLF } set_temp_variable = { g_nlf = 1 } }
+			if = { limit = { country_exists = FUL } set_temp_variable = { g_ful = 1 } }
+			if = { limit = { country_exists = FRE } set_temp_variable = { g_fre = 1 } }
+			if = {
+				limit = { country_exists = NLF }
+				NLF = {
+					if = { limit = { NLF_dak_doa_wider_southern_war_trigger = yes } set_temp_variable = { g_wider = 1 } }
+					if = { limit = { controls_province = 10180 } set_temp_variable = { g_10180 = 1 } }
+				}
+			}
+			log = "IC_AFK|DAK_DOA_GATE|date=[GetDateText]|prereq_focus=[?g_prereq|0]|available=[?g_ready|0]|nlf=[?g_nlf|0]|ful=[?g_ful|0]|fre=[?g_fre|0]|nlf_wider_war=[?g_wider|0]|nlf_holds_10180=[?g_10180|0]|phase=[?global.Indochina_War_Active_Phase|0]"
+		}
+	}
+}
+
 ic_afk_validation_daily_tick = {
 	ic_afk_validation_initialize = yes
 	ic_afk_validation_score_delta_tick = yes
+	ic_afk_validation_dak_doa_gate_tick = yes
 	add_to_variable = { global.ic_afk_heartbeat_days = 1 }
 	if = {
 		limit = { check_variable = { global.ic_afk_heartbeat_days > 179 } }
@@ -710,6 +831,7 @@ ic_afk_validation_daily_tick = {
 		log = "IC_AFK|GENEVA_WEIGHT|date=[GetDateText]|tag=FRA|weight=[?geneva_weight|0]"
 		if = { limit = { country_exists = VIN } VIN = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=VIN|divisions=[?num_divisions|0]" } }
 		if = { limit = { country_exists = FRE } FRE = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=FRE|divisions=[?num_divisions|0]" } }
+		if = { limit = { country_exists = FRE } FRE = { log = "IC_AFK|METROPOLE|date=[GetDateText]|patience=[?FRE_Metropole_Patience|0]|war_credits=[?FRE_War_Credits|0]" } }
 		if = { limit = { country_exists = TAI } TAI = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=TAI|divisions=[?num_divisions|0]" } }
 		else = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=TAI|status=collapsed" }
 		if = { limit = { country_exists = TAM } TAM = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=TAM|divisions=[?num_divisions|0]" } }

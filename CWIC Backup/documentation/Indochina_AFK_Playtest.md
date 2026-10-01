@@ -284,9 +284,12 @@ auditable.
 
 Do not tune from one intermediate snapshot. Preserve:
 
-- every `IC_AFK|SCORE_DELTA` line;
-- six-month `STRUGGLE_SCORE`, `GENEVA_LEVERAGE`, and `GENEVA_WEIGHT` lines;
-- `SCORE_AWARD` and `GENEVA_SOURCE` lines;
+- every `IC_AFK|SCORE_DELTA` and `IC_AFK|SCORE_UNTRACED` line;
+- every `IC_AFK|SCORE_WRITE` and `IC_AFK|LEVERAGE_WRITE` line (writer codes are
+  listed in the design ledger, 2026-09-29 section);
+- six-month `STRUGGLE_SCORE`, `GENEVA_LEVERAGE`, `GENEVA_WEIGHT`, and
+  `METROPOLE` lines;
+- `GENEVA_SOURCE` lines;
 - the final balance and delegate weights.
 
 The working balance target is a Communist margin of approximately `+100` to
@@ -315,8 +318,8 @@ root against the copied files. Substitute their actual filenames.
 
 ```bash
 rg -n "IC_AFK\|FAIL|No valid option|defender_modifier|political_power > 49|vin_ai_prepare_campaign" <game-log> <error-log>
-rg -n "IC_AFK\|(START|LAUNCH|RESULT|PASS|END|FINAL_BALANCE|POST_DBP|NUN_POSTWAR)|GENEVA_SOURCE" <game-log>
-rg -n "IC_AFK\|(STRUGGLE_SCORE|SCORE_DELTA|GENEVA_LEVERAGE|GENEVA_WEIGHT|FINAL_GENEVA_WEIGHT|FORCE_HEALTH|ARMY_CAP)" <game-log>
+rg -n "IC_AFK\|(START|LAUNCH|RESULT|PASS|END|FINAL_BALANCE|POST_DBP|NUN_POSTWAR|DBP_POSTURE|DBP_GARRISON|LAUNCH_GARRISON|FRE_PATIENCE_SINK)|GENEVA_SOURCE" <game-log>
+rg -n "IC_AFK\|(STRUGGLE_SCORE|SCORE_DELTA|SCORE_UNTRACED|SCORE_WRITE|LEVERAGE_WRITE|GENEVA_LEVERAGE|GENEVA_WEIGHT|FINAL_GENEVA_WEIGHT|FORCE_HEALTH|ARMY_CAP|METROPOLE)" <game-log>
 rg -n "error|invalid|unknown|unexpected token|No valid option" <error-log>
 ```
 
