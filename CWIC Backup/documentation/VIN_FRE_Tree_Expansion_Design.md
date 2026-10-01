@@ -1641,3 +1641,39 @@ Statically verified only.
     `stage=nlf_regrouped|nlf_had_divisions=..|nlf_exists_after=0` the same
     day, then `INVITE`. NLF has no `ARMY_CAP` line afterwards, VIN gains 2
     regiments, both events show, and the Geneva NLF line is not "defeated".
+
+## 2026-10-01 fix-up pass: contested sweeps, Bolovens response, regroupment fallback
+
+Statically verified only; no engine run.
+
+- **Bretagne (5) and Camargue (7) must be contested.** `fre_operation_update_contest`
+  sets `FRE_Operation_Contested` the first day the enemy shows up:
+  - Bretagne: Viet Minh divisions in state `786`, or Viet Minh control of `13753`/`1185`.
+  - Camargue: Viet Minh or southern Viet Minh divisions in `1759`/`1758`, or their control of `4379`/`16445`.
+
+  The hold counter resets on that day, and a clean or costly result needs the
+  flag. A sweep that is never contested resolves `aborted` at the final
+  deadline (`FRE_OP_UNCONTESTED`). New AI strategies
+  `VIN_operation_bretagne_push` and `NLF_operation_camargue_contest` send the
+  defenders in. Camargue counts the southern Viet Minh because the Viet Minh
+  are not at war with the State of Vietnam.
+- **Lower Laos response.** At launch CEFEO gets `FRE_Lower_Laos.1`:
+  - Fly in an airborne group: 40 War Credits. It spawns "Groupement Aeroporte Bolovens" in state `1187` at `1563` and adds +3 days to Atlante's hold gate if Atlante is active. This makes the result `contained`.
+  - Leave it to the Royal Lao Army.
+
+  AI chance is 60/40. The unit is deleted when the package ends or CEFEO
+  dissolves.
+- **Regroupment fallback.** After the stand-down, regroupment now also runs
+  when the southern Viet Minh are already at peace with the State of Vietnam
+  (`reason=already_at_peace`). The white peace is only issued if they are at
+  war.
+
+### Consolidated-playtest checks added
+
+24. Ops 5/7: `FRE_OP_CONTESTED` before any clean/costly `RESULT`, or
+    `FRE_OP_UNCONTESTED` followed by `outcome=aborted`. No clean result
+    within 7 days of launch without a contest line.
+25. Lower Laos: `LOWER_LAOS_RESPONSE|choice=..`. With `reinforce`, the unit
+    appears near Paksong, the result is `contained`, and the unit is gone
+    after `RESULT`.
+26. Regroupment: `nlf_regrouped` appears even if `reason=already_at_peace`.

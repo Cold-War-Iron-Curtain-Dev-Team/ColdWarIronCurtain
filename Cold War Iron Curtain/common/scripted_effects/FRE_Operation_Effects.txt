@@ -117,6 +117,7 @@ fre_operation_launch = {
 	set_variable = { FRE_op_days_elapsed = 0 }
 	set_variable = { FRE_op_objective_hold_days = 0 }
 	clr_country_flag = FRE_Brochet_Objective_Lost
+	clr_country_flag = FRE_Operation_Contested
 	if = { limit = { check_variable = { FRE_op_current = 2 } } set_country_flag = FRE_Mission_Operation_Hirondelle_Activated }
 	else_if = { limit = { check_variable = { FRE_op_current = 3 } } set_country_flag = FRE_Mission_Operation_Mouette_Activated }
 	else_if = { limit = { check_variable = { FRE_op_current = 4 } } set_country_flag = FRE_Mission_Operation_Brochet_Activated }
@@ -171,6 +172,42 @@ fre_operation_update_hold = {
 		}
 	}
 
+fre_operation_update_contest = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = FRE_Operation_Contested }
+			country_exists = VIN
+			OR = {
+				AND = {
+					check_variable = { FRE_op_current = 5 }
+					VIN = {
+						OR = {
+							divisions_in_state = { state = 786 size > 0 }
+							controls_province = 13753
+							controls_province = 1185
+						}
+					}
+				}
+				AND = {
+					check_variable = { FRE_op_current = 7 }
+					any_country = {
+						OR = { tag = VIN tag = NLF }
+						OR = {
+							divisions_in_state = { state = 1759 size > 0 }
+							divisions_in_state = { state = 1758 size > 0 }
+							controls_province = 4379
+							controls_province = 16445
+						}
+					}
+				}
+			}
+		}
+		set_country_flag = FRE_Operation_Contested
+		set_variable = { FRE_op_objective_hold_days = 0 }
+		log = "IC_AFK|FRE_OP_CONTESTED|date=[GetDateText]|operation=[?FRE_op_current|0]|day=[?FRE_op_days_elapsed|0]"
+	}
+}
+
 fre_operation_update_overextension = {
 	if = {
 		limit = { check_variable = { FRE_op_current > 2 } fre_operation_fre_overextended_trigger = yes }
@@ -200,6 +237,7 @@ fre_limited_operation_daily_tick = {
 		limit = { has_country_flag = FRE_Limited_Operation_Active }
 		add_to_variable = { FRE_op_days_elapsed = 1 }
 		log = "FRE_OP_TRACE: DAILY before_objective id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
+		fre_operation_update_contest = yes
 		fre_operation_update_hold = yes
 		fre_operation_update_overextension = yes
 		log = "FRE_OP_TRACE: DAILY after_objective id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
@@ -227,6 +265,20 @@ fre_operation_check_resolution = {
 		limit = { fre_operation_theatre_closed = yes }
 		log = "FRE_OP_TRACE: RESOLUTION branch=theatre_closed id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] phase=[?global.Indochina_War_Active_Phase|0]"
 		set_temp_variable = { fre_op_outcome = 5 }
+		fre_operation_resolve_outcome = yes
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { FRE_op_current = 5 }
+				check_variable = { FRE_op_current = 7 }
+			}
+			NOT = { has_country_flag = FRE_Operation_Contested }
+			check_variable = { FRE_op_days_elapsed > FRE_op_deadline_y }
+		}
+		log = "FRE_OP_TRACE: RESOLUTION branch=uncontested id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0]"
+		log = "IC_AFK|FRE_OP_UNCONTESTED|date=[GetDateText]|operation=[?FRE_op_current|0]|hold=[?FRE_op_objective_hold_days|0]"
+		set_temp_variable = { fre_op_outcome = 3 }
 		fre_operation_resolve_outcome = yes
 	}
 	else_if = {

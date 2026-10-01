@@ -94,13 +94,18 @@ vin_post_dbp_focus_geneva_queue_tick = {
 			has_war = no
 			country_exists = VIE
 			country_exists = NLF
-			VIE = { has_war_with = NLF }
+			NOT = { has_country_flag = VIN_Post_DBP_NLF_Regrouped }
 			OR = {
 				NLF = { num_divisions < 1 }
 				NOT = { has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Pending }
 			}
 		}
 		if = {
+			limit = { VIE = { NOT = { has_war_with = NLF } } }
+			set_country_flag = VIN_Post_DBP_NLF_Stood_Down
+			log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_released|reason=already_at_peace"
+		}
+		else_if = {
 			limit = { NLF = { num_divisions < 1 } }
 			set_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice
 			log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_released|reason=disarmed"
@@ -155,7 +160,7 @@ vin_post_dbp_nlf_regroupment = {
 	set_temp_variable = { regroup_divisions = 0 }
 	if = { limit = { NLF = { num_divisions > 0 } } set_temp_variable = { regroup_divisions = 1 } }
 	VIE = {
-		white_peace = NLF
+		if = { limit = { has_war_with = NLF } white_peace = NLF }
 		annex_country = { target = NLF transfer_troops = no }
 	}
 	set_country_flag = VIN_Post_DBP_NLF_Regrouped

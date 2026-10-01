@@ -710,3 +710,14 @@ a bare white peace, and the focus showed nothing. User decision: the
 stand-down now ends in regroupment. VIE annexes NLF without its troops, VIN
 gets manpower and 2 regiments, and both sides get an event. The focus now
 has a tooltip. Full record in the ledger; new check 23.
+
+## 2026-10-01 fix-up pass
+
+Statically verified only. Bretagne and Camargue now need enemy contact
+before they count a clean hold; an uncontested sweep is aborted. The Viet
+Minh and southern Viet Minh AI get counter-strategies. Lower Laos gives
+CEFEO a Bolovens airlift choice that makes `contained` reachable. Regroupment
+also runs if the southern Viet Minh are already at peace with the State of
+Vietnam. New ledger checks 24-26; the next run scores checks 1-26. Next:
+remaining unbuilt design content, starting with VIN Luang Prabang all-in and
+the second overextension tier.
