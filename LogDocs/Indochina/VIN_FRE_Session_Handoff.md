@@ -721,3 +721,13 @@ also runs if the southern Viet Minh are already at peace with the State of
 Vietnam. New ledger checks 24-26; the next run scores checks 1-26. Next:
 remaining unbuilt design content, starting with VIN Luang Prabang all-in and
 the second overextension tier.
+
+## 2026-10-01 remaining unbuilt design content
+
+The last unbuilt items are code-complete: the severe overextension tier and
+the VIN Luang Prabang all-in, Section 9.1 campaign inputs, Chinese versus
+Soviet patronage, Charles Chanson/Sa Dec, the Royal Lao and Cambodian army
+branch, and deletion of the unassigned legacy adjacency rules. Statically
+verified only. Full record and checks 27-33 are in the ledger. The design's
+unbuilt list is now empty; the next step is the consolidated playtest of
+checks 1-33.
