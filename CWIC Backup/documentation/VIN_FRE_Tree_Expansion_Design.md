@@ -1405,3 +1405,48 @@ Consolidated-playtest check 14: after `nlf_released`, the same day shows
 `GENEVA_SOURCE|INVITE` and then the Geneva ending, and NLF is annexed. There is
 no "forcing the terminator" line. Saves that already have `Indochina_War_Over`
 are not repaired.
+
+## 2026-09-30 scoring of the 2026-09-29 run against checks 1-13
+
+The 2026-09-29 run (`_local/logs/2026-09-29/`) carried the whole 2026-09-29
+batch (first engine coverage of campaign `10`), so it is scored here against
+checks 1-13. Evidence is telemetry from that run only. One run is not enough
+to tune from.
+
+| Check | Evidence | Verdict |
+|---|---|---|
+| 1 Struggle writers | 157 `SCORE_WRITE`. 1953-05..10 Communist net `+215`: writer 3 `+150` (70%), writer 4 `+50`, writer 12 `+25`, writer 11 `-10`. Whole run, writer 3 = `+1450` of `+2097` traced Communist. `SCORE_UNTRACED` totals: Communist 33, Pro-France 427, Pro-Independence 215, Pro-Ethnic 100; in the window only Pro-France 45. Margin `+298` (1954-04), `+238` (1954-10). | Attributed. Writer 3 (`indochina_struggle_vin_focus_standard`) dominates. Untraced Pro-France/Pro-Independence writes are not small over the whole run. |
+| 2 Negotiations | `nlf_stand_down_ordered` 1954-09-18, `nlf_released` 1954-12-17, no `INVITE`. | Failed; root cause and fix already recorded above (check 14). |
+| 3 Patience | `METROPOLE` 13-47 from 1950 to 1954-04, 8 on 1954-10-24; War Credits 260-435; `FRE_PATIENCE_SINK` x10. | Pass. |
+| 4 Dien Bien Phu | `DBP_GARRISON tier=0` on both camp builds = the limited Castor drop, which still spawns the three-groupement floor. `DBP_POSTURE=standard`. Campaign `3` clean on day 45. | Pass. |
+| 5 Launch garrisons | `LAUNCH_GARRISON` campaign 5 (3 divisions), 8 (4 divisions, tier 2). Vinh Yen costly day 28, Na San costly day 41. | Pass. Garrison removal after `RESULT` is not logged separately. |
+| 6 VIE cap | VIE `cap=30` at war; divisions 27 (1951), 29-30 (1952-53); 18 against cap 20 at peace (1955). NLF alive with 13 divisions at the stand-down. | Pass. |
+| 7 Defects | error.log: no `Kong Pathom`, no `Indochina_Flavor_Events` lines, no malformed Phase 2 template; no Lorraine cleanup log lines. Remaining `SIA_` errors are in `SIA_operations.txt`/`SIA_50s.txt` (unrelated noise). | Pass. |
+| 8 Dak Doa gate | 10 `DAK_DOA_GATE` lines, 1954-03-11 to 1954-12-06: `prereq_focus=1 nlf=1 ful=1 fre=1 nlf_wider_war=1 nlf_holds_10180=0`, `available=0`. | **Open.** Dak Doa never launched because NLF never controls staging province `10180`; every other input of `VIN_dak_doa_available_trigger` passed. |
+| 9 Nghia Lo province | Not observable in telemetry. | Needs a visual check. |
+| 10 Campaign `10` | One `LAUNCH` (1952-01-18), one `RESULT` (clean, day 22), `LAUNCH_GARRISON campaign=10` (2 divisions), `NGHIA_LO_RELIEF`. `VIN_Liberate_Duyen` (Hoa Binh) launched 1952-04-22, after the cooldown. | Pass. |
+| 11 Callbacks | VIN clean at Nghia Lo, so the FRE Na San bonus correctly did not apply. The Northwest `+25` Campaign Supply is not logged on the campaign `1` `LAUNCH` line. | Not covered; needs a supply field on the campaign `1` launch log. |
+| 12 Hedgehogs | 0 `HEDGEHOG` lines; the historical AI took Castor. | Not covered (player-only path). |
+| 13 Journal fit | Not observable in telemetry. | Needs a visual check. |
+
+Lifecycle: 17 `RESULT`, 0 `IC_AFK|FAIL`.
+
+### `VIN_50s.txt` unlocked-template warning (closed by user decision)
+
+User decision 2026-09-30: `Trung doan Bo binh Infantry` is locked from now
+on. `history/units/VIN_1949.txt` gains `is_locked = yes` on that template, so
+`VIN_Formalize_Tieu`'s `add_units_to_division_template` (VIN_50s.txt:4950)
+now targets a locked template. Players can no longer edit it; VIN gets the
+template change only through the focus. Statically verified only:
+`git diff --check`, and the file's existing BOM is unchanged (it predates this
+change).
+
+### Consolidated-playtest checks added
+
+15. error.log has no `unlocked template (Trung doan Bo binh Infantry)` warning
+    after `VIN_Formalize_Tieu`, and the template shows as locked in the VIN
+    division designer.
+16. Dak Doa: if `nlf_holds_10180=0` persists in another run, the staging
+    requirement in `VIN_dak_doa_available_trigger` is the blocker to fix (AI
+    allocation toward `10180` or a different staging contract); do not change
+    it from this single run.
