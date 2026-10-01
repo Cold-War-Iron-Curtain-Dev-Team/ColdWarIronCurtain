@@ -569,9 +569,9 @@ completed in `Indochina_AFK_Playtest.md`.
 
 Updated 2026-09-30 (after the content pass). Remaining order:
 
-1. Next consolidated AFK run: score ledger checks 1-23. Still open from
+1. Next consolidated AFK run: score ledger checks 1-26. Still open from
    before: 9 and 13 (visual), 11, 12, 15 and 16 (14 passed 2026-10-01).
-   New: 17-22 for the 2026-09-30 content pass, 23 for regroupment. Also cover the Pathet
+   New: 17-22 (content pass), 23 (regroupment), 24-26 (fix-ups). Also cover the Pathet
    Lao raid hardening and the older not-covered list. For check 12, either run
    one AFK game with `effect ic_afk_force_hedgehog_enable = yes` entered
    before 1953-11, or play one FRE game that picks the hedgehog network.
