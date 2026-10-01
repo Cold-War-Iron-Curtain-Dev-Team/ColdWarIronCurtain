@@ -3,6 +3,47 @@ fre_lower_laos_cleanup = {
 		limit = { has_idea = FRE_Lower_Laos_Reserves_Diverted }
 		remove_ideas = FRE_Lower_Laos_Reserves_Diverted
 	}
+	if = {
+		limit = { has_country_flag = FRE_Lower_Laos_Template_Loaded }
+		delete_units = { division_template = "Groupement Aeroporte Bolovens" }
+	}
+	clr_country_flag = FRE_Lower_Laos_Reinforced
+}
+
+fre_lower_laos_reinforce_bolovens = {
+	set_country_flag = FRE_Lower_Laos_Reinforced
+	set_temp_variable = { fre_credit_amount = -40 }
+	fre_change_war_credits = yes
+	if = {
+		limit = { NOT = { has_country_flag = FRE_Lower_Laos_Template_Loaded } }
+		set_country_flag = FRE_Lower_Laos_Template_Loaded
+		division_template = {
+			name = "Groupement Aeroporte Bolovens"
+			regiments = {
+				infantry = { x = 0 y = 0 }
+				infantry = { x = 0 y = 1 }
+				infantry = { x = 1 y = 0 }
+			}
+			priority = 0
+		}
+	}
+	1187 = {
+		create_unit = {
+			division = "name = \"Groupement Aeroporte Bolovens\" division_template = \"Groupement Aeroporte Bolovens\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
+			owner = FRE
+			allow_spawning_on_enemy_provs = yes
+			prioritize_location = 1563
+		}
+	}
+	if = {
+		limit = { has_country_flag = FRE_Atlante_Offensive_Active }
+		if = {
+			limit = { NOT = { has_variable = FRE_Atlante_Hold_Extension } }
+			set_variable = { FRE_Atlante_Hold_Extension = 0 }
+		}
+		add_to_variable = { FRE_Atlante_Hold_Extension = 3 }
+	}
+	log = "IC_AFK|LOWER_LAOS_RESPONSE|date=[GetDateText]|choice=reinforce|credits=[?FRE_War_Credits|0]"
 }
 
 vin_lower_laos_apply_atlante_pressure = {
@@ -44,6 +85,10 @@ vin_lower_laos_begin = {
 		set_variable = { VIN_Lower_Laos_Days = 0 }
 		set_temp_variable = { vin_supply_amount = -20 }
 		vin_change_campaign_supply = yes
+		if = {
+			limit = { country_exists = FRE }
+			FRE = { country_event = { id = FRE_Lower_Laos.1 hours = 6 } }
+		}
 		vin_lower_laos_apply_atlante_pressure = yes
 	}
 	else = {
