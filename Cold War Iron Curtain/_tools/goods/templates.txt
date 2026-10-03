@@ -1,0 +1,573 @@
+# Consumer goods trade templates: expanded by _tools/goods/build_goods.py into
+# common/scripted_effects/CWIC_Goods_Generated_Effects.txt. One block per family, repeated for every good in goods.csv.
+# Placeholders: <cg_snake_t> cg_consumer_electronics_t1 | <cg_name_t> cg_electronics_t1 | <CgCatT> CgBasicT1 | <cgCatT> cgBasicT1 | <CatT> BasicT1 | <cg_snake_> cg_basic_ | <cg_cat_> cg_basic_ | <_t> _t1
+#               <price_key> (price_adjust_<price_key> array) | <cut_event> (trade.N fired when over-sold)
+
+# ===== generate_available_<cg_snake_t>_import_array
+#@each all
+generate_available_<cg_snake_t>_import_array = {
+	clear_array = ROOT.<cgCatT>Exporters
+	clear_array = ROOT.<cgCatT>ExporterInfo
+
+	for_each_scope_loop = {  # was every_other_country; the pool holds every country that may sell (filtered exactly as before)
+		array = global.cwic_cg_sellers_<cg_snake_t>
+		if = {
+			limit = {
+			exists = yes
+			OR = {
+				check_variable = { <cg_snake_>export_stock<_t> > 0.99 }
+				check_variable = { currentExported<CgCatT> > 0.99 }
+			}
+			NOT = { tag = ROOT }
+			check_variable = { ROOT.trade_embargo_check^THIS = 0 }
+			NOT = { has_war_with = ROOT }
+			}
+
+		add_to_array = { ROOT.<cgCatT>Exporters = THIS.id }
+		add_to_array = { ROOT.<cgCatT>ExporterInfo = THIS.<cg_snake_>export_stock<_t> }
+
+		set_variable = { <cgCatT>ExportCash = global.<cgCatT>BasePrice }
+
+		set_variable = { price_Adj = 0 }
+		set_temp_variable = { price_Adjuster = 0 }
+		add_to_variable = { price_Adjuster = ROOT.price_adjust_<price_key>^THIS }
+
+		if = {
+			limit = { is_subject_of = ROOT }
+			set_variable = { price_Adj = modifier@extra_trade_to_overlord_factor }
+			set_variable = { price_Adj2 = 1 }
+			subtract_from_variable = { price_Adj2 = price_Adj }
+			set_temp_variable = { price_Adjuster = 1 }
+		}
+
+		if = {
+			limit = { check_variable = { price_Adjuster = 1 } }
+			multiply_variable = { <cgCatT>ExportCash = price_Adj }
+		}
+
+		if = {
+			limit = {
+				NOT = {
+					check_variable = { ROOT.price_adjust_generic^THIS = 0 }
+				}
+			}
+			set_variable = { price_Adjuster = 0 }
+			set_variable = { price_Adjuster_Special = ROOT.price_adjust_generic^THIS }
+			set_variable = { price_Adj = price_Adjuster_Special }
+			set_variable = { price_Adj2 = 1 }
+			subtract_from_variable = { price_Adj2 = price_Adj }
+			set_temp_variable = { price_Adjuster = 1 }
+		}
+
+		if = {
+			limit = { check_variable = { price_Adjuster = 1 } }
+			multiply_variable = { <cgCatT>ExportCash = price_Adj }
+		}
+
+		set_variable = { price_adjustment_ideas = modifier@global_trade_penalty_adjustment }
+
+		if = {
+			limit = { has_country_flag = arab_league_member }
+			add_to_variable = {
+				price_adjustment_ideas = ROOT.modifier@arab_league_trade_penalty_adjustment
+			}
+		}
+
+		add_to_variable = { price_adjustment_ideas = 1 }
+		multiply_variable = { <cgCatT>ExportCash = price_adjustment_ideas }
+
+		set_variable = { price_adjustment_ideas2 = 1 }
+		subtract_from_variable = {
+			price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
+		}
+		multiply_variable = { <cgCatT>ExportCash = price_adjustment_ideas2 }
+
+		# Shipping Cost
+		set_temp_variable = { exporter_capital = capital }
+		var:exporter_capital = {
+			set_variable = { PREV.shipping_cost = distance_to@ROOT.capital }
+		}
+
+		divide_variable = { shipping_cost = global.base_shipping_cost_divisor_cg }
+		multiply_variable = { shipping_cost = 100 }
+		round_variable = shipping_cost
+		divide_variable = { shipping_cost = 100 }
+
+		set_temp_variable = { modifier_temp = shipping_cost_effect }
+		add_to_temp_variable = { modifier_temp = 1 }
+		multiply_variable = { shipping_cost = modifier_temp }
+		add_to_variable = { shipping_cost = 1 }
+
+		set_temp_variable = { true_price = <cgCatT>ExportCash }
+		multiply_temp_variable = { true_price = shipping_cost }
+
+		add_to_variable = { <cgCatT>ExportCash = true_price }
+
+		clear_variable = price_Adjuster
+		set_variable = { <cgCatT>ExporterPrice^ROOT = <cgCatT>ExportCash }
+		}
+	}
+}
+#@end
+
+# ===== sort_price_number_<cg_name_t>
+#@each all
+sort_price_number_<cg_name_t> = {
+	clear_array = <cgCatT>ExportPriceRate
+
+	for_each_scope_loop = {
+		array = <cgCatT>Exporters
+		add_to_array = { 
+			PREV.<cgCatT>ExportPriceRate = <cgCatT>ExporterPrice^ROOT
+		}
+	}
+
+	clear_array = <cgCatT>CurrentImport
+
+	every_other_country = { 
+		for_loop_effect = {
+			end = <CgCatT>ExportTarget^num
+			value = v
+			if = {
+				limit = {
+					check_variable = { <CgCatT>ExportTarget^v = ROOT.id }
+				}
+				add_to_array = { ROOT.<cgCatT>CurrentImport = <CgCatT>ExportTargetAmount^i }
+			}
+			else = {
+				add_to_array = { ROOT.<cgCatT>CurrentImport = 0 }
+			}
+		}
+	}
+
+	# Creates the Sample Array
+	resize_temp_array = {
+		array = <cgCatT>ExporterInfo_temp
+		size = <cgCatT>ExporterInfo^num
+	}
+	resize_temp_array = {
+		array = <cgCatT>ExportPriceRate_temp
+		size = <cgCatT>ExporterInfo^num
+	}
+	resize_temp_array = {
+		array = <cgCatT>Exporters_temp
+		size = <cgCatT>ExporterInfo^num
+	}
+
+	set_temp_variable = { start_temp = <cgCatT>ExportPriceRate^num }
+	subtract_from_temp_variable = { start_temp = 1 }
+
+	for_loop_effect = {
+		start = start_temp
+		end = 0
+		compare = greater_than_or_equals
+		add = -1
+		value = v
+
+		find_highest_in_array = {
+			array = <cgCatT>ExportPriceRate
+			value = max
+			index = max_index
+		}
+
+		set_temp_variable = { <cgCatT>ExportPriceRate_temp^v = max }
+		set_temp_variable = { <cgCatT>ExporterInfo_temp^v = <cgCatT>Exporters^max_index }
+		set_temp_variable = { <cgCatT>Exporters_temp^v = <cgCatT>Exporters^max_index }
+		set_variable = { <cgCatT>ExportPriceRate^max_index = -1 }
+	}
+
+	clear_array = <cgCatT>ExporterInfo
+	clear_array = <cgCatT>Exporters
+	clear_array = <cgCatT>ExportPriceRate
+
+	# Restores destroyed arrays in the above process
+	for_each_loop = {
+		array = <cgCatT>ExportPriceRate_temp
+		add_to_array = { <cgCatT>ExportPriceRate = v }
+	}
+	for_each_loop = {
+		array = <cgCatT>ExporterInfo_temp
+		add_to_array = { <cgCatT>ExporterInfo = v }
+	}
+	for_each_loop = {
+		array = <cgCatT>Exporters_temp
+		add_to_array = { <cgCatT>Exporters = v }
+	}
+
+	clear_temp_array = <cgCatT>ExporterInfo_temp
+	clear_temp_array = <cgCatT>Exporters_temp
+	clear_temp_array = <cgCatT>ExportPriceRate_temp
+}
+#@end
+
+# ===== buy_<cg_name_t>
+#@each all
+buy_<cg_name_t> = {
+
+	var:currentPurchaser = {
+		for_loop_effect = {
+			end = ROOT.<CgCatT>_Import_List
+			value = v
+			if = {
+				limit = {
+					check_variable = { <CgCatT>_Import_List^v = THIS.id }
+				}
+				set_country_flag = found
+			}
+		}
+		if = {
+			limit = { NOT = { has_country_flag = found } }
+			add_to_array = { ROOT.<CgCatT>_Import_List = THIS.id }
+		}
+		clr_country_flag = found
+
+		for_loop_effect = {
+			end = <CgCatT>_Export_List
+			value = v
+			if = {
+				limit = {
+					check_variable = { <CgCatT>_Export_List^v = ROOT.id }
+				}
+				set_country_flag = found
+			}
+		}
+		if = {
+			limit = { NOT = { has_country_flag = found } }
+			add_to_array = { <CgCatT>_Export_List = ROOT.id }
+		}
+		clr_country_flag = found
+
+		subtract_from_variable = {
+			ROOT.purchase_amount = ROOT.purchase_amount_prior
+		}
+		subtract_from_variable = {
+			currentAvailable<CgCatT>Export = ROOT.purchase_amount
+		}
+		add_to_variable = {
+			ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+		}
+		subtract_from_variable = {
+			ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+		}
+		add_to_variable = {
+			currentExported<CgCatT> = ROOT.purchase_amount
+		}
+		add_to_variable = {
+			ROOT.<cgCatT>Imports = ROOT.purchase_amount
+		}
+
+		set_variable = {
+			<CgCatT>ExportTarget^ROOT = ROOT.id
+		} 
+		add_to_variable = {
+			<CgCatT>ExportTargetAmount^ROOT = ROOT.purchase_amount
+		}
+
+		set_variable = {
+			price_of_goods = <cgCatT>ExporterPrice^ROOT
+		}
+		multiply_variable = {
+			price_of_goods = ROOT.purchase_amount
+		}
+
+		add_to_variable = {
+			<CgCatT>ExportTargetMonthly^ROOT = price_of_goods
+		}
+		add_to_variable = {
+			ROOT.<CgCatT>ImportTargetMonthly^THIS = price_of_goods
+		}
+		set_variable = {
+			ROOT.<CgCatT>ImportTarget^THIS = THIS.id
+		}
+		add_to_variable = {
+			ROOT.<CgCatT>ImportTargetAmount^THIS = ROOT.purchase_amount
+		}
+
+		set_variable = {
+			price_of_goods = 0
+		}
+		set_variable = {
+			ROOT.purchase_amount = 0
+		}
+	}
+
+	every_other_country = {
+		limit = {
+			check_variable = {
+				<cg_snake_>export_stock<_t> > 0.99
+			}
+			NOT = {
+				tag = ROOT
+			}
+			check_variable = {
+				ROOT.trade_embargo_check^THIS = 0
+			}
+			NOT = {
+				has_war_with = ROOT
+			}
+		}
+		clear_array = <CgCatT>CurrentExport
+		for_loop_effect = {
+			end = <CgCatT>ExportTarget^num
+			value = v
+			if = {
+				limit = {
+					check_variable = { <CgCatT>ExportTarget^v = ROOT.id }
+				}
+				add_to_array = { <CgCatT>CurrentExport = <CgCatT>ExportTargetAmount^i }
+
+			}
+			else = {
+				add_to_array = { <CgCatT>CurrentExport = 0 }
+
+			}
+		}
+	}
+}
+#@end
+
+# ===== <cgCatT>DeliveryCuts
+#@each all
+<cgCatT>DeliveryCuts = {
+	while_loop_effect = {
+		limit = {
+			check_variable = {
+				currentAvailable<CgCatT>Export < 0
+			}
+
+            any_of = {
+                array = <CgCatT>_Export_List
+                check_variable = { ROOT.<CgCatT>ExportTargetAmount^THIS > 0 }
+            }
+        }
+
+		for_each_scope_loop = {
+			array = <CgCatT>_Export_List
+
+			if = {
+				limit = {
+					check_variable = { ROOT.currentAvailable<CgCatT>Export < 0 }
+					check_variable = { ROOT.<CgCatT>ExportTargetAmount^THIS > 0 }
+				}
+
+
+
+				subtract_from_variable = {
+					ROOT.currentExported<CgCatT> = 1
+				}
+
+				set_variable = {
+					priorExportTotal = ROOT.<CgCatT>ExportTargetMonthly^THIS
+				}
+				set_variable = {
+					priorExportCash = ROOT.<CgCatT>ExportTargetAmount^THIS
+				}
+				divide_variable = {
+					priorExportTotal = priorExportCash
+				}
+
+				add_to_variable = {
+					ROOT.currentAvailable<CgCatT>Export = 1
+				}
+				add_to_variable = {
+					trade_infrastructure_total_available = 1
+				}
+				subtract_from_variable = {
+					trade_infrastructure_total_used = 1
+				}
+				subtract_from_variable = {
+					<cgCatT>Imports = 1
+				}
+
+				subtract_from_variable = {
+					ROOT.<CgCatT>ExportTargetAmount^THIS = 1
+				}
+				add_to_variable = {
+					<CgCatT>ImportTargetAmount^ROOT = -1
+				}
+
+				subtract_from_variable = {
+					ROOT.<CgCatT>ExportTargetMonthly^THIS = priorExportTotal
+				}
+				subtract_from_variable = {
+					<CgCatT>ImportTargetMonthly^ROOT = priorExportTotal
+				}
+			}
+		}
+	}
+}
+#@end
+
+# ===== cwic_ai_import_<cg_name_t>
+#@each all
+cwic_ai_import_<cg_name_t> = {
+	if = {
+		limit = {
+			check_variable = { <cg_cat_>ai_need > 0.99 }
+			check_variable = { trade_infrastructure_total_available > 0.99 }
+		}
+
+		generate_available_<cg_snake_t>_import_array = yes
+
+		# PERF: lazy cheapest-first pick, O(k*E) instead of the O(E^2) full
+		# selection sort in sort_price_number_<cg_name_t> (which also does per-importer
+		# GUI bookkeeping the AI never reads). The trade GUI still uses the sort.
+		clear_array = ROOT.cwic_ai_price_scratch
+		for_each_scope_loop = {
+			array = ROOT.<cgCatT>Exporters
+			add_to_array = { PREV.cwic_ai_price_scratch = <cgCatT>ExporterPrice^ROOT }
+		}
+
+		set_temp_variable = { cheapest_brk = 0 }
+
+		for_loop_effect = {
+			end = ROOT.<cgCatT>Exporters^num
+			value = cheap_i
+			break = cheapest_brk
+
+			if = {
+				limit = { check_variable = { cheapest_brk = 0 } }
+				find_lowest_in_array = {
+					array = ROOT.cwic_ai_price_scratch
+					value = cheap_price
+					index = cheap_idx
+				}
+				set_variable = { ROOT.cwic_ai_price_scratch^cheap_idx = 1000000000 }
+				set_temp_variable = { cheap_exporter = ROOT.<cgCatT>Exporters^cheap_idx }
+				var:cheap_exporter = {
+
+			if = {
+				limit = {
+					check_variable = { ROOT.<cg_cat_>ai_need > 0.99 }
+					check_variable = { ROOT.trade_infrastructure_total_available > 0.99 }
+					check_variable = { currentAvailable<CgCatT>Export > 0.99 }
+				}
+
+				set_variable = { ROOT.purchase_amount = ROOT.<cg_cat_>ai_need }
+
+				if = {
+					limit = { check_variable = { currentAvailable<CgCatT>Export < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = currentAvailable<CgCatT>Export }
+				}
+
+				if = {
+					limit = { check_variable = { ROOT.trade_infrastructure_total_available < ROOT.purchase_amount } }
+					set_variable = { ROOT.purchase_amount = ROOT.trade_infrastructure_total_available }
+				}
+
+				round_variable = ROOT.purchase_amount
+
+				if = {
+					limit = { check_variable = { ROOT.purchase_amount > 0.99 } }
+
+					subtract_from_variable = { ROOT.<cg_cat_>ai_need = ROOT.purchase_amount }
+
+					# Write import/export relationship arrays
+					for_loop_effect = {
+						end = ROOT.<CgCatT>_Import_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { <CgCatT>_Import_List^v = THIS.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { ROOT.<CgCatT>_Import_List = THIS.id }
+					}
+					clr_country_flag = found
+
+					for_loop_effect = {
+						end = <CgCatT>_Export_List
+						value = v
+						if = {
+							limit = {
+								check_variable = { <CgCatT>_Export_List^v = ROOT.id }
+							}
+							set_country_flag = found
+						}
+					}
+					if = {
+						limit = { NOT = { has_country_flag = found } }
+						add_to_array = { <CgCatT>_Export_List = ROOT.id }
+					}
+					clr_country_flag = found
+
+					# Apply trade contract
+					subtract_from_variable = {
+						currentAvailable<CgCatT>Export = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.trade_infrastructure_total_used = ROOT.purchase_amount
+					}
+					subtract_from_variable = {
+						ROOT.trade_infrastructure_total_available = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						currentExported<CgCatT> = ROOT.purchase_amount
+					}
+					add_to_variable = {
+						ROOT.<cgCatT>Imports = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						<CgCatT>ExportTarget^ROOT = ROOT.id
+					}
+					add_to_variable = {
+						<CgCatT>ExportTargetAmount^ROOT = ROOT.purchase_amount
+					}
+
+					set_variable = {
+						price_of_goods = <cgCatT>ExporterPrice^ROOT
+					}
+					multiply_variable = {
+						price_of_goods = ROOT.purchase_amount
+					}
+
+					add_to_variable = {
+						<CgCatT>ExportTargetMonthly^ROOT = price_of_goods
+					}
+					add_to_variable = {
+						ROOT.<CgCatT>ImportTargetMonthly^THIS = price_of_goods
+					}
+					set_variable = {
+						ROOT.<CgCatT>ImportTarget^THIS = THIS.id
+					}
+					add_to_variable = {
+						ROOT.<CgCatT>ImportTargetAmount^THIS = ROOT.purchase_amount
+					}
+
+					set_variable = { price_of_goods = 0 }
+
+					if = {
+						limit = {
+							check_variable = { currentAvailable<CgCatT>Export < 0 }
+						}
+						country_event = <cut_event>
+					}
+
+					set_variable = { ROOT.purchase_amount = 0 }
+				}
+			}
+
+			if = {
+				limit = {
+					OR = {
+						NOT = { check_variable = { ROOT.<cg_cat_>ai_need > 0.99 } }
+						NOT = { check_variable = { ROOT.trade_infrastructure_total_available > 0.99 } }
+					}
+				}
+				set_temp_variable = { cheapest_brk = 1 }
+			}
+				}
+			}
+		}
+		clear_array = ROOT.cwic_ai_price_scratch
+
+	}
+
+	clear_variable = cheapest_brk
+}
+#@end

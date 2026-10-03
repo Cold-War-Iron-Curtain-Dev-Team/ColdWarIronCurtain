@@ -8,24 +8,24 @@ on_actions = {
             }
 		}
 	}
+	# The global monthly tick (companies, federations, ic_pulse_monthly) is hosted by the Vatican.
 	on_monthly_VTC = {
 		effect = {
-			cwic_mnc_monthly_rollover = yes
-			cwic_mnc_auto_invest_global = yes
-
-			cwic_mnc_process_invites_global = yes
-			set_variable = { global.federation_european_union_entrance = 0 }
-			set_variable = { global.federation_european_union_count = 0 }
-			every_country = {
-				clr_country_flag = federation_member
-				clr_country_flag = common_market_member
-				ic_pulse_monthly = yes
-			}
-			federation_calculator_global = yes
+			cwic_global_monthly_tick = yes
 		}
 	}
 	on_monthly = {
 		effect = {
+			# Fallback host if the Vatican no longer exists (on_monthly_VTC would silently stop firing):
+			# the first country whose monthly tick fires runs it, then the flag blocks the rest for 27 days.
+			if = {
+				limit = {
+					NOT = { country_exists = VTC }
+					NOT = { has_global_flag = cwic_global_monthly_tick_done }
+				}
+				set_global_flag = { flag = cwic_global_monthly_tick_done value = 1 days = 27 }
+				cwic_global_monthly_tick = yes
+			}
 
 			if = {
 				limit = { NOT = { has_country_flag = active_insurgency } }

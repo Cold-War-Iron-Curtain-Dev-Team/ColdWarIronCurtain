@@ -427,38 +427,64 @@ cwic_inflation_tier_monthly_assign = {
 		}
 	}
 
-	# ------------------------------------------------------------
-	# 3) Apply tier idea (remove all, then add the one for CWIC_infl_tier_id)
-	# ------------------------------------------------------------
-	remove_ideas = CWIC_infl_env_deflation_1
-	remove_ideas = CWIC_infl_env_deflation_2
-	remove_ideas = CWIC_infl_env_deflation_3
-	remove_ideas = CWIC_infl_env_very_stable_1
-	remove_ideas = CWIC_infl_env_stable_2
-	remove_ideas = CWIC_infl_env_mild_4
-	remove_ideas = CWIC_infl_env_noticeable_8
-	remove_ideas = CWIC_infl_env_moderate_10
-	remove_ideas = CWIC_infl_env_high_15
-	remove_ideas = CWIC_infl_env_serious_25
-	remove_ideas = CWIC_infl_env_crisis_50
-	remove_ideas = CWIC_infl_env_hyper_light_100
-	remove_ideas = CWIC_infl_env_hyper_hard_200
+	# Only touch the ideas when the tier actually changed (each idea change forces a modifier recalculation).
+	if = {
+		limit = {
+			OR = {
+				NOT = { has_variable = CWIC_infl_tier_applied }
+				NOT = { check_variable = { CWIC_infl_tier_applied = CWIC_infl_tier_id } }
+			}
+		}
+		if = { limit = { has_variable = CWIC_infl_tier_applied } set_temp_variable = { cwic_prev_tier_tmp = CWIC_infl_tier_applied } }
+		set_variable = { CWIC_infl_tier_applied = CWIC_infl_tier_id }
+		# ------------------------------------------------------------
+		# 3) Apply tier idea (remove all, then add the one for CWIC_infl_tier_id)
+		# ------------------------------------------------------------
+		# Remove only the previously applied tier's idea (all of them on the very first run).
+		if = {
+			limit = { NOT = { check_variable = { cwic_prev_tier_tmp > 0 } } }
+			remove_ideas = CWIC_infl_env_deflation_1
+			remove_ideas = CWIC_infl_env_deflation_2
+			remove_ideas = CWIC_infl_env_deflation_3
+			remove_ideas = CWIC_infl_env_very_stable_1
+			remove_ideas = CWIC_infl_env_stable_2
+			remove_ideas = CWIC_infl_env_mild_4
+			remove_ideas = CWIC_infl_env_noticeable_8
+			remove_ideas = CWIC_infl_env_moderate_10
+			remove_ideas = CWIC_infl_env_high_15
+			remove_ideas = CWIC_infl_env_serious_25
+			remove_ideas = CWIC_infl_env_crisis_50
+			remove_ideas = CWIC_infl_env_hyper_light_100
+			remove_ideas = CWIC_infl_env_hyper_hard_200
+		}
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 1 } } remove_ideas = CWIC_infl_env_deflation_1 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 2 } } remove_ideas = CWIC_infl_env_deflation_2 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 3 } } remove_ideas = CWIC_infl_env_deflation_3 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 11 } } remove_ideas = CWIC_infl_env_very_stable_1 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 12 } } remove_ideas = CWIC_infl_env_stable_2 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 13 } } remove_ideas = CWIC_infl_env_mild_4 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 14 } } remove_ideas = CWIC_infl_env_noticeable_8 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 15 } } remove_ideas = CWIC_infl_env_moderate_10 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 16 } } remove_ideas = CWIC_infl_env_high_15 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 17 } } remove_ideas = CWIC_infl_env_serious_25 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 18 } } remove_ideas = CWIC_infl_env_crisis_50 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 19 } } remove_ideas = CWIC_infl_env_hyper_light_100 }
+		else_if = { limit = { check_variable = { cwic_prev_tier_tmp = 20 } } remove_ideas = CWIC_infl_env_hyper_hard_200 }
+		if = { limit = { check_variable = { CWIC_infl_tier_id = 3 } } add_ideas = CWIC_infl_env_deflation_3 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 2 } } add_ideas = CWIC_infl_env_deflation_2 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 1 } } add_ideas = CWIC_infl_env_deflation_1 }
 
-	# Add the active one
-	if = { limit = { check_variable = { CWIC_infl_tier_id = 3 } } add_ideas = CWIC_infl_env_deflation_3 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 2 } } add_ideas = CWIC_infl_env_deflation_2 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 1 } } add_ideas = CWIC_infl_env_deflation_1 }
-
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 20 } } add_ideas = CWIC_infl_env_hyper_hard_200 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 19 } } add_ideas = CWIC_infl_env_hyper_light_100 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 18 } } add_ideas = CWIC_infl_env_crisis_50 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 17 } } add_ideas = CWIC_infl_env_serious_25 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 16 } } add_ideas = CWIC_infl_env_high_15 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 15 } } add_ideas = CWIC_infl_env_moderate_10 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 14 } } add_ideas = CWIC_infl_env_noticeable_8 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 13 } } add_ideas = CWIC_infl_env_mild_4 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 12 } } add_ideas = CWIC_infl_env_stable_2 }
-	else = { add_ideas = CWIC_infl_env_very_stable_1 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 20 } } add_ideas = CWIC_infl_env_hyper_hard_200 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 19 } } add_ideas = CWIC_infl_env_hyper_light_100 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 18 } } add_ideas = CWIC_infl_env_crisis_50 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 17 } } add_ideas = CWIC_infl_env_serious_25 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 16 } } add_ideas = CWIC_infl_env_high_15 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 15 } } add_ideas = CWIC_infl_env_moderate_10 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 14 } } add_ideas = CWIC_infl_env_noticeable_8 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 13 } } add_ideas = CWIC_infl_env_mild_4 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 12 } } add_ideas = CWIC_infl_env_stable_2 }
+		else = { add_ideas = CWIC_infl_env_very_stable_1 }
+	}
 }
 cwic_capital_controls_monthly_effects = {
 

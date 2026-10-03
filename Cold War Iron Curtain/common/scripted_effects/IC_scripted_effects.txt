@@ -6,42 +6,6 @@ ic_financial_monthly_pulse = {
 	}
 	else = {
 	#checks for export shortages
-	country_event = trade.2
-	country_event = trade.3
-	country_event = trade.4
-	country_event = trade.5
-	country_event = trade.6
-	country_event = trade.7
-
-	# Consumer Goods
-	country_event = trade.40	#Tier 0s I forgot existed
-	country_event = trade.41	#Tier 0s I forgot existed
-	country_event = trade.42	#Tier 0s I forgot existed
-
-	country_event = trade.20	# Basic T1
-	country_event = trade.21	# Basic T2
-	country_event = trade.22	# Basic T3
-	country_event = trade.23	# Basic T4
-	country_event = trade.24	# Basic T5
-
-	country_event = trade.25	# Durable T1
-	country_event = trade.26	# Durable T2
-	country_event = trade.27	# Durable T3
-	country_event = trade.28	# Durable T4
-	country_event = trade.29	# Durable T5
-
-	country_event = trade.30	# Vehicles T1
-	country_event = trade.31	# Vehicles T2
-	country_event = trade.32	# Vehicles T3
-	country_event = trade.33	# Vehicles T4
-	country_event = trade.34	# Vehicles T5
-
-	country_event = trade.35	# Electronics T1
-	country_event = trade.36	# Electronics T2
-	country_event = trade.37	# Electronics T3
-	country_event = trade.38	# Electronics T4
-	country_event = trade.39	# Electronics T5
-
 	set_variable = { national_total_lower_class_pop = 0 }
 	set_variable = { national_total_middle_class_pop = 0 }
 	set_variable = { national_total_upper_middle_class_pop = 0 }
@@ -69,6 +33,7 @@ ic_financial_monthly_pulse = {
 	industrial_pulse = yes
 
 	monthly_borrowing_and_interest_pulse = yes
+	cwic_monthly_delivery_cuts = yes # replaces 29 hidden trade.* events; same calls and order, run where the events used to (after the pulse)
 	#cwic_default_monthly_check = yes
 	}
 }
@@ -18665,5 +18630,78 @@ ic_pulse = {
 			date < 1969.2.01
 		}
 		news_event = ARM_SOV.1
+	}
+}
+
+# Global (world-wide) monthly tick. Hosted by on_monthly_VTC, with a fallback in on_monthly
+# when the Vatican no longer exists (see common/on_actions/00_on_actions.txt).
+cwic_global_monthly_tick = {
+	cwic_mnc_monthly_rollover = yes
+	cwic_mnc_auto_invest_global = yes
+	cwic_mnc_process_invites_global = yes
+	set_variable = { global.federation_european_union_entrance = 0 }
+	set_variable = { global.federation_european_union_count = 0 }
+	every_country = {
+		clr_country_flag = federation_member
+		clr_country_flag = common_market_member
+		ic_pulse_monthly = yes
+	}
+	federation_calculator_global = yes
+	cwic_update_cold_war_counters = yes
+}
+
+# Monthly resource / consumer-goods delivery cuts (formerly 29 hidden trade.* events per country per month).
+cwic_monthly_delivery_cuts = {
+	oilDeliveryCuts = yes # trade.2
+	steelDeliveryCuts = yes # trade.3
+	rareEarthDeliveryCuts = yes # trade.4
+	aluminiumDeliveryCuts = yes # trade.5
+	chromiumDeliveryCuts = yes # trade.6
+	foodDeliveryCuts = yes # trade.7
+	cgBasicT0DeliveryCuts = yes # trade.40
+	cgDurableT0DeliveryCuts = yes # trade.41
+	cgVehiclesT0DeliveryCuts = yes # trade.42
+	cgBasicT1DeliveryCuts = yes # trade.20
+	cgBasicT2DeliveryCuts = yes # trade.21
+	cgBasicT3DeliveryCuts = yes # trade.22
+	cgBasicT4DeliveryCuts = yes # trade.23
+	cgBasicT5DeliveryCuts = yes # trade.24
+	cgDurableT1DeliveryCuts = yes # trade.25
+	cgDurableT2DeliveryCuts = yes # trade.26
+	cgDurableT3DeliveryCuts = yes # trade.27
+	cgDurableT4DeliveryCuts = yes # trade.28
+	cgDurableT5DeliveryCuts = yes # trade.29
+	cgVehiclesT1DeliveryCuts = yes # trade.30
+	cgVehiclesT2DeliveryCuts = yes # trade.31
+	cgVehiclesT3DeliveryCuts = yes # trade.32
+	cgVehiclesT4DeliveryCuts = yes # trade.33
+	cgVehiclesT5DeliveryCuts = yes # trade.34
+	cgElectronicsT1DeliveryCuts = yes # trade.35
+	cgElectronicsT2DeliveryCuts = yes # trade.36
+	cgElectronicsT3DeliveryCuts = yes # trade.37
+	cgElectronicsT4DeliveryCuts = yes # trade.38
+	cgElectronicsT5DeliveryCuts = yes # trade.39
+}
+
+# World counts for the Cold War faction goals (common/factions/goals/CWIC_cold_war_faction_goals.txt).
+# Computed once a month (and at game start) so the goals' hourly completion checks only compare numbers/flags.
+cwic_update_cold_war_counters = {
+	set_variable = { global.cwic_communist_countries = 0 }
+	every_country = {
+		clr_country_flag = cwic_controls_land_facility
+		clr_country_flag = cwic_controls_naval_facility
+		clr_country_flag = cwic_controls_air_facility
+		if = {
+			limit = { OR = { has_government = communism has_government = maoism has_government = trotskyism } }
+			add_to_variable = { global.cwic_communist_countries = 1 }
+		}
+	}
+	every_state = {
+		limit = { OR = { land_facility > 0 naval_facility > 0 air_facility > 0 } }
+		CONTROLLER = {
+			if = { limit = { PREV = { land_facility > 0 } } set_country_flag = cwic_controls_land_facility }
+			if = { limit = { PREV = { naval_facility > 0 } } set_country_flag = cwic_controls_naval_facility }
+			if = { limit = { PREV = { air_facility > 0 } } set_country_flag = cwic_controls_air_facility }
+		}
 	}
 }

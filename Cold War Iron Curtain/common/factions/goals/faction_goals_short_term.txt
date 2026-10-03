@@ -845,7 +845,7 @@ faction_goal_spy_master = {
 			limit = {
 				has_intelligence_agency = yes
 				has_done_agency_upgrade = upgrade_crypto_strength
-				has_tech = mechanical_computing
+				has_tech = decryption_I
 				NOT = { has_done_agency_upgrade = upgrade_crypto_strength_2 }
 			}
 			add_faction_initiative = 1
@@ -862,7 +862,7 @@ faction_goal_spy_master = {
 				NOT = { agency_upgrade_number > 30 }
 				OR = {
 					has_done_agency_upgrade = upgrade_crypto_strength_2
-					NOT = { has_tech = mechanical_computing }
+					NOT = { has_tech = decryption_I }
 				}
 			}
 			add_faction_initiative = 1
@@ -983,6 +983,7 @@ faction_goal_ensure_military_r_d = {
 	# any_state short-circuits at the first match, and the cheap facility
 	# check now runs before the controller/faction check.
 	visible = {
+		has_global_flag = cwic_wwii_faction_goals  # replaced by faction_goal_cwic_arsenal_of_the_bloc (cheaper check)
 		OR = {
 			NOT = {
 				any_state = {
@@ -1004,6 +1005,7 @@ faction_goal_ensure_military_r_d = {
 			}
 		}
 	}
+	cancel = { NOT = { has_global_flag = cwic_wwii_faction_goals } }
 	completed = {
 		custom_trigger_tooltip = {
 			tooltip = COLLECTION_FACTION_LAND_FACILITY
@@ -1142,15 +1144,14 @@ faction_goal_military_infrastructure = {
 	group = FOCUS_FILTER_CONSOLIDATION
 	visible = {
 		any_state = {
+			infrastructure < 4  # cheapest check first (same result; runs hourly over every state)
 			is_core_of = CONTROLLER
-			is_controlled_by_ROOT_or_ally = yes 
+			is_controlled_by_ROOT_or_ally = yes
 			any_neighbor_state = {
 				controller = {
 					NOT = { is_in_faction_with = ROOT }
 				}
 			}
-			infrastructure < 4
-
 		}
 	}
 	completed = {
@@ -1159,13 +1160,13 @@ faction_goal_military_infrastructure = {
 				input = game:all_states
 				operators = {
 					limit = {
-						is_controlled_by_ROOT_or_ally = yes 
+						infrastructure < 4  # cheapest check first (same result)
+						is_controlled_by_ROOT_or_ally = yes
 						any_neighbor_state = {
 							controller = {
 								NOT = { is_in_faction_with = ROOT }
 							}
 						}
-						infrastructure < 4
 					}
 				}
 				name = COLLECTION_FACTION_BORDER_STATES_FULL_INFRASTRUCTURE
@@ -1199,7 +1200,9 @@ faction_goal_a_great_fortress = {
 	category = short_term
 	group = FOCUS_FILTER_CONSOLIDATION
 	visible = {
+		has_global_flag = cwic_wwii_faction_goals  # needs WWII fort techs the mod doesn't have
 	}
+	cancel = { NOT = { has_global_flag = cwic_wwii_faction_goals } }
 	available = {
 		collection_size = {
 			input = {
@@ -5713,4 +5716,3 @@ faction_goal_destroy_communist_greece = {
 		base = 0
 	}
 }
-                                                                                                                                                                                                                                                                                                                                                             

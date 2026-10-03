@@ -1,0 +1,1380 @@
+# Companies (MNC) templates: expanded by _tools/companies/build_companies.py into
+# common/scripted_effects/CWIC_MNC_Generated_Effects.txt.
+#   #@each sector=<sector> ... #@end   repeats the block for every company of that sector (companies.csv order)
+#   #@each all ... #@end               repeats it for every company
+#   placeholders: <corp> <Name> <sector> <invite_event>
+
+# ===== cwic_country_add_profit_<corp>
+#@each sector=hydrocarbons
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_oil_output_index, and local presence var corp_<corp>_presence_hydrocarbons (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_hydrocarbons }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_hydrocarbons }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_oil_output_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+#@each sector=mining
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_mining_output_index, and local presence var corp_<corp>_presence_mining (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_mining }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_mining }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_mining_output_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+#@each sector=agri
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_agriculture_output_index, and local presence var corp_<corp>_presence_agri (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_agri }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_agri }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_agriculture_output_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+#@each sector=manufacturing
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_manufacturing_index, and local presence var corp_<corp>_presence_manufacturing (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_manufacturing }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_manufacturing }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_manufacturing_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+#@each sector=electronics
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_electronics_index, and local presence var corp_<corp>_presence_electronics (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_electronics }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_electronics }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_electronics_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+
+# ===== cwic_finalize_corp_<corp>
+#@each sector=hydrocarbons
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_hydrocarbons }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+#@each sector=mining
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_mining }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+#@each sector=agri
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_agri }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+#@each sector=manufacturing
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_manufacturing }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+#@each sector=electronics
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_electronics }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+# ===== cwic_corp_<corp>_invest_presence_hydrocarbons
+#@each sector=hydrocarbons
+cwic_corp_<corp>_invest_presence_hydrocarbons = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_hydrocarbons }
+			set_temp_variable = { cur = corp_<corp>_presence_hydrocarbons }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_hydrocarbons = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_hydrocarbons } }
+					set_variable = { corp_<corp>_presence_hydrocarbons = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_hydrocarbons = 1 }
+					clamp_variable = { var = corp_<corp>_presence_hydrocarbons min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+# ===== cwic_corp_<corp>_invest_presence_mining
+#@each sector=mining
+cwic_corp_<corp>_invest_presence_mining = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_mining }
+			set_temp_variable = { cur = corp_<corp>_presence_mining }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_mining = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_mining } }
+					set_variable = { corp_<corp>_presence_mining = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_mining = 1 }
+					clamp_variable = { var = corp_<corp>_presence_mining min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+# ===== cwic_corp_<corp>_invest_presence_agri
+#@each sector=agri
+cwic_corp_<corp>_invest_presence_agri = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_agri }
+			set_temp_variable = { cur = corp_<corp>_presence_agri }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_agri = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_agri } }
+					set_variable = { corp_<corp>_presence_agri = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_agri = 1 }
+					clamp_variable = { var = corp_<corp>_presence_agri min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+# ===== cwic_corp_<corp>_invest_presence_manufacturing
+#@each sector=manufacturing
+cwic_corp_<corp>_invest_presence_manufacturing = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_manufacturing }
+			set_temp_variable = { cur = corp_<corp>_presence_manufacturing }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_manufacturing = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_manufacturing } }
+					set_variable = { corp_<corp>_presence_manufacturing = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_manufacturing = 1 }
+					clamp_variable = { var = corp_<corp>_presence_manufacturing min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+# ===== cwic_corp_<corp>_invest_presence_electronics
+#@each sector=electronics
+cwic_corp_<corp>_invest_presence_electronics = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_electronics }
+			set_temp_variable = { cur = corp_<corp>_presence_electronics }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_electronics = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_electronics } }
+					set_variable = { corp_<corp>_presence_electronics = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_electronics = 1 }
+					clamp_variable = { var = corp_<corp>_presence_electronics min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+# ===== cwic_mnc_nationalize_<corp>_hydrocarbons
+#@each sector=hydrocarbons
+cwic_mnc_nationalize_<corp>_hydrocarbons = {
+	# Targeted nationalization: <Name> (hydrocarbons)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_hydrocarbons } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_hydrocarbons } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_hydrocarbons }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_HYDRO }
+		set_temp_variable = { tmp = CWIC_oil_output_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_hydrocarbons }
+		else = { subtract_from_variable = { corp_<corp>_presence_hydrocarbons = 1 } clamp_variable = { var = corp_<corp>_presence_hydrocarbons min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_hydrocarbons
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_hydrocarbons days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+# ===== cwic_mnc_nationalize_<corp>_mining
+#@each sector=mining
+cwic_mnc_nationalize_<corp>_mining = {
+	# Targeted nationalization: <Name> (mining)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_mining } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_mining } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_mining }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_MINING }
+		set_temp_variable = { tmp = CWIC_mining_output_index }
+		divide_temp_variable = { tmp = 3 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_mining }
+		else = { subtract_from_variable = { corp_<corp>_presence_mining = 1 } clamp_variable = { var = corp_<corp>_presence_mining min = 0 max = 5 } }
+	
+		set_country_flag = cwic_mnc_frozen_<corp>_mining
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_mining days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+# ===== cwic_mnc_nationalize_<corp>_agri
+#@each sector=agri
+cwic_mnc_nationalize_<corp>_agri = {
+	# Targeted nationalization: <Name> (agri)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_agri } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_agri } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_agri }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_AGRI }
+		set_temp_variable = { tmp = CWIC_agriculture_output_index }
+		divide_temp_variable = { tmp = 3 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_agri }
+		else = { subtract_from_variable = { corp_<corp>_presence_agri = 1 } clamp_variable = { var = corp_<corp>_presence_agri min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_agri
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_agri days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+# ===== cwic_mnc_nationalize_<corp>_manufacturing
+#@each sector=manufacturing
+cwic_mnc_nationalize_<corp>_manufacturing = {
+	# Targeted nationalization: <Name> (manufacturing)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_manufacturing } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_manufacturing } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_manufacturing }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_MFG }
+		set_temp_variable = { tmp = CWIC_manufacturing_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_manufacturing }
+		else = { subtract_from_variable = { corp_<corp>_presence_manufacturing = 1 } clamp_variable = { var = corp_<corp>_presence_manufacturing min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_manufacturing
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_manufacturing days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+# ===== cwic_mnc_nationalize_<corp>_electronics
+#@each sector=electronics
+cwic_mnc_nationalize_<corp>_electronics = {
+	# Targeted nationalization: <Name> (electronics)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_electronics } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_electronics } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_electronics }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_ELEC }
+		set_temp_variable = { tmp = CWIC_electronics_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_electronics }
+		else = { subtract_from_variable = { corp_<corp>_presence_electronics = 1 } clamp_variable = { var = corp_<corp>_presence_electronics min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_electronics
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_electronics days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+# ===== cwic_corp_<corp>_recalc_presence_total
+#@each sector=hydrocarbons
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+#@each sector=mining
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+#@each sector=agri
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+#@each sector=manufacturing
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+#@each sector=electronics
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+
+# ===== cwic_country_add_all_corp_profits
+cwic_country_add_all_corp_profits = {
+	# Master call to accumulate all corp profit contributions for THIS country.
+	# Safe to call every month: each corp effect gates on has_variable = <corp_presence_var>.
+#@each sector=hydrocarbons
+	cwic_country_add_profit_<corp> = yes
+#@end
+#@each sector=mining
+	cwic_country_add_profit_<corp> = yes
+#@end
+#@each sector=agri
+	cwic_country_add_profit_<corp> = yes
+#@end
+#@each sector=manufacturing
+	cwic_country_add_profit_<corp> = yes
+#@end
+#@each sector=electronics
+	cwic_country_add_profit_<corp> = yes
+#@end
+}
+
+# ===== cwic_mnc_monthly_rollover
+cwic_mnc_monthly_rollover = {
+#@each sector=hydrocarbons
+	# IMPORTANT ORDER:
+	# 1) Finalize prior month using global.CWIC_CORP_*_profit_month (accumulated during last month)
+	# 2) Reset profit_month pools to 0 for the new month (countries will add into them during this month)
+
+	cwic_finalize_corp_<corp> = yes
+#@end
+#@each sector=mining
+	cwic_finalize_corp_<corp> = yes
+#@end
+#@each sector=agri
+	cwic_finalize_corp_<corp> = yes
+#@end
+#@each sector=manufacturing
+	cwic_finalize_corp_<corp> = yes
+#@end
+#@each sector=electronics
+	cwic_finalize_corp_<corp> = yes
+#@end
+#@each sector=hydrocarbons
+
+	# reset pools for new month
+	set_variable = { global.CWIC_CORP_<corp>_profit_month = 0 }
+#@end
+#@each sector=mining
+	set_variable = { global.CWIC_CORP_<corp>_profit_month = 0 }
+#@end
+#@each sector=agri
+	set_variable = { global.CWIC_CORP_<corp>_profit_month = 0 }
+#@end
+#@each sector=manufacturing
+	set_variable = { global.CWIC_CORP_<corp>_profit_month = 0 }
+#@end
+#@each sector=electronics
+	set_variable = { global.CWIC_CORP_<corp>_profit_month = 0 }
+#@end
+}
+
+# ===== cwic_mnc_auto_invest_global
+cwic_mnc_auto_invest_global = {
+#@each sector=hydrocarbons
+	# Call from GLOBAL monthly pulse after corp budgets are set,
+	# and after countries have set pool flags in their country-monthly.
+	# Auto-entry chance is tuned per-corp here. Change the chance value if needed.
+
+	# --- <corp> (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_<corp>_cash > 0 }
+			check_variable = { global.CWIC_CORP_<corp>_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_<corp>_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_<corp>_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_<corp>_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_<corp>_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+#@end
+#@each sector=mining
+
+	# --- <corp> (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_<corp>_cash > 0 }
+			check_variable = { global.CWIC_CORP_<corp>_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_<corp>_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_<corp>_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_<corp>_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_<corp>_invest_presence_mining = yes
+			}
+		}
+	}
+#@end
+#@each sector=agri
+
+	# --- <corp> (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_<corp>_cash > 0 }
+			check_variable = { global.CWIC_CORP_<corp>_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_<corp>_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_<corp>_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_<corp>_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_<corp>_invest_presence_agri = yes
+			}
+		}
+	}
+#@end
+#@each sector=manufacturing
+
+	# --- <corp> (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_<corp>_cash > 0 }
+			check_variable = { global.CWIC_CORP_<corp>_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_<corp>_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_<corp>_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_<corp>_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_<corp>_invest_presence_manufacturing = yes
+			}
+		}
+	}
+#@end
+#@each sector=electronics
+
+	# --- <corp> (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_<corp>_cash > 0 }
+			check_variable = { global.CWIC_CORP_<corp>_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_<corp>_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_<corp>_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_<corp>_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_<corp>_invest_presence_electronics = yes
+			}
+		}
+	}
+#@end
+
+}
+
+# ===== cwic_mnc_apply_sector_presence_effects_country
+cwic_mnc_apply_sector_presence_effects_country = {
+	# Rolls up sector presence totals -> assigns sector tiers -> applies dynamic modifiers.
+	# Thresholds (tune): tier1>0 tier2>5 tier3>12 tier4>20 tier5>30
+
+	# --- HYDROCARBONS ---
+	set_variable = { CWIC_mnc_presence_total_hydrocarbons = 0 }
+#@each sector=hydrocarbons
+	if = {
+		limit = { has_variable = corp_<corp>_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_<corp>_presence_hydrocarbons }
+	}
+#@end
+	set_variable = {
+		CWIC_mnc_presence_tier_hydrocarbons = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_hydrocarbons_presence_idea_country = yes
+
+	# --- MINING ---
+	set_variable = { CWIC_mnc_presence_total_mining = 0 }
+#@each sector=mining
+	if = {
+		limit = { has_variable = corp_<corp>_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_<corp>_presence_mining }
+	}
+#@end
+	set_variable = {
+		CWIC_mnc_presence_tier_mining = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_mining_presence_idea_country = yes
+
+	# --- AGRI ---
+	set_variable = { CWIC_mnc_presence_total_agri = 0 }
+#@each sector=agri
+	if = {
+		limit = { has_variable = corp_<corp>_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_<corp>_presence_agri }
+	}
+#@end
+	set_variable = {
+		CWIC_mnc_presence_tier_agri = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_agri_presence_idea_country = yes
+
+	# --- MANUFACTURING ---
+	set_variable = { CWIC_mnc_presence_total_manufacturing = 0 }
+#@each sector=manufacturing
+	if = {
+		limit = { has_variable = corp_<corp>_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_<corp>_presence_manufacturing }
+	}
+#@end
+	set_variable = {
+		CWIC_mnc_presence_tier_manufacturing = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_manufacturing_presence_idea_country = yes
+
+	# --- ELECTRONICS ---
+	set_variable = { CWIC_mnc_presence_total_electronics = 0 }
+#@each sector=electronics
+	if = {
+		limit = { has_variable = corp_<corp>_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_<corp>_presence_electronics }
+	}
+#@end
+	set_variable = {
+		CWIC_mnc_presence_tier_electronics = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_electronics_presence_idea_country = yes
+
+}
+
+# ===== cwic_mnc_process_invites_global
+cwic_mnc_process_invites_global = {
+	# Scans ONLY countries flagged as having pending MNC invites.
+	# Fires at most one invite event per eligible country per month (per-country cooldown).
+	# Call this from a GLOBAL monthly pulse (after budgets are set).
+
+	every_country = {
+		limit = {
+			has_country_flag = cwic_has_pending_mnc_invite
+			NOT = { has_country_flag = cwic_mnc_invite_evt_global_cd }
+		}
+		set_country_flag = { flag = cwic_mnc_invite_evt_global_cd days = 30 }
+
+		if = { limit = { always = no } }  # chain start, keeps every company an else_if
+#@each all
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_<corp>_<sector>
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_<corp>_<sector> }
+			}
+			country_event = { id = <invite_event> }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_<corp>_<sector> days = 30 }
+		}
+#@end
+
+		else = { }
+
+		# Cleanup: clear pending flag each run; it will be re-added when a new invite/concession is created.
+		clr_country_flag = cwic_has_pending_mnc_invite
+	}
+}
