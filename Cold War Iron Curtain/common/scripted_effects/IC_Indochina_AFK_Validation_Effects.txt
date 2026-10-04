@@ -257,12 +257,239 @@ ic_afk_validation_vin_launch_tick = {
 		limit = { has_idea = VIN_Campaign_Overextension NOT = { has_global_flag = IC_AFK_VIN_Overextension_Was_Active } }
 		set_global_flag = IC_AFK_VIN_Overextension_Was_Active
 		log = "IC_AFK|ENVELOPE|date=[GetDateText]|owner=VIN|status=severe_penalty_applied|campaign=[?VIN_camp_current|0]"
+		ic_afk_validation_vin_envelope_cause = yes
 	}
 	else_if = {
 		limit = { NOT = { has_idea = VIN_Campaign_Overextension } has_global_flag = IC_AFK_VIN_Overextension_Was_Active }
 		clr_global_flag = IC_AFK_VIN_Overextension_Was_Active
 		log = "IC_AFK|ENVELOPE|date=[GetDateText]|owner=VIN|status=penalty_cleared|campaign=[?VIN_camp_current|0]"
 	}
+}
+
+# Which foreign ground tripped the ordinary VIN overextension tier. Bits:
+# 1 Cao-Bac, 2 Nung, 4 Ha Giang, 8 Northwest corridor, 16 Northwest outlier,
+# 32 Hoa Binh, 64 Dien Bien, 128 Delta, 256 a CEFEO operation owns the penalty.
+# The generic ground triggers are logged, so a bit can also be set for ground
+# the running campaign excepts; read it against the campaign number.
+ic_afk_validation_vin_envelope_cause = {
+	set_temp_variable = { ic_afk_env_bits = 0 }
+	if = { limit = { vin_controls_foreign_cao_bac_ground_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 1 } }
+	if = { limit = { vin_controls_foreign_nung_ground_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 2 } }
+	if = { limit = { vin_controls_foreign_ha_giang_ground_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 4 } }
+	if = { limit = { vin_controls_foreign_northwest_corridor_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 8 } }
+	if = { limit = { vin_controls_foreign_northwest_outlier_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 16 } }
+	if = { limit = { vin_controls_foreign_hoa_binh_ground_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 32 } }
+	if = { limit = { vin_controls_foreign_dien_bien_ground_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 64 } }
+	if = { limit = { vin_controls_foreign_delta_ground_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 128 } }
+	if = { limit = { vin_fre_operation_overextended_trigger = yes } add_to_temp_variable = { ic_afk_env_bits = 256 } }
+	set_temp_variable = { ic_afk_delta_prov = 0 }
+	if = { limit = { 1760 = { NOT = { is_owned_by = VIN } } controls_province = 4075 } add_to_temp_variable = { ic_afk_delta_prov = 1 } }
+	if = {
+		limit = { 786 = { NOT = { is_owned_by = VIN } } }
+		if = { limit = { controls_province = 1185 } add_to_temp_variable = { ic_afk_delta_prov = 2 } }
+		if = { limit = { controls_province = 4119 } add_to_temp_variable = { ic_afk_delta_prov = 4 } }
+		if = { limit = { controls_province = 13753 } add_to_temp_variable = { ic_afk_delta_prov = 8 } }
+		if = { limit = { controls_province = 13755 } add_to_temp_variable = { ic_afk_delta_prov = 16 } }
+		if = { limit = { controls_province = 13756 } add_to_temp_variable = { ic_afk_delta_prov = 32 } }
+		if = { limit = { controls_province = 13770 } add_to_temp_variable = { ic_afk_delta_prov = 64 } }
+		if = { limit = { controls_province = 13772 } add_to_temp_variable = { ic_afk_delta_prov = 128 } }
+	}
+	log = "IC_AFK|ENVELOPE_CAUSE|date=[GetDateText]|owner=VIN|campaign=[?VIN_camp_current|0]|bits=[?ic_afk_env_bits|0]|delta_provinces=[?ic_afk_delta_prov|0]|streak_days=[?VIN_Overextension_Streak_Days|0]|divisions=[?num_divisions|0]"
+}
+
+# Ground held when the severe tier applied. Bits: 1 Luang Prabang state (1198;
+# informational only, it no longer causes the severe tier), 2 Vientiane state
+# (670), 4 delta core (4075/4119) outside campaigns 5-7, 8 the all-in corridor.
+# raid=1 while the Pathet Lao raid is live. Bit 1 alone means an unknown cause.
+ic_afk_validation_vin_severe_cause = {
+	set_temp_variable = { ic_afk_sev_bits = 0 }
+	if = {
+		limit = {
+			NOT = { has_global_flag = Laos_All_In_Luang_Prabang_Active }
+			1198 = { NOT = { is_owned_by = VIN } }
+			OR = {
+				controls_province = 4613
+				controls_province = 7075
+				controls_province = 7103
+				controls_province = 10496
+				controls_province = 13733
+				controls_province = 13738
+				controls_province = 13740
+			}
+		}
+		add_to_temp_variable = { ic_afk_sev_bits = 1 }
+	}
+	if = {
+		limit = {
+			670 = { NOT = { is_owned_by = VIN } }
+			OR = {
+				controls_province = 1464
+				controls_province = 1507
+				controls_province = 13342
+				controls_province = 13751
+			}
+		}
+		add_to_temp_variable = { ic_afk_sev_bits = 2 }
+	}
+	if = {
+		limit = {
+			NOT = { check_variable = { VIN_camp_current = 5 } }
+			NOT = { check_variable = { VIN_camp_current = 6 } }
+			NOT = { check_variable = { VIN_camp_current = 7 } }
+			vin_controls_foreign_delta_core_trigger = yes
+		}
+		add_to_temp_variable = { ic_afk_sev_bits = 4 }
+	}
+	if = { limit = { vin_all_in_corridor_overextended_trigger = yes } add_to_temp_variable = { ic_afk_sev_bits = 8 } }
+	set_temp_variable = { ic_afk_sev_raid = 0 }
+	if = { limit = { has_global_flag = Laos_Raid_Active } set_temp_variable = { ic_afk_sev_raid = 1 } }
+	log = "IC_AFK|SEVERE_CAUSE|date=[GetDateText]|campaign=[?VIN_camp_current|0]|bits=[?ic_afk_sev_bits|0]|raid=[?ic_afk_sev_raid|0]"
+}
+
+# A theatre country capitulated. ROOT is the capitulated country, FROM the
+# winner. Not gated on Indochina_War_Over: same-named on_action slots merge
+# across files in no guaranteed order, so the failsafe may already have ended
+# the war in this frame.
+ic_afk_validation_capitulation = {
+	if = {
+		limit = {
+			has_global_flag = indochina_struggle_initialized
+			ROOT = { ic_failsafe_theatre_tag_trigger = yes }
+		}
+		set_temp_variable = { ic_afk_cap_overext = 0 }
+		if = { limit = { ROOT = { OR = { has_idea = VIN_Campaign_Overextension has_idea = VIN_Campaign_Overextension_Severe } } } set_temp_variable = { ic_afk_cap_overext = 1 } }
+		set_temp_variable = { ic_afk_cap_capital_held = 1 }
+		if = { limit = { ROOT = { capital_scope = { NOT = { is_controlled_by = ROOT } } } } set_temp_variable = { ic_afk_cap_capital_held = 0 } }
+		log = "IC_AFK|CAPITULATION|date=[GetDateText]|tag=[ROOT.GetTag]|winner=[FROM.GetTag]|divisions=[?ROOT.num_divisions|0]|owned_controlled_states=[?ROOT.num_owned_controlled_states|0]|capital_held=[?ic_afk_cap_capital_held|0]|overextended=[?ic_afk_cap_overext|0]|vin_campaign=[?ROOT.VIN_camp_current|0]"
+		if = {
+			limit = { ROOT = { tag = VIN } }
+			set_temp_variable = { ic_afk_surr_reason = 3 }
+			ROOT = { ic_afk_validation_vin_surrender_log = yes }
+		}
+	}
+}
+
+# Viet Minh surrender progress and victory-point ground while at war with
+# CEFEO. VIN scope. Logs on the first war day, whenever the bucket or the lost
+# ground changes, and weekly. reason: 1 change, 2 weekly, 3 capitulation.
+ic_afk_validation_vin_surrender_tick = {
+	if = {
+		limit = { has_war_with = FRE }
+		ic_afk_validation_vin_surrender_measure = yes
+		add_to_variable = { ic_afk_surr_days = 1 }
+		set_temp_variable = { ic_afk_surr_reason = 0 }
+		if = { limit = { check_variable = { ic_afk_surr_days > 6 } } set_temp_variable = { ic_afk_surr_reason = 2 } }
+		if = {
+			limit = {
+				OR = {
+					NOT = { has_variable = ic_afk_surr_last_pct }
+					NOT = { check_variable = { ic_afk_surr_last_pct = ic_afk_surr_pct } }
+					NOT = { check_variable = { ic_afk_surr_last_lost = ic_afk_vp_lost } }
+				}
+			}
+			set_temp_variable = { ic_afk_surr_reason = 1 }
+		}
+		if = {
+			limit = { check_variable = { ic_afk_surr_reason > 0 } }
+			set_variable = { ic_afk_surr_days = 0 }
+			set_variable = { ic_afk_surr_last_pct = ic_afk_surr_pct }
+			set_variable = { ic_afk_surr_last_lost = ic_afk_vp_lost }
+			ic_afk_validation_vin_surrender_write = yes
+		}
+	}
+	else_if = {
+		limit = { has_variable = ic_afk_surr_last_pct }
+		clear_variable = ic_afk_surr_last_pct
+		clear_variable = ic_afk_surr_last_lost
+		set_variable = { ic_afk_surr_days = 0 }
+	}
+}
+
+# Caller sets ic_afk_surr_reason.
+ic_afk_validation_vin_surrender_log = {
+	ic_afk_validation_vin_surrender_measure = yes
+	ic_afk_validation_vin_surrender_write = yes
+}
+
+# surrender_pct is the engine surrender progress floored to 5%.
+# VP bits (province, state, value): 1 7015 881 5, 2 11936 1762 3,
+# 4 4397 1763 5, 8 12297 838 1, 16 17194 1875 1, 32 17193 1875 1,
+# 64 12065 1280 10, 128 13767 1280 1, 256 13765 671 6, 512 4529 671 5,
+# 1024 10129 1766 5, 2048 7093 1281 5, 4096 4075 1760 20, 8192 4119 786 10.
+# vp_owned: VIN owns the state. vp_lost: VIN owns the state, not the province.
+ic_afk_validation_vin_surrender_measure = {
+	set_temp_variable = { ic_afk_surr_pct = 0 }
+	if = { limit = { surrender_progress > 0.05 } set_temp_variable = { ic_afk_surr_pct = 5 } }
+	if = { limit = { surrender_progress > 0.10 } set_temp_variable = { ic_afk_surr_pct = 10 } }
+	if = { limit = { surrender_progress > 0.15 } set_temp_variable = { ic_afk_surr_pct = 15 } }
+	if = { limit = { surrender_progress > 0.20 } set_temp_variable = { ic_afk_surr_pct = 20 } }
+	if = { limit = { surrender_progress > 0.25 } set_temp_variable = { ic_afk_surr_pct = 25 } }
+	if = { limit = { surrender_progress > 0.30 } set_temp_variable = { ic_afk_surr_pct = 30 } }
+	if = { limit = { surrender_progress > 0.35 } set_temp_variable = { ic_afk_surr_pct = 35 } }
+	if = { limit = { surrender_progress > 0.40 } set_temp_variable = { ic_afk_surr_pct = 40 } }
+	if = { limit = { surrender_progress > 0.45 } set_temp_variable = { ic_afk_surr_pct = 45 } }
+	if = { limit = { surrender_progress > 0.50 } set_temp_variable = { ic_afk_surr_pct = 50 } }
+	if = { limit = { surrender_progress > 0.55 } set_temp_variable = { ic_afk_surr_pct = 55 } }
+	if = { limit = { surrender_progress > 0.60 } set_temp_variable = { ic_afk_surr_pct = 60 } }
+	if = { limit = { surrender_progress > 0.65 } set_temp_variable = { ic_afk_surr_pct = 65 } }
+	if = { limit = { surrender_progress > 0.70 } set_temp_variable = { ic_afk_surr_pct = 70 } }
+	if = { limit = { surrender_progress > 0.75 } set_temp_variable = { ic_afk_surr_pct = 75 } }
+	if = { limit = { surrender_progress > 0.80 } set_temp_variable = { ic_afk_surr_pct = 80 } }
+	if = { limit = { surrender_progress > 0.85 } set_temp_variable = { ic_afk_surr_pct = 85 } }
+	if = { limit = { surrender_progress > 0.90 } set_temp_variable = { ic_afk_surr_pct = 90 } }
+	if = { limit = { surrender_progress > 0.95 } set_temp_variable = { ic_afk_surr_pct = 95 } }
+	set_temp_variable = { ic_afk_vp_owned = 0 }
+	set_temp_variable = { ic_afk_vp_lost = 0 }
+	if = { limit = { 881 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 1 } if = { limit = { NOT = { controls_province = 7015 } } add_to_temp_variable = { ic_afk_vp_lost = 1 } } }
+	if = { limit = { 1762 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 2 } if = { limit = { NOT = { controls_province = 11936 } } add_to_temp_variable = { ic_afk_vp_lost = 2 } } }
+	if = { limit = { 1763 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 4 } if = { limit = { NOT = { controls_province = 4397 } } add_to_temp_variable = { ic_afk_vp_lost = 4 } } }
+	if = { limit = { 838 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 8 } if = { limit = { NOT = { controls_province = 12297 } } add_to_temp_variable = { ic_afk_vp_lost = 8 } } }
+	if = {
+		limit = { 1875 = { is_owned_by = VIN } }
+		add_to_temp_variable = { ic_afk_vp_owned = 48 }
+		if = { limit = { NOT = { controls_province = 17194 } } add_to_temp_variable = { ic_afk_vp_lost = 16 } }
+		if = { limit = { NOT = { controls_province = 17193 } } add_to_temp_variable = { ic_afk_vp_lost = 32 } }
+	}
+	if = {
+		limit = { 1280 = { is_owned_by = VIN } }
+		add_to_temp_variable = { ic_afk_vp_owned = 192 }
+		if = { limit = { NOT = { controls_province = 12065 } } add_to_temp_variable = { ic_afk_vp_lost = 64 } }
+		if = { limit = { NOT = { controls_province = 13767 } } add_to_temp_variable = { ic_afk_vp_lost = 128 } }
+	}
+	if = {
+		limit = { 671 = { is_owned_by = VIN } }
+		add_to_temp_variable = { ic_afk_vp_owned = 768 }
+		if = { limit = { NOT = { controls_province = 13765 } } add_to_temp_variable = { ic_afk_vp_lost = 256 } }
+		if = { limit = { NOT = { controls_province = 4529 } } add_to_temp_variable = { ic_afk_vp_lost = 512 } }
+	}
+	if = { limit = { 1766 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 1024 } if = { limit = { NOT = { controls_province = 10129 } } add_to_temp_variable = { ic_afk_vp_lost = 1024 } } }
+	if = { limit = { 1281 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 2048 } if = { limit = { NOT = { controls_province = 7093 } } add_to_temp_variable = { ic_afk_vp_lost = 2048 } } }
+	if = { limit = { 1760 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 4096 } if = { limit = { NOT = { controls_province = 4075 } } add_to_temp_variable = { ic_afk_vp_lost = 4096 } } }
+	if = { limit = { 786 = { is_owned_by = VIN } } add_to_temp_variable = { ic_afk_vp_owned = 8192 } if = { limit = { NOT = { controls_province = 4119 } } add_to_temp_variable = { ic_afk_vp_lost = 8192 } } }
+	set_temp_variable = { ic_afk_surr_capital = 1 }
+	if = { limit = { capital_scope = { NOT = { is_controlled_by = VIN } } } set_temp_variable = { ic_afk_surr_capital = 0 } }
+}
+
+ic_afk_validation_vin_surrender_write = {
+	log = "IC_AFK|SURRENDER|date=[GetDateText]|reason=[?ic_afk_surr_reason|0]|campaign=[?VIN_camp_current|0]|surrender_pct=[?ic_afk_surr_pct|0]|vp_owned=[?ic_afk_vp_owned|0]|vp_lost=[?ic_afk_vp_lost|0]|capital_held=[?ic_afk_surr_capital|0]|states=[?num_owned_controlled_states|0]|divisions=[?num_divisions|0]"
+}
+
+# Why the monthly northern resupply for the southern Viet Minh did not run.
+# VIN scope. Gate bits: 1 Geneva concluded, 2 post-DBP stand-down ordered,
+# 4 NLF missing, 8 NLF not at war, 16 NLF has the post-DBP supply line,
+# 32 VIN Campaign Supply below 50. No line at all means the monthly accrual
+# never called the resupply.
+ic_afk_validation_nlf_resupply_skip = {
+	set_temp_variable = { ic_afk_nlf_gates = 0 }
+	if = { limit = { has_global_flag = geneva_conference_concluded } add_to_temp_variable = { ic_afk_nlf_gates = 1 } }
+	if = { limit = { has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Ordered } add_to_temp_variable = { ic_afk_nlf_gates = 2 } }
+	if = { limit = { NOT = { country_exists = NLF } } add_to_temp_variable = { ic_afk_nlf_gates = 4 } }
+	else = {
+		if = { limit = { NLF = { has_war = no } } add_to_temp_variable = { ic_afk_nlf_gates = 8 } }
+		if = { limit = { NLF = { has_idea = NLF_Northern_Supply_Line } } add_to_temp_variable = { ic_afk_nlf_gates = 16 } }
+	}
+	if = { limit = { NOT = { check_variable = { VIN_Campaign_Supply > 49 } } } add_to_temp_variable = { ic_afk_nlf_gates = 32 } }
+	log = "IC_AFK|NLF_RESUPPLY_SKIP|date=[GetDateText]|gates=[?ic_afk_nlf_gates|0]|vin_supply=[?VIN_Campaign_Supply|0]"
 }
 
 ic_afk_validation_vin_result_tick = {
@@ -535,6 +762,11 @@ ic_afk_validation_fre_limited_tick = {
 		if = { limit = { country_exists = NUN NUN = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
 		if = { limit = { country_exists = THO THO = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
 		if = { limit = { check_variable = { ic_afk_operation_wars = 0 } NOT = { has_country_flag = FRE_Limited_Operation_Owns_War } } log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=0" }
+		else_if = {
+			# A superseding VIN campaign declares its own war in the same tick; those wars belong to it.
+			limit = { NOT = { has_country_flag = FRE_Limited_Operation_Owns_War } country_exists = VIN VIN = { NOT = { VIN_no_campaign_running_trigger = yes } } }
+			log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=0|vin_campaign_wars=[?ic_afk_operation_wars|0]|vin_campaign=[?VIN.VIN_camp_current|0]"
+		}
 		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=[?ic_afk_operation_wars|0]" }
 	}
 }
@@ -1150,7 +1382,7 @@ ic_afk_validation_daily_tick = {
 		if = { limit = { country_exists = MEO } MEO = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=MEO|divisions=[?num_divisions|0]" } }
 		else = { log = "IC_AFK|FORCE_HEALTH|date=[GetDateText]|tag=MEO|status=collapsed" }
 	}
-	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_vin_launch_tick = yes ic_afk_validation_vin_result_tick = yes ic_afk_validation_vin_cleanup_tick = yes ic_afk_validation_vin_post_dbp_strategy_tick = yes } }
+	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_vin_launch_tick = yes ic_afk_validation_vin_result_tick = yes ic_afk_validation_vin_cleanup_tick = yes ic_afk_validation_vin_post_dbp_strategy_tick = yes ic_afk_validation_vin_surrender_tick = yes } }
 	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_lower_laos_tick = yes } }
 	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_command_inputs_tick = yes } }
 	if = { limit = { country_exists = VIN } VIN = { ic_afk_validation_patronage_tick = yes } }
@@ -1383,6 +1615,11 @@ ic_afk_validation_fre_new_operations_tick = {
 		if = { limit = { country_exists = NUN NUN = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
 		if = { limit = { country_exists = THO THO = { has_war_with = VIN } } add_to_temp_variable = { ic_afk_operation_wars = 1 } }
 		if = { limit = { check_variable = { ic_afk_operation_wars = 0 } NOT = { has_country_flag = FRE_Limited_Operation_Owns_War } } log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=0" }
+		else_if = {
+			# A superseding VIN campaign declares its own war in the same tick; those wars belong to it.
+			limit = { NOT = { has_country_flag = FRE_Limited_Operation_Owns_War } country_exists = VIN VIN = { NOT = { VIN_no_campaign_running_trigger = yes } } }
+			log = "IC_AFK|PASS|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=0|vin_campaign_wars=[?ic_afk_operation_wars|0]|vin_campaign=[?VIN.VIN_camp_current|0]"
+		}
 		else = { log = "IC_AFK|FAIL|date=[GetDateText]|check=FRE_limited_operation_full_cleanup|remaining_operation_wars=[?ic_afk_operation_wars|0]" }
 	}
 }

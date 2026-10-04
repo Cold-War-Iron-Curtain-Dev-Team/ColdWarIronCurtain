@@ -1788,3 +1788,576 @@ keys. Kept, because they are still assigned in the CSV: `LAOS_VINH`, `LAOS`,
 32. Associated armies (player FRE): `ASSOCIATED_ARMIES|choice=associated`,
     the divisions spawn, the VIE cap is 25, and Lower Laos is `contained`.
 33. Map: no adjacency errors in error.log, and northern movement as before.
+
+## 2026-10-02 AFK run review: Viet Minh capitulates during Cao-Bac
+
+Logs in `_local/logs/2026-10-02/` (run ends 1950-11-08). Evidence is
+telemetry and error.log only; the autosave is binary and was not decoded.
+
+### What happened
+
+1. 1949-05 to 1950-10 matched the 2026-10-01 run: VIN 26-28 divisions at
+   peace, FRE 17, VIE growing to 24. Struggle at 1950-05: pro-France 215,
+   pro-independence 215. FRE was richer than last run (Patience 71, War
+   Credits 600, against 21/340).
+2. 1950-10-18: Cao-Bac launched normally (`LAUNCH`, THO garrison PASSes,
+   `CAMPAIGN_INPUTS` supply +8, clean days +2).
+3. 1950-10-22, day 4: VIN took the ordinary `VIN_Campaign_Overextension`
+   tier (-60% attack, -35% defence, -45% organisation, +35% attrition for
+   the whole army). The AFK line reads `status=severe_penalty_applied`, but
+   it is logged from the ordinary idea; the severe tier (`OVEREXTENSION|
+   tier=severe`) never fired. None of the three earlier runs took any
+   penalty during Cao-Bac. Which foreign ground tripped it was not logged.
+4. 1950-11-08, day 21: VIN and MEO lost the war to FRE and THO. Three
+   failsafe calls ran in one tick; the first two (the capitulation hooks)
+   found nothing decisive, the third
+   (`on_before_peace_conference_start`) did, and the vanilla conference
+   logged `later_theatre_peace_conference_after_scripted_end` for
+   FRE/THO over VIN/MEO. VIN had 28 divisions on 1950-10-14, so it was a
+   capitulation, not destruction. No Cao-Bac `RESULT` was ever written.
+5. The router took `indochina_struggle_southern_victory` (confirmed by its
+   line-817 `unplanned_offensive` error and the resistance-target 124
+   errors in every northern state). That ending transfers the northern
+   states, annexes VIN, NLF, FRE and the crown domains into VIE, moves the
+   capital to Saigon, and calls `drop_cosmetic_tag = yes`
+   (`CWIC_Struggle_Effects.txt:722`). The unification and the lost
+   cosmetic tag are that ending working as written, not a separate bug.
+
+### Verdict
+
+- The failsafe and ending behaved as designed once VIN capitulated.
+- The defect is upstream: an AI Viet Minh capitulating 21 days into
+  Cao-Bac. The leading cause is the army-wide overextension penalty landing
+  on day 4 with a better-funded CEFEO counter-attacking; this is
+  `[INFERENCE]`, because neither the cause bits nor surrender state were
+  logged. Ruled out: the legacy adjacency deletion (the deleted rules were
+  referenced by no `adjacencies.csv` row and error.log has no adjacency
+  errors), the CAMPAIGN_INPUTS log string (properly terminated), VIE
+  joining the war (it is not in the conference pairs).
+- No behaviour change was made: whether a limited-campaign capitulation
+  should end the war needs evidence first and is a design decision.
+
+### Patch (statically verified only)
+
+- `ic_afk_validation_vin_envelope_cause`: on the first ordinary-tier
+  application, logs `ENVELOPE_CAUSE|bits=..` (1 Cao-Bac, 2 Nung, 4 Ha
+  Giang, 8 Northwest corridor, 16 Northwest outlier, 32 Hoa Binh, 64 Dien
+  Bien, 128 Delta, 256 CEFEO operation). Generic ground triggers, so read
+  the bits against the campaign number.
+- `ic_afk_validation_capitulation` on `on_capitulation_immediate`: logs
+  `CAPITULATION|tag|winner|divisions|owned_controlled_states|capital_held|
+  overextended|vin_campaign` for any theatre tag. Not gated on
+  `Indochina_War_Over`, because merged on_action order is not guaranteed.
+- `IC_VIN_Patronage.txt`: `anti_air_equipment` is not an equipment-bonus
+  type (error.log, rework-local); now `anti_air`, as in `z_mechanics.txt`.
+
+### error.log classification
+
+- Rework-local: the Patronage enum error (fixed); line-817
+  `remove_dynamic_modifier unplanned_offensive` in the southern-victory
+  ending (pre-existing, harmless).
+- Adjacent Indochina/SEA: `VIE_50s_Military.txt:49-65` `create_unit`
+  parse failures (5 Nam-Viet Militia without a template),
+  `VIE_Events.txt:7013` invalid `controller` target, resistance target
+  124 added twice by the ending.
+- Unrelated noise: entity/texture, NORDIC dynamic modifiers, SWE events,
+  Indonesia, raid modifiers.
+
+### Consolidated-playtest checks added
+
+34. Every `ENVELOPE|..|status=severe_penalty_applied` is followed by one
+    `ENVELOPE_CAUSE` line with non-zero bits. Bits 0 means the penalty came
+    from a path the logger does not cover.
+35. No `CAPITULATION|tag=VIN` before Geneva. If one appears, record
+    `capital_held`, `overextended` and the preceding `ENVELOPE_CAUSE`.
+36. No `script_enum_equipment_bonus_type` error for `IC_VIN_Patronage.txt`.
+
+Partial scoring from this run: 29 passed for the single launch; 33 passed
+(no adjacency errors); the rest were not reached before the run ended.
+
+## 2026-10-02 second AFK run: full arc to Geneva
+
+Logs in `_local/logs/2026-10-02b/` (1949-05 to 1955-07). One manual
+intervention: the user helped the PRC win the Chinese Civil War early.
+Telemetry and error.log only.
+
+### Accepted
+
+- Full VIN arc: Cao-Bac clean (day 23), Vinh Yen failure, Mao Khe costly,
+  Day River failure, Nghia Lo costly, Hoa Binh clean (day 105), Northwest
+  clean (day 45, Nghia Lo callback +25), Na San failure, Dien Bien Phu clean
+  (day 37; was day 24 in 2026-09).
+- FRE operations: Bretagne and Adolphe clean, Brochet clean, Hirondelle and
+  Mouette failure, Castor failure, Atlante stalled, Camargue aborted, Mang
+  Yang and Chu Dreh escaped, Pathet Lao raid stalemate.
+- Post-DBP negotiations: gate blocked while VIN/VIE at war, NLF stand-down
+  ordered 1954-04-27, regroupment 1954-08-17 (check 23 passes), gate
+  passed, scripted Geneva concluded 1954-10-12. Final margin +252.
+- Check 34: every `ENVELOPE` has an `ENVELOPE_CAUSE` with non-zero bits.
+  Check 35: no VIN capitulation; the only `CAPITULATION` is CCC to VIE in
+  1955, after the war. Check 36: no Patronage enum error. No `IC_AFK|FAIL`
+  lines in the whole run. Check 30: `PATRONAGE|choice=chinese` 1951-10-17.
+  Check 31: `CHANSON|outcome=killed`. Check 33: no adjacency errors.
+
+### Defects found and fixed (statically verified only)
+
+1. **The overextension penalty landed on almost every launch.** 8 of 10 VIN
+   launches took the ordinary tier 2-3 days in, almost always for Delta
+   ground (bit 128; Vinh Yen 136). On Hoa Binh, Northwest, Mao Khe and Day
+   River it lasted the whole campaign. Border units walk into the delta on
+   declaration despite the -600 unit requests. This is the same mechanism
+   behind the 1950 capitulation. User decision: grace period.
+   `vin_campaign_update_overextension` now counts
+   `VIN_Overextension_Streak_Days` and applies the ordinary tier only after
+   5 consecutive days of off-envelope ground; leaving it resets the count
+   and clears the idea. The streak resets at launch. The severe tier and
+   the CEFEO-operation path stay immediate. `ENVELOPE_CAUSE` now logs
+   `streak_days`; the console test checks the grace both ways.
+2. **The Bolovens airlift never spawned.** CEFEO paid 40 War Credits on
+   1954-02-26 but `create_unit` failed (`VIN_Lower_Laos_Effects.txt:31`:
+   FRE not at war with controller LOS), so `contained` stayed unreachable.
+   User decision: the group is raised as a Royal Lao (`LOS`) division in
+   Champasak (template flag `LOS_Bolovens_Template_Loaded`, cleaned up on
+   `LOS`). If LOS does not control Champasak, nothing spawns and the 40
+   credits are refunded. The tooltip says so. No war or access deal with
+   Laos.
+3. **Command-input clamps did nothing.** `clamp_variable` was used on temp
+   variables, so supply reached +32 (cap 30) from 1951-11. Now
+   `clamp_temp_variable`. Check 29 failed on this run.
+
+### Not changed, watch next run
+
+- Campaign supply reached 370 by 1954. Partly the unclamped inputs and the
+  Chinese patronage, which the early PRC victory may have brought forward.
+- Metropole Patience fell to 5 at one point (IC_RESPONSE) and ended near 29.
+- error.log, adjacent: VIE `Batallion Vietnamien` malformed token and
+  `VIE_50s_Bao_Dai.txt:204` create_unit, `add_compliance` on states without
+  resistance (`VIE_50s_Bao_Dai.txt:5491`), `VIE_Events.txt:7013` invalid
+  `controller`. Rework-local leftover: `VIN_Lower_Laos_Effects.txt:8`
+  delete_units on a missing template, fixed by the LOS-flag guard.
+
+### Consolidated-playtest checks added
+
+37. No `ENVELOPE|..|status=severe_penalty_applied` with
+    `ENVELOPE_CAUSE|..|streak_days` below 5. Expect far fewer penalties;
+    any that apply should last more than a few days.
+38. If CEFEO picks the Bolovens airlift: no create_unit error, a Royal Lao
+    `Groupement Aeroporte Bolovens` in Champasak, and Lower Laos can resolve
+    `contained`. Or a `spawn=skipped` line with a 40-credit refund.
+39. Every `CAMPAIGN_INPUTS` line has `supply` at most +30 and
+    `clean_days` at most +7.
+
+## 2026-10-02 third AFK run: grace period live
+
+Logs in `_local/logs/2026-10-02c/` (1949-05 to 1967; the Indochina War
+ends 1954-06-17). The early PRC victory again came from the user's manual
+help. Telemetry and error.log only.
+
+### Accepted
+
+- Cao-Bac launched 1949-12-20, ten months early. This is intended:
+  `VIN_Operation_Cao-Bac` is available on `date > 1950.09.01` OR
+  `PRC_Victory`. Clean on day 18.
+- Campaign results: Vinh Yen costly, Mao Khe and Day River failure, Nghia
+  Lo costly, Hoa Binh clean (day 105), Northwest costly (day 149; TAI
+  capitulated to VIN the same day, which triggered the full armistice),
+  Na San failure, Dien Bien Phu clean on day 22.
+- CEFEO: Bretagne, Hirondelle and Brochet clean, Mouette failure, Castor
+  success (Brochet and Na San discounts), Pollux superseded by the Dien
+  Bien Phu launch.
+- Post-DBP negotiations: gate passed the same day; scripted Geneva concluded
+  1954-06-16. Final margin +135. No `IC_AFK|FAIL` lines.
+- Check 37 passes: every `ENVELOPE_CAUSE` has `streak_days=5`. Check 39
+  passes: supply at most +30 and clean days at most +2. Check 38 is
+  partial: no create_unit error after the Royal Lao airlift, but there was
+  no success log line, and Lower Laos was superseded on day 14.
+- error.log: 725k lines of vanilla `Raid City` modifier spam (unrelated; the
+  run went to 1967). No rework-local errors. The adjacent VIE errors are
+  unchanged (`Batallion Vietnamien`, `VIE_50s_Military.txt:867`
+  create_unit, resistance/compliance on states with no resistance).
+
+### Findings
+
+1. **The grace period stops short grabs, not sustained holds.** Penalty
+   lengths: Cao-Bac 5 days, Vinh Yen 18, Nghia Lo 22, Mao Khe 31, Day River
+   46, Hoa Binh 98, Northwest 127. Every cause is Delta ground except Vinh
+   Yen (Northwest corridor) and Cao-Bac (Cao-Bac plus Delta). VIN holds
+   delta provinces for whole campaigns. Not changed; the delta-province
+   detail is now logged (see below) before choosing a fix.
+2. **The severe tier ran through all of Na San** (1953-04-10 to 05-27). It
+   applied on the launch day while the Pathet Lao raid was live. Cause not
+   logged; Luang Prabang ground is the likely cause (`[INFERENCE]`).
+   Design deviation: the Section 17 entry says severe applies for
+   Vientiane-state ground during campaigns, but
+   `vin_controls_foreign_upper_laos_deep_trigger` also counts Luang Prabang
+   state `1198` whenever the all-in is not active. That includes the
+   historical raid's own capital objective. Not changed: needs a decision.
+3. **The southern Viet Minh capitulated to the State of Vietnam on
+   1953-05-13** with 12 divisions and its capital held, 17 months before
+   Geneva. This is the old southern-collapse balance item, now earlier.
+   Not changed.
+4. **The Bolovens group would not have counted toward `contained`.**
+   `vin_lower_laos_fre_garrison_present_trigger` is evaluated in FRE scope,
+   and `divisions_in_state` counts only the scope country's divisions
+   (`[INFERENCE]` from engine semantics). So the Royal Lao group from the
+   last patch could never contain the diversion.
+
+### Patch (statically verified only)
+
+- `vin_lower_laos_fre_garrison_present_trigger`: new branch. If FRE has
+  `FRE_Lower_Laos_Reinforced`, Royal Lao divisions in Champasak (1187)
+  count as the garrison.
+- `fre_lower_laos_reinforce_bolovens` logs `LOWER_LAOS_RESPONSE|..|
+  spawn=royal_lao|champasak_divisions_present=..` after the spawn.
+- `ENVELOPE_CAUSE` adds `delta_provinces` bits: 1 Hanoi 4075, 2 1185,
+  4 Haiphong 4119, 8 13753, 16 13755, 32 13756, 64 13770, 128 13772.
+- New `ic_afk_validation_vin_severe_cause`, called from
+  `vin_overextension_severe_apply`, logs `SEVERE_CAUSE|bits|raid`: 1 Luang
+  Prabang state, 2 Vientiane state, 4 delta core, 8 all-in corridor.
+
+### Consolidated-playtest checks added
+
+40. Every `OVEREXTENSION|tier=severe|state=apply` is followed by a
+    `SEVERE_CAUSE` line. If bit 1 is set with `raid=1`, finding 2 is
+    confirmed.
+41. `ENVELOPE_CAUSE|..|delta_provinces` names the same few provinces across
+    campaigns. That points to a targeted envelope or AI fix rather than a
+    global one.
+42. After the Bolovens airlift, `champasak_divisions_present=1`, and Lower
+    Laos can end `contained` if it is not superseded.
+
+## 2026-10-02 fourth AFK run: evidence for the three open decisions
+
+Logs in `_local/logs/2026-10-02d/` (war ends 1954-06-20). Run only to
+gather evidence; no balance change was made. Telemetry and error.log only.
+
+### Arc
+
+- Campaign results: Cao-Bac clean (day 28), Vinh Yen clean (day 19), Mao
+  Khe and Day River failure, Nghia Lo costly, Hoa Binh clean (day 105),
+  Northwest clean (day 35; MEO capitulated to FRE on 1952-11-17), Na San
+  costly, Dien Bien Phu clean on day 21.
+- CEFEO: Bretagne aborted, Adolphe, Brochet and Hirondelle clean, Mouette
+  failure, Castor failure. Camargue (tier 0) was superseded by the Dien Bien
+  Phu launch. Lower Laos: CEFEO chose `ignore`; superseded on day 13.
+- Geneva concluded 1954-06-19. Final margin +374, above the +135 seen in
+  the two runs before.
+- error.log: no rework-local errors.
+
+### Decision 1: Delta holds
+
+`delta_provinces` per launch: Cao-Bac 66, Vinh Yen 64, Mao Khe 66, Day
+River 66, Nghia Lo 64, Hoa Binh 82, Northwest 64, Na San 0 (its cause was
+Dien Bien ground). Province `13770` is held in 7 of 8 launches; `1185` in 4;
+`13755` once. Both `13770` and `1185` are bunker-3 provinces at the delta
+edge (`history/states/786`). `13770` is no campaign's objective; `1185` is
+one of Day River's three. Penalty length against campaign length: 19/28,
+10/19, 29/38, 29/53, 28/39, 98/105, 20/35, 32/42. So the ordinary tier is
+on for most of every campaign, and nearly all of it comes from one
+province.
+
+### Decision 2: Severe tier during the Laos raid
+
+No severe tier this run: the raid (1953-03-31 to 06-28) ran with no
+campaign live. Still unconfirmed in play. The code path is certain:
+`vin_controls_foreign_upper_laos_deep_trigger` counts Luang Prabang state
+`1198` whenever a campaign runs and the all-in is not active.
+
+### Decision 3: Southern Viet Minh collapse
+
+NLF capitulated on 1953-01-02 with 6 divisions, its one state and its
+capital. `ARMY_CAP` shows the cause: NLF divisions fall 14, 13, 12, 10, 9,
+8, 7 from 1949-06 to 1952-12 and never recover, while its manpower climbs
+from 210k to 353k unused. Meanwhile VIE grows from 7 to 31 divisions. NLF
+has one state, no industry (`gdp=1`), and no equipment or division inflow
+before the post-DBP `NLF_Northern_Supply_Line`. It cannot replace losses,
+so it bleeds out against an army that keeps growing.
+
+### Fixed (statically verified only)
+
+- `IC_AFK|FAIL|check=FRE_limited_operation_full_cleanup|
+  remaining_operation_wars=2` at 1954-02-19 was a false positive. Dien Bien
+  Phu superseded Camargue and declared its own war in the same tick. Both
+  copies of the check (`ic_afk_validation_fre_limited_tick` and
+  `ic_afk_validation_fre_new_operations_tick`) now log PASS with
+  `vin_campaign_wars=..` when FRE no longer owns the war and a VIN campaign
+  is running.
+
+### Consolidated-playtest checks added
+
+43. A CEFEO operation superseded by a VIN campaign logs
+    `PASS|check=FRE_limited_operation_full_cleanup|..|vin_campaign_wars=`,
+    never the FAIL.
+
+## 2026-10-02 patch: the three decisions
+
+User decisions, taken on the fourth-run evidence. Statically verified only.
+
+### 1. Delta edge provinces exempt
+
+`vin_controls_foreign_delta_ground_trigger` no longer lists `1185` or
+`13770`, the bunker-3 delta edge provinces. It is the generic delta rule
+used by the VIN campaign envelope outside the delta campaigns, and by the
+CEFEO operation 2/3 path. The Mao Khe, Day River and Brochet variants keep
+their own lists, so those three still count both provinces. Hanoi `4075`
+and the rest of the delta still count. The `ENVELOPE_CAUSE` bit 128 now
+follows the narrowed rule; `delta_provinces` still reports raw control.
+
+### 2. Severe tier follows the Section 17 text
+
+`vin_controls_foreign_upper_laos_deep_trigger` is renamed
+`vin_controls_foreign_vientiane_ground_trigger` and keeps only Vientiane
+state `670`. Luang Prabang state `1198` no longer causes the severe tier,
+so the historical raid's own objective is never penalised. The all-in
+keeps its separate corridor rule. `SEVERE_CAUSE` bit 1 is now
+informational.
+
+### 3. Northern resupply for the southern Viet Minh
+
+New `vin_nlf_northern_resupply_monthly`, run from
+`vin_accrue_monthly_supply` (VIN scope, about monthly).
+
+- Conditions: from 1950-01-01, the war and Geneva not over, no post-DBP
+  stand-down ordered, NLF exists and is at war, NLF does not have
+  `NLF_Northern_Supply_Line`, and VIN has at least 50 Campaign Supply.
+- Effect: NLF gets 300 `infantry_equipment_1` for 5 Campaign Supply. Below
+  10 divisions, and if NLF controls its capital, it also gets one `Trung
+  Doan Bo Binh Infantry` regiment there (experience 0.3, equipment 0.8) for
+  10 more.
+- Log: `IC_AFK|NLF_RESUPPLY|rifles|regiment|nlf_divisions|vin_supply`.
+- The values are first-pass and untuned. At most 15 Campaign Supply a month,
+  against a monthly income of 30-40 with PRC victory.
+
+### Consolidated-playtest checks added
+
+44. `ENVELOPE_CAUSE` with bit 128 never has `delta_provinces` of only 2,
+    64 or 66 (edge provinces alone). Penalty days per campaign drop well
+    below the 2026-10-02d lengths.
+45. A severe tier during the Laos raid shows `SEVERE_CAUSE` bit 2, 4 or 8,
+    never bit 1 alone.
+46. Monthly `NLF_RESUPPLY` from 1950. NLF divisions hold near 10 instead of
+    falling to 6. No NLF capitulation before Geneva. VIN Campaign Supply
+    still funds every launch (`supply` on Northwest and Dien Bien Phu
+    launches comparable to 2026-10-02d).
+47. Watch balance: Dien Bien Phu duration (21-22 days in the last two runs),
+    the final margin, and whether a stronger south delays the negotiations
+    gate.
+
+## 2026-10-03 AFK run review: second Viet Minh capitulation during Cao-Bac
+
+Logs in `_local/logs/2026-10-03/` (run ends 1950-11-11). Only the local mod
+was enabled (`dlc_load.json`), so the uncommitted 2026-10-02 patches were
+loaded. Evidence is telemetry and error.log only.
+
+### What happened
+
+1. Cao-Bac launched 1950-10-18 (no PRC victory yet), as in the 2026-10-02
+   first run. THO garrison and command-input PASSes.
+2. 1950-10-26, day 8: ordinary overextension tier after the 5-day streak.
+   `ENVELOPE_CAUSE|bits=129|delta_provinces=128` (Cao-Bac ground plus
+   province `13772`, not one of the excluded edge provinces). Cleared
+   1950-10-31 after 5 days.
+3. 1950-11-11, day 24: `CAPITULATION|tag=VIN|winner=FRE|divisions=28|
+   owned_controlled_states=3|capital_held=1|overextended=0|vin_campaign=4`.
+   No Cao-Bac `RESULT`. The failsafe took the decisive route; FRE and THO
+   beat VIN and MEO; the struggle ending annexed the north into the State
+   of Vietnam (same `CWIC_Struggle_Effects.txt:817` and resistance-124
+   signature as 2026-10-02).
+4. No `NLF_RESUPPLY` line in the whole run (1950-01 to 1950-11), although
+   NLF was at war with 14 divisions. Check 46 fails; cause not traced.
+
+### Verdict
+
+- The overextension inference of 2026-10-02 is refuted. The 2026-10-02d run
+  took the identical penalty (same day, bits 129) for 19 days and did not
+  capitulate; this run cleared it 11 days before the surrender and still
+  capitulated. The penalty is not the proximate cause.
+- VIN capitulated by surrender progress with its army intact and its
+  capital held. VIN has no `surrender_limit` protection during campaigns,
+  while CEFEO has `FRE_Highland_Overextension` (`surrender_limit = 1.0`)
+  and the Royal Lao have the raid idea. Which victory points VIN lost is
+  not logged `[INFERENCE: few owned states make a small VP base]`.
+- 2 of 5 recent AFK runs end this way, both with the 1950-10-18 launch.
+- No behaviour change: protecting VIN from capitulation is a design
+  decision.
+
+### Consolidated-playtest checks added
+
+48. Before any fix, log weekly during a VIN campaign: VIN surrender
+    progress, and the controller of each VIN victory-point province.
+49. `NLF_RESUPPLY` appears monthly from 1950-02; if not, log which gate of
+    `vin_nlf_northern_resupply_monthly` fails.
+
+## 2026-10-03 patch: surrender and resupply telemetry
+
+Statically verified only (brace balance, single definitions, `git diff
+--check`). No behaviour change. Working hypothesis (user): VIN loses too
+many victory points from a small base and surrenders.
+
+- `ic_afk_validation_vin_surrender_tick` (VIN, from the FRA daily tick):
+  while VIN is at war with FRE, logs `IC_AFK|SURRENDER|reason|campaign|
+  surrender_pct|vp_owned|vp_lost|capital_held|states|divisions` on the first
+  war day, on any change of bucket or lost ground (reason 1), and weekly
+  (reason 2). `ic_afk_validation_capitulation` adds a reason-3 line when VIN
+  capitulates. `surrender_pct` is engine surrender progress floored to 5.
+- VP bits (province, state, value): 1 7015 881 5, 2 11936 1762 3, 4 4397
+  1763 5, 8 12297 838 1, 16 17194 1875 1, 32 17193 1875 1, 64 12065 1280 10,
+  128 13767 1280 1, 256 13765 671 6, 512 4529 671 5, 1024 10129 1766 5,
+  2048 7093 1281 5, 4096 4075 1760 20, 8192 4119 786 10. `vp_owned`: VIN
+  owns the state; `vp_lost`: VIN owns the state but not the province.
+  Values are history values; runtime objective VPs are not included.
+- `vin_nlf_northern_resupply_monthly` now calls
+  `ic_afk_validation_nlf_resupply_skip` when it does not run (from 1950,
+  war not over): `NLF_RESUPPLY_SKIP|gates|vin_supply`, bits 1 Geneva
+  concluded, 2 stand-down ordered, 4 NLF missing, 8 NLF not at war, 16 NLF
+  has the post-DBP supply line, 32 Campaign Supply below 50.
+
+Checks 48 and 49 now read:
+
+48. Every VIN war with CEFEO produces `SURRENDER` lines; a VIN
+    `CAPITULATION` is followed by a reason-3 `SURRENDER` line. Read which
+    `vp_lost` bits rise with `surrender_pct` before the surrender.
+49. Each month from 1950-02 has exactly one `NLF_RESUPPLY` or
+    `NLF_RESUPPLY_SKIP` line. Neither line means the monthly accrual never
+    reached the resupply.
+
+## 2026-10-03 second AFK run: historical arc, surrender telemetry live
+
+Logs in `_local/logs/2026-10-03b/`. No VIN capitulation; no `IC_AFK|FAIL`.
+Cao-Bac clean (day 28), Vinh Yen, Mao Khe and Day River failure, Nghia Lo
+clean, Hoa Binh clean (day 105), Northwest clean (day 85), Na San clean,
+Pathet Lao raid stalemate, Dien Bien Phu clean on day 35, Geneva concluded
+1954-07-08 with a final margin of +343.
+
+### Check 48: surrender progress confirms the victory-point hypothesis
+
+| Campaign | Lost (`vp_lost`) | Peak `surrender_pct` |
+|---|---|---|
+| Cao-Bac | 2 (Thanh Hoa 11936) | 40 |
+| Vinh Yen | 2 | 20 |
+| Na San | 2 | 25 |
+| Northwest | 3 (Thanh Hoa and Dong Bac Bo 7015) | 75 |
+| Dien Bien Phu | 3 | 75 |
+
+Losing Thanh Hoa alone puts VIN at 20-40% in two days; adding Dong Bac Bo
+puts it at 70-75%. VIN's surrender base is a handful of victory points, so
+one or two CEFEO counter-thrusts decide capitulation. This fits both
+2026-10-02/03 capitulations. The exact engine weighting is not derived;
+the percentages exceed the history VP share, so other ground or runtime
+VPs also count `[INFERENCE]`. Needs a design decision (campaign-window
+`surrender_limit`, VP rebalancing, or Thanh Hoa/Viet Bac defence).
+
+### Check 49: resupply mostly silent
+
+One `NLF_RESUPPLY` (1951-08-10, regiment, NLF 7 divisions) and one
+`NLF_RESUPPLY_SKIP` (1954-01-02, gates 4: NLF gone). Every other month had
+neither line, so the monthly accrual rarely reached the resupply although
+Campaign Supply kept rising (163 to 353). NLF capitulated to VIE on
+1952-09-04 with 0 divisions. Check 46 fails again. Not traced.
+
+### Geneva Laos clause (user note, not addressed)
+
+The AI conference picks `GENEVA_CONF_C5_OPT_1` "Independent and Neutral
+Laos and Cambodia", which removes the Pathet Lao even after a partial or
+historical raid victory. `GENEVA_CONF_C5_OPT_2` "Communist Regroupment
+Zones" covers that case but its wording reads as a Pathet Lao withdrawal,
+which a Pathet Lao holding ground would not accept. Open design item: tie
+the Laos outcome to the raid result and reword the regroupment option.
+
+## 2026-10-03 patch: VIN surrender limit, surrender-core defence, accrual trace
+
+Statically verified only (brace balance, BOM and ASCII on the changed
+`.yml`, single strategy definition, `git diff --check`).
+
+- `VIN_Resistance_War_Economy` gains `surrender_limit = 0.5`. The idea is
+  in VIN's 1949 history and removed only by the war-end cleanup in
+  `CWIC_Struggle_Effects.txt`, so it covers the whole war. Description
+  updated. Value is first-pass.
+- New AI strategy `VIN_hold_surrender_core` (`indochina_communist.txt`),
+  enabled in any war with FRE: theatre demand +6 and front unit request
+  60/80 for Dong Bac Bo (881) and Thanh Hoa (1762). It stacks with the
+  campaign all-in requests.
+- Resupply trace. In 2026-10-03b the resupply, the patronage delivery and
+  the skip line all appeared only on 1951-08-10 and 1954-01-02 (both at
+  18:00), 876 days apart, about 28 times 31 days. The accrual counter
+  needs 28 increments and assumes `ic_pulse` is daily. If `ic_pulse` runs
+  for VIN about monthly (the `ic_pulse_one` mission cycle), the monthly
+  accrual, the patronage delivery and the resupply all run once every
+  2-3 years `[INFERENCE]`. New lines: `IC_AFK|VIN_PULSE|counter|supply` on
+  every VIN pulse (`IC_scripted_effects.txt`) and `IC_AFK|VIN_ACCRUAL|
+  amount|supply` on every accrual. Not fixed: the accrual feeds Campaign
+  Supply, so a real monthly cadence would change VIN's economy.
+
+### Consolidated-playtest checks added
+
+50. No VIN `CAPITULATION` before Geneva. `SURRENDER` peaks stay well below
+    the 2026-10-03b values (40 in Cao-Bac, 75 in Northwest and Dien Bien
+    Phu) for the same `vp_lost`.
+51. `vp_lost` bits 1 and 2 appear less often and for shorter spells than in
+    2026-10-03b. Campaigns still launch and finish on their usual days.
+52. `VIN_PULSE` spacing: about 1 day means the pulse is daily and the cause
+    lies elsewhere; about 30 days confirms the cadence cause. Each
+    `VIN_ACCRUAL` should be followed by one `NLF_RESUPPLY` or
+    `NLF_RESUPPLY_SKIP` line.
+
+## 2026-10-03 third AFK run: surrender limit live, pulse cadence confirmed
+
+Logs in `_local/logs/2026-10-03c/`. No `IC_AFK|FAIL`; error.log has no
+rework-local errors (its bulk is unrelated `faction_goals_medium_term.txt`
+and SOV strategy-plan noise). Geneva concluded 1954-09-09, final margin
++341.
+
+- VIN: Cao-Bac clean (day 16), Vinh Yen clean (day 18), Mao Khe, Day
+  River and Nghia Lo failure, Hoa Binh clean (day 26, against 105 in
+  2026-10-03b), Northwest clean (day 49), Na San clean, Pathet Lao raid
+  stalemate, Dien Bien Phu clean on day 29, Lower Laos `pressure`.
+- CEFEO: Bretagne, Adolphe, Hirondelle, Brochet, Camargue clean; Mouette
+  failure; Castor success, Pollux superseded, Atlante stalled.
+
+### Check scoring
+
+- 50 passed: no VIN capitulation. Peak `surrender_pct` 10 with Thanh Hoa
+  lost (`vp_lost=2`), against 20-40 for the same loss in 2026-10-03b.
+- 51 passed: `vp_lost` non-zero in 2 of 64 `SURRENDER` lines (Northwest
+  and Dien Bien Phu), otherwise 0. Campaign launch dates unchanged; Hoa
+  Binh much faster. One run; watch whether VIN is now too strong.
+- 52 confirmed the cause: `VIN_PULSE` fires every 30-31 days (counter 1
+  to 63 over the run), so the 28-step counter gives `VIN_ACCRUAL` only on
+  1951-08-12 and 1954-01-04 (amount 40 each). Each was followed by the
+  patronage delivery and `NLF_RESUPPLY`. Monthly Campaign Supply income,
+  the Chinese patronage delivery and the southern resupply have each run
+  about once every 28 months. Campaign Supply still rose from other
+  sources (164 to 296).
+- 46: NLF held 14 divisions to Geneva and survived to 1962, with only two
+  resupplies. The southern collapse did not recur in this run.
+
+### New finding (adjacent, not changed)
+
+The Pathet Lao enter the war at the Lower Laos launch in every recent run
+(6 to 8 divisions). Here they capitulated to CEFEO on 1954-03-12 with 8
+divisions and their capital held, then sat at 0 divisions to Geneva. Same
+small-VP mechanism as the VIN surrender; `LOS_French_Airlift` protects
+only the Royal Lao. Related to the deferred Geneva Laos item.
+
+## 2026-10-03 patch: VIN supply step on every pulse
+
+User decision. Statically verified only. `ic_pulse` runs for VIN about
+every 31 days, so the VIN block in `IC_scripted_effects.txt` now calls
+`vin_accrue_monthly_supply` and the AI rifle grant on every pulse. The
+28-step `VIN_Supply_Accrual_Counter` is deleted (it had no other readers).
+`VIN_PULSE` drops its `counter` field. Monthly Campaign Supply income
+(15, 30 with PRC victory, +10 with larger raids), the Chinese patronage
+delivery, the southern resupply and the AI rifle grant (600/1200) now run
+monthly instead of about every 28 months. The game-start pulse is followed
+by the first mission pulse on the same day, so two accruals land on
+1949-05-23. The campaign watchdog is date-based and unaffected.
+
+### Consolidated-playtest checks added
+
+53. One `VIN_ACCRUAL` per `VIN_PULSE`, and each is followed by one
+    `NLF_RESUPPLY` or `NLF_RESUPPLY_SKIP` line; `PATRONAGE_DELIVERY`
+    monthly after the patronage choice.
+54. Balance after the income change: Campaign Supply at each launch
+    against 2026-10-03c (Northwest 311, Lower Laos 296), Dien Bien Phu
+    duration, VIN campaign results, NLF divisions, final margin. If VIN
+    supply runs away, lower the per-month amounts before anything else.

@@ -45,8 +45,9 @@ test_vin_campaign_overextension_status = {
 	vin_campaign_update_overextension = yes
 	if = {
 		limit = { vin_campaign_vin_overextended_trigger = yes }
-		log = "VIN OVEREXTENSION: off-envelope foreign ground detected"
-		if = { limit = { NOT = { has_idea = VIN_Campaign_Overextension } } log = "VIN OVEREXTENSION: FAIL - VIN penalty missing" }
+		log = "VIN OVEREXTENSION: off-envelope foreign ground detected, held [?VIN_Overextension_Streak_Days|0] days"
+		if = { limit = { NOT = { has_idea = VIN_Campaign_Overextension } NOT = { has_idea = VIN_Campaign_Overextension_Severe } check_variable = { VIN_Overextension_Streak_Days > 4 } } log = "VIN OVEREXTENSION: FAIL - VIN penalty missing after the 5-day grace" }
+		if = { limit = { has_idea = VIN_Campaign_Overextension check_variable = { VIN_Overextension_Streak_Days < 5 } NOT = { vin_fre_operation_overextended_trigger = yes } } log = "VIN OVEREXTENSION: FAIL - VIN penalty applied inside the 5-day grace" }
 	}
 	else = {
 		log = "VIN OVEREXTENSION: VIN remains inside its operational envelope"
