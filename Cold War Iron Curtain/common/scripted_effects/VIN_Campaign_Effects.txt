@@ -3,7 +3,6 @@ vin_campaign_initialize = {
 	if = {
 		limit = { NOT = { has_variable = VIN_Campaign_Supply } }
 		set_variable = { VIN_Campaign_Supply = 100 }
-		set_variable = { VIN_Supply_Accrual_Counter = 0 }
 	}
 }
 
@@ -28,7 +27,63 @@ vin_accrue_monthly_supply = {
 		add_to_temp_variable = { vin_supply_amount = 10 }
 	}
 	hidden_effect = { vin_change_campaign_supply = yes }
+	log = "IC_AFK|VIN_ACCRUAL|date=[GetDateText]|amount=[?vin_supply_amount|0]|supply=[?VIN_Campaign_Supply|0]"
 	vin_patronage_monthly_delivery = yes
+	vin_nlf_northern_resupply_monthly = yes
+}
+
+# The southern Viet Minh has one state and no industry, so without help from
+# the north it never replaces a division (14 to 6 by 1953 in the 2026-10-02d
+# run, with its manpower unused). From 1950, while it is at war and the north
+# can spare it, the north pays Campaign Supply for a monthly rifle shipment
+# and, below 10 divisions, one new regiment. It stops during the post-DBP
+# stand-down and once the post-DBP supply line takes over.
+vin_nlf_northern_resupply_monthly = {
+	if = {
+		limit = {
+			date > 1950.1.1
+			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = geneva_conference_concluded }
+			NOT = { has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Ordered }
+			country_exists = NLF
+			NLF = {
+				has_war = yes
+				NOT = { has_idea = NLF_Northern_Supply_Line }
+			}
+			check_variable = { VIN_Campaign_Supply > 49 }
+		}
+		set_temp_variable = { vin_nlf_regiment = 0 }
+		NLF = { add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 300 producer = VIN } }
+		set_temp_variable = { vin_supply_amount = -5 }
+		hidden_effect = { vin_change_campaign_supply = yes }
+		if = {
+			limit = {
+				NLF = {
+					num_divisions < 10
+					capital_scope = { is_controlled_by = NLF }
+				}
+			}
+			NLF = {
+				capital_scope = {
+					create_unit = {
+						division = "name = \"Trung Doan Bo Binh Infantry\" division_template = \"Trung Doan Bo Binh Infantry\" start_experience_factor = 0.3 start_equipment_factor = 0.8"
+						owner = NLF
+					}
+				}
+			}
+			set_temp_variable = { vin_supply_amount = -10 }
+			hidden_effect = { vin_change_campaign_supply = yes }
+			set_temp_variable = { vin_nlf_regiment = 1 }
+		}
+		log = "IC_AFK|NLF_RESUPPLY|date=[GetDateText]|rifles=300|regiment=[?vin_nlf_regiment|0]|nlf_divisions=[?NLF.num_divisions|0]|vin_supply=[?VIN_Campaign_Supply|0]"
+	}
+	else_if = {
+		limit = {
+			date > 1950.1.1
+			NOT = { has_global_flag = Indochina_War_Over }
+		}
+		ic_afk_validation_nlf_resupply_skip = yes
+	}
 }
 
 vin_campaign_apply_command_inputs = {
@@ -91,8 +146,8 @@ vin_campaign_apply_command_inputs = {
 			add_to_temp_variable = { vin_cmd_supply = 5 }
 			add_to_temp_variable = { vin_cmd_sources = 256 }
 		}
-		clamp_variable = { var = vin_cmd_supply min = 0 max = 30 }
-		clamp_variable = { var = vin_cmd_clean min = 0 max = 7 }
+		clamp_temp_variable = { var = vin_cmd_supply min = 0 max = 30 }
+		clamp_temp_variable = { var = vin_cmd_clean min = 0 max = 7 }
 		if = {
 			limit = { check_variable = { VIN_camp_deadline_x < 1 } }
 			set_temp_variable = { vin_cmd_clean = 0 }
@@ -423,6 +478,7 @@ vin_overextension_severe_apply = {
 		if = { limit = { has_idea = VIN_Campaign_Overextension } remove_ideas = VIN_Campaign_Overextension }
 		add_ideas = VIN_Campaign_Overextension_Severe
 		log = "IC_AFK|OVEREXTENSION|date=[GetDateText]|tier=severe|campaign=[?VIN_camp_current|0]|state=apply"
+		ic_afk_validation_vin_severe_cause = yes
 		vin_laos_raid_modifier_sync = yes
 	}
 }
@@ -449,19 +505,29 @@ vin_campaign_update_overextension = {
 	else = {
 		vin_overextension_severe_clear = yes
 	}
+	# Ordinary tier: only off-envelope ground held 5 days in a row counts, so a
+	# border grab in the first days of a declaration does not penalise the
+	# whole army. The severe tier above stays immediate.
 	if = {
 		limit = {
 			vin_campaign_vin_overextended_trigger = yes
 			NOT = { has_idea = VIN_Campaign_Overextension_Severe }
 		}
+		add_to_variable = { VIN_Overextension_Streak_Days = 1 }
 		if = {
-			limit = { NOT = { has_idea = VIN_Campaign_Overextension } }
+			limit = {
+				NOT = { has_idea = VIN_Campaign_Overextension }
+				check_variable = { VIN_Overextension_Streak_Days > 4 }
+			}
 			add_ideas = VIN_Campaign_Overextension
 		}
 	}
-	else_if = {
-		limit = { has_idea = VIN_Campaign_Overextension }
-		remove_ideas = VIN_Campaign_Overextension
+	else = {
+		set_variable = { VIN_Overextension_Streak_Days = 0 }
+		if = {
+			limit = { has_idea = VIN_Campaign_Overextension }
+			remove_ideas = VIN_Campaign_Overextension
+		}
 	}
 	vin_campaign_update_french_overextension = yes
 }
@@ -572,6 +638,7 @@ vin_campaign_declare_war = {
 	vin_campaign_restore_unplanned_offensive = yes
 	vin_campaign_sync_objective_modifiers = yes
 	vin_campaign_apply_war_spirits = yes
+	set_variable = { VIN_Overextension_Streak_Days = 0 }
 	vin_campaign_update_overextension = yes
 	set_variable = { VIN_camp_days_elapsed = 0 }
 	set_variable = { VIN_camp_deadline_x = 120 }	# a clean campaign

@@ -4,8 +4,11 @@ fre_lower_laos_cleanup = {
 		remove_ideas = FRE_Lower_Laos_Reserves_Diverted
 	}
 	if = {
-		limit = { has_country_flag = FRE_Lower_Laos_Template_Loaded }
-		delete_units = { division_template = "Groupement Aeroporte Bolovens" }
+		limit = {
+			country_exists = LOS
+			LOS = { has_country_flag = LOS_Bolovens_Template_Loaded }
+		}
+		LOS = { delete_units = { division_template = "Groupement Aeroporte Bolovens" } }
 	}
 	clr_country_flag = FRE_Lower_Laos_Reinforced
 }
@@ -14,26 +17,44 @@ fre_lower_laos_reinforce_bolovens = {
 	set_country_flag = FRE_Lower_Laos_Reinforced
 	set_temp_variable = { fre_credit_amount = -40 }
 	fre_change_war_credits = yes
+	# The airlifted groupement is raised under Royal Lao colours: the engine
+	# will not spawn a CEFEO unit on ground controlled by a country CEFEO is not
+	# at war with, and Lower Laos must not open a war or access deal with Laos.
 	if = {
-		limit = { NOT = { has_country_flag = FRE_Lower_Laos_Template_Loaded } }
-		set_country_flag = FRE_Lower_Laos_Template_Loaded
-		division_template = {
-			name = "Groupement Aeroporte Bolovens"
-			regiments = {
-				infantry = { x = 0 y = 0 }
-				infantry = { x = 0 y = 1 }
-				infantry = { x = 1 y = 0 }
+		limit = {
+			country_exists = LOS
+			1187 = { is_controlled_by = LOS }
+		}
+		LOS = {
+			if = {
+				limit = { NOT = { has_country_flag = LOS_Bolovens_Template_Loaded } }
+				set_country_flag = LOS_Bolovens_Template_Loaded
+				division_template = {
+					name = "Groupement Aeroporte Bolovens"
+					regiments = {
+						infantry = { x = 0 y = 0 }
+						infantry = { x = 0 y = 1 }
+						infantry = { x = 1 y = 0 }
+					}
+					priority = 0
+				}
 			}
-			priority = 0
 		}
+		1187 = {
+			create_unit = {
+				division = "name = \"Groupement Aeroporte Bolovens\" division_template = \"Groupement Aeroporte Bolovens\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
+				owner = LOS
+				prioritize_location = 1563
+			}
+		}
+		set_temp_variable = { ic_bolovens_present = 0 }
+		if = { limit = { LOS = { divisions_in_state = { state = 1187 size > 0 } } } set_temp_variable = { ic_bolovens_present = 1 } }
+		log = "IC_AFK|LOWER_LAOS_RESPONSE|date=[GetDateText]|choice=reinforce|spawn=royal_lao|champasak_divisions_present=[?ic_bolovens_present|0]"
 	}
-	1187 = {
-		create_unit = {
-			division = "name = \"Groupement Aeroporte Bolovens\" division_template = \"Groupement Aeroporte Bolovens\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
-			owner = FRE
-			allow_spawning_on_enemy_provs = yes
-			prioritize_location = 1563
-		}
+	else = {
+		set_temp_variable = { fre_credit_amount = 40 }
+		fre_change_war_credits = yes
+		log = "IC_AFK|LOWER_LAOS_RESPONSE|date=[GetDateText]|choice=reinforce|spawn=skipped|reason=champasak_not_royal_lao|credits_refunded=40"
 	}
 	if = {
 		limit = { has_country_flag = FRE_Atlante_Offensive_Active }

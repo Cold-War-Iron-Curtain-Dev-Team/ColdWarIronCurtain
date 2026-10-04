@@ -567,22 +567,35 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-10-01 (all design content built). Remaining order:
+Updated 2026-10-03. Remaining order:
 
-1. Next consolidated AFK run: score ledger checks 1-33. Still open from
-   before: 9 and 13 (visual), 11, 12, 15 and 16 (14 passed 2026-10-01).
-   New: 17-22 (content pass), 23 (regroupment), 24-26 (fix-ups), 27-33
-   (remaining design content). Also cover the Pathet Lao raid hardening and
-   the older not-covered list. Player-only paths (hedgehogs, Luang Prabang
-   all-in, associated-state armies, Soviet patronage) need one player game or
-   console forcing; for hedgehogs use `effect ic_afk_force_hedgehog_enable = yes`
-   before 1953-11.
-2. Tune only with evidence from more than one run. Watch first: Bretagne and
+1. Next AFK run: score checks 53-54 first. The VIN supply step now runs on
+   every pulse (monthly), so Campaign Supply income, patronage and the
+   southern resupply all rise. If VIN supply runs away, lower the
+   per-month amounts. Keep `surrender_limit = 0.5`; watch whether VIN is
+   now too strong (Hoa Binh day 26 in 2026-10-03c).
+2. Deferred design items (user, 2026-10-03): the Geneva Laos clause, and
+   now the Pathet Lao capitulating to CEFEO during Lower Laos (2026-10-03c).
+   Not to be fixed until the user raises them.
+3. Next consolidated AFK run: score ledger checks 1-54. Passed:
+   23, 30, 31, 33, 34, 36, 37, 39, 48, 50, 51, 52. Partial: 38.
+   Failed: 35 (before the surrender limit), 46 (twice; passed in 03c), 49.
+   Still open:
+   9 and 13 (visual), 11, 12, 15, 16, 17-22, 24-28, 32, 40, 42, 43, 44, 45,
+   47, 53, 54.
+4. Read the `NLF_RESUPPLY` series, the penalty days, and the Dien Bien Phu
+   duration first. Retune the resupply values only if the south is now too
+   strong or VIN supply is starved. Also cover the Pathet
+   Lao raid hardening and the older not-covered list. Player-only paths
+   (hedgehogs, Luang Prabang all-in, associated-state armies, Soviet
+   patronage) need one player game or console forcing; for hedgehogs use
+   `effect ic_afk_force_hedgehog_enable = yes` before 1953-11.
+5. Tune only with evidence from more than one run. Watch first: Bretagne and
    Camargue contest rates, Lower Laos outcomes, the campaign-input totals,
    the Struggle writer-3 share, and the Dak Doa `10180` staging.
-3. The design's unbuilt list is empty. New content needs a new design
+6. The design's unbuilt list is empty. New content needs a new design
    decision from the user.
-4. Keep the consolidated-playtest list current: every patch adds its expected
+7. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
 ## 2026-09-28 second run
@@ -725,3 +738,136 @@ branch, and deletion of the unassigned legacy adjacency rules. Statically
 verified only. Full record and checks 27-33 are in the ledger. The design's
 unbuilt list is now empty; the next step is the consolidated playtest of
 checks 1-33.
+
+## 2026-10-02 run review: Viet Minh capitulates during Cao-Bac
+
+Logs in `_local/logs/2026-10-02/`; full record in the ledger's matching
+section. Day 4 of Cao-Bac (1950-10-22) VIN took the ordinary army-wide
+overextension penalty, which no earlier run had taken in Cao-Bac. On day 21
+it capitulated to CEFEO and the Tho with 28 divisions. The failsafe then
+routed to the southern-victory ending, which annexes the north into the
+State of Vietnam and drops its cosmetic tag by design. The capitulation is
+the defect. Its cause is inferred, not proven. Telemetry was added
+(`ENVELOPE_CAUSE`, `CAPITULATION`), and the Patronage `anti_air` enum error
+is fixed. Behaviour is unchanged. Statically verified only; checks 34-36.
+
+## 2026-10-02 second run: full arc to Geneva
+
+Logs in `_local/logs/2026-10-02b/`; full record in the ledger's matching
+section. The arc ran end to end with no `IC_AFK|FAIL` lines. Dien Bien Phu
+fell on day 37, negotiations ended in regroupment, and the scripted Geneva
+concluded on 1954-10-12 with a final margin of +252. The only manual step
+was helping the PRC win the Chinese Civil War.
+
+Three fixes, statically verified only:
+
+- VIN overextension now needs 5 consecutive days on off-envelope ground,
+  which was the user's decision. Before this, 8 of 10 launches were
+  penalised within 3 days for incidental Delta ground.
+- The Bolovens airlift spawns as a Royal Lao division, which was the user's
+  decision. If it cannot spawn, the credits are refunded. Before this,
+  CEFEO paid 40 credits and got nothing.
+- The command-input clamps now use `clamp_temp_variable`. Supply had
+  reached +32 against the cap of 30.
+
+## 2026-10-02 third run: grace period live
+
+Logs in `_local/logs/2026-10-02c/`; full record in the ledger's matching
+section. Clean arc with no `IC_AFK|FAIL` lines. The early Cao-Bac
+(1949-12) is intended, because the PRC won early. Dien Bien Phu fell on
+day 22. Geneva concluded 1954-06-16 with a final margin of +135.
+
+The grace period works, but VIN still holds Delta ground for most of every
+campaign (Hoa Binh 98 days, Northwest 127). The severe tier ran through all
+of Na San while the Pathet Lao raid was live. The southern Viet Minh
+capitulated in May 1953.
+
+Patched, statically verified only:
+
+- Royal Lao Bolovens divisions now count toward `contained`.
+- New `SEVERE_CAUSE` line, `delta_provinces` field on `ENVELOPE_CAUSE`, and
+  a Bolovens spawn log.
+
+The three design questions are in "Next session order".
+
+## 2026-10-02 fourth run: evidence for the three decisions
+
+Logs in `_local/logs/2026-10-02d/`; full record in the ledger's matching
+section. The arc is clean: Dien Bien Phu fell on day 21 and Geneva
+concluded on 1954-06-19 with a final margin of +374. The only FAIL was a
+false positive in the CEFEO cleanup check when Dien Bien Phu superseded
+Camargue, and it is fixed. The evidence for the three open decisions is in
+the ledger; the decisions themselves are in the next section.
+
+## 2026-10-02 patch: the three decisions
+
+Full record in the ledger's matching section. Statically verified only.
+These are the user's decisions:
+
+- The delta edge provinces `1185` and `13770` no longer trigger VIN
+  overextension outside the delta campaigns.
+- The severe tier counts only Vientiane ground (as in Section 17), never
+  Luang Prabang.
+- The north now resupplies the southern Viet Minh monthly: 300 rifles, and
+  one regiment while it has fewer than 10 divisions. This is paid from
+  Campaign Supply.
+
+New checks 44-47.
+
+## 2026-10-03 run review: second capitulation during Cao-Bac
+
+Logs in `_local/logs/2026-10-03/`; full record in the ledger's matching
+section. VIN capitulated to CEFEO on 1950-11-11, day 24 of Cao-Bac, with
+28 divisions and its capital held; the struggle ending then annexed the
+north into the State of Vietnam. The overextension penalty had cleared on
+1950-10-31, and the 2026-10-02d run survived a longer one, so it is not
+the cause. No `NLF_RESUPPLY` line ever fired. No code changed; checks
+48-49.
+
+## 2026-10-03 patch: surrender and resupply telemetry
+
+Statically verified only; no behaviour change. New `IC_AFK|SURRENDER`
+lines log VIN surrender progress (5% buckets) and which northern
+victory-point provinces VIN owns and has lost, weekly and on change while
+at war with CEFEO, and once more at a capitulation. New
+`IC_AFK|NLF_RESUPPLY_SKIP|gates` names the failing resupply gate. Bit
+tables are in the ledger's matching section.
+
+## 2026-10-03 second run: historical arc
+
+Logs in `_local/logs/2026-10-03b/`; full record in the ledger's matching
+section. No capitulation, no FAIL lines; Dien Bien Phu fell on day 35 and
+Geneva concluded 1954-07-08 (+343). `SURRENDER` shows VIN reaching 75%
+surrender progress after losing only Thanh Hoa and Dong Bac Bo, which
+confirms the victory-point cause. The resupply fired once in four years;
+the southern Viet Minh capitulated 1952-09-04. User note, deferred: the
+Geneva "Independent and Neutral Laos and Cambodia" outcome removes the
+Pathet Lao even after a raid victory, and the "Communist Regroupment
+Zones" option reads as a withdrawal the Pathet Lao would not accept.
+
+## 2026-10-03 patch: surrender limit, core defence, accrual trace
+
+Statically verified only; full record in the ledger. The Resistance War
+Economy idea, which VIN holds for the whole war, now gives
+`surrender_limit = 0.5`. New AI strategy `VIN_hold_surrender_core` adds
+standing defence for Dong Bac Bo and Thanh Hoa in any war with CEFEO. The
+resupply is probably silent because the VIN pulse is monthly, not daily:
+the 28-step counter then fires about every 28 months, which fits the two
+observed deliveries 876 days apart. New `VIN_PULSE` and `VIN_ACCRUAL` lines
+will confirm it. Checks 50-52.
+
+## 2026-10-03 third run: surrender limit live, cadence confirmed
+
+Logs in `_local/logs/2026-10-03c/`; full record in the ledger. Clean arc,
+no FAIL lines, no rework errors; Dien Bien Phu fell on day 29 and Geneva
+concluded 1954-09-09 (+341). No VIN capitulation; peak surrender progress
+10%. `VIN_PULSE` is every 30-31 days, so the monthly accrual, patronage
+delivery and resupply ran only twice in five years. New: the Pathet Lao
+capitulated to CEFEO during Lower Laos on 1954-03-12.
+
+## 2026-10-03 patch: supply step on every pulse
+
+User decision; statically verified only. The VIN pulse is monthly, so the
+supply step (Campaign Supply income, patronage delivery, southern
+resupply, AI rifles) now runs on every pulse and the 28-step counter is
+gone. Checks 53-54.
