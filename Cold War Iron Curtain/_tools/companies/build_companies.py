@@ -36,7 +36,7 @@ def load():
     errors = []
     keys, events = set(), set()
     for r in rows:
-        if not re.fullmatch(r"\w+", r["key"]) or r["key"] != r["key"].lower(): errors.append("%s: key must be lower_snake_case" % r["key"])
+        if not re.fullmatch(r"[a-z0-9_]+", r["key"]) or r["key"] != r["key"].lower(): errors.append("%s: key must be lower_snake_case" % r["key"])
         if r["key"] in keys: errors.append("%s: duplicate key" % r["key"])
         if r["sector"] not in SECTORS: errors.append("%s: unknown sector '%s'" % (r["key"], r["sector"]))
         if r["invite_event"] in events: errors.append("%s: invite_event %s already used" % (r["key"], r["invite_event"]))
