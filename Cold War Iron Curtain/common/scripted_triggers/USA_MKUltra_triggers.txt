@@ -1,0 +1,59 @@
+USA_mkultra_enabled_trigger = {
+	tag = USA
+	NOT = {
+		has_game_rule = {
+			rule = USA_MKULTRA_MODE
+			option = USA_MKULTRA_OFF
+		}
+	}
+}
+
+USA_mkultra_has_entry_authority_trigger = {
+	OR = {
+		has_completed_focus = USA_50s_Begin_Project_MUKULTRA
+		has_completed_focus = USA_60s_Project_MKUltra
+	}
+}
+
+USA_mkultra_charter_active_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	check_variable = { USA_mkultra_charter_state = 1 }
+	NOT = { has_country_flag = USA_mkultra_charter_terminated }
+}
+
+USA_mkultra_can_start_missing_baseline_trigger = {
+	USA_mkultra_charter_active_trigger = yes
+	check_variable = { USA_mkultra_slot_1_state = 0 }
+	check_variable = { USA_mkultra_missing_baseline_stage = 0 }
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_paid }
+}
+
+# Reuse the repository's canonical high-severity macro-crisis checks instead of
+# inventing a parallel crisis flag for this dossier.
+USA_mkultra_major_crisis_trigger = {
+	OR = {
+		has_war = yes
+		CWIC_is_fiscal_crisis_high = yes
+		CWIC_is_economic_contraction_crisis_high = yes
+		CWIC_is_inflationary_crisis_high = yes
+		CWIC_is_energy_crisis_high = yes
+		CWIC_is_financial_credit_crisis_high = yes
+		CWIC_is_governance_institutional_crisis_high = yes
+		CWIC_is_food_security_famine_crisis_high = yes
+	}
+}
+
+# The native 35 PP decision cost is accounted for here. AI purchases therefore
+# leave at least 100 PP ordinarily and at least 150 PP during war or major crisis.
+USA_mkultra_ai_can_afford_missing_baseline_trigger = {
+	OR = {
+		AND = {
+			NOT = { USA_mkultra_major_crisis_trigger = yes }
+			has_political_power > 134
+		}
+		AND = {
+			USA_mkultra_major_crisis_trigger = yes
+			has_political_power > 184
+		}
+	}
+}
