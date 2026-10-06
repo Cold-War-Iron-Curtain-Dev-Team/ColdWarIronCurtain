@@ -339,21 +339,21 @@ for c in CHARACTERS:
            f' SOV_pres_char_{ck}_leader_tt:0 "§Y{c["name"]}§!\\n{c["bio"]}\\n\\n' + LEGEND + '"\n']
     traits = "".join(f"\\n§Y{TRAITS[t][0]}§!: {TRAITS[t][1]}" for t in c["traits"])
     Lc.append(f' SOV_pres_char_{ck}_tt:0 "{head}' + (f"\\n{traits}" if traits else "") + '"\n')
-# tooltips for the panel hooks in SOV_Stalin.txt (Mingrelian affair, 19th Congress, Beria's arrest)
+# tooltips for the panel hooks in SOV_Stalin_tree.txt (Mingrelian affair, 19th Congress, Beria's arrest)
 Lc += [' SOV_pres_hook_mingrelian_tt:0 "§YLavrentiy Beria§!: relationship with the leader §R-25§!"\n',
        ' SOV_pres_hook_congress_tt:0 "The Politburo is renamed the §YPresidium of the Central Committee§!.\\n§YVyacheslav Molotov§!: relationship with the leader §R-30§!\\n§YAnastas Mikoyan§!: relationship with the leader §R-30§!"\n',
        ' SOV_pres_hook_beria_tt:0 "§YLavrentiy Beria§! loses his seat."\n']
 write("localisation/english/SOV_Stalin_presidium_l_english.yml", "".join(Lc), bom=True)
 
 # ============================================================ focus tree position
-tree = MOD / "common/national_focus/SOV_Stalin.txt"
+tree = MOD / "common/national_focus/SOV_Stalin_tree.txt"
 if tree.exists():
     s = tree.read_bytes().decode("utf-8")
     s2 = re.sub(r"(id = SOV_Stalin_presidium_inlay\s*\r?\n\s*position = \{ x = )\d+( y = )\d+",
                 rf"\g<1>{INLAY_POSITION[0]}\g<2>{INLAY_POSITION[1]}", s)
     if s2 != s:
         tree.write_bytes(s2.encode("utf-8"))
-        print("updated inlay position in SOV_Stalin.txt")
+        print("updated inlay position in SOV_Stalin_tree.txt")
 
 for L in LAYOUTS:
     print(f"layout {L[0]}: {L[1] + 1}-{L[2]} seats -> {L[3]} cols x {L[4]} rows, scale {L[5]:.2f}")

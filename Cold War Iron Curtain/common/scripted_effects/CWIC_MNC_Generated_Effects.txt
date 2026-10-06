@@ -596,14 +596,14 @@ cwic_country_add_profit_sumitomo_mining = {
 		add_to_variable = { global.CWIC_CORP_sumitomo_mining_profit_month = profit_add }
 	}
 }
-cwic_country_add_profit_gécamines = {
-	# Adds this country's operating profit contribution for gécamines into the global monthly pool.
-	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_mining_output_index, and local presence var corp_gécamines_presence_mining (0..5)
+cwic_country_add_profit_gecamines = {
+	# Adds this country's operating profit contribution for gecamines into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_mining_output_index, and local presence var corp_gecamines_presence_mining (0..5)
 	if = {
-		limit = { has_variable = corp_gécamines_presence_mining }
+		limit = { has_variable = corp_gecamines_presence_mining }
 
 		# presence_factor = presence / 5 (v1 linear)
-		set_temp_variable = { p = corp_gécamines_presence_mining }
+		set_temp_variable = { p = corp_gecamines_presence_mining }
 		divide_temp_variable = { p = 5 }
 		clamp_temp_variable = { var = p min = 0 max = 1 }
 
@@ -612,7 +612,7 @@ cwic_country_add_profit_gécamines = {
 		multiply_temp_variable = { profit_add = CWIC_mining_output_index }
 		multiply_temp_variable = { profit_add = p }
 
-		add_to_variable = { global.CWIC_CORP_gécamines_profit_month = profit_add }
+		add_to_variable = { global.CWIC_CORP_gecamines_profit_month = profit_add }
 	}
 }
 cwic_country_add_profit_united_fruit = {
@@ -3111,11 +3111,11 @@ cwic_finalize_corp_sumitomo_mining = {
 	# book-keeping
 	set_variable = { global.CWIC_CORP_sumitomo_mining_profit_last = gross }
 }
-cwic_finalize_corp_gécamines = {
+cwic_finalize_corp_gecamines = {
 	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
 
 	# gross = last month's accumulated operating profit
-	set_temp_variable = { gross = global.CWIC_CORP_gécamines_profit_month }
+	set_temp_variable = { gross = global.CWIC_CORP_gecamines_profit_month }
 
 	# repatriated = gross * sector repatriation rate
 	set_temp_variable = { rep = gross }
@@ -3131,26 +3131,26 @@ cwic_finalize_corp_gécamines = {
 	multiply_temp_variable = { rep = hair }
 
 	# cash += rep (cash persists)
-	add_to_variable = { global.CWIC_CORP_gécamines_cash = rep }
-	clamp_variable = { var = global.CWIC_CORP_gécamines_cash min = 0 max = 1000000 }
+	add_to_variable = { global.CWIC_CORP_gecamines_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_gecamines_cash min = 0 max = 1000000 }
 
 	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
 	set_temp_variable = { cap_add = rep }
 	multiply_temp_variable = { cap_add = 0.25 }
-	add_to_variable = { global.CWIC_CORP_gécamines_cap = cap_add }
+	add_to_variable = { global.CWIC_CORP_gecamines_cap = cap_add }
 
 	# shock factor (per corp)
 	set_temp_variable = { shock_factor = 1.0 }
 	if = {
-		limit = { check_variable = { global.CWIC_CORP_gécamines_shock_timer > 0 } }
+		limit = { check_variable = { global.CWIC_CORP_gecamines_shock_timer > 0 } }
 		set_temp_variable = { shock_factor = 0.5 }
 		# tick shock timer down (1 month)
-		subtract_from_variable = { global.CWIC_CORP_gécamines_shock_timer = 1 }
-		clamp_variable = { var = global.CWIC_CORP_gécamines_shock_timer min = 0 max = 120 }
+		subtract_from_variable = { global.CWIC_CORP_gecamines_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_gecamines_shock_timer min = 0 max = 120 }
 	}
 
 	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
-	set_temp_variable = { desired = global.CWIC_CORP_gécamines_cash }
+	set_temp_variable = { desired = global.CWIC_CORP_gecamines_cash }
 	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
 	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
 	multiply_temp_variable = { desired = shock_factor }
@@ -3161,14 +3161,14 @@ cwic_finalize_corp_gécamines = {
 	# budget cannot exceed available cash
 	set_temp_variable = { budget = desired }
 	if = {
-		limit = { check_variable = { budget > global.CWIC_CORP_gécamines_cash } }
-		set_temp_variable = { budget = global.CWIC_CORP_gécamines_cash }
+		limit = { check_variable = { budget > global.CWIC_CORP_gecamines_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_gecamines_cash }
 	}
 
-	set_variable = { global.CWIC_CORP_gécamines_budget = budget }
+	set_variable = { global.CWIC_CORP_gecamines_budget = budget }
 
 	# book-keeping
-	set_variable = { global.CWIC_CORP_gécamines_profit_last = gross }
+	set_variable = { global.CWIC_CORP_gecamines_profit_last = gross }
 }
 cwic_finalize_corp_united_fruit = {
 	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
@@ -7223,19 +7223,19 @@ cwic_corp_sumitomo_mining_invest_presence_mining = {
 		}
 	}
 }
-cwic_corp_gécamines_invest_presence_mining = {
+cwic_corp_gecamines_invest_presence_mining = {
 
 	# Do nothing if no cash
 	if = {
-		limit = { NOT = { check_variable = { global.CWIC_CORP_gécamines_cash > 0 } } }
+		limit = { NOT = { check_variable = { global.CWIC_CORP_gecamines_cash > 0 } } }
 	}
 	else = {
 
 		# Determine current tier
 		set_temp_variable = { cur = 0 }
 		if = {
-			limit = { has_variable = corp_gécamines_presence_mining }
-			set_temp_variable = { cur = corp_gécamines_presence_mining }
+			limit = { has_variable = corp_gecamines_presence_mining }
+			set_temp_variable = { cur = corp_gecamines_presence_mining }
 		}
 
 		# If already maxed (tier 5), stop
@@ -7256,33 +7256,33 @@ cwic_corp_gécamines_invest_presence_mining = {
 			if = {
 				limit = {
 					OR = {
-						check_variable = { global.CWIC_CORP_gécamines_cash > invest_cost }
-						check_variable = { global.CWIC_CORP_gécamines_cash = invest_cost }
+						check_variable = { global.CWIC_CORP_gecamines_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_gecamines_cash = invest_cost }
 					}
 					OR = {
-						check_variable = { global.CWIC_CORP_gécamines_budget_remaining > invest_cost }
-						check_variable = { global.CWIC_CORP_gécamines_budget_remaining = invest_cost }
+						check_variable = { global.CWIC_CORP_gecamines_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_gecamines_budget_remaining = invest_cost }
 					}
 				}
 
 				# Spend
-				subtract_from_variable = { global.CWIC_CORP_gécamines_cash = invest_cost }
-				subtract_from_variable = { global.CWIC_CORP_gécamines_budget_remaining = invest_cost }
-				clamp_variable = { var = global.CWIC_CORP_gécamines_cash min = 0 max = 1000000 }
-				clamp_variable = { var = global.CWIC_CORP_gécamines_budget_remaining min = 0 max = 1000000 }
+				subtract_from_variable = { global.CWIC_CORP_gecamines_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_gecamines_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_gecamines_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_gecamines_budget_remaining min = 0 max = 1000000 }
 
 				# Apply: entry or upgrade
 				if = {
-					limit = { NOT = { has_variable = corp_gécamines_presence_mining } }
-					set_variable = { corp_gécamines_presence_mining = 1 }
+					limit = { NOT = { has_variable = corp_gecamines_presence_mining } }
+					set_variable = { corp_gecamines_presence_mining = 1 }
 				}
 				else = {
-					add_to_variable = { corp_gécamines_presence_mining = 1 }
-					clamp_variable = { var = corp_gécamines_presence_mining min = 0 max = 5 }
+					add_to_variable = { corp_gecamines_presence_mining = 1 }
+					clamp_variable = { var = corp_gecamines_presence_mining min = 0 max = 5 }
 				}
 
 				# Optional: host-country effects as presence rises (stub)
-				# cwic_apply_corp_presence_effects_gécamines = yes
+				# cwic_apply_corp_presence_effects_gecamines = yes
 			}
 		}
 	}
@@ -10385,28 +10385,28 @@ cwic_mnc_nationalize_sumitomo_mining_mining = {
 		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
 	}
 }
-cwic_mnc_nationalize_gécamines_mining = {
+cwic_mnc_nationalize_gecamines_mining = {
 	# Targeted nationalization: Gecamines (mining)
-	if = { limit = { NOT = { has_variable = corp_gécamines_presence_mining } } }
-	else_if = { limit = { has_country_flag = cwic_mnc_frozen_gécamines_mining } }
+	if = { limit = { NOT = { has_variable = corp_gecamines_presence_mining } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_gecamines_mining } }
 	else = {
-		set_temp_variable = { cur = corp_gécamines_presence_mining }
+		set_temp_variable = { cur = corp_gecamines_presence_mining }
 		set_temp_variable = { seize_amount = cur }
 		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_MINING }
 		set_temp_variable = { tmp = CWIC_mining_output_index }
 		divide_temp_variable = { tmp = 3 }
 		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
 		multiply_temp_variable = { seize_amount = tmp }
-		set_temp_variable = { corp_cash = global.CWIC_CORP_gécamines_cash }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_gecamines_cash }
 		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
 		add_to_variable = { currentMoney = seize_amount }
-		subtract_from_variable = { global.CWIC_CORP_gécamines_cash = seize_amount }
-		clamp_variable = { var = global.CWIC_CORP_gécamines_cash min = 0 max = 100000000 }
-		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_gécamines_presence_mining }
-		else = { subtract_from_variable = { corp_gécamines_presence_mining = 1 } clamp_variable = { var = corp_gécamines_presence_mining min = 0 max = 5 } }
+		subtract_from_variable = { global.CWIC_CORP_gecamines_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_gecamines_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_gecamines_presence_mining }
+		else = { subtract_from_variable = { corp_gecamines_presence_mining = 1 } clamp_variable = { var = corp_gecamines_presence_mining min = 0 max = 5 } }
 	
-		set_country_flag = cwic_mnc_frozen_gécamines_mining
-		set_country_flag = { flag = cwic_mnc_frozen_gécamines_mining days = 180 }
+		set_country_flag = cwic_mnc_frozen_gecamines_mining
+		set_country_flag = { flag = cwic_mnc_frozen_gecamines_mining days = 180 }
 		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
 		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
 		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
@@ -11645,14 +11645,14 @@ cwic_corp_sumitomo_mining_recalc_presence_total = {
 	if = { limit = { has_variable = corp_sumitomo_mining_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_sumitomo_mining_presence_electronics } }
 	set_variable = { corp_sumitomo_mining_presence_total = tmp_presence_total }
 }
-cwic_corp_gécamines_recalc_presence_total = {
+cwic_corp_gecamines_recalc_presence_total = {
 	set_temp_variable = { tmp_presence_total = 0 }
-	if = { limit = { has_variable = corp_gécamines_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_gécamines_presence_hydrocarbons } }
-	if = { limit = { has_variable = corp_gécamines_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_gécamines_presence_mining } }
-	if = { limit = { has_variable = corp_gécamines_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_gécamines_presence_agri } }
-	if = { limit = { has_variable = corp_gécamines_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_gécamines_presence_manufacturing } }
-	if = { limit = { has_variable = corp_gécamines_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_gécamines_presence_electronics } }
-	set_variable = { corp_gécamines_presence_total = tmp_presence_total }
+	if = { limit = { has_variable = corp_gecamines_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_gecamines_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_gecamines_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_gecamines_presence_mining } }
+	if = { limit = { has_variable = corp_gecamines_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_gecamines_presence_agri } }
+	if = { limit = { has_variable = corp_gecamines_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_gecamines_presence_manufacturing } }
+	if = { limit = { has_variable = corp_gecamines_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_gecamines_presence_electronics } }
+	set_variable = { corp_gecamines_presence_total = tmp_presence_total }
 }
 cwic_corp_united_fruit_recalc_presence_total = {
 	set_temp_variable = { tmp_presence_total = 0 }
@@ -12005,7 +12005,7 @@ cwic_country_add_all_corp_profits = {
 	cwic_country_add_profit_anaconda_copper = yes
 	cwic_country_add_profit_noranda = yes
 	cwic_country_add_profit_sumitomo_mining = yes
-	cwic_country_add_profit_gécamines = yes
+	cwic_country_add_profit_gecamines = yes
 	cwic_country_add_profit_united_fruit = yes
 	cwic_country_add_profit_del_monte = yes
 	cwic_country_add_profit_dole = yes
@@ -12156,7 +12156,7 @@ cwic_mnc_monthly_rollover = {
 	cwic_finalize_corp_anaconda_copper = yes
 	cwic_finalize_corp_noranda = yes
 	cwic_finalize_corp_sumitomo_mining = yes
-	cwic_finalize_corp_gécamines = yes
+	cwic_finalize_corp_gecamines = yes
 	cwic_finalize_corp_united_fruit = yes
 	cwic_finalize_corp_del_monte = yes
 	cwic_finalize_corp_dole = yes
@@ -12263,7 +12263,7 @@ cwic_mnc_monthly_rollover = {
 	set_variable = { global.CWIC_CORP_anaconda_copper_profit_month = 0 }
 	set_variable = { global.CWIC_CORP_noranda_profit_month = 0 }
 	set_variable = { global.CWIC_CORP_sumitomo_mining_profit_month = 0 }
-	set_variable = { global.CWIC_CORP_gécamines_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_gecamines_profit_month = 0 }
 	set_variable = { global.CWIC_CORP_united_fruit_profit_month = 0 }
 	set_variable = { global.CWIC_CORP_del_monte_profit_month = 0 }
 	set_variable = { global.CWIC_CORP_dole_profit_month = 0 }
@@ -13542,24 +13542,24 @@ cwic_mnc_auto_invest_global = {
 		}
 	}
 
-	# --- gécamines (mining) ---
+	# --- gecamines (mining) ---
 	if = {
 		limit = {
-			check_variable = { global.CWIC_CORP_gécamines_cash > 0 }
-			check_variable = { global.CWIC_CORP_gécamines_budget_remaining > 0 }
+			check_variable = { global.CWIC_CORP_gecamines_cash > 0 }
+			check_variable = { global.CWIC_CORP_gecamines_budget_remaining > 0 }
 		}
 
 		# 1) Try to upgrade existing presence
 		random_country = {
 			limit = {
 				has_country_flag = cwic_mnc_pool_mining
-				has_variable = corp_gécamines_presence_mining
+				has_variable = corp_gecamines_presence_mining
 				OR = {
 					cwic_mnc_country_open_for_investment = yes
 					cwic_mnc_country_allows_foreign_concessions = yes
 				}
 			}
-			cwic_corp_gécamines_invest_presence_mining = yes
+			cwic_corp_gecamines_invest_presence_mining = yes
 		}
 
 		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
@@ -13568,14 +13568,14 @@ cwic_mnc_auto_invest_global = {
 			random_country = {
 				limit = {
 					has_country_flag = cwic_mnc_pool_mining
-					NOT = { has_variable = corp_gécamines_presence_mining }
+					NOT = { has_variable = corp_gecamines_presence_mining }
 					OR = {
 						cwic_mnc_country_open_for_investment = yes
 						cwic_mnc_country_allows_foreign_concessions = yes
 					}
 					check_variable = { CWIC_mining_output_index > 1.25 }
 				}
-				cwic_corp_gécamines_invest_presence_mining = yes
+				cwic_corp_gecamines_invest_presence_mining = yes
 			}
 		}
 	}
@@ -15058,8 +15058,8 @@ cwic_mnc_apply_sector_presence_effects_country = {
 		add_to_variable = { CWIC_mnc_presence_total_mining = corp_sumitomo_mining_presence_mining }
 	}
 	if = {
-		limit = { has_variable = corp_gécamines_presence_mining }
-		add_to_variable = { CWIC_mnc_presence_total_mining = corp_gécamines_presence_mining }
+		limit = { has_variable = corp_gecamines_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_gecamines_presence_mining }
 	}
 	set_variable = {
 		CWIC_mnc_presence_tier_mining = {
@@ -15521,11 +15521,11 @@ cwic_mnc_process_invites_global = {
 		}
 		else_if = {
 			limit = {
-				has_variable = cwic_invite_gécamines_mining
-				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_gécamines_mining }
+				has_variable = cwic_invite_gecamines_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_gecamines_mining }
 			}
 			country_event = { id = CWIC_MNC.1031 }
-			set_country_flag = { flag = cwic_mnc_invite_evt_cd_gécamines_mining days = 30 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_gecamines_mining days = 30 }
 		}
 		else_if = {
 			limit = {
