@@ -1,0 +1,82 @@
+# Phase 2 start gate shared by every new paid research stage. Public-crisis
+# exposure pauses starts, while report archival and charter termination remain free.
+USA_mkultra_research_start_allowed_trigger = {
+	USA_mkultra_charter_active_trigger = yes
+	NOT = { check_variable = { USA_mkultra_inquiry_state = 1 } }
+	check_variable = { USA_mkultra_exposure < 75 }
+}
+
+USA_mkultra_can_renew_missing_baseline_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_slot_1_state = 2 }
+	check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+	has_country_flag = USA_mkultra_missing_baseline_profile_assigned
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_renewal_paid }
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_renewal_foregone }
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_archived }
+}
+
+USA_mkultra_can_replicate_missing_baseline_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_slot_1_state = 2 }
+	OR = {
+		check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+		check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+	}
+	has_country_flag = USA_mkultra_missing_baseline_profile_assigned
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_replication_paid }
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_archived }
+}
+
+USA_mkultra_can_start_countermeasure_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_slot_1_state = 0 }
+	check_variable = { USA_mkultra_countermeasure_stage = 1 }
+	has_country_flag = USA_mkultra_countermeasure_introduced
+	NOT = { has_country_flag = USA_mkultra_countermeasure_paid }
+}
+
+USA_mkultra_can_apply_administrative_consolidation_trigger = {
+	USA_mkultra_charter_active_trigger = yes
+	check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+	check_variable = { USA_mkultra_slot_1_state = 2 }
+	check_variable = { USA_mkultra_missing_baseline_profile = 1 }
+	has_country_flag = USA_mkultra_missing_baseline_replication_record_awarded
+	NOT = { has_country_flag = USA_mkultra_administrative_consolidation_applied }
+}
+
+USA_mkultra_can_accept_sponsor_reimbursement_trigger = {
+	USA_mkultra_charter_active_trigger = yes
+	check_variable = { USA_mkultra_slot_1_state = 2 }
+	check_variable = { USA_mkultra_missing_baseline_profile = 2 }
+	OR = {
+		check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+		check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+		check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+	}
+	NOT = { has_country_flag = USA_mkultra_sponsor_reimbursement_paid }
+	NOT = { has_country_flag = USA_mkultra_missing_baseline_archived }
+}
+
+USA_mkultra_can_apply_countermeasure_lessons_trigger = {
+	USA_mkultra_charter_active_trigger = yes
+	check_variable = { USA_mkultra_countermeasure_stage = 3 }
+	check_variable = { USA_mkultra_slot_1_state = 2 }
+	has_country_flag = USA_mkultra_countermeasure_record_awarded
+	NOT = { has_country_flag = USA_mkultra_countermeasure_lessons_earned }
+}
+
+# Native decision costs: renewal/countermeasure cost 35 PP; replication costs
+# 30 PP. These guards are AI policy only and never run after payment.
+USA_mkultra_ai_can_afford_replication_trigger = {
+	OR = {
+		AND = {
+			NOT = { USA_mkultra_major_crisis_trigger = yes }
+			has_political_power > 129
+		}
+		AND = {
+			USA_mkultra_major_crisis_trigger = yes
+			has_political_power > 179
+		}
+	}
+}
