@@ -1105,6 +1105,127 @@ VIE_binh_xuyen_revolt_shell = {
 	set_variable = { VIE_Warlord_Status_2 = 2 }	# hostile
 }
 
+VIE_create_trung_phan_commissariat = {
+	custom_effect_tooltip = VIE_Trung_Phan_Commissariat_tt
+	hidden_effect = {
+		capital_scope = { set_state_flag = VIE_Trung_Phan_Keep_Capital }
+		every_owned_state = {
+			limit = {
+				NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
+				OR = {
+					state = 1758
+					state = 757
+					state = 1759
+					state = 1287
+					state = 1288
+					state = 1289
+					state = 1756
+				}
+			}
+			TRP = { transfer_state = PREV }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = VIE_Montagnard_Autonomy_Retained } }
+			every_owned_state = {
+				limit = {
+					NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
+					OR = {
+						state = 1286
+						state = 982
+					}
+				}
+				TRP = { transfer_state = PREV }
+			}
+		}
+		capital_scope = { clr_state_flag = VIE_Trung_Phan_Keep_Capital }
+		if = {
+			limit = { country_exists = TRP }
+			set_country_flag = VIE_Trung_Phan_Commissariat
+			TRP = {
+				keep_current_politics = yes
+				every_owned_state = { add_core_of = TRP }
+				if = {
+					limit = { owns_state = 1758 }
+					set_capital = { state = 1758 }
+				}
+				else_if = {
+					limit = { owns_state = 757 }
+					set_capital = { state = 757 }
+				}
+				else = {
+					random_owned_state = { save_event_target_as = trp_capital }
+					set_capital = { state = event_target:trp_capital }
+				}
+			}
+			puppet = TRP
+			set_autonomy = {
+				target = TRP
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			every_enemy_country = {
+				TRP = {
+					add_to_war = {
+						targeted_alliance = VIE
+						enemy = PREV
+						hostility_reason = asked_to_join
+					}
+				}
+			}
+			if = {
+				limit = { has_character = VIE_Ngo_Dinh_Can }
+				VIE_Ngo_Dinh_Can = { set_nationality = TRP }
+			}
+			TRP = {
+				set_party_name = {
+					ideology = socialist
+					long_name = TRP_PARTY_CAN_LAO_long
+					name = TRP_PARTY_CAN_LAO
+				}
+				set_politics = {
+					ruling_party = socialist
+					elections_allowed = no
+				}
+				add_country_leader_role = {
+					character = VIE_Ngo_Dinh_Can
+					promote_leader = yes
+					country_leader = {
+						ideology = oriental_personalism
+					}
+				}
+				if = {
+					limit = { VIE = { has_idea = State_of_Vietnam_Faction } }
+					add_ideas = State_of_Vietnam_Faction
+				}
+				init_influence = yes
+				set_variable = { var = domestic_influence_amount value = 100 }
+				add_to_array = { influence_array = VIE.id }
+				add_to_array = { influence_array_val = 1800 }
+				add_to_array = { influence_array = FRA.id }
+				add_to_array = { influence_array_val = 400 }
+				add_to_array = { influence_array = USA.id }
+				add_to_array = { influence_array_val = 400 }
+				set_temp_variable = { influence_total = 0 }
+				set_temp_variable = { new_influence_total = 0 }
+				startup_influence = yes
+				if = {
+					limit = { NOT = { VIE = { check_variable = { Sphere_Leader = 0 } } } }
+					set_temp_variable = { New_sphere_leader = VIE.Sphere_Leader }
+					add_to_sphere = yes
+				}
+				set_variable = { currentMoney = 0.5 }
+				set_variable = { currentDebt = 0 }
+				set_variable = { currentDebtPayments = 0 }
+				clear_current_economic_modifiers = yes
+				set_variable = { economic_x_axis = VIE.economic_x_axis }
+				set_variable = { economic_y_axis = VIE.economic_y_axis }
+				startup_economics = yes
+				cwic_init_gdp_growth_tracking = yes
+			}
+		}
+	}
+}
+
 VIE_spawn_binh_xuyen_revolt = {
 	VIE_binh_xuyen_revolt_shell = yes
 	CCC = {
