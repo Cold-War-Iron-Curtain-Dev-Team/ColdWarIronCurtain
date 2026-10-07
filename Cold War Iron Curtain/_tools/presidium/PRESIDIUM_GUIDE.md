@@ -248,7 +248,7 @@ add_to_variable = { SOV_pres_beria_relation = -15 }
 
 ### 4.5 19th Congress (October 1952)
 
-This one is already hooked into the focus:
+Already hooked: the rename is on `SOV_Stalin_19th_Congress_Of_The_Communist_Party`, the two relationship hits on `SOV_Stalin_Denounce_Molotov_and_Mikoyan` (the October 1952 plenum). Recipes 4.2 and 4.4 are hooked on `SOV_Stalin_Purge_the_Leningrad_Dissenters` and `SOV_Stalin_Arrest_Abakumov`.
 
 ```
 set_country_flag = SOV_pres_presidium_name
