@@ -1,0 +1,296 @@
+# Phase 1 deliberately replaces the legacy project_mkultra_research operative
+# bonus in enabled modes. Off mode preserves the original focus reward unchanged.
+
+USA_mkultra_clamp_variables = {
+	if = {
+		limit = { has_variable = USA_mkultra_progress }
+		clamp_variable = {
+			var = USA_mkultra_progress
+			min = 0
+			max = 100
+		}
+	}
+	if = {
+		limit = { has_variable = USA_mkultra_exposure }
+		clamp_variable = {
+			var = USA_mkultra_exposure
+			min = 0
+			max = 100
+		}
+	}
+	if = {
+		limit = { has_variable = USA_mkultra_harm }
+		clamp_variable = {
+			var = USA_mkultra_harm
+			min = 0
+			max = 100
+		}
+	}
+}
+
+USA_mkultra_initialize = {
+	if = {
+		limit = { USA_mkultra_enabled_trigger = yes }
+
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_progress } }
+			set_variable = { USA_mkultra_progress = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_exposure } }
+			set_variable = { USA_mkultra_exposure = 5 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_harm } }
+			set_variable = { USA_mkultra_harm = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_schema_version } }
+			set_variable = { USA_mkultra_schema_version = 1 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_charter_id } }
+			set_variable = { USA_mkultra_charter_id = 1 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_charter_state } }
+			set_variable = { USA_mkultra_charter_state = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_slot_1_state } }
+			set_variable = { USA_mkultra_slot_1_state = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_missing_baseline_stage } }
+			set_variable = { USA_mkultra_missing_baseline_stage = 0 }
+		}
+
+		set_country_flag = USA_mkultra_initialized
+
+		if = {
+			limit = { USA_mkultra_has_entry_authority_trigger = yes }
+			set_country_flag = USA_mkultra_preparatory_authority
+		}
+
+		# This check intentionally runs on every adapter/reconciliation pass so a
+		# later focus or migrated save cannot restore the superseded legacy bonus.
+		if = {
+			limit = { has_idea = project_mkultra_research }
+			remove_ideas = project_mkultra_research
+		}
+
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_reconcile = yes
+	}
+}
+
+USA_mkultra_reconcile = {
+	if = {
+		limit = { USA_mkultra_enabled_trigger = yes }
+
+		USA_mkultra_clamp_variables = yes
+
+		# Durable disposition flags dominate malformed numeric state. This repairs
+		# only derived state and never replays a cost, exposure change, or reward.
+		if = {
+			limit = { has_country_flag = USA_mkultra_charter_terminated }
+			set_variable = { USA_mkultra_charter_state = 2 }
+			set_variable = { USA_mkultra_slot_1_state = 0 }
+			if = {
+				limit = { check_variable = { USA_mkultra_missing_baseline_stage = 1 } }
+				set_variable = { USA_mkultra_missing_baseline_stage = 4 }
+			}
+			if = {
+				limit = { check_variable = { USA_mkultra_missing_baseline_stage = 2 } }
+				set_country_flag = USA_mkultra_missing_baseline_archived
+				set_variable = { USA_mkultra_missing_baseline_stage = 3 }
+			}
+			if = {
+				limit = { has_idea = USA_mkultra_restricted_charter }
+				remove_ideas = USA_mkultra_restricted_charter
+			}
+			if = {
+				limit = { has_active_mission = USA_mkultra_missing_baseline_research }
+				remove_mission = USA_mkultra_missing_baseline_research
+			}
+			if = {
+				limit = { has_active_mission = USA_mkultra_missing_baseline_review }
+				remove_mission = USA_mkultra_missing_baseline_review
+			}
+		}
+
+		if = {
+			limit = {
+				has_country_flag = USA_mkultra_preparatory_authority
+				date > 1953.4.12
+				check_variable = { USA_mkultra_charter_state = 0 }
+				NOT = { has_country_flag = USA_mkultra_charter_terminated }
+			}
+			set_variable = { USA_mkultra_charter_id = 1 }
+			set_variable = { USA_mkultra_charter_state = 1 }
+		}
+
+		if = {
+			limit = { USA_mkultra_charter_active_trigger = yes }
+			if = {
+				limit = {
+					has_country_flag = USA_mkultra_missing_baseline_record_awarded
+					check_variable = { USA_mkultra_missing_baseline_stage = 1 }
+				}
+				set_variable = { USA_mkultra_missing_baseline_stage = 2 }
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { has_active_mission = USA_mkultra_missing_baseline_research }
+					remove_mission = USA_mkultra_missing_baseline_research
+				}
+			}
+			if = {
+				limit = {
+					has_country_flag = USA_mkultra_missing_baseline_archived
+					check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+				}
+				set_variable = { USA_mkultra_missing_baseline_stage = 3 }
+				set_variable = { USA_mkultra_slot_1_state = 0 }
+				if = {
+					limit = { has_active_mission = USA_mkultra_missing_baseline_review }
+					remove_mission = USA_mkultra_missing_baseline_review
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 1 }
+					has_country_flag = USA_mkultra_missing_baseline_paid
+					has_country_flag = USA_mkultra_missing_baseline_owner_cia
+					NOT = { has_country_flag = USA_mkultra_missing_baseline_record_awarded }
+				}
+				set_variable = { USA_mkultra_slot_1_state = 1 }
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+					has_country_flag = USA_mkultra_missing_baseline_record_awarded
+					NOT = { has_country_flag = USA_mkultra_missing_baseline_archived }
+				}
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+			}
+			if = {
+				limit = { NOT = { has_idea = USA_mkultra_restricted_charter } }
+				add_ideas = USA_mkultra_restricted_charter
+			}
+			if = {
+				limit = { NOT = { has_country_flag = USA_mkultra_authorization_announced } }
+				set_country_flag = USA_mkultra_authorization_announced
+				country_event = { id = cwic_mkultra.100 }
+			}
+
+			# Safe derived-state repair only: restore a missing timer for the exact
+			# persisted stage. Consumed stages and rewards are never reconstructed.
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 1 }
+					check_variable = { USA_mkultra_slot_1_state = 1 }
+					NOT = { has_active_mission = USA_mkultra_missing_baseline_research }
+				}
+				activate_mission = USA_mkultra_missing_baseline_research
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+					check_variable = { USA_mkultra_slot_1_state = 2 }
+					NOT = { has_active_mission = USA_mkultra_missing_baseline_review }
+				}
+				activate_mission = USA_mkultra_missing_baseline_review
+			}
+		}
+	}
+}
+
+USA_mkultra_start_missing_baseline = {
+	if = {
+		limit = { USA_mkultra_can_start_missing_baseline_trigger = yes }
+		set_country_flag = USA_mkultra_missing_baseline_paid
+		set_country_flag = USA_mkultra_missing_baseline_owner_cia
+		set_variable = { USA_mkultra_missing_baseline_stage = 1 }
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+		add_to_variable = { USA_mkultra_exposure = 2 }
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_missing_baseline_research
+	}
+}
+
+USA_mkultra_complete_missing_baseline = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_missing_baseline_stage = 1 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+			has_country_flag = USA_mkultra_missing_baseline_paid
+			has_country_flag = USA_mkultra_missing_baseline_owner_cia
+			NOT = { has_country_flag = USA_mkultra_missing_baseline_record_awarded }
+		}
+		set_country_flag = USA_mkultra_missing_baseline_record_awarded
+		add_to_variable = { USA_mkultra_progress = 12 }
+		set_variable = { USA_mkultra_missing_baseline_stage = 2 }
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_missing_baseline_review
+	}
+}
+
+USA_mkultra_archive_missing_baseline = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+			check_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+		set_country_flag = USA_mkultra_missing_baseline_archived
+		set_variable = { USA_mkultra_missing_baseline_stage = 3 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+	}
+}
+
+USA_mkultra_cancel_missing_baseline = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_missing_baseline_stage = 1 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+		set_variable = { USA_mkultra_missing_baseline_stage = 4 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+	}
+}
+
+USA_mkultra_terminate_charter = {
+	if = {
+		limit = { USA_mkultra_charter_active_trigger = yes }
+
+		# A committed study remains paid and exposed. Closure only prevents its
+		# ordinary completion and releases the occupied slot.
+		if = {
+			limit = { check_variable = { USA_mkultra_missing_baseline_stage = 1 } }
+			USA_mkultra_cancel_missing_baseline = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_missing_baseline_stage = 2 } }
+			USA_mkultra_archive_missing_baseline = yes
+		}
+
+		set_country_flag = USA_mkultra_charter_terminated
+		set_variable = { USA_mkultra_charter_state = 2 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+		if = {
+			limit = { has_idea = USA_mkultra_restricted_charter }
+			remove_ideas = USA_mkultra_restricted_charter
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_research }
+			remove_mission = USA_mkultra_missing_baseline_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_review }
+			remove_mission = USA_mkultra_missing_baseline_review
+		}
+		USA_mkultra_clamp_variables = yes
+	}
+}
