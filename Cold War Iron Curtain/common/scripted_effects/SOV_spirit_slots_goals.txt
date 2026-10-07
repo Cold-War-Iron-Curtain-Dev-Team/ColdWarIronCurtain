@@ -1,0 +1,125 @@
+# Rewards of the Stalin-era foreign policy goals (SOV_Stalin tree).
+# The goals cannot be taken by hand: SOV_evaluate_foreign_policy_goals completes every goal
+# whose condition holds when the 20th Congress is held, before the successor tree loads.
+# Loads after SOV_spirit_slots.txt, whose SOV_sotu_add_* effects it uses.
+
+# Scope: target country. Caller sets temp variable percent_change.
+SOV_goal_gain_influence = {
+	custom_effect_tooltip = SOV_goal_influence_tt
+	hidden_effect = {
+		set_temp_variable = { tag_index = SOV.id }
+		set_temp_variable = { influence_target = THIS.id }
+		change_influence_percentage = yes
+	}
+}
+
+SOV_goal_reward_eastern_europe_secured = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_goal_eastern_europe_secured_rewarded } }
+		hidden_effect = { set_country_flag = SOV_goal_eastern_europe_secured_rewarded }
+		add_political_power = 100
+		every_country = {
+			limit = {
+				is_in_faction_with = SOV
+				NOT = { tag = SOV }
+			}
+			add_opinion_modifier = { target = SOV modifier = medium_increase }
+			set_temp_variable = { percent_change = 5 }
+			SOV_goal_gain_influence = yes
+		}
+		SOV_sotu_add_SOV_goal_eastern_europe_secured = yes
+	}
+}
+
+SOV_goal_reward_avoid_direct_conflict = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_goal_avoid_direct_conflict_rewarded } }
+		hidden_effect = { set_country_flag = SOV_goal_avoid_direct_conflict_rewarded }
+		add_stability = 0.05
+		add_political_power = 50
+		SOV_sotu_add_SOV_goal_avoid_direct_conflict = yes
+	}
+}
+
+SOV_goal_reward_eastern_communism = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_goal_eastern_communism_rewarded } }
+		hidden_effect = { set_country_flag = SOV_goal_eastern_communism_rewarded }
+		army_experience = 100
+		every_country = {
+			limit = {
+				OR = { tag = MON tag = PRC tag = KPA tag = VIN tag = MLA tag = HUK }
+			}
+			set_temp_variable = { percent_change = 5 }
+			SOV_goal_gain_influence = yes
+		}
+		SOV_sotu_add_SOV_goal_eastern_communism = yes
+	}
+}
+
+SOV_goal_reward_western_europe_divided = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_goal_western_europe_divided_rewarded } }
+		hidden_effect = { set_country_flag = SOV_goal_western_europe_divided_rewarded }
+		add_political_power = 150
+		every_country = {
+			limit = {
+				OR = { tag = FRA tag = ENG tag = WGR tag = ITA }
+				NOT = { is_in_faction_with = USA }
+			}
+			set_temp_variable = { percent_change = 10 }
+			SOV_goal_gain_influence = yes
+		}
+		every_country = {
+			limit = { OR = { tag = FRA tag = ITA } }
+			add_popularity = { ideology = communism popularity = 0.05 }
+		}
+		SOV_sotu_add_SOV_goal_western_europe_divided = yes
+	}
+}
+
+SOV_goal_reward_communist_unity = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_goal_communist_unity_rewarded } }
+		hidden_effect = { set_country_flag = SOV_goal_communist_unity_rewarded }
+		YUG = {
+			add_opinion_modifier = { target = SOV modifier = medium_increase }
+			set_temp_variable = { percent_change = 10 }
+			SOV_goal_gain_influence = yes
+		}
+		PRC = {
+			add_opinion_modifier = { target = SOV modifier = medium_increase }
+		}
+		SOV_sotu_add_SOV_goal_communist_unity = yes
+	}
+}
+
+# Called from the 20th Congress focus: safety net for goals the engine has not bypassed yet.
+# complete_national_focus only runs the tooltip-only completion_reward, so the reward is paid here.
+SOV_evaluate_foreign_policy_goals = {
+	if = {
+		limit = { NOT = { has_completed_focus = SOV_Eastern_Europe_Secured } SOV_goal_eastern_europe_secured_met = yes }
+		complete_national_focus = SOV_Eastern_Europe_Secured
+		SOV_goal_reward_eastern_europe_secured = yes
+	}
+	if = {
+		limit = { NOT = { has_completed_focus = SOV_Western_Europe_divided } SOV_goal_western_europe_divided_met = yes }
+		complete_national_focus = SOV_Western_Europe_divided
+		SOV_goal_reward_western_europe_divided = yes
+	}
+	if = {
+		limit = { NOT = { has_completed_focus = SOV_Establish_Eastern_Communism } SOV_goal_eastern_communism_met = yes }
+		complete_national_focus = SOV_Establish_Eastern_Communism
+		SOV_goal_reward_eastern_communism = yes
+	}
+	if = {
+		limit = { NOT = { has_completed_focus = SOV_prevent_communist_deviations } SOV_goal_communist_unity_met = yes }
+		complete_national_focus = SOV_prevent_communist_deviations
+		SOV_goal_reward_communist_unity = yes
+	}
+	if = {
+		limit = { NOT = { has_completed_focus = SOV_Avoid_direct_conflict } SOV_goal_avoid_direct_conflict_met = yes }
+		complete_national_focus = SOV_Avoid_direct_conflict
+		SOV_goal_reward_avoid_direct_conflict = yes
+	}
+}
