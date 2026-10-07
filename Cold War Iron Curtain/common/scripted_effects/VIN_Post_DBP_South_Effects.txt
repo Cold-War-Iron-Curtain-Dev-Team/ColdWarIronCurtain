@@ -75,20 +75,58 @@ vin_post_dbp_legacy_compatibility = {
 	}
 }
 
-# Focus-owned queue processor. It can repair only the divisionless NLF paper
-# war, and only after Hanoi itself is at peace.
+# Focus-owned queue processor. Negotiations order the southern cadres to stand
+# down: after 90 days a surviving NLF signs a ceasefire with VIE. A disarmed NLF
+# is released at once. Both repairs wait until Hanoi itself is at peace.
 vin_post_dbp_focus_geneva_queue_tick = {
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+			NOT = { has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Ordered }
+		}
+		set_country_flag = VIN_Post_DBP_NLF_Stand_Down_Ordered
+		set_country_flag = { flag = VIN_Post_DBP_NLF_Stand_Down_Pending days = 90 value = 1 }
+		log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_stand_down_ordered|delay_days=90"
+	}
 	if = {
 		limit = {
 			has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 			has_war = no
 			country_exists = VIE
 			country_exists = NLF
-			NLF = { num_divisions < 1 }
-			VIE = { has_war_with = NLF }
+			NOT = { has_country_flag = VIN_Post_DBP_NLF_Regrouped }
+			OR = {
+				NLF = { num_divisions < 1 }
+				NOT = { has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Pending }
+			}
 		}
-		set_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice
-		VIE = { white_peace = NLF }
+		if = {
+			limit = { VIE = { NOT = { has_war_with = NLF } } }
+			set_country_flag = VIN_Post_DBP_NLF_Stood_Down
+			log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_released|reason=already_at_peace"
+		}
+		else_if = {
+			limit = { NLF = { num_divisions < 1 } }
+			set_country_flag = VIN_Post_DBP_Disarmed_NLF_Armistice
+			log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_released|reason=disarmed"
+		}
+		else = {
+			set_country_flag = VIN_Post_DBP_NLF_Stood_Down
+			log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_released|reason=stand_down"
+		}
+		vin_post_dbp_nlf_regroupment = yes
+	}
+	if = {
+		limit = {
+			has_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
+			has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Ordered
+			NOT = { has_country_flag = VIN_Post_DBP_NLF_Stand_Down_Pending }
+			NOT = { has_country_flag = VIN_Post_DBP_Gate_Block_Logged }
+			NOT = { geneva_conference_vietnam_at_peace_trigger = yes }
+		}
+		set_country_flag = VIN_Post_DBP_Gate_Block_Logged
+		if = { limit = { has_war = yes } log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=gate_blocked|reason=VIN_at_war" }
+		if = { limit = { country_exists = VIE VIE = { has_war = yes } } log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=gate_blocked|reason=VIE_at_war" }
 	}
 	if = {
 		limit = {
@@ -116,6 +154,36 @@ vin_post_dbp_focus_geneva_queue_tick = {
 		}
 		clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 	}
+}
+
+vin_post_dbp_nlf_regroupment = {
+	set_temp_variable = { regroup_divisions = 0 }
+	if = { limit = { NLF = { num_divisions > 0 } } set_temp_variable = { regroup_divisions = 1 } }
+	VIE = {
+		if = { limit = { has_war_with = NLF } white_peace = NLF }
+		annex_country = { target = NLF transfer_troops = no }
+	}
+	set_country_flag = VIN_Post_DBP_NLF_Regrouped
+	set_global_flag = geneva_nlf_outcome_applied
+	add_manpower = 20000
+	if = {
+		limit = { check_variable = { regroup_divisions > 0 } }
+		capital_scope = {
+			create_unit = {
+				division = "name = \"Southern Regroupment Regiment\" division_template = \"Trung doan Bo binh Infantry\" start_experience_factor = 0.4 start_equipment_factor = 0.7"
+				owner = VIN
+			}
+			create_unit = {
+				division = "name = \"Southern Regroupment Regiment\" division_template = \"Trung doan Bo binh Infantry\" start_experience_factor = 0.4 start_equipment_factor = 0.7"
+				owner = VIN
+			}
+		}
+	}
+	country_event = { id = VIN_South.10 hours = 1 }
+	if = { limit = { country_exists = VIE } VIE = { country_event = { id = VIN_South.11 hours = 1 } } }
+	set_temp_variable = { regroup_nlf_left = 0 }
+	if = { limit = { country_exists = NLF } set_temp_variable = { regroup_nlf_left = 1 } }
+	log = "IC_AFK|POST_DBP|date=[GetDateText]|stage=nlf_regrouped|nlf_had_divisions=[?regroup_divisions|0]|nlf_exists_after=[?regroup_nlf_left|0]"
 }
 
 vin_post_dbp_fund_southern_war = {
@@ -153,6 +221,9 @@ vin_post_dbp_fund_southern_war = {
 	}
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		set_temp_variable = { ic_trace_writer = 14 }
+		set_temp_variable = { ic_trace_communist = 25 }
+		ic_afk_trace_score_pair = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaCommunistScore = 25

@@ -1437,6 +1437,18 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = FIN
+			date > 1969.12.31
+			date < 1970.05.15
+			NOT = {
+				has_country_flag = focus_tree_70_reset_FIN
+			}
+		}
+		set_country_flag = focus_tree_70_reset_FIN
+		load_focus_tree = 70s_FIN
+	}
+	if = {
+		limit = {
 			tag = ROM
 			date > 1965.04.02
 			date < 1965.07.22
@@ -3476,7 +3488,7 @@ ic_pulse = {
 		limit = {
 			tag = USA
 			date > 1952.07.15
-			date < 1952.09.31
+		date < 1952.10.1
 			NOT = { has_country_flag = USA_1952_Nominations }
 		}
 		set_country_flag = USA_1952_Nominations
@@ -3487,7 +3499,7 @@ ic_pulse = {
 		limit = {
 			tag = USA
 			date > 1956.07.15
-			date < 1956.09.31
+		date < 1956.10.1
 		}
 		country_event = usa.1956
 		country_event = usa.19562
@@ -7425,23 +7437,19 @@ ic_pulse = {
 		vin_campaign_initialize = yes
 		vin_indochina_ai_initialize = yes
 		vin_campaign_watchdog = yes
-		add_to_variable = { VIN_Supply_Accrual_Counter = 1 }
+		log = "IC_AFK|VIN_PULSE|date=[GetDateText]|supply=[?VIN_Campaign_Supply|0]"
+		vin_accrue_monthly_supply = yes	# ic_pulse runs about every 31 days: one pulse is one month
 		if = {
-			limit = { check_variable = { VIN_Supply_Accrual_Counter > 27.9 } }	# ic_pulse is daily
-			set_variable = { VIN_Supply_Accrual_Counter = 0 }
-			vin_accrue_monthly_supply = yes
+			limit = { is_ai = yes }
+			set_temp_variable = { vin_ai_rifles = 600 }
 			if = {
-				limit = { is_ai = yes }
-				set_temp_variable = { vin_ai_rifles = 600 }
-				if = {
-					limit = { has_global_flag = PRC_Victory }
-					set_temp_variable = { vin_ai_rifles = 1200 }
-				}
-				add_equipment_to_stockpile = {
-					type = infantry_equipment_1
-					amount = vin_ai_rifles
-					producer = PRC
-				}
+				limit = { has_global_flag = PRC_Victory }
+				set_temp_variable = { vin_ai_rifles = 1200 }
+			}
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = vin_ai_rifles
+				producer = PRC
 			}
 		}
 	}
@@ -7525,24 +7533,42 @@ ic_pulse = {
 				manual_attack = yes # default yes. if no ai will not do manual pokes at enemy (only for front orders)
 			}
 		}
-		786 = {
-			create_unit = {
-				division = "name = \"\" division_template = \"Division d'Infanterie\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
-				owner = FRA
-				allow_spawning_on_enemy_provs = yes
-				prioritize_location = 4075
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				division_template = {
+					name = "Division de Marche du Tonkin"
+					regiments = {
+						infantry = { x = 0 y = 0 }
+						infantry = { x = 0 y = 1 }
+						infantry = { x = 0 y = 2 }
+						infantry = { x = 1 y = 0 }
+						artillery = { x = 2 y = 0 }
+					}
+					support = {
+						engineer = { x = 0 y = 0 }
+					}
+				}
 			}
-			create_unit = {
-				division = "name = \"\" division_template = \"Division d'Infanterie\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
-				owner = FRA
-				allow_spawning_on_enemy_provs = yes
-				prioritize_location = 1185
-			}
-			create_unit = {
-				division = "name = \"\" division_template = \"Division d'Infanterie\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
-				owner = FRA
-				allow_spawning_on_enemy_provs = yes
-				prioritize_location = 13770
+			786 = {
+				create_unit = {
+					division = "name = \"\" division_template = \"Division de Marche du Tonkin\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
+					owner = FRA
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4075
+				}
+				create_unit = {
+					division = "name = \"\" division_template = \"Division de Marche du Tonkin\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
+					owner = FRA
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 1185
+				}
+				create_unit = {
+					division = "name = \"\" division_template = \"Division de Marche du Tonkin\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
+					owner = FRA
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 13770
+				}
 			}
 		}
 		# 1287 = {
@@ -9562,6 +9588,166 @@ ic_pulse = {
 		}
 		news_event = cultural_events.7
 		set_country_flag = cultural_events_seven
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1980.05.01
+			date < 1980.06.01
+			NOT = { has_country_flag = flavor80_helens }
+		}
+		news_event = flavor80.1
+		set_country_flag = flavor80_helens
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1980.12.01
+			date < 1981.01.01
+			NOT = { has_country_flag = flavor80_lennon }
+		}
+		news_event = flavor80.2
+		set_country_flag = flavor80_lennon
+	}
+	if = {
+		limit = {
+			tag = ITA
+			date > 1980.08.01
+			date < 1980.09.01
+			NOT = { has_country_flag = flavor80_bologna }
+		}
+		news_event = flavor80.3
+		set_country_flag = flavor80_bologna
+	}
+	if = {
+		limit = {
+			tag = SPR
+			date > 1981.02.01
+			date < 1981.03.01
+			NOT = { has_country_flag = flavor80_23f }
+		}
+		news_event = flavor80.4
+		set_country_flag = flavor80_23f
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1984.03.01
+			date < 1984.04.01
+			NOT = { has_country_flag = flavor80_miners }
+		}
+		news_event = flavor80.5
+		set_country_flag = flavor80_miners
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1985.07.01
+			date < 1985.08.01
+			NOT = { has_country_flag = flavor80_live_aid }
+		}
+		news_event = flavor80.6
+		set_country_flag = flavor80_live_aid
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1986.01.01
+			date < 1986.02.01
+			NOT = { has_country_flag = flavor80_challenger }
+		}
+		news_event = flavor80.7
+		set_country_flag = flavor80_challenger
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1987.10.01
+			date < 1987.11.01
+			NOT = { has_country_flag = flavor80_black_monday }
+		}
+		news_event = flavor80.8
+		set_country_flag = flavor80_black_monday
+	}
+	if = {
+		limit = {
+			tag = WGR
+			date > 1990.10.01
+			date < 1990.11.01
+			NOT = { has_country_flag = flavor90_reunification }
+		}
+		news_event = flavor90.1
+		set_country_flag = flavor90_reunification
+	}
+	if = {
+		limit = {
+			tag = HOL
+			date > 1992.02.01
+			date < 1992.03.01
+			NOT = { has_country_flag = flavor90_maastricht }
+		}
+		news_event = flavor90.2
+		set_country_flag = flavor90_maastricht
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1992.05.01
+			date < 1992.06.01
+			NOT = { has_country_flag = flavor90_la_riots }
+		}
+		news_event = flavor90.3
+		set_country_flag = flavor90_la_riots
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1994.05.01
+			date < 1994.06.01
+			NOT = { has_country_flag = flavor90_channel }
+		}
+		news_event = flavor90.4
+		set_country_flag = flavor90_channel
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1995.04.01
+			date < 1995.05.01
+			NOT = { has_country_flag = flavor90_oklahoma }
+		}
+		news_event = flavor90.5
+		set_country_flag = flavor90_oklahoma
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1997.07.01
+			date < 1997.08.01
+			NOT = { has_country_flag = flavor90_hong_kong }
+		}
+		news_event = flavor90.6
+		set_country_flag = flavor90_hong_kong
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1997.08.01
+			date < 1997.09.01
+			NOT = { has_country_flag = flavor90_diana }
+		}
+		news_event = flavor90.7
+		set_country_flag = flavor90_diana
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1999.12.01
+			date < 2000.01.01
+			NOT = { has_country_flag = flavor90_y2k }
+		}
+		news_event = flavor90.8
+		set_country_flag = flavor90_y2k
 	}
 	if = {
 		limit = {
@@ -16287,6 +16473,156 @@ ic_pulse = {
 			news_event = cultural_events.6
 			set_country_flag = cultural_events_six
 		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1985.08.01
+				date < 1985.09.01
+				NOT = { has_country_flag = flavorjap_jal123 }
+			}
+			news_event = flavorjap.1
+			set_country_flag = flavorjap_jal123
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1985.09.01
+				date < 1985.10.01
+				NOT = { has_country_flag = flavorjap_plaza }
+			}
+			news_event = flavorjap.2
+			set_country_flag = flavorjap_plaza
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1988.06.01
+				date < 1988.07.01
+				NOT = { has_country_flag = flavorjap_recruit }
+			}
+			news_event = flavorjap.3
+			set_country_flag = flavorjap_recruit
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1989.01.01
+				date < 1989.02.01
+				NOT = { has_country_flag = flavorjap_showa }
+			}
+			news_event = flavorjap.4
+			set_country_flag = flavorjap_showa
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1990.01.01
+				date < 1990.02.01
+				NOT = { has_country_flag = flavorjap_bubble }
+			}
+			news_event = flavorjap.5
+			set_country_flag = flavorjap_bubble
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1995.01.01
+				date < 1995.02.01
+				NOT = { has_country_flag = flavorjap_kobe }
+			}
+			news_event = flavorjap.6
+			set_country_flag = flavorjap_kobe
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1995.03.01
+				date < 1995.04.01
+				NOT = { has_country_flag = flavorjap_aum }
+			}
+			news_event = flavorjap.7
+			set_country_flag = flavorjap_aum
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1996.02.01
+				date < 1996.03.01
+				NOT = { has_country_flag = flavorjap_pokemon }
+			}
+			news_event = flavorjap.8
+			set_country_flag = flavorjap_pokemon
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1979.07.01
+				date < 1979.08.01
+				NOT = { has_country_flag = flavorjap_walkman }
+			}
+			news_event = flavorjap.9
+			set_country_flag = flavorjap_walkman
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1982.10.01
+				date < 1982.11.01
+				NOT = { has_country_flag = flavorjap_cd }
+			}
+			news_event = flavorjap.10
+			set_country_flag = flavorjap_cd
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1989.09.01
+				date < 1989.10.01
+				NOT = { has_country_flag = flavorjap_columbia }
+			}
+			news_event = flavorjap.11
+			set_country_flag = flavorjap_columbia
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1991.06.01
+				date < 1991.07.01
+				NOT = { has_country_flag = flavorjap_nintendo_split }
+			}
+			news_event = flavorjap.12
+			set_country_flag = flavorjap_nintendo_split
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1994.12.01
+				date < 1995.01.01
+				NOT = { has_country_flag = flavorjap_playstation }
+			}
+			news_event = flavorjap.13
+			set_country_flag = flavorjap_playstation
+		}
+		if = {
+			limit = {
+				tag = HOL
+				date > 1991.10.01
+				date < 1991.11.01
+				NOT = { has_country_flag = flavorjap_cdi }
+			}
+			news_event = flavorjap.14
+			set_country_flag = flavorjap_cdi
+		}
+		if = {
+			limit = {
+				tag = HOL
+				date > 1998.01.01
+				date < 1998.02.01
+				NOT = { has_country_flag = flavorjap_cdi_end }
+			}
+			news_event = flavorjap.15
+			set_country_flag = flavorjap_cdi_end
+		}
 
 	### --- Republic of China (Taiwan) --- ###
 
@@ -17296,6 +17632,40 @@ ic_pulse = {
 		set_country_leader_portrait = {
 			ideology = communism
 			portrait = "gfx/leaders/CUB/Fidel_Castro_80s.dds"
+		}
+	}
+	
+	# Portrait Changes - Czechoslovakia
+	if = {
+		limit = {
+			original_tag = CZE
+			has_country_leader = {
+				name = "Antonín Novotný"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = CZE_Novotny_60s_Change }
+			date > 1962.1.1
+		}
+		set_country_flag = CZE_Novotny_60s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/CZE/Antonin_Novotny_60s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = CZE
+			has_country_leader = {
+				name = "Gustav Husak"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = CZE_Husak_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = CZE_Husak_80s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/CZE/Gustav_Husak_80s.dds"
 		}
 	}
 

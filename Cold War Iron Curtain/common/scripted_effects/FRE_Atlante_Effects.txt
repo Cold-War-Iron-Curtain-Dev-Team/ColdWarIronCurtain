@@ -26,6 +26,7 @@ fre_atlante_prepare_new_operation = {
 	clr_country_flag = FRE_Mission_Operation_Atlante_Failed
 	set_variable = { FRE_Atlante_Days_Elapsed = 0 }
 	set_variable = { FRE_Atlante_Hold_Days = 0 }
+	set_variable = { FRE_Atlante_Hold_Extension = 0 }
 }
 
 fre_atlante_begin_common = {
@@ -107,6 +108,9 @@ fre_atlante_abandon_unfunded = {
 	add_war_support = -0.01
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		set_temp_variable = { ic_trace_writer = 23 }
+		set_temp_variable = { ic_trace_amount = 10 }
+		ic_afk_trace_score_communist = yes
 		FRA = {
 			add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 10  tooltip = Add_to_Communist_Victory_Points_TT }
 			indochina_struggle_recalculate_total_anti_communist_score = yes
@@ -130,8 +134,13 @@ fre_atlante_daily_tick = {
 		}
 		else = { set_variable = { FRE_Atlante_Hold_Days = 0 } }
 
+		set_temp_variable = { fre_atlante_hold_gate = 14 }
 		if = {
-			limit = { NOT = { check_variable = { FRE_Atlante_Hold_Days < 14 } } }
+			limit = { has_variable = FRE_Atlante_Hold_Extension }
+			add_to_temp_variable = { fre_atlante_hold_gate = FRE_Atlante_Hold_Extension }
+		}
+		if = {
+			limit = { NOT = { check_variable = { FRE_Atlante_Hold_Days < fre_atlante_hold_gate } } }
 			if = {
 				limit = { has_country_flag = FRE_Atlante_Posture_Full }
 				fre_atlante_resolve_central_success = yes
@@ -148,11 +157,16 @@ fre_atlante_daily_tick = {
 fre_atlante_deadline_resolve = {
 	if = {
 		limit = { has_country_flag = FRE_Atlante_Offensive_Active }
+		set_temp_variable = { fre_atlante_hold_floor = 13 }
+		if = {
+			limit = { has_variable = FRE_Atlante_Hold_Extension }
+			add_to_temp_variable = { fre_atlante_hold_floor = FRE_Atlante_Hold_Extension }
+		}
 		if = {
 			limit = {
 				OR = {
-					AND = { has_country_flag = FRE_Atlante_Posture_Full  fre_atlante_full_objective_trigger = yes  NOT = { check_variable = { FRE_Atlante_Hold_Days < 13 } } }
-					AND = { has_country_flag = FRE_Atlante_Posture_Vietnamese  fre_atlante_vietnamese_objective_trigger = yes  NOT = { check_variable = { FRE_Atlante_Hold_Days < 13 } } }
+					AND = { has_country_flag = FRE_Atlante_Posture_Full  fre_atlante_full_objective_trigger = yes  NOT = { check_variable = { FRE_Atlante_Hold_Days < fre_atlante_hold_floor } } }
+					AND = { has_country_flag = FRE_Atlante_Posture_Vietnamese  fre_atlante_vietnamese_objective_trigger = yes  NOT = { check_variable = { FRE_Atlante_Hold_Days < fre_atlante_hold_floor } } }
 				}
 			}
 			if = { limit = { has_country_flag = FRE_Atlante_Posture_Full }  fre_atlante_resolve_central_success = yes }
@@ -179,6 +193,9 @@ fre_atlante_resolve_central_success = {
 		}
 		if = {
 			limit = { NOT = { has_global_flag = Indochina_War_Over } }
+			set_temp_variable = { ic_trace_writer = 23 }
+			set_temp_variable = { ic_trace_amount = 10 }
+			ic_afk_trace_score_pro_france = yes
 			FRA = {
 				add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 10  tooltip = Add_to_French_Victory_Points_TT }
 				indochina_struggle_recalculate_total_anti_communist_score = yes
@@ -202,6 +219,9 @@ fre_atlante_resolve_vietnamese_foothold = {
 		}
 		if = {
 			limit = { NOT = { has_global_flag = Indochina_War_Over } }
+			set_temp_variable = { ic_trace_writer = 23 }
+			set_temp_variable = { ic_trace_amount = 10 }
+			ic_afk_trace_score_pro_france = yes
 			FRA = {
 				add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = 10  tooltip = Add_to_French_Victory_Points_TT }
 				indochina_struggle_recalculate_total_anti_communist_score = yes
@@ -232,6 +252,10 @@ fre_atlante_resolve_stalled = {
 		add_war_support = -0.02
 		if = {
 			limit = { NOT = { has_global_flag = Indochina_War_Over } }
+			set_temp_variable = { ic_trace_writer = 23 }
+			set_temp_variable = { ic_trace_communist = 10 }
+			set_temp_variable = { ic_trace_pro_france = -10 }
+			ic_afk_trace_score_pair = yes
 			FRA = {
 				add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 10  tooltip = Add_to_Communist_Victory_Points_TT }
 				add_to_variable = { StruggleInvolvedNationsIndochinaProFranceScore = -10  tooltip = Add_to_French_Victory_Points_TT }
@@ -326,5 +350,6 @@ fre_atlante_cleanup = {
 	clr_country_flag = FRE_Atlante_Posture_Vietnamese
 	set_variable = { FRE_Atlante_Days_Elapsed = 0 }
 	set_variable = { FRE_Atlante_Hold_Days = 0 }
+	set_variable = { FRE_Atlante_Hold_Extension = 0 }
 	remove_mission = FRE_Mission_Operation_Atlante
 }

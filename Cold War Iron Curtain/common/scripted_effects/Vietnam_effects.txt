@@ -967,9 +967,9 @@ vietnam_sect_conditions_met_check = {
 					Hoa_Hao_Loyalty < 90
 				}
 			}
-			clr_country_flag = Ten_Hoa_Hao_Loyalty_Loyalty_Requirement_NOT_MET
+			clr_country_flag = Ten_Hoa_Hao_Loyalty_Requirement_NOT_MET
 			else = {
-				set_country_flag = Ten_Hoa_Hao_Loyalty_Loyalty_Requirement_NOT_MET
+				set_country_flag = Ten_Hoa_Hao_Loyalty_Requirement_NOT_MET
 			}
 		}
 		if = {
@@ -1011,9 +1011,9 @@ vietnam_sect_conditions_met_check = {
 					UMDC_Loyalty < 90
 				}
 			}
-			clr_country_flag = Ten_UMDC_Loyalty_Loyalty_Requirement_NOT_MET
+			clr_country_flag = Ten_UMDC_Loyalty_Requirement_NOT_MET
 			else = {
-				set_country_flag = Ten_UMDC_Loyalty_Loyalty_Requirement_NOT_MET
+				set_country_flag = Ten_UMDC_Loyalty_Requirement_NOT_MET
 			}
 		}
 		if = {
@@ -1103,6 +1103,130 @@ VIE_binh_xuyen_revolt_shell = {
 		}
 	}
 	set_variable = { VIE_Warlord_Status_2 = 2 }	# hostile
+}
+
+VIE_create_trung_phan_commissariat = {
+	custom_effect_tooltip = VIE_Trung_Phan_Commissariat_tt
+	hidden_effect = {
+		capital_scope = { set_state_flag = VIE_Trung_Phan_Keep_Capital }
+		every_owned_state = {
+			limit = {
+				NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
+				OR = {
+					state = 1758
+					state = 757
+					state = 1759
+					state = 1287
+					state = 1288
+					state = 1289
+					state = 1756
+				}
+			}
+			TRP = { transfer_state = PREV }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = VIE_Montagnard_Autonomy_Retained } }
+			every_owned_state = {
+				limit = {
+					NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
+					OR = {
+						state = 1286
+						state = 982
+					}
+				}
+				TRP = { transfer_state = PREV }
+			}
+		}
+		capital_scope = { clr_state_flag = VIE_Trung_Phan_Keep_Capital }
+		if = {
+			limit = { country_exists = TRP }
+			set_country_flag = VIE_Trung_Phan_Commissariat
+			TRP = {
+				keep_current_politics = yes
+				every_owned_state = { add_core_of = TRP }
+				if = {
+					limit = { owns_state = 1758 }
+					set_capital = { state = 1758 }
+				}
+				else_if = {
+					limit = { owns_state = 757 }
+					set_capital = { state = 757 }
+				}
+				else = {
+					random_owned_state = { save_event_target_as = trp_capital }
+					set_capital = { state = event_target:trp_capital }
+				}
+			}
+			puppet = TRP
+			set_autonomy = {
+				target = TRP
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			every_enemy_country = {
+				TRP = {
+					add_to_war = {
+						targeted_alliance = VIE
+						enemy = PREV
+						hostility_reason = asked_to_join
+					}
+				}
+			}
+			if = {
+				limit = { has_character = VIE_Ngo_Dinh_Can }
+				VIE_Ngo_Dinh_Can = { set_nationality = TRP }
+			}
+			TRP = {
+				set_party_name = {
+					ideology = socialist
+					long_name = TRP_PARTY_CAN_LAO_long
+					name = TRP_PARTY_CAN_LAO
+				}
+				set_politics = {
+					ruling_party = socialist
+					elections_allowed = no
+				}
+				add_country_leader_role = {
+					character = VIE_Ngo_Dinh_Can
+					promote_leader = yes
+					country_leader = {
+						ideology = oriental_personalism
+					}
+				}
+				if = {
+					limit = { VIE = { has_idea = State_of_Vietnam_Faction } }
+					add_ideas = State_of_Vietnam_Faction
+				}
+				init_influence = yes
+				set_variable = { var = domestic_influence_amount value = 100 }
+				add_to_array = { influence_array = VIE.id }
+				add_to_array = { influence_array_val = 1800 }
+				add_to_array = { influence_array = FRA.id }
+				add_to_array = { influence_array_val = 400 }
+				add_to_array = { influence_array = USA.id }
+				add_to_array = { influence_array_val = 400 }
+				set_temp_variable = { influence_total = 0 }
+				set_temp_variable = { new_influence_total = 0 }
+				startup_influence = yes
+				if = {
+					limit = { NOT = { VIE = { check_variable = { Sphere_Leader = 0 } } } }
+					set_temp_variable = { New_sphere_leader = VIE.Sphere_Leader }
+					add_to_sphere = yes
+				}
+				set_variable = { currentMoney = 0.5 }
+				set_variable = { currentDebt = 0 }
+				set_variable = { currentDebtPayments = 0 }
+				clear_current_economic_modifiers = yes
+				set_variable = { economic_x_axis = VIE.economic_x_axis }
+				set_variable = { economic_y_axis = VIE.economic_y_axis }
+				startup_economics = yes
+				cwic_init_gdp_growth_tracking = yes
+			}
+		}
+		# State ownership changed outside the integration GUI. Refresh its cached
+		# map data immediately so the new commissariat is displayed correctly.
+		VIE_state_dirty_variable = yes
+	}
 }
 
 VIE_spawn_binh_xuyen_revolt = {
@@ -1457,6 +1581,7 @@ vietnam_faction_ui_decision_click = {
 		binh_xuyen_loyalty_change_tt = yes
 		add_political_power = -200
 		add_stability = -0.15
+		set_country_flag = Recognized_Binh_Xuyen
 	}
 	else_if = {
 		limit = {
@@ -6705,6 +6830,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_7_Status = 1 }
+				set_variable = { VIE_State_7_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -6788,6 +6920,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_8_Status = 2 }
 				set_variable = { VIE_State_8_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_8_Status = 1 }
+				set_variable = { VIE_State_8_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -6877,6 +7016,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_9_Status = 1 }
+				set_variable = { VIE_State_9_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -6960,6 +7106,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_10_Status = 2 }
 				set_variable = { VIE_State_10_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_10_Status = 1 }
+				set_variable = { VIE_State_10_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7058,6 +7211,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_11_Status = 1 }
+				set_variable = { VIE_State_11_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -7153,6 +7313,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_12_Status = 1 }
+				set_variable = { VIE_State_12_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -7245,6 +7412,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_13_Status = 2 }
 				set_variable = { VIE_State_13_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_13_Status = 1 }
+				set_variable = { VIE_State_13_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7349,6 +7523,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_14_Status = 1 }
 				set_variable = { VIE_State_14_Owner = 3 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_14_Status = 1 }
+				set_variable = { VIE_State_14_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7539,6 +7720,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_16_Status = 1 }
 				set_variable = { VIE_State_16_Owner = 3 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_16_Status = 1 }
+				set_variable = { VIE_State_16_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -15268,11 +15456,9 @@ VIN_improve_drv_army = {
 	custom_effect_tooltip = Improve_DRV_Army_TT
 	add_to_variable = { var = VIN_M_A_ECR value = 0.02 }
 
-	add_to_variable = { var = VIN_M_A_OSP value = -0.01 }
 	add_to_variable = { var = VIN_M_A_HA value = -0.01 }
 	add_to_variable = { var = VIN_M_A_WA value = -0.01 }
 
-	add_to_variable = { var = VIN_M_A_SR value = 0.01 }
 
 	add_to_variable = { var = VIN_M_A_RDG value = -0.01 }
 
@@ -15291,10 +15477,8 @@ VIN_improve_drv_army = {
 	add_to_variable = { var = VIN_M_A_CDR value = 0.02 }
 	add_to_variable = { var = VIN_M_A_DSF value = 0.01 }
 	add_to_variable = { var = VIN_M_A_MD value = 1 }
-	add_to_variable = { var = VIN_M_A_MPF value = 0.01 }
 	add_to_variable = { var = VIN_M_A_PP value = -0.01 }
 	add_to_variable = { var = VIN_M_A_TPR value = 0.01 }
-	add_to_variable = { var = VIN_M_A_PS value = 0.01 }
 }
 # common/scripted_effects/VIN_drv_air_navy_effects.txt
 

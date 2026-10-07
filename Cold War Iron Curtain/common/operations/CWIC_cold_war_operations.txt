@@ -1,0 +1,659 @@
+### CWIC Cold War Covert Operations
+
+# 1. Sponsor Coup d'État
+operation_sponsor_coup = {
+	icon = GFX_operations_collaboration_government
+	map_icon = GFX_operations_collaboration_government_map
+	name = operation_sponsor_coup
+	desc = operation_sponsor_coup_desc
+	priority = 20
+
+	cost_multiplier = 0.5
+	days = 120
+	network_strength = 60
+	operatives = 2
+
+	visible = {
+		num_of_operatives > 1
+		network_national_coverage = {
+			target = FROM
+			value > 0
+		}
+		NOT = { FROM = { tag = ROOT } }
+	}
+
+	requirements = {
+		FROM = {
+			NOT = { is_in_faction_with = ROOT }
+			NOT = { is_subject_of = ROOT }
+		}
+	}
+
+	equipment = {
+		infantry_equipment = 1500
+		support_equipment = 100
+	}
+
+	required_tokens = {
+		token_civilian
+	}
+
+	risk_chance = 0.25
+	experience = 3.0
+	outcome_extra_chance = 0.30
+	outcome_modifiers = { operation_outcome }
+	risk_modifiers = { operation_risk }
+	cost_modifiers = { operation_cost }
+
+	outcome_execute = {
+		FROM = {
+			add_stability = -0.10
+			if = {
+				limit = { ROOT = { has_government = democratic } }
+				add_popularity = { ideology = democratic popularity = 0.15 }
+			}
+			else_if = {
+				limit = { ROOT = { has_government = communism } }
+				add_popularity = { ideology = communism popularity = 0.15 }
+			}
+			else_if = {
+				limit = { ROOT = { has_government = fascism } }
+				add_popularity = { ideology = fascism popularity = 0.15 }
+			}
+			else_if = {
+				limit = { ROOT = { has_government = neutrality } }
+				add_popularity = { ideology = neutrality popularity = 0.15 }
+			}
+		}
+		ROOT = {
+			remove_operation_token = {
+				tag = FROM
+				token = token_civilian
+			}
+		}
+	}
+
+	outcome_extra_execute = { # SCOPE_OPERATION
+		random_list = {
+			40 = { # Critical success - coup takes root deeply
+				FROM = {
+					add_stability = -0.20
+					if = {
+						limit = { ROOT = { has_government = democratic } }
+						add_popularity = { ideology = democratic popularity = 0.30 }
+					}
+					else_if = {
+						limit = { ROOT = { has_government = communism } }
+						add_popularity = { ideology = communism popularity = 0.30 }
+					}
+					else_if = {
+						limit = { ROOT = { has_government = fascism } }
+						add_popularity = { ideology = fascism popularity = 0.30 }
+					}
+					else_if = {
+						limit = { ROOT = { has_government = neutrality } }
+						add_popularity = { ideology = neutrality popularity = 0.30 }
+					}
+				}
+				ROOT = {
+					add_political_power = 50
+					add_intel = {
+						target = FROM
+						civilian_intel = 20
+					}
+				}
+			}
+			60 = { # Normal success
+				FROM = {
+					add_stability = -0.10
+					if = {
+						limit = { ROOT = { has_government = democratic } }
+						add_popularity = { ideology = democratic popularity = 0.15 }
+					}
+					else_if = {
+						limit = { ROOT = { has_government = communism } }
+						add_popularity = { ideology = communism popularity = 0.15 }
+					}
+					else_if = {
+						limit = { ROOT = { has_government = fascism } }
+						add_popularity = { ideology = fascism popularity = 0.15 }
+					}
+					else_if = {
+						limit = { ROOT = { has_government = neutrality } }
+						add_popularity = { ideology = neutrality popularity = 0.15 }
+					}
+				}
+			}
+		}
+	}
+
+	outcome_potential = {
+		FROM = {
+			add_stability = -0.10
+		}
+	}
+
+	target_weight = {
+		base = 50
+		modifier = {
+			factor = 2.0
+			FROM = { stability < 0.5 }
+		}
+	}
+
+	phases = { # Infiltration
+		infiltration_border = { base = 25 }
+		infiltration_submarine = { base = 25 }
+		infiltration_paradrop = { 
+			base = 25 
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+		infiltration_diplomatic = {
+			base = 25
+			modifier = {
+				factor = 10
+				ROOT = { has_war = no }
+				FROM = { has_war = no }
+			}
+		}
+	}
+	phases = { # Coup Organization
+		collaboration_government_set_up_planning_committees = { base = 35 }
+		collaboration_government_contact_military_officers = { base = 35 }
+		collaboration_government_train_paramilitary_forces = { base = 30 }
+	}
+	phases = { # Exfiltration
+		exfiltration_air_pickup = {
+			base = 20
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+		exfiltration_border = { base = 30 }
+		exfiltration_go_to_ground = { base = 30 }
+		exfiltration_submarine_pickup = { base = 20 }
+	}
+}
+
+# 2. Infiltrate & Sabotage Nuclear Program
+operation_infiltrate_nuclear_program = {
+	icon = GFX_operations_targeted_sabotage
+	map_icon = GFX_operations_targeted_sabotage_map
+	name = operation_infiltrate_nuclear_program
+	desc = operation_infiltrate_nuclear_program_desc
+	priority = 21
+
+	cost_multiplier = 0.5
+	days = 100
+	network_strength = 50
+	operatives = 2
+
+	visible = {
+		num_of_operatives > 1
+		network_national_coverage = {
+			target = FROM
+			value > 0
+		}
+		NOT = { FROM = { tag = ROOT } }
+	}
+
+	requirements = {
+		FROM = {
+			OR = {
+				has_tech = atomic_research
+				has_tech = nuclear_reactor
+				any_controlled_state = {
+					nuclear_reactor > 0
+				}
+			}
+		}
+	}
+
+	equipment = {
+		support_equipment = 200
+	}
+
+	required_tokens = {
+		token_civilian
+	}
+
+	risk_chance = 0.25
+	experience = 2.5
+	outcome_extra_chance = 0.35
+	outcome_modifiers = { target_sabotage_factor operation_outcome }
+	risk_modifiers = { target_sabotage_risk operation_risk }
+	cost_modifiers = { target_sabotage_cost operation_cost }
+
+	outcome_execute = {
+		ROOT = {
+			add_intel = {
+				target = FROM
+				civilian_intel = 15
+				army_intel = 10
+			}
+			remove_operation_token = {
+				tag = FROM
+				token = token_civilian
+			}
+		}
+		FROM = {
+			random_owned_controlled_state = {
+				limit = {
+					nuclear_reactor > 0
+				}
+				damage_building = {
+					type = nuclear_reactor
+					damage = 2
+				}
+			}
+		}
+	}
+
+	outcome_extra_execute = { # SCOPE_OPERATION
+		random_list = {
+			40 = { # Critical success - reactor destroyed and blueprints stolen
+				ROOT = {
+					add_intel = {
+						target = FROM
+						civilian_intel = 25
+						army_intel = 20
+					}
+					add_tech_bonus = {
+						name = nuclear_espionage_bonus
+						bonus = 1.0
+						uses = 1
+						category = nuclear
+					}
+				}
+				FROM = {
+					random_owned_controlled_state = {
+						limit = {
+							nuclear_reactor > 0
+						}
+						damage_building = {
+							type = nuclear_reactor
+							damage = 3
+						}
+					}
+				}
+			}
+			60 = { # Normal success
+				ROOT = {
+					add_intel = {
+						target = FROM
+						civilian_intel = 15
+						army_intel = 10
+					}
+				}
+				FROM = {
+					random_owned_controlled_state = {
+						limit = {
+							nuclear_reactor > 0
+						}
+						damage_building = {
+							type = nuclear_reactor
+							damage = 2
+						}
+					}
+				}
+			}
+		}
+	}
+
+	outcome_potential = {
+		ROOT = {
+			add_intel = {
+				target = FROM
+				civilian_intel = 15
+			}
+		}
+	}
+
+	target_weight = {
+		base = 75
+		modifier = {
+			factor = 2.0
+			FROM = { any_controlled_state = { nuclear_reactor > 0 } }
+		}
+	}
+
+	phases = { # Infiltration
+		infiltration_border = { base = 25 }
+		infiltration_submarine = { base = 25 }
+		infiltration_paradrop = { 
+			base = 25 
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+		infiltration_diplomatic = {
+			base = 25
+			modifier = {
+				factor = 10
+				ROOT = { has_war = no }
+				FROM = { has_war = no }
+			}
+		}
+	}
+	phases = { # Sabotage
+		targeted_sabotage_plant_explosives = { base = 50 }
+		steal_blueprints_bribe = { base = 25 }
+		steal_blueprints_seduction = { base = 25 }
+	}
+	phases = { # Exfiltration
+		exfiltration_air_pickup = {
+			base = 20
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+		exfiltration_border = { base = 30 }
+		exfiltration_go_to_ground = { base = 30 }
+		exfiltration_submarine_pickup = { base = 20 }
+	}
+}
+
+# 3. Covert Arms Drop to Insurgents
+operation_covert_arms_drop = {
+	icon = GFX_operations_boost_resistance
+	map_icon = GFX_operations_boost_resistance_map
+	name = operation_covert_arms_drop
+	desc = operation_covert_arms_drop_desc
+	priority = 19
+
+	cost_multiplier = 0.25
+	days = 60
+	network_strength = 35
+	operatives = 2
+
+	visible = {
+		num_of_operatives > 1
+		network_national_coverage = {
+			target = FROM
+			value > 0
+		}
+		has_operation_token = {
+			tag = FROM
+			token = token_resistance_contacts
+		}
+	}
+
+	selection_target = {
+		targets = { FROM }
+	}
+
+	selection_target_state = {
+		has_resistance = yes
+	}
+
+	requirements = {
+		FROM = {
+			any_controlled_state = {
+				has_resistance = yes
+			}
+		}
+	}
+
+	equipment = {
+		infantry_equipment = 1000
+		support_equipment = 100
+	}
+
+	required_tokens = {
+		token_resistance_contacts
+	}
+
+	risk_chance = 0.20
+	experience = 2.0
+	outcome_extra_chance = 0.30
+	outcome_modifiers = { boost_resistance_factor operation_outcome }
+	risk_modifiers = { operation_risk }
+	cost_modifiers = { operation_cost }
+
+	outcome_execute = {
+		FROM.FROM = {
+			add_resistance_target = {
+				amount = 20
+				tooltip = intelligency_agency_resistance_boost_tt
+			}
+			add_compliance = -10
+		}
+		FROM = {
+			add_stability = -0.05
+		}
+		ROOT = {
+			remove_operation_token = {
+				tag = FROM
+				token = token_resistance_contacts
+			}
+		}
+	}
+
+	outcome_extra_execute = { # SCOPE_OPERATION
+		random_list = {
+			40 = { # Critical success - major insurgent supply
+				FROM.FROM = {
+					add_resistance_target = {
+						amount = 35
+						tooltip = intelligency_agency_resistance_boost_tt
+					}
+					add_compliance = -20
+				}
+				FROM = {
+					add_stability = -0.08
+				}
+			}
+			60 = { # Normal success
+				FROM.FROM = {
+					add_resistance_target = {
+						amount = 20
+						tooltip = intelligency_agency_resistance_boost_tt
+					}
+					add_compliance = -10
+				}
+				FROM = {
+					add_stability = -0.05
+				}
+			}
+		}
+	}
+
+	outcome_potential = {
+		FROM.FROM = {
+			add_resistance_target = {
+				amount = 20
+				tooltip = intelligency_agency_resistance_boost_tt
+			}
+		}
+	}
+
+	target_weight = {
+		base = 80
+	}
+
+	phases = { # Delivery Infiltration
+		infiltration_border = { base = 35 }
+		infiltration_paradrop = {
+			base = 35
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+		infiltration_submarine = { base = 30 }
+	}
+	phases = { # Arming Resistance
+		resistance_support_distribute_weapons = { base = 40 }
+		resistance_support_arms_depots = { base = 30 }
+		resistance_support_organize_training = { base = 30 }
+	}
+	phases = { # Exfiltration
+		exfiltration_border = { base = 40 }
+		exfiltration_go_to_ground = { base = 40 }
+		exfiltration_air_pickup = {
+			base = 20
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+	}
+}
+
+# 4. Exfiltrate High-Level Defector
+operation_exfiltrate_defector = {
+	icon = GFX_operations_steal_blueprints
+	map_icon = GFX_operations_steal_blueprints_map
+	name = operation_exfiltrate_defector
+	desc = operation_exfiltrate_defector_desc
+	priority = 22
+
+	cost_multiplier = 0.5
+	days = 80
+	network_strength = 50
+	operatives = 2
+
+	visible = {
+		num_of_operatives > 1
+		network_national_coverage = {
+			target = FROM
+			value > 0
+		}
+		NOT = { FROM = { tag = ROOT } }
+	}
+
+	requirements = {
+		FROM = {
+			NOT = { is_in_faction_with = ROOT }
+		}
+	}
+
+	equipment = {
+		support_equipment = 50
+	}
+
+	required_tokens = {
+		token_civilian
+	}
+
+	risk_chance = 0.20
+	experience = 3.0
+	outcome_extra_chance = 0.35
+	outcome_modifiers = { operation_outcome }
+	risk_modifiers = { operation_risk }
+	cost_modifiers = { operation_cost }
+
+	outcome_execute = {
+		ROOT = {
+			add_intel = {
+				target = FROM
+				civilian_intel = 25
+				army_intel = 25
+				airforce_intel = 15
+				navy_intel = 15
+			}
+			add_tech_bonus = {
+				name = defector_tech_insight
+				bonus = 0.5
+				uses = 1
+				category = electronics
+			}
+			remove_operation_token = {
+				tag = FROM
+				token = token_civilian
+			}
+		}
+	}
+
+	outcome_extra_execute = { # SCOPE_OPERATION
+		random_list = {
+			40 = { # Critical success - intelligence jackpot with cryptologic keys
+				ROOT = {
+					add_intel = {
+						target = FROM
+						civilian_intel = 35
+						army_intel = 35
+						airforce_intel = 25
+						navy_intel = 25
+					}
+					add_tech_bonus = {
+						name = defector_tech_insight
+						bonus = 0.75
+						uses = 1
+						category = electronics
+					}
+					capture_ciphers = {
+						target = FROM
+					}
+				}
+			}
+			60 = { # Normal success
+				ROOT = {
+					add_intel = {
+						target = FROM
+						civilian_intel = 25
+						army_intel = 25
+						airforce_intel = 15
+						navy_intel = 15
+					}
+					add_tech_bonus = {
+						name = defector_tech_insight
+						bonus = 0.5
+						uses = 1
+						category = electronics
+					}
+				}
+			}
+		}
+	}
+
+	outcome_potential = {
+		ROOT = {
+			add_intel = {
+				target = FROM
+				civilian_intel = 25
+				army_intel = 25
+			}
+		}
+	}
+
+	target_weight = {
+		base = 60
+	}
+
+	phases = { # Infiltration
+		infiltration_diplomatic = {
+			base = 35
+			modifier = {
+				factor = 10
+				ROOT = { has_war = no }
+				FROM = { has_war = no }
+			}
+		}
+		infiltration_border = { base = 35 }
+		infiltration_submarine = { base = 30 }
+	}
+	phases = { # Defector Contact & Extraction
+		infiltrate_military_ideological_supporter = { base = 40 }
+		infiltrate_military_bribe = { base = 30 }
+		free_operative_smuggle_in_escape_gear = { base = 30 }
+	}
+	phases = { # Exfiltration
+		exfiltration_border = { base = 35 }
+		exfiltration_go_to_ground = { base = 35 }
+		exfiltration_air_pickup = {
+			base = 20
+			modifier = {
+				ROOT = { has_equipment = { transport_plane_equipment < 1 } }
+				factor = 0.1
+			}
+		}
+		exfiltration_submarine_pickup = { base = 10 }
+	}
+}
