@@ -1,0 +1,87 @@
+vin_patronage_window_open_trigger_effect = {
+	if = {
+		limit = {
+			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = geneva_conference_concluded }
+			check_variable = { global.Indochina_War_Active_Phase < 9 }
+		}
+		set_temp_variable = { vin_patronage_open = 1 }
+	}
+	else = {
+		set_temp_variable = { vin_patronage_open = 0 }
+	}
+}
+
+vin_patronage_chinese_complete = {
+	vin_patronage_window_open_trigger_effect = yes
+	if = {
+		limit = {
+			check_variable = { vin_patronage_open = 1 }
+			NOT = { has_country_flag = VIN_Patronage_Chinese }
+			NOT = { has_country_flag = VIN_Patronage_Soviet }
+		}
+		set_country_flag = VIN_Patronage_Chinese
+		add_ideas = VIN_Chinese_Advisory_Group
+		add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = PRC }
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = 100 producer = PRC }
+		set_temp_variable = { geneva_lev_amount = 25 }
+		geneva_add_communist_leverage = yes
+		log = "IC_AFK|PATRONAGE|date=[GetDateText]|choice=chinese|campaign_supply=[?VIN_Campaign_Supply|0]"
+	}
+	else = {
+		log = "IC_AFK|PATRONAGE_SKIPPED|date=[GetDateText]|choice=chinese|open=[?vin_patronage_open|0]"
+	}
+}
+
+vin_patronage_soviet_complete = {
+	vin_patronage_window_open_trigger_effect = yes
+	if = {
+		limit = {
+			check_variable = { vin_patronage_open = 1 }
+			NOT = { has_country_flag = VIN_Patronage_Chinese }
+			NOT = { has_country_flag = VIN_Patronage_Soviet }
+		}
+		set_country_flag = VIN_Patronage_Soviet
+		add_ideas = VIN_Soviet_Military_Mission
+		add_political_power = 100
+		add_tech_bonus = {
+			name = VIN_Soviet_Doctrine_Bonus
+			bonus = 0.5
+			uses = 1
+			category = land_doctrine
+		}
+		add_tech_bonus = {
+			name = VIN_Soviet_Artillery_Bonus
+			bonus = 0.5
+			uses = 1
+			category = artillery
+		}
+		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = SOV }
+		add_equipment_to_stockpile = { type = auto_cannon_equipment_1 amount = 40 producer = SOV }
+		set_temp_variable = { geneva_lev_amount = 40 }
+		geneva_add_communist_leverage = yes
+		log = "IC_AFK|PATRONAGE|date=[GetDateText]|choice=soviet|campaign_supply=[?VIN_Campaign_Supply|0]"
+	}
+	else = {
+		log = "IC_AFK|PATRONAGE_SKIPPED|date=[GetDateText]|choice=soviet|open=[?vin_patronage_open|0]"
+	}
+}
+
+vin_patronage_monthly_delivery = {
+	vin_patronage_window_open_trigger_effect = yes
+	if = {
+		limit = { check_variable = { vin_patronage_open = 1 } }
+		if = {
+			limit = { has_country_flag = VIN_Patronage_Chinese }
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 400 producer = PRC }
+			add_equipment_to_stockpile = { type = support_equipment_1 amount = 30 producer = PRC }
+			log = "IC_AFK|PATRONAGE_DELIVERY|date=[GetDateText]|source=chinese|infantry=400|support=30"
+		}
+		else_if = {
+			limit = { has_country_flag = VIN_Patronage_Soviet }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 25 producer = SOV }
+			add_equipment_to_stockpile = { type = auto_cannon_equipment_1 amount = 8 producer = SOV }
+			log = "IC_AFK|PATRONAGE_DELIVERY|date=[GetDateText]|source=soviet|artillery=25|anti_air=8"
+		}
+	}
+}

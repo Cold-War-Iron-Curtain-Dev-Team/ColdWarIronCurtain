@@ -27,7 +27,9 @@ indochina_struggle_auto_trigger_communist_victory_preparation = {
 		VIN = {
 			set_country_flag = VIN_Communist_Victory_Preparation_Triggered
 		}
-		log = "IC_AFK|SCORE_AWARD|date=[GetDateText]|source=communist_victory_preparation|communist_delta=350|phase_delta=175|communist_before=[?FRA.StruggleInvolvedNationsIndochinaCommunistScore|0]"
+		set_temp_variable = { ic_trace_amount = 350 }
+		set_temp_variable = { ic_trace_writer = 10 }
+		ic_afk_trace_score_communist = yes
 		add_to_variable = { FRA.StruggleInvolvedNationsIndochinaCommunistScore = 350 }
 		add_to_variable = { global.Indochina_War_Next_Phase_A_Points = 175 }
 	}
@@ -484,6 +486,7 @@ indochina_struggle_ending_cleanup = {
 			fre_castor_force_superseded_cleanup = yes
 			fre_pollux_force_superseded_cleanup = yes
 			fre_atlante_force_superseded_cleanup = yes
+			fre_lower_laos_cleanup = yes
 			fre_dbp_disband_gono = yes
 		}
 	}
@@ -563,6 +566,7 @@ indochina_struggle_communist_victory = {
 				limit = { country_exists = VIE }
 				VIE = {
 					remove_ideas = State_of_Vietnam_Faction
+					if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 				}
 				transfer_state = 757
 				transfer_state = 982
@@ -1228,6 +1232,7 @@ indochina_struggle_balkanized_vietnam = {
 				limit = { country_exists = VIE }
 				VIE = {
 					remove_ideas = State_of_Vietnam_Faction
+					if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 				}
 			}
 			if = {
@@ -1267,6 +1272,7 @@ indochina_struggle_dan_quoc_peace = {
 			}
 			VIE = {
 				remove_ideas = State_of_Vietnam_Faction
+				if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 			}
 		}
 		else = {
@@ -1314,6 +1320,7 @@ indochina_struggle_dan_quoc_peace = {
 			limit = { country_exists = VIE }
 			VIE = {
 				remove_ideas = State_of_Vietnam_Faction
+				if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 			}
 		}
 	}
@@ -1400,6 +1407,7 @@ indochina_struggle_american_north_vietnam = {
 				limit = { country_exists = VIE }
 				VIE = {
 					remove_ideas = State_of_Vietnam_Faction
+					if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 					remove_ideas = Viet_Minh_Faction
 				}
 				transfer_state = 757
@@ -1584,6 +1592,7 @@ indochina_struggle_kuomintang_victory = {
 				limit = { country_exists = VIE }
 				VIE = {
 					remove_ideas = State_of_Vietnam_Faction
+					if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 				}
 			}
 			if = {
@@ -1785,6 +1794,7 @@ indochina_struggle_run_geneva_ending_effect = {
 				if = {
 					limit = {
 						country_exists = FUL
+						FUL = { is_subject_of = ROOT }
 						has_global_flag = geneva_conference_concluded
 						check_variable = { global.geneva_minorities_term = 1 }
 					}
@@ -1793,23 +1803,19 @@ indochina_struggle_run_geneva_ending_effect = {
 						autonomy_state = autonomy_associated_state
 					}
 				}
-				else_if = {
-					limit = { country_exists = FUL }
-					annex_country = { target = FUL }
-				}
 				if = {
 					limit = { has_global_flag = geneva_unified_settlement }
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 1 } }
-					transfer_state = 982
+					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } } transfer_state = 982 }
 					transfer_state = 286
 					transfer_state = 983
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 3 } }
 					transfer_state = 757
-					transfer_state = 982
+					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } } transfer_state = 982 }
 					transfer_state = 286
 					transfer_state = 1287
 					transfer_state = 983
@@ -1819,7 +1825,7 @@ indochina_struggle_run_geneva_ending_effect = {
 				}
 				else = {
 					transfer_state = 757
-					transfer_state = 982
+					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } } transfer_state = 982 }
 					transfer_state = 286
 					transfer_state = 1287
 					transfer_state = 983
@@ -2087,6 +2093,7 @@ indochina_struggle_run_failed_state_ending_effect = {
 		limit = { country_exists = VIE }
 		VIE = {
 			remove_ideas = State_of_Vietnam_Faction
+			if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 		}
 	}
 	if = {
@@ -2288,6 +2295,9 @@ indochina_struggle_add_kuomintang_diplomatic_points = {
 }
 
 indochina_struggle_award_communist = {
+	set_temp_variable = { ic_trace_amount = ic_award }
+	if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 1 } }
+	ic_afk_trace_score_communist = yes
 	FRA = {
 		add_to_variable = {
 			StruggleInvolvedNationsIndochinaCommunistScore = ic_award
@@ -2297,6 +2307,9 @@ indochina_struggle_award_communist = {
 }
 
 indochina_struggle_award_pro_france = {
+	set_temp_variable = { ic_trace_amount = ic_award }
+	if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 1 } }
+	ic_afk_trace_score_pro_france = yes
 	FRA = {
 		add_to_variable = {
 			StruggleInvolvedNationsIndochinaProFranceScore = ic_award
@@ -2307,6 +2320,9 @@ indochina_struggle_award_pro_france = {
 }
 
 indochina_struggle_award_pro_independence = {
+	set_temp_variable = { ic_trace_amount = ic_award }
+	if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 1 } }
+	ic_afk_trace_score_pro_independence = yes
 	FRA = {
 		add_to_variable = {
 			StruggleInvolvedNationsIndochinaProIndependenceScore = ic_award
@@ -2317,6 +2333,9 @@ indochina_struggle_award_pro_independence = {
 }
 
 indochina_struggle_award_pro_ethnic = {
+	set_temp_variable = { ic_trace_amount = ic_award }
+	if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 1 } }
+	ic_afk_trace_score_pro_ethnic = yes
 	FRA = {
 		add_to_variable = {
 			StruggleInvolvedNationsIndochinaProEthnicScore = ic_award
@@ -2327,6 +2346,7 @@ indochina_struggle_award_pro_ethnic = {
 }
 
 indochina_struggle_award_kuomintang = {
+	set_temp_variable = { ic_trace_writer = 0 }
 	FRA = {
 		add_to_variable = {
 			StruggleInvolvedNationsIndochinaKuomintangScore = ic_award
@@ -2337,27 +2357,38 @@ indochina_struggle_award_kuomintang = {
 
 indochina_struggle_vin_focus_standard = {
 	set_temp_variable = { ic_award = 25 }
+	set_temp_variable = { ic_trace_writer = 3 }
 	indochina_struggle_grant_communist = yes
+	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 indochina_struggle_vin_focus_major = {
 	set_temp_variable = { ic_award = 50 }
+	set_temp_variable = { ic_trace_writer = 4 }
 	indochina_struggle_grant_communist = yes
+	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 indochina_struggle_vin_focus_breakthrough = {
 	set_temp_variable = { ic_award = 75 }
+	set_temp_variable = { ic_trace_writer = 5 }
 	indochina_struggle_grant_communist = yes
+	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 indochina_struggle_vin_focus_capstone = {
 	set_temp_variable = { ic_award = 100 }
+	set_temp_variable = { ic_trace_writer = 6 }
 	indochina_struggle_grant_communist = yes
+	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 indochina_struggle_grant_communist = {
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		set_temp_variable = { ic_trace_amount = ic_award }
+		if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 2 } }
+		ic_afk_trace_score_communist = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaCommunistScore = ic_award
@@ -2370,6 +2401,9 @@ indochina_struggle_grant_communist = {
 indochina_struggle_grant_pro_france = {
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		set_temp_variable = { ic_trace_amount = ic_award }
+		if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 2 } }
+		ic_afk_trace_score_pro_france = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaProFranceScore = ic_award
@@ -2383,6 +2417,9 @@ indochina_struggle_grant_pro_france = {
 indochina_struggle_grant_pro_independence = {
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		set_temp_variable = { ic_trace_amount = ic_award }
+		if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 2 } }
+		ic_afk_trace_score_pro_independence = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaProIndependenceScore = ic_award
@@ -2396,6 +2433,9 @@ indochina_struggle_grant_pro_independence = {
 indochina_struggle_grant_pro_ethnic = {
 	if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
+		set_temp_variable = { ic_trace_amount = ic_award }
+		if = { limit = { NOT = { check_variable = { ic_trace_writer > 0 } } } set_temp_variable = { ic_trace_writer = 2 } }
+		ic_afk_trace_score_pro_ethnic = yes
 		FRA = {
 			add_to_variable = {
 				StruggleInvolvedNationsIndochinaProEthnicScore = ic_award
@@ -2422,6 +2462,7 @@ indochina_raid_award_actor = {
 	set_temp_variable = { FRA.ic_raid_award_transfer = ic_award }
 	var:actor_country = {
 		set_temp_variable = { ic_award = FRA.ic_raid_award_transfer }
+		set_temp_variable = { ic_trace_writer = 7 }
 		if = {
 			limit = {
 				NOT = { has_global_flag = Indochina_War_Over }
@@ -2439,7 +2480,7 @@ indochina_raid_award_actor = {
 		else_if = {
 			limit = {
 				NOT = { has_global_flag = Indochina_War_Over }
-				is_in_array = { FRA.ic_award = THIS.id }
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
 			}
 			indochina_struggle_award_pro_independence = yes
 		}
@@ -2464,6 +2505,7 @@ indochina_raid_award_victim = {
 	set_temp_variable = { FRA.ic_raid_award_transfer = ic_award }
 	var:victim_country = {
 		set_temp_variable = { ic_award = FRA.ic_raid_award_transfer }
+		set_temp_variable = { ic_trace_writer = 8 }
 		if = {
 			limit = {
 				NOT = { has_global_flag = Indochina_War_Over }
@@ -2506,11 +2548,15 @@ indochina_raid_penalise_victim = {
 	set_temp_variable = { FRA.ic_raid_award_transfer = ic_award }
 	var:victim_country = {
 		set_temp_variable = { ic_award = FRA.ic_raid_award_transfer }
+		set_temp_variable = { ic_trace_amount = ic_award }
+		multiply_temp_variable = { ic_trace_amount = -1 }
 		if = {
 			limit = {
 				NOT = { has_global_flag = Indochina_War_Over }
 				is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
 			}
+			set_temp_variable = { ic_trace_writer = 9 }
+			ic_afk_trace_score_communist = yes
 			FRA = {
 				subtract_from_variable = {
 					StruggleInvolvedNationsIndochinaCommunistScore = ic_award
@@ -2523,6 +2569,8 @@ indochina_raid_penalise_victim = {
 				NOT = { has_global_flag = Indochina_War_Over }
 				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id }
 			}
+			set_temp_variable = { ic_trace_writer = 9 }
+			ic_afk_trace_score_pro_france = yes
 			FRA = {
 				subtract_from_variable = {
 					StruggleInvolvedNationsIndochinaProFranceScore = ic_award
@@ -2535,6 +2583,8 @@ indochina_raid_penalise_victim = {
 				NOT = { has_global_flag = Indochina_War_Over }
 				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
 			}
+			set_temp_variable = { ic_trace_writer = 9 }
+			ic_afk_trace_score_pro_independence = yes
 			FRA = {
 				subtract_from_variable = {
 					StruggleInvolvedNationsIndochinaProIndependenceScore = ic_award
@@ -2547,6 +2597,8 @@ indochina_raid_penalise_victim = {
 				NOT = { has_global_flag = Indochina_War_Over }
 				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
 			}
+			set_temp_variable = { ic_trace_writer = 9 }
+			ic_afk_trace_score_pro_ethnic = yes
 			FRA = {
 				subtract_from_variable = {
 					StruggleInvolvedNationsIndochinaProEthnicScore = ic_award
