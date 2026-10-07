@@ -120,9 +120,13 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_FP93_state_department }
-	x = 34
-	y = 5
-	completion_reward = { set_country_flag = USA90_balkan_policy_open add_political_power = 50 }
+	x = 50
+	y = 1
+	completion_reward = {
+		set_country_flag = USA90_balkan_policy_open
+		add_political_power = 50
+		country_event = USA90D.1
+	}
 }
 shared_focus = {
 	id = USA90_FP93_bosnia_choice
@@ -130,9 +134,22 @@ shared_focus = {
 	cost = 10
 	prerequisite = { focus = USA90_FP93_balkan_crisis }
 	mutually_exclusive = { focus = USA90_FP93_bosnian_restraint }
-	x = 32
-	y = 6
-	completion_reward = { add_war_support = 0.03 add_to_variable = { USA_90S_PUBLIC_MANDATE = -2 } USA90_clamp_variables = yes }
+	x = 48
+	y = 2
+	completion_reward = {
+		set_country_flag = USA90_bosnia_lift_and_strike
+		set_temp_variable = { money_change_temp = -2.0 }
+		cwic_change_money = yes
+		add_war_support = 0.04
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -4 }
+		if = {
+			limit = { country_exists = BOS }
+			add_opinion_modifier = { target = BOS modifier = medium_increase }
+			BOS = { add_opinion_modifier = { target = USA modifier = medium_increase } }
+		}
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
 }
 shared_focus = {
 	id = USA90_FP93_bosnian_restraint
@@ -140,18 +157,101 @@ shared_focus = {
 	cost = 10
 	prerequisite = { focus = USA90_FP93_balkan_crisis }
 	mutually_exclusive = { focus = USA90_FP93_bosnia_choice }
-	x = 36
-	y = 6
-	completion_reward = { add_stability = 0.02 add_to_variable = { USA_90S_PUBLIC_MANDATE = 2 } USA90_clamp_variables = yes }
+	x = 52
+	y = 2
+	completion_reward = {
+		set_country_flag = USA90_bosnia_restraint
+		add_stability = 0.02
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = 2 }
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
+}
+shared_focus = {
+	id = USA90_FP93_deliberate_force
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_bosnia_choice }
+	x = 48
+	y = 3
+	completion_reward = {
+		set_global_flag = USA90_deliberate_force
+		add_air_experience = 40
+		add_war_support = 0.03
+		country_event = USA90D.2
+	}
+}
+shared_focus = {
+	id = USA90_FP93_srebrenica
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_bosnian_restraint }
+	x = 52
+	y = 3
+	completion_reward = {
+		set_country_flag = USA90_srebrenica
+		add_stability = -0.03
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -8 }
+		country_event = USA90D.3
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
+}
+shared_focus = {
+	id = USA90_FP93_frozen_war
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_srebrenica }
+	mutually_exclusive = { focus = USA90_FP93_reverse_course }
+	x = 51
+	y = 4
+	completion_reward = {
+		set_global_flag = USA90_bosnia_frozen
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -2 }
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
+}
+shared_focus = {
+	id = USA90_FP93_reverse_course
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_srebrenica }
+	mutually_exclusive = { focus = USA90_FP93_frozen_war }
+	x = 53
+	y = 4
+	completion_reward = {
+		set_country_flag = USA90_bosnia_reversed
+		set_temp_variable = { money_change_temp = -1.5 }
+		cwic_change_money = yes
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -6 }
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
 }
 shared_focus = {
 	id = USA90_FP93_dayton_process
 	icon = GFX_goal_unknown
 	cost = 10
-	prerequisite = { focus = USA90_FP93_bosnia_choice focus = USA90_FP93_bosnian_restraint }
-	x = 34
-	y = 7
-	completion_reward = { add_political_power = 125 add_to_variable = { USA_90S_PUBLIC_MANDATE = 5 } USA90_clamp_variables = yes USA90_update_state_ideas = yes }
+	prerequisite = { focus = USA90_FP93_deliberate_force focus = USA90_FP93_reverse_course }
+	available = { NOT = { has_global_flag = USA90_bosnia_frozen } }
+	x = 48
+	y = 4
+	completion_reward = {
+		if = {
+			limit = { has_country_flag = USA90_bosnia_reversed }
+			add_to_variable = { USA_90S_PUBLIC_MANDATE = 1 }
+			set_global_flag = USA90_dayton_diminished
+		}
+		else = {
+			add_to_variable = { USA_90S_PUBLIC_MANDATE = 6 }
+			set_global_flag = USA90_dayton_accords
+		}
+		add_political_power = 75
+		country_event = USA90D.4
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
 }
 shared_focus = {
 	id = USA90_FP93_somalia_after_action
@@ -201,29 +301,224 @@ shared_focus = {
 	completion_reward = { add_political_power = 100 add_stability = 0.02 }
 }
 shared_focus = {
-	id = USA90_FP93_north_korean_framework
-	icon = GFX_goal_unknown
-	cost = 10
-	prerequisite = { focus = USA90_FP93_oslo_process }
-	x = 44
-	y = 5
-	completion_reward = { add_political_power = 75 add_war_support = 0.02 }
-}
-shared_focus = {
 	id = USA90_FP93_iraq_containment
 	icon = GFX_goal_unknown
 	cost = 10
-	prerequisite = { focus = USA90_FP93_north_korean_framework }
-	x = 44
+	prerequisite = { focus = USA90_FP93_state_department }
+	x = 56
+	y = 1
+	completion_reward = {
+		set_country_flag = USA90_iraq_containment_open
+		add_air_experience = 15
+		if = {
+			limit = { country_exists = IRQ }
+			add_opinion_modifier = { target = IRQ modifier = medium_decrease }
+			IRQ = { add_opinion_modifier = { target = USA modifier = medium_decrease } }
+		}
+	}
+}
+shared_focus = {
+	id = USA90_FP93_northern_watch
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_iraq_containment }
+	x = 54
+	y = 2
+	completion_reward = {
+		set_global_flag = USA90_iraq_northern_watch
+		add_air_experience = 25
+	}
+}
+shared_focus = {
+	id = USA90_FP93_southern_watch
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_iraq_containment }
+	x = 58
+	y = 2
+	completion_reward = {
+		set_global_flag = USA90_iraq_southern_watch
+		add_air_experience = 25
+	}
+}
+shared_focus = {
+	id = USA90_FP93_tighten_sanctions
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_iraq_containment }
+	mutually_exclusive = { focus = USA90_FP93_oil_for_food }
+	x = 54
+	y = 3
+	completion_reward = {
+		set_country_flag = USA90_iraq_sanctions_tight
+		set_temp_variable = { money_change_temp = -1.5 }
+		cwic_change_money = yes
+		if = {
+			limit = { country_exists = IRQ }
+			add_opinion_modifier = { target = IRQ modifier = large_decrease }
+			IRQ = { add_opinion_modifier = { target = USA modifier = large_decrease } }
+		}
+	}
+}
+shared_focus = {
+	id = USA90_FP93_oil_for_food
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_iraq_containment }
+	mutually_exclusive = { focus = USA90_FP93_tighten_sanctions }
+	x = 58
+	y = 3
+	completion_reward = {
+		set_country_flag = USA90_iraq_oil_for_food
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = 2 }
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
+}
+shared_focus = {
+	id = USA90_FP93_unscom
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_tighten_sanctions focus = USA90_FP93_oil_for_food }
+	x = 56
+	y = 4
+	completion_reward = {
+		set_country_flag = USA90_unscom_deployed
+		country_event = USA90D.10
+	}
+}
+shared_focus = {
+	id = USA90_FP93_inspections_hold
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_unscom }
+	mutually_exclusive = { focus = USA90_FP93_inspections_break }
+	available = { has_country_flag = USA90_iraq_sanctions_tight }
+	x = 54
+	y = 5
+	completion_reward = {
+		set_global_flag = USA90_iraq_inspections_holding
+		add_political_power = 50
+		add_stability = 0.02
+	}
+}
+shared_focus = {
+	id = USA90_FP93_inspections_break
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_unscom }
+	mutually_exclusive = { focus = USA90_FP93_inspections_hold }
+	x = 58
+	y = 5
+	completion_reward = {
+		set_global_flag = USA90_iraq_inspections_collapsed
+		add_war_support = 0.03
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -3 }
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
+}
+shared_focus = {
+	id = USA90_FP93_desert_fox
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_inspections_break }
+	x = 58
 	y = 6
-	completion_reward = { add_air_experience = 25 add_war_support = 0.03 }
+	completion_reward = {
+		set_global_flag = USA90_desert_fox
+		add_air_experience = 40
+		add_war_support = 0.04
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -3 }
+		country_event = USA90D.11
+		if = {
+			limit = { country_exists = IRQ }
+			add_opinion_modifier = { target = IRQ modifier = large_decrease }
+			IRQ = {
+				add_opinion_modifier = { target = USA modifier = large_decrease }
+				country_event = USA90D.12
+			}
+		}
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
+}
+shared_focus = {
+	id = USA90_FP93_north_korean_framework
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_state_department }
+	x = 62
+	y = 1
+	completion_reward = {
+		set_country_flag = USA90_nk_framework_open
+		add_political_power = 50
+		country_event = USA90D.20
+	}
+}
+shared_focus = {
+	id = USA90_FP93_fund_the_framework
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_north_korean_framework }
+	mutually_exclusive = { focus = USA90_FP93_harder_inspections focus = USA90_FP93_strike_option }
+	x = 60
+	y = 2
+	completion_reward = {
+		set_country_flag = USA90_agreed_framework_funded
+		set_temp_variable = { money_change_temp = -2.5 }
+		cwic_change_money = yes
+		if = {
+			limit = { country_exists = KPA }
+			add_opinion_modifier = { target = KPA modifier = medium_increase }
+			KPA = { add_opinion_modifier = { target = USA modifier = medium_increase } }
+		}
+		country_event = { id = USA90D.21 days = 70 }
+	}
+}
+shared_focus = {
+	id = USA90_FP93_harder_inspections
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_north_korean_framework }
+	mutually_exclusive = { focus = USA90_FP93_fund_the_framework focus = USA90_FP93_strike_option }
+	x = 62
+	y = 2
+	completion_reward = {
+		set_country_flag = USA90_agreed_framework_hardline
+		set_global_flag = USA90_nk_talks_stalled
+		add_political_power = 50
+		if = {
+			limit = { country_exists = KPA }
+			add_opinion_modifier = { target = KPA modifier = medium_decrease }
+			KPA = { add_opinion_modifier = { target = USA modifier = medium_decrease } }
+		}
+		country_event = USA90D.22
+	}
+}
+shared_focus = {
+	id = USA90_FP93_strike_option
+	icon = GFX_goal_unknown
+	cost = 10
+	prerequisite = { focus = USA90_FP93_north_korean_framework }
+	mutually_exclusive = { focus = USA90_FP93_fund_the_framework focus = USA90_FP93_harder_inspections }
+	x = 64
+	y = 2
+	completion_reward = {
+		set_global_flag = USA90_nk_strike_plan
+		add_war_support = 0.04
+		add_to_variable = { USA_90S_PUBLIC_MANDATE = -4 }
+		country_event = USA90D.23
+		USA90_clamp_variables = yes
+		USA90_update_state_ideas = yes
+	}
 }
 
 shared_focus = {
 	id = USA90_MIL93_force_posture_review
 	icon = GFX_goal_unknown
 	cost = 10
-	x = 54
+	x = 72
 	y = 0
 	completion_reward = { add_army_experience = 25 add_political_power = 50 }
 }
@@ -233,7 +528,7 @@ shared_focus = {
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_force_posture_review }
 	mutually_exclusive = { focus = USA90_MIL93_retain_two_front_force }
-	x = 52
+	x = 70
 	y = 1
 	completion_reward = { add_ideas = USA90_peacekeeping_force add_political_power = 75 }
 }
@@ -243,7 +538,7 @@ shared_focus = {
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_force_posture_review }
 	mutually_exclusive = { focus = USA90_MIL93_smaller_expeditionary_force }
-	x = 56
+	x = 74
 	y = 1
 	completion_reward = { add_ideas = USA90_two_front_force add_war_support = 0.04 }
 }
@@ -252,7 +547,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_smaller_expeditionary_force focus = USA90_MIL93_retain_two_front_force }
-	x = 54
+	x = 72
 	y = 2
 	completion_reward = { add_political_power = 100 add_to_variable = { USA_90S_PUBLIC_MANDATE = -2 } USA90_clamp_variables = yes }
 }
@@ -261,7 +556,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_base_realignment }
-	x = 54
+	x = 72
 	y = 3
 	completion_reward = { add_ideas = USA90_rma add_army_experience = 35 }
 }
@@ -270,7 +565,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_revolution_in_military_affairs }
-	x = 54
+	x = 72
 	y = 4
 	completion_reward = { add_air_experience = 35 add_navy_experience = 20 }
 }
@@ -279,7 +574,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_precision_and_networks }
-	x = 54
+	x = 72
 	y = 5
 	completion_reward = { add_army_experience = 40 add_command_power = 20 }
 }
@@ -288,7 +583,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_MIL93_special_operations_growth }
-	x = 54
+	x = 72
 	y = 6
 	completion_reward = { add_ideas = USA90_peacekeeping_force add_political_power = 75 }
 }
@@ -297,7 +592,7 @@ shared_focus = {
 	id = USA90_INT93_emerging_networks
 	icon = GFX_goal_unknown
 	cost = 10
-	x = 64
+	x = 82
 	y = 0
 	completion_reward = { add_to_variable = { USA_CT_CAPACITY = 5 } add_to_variable = { USA_CT_LEADS = 5 } USA90_clamp_variables = yes USA90_update_state_ideas = yes }
 }
@@ -306,7 +601,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_INT93_emerging_networks }
-	x = 64
+	x = 82
 	y = 1
 	completion_reward = { set_country_flag = USA90_jttf_expanded add_to_variable = { USA_CT_CAPACITY = 10 } USA90_clamp_variables = yes }
 }
@@ -315,7 +610,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_INT93_joint_task_forces }
-	x = 64
+	x = 82
 	y = 2
 	completion_reward = { set_country_flag = USA90_interagency_exchange add_ideas = USA90_interagency_coordination add_to_variable = { USA_CT_CAPACITY = 10 } USA90_clamp_variables = yes }
 }
@@ -324,7 +619,7 @@ shared_focus = {
 	icon = GFX_airliner
 	cost = 10
 	prerequisite = { focus = USA90_INT93_interagency_center }
-	x = 64
+	x = 82
 	y = 3
 	completion_reward = { set_country_flag = USA90_aviation_hardened add_ideas = USA90_aviation_security add_to_variable = { USA_CT_NETWORK_PRESSURE = -5 } USA90_clamp_variables = yes }
 }
@@ -333,7 +628,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_INT93_aviation_security_review }
-	x = 64
+	x = 82
 	y = 4
 	completion_reward = { set_country_flag = USA90_embassies_hardened add_ideas = USA90_embassy_hardening add_to_variable = { USA_CT_NETWORK_PRESSURE = -5 } USA90_clamp_variables = yes }
 }
@@ -342,7 +637,7 @@ shared_focus = {
 	icon = GFX_goal_unknown
 	cost = 10
 	prerequisite = { focus = USA90_INT93_embassy_security_program }
-	x = 64
+	x = 82
 	y = 5
 	completion_reward = { add_to_variable = { USA_CT_LEADS = 15 } add_to_variable = { USA_CT_NETWORK_PRESSURE = -5 } USA90_clamp_variables = yes USA90_update_state_ideas = yes }
 }
@@ -373,7 +668,23 @@ shared_focus = {
 	prerequisite = { focus = USA90_FP97_nato_enlargement }
 	x = 30
 	y = 2
-	completion_reward = { add_war_support = 0.04 add_air_experience = 30 }
+	completion_reward = {
+		add_war_support = 0.04
+		add_air_experience = 30
+		if = {
+			limit = { has_global_flag = USA90_dayton_accords }
+			add_to_variable = { USA_90S_PUBLIC_MANDATE = 3 }
+			USA90_clamp_variables = yes
+			USA90_update_state_ideas = yes
+		}
+		if = {
+			limit = { has_global_flag = USA90_bosnia_frozen }
+			add_to_variable = { USA_90S_PUBLIC_MANDATE = -4 }
+			add_war_support = 0.03
+			USA90_clamp_variables = yes
+			USA90_update_state_ideas = yes
+		}
+	}
 }
 shared_focus = {
 	id = USA90_FP97_manage_yeltsin_russia
@@ -439,7 +750,24 @@ shared_focus = {
 	prerequisite = { focus = USA90_FP97_engage_china }
 	x = 44
 	y = 2
-	completion_reward = { add_war_support = 0.03 add_air_experience = 20 }
+	completion_reward = {
+		add_war_support = 0.03
+		add_air_experience = 20
+		if = {
+			limit = {
+				OR = {
+					has_global_flag = USA90_desert_fox
+					has_global_flag = USA90_iraq_inspections_collapsed
+				}
+			}
+			add_war_support = 0.03
+			add_air_experience = 20
+		}
+		if = {
+			limit = { has_global_flag = USA90_iraq_inspections_holding }
+			add_political_power = 50
+		}
+	}
 }
 shared_focus = {
 	id = USA90_FP97_north_korean_diplomacy
@@ -448,7 +776,25 @@ shared_focus = {
 	prerequisite = { focus = USA90_FP97_iraq_and_inspections }
 	x = 44
 	y = 3
-	completion_reward = { add_political_power = 100 }
+	completion_reward = {
+		add_political_power = 100
+		if = {
+			limit = { has_global_flag = USA90_nk_framework_holding }
+			add_political_power = 50
+		}
+		if = {
+			limit = {
+				OR = {
+					has_global_flag = USA90_nk_framework_cheated
+					has_global_flag = USA90_nk_strike_plan
+				}
+			}
+			add_war_support = 0.03
+			add_to_variable = { USA_90S_PUBLIC_MANDATE = -4 }
+			USA90_clamp_variables = yes
+			USA90_update_state_ideas = yes
+		}
+	}
 }
 shared_focus = {
 	id = USA90_FP97_humanitarian_doctrine
