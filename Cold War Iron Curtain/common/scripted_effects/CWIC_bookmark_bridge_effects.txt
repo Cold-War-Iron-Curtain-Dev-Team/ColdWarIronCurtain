@@ -1,0 +1,52 @@
+# Establishes durable start-era identity and repairs only safe, canonical state.
+# It deliberately does not complete focuses, replay historical events, grant
+# rewards, or convert a campaign begun in 1949 when it later reaches 1980.
+cwic_bookmark_bridge_initialize = {
+	if = {
+		limit = {
+			tag = USA
+		}
+
+		# Backfill durable bookmark identity for saves made before the bookmark
+		# definitions wrote explicit flags.
+		if = {
+			limit = {
+				cwic_started_from_1949_bookmark = yes
+				NOT = { has_global_flag = cwic_bookmark_1949_start }
+			}
+			set_global_flag = cwic_bookmark_1949_start
+			clr_global_flag = cwic_bookmark_1980_start
+		}
+		else_if = {
+			limit = {
+				cwic_started_from_1980_bookmark = yes
+				NOT = { has_global_flag = cwic_bookmark_1980_start }
+			}
+			set_global_flag = cwic_bookmark_1980_start
+			clr_global_flag = cwic_bookmark_1949_start
+		}
+
+		# A new 1980 start applies the 1976 Carter history, but the old history
+		# omitted the matching focus tree and election flag. Repair old saves only
+		# when they still carry an obviously stale pre-Carter USA tree.
+		if = {
+			limit = {
+				cwic_started_from_1980_bookmark = yes
+				NOT = { has_country_flag = cwic_bookmark_bridge_initialized }
+			}
+			set_country_flag = cwic_bookmark_bridge_initialized
+			set_global_flag = cwic_historical_bridge_1980
+			set_global_flag = carter_76
+
+			if = {
+				limit = {
+					OR = {
+						has_focus_tree = USA_Truman_1948
+						has_focus_tree = USA_Nixon_1972
+					}
+				}
+				load_focus_tree = USA_Carter_1976
+			}
+		}
+	}
+}
