@@ -1,0 +1,92 @@
+###########################################################################
+# Regime Change Opportunities (RCO)
+#
+# A superpower (SOV or USA) gets a "Regime Change Opportunity" button in a
+# country's diplomacy screen, plus a top-bar alert, while that country carries
+# an opportunity flag. Pressing it (50 PP) opens RCO.1 below, which lists every
+# opportunity open on that country. "Not now" refunds the political power.
+#
+# ADDING AN OPPORTUNITY (example: a US one on Iran, "usa_iran53")
+#   1. Raise the flag on the target from the content where it arises:
+#          PER = { set_country_flag = RCO_usa_iran53 }                         # open until used
+#          PER = { set_country_flag = { flag = RCO_usa_iran53 days = 365 } }   # or time-limited
+#      and lower it (clr_country_flag) if the window closes early.
+#   2. Add  has_country_flag = RCO_usa_iran53  under its sender in RCO_any
+#      (common/scripted_triggers/RCO_triggers.txt).
+#   3. Add an option to RCO.1 below (copy one), and its two loc lines in
+#      localisation/english/RCO_l_english.yml: RCO_usa_iran53 / RCO_usa_iran53_desc.
+#
+# In the options, ROOT/THIS is the sender. The target is var:RCO_target.
+# Each option clears its flag everywhere and sets a "used" flag on the sender,
+# so the opportunity can't be raised again by the openers.
+###########################################################################
+add_namespace = RCO
+
+country_event = {
+	id = RCO.1
+	title = RCO.1.t
+	desc = RCO.1.d
+	picture = GFX_report_event_generic_sign_treaty1
+	is_triggered_only = yes
+	immediate = { var:RCO_target = { save_event_target_as = RCO_target } }
+
+	##### SOV #####
+	option = {	# Greece - the Percentage Agreement
+		name = RCO_sov_greece
+		trigger = { var:RCO_target = { has_country_flag = RCO_sov_greece } }
+		custom_effect_tooltip = RCO_sov_greece_desc
+		every_country = { limit = { has_country_flag = RCO_sov_greece } clr_country_flag = RCO_sov_greece }
+		set_country_flag = SOV_Percentage_agreement
+		country_event = sov_percentage_agreement.1
+		RCO_sync = yes
+		ai_chance = { factor = 1 }
+	}
+	option = {	# China - the Manchurian intervention
+		name = RCO_sov_china
+		trigger = { var:RCO_target = { has_country_flag = RCO_sov_china } }
+		custom_effect_tooltip = RCO_sov_china_desc
+		every_country = { limit = { has_country_flag = RCO_sov_china } clr_country_flag = RCO_sov_china }
+		set_country_flag = SOV_Manchurian_Interventon
+		PRC_Lose_CCW = yes
+		RCO_sync = yes
+		ai_chance = { factor = 1 }
+	}
+	option = {	# West Germany - the 1949 Bundestag election
+		name = RCO_sov_wgr49
+		trigger = { var:RCO_target = { has_country_flag = RCO_sov_wgr49 } }
+		custom_effect_tooltip = RCO_sov_wgr49_desc
+		every_country = { limit = { has_country_flag = RCO_sov_wgr49 } clr_country_flag = RCO_sov_wgr49 }
+		set_country_flag = SOV_WGR49_interfered
+		country_event = SOV_WGR.1
+		RCO_sync = yes
+		ai_chance = { factor = 1 }
+	}
+	option = {	# Germany - the Stalin Note
+		name = RCO_sov_stalin_note
+		trigger = { var:RCO_target = { has_country_flag = RCO_sov_stalin_note } }
+		custom_effect_tooltip = RCO_sov_stalin_note_desc
+		every_country = { limit = { has_country_flag = RCO_sov_stalin_note } clr_country_flag = RCO_sov_stalin_note }
+		set_country_flag = SOV_Stalin_Note
+		country_event = StalinNotes.1
+		RCO_sync = yes
+		ai_chance = { factor = 1 }
+	}
+	option = {	# Yugoslavia - ultimatum to Belgrade
+		name = RCO_sov_yug
+		trigger = { var:RCO_target = { has_country_flag = RCO_sov_yug } }
+		custom_effect_tooltip = RCO_sov_yug_desc
+		every_country = { limit = { has_country_flag = RCO_sov_yug } clr_country_flag = RCO_sov_yug }
+		set_country_flag = SOV_YUG_Invasion
+		YUG = { country_event = TUR_SOV.11 }	# sent from Moscow: FROM = SOV
+		RCO_sync = yes
+		ai_chance = { factor = 1 }
+	}
+
+	##### USA #####
+
+	option = {
+		name = RCO.1.cancel
+		add_political_power = 50	# refund the diplomacy button
+		ai_chance = { factor = 0 }
+	}
+}
