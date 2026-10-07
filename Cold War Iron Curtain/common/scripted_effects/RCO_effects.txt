@@ -1,9 +1,10 @@
 ###########################################################################
 # Regime Change Opportunities (RCO) - effects
+# Guide: top of events/RCO_events.txt
 ###########################################################################
 
 # Scope: ROOT = sender. Generic - never grows.
-# Called daily from on_actions and right after RCO_fire.
+# Called daily from on_actions and after an opportunity is used.
 # Opens/closes the per-sender flag RCO_open_<sender tag> on every target,
 # and keeps the sender's RCO_any_open flag + RCO_targets array (topbar alert).
 RCO_sync = {
@@ -14,7 +15,6 @@ RCO_sync = {
 		}
 		set_country_flag = RCO_open_@ROOT
 		ROOT = { clr_country_flag = RCO_alert_dismissed }	# new opportunity -> re-show alert
-		log = "[GetDateText] RCO open: target=[This.GetTag] sender=[Root.GetTag]"
 	}
 	every_country = {
 		limit = {
@@ -22,9 +22,7 @@ RCO_sync = {
 			RCO_any = no
 		}
 		clr_country_flag = RCO_open_@ROOT
-		log = "[GetDateText] RCO closed: target=[This.GetTag] sender=[Root.GetTag]"
 	}
-	# Rebuild the sender's list of open targets (shown in the alert tooltip)
 	ROOT = { clear_array = RCO_targets }
 	every_country = {
 		limit = { has_country_flag = RCO_open_@ROOT }
@@ -41,46 +39,84 @@ RCO_sync = {
 	}
 }
 
-# Scope: THIS = target, ROOT = sender (called from complete_effect).
-# One branch per opportunity, on the SAME triggers as RCO_any, so the
-# branch that runs is always the one that made the button appear.
-RCO_fire = {
+# Scope: THIS = target, ROOT = sender (diplomacy button complete_effect).
+# Remembers the target and opens the choice event for the sender.
+RCO_choose = {
+	set_variable = { ROOT.RCO_target = THIS.id }
+	ROOT = { country_event = RCO.1 }
+}
+
+# Scope: SOV. Openers for the first Soviet opportunities, which depend on live
+# states (capitulation, dates) rather than on a single event. Each one raises
+# its flag while the window is open and lowers it when it closes.
+# New opportunities don't need to go here: raise the flag from the content
+# where the opportunity arises.
+RCO_SOV_openers = {
+	# Greece - the Democratic Army is collapsing
 	if = {
-		limit = { RCO_SOV_greece = yes }
-		ROOT = {
-			country_event = sov_percentage_agreement.1
-			set_country_flag = SOV_Percentage_agreement
+		limit = {
+			NOT = { has_country_flag = SOV_Percentage_agreement }
+			country_exists = PDG
+			PDG = { surrender_progress > 0.4 }
 		}
+		PDG = { set_country_flag = RCO_sov_greece }
+		GRE = { set_country_flag = RCO_sov_greece }
 	}
-	else_if = {
-		limit = { RCO_SOV_china = yes }
-		ROOT = {
-			PRC_Lose_CCW = yes
-			set_country_flag = SOV_Manchurian_Interventon
+	else = {
+		PDG = { clr_country_flag = RCO_sov_greece }
+		GRE = { clr_country_flag = RCO_sov_greece }
+	}
+	# China - the PLA is on the verge of defeat
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_Manchurian_Interventon }
+			country_exists = PRC
+			PRC = { surrender_progress > 0.79 }
 		}
+		PRC = { set_country_flag = RCO_sov_china }
+		CHI = { set_country_flag = RCO_sov_china }
 	}
-	else_if = {
-		limit = { RCO_SOV_wgr49 = yes }
-		ROOT = {
-			country_event = SOV_WGR.1
-			set_country_flag = SOV_WGR49_interfered
+	else = {
+		PRC = { clr_country_flag = RCO_sov_china }
+		CHI = { clr_country_flag = RCO_sov_china }
+	}
+	# West Germany - the 1949 Bundestag election
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_WGR49_interfered }
+			date < 1951.1.1
 		}
+		WGR = { set_country_flag = RCO_sov_wgr49 }
 	}
-	else_if = {
-		limit = { RCO_SOV_stalin_note = yes }
-		ROOT = {
-			country_event = StalinNotes.1
-			set_country_flag = SOV_Stalin_Note
+	else = {
+		WGR = { clr_country_flag = RCO_sov_wgr49 }
+	}
+	# Germany - the Stalin Note
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_Stalin_Note }
+			has_country_leader = { character = SOV_Joseph_Stalin ruling_only = yes }
+			date > 1952.1.1
+			NOT = { WGR = { has_country_leader = { character = WGR_Maximillian_Reimann ruling_only = yes } } }
 		}
+		WGR = { set_country_flag = RCO_sov_stalin_note }
+		DDR = { set_country_flag = RCO_sov_stalin_note }
 	}
-	else_if = {
-		limit = { RCO_SOV_Yug = yes }
-		ROOT = {
-			YUG = { country_event = TUR_SOV.11 }
-			set_country_flag = SOV_YUG_Invasion
+	else = {
+		WGR = { clr_country_flag = RCO_sov_stalin_note }
+		DDR = { clr_country_flag = RCO_sov_stalin_note }
+	}
+	# Yugoslavia - Tito surrounded
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_YUG_Invasion }
+			date < 1953.1.1
+			country_exists = PDG
+			PDG = { owns_state = 47 }
 		}
+		YUG = { set_country_flag = RCO_sov_yug }
 	}
-	# Re-sync now: closes the button on EVERY target this opportunity
-	# covered (e.g. PDG after using it on GRE), not just THIS.
-	RCO_sync = yes
+	else = {
+		YUG = { clr_country_flag = RCO_sov_yug }
+	}
 }
