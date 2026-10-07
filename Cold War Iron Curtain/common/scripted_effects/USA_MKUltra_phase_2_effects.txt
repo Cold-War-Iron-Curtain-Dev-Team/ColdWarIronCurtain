@@ -1,0 +1,659 @@
+# Phase 2 finite-state extension
+# Missing Baseline stages: 0 available, 1 initial research, 2 initial report,
+# 3 archived, 4 initial cancelled, 5 renewal research, 6 renewal report,
+# 7 replication research, 8 final appraisal, 9 applied/closed,
+# 10 renewal cancelled, 11 replication cancelled.
+# Countermeasure stages: 0 locked, 1 available, 2 research, 3 report,
+# 4 archived, 5 finding applied, 6 research cancelled, 7 foreclosed.
+
+USA_mkultra_phase_2_initialize = {
+	if = {
+		limit = { USA_mkultra_enabled_trigger = yes }
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_schema_version } }
+			set_variable = { USA_mkultra_schema_version = 2 }
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_schema_version < 2 } }
+			set_variable = { USA_mkultra_schema_version = 2 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_countermeasure_stage } }
+			set_variable = { USA_mkultra_countermeasure_stage = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_inquiry_state } }
+			set_variable = { USA_mkultra_inquiry_state = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_security_scare_state } }
+			set_variable = { USA_mkultra_security_scare_state = 0 }
+		}
+		set_country_flag = USA_mkultra_phase_2_migrated
+		USA_mkultra_assign_missing_baseline_profile = yes
+	}
+}
+
+USA_mkultra_assign_missing_baseline_profile = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_missing_baseline_paid
+			NOT = { has_country_flag = USA_mkultra_missing_baseline_profile_assigned }
+		}
+		if = {
+			limit = { has_variable = USA_mkultra_missing_baseline_profile }
+			clamp_variable = {
+				var = USA_mkultra_missing_baseline_profile
+				min = 1
+				max = 4
+			}
+		}
+		else = {
+			# Original fictional dossier. Equal 25% weights are a provisional,
+			# explicit playtest assumption; the stored profile never rerolls.
+			random_list = {
+				25 = { set_variable = { USA_mkultra_missing_baseline_profile = 1 } }
+				25 = { set_variable = { USA_mkultra_missing_baseline_profile = 2 } }
+				25 = { set_variable = { USA_mkultra_missing_baseline_profile = 3 } }
+				25 = { set_variable = { USA_mkultra_missing_baseline_profile = 4 } }
+			}
+		}
+		set_country_flag = USA_mkultra_missing_baseline_profile_assigned
+	}
+}
+
+USA_mkultra_phase_2_unlock_countermeasure = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			has_country_flag = USA_mkultra_missing_baseline_archived
+			check_variable = { USA_mkultra_countermeasure_stage = 0 }
+			NOT = { has_country_flag = USA_mkultra_countermeasure_introduced }
+		}
+		set_country_flag = USA_mkultra_countermeasure_introduced
+		set_variable = { USA_mkultra_countermeasure_stage = 1 }
+	}
+}
+
+USA_mkultra_phase_2_archive_missing_baseline = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_slot_1_state = 2 }
+			OR = {
+				check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+				check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+				check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_missing_baseline_stage = 2 } }
+			USA_mkultra_archive_missing_baseline = yes
+		}
+		else = {
+			set_country_flag = USA_mkultra_missing_baseline_archived
+			set_variable = { USA_mkultra_missing_baseline_stage = 3 }
+			set_variable = { USA_mkultra_slot_1_state = 0 }
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_review }
+			remove_mission = USA_mkultra_missing_baseline_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_renewal_review }
+			remove_mission = USA_mkultra_missing_baseline_renewal_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_final_review }
+			remove_mission = USA_mkultra_missing_baseline_final_review
+		}
+		USA_mkultra_phase_2_unlock_countermeasure = yes
+	}
+}
+
+USA_mkultra_start_missing_baseline_renewal = {
+	if = {
+		limit = { USA_mkultra_can_renew_missing_baseline_trigger = yes }
+		set_country_flag = USA_mkultra_missing_baseline_renewal_paid
+		set_variable = { USA_mkultra_missing_baseline_stage = 5 }
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+		add_to_variable = { USA_mkultra_exposure = 2 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_review }
+			remove_mission = USA_mkultra_missing_baseline_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_missing_baseline_renewal_research
+	}
+}
+
+USA_mkultra_complete_missing_baseline_renewal = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_missing_baseline_stage = 5 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+			has_country_flag = USA_mkultra_missing_baseline_renewal_paid
+			has_country_flag = USA_mkultra_missing_baseline_owner_cia
+			NOT = { has_country_flag = USA_mkultra_missing_baseline_renewal_record_awarded }
+		}
+		set_country_flag = USA_mkultra_missing_baseline_renewal_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_missing_baseline_stage = 6 }
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_renewal_research }
+			remove_mission = USA_mkultra_missing_baseline_renewal_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_missing_baseline_renewal_review
+	}
+}
+
+USA_mkultra_start_missing_baseline_replication = {
+	if = {
+		limit = { USA_mkultra_can_replicate_missing_baseline_trigger = yes }
+		if = {
+			limit = { check_variable = { USA_mkultra_missing_baseline_stage = 2 } }
+			set_country_flag = USA_mkultra_missing_baseline_renewal_foregone
+		}
+		set_country_flag = USA_mkultra_missing_baseline_replication_paid
+		set_variable = { USA_mkultra_missing_baseline_stage = 7 }
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+		add_to_variable = { USA_mkultra_exposure = 1 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_review }
+			remove_mission = USA_mkultra_missing_baseline_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_renewal_review }
+			remove_mission = USA_mkultra_missing_baseline_renewal_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_missing_baseline_replication_research
+	}
+}
+
+USA_mkultra_complete_missing_baseline_replication = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_missing_baseline_stage = 7 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+			has_country_flag = USA_mkultra_missing_baseline_replication_paid
+			has_country_flag = USA_mkultra_missing_baseline_owner_cia
+			NOT = { has_country_flag = USA_mkultra_missing_baseline_replication_record_awarded }
+		}
+		set_country_flag = USA_mkultra_missing_baseline_replication_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_missing_baseline_stage = 8 }
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_replication_research }
+			remove_mission = USA_mkultra_missing_baseline_replication_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_missing_baseline_final_review
+	}
+}
+
+USA_mkultra_cancel_missing_baseline_renewal = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_missing_baseline_stage = 5 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+		set_variable = { USA_mkultra_missing_baseline_stage = 10 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+	}
+}
+
+USA_mkultra_cancel_missing_baseline_replication = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_missing_baseline_stage = 7 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+		set_variable = { USA_mkultra_missing_baseline_stage = 11 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+	}
+}
+
+USA_mkultra_apply_administrative_consolidation = {
+	if = {
+		limit = { USA_mkultra_can_apply_administrative_consolidation_trigger = yes }
+		set_country_flag = USA_mkultra_administrative_consolidation_applied
+		set_country_flag = USA_mkultra_missing_baseline_archived
+		set_variable = { USA_mkultra_missing_baseline_stage = 9 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+		add_timed_idea = {
+			idea = USA_mkultra_administrative_consolidation
+			days = 180
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_final_review }
+			remove_mission = USA_mkultra_missing_baseline_final_review
+		}
+		USA_mkultra_phase_2_unlock_countermeasure = yes
+	}
+}
+
+USA_mkultra_accept_sponsor_reimbursement = {
+	if = {
+		limit = { USA_mkultra_can_accept_sponsor_reimbursement_trigger = yes }
+		set_country_flag = USA_mkultra_sponsor_reimbursement_paid
+		add_political_power = 10
+		USA_mkultra_phase_2_archive_missing_baseline = yes
+	}
+}
+
+USA_mkultra_start_countermeasure = {
+	if = {
+		limit = { USA_mkultra_can_start_countermeasure_trigger = yes }
+		set_country_flag = USA_mkultra_countermeasure_paid
+		set_country_flag = USA_mkultra_countermeasure_owner_cia
+		set_variable = { USA_mkultra_countermeasure_stage = 2 }
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+		add_to_variable = { USA_mkultra_exposure = 1 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_countermeasure_research
+	}
+}
+
+USA_mkultra_complete_countermeasure = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_countermeasure_stage = 2 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+			has_country_flag = USA_mkultra_countermeasure_paid
+			has_country_flag = USA_mkultra_countermeasure_owner_cia
+			NOT = { has_country_flag = USA_mkultra_countermeasure_record_awarded }
+		}
+		set_country_flag = USA_mkultra_countermeasure_record_awarded
+		add_to_variable = { USA_mkultra_progress = 8 }
+		set_variable = { USA_mkultra_countermeasure_stage = 3 }
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_countermeasure_research }
+			remove_mission = USA_mkultra_countermeasure_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_countermeasure_review
+	}
+}
+
+USA_mkultra_cancel_countermeasure = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_countermeasure_stage = 2 }
+			check_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+		set_variable = { USA_mkultra_countermeasure_stage = 6 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+	}
+}
+
+USA_mkultra_archive_countermeasure = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_countermeasure_stage = 3 }
+			check_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+		set_country_flag = USA_mkultra_countermeasure_archived
+		set_variable = { USA_mkultra_countermeasure_stage = 4 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_countermeasure_review }
+			remove_mission = USA_mkultra_countermeasure_review
+		}
+		USA_mkultra_schedule_security_scare = yes
+	}
+}
+
+USA_mkultra_apply_countermeasure_lessons = {
+	if = {
+		limit = { USA_mkultra_can_apply_countermeasure_lessons_trigger = yes }
+		set_country_flag = USA_mkultra_countermeasure_lessons_earned
+		set_country_flag = USA_mkultra_countermeasure_lessons_available
+		set_country_flag = USA_mkultra_countermeasure_archived
+		set_variable = { USA_mkultra_countermeasure_stage = 5 }
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_countermeasure_review }
+			remove_mission = USA_mkultra_countermeasure_review
+		}
+		USA_mkultra_schedule_security_scare = yes
+	}
+}
+
+USA_mkultra_schedule_security_scare = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_security_scare_scheduled }
+			NOT = { has_country_flag = USA_mkultra_security_scare_resolved }
+		}
+		set_country_flag = USA_mkultra_security_scare_scheduled
+		set_variable = { USA_mkultra_security_scare_state = 1 }
+		# Original fictional pacing: the external consequence arrives 60 days
+		# after the countermeasure report is disposed.
+		country_event = { id = cwic_mkultra.220 days = 60 }
+	}
+}
+
+USA_mkultra_resolve_security_scare_enhanced = {
+	if = {
+		limit = {
+			tag = USA
+			check_variable = { USA_mkultra_security_scare_state = 1 }
+			has_country_flag = USA_mkultra_countermeasure_lessons_available
+			NOT = { has_country_flag = USA_mkultra_countermeasure_lessons_used }
+			has_political_power > 14
+		}
+		add_political_power = -15
+		add_stability = -0.01
+		clr_country_flag = USA_mkultra_countermeasure_lessons_available
+		set_country_flag = USA_mkultra_countermeasure_lessons_used
+		USA_mkultra_finish_security_scare = yes
+	}
+}
+
+USA_mkultra_resolve_security_scare_conventional = {
+	if = {
+		limit = {
+			tag = USA
+			check_variable = { USA_mkultra_security_scare_state = 1 }
+			has_political_power > 29
+		}
+		add_political_power = -30
+		add_stability = -0.02
+		USA_mkultra_finish_security_scare = yes
+	}
+}
+
+USA_mkultra_resolve_security_scare_unfunded = {
+	if = {
+		limit = {
+			tag = USA
+			check_variable = { USA_mkultra_security_scare_state = 1 }
+		}
+		# Explicit no-funds fallback: a larger but still bounded disruption.
+		add_stability = -0.03
+		USA_mkultra_finish_security_scare = yes
+	}
+}
+
+USA_mkultra_finish_security_scare = {
+	if = {
+		limit = {
+			tag = USA
+			check_variable = { USA_mkultra_security_scare_state = 1 }
+			NOT = { has_country_flag = USA_mkultra_security_scare_resolved }
+		}
+		set_country_flag = USA_mkultra_security_scare_resolved
+		set_country_flag = USA_mkultra_basic_inquiry_basis_security_scare
+		set_variable = { USA_mkultra_security_scare_state = 2 }
+		USA_mkultra_evaluate_basic_inquiry = yes
+	}
+}
+
+USA_mkultra_evaluate_basic_inquiry = {
+	if = {
+		limit = {
+			tag = USA
+			has_country_flag = USA_mkultra_initialized
+			NOT = { has_country_flag = USA_mkultra_basic_inquiry_scheduled }
+			NOT = { has_country_flag = USA_mkultra_basic_inquiry_resolved }
+			OR = {
+				has_country_flag = USA_mkultra_missing_baseline_paid
+				has_country_flag = USA_mkultra_countermeasure_paid
+			}
+			OR = {
+				check_variable = { USA_mkultra_exposure > 24 }
+				has_country_flag = USA_mkultra_basic_inquiry_basis_security_scare
+			}
+		}
+		set_country_flag = USA_mkultra_basic_inquiry_scheduled
+		# The delayed notice separates the inquiry from the scare popup and gives
+		# any active research stage an explicit, persisted interruption context.
+		country_event = { id = cwic_mkultra.230 days = 30 }
+	}
+}
+
+USA_mkultra_open_basic_inquiry = {
+	if = {
+		limit = {
+			tag = USA
+			NOT = { has_country_flag = USA_mkultra_basic_inquiry_resolved }
+		}
+		set_country_flag = USA_mkultra_basic_inquiry_announced
+		set_variable = { USA_mkultra_inquiry_state = 1 }
+	}
+}
+
+USA_mkultra_resolve_basic_inquiry_funded = {
+	if = {
+		limit = {
+			tag = USA
+			check_variable = { USA_mkultra_inquiry_state = 1 }
+			NOT = { has_country_flag = USA_mkultra_basic_inquiry_relief_paid }
+			has_political_power > 24
+		}
+		add_political_power = -25
+		add_to_variable = { USA_mkultra_exposure = -10 }
+		USA_mkultra_clamp_variables = yes
+		set_country_flag = USA_mkultra_basic_inquiry_relief_paid
+		set_country_flag = USA_mkultra_basic_inquiry_resolved
+		set_variable = { USA_mkultra_inquiry_state = 2 }
+	}
+}
+
+USA_mkultra_resolve_basic_inquiry_fallback = {
+	if = {
+		limit = {
+			tag = USA
+			check_variable = { USA_mkultra_inquiry_state = 1 }
+		}
+		if = {
+			limit = { USA_mkultra_charter_active_trigger = yes }
+			USA_mkultra_terminate_charter = yes
+		}
+		set_country_flag = USA_mkultra_basic_inquiry_resolved
+		set_country_flag = USA_mkultra_basic_inquiry_closed_charter
+		set_variable = { USA_mkultra_inquiry_state = 2 }
+	}
+}
+
+USA_mkultra_phase_2_settle_charter_closure = {
+	if = {
+		limit = { tag = USA }
+		if = {
+			limit = { check_variable = { USA_mkultra_missing_baseline_stage = 5 } }
+			USA_mkultra_cancel_missing_baseline_renewal = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_missing_baseline_stage = 7 } }
+			USA_mkultra_cancel_missing_baseline_replication = yes
+		}
+		if = {
+			limit = {
+				OR = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+					check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+				}
+			}
+			USA_mkultra_phase_2_archive_missing_baseline = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_countermeasure_stage = 1 } }
+			set_variable = { USA_mkultra_countermeasure_stage = 7 }
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_countermeasure_stage = 2 } }
+			USA_mkultra_cancel_countermeasure = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_countermeasure_stage = 3 } }
+			USA_mkultra_archive_countermeasure = yes
+		}
+		set_variable = { USA_mkultra_slot_1_state = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_renewal_research }
+			remove_mission = USA_mkultra_missing_baseline_renewal_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_renewal_review }
+			remove_mission = USA_mkultra_missing_baseline_renewal_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_replication_research }
+			remove_mission = USA_mkultra_missing_baseline_replication_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_missing_baseline_final_review }
+			remove_mission = USA_mkultra_missing_baseline_final_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_countermeasure_research }
+			remove_mission = USA_mkultra_countermeasure_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_countermeasure_review }
+			remove_mission = USA_mkultra_countermeasure_review
+		}
+	}
+}
+
+USA_mkultra_phase_2_reconcile = {
+	if = {
+		limit = { USA_mkultra_enabled_trigger = yes }
+		USA_mkultra_assign_missing_baseline_profile = yes
+
+		if = {
+			limit = { has_country_flag = USA_mkultra_charter_terminated }
+			USA_mkultra_phase_2_settle_charter_closure = yes
+		}
+
+		if = {
+			limit = { USA_mkultra_charter_active_trigger = yes }
+			USA_mkultra_phase_2_unlock_countermeasure = yes
+
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 5 }
+					has_country_flag = USA_mkultra_missing_baseline_renewal_record_awarded
+				}
+				set_variable = { USA_mkultra_missing_baseline_stage = 6 }
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { has_active_mission = USA_mkultra_missing_baseline_renewal_research }
+					remove_mission = USA_mkultra_missing_baseline_renewal_research
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 7 }
+					has_country_flag = USA_mkultra_missing_baseline_replication_record_awarded
+				}
+				set_variable = { USA_mkultra_missing_baseline_stage = 8 }
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { has_active_mission = USA_mkultra_missing_baseline_replication_research }
+					remove_mission = USA_mkultra_missing_baseline_replication_research
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_countermeasure_stage = 2 }
+					has_country_flag = USA_mkultra_countermeasure_record_awarded
+				}
+				set_variable = { USA_mkultra_countermeasure_stage = 3 }
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { has_active_mission = USA_mkultra_countermeasure_research }
+					remove_mission = USA_mkultra_countermeasure_research
+				}
+			}
+
+			if = {
+				limit = { check_variable = { USA_mkultra_missing_baseline_stage = 5 } }
+				set_variable = { USA_mkultra_slot_1_state = 1 }
+				if = {
+					limit = { NOT = { has_active_mission = USA_mkultra_missing_baseline_renewal_research } }
+					activate_mission = USA_mkultra_missing_baseline_renewal_research
+				}
+			}
+			if = {
+				limit = { check_variable = { USA_mkultra_missing_baseline_stage = 6 } }
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { NOT = { has_active_mission = USA_mkultra_missing_baseline_renewal_review } }
+					activate_mission = USA_mkultra_missing_baseline_renewal_review
+				}
+			}
+			if = {
+				limit = { check_variable = { USA_mkultra_missing_baseline_stage = 7 } }
+				set_variable = { USA_mkultra_slot_1_state = 1 }
+				if = {
+					limit = { NOT = { has_active_mission = USA_mkultra_missing_baseline_replication_research } }
+					activate_mission = USA_mkultra_missing_baseline_replication_research
+				}
+			}
+			if = {
+				limit = { check_variable = { USA_mkultra_missing_baseline_stage = 8 } }
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { NOT = { has_active_mission = USA_mkultra_missing_baseline_final_review } }
+					activate_mission = USA_mkultra_missing_baseline_final_review
+				}
+			}
+
+			# Countermeasure work owns the single slot only after the front-grant
+			# dossier has reached a durable closed disposition.
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_countermeasure_stage = 2 }
+					OR = {
+						check_variable = { USA_mkultra_missing_baseline_stage = 3 }
+						check_variable = { USA_mkultra_missing_baseline_stage = 9 }
+					}
+				}
+				set_variable = { USA_mkultra_slot_1_state = 1 }
+				if = {
+					limit = { NOT = { has_active_mission = USA_mkultra_countermeasure_research } }
+					activate_mission = USA_mkultra_countermeasure_research
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_countermeasure_stage = 3 }
+					OR = {
+						check_variable = { USA_mkultra_missing_baseline_stage = 3 }
+						check_variable = { USA_mkultra_missing_baseline_stage = 9 }
+					}
+				}
+				set_variable = { USA_mkultra_slot_1_state = 2 }
+				if = {
+					limit = { NOT = { has_active_mission = USA_mkultra_countermeasure_review } }
+					activate_mission = USA_mkultra_countermeasure_review
+				}
+			}
+		}
+
+		if = {
+			limit = {
+				has_country_flag = USA_mkultra_countermeasure_archived
+				NOT = { has_country_flag = USA_mkultra_security_scare_scheduled }
+				NOT = { has_country_flag = USA_mkultra_security_scare_resolved }
+			}
+			USA_mkultra_schedule_security_scare = yes
+		}
+		USA_mkultra_evaluate_basic_inquiry = yes
+	}
+}
