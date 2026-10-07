@@ -45,8 +45,9 @@ test_vin_campaign_overextension_status = {
 	vin_campaign_update_overextension = yes
 	if = {
 		limit = { vin_campaign_vin_overextended_trigger = yes }
-		log = "VIN OVEREXTENSION: off-envelope foreign ground detected"
-		if = { limit = { NOT = { has_idea = VIN_Campaign_Overextension } } log = "VIN OVEREXTENSION: FAIL - VIN penalty missing" }
+		log = "VIN OVEREXTENSION: off-envelope foreign ground detected, held [?VIN_Overextension_Streak_Days|0] days"
+		if = { limit = { NOT = { has_idea = VIN_Campaign_Overextension } NOT = { has_idea = VIN_Campaign_Overextension_Severe } check_variable = { VIN_Overextension_Streak_Days > 4 } } log = "VIN OVEREXTENSION: FAIL - VIN penalty missing after the 5-day grace" }
+		if = { limit = { has_idea = VIN_Campaign_Overextension check_variable = { VIN_Overextension_Streak_Days < 5 } NOT = { vin_fre_operation_overextended_trigger = yes } } log = "VIN OVEREXTENSION: FAIL - VIN penalty applied inside the 5-day grace" }
 	}
 	else = {
 		log = "VIN OVEREXTENSION: VIN remains inside its operational envelope"
@@ -410,6 +411,10 @@ test_vin_post_dbp_response_reset = {
 	clr_country_flag = VIN_Post_DBP_Focus_Geneva_Queued
 	clr_country_flag = VIN_Post_DBP_Focus_Geneva_Launched
 	clr_country_flag = VIN_Post_DBP_Negotiations_Chosen
+	clr_country_flag = VIN_Post_DBP_NLF_Stand_Down_Ordered
+	clr_country_flag = VIN_Post_DBP_NLF_Stand_Down_Pending
+	clr_country_flag = VIN_Post_DBP_NLF_Stood_Down
+	clr_country_flag = VIN_Post_DBP_Gate_Block_Logged
 	clr_country_flag = VIN_Post_DBP_Escalation_Chosen
 	clr_country_flag = VIN_Post_DBP_Panic_Geneva_Suppressed
 	clr_country_flag = VIN_Post_DBP_Reunification_AI_Active
