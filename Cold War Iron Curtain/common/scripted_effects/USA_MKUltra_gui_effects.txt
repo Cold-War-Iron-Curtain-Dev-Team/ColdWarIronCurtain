@@ -71,6 +71,34 @@ USA_mkultra_gui_reconcile = {
 		}
 		else = { set_variable = { USA_mkultra_record_file_open = 0 } }
 
+		# The selector and open state are discrete GUI values. Clamping alone would
+		# leave malformed fractions such as 1.5 hidden but still persisted.
+		if = {
+			limit = {
+				NOT = {
+					OR = {
+						check_variable = { USA_mkultra_selected_record = 0 }
+						check_variable = { USA_mkultra_selected_record = 1 }
+						check_variable = { USA_mkultra_selected_record = 2 }
+					}
+				}
+			}
+			set_variable = { USA_mkultra_selected_record = 0 }
+			set_variable = { USA_mkultra_record_file_open = 0 }
+		}
+		if = {
+			limit = {
+				NOT = {
+					OR = {
+						check_variable = { USA_mkultra_record_file_open = 0 }
+						check_variable = { USA_mkultra_record_file_open = 1 }
+					}
+				}
+			}
+			set_variable = { USA_mkultra_selected_record = 0 }
+			set_variable = { USA_mkultra_record_file_open = 0 }
+		}
+
 		# A missing or unrevealed selection can never leave an orphaned overlay.
 		if = {
 			limit = { check_variable = { USA_mkultra_selected_record = 0 } }
@@ -80,7 +108,7 @@ USA_mkultra_gui_reconcile = {
 			limit = {
 				check_variable = { USA_mkultra_selected_record = 2 }
 				NOT = { has_country_flag = USA_mkultra_countermeasure_introduced }
-				check_variable = { USA_mkultra_countermeasure_stage = 0 }
+				NOT = { check_variable = { USA_mkultra_countermeasure_stage > 0 } }
 			}
 			set_variable = { USA_mkultra_selected_record = 0 }
 			set_variable = { USA_mkultra_record_file_open = 0 }
