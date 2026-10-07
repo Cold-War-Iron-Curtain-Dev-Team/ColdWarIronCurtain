@@ -1,0 +1,91 @@
+scripted_gui = {
+	USA_MKUltra_dashboard_gui = {
+		context_type = decision_category
+		window_name = "USA_MKUltra_dashboard_window"
+		dirty = USA_mkultra_gui_dirty
+
+		visible = {
+			tag = USA
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_initialized
+		}
+		ai_enabled = { always = no }
+
+		dynamic_lists = {
+			USA_mkultra_dossier_grid = {
+				array = USA_mkultra_dossier_index_array
+				change_scope = no
+				entry_container = USA_mkultra_dossier_card
+				index = USA_mkultra_dossier_index
+			}
+		}
+
+		properties = {
+			USA_mkultra_progress_bar = { frame = USA_mkultra_progress }
+			USA_mkultra_exposure_bar = { frame = USA_mkultra_exposure }
+			USA_mkultra_harm_bar = { frame = USA_mkultra_harm }
+		}
+
+		triggers = {
+			USA_mkultra_exposure_warning_visible = {
+				check_variable = { USA_mkultra_exposure > 74 }
+			}
+			USA_mkultra_inquiry_warning_visible = {
+				check_variable = { USA_mkultra_inquiry_state = 1 }
+			}
+		}
+
+		effects = {
+			USA_mkultra_open_record_click = {
+				set_variable = {
+					USA_mkultra_selected_record = USA_mkultra_dossier_index_array^USA_mkultra_dossier_index
+				}
+				set_variable = { USA_mkultra_record_file_open = 1 }
+				USA_mkultra_gui_reconcile = yes
+				USA_mkultra_mark_gui_dirty = yes
+			}
+		}
+	}
+
+	USA_MKUltra_record_file_gui = {
+		context_type = player_context
+		window_name = "USA_MKUltra_record_file_window"
+		dirty = USA_mkultra_gui_dirty
+
+		visible = {
+			tag = USA
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_initialized
+			check_variable = { USA_mkultra_record_file_open = 1 }
+			OR = {
+				check_variable = { USA_mkultra_selected_record = 1 }
+				AND = {
+					check_variable = { USA_mkultra_selected_record = 2 }
+					OR = {
+						has_country_flag = USA_mkultra_countermeasure_introduced
+						check_variable = { USA_mkultra_countermeasure_stage > 0 }
+					}
+				}
+			}
+		}
+		ai_enabled = { always = no }
+
+		dynamic_lists = {
+			USA_mkultra_evidence_grid = {
+				array = USA_mkultra_evidence_dimension_array
+				change_scope = no
+				entry_container = USA_mkultra_evidence_row
+				index = USA_mkultra_evidence_dimension
+			}
+		}
+
+		effects = {
+			USA_mkultra_close_record_click = {
+				set_variable = { USA_mkultra_record_file_open = 0 }
+				set_variable = { USA_mkultra_selected_record = 0 }
+				USA_mkultra_gui_reconcile = yes
+				USA_mkultra_mark_gui_dirty = yes
+			}
+		}
+	}
+}
