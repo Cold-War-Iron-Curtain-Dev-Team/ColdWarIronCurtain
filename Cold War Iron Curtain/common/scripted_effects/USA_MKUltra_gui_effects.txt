@@ -1,0 +1,114 @@
+# MKUltra dashboard state is derived presentation data only. None of these
+# effects may pay costs, advance a dossier, award Research Record, or resolve a
+# material consequence.
+
+USA_mkultra_mark_gui_dirty = {
+	if = {
+		limit = {
+			tag = USA
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_initialized
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_gui_dirty } }
+			set_variable = { USA_mkultra_gui_dirty = 0 }
+		}
+		add_to_variable = { USA_mkultra_gui_dirty = 1 }
+		if = {
+			limit = { check_variable = { USA_mkultra_gui_dirty > 100000 } }
+			set_variable = { USA_mkultra_gui_dirty = 1 }
+		}
+	}
+}
+
+USA_mkultra_gui_reconcile = {
+	if = {
+		limit = {
+			tag = USA
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_initialized
+		}
+
+		# Rebuild the cards from canonical dossier state. Missing Baseline is the
+		# founding record and is visible as soon as the MKUltra schema exists.
+		clear_array = USA_mkultra_dossier_index_array
+		add_to_array = { USA_mkultra_dossier_index_array = 1 }
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = USA_mkultra_countermeasure_introduced
+					check_variable = { USA_mkultra_countermeasure_stage > 0 }
+				}
+			}
+			add_to_array = { USA_mkultra_dossier_index_array = 2 }
+		}
+
+		# These stable identifiers describe read-only appraisal rows. Their text
+		# and state are selected from the currently opened record.
+		clear_array = USA_mkultra_evidence_dimension_array
+		add_to_array = { USA_mkultra_evidence_dimension_array = 1 }
+		add_to_array = { USA_mkultra_evidence_dimension_array = 2 }
+		add_to_array = { USA_mkultra_evidence_dimension_array = 3 }
+		add_to_array = { USA_mkultra_evidence_dimension_array = 4 }
+
+		if = {
+			limit = { has_variable = USA_mkultra_selected_record }
+			clamp_variable = {
+				var = USA_mkultra_selected_record
+				min = 0
+				max = 2
+			}
+		}
+		else = { set_variable = { USA_mkultra_selected_record = 0 } }
+
+		if = {
+			limit = { has_variable = USA_mkultra_record_file_open }
+			clamp_variable = {
+				var = USA_mkultra_record_file_open
+				min = 0
+				max = 1
+			}
+		}
+		else = { set_variable = { USA_mkultra_record_file_open = 0 } }
+
+		# A missing or unrevealed selection can never leave an orphaned overlay.
+		if = {
+			limit = { check_variable = { USA_mkultra_selected_record = 0 } }
+			set_variable = { USA_mkultra_record_file_open = 0 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_selected_record = 2 }
+				NOT = { has_country_flag = USA_mkultra_countermeasure_introduced }
+				check_variable = { USA_mkultra_countermeasure_stage = 0 }
+			}
+			set_variable = { USA_mkultra_selected_record = 0 }
+			set_variable = { USA_mkultra_record_file_open = 0 }
+		}
+	}
+}
+
+USA_mkultra_gui_initialize = {
+	if = {
+		limit = {
+			tag = USA
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_initialized
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_gui_dirty } }
+			set_variable = { USA_mkultra_gui_dirty = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_selected_record } }
+			set_variable = { USA_mkultra_selected_record = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_record_file_open } }
+			set_variable = { USA_mkultra_record_file_open = 0 }
+		}
+		set_country_flag = USA_mkultra_gui_initialized
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}

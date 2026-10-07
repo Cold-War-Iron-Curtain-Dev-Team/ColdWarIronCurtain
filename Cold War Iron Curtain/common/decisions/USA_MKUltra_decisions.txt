@@ -114,7 +114,18 @@ USA_MKULTRA_RESEARCH = {
 		ai_will_do = {
 			factor = 0
 			modifier = {
-				add = 65
+				add = 40
+				check_variable = { USA_mkultra_missing_baseline_profile = 1 }
+				USA_mkultra_ai_can_afford_missing_baseline_trigger = yes
+			}
+			modifier = {
+				add = 120
+				check_variable = { USA_mkultra_missing_baseline_profile = 3 }
+				USA_mkultra_ai_can_afford_missing_baseline_trigger = yes
+			}
+			modifier = {
+				add = 50
+				check_variable = { USA_mkultra_missing_baseline_profile = 4 }
 				USA_mkultra_ai_can_afford_missing_baseline_trigger = yes
 			}
 		}
@@ -187,7 +198,25 @@ USA_MKULTRA_RESEARCH = {
 		ai_will_do = {
 			factor = 0
 			modifier = {
-				add = 90
+				add = 120
+				check_variable = { USA_mkultra_missing_baseline_profile = 1 }
+				USA_mkultra_ai_can_afford_replication_trigger = yes
+			}
+			modifier = {
+				add = 60
+				check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+				check_variable = { USA_mkultra_missing_baseline_profile = 3 }
+				USA_mkultra_ai_can_afford_replication_trigger = yes
+			}
+			modifier = {
+				add = 100
+				check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+				check_variable = { USA_mkultra_missing_baseline_profile = 3 }
+				USA_mkultra_ai_can_afford_replication_trigger = yes
+			}
+			modifier = {
+				add = 110
+				check_variable = { USA_mkultra_missing_baseline_profile = 4 }
 				USA_mkultra_ai_can_afford_replication_trigger = yes
 			}
 		}
@@ -242,7 +271,7 @@ USA_MKULTRA_RESEARCH = {
 			custom_effect_tooltip = USA_mkultra_apply_administrative_consolidation_tt
 			USA_mkultra_apply_administrative_consolidation = yes
 		}
-		ai_will_do = { factor = 100 }
+		ai_will_do = { factor = 150 }
 	}
 
 	USA_mkultra_accept_sponsor_reimbursement = {
@@ -262,7 +291,7 @@ USA_MKULTRA_RESEARCH = {
 			custom_effect_tooltip = USA_mkultra_accept_sponsor_reimbursement_tt
 			USA_mkultra_accept_sponsor_reimbursement = yes
 		}
-		ai_will_do = { factor = 100 }
+		ai_will_do = { factor = 150 }
 	}
 
 	USA_mkultra_archive_missing_baseline = {
@@ -281,7 +310,32 @@ USA_MKULTRA_RESEARCH = {
 			custom_effect_tooltip = USA_mkultra_archive_missing_baseline_tt
 			USA_mkultra_phase_2_archive_missing_baseline = yes
 		}
-		ai_will_do = { factor = 80 }
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 10
+				OR = {
+					check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+					check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+				}
+			}
+			modifier = {
+				add = 10
+				check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+				OR = {
+					check_variable = { USA_mkultra_missing_baseline_profile = 1 }
+					check_variable = { USA_mkultra_missing_baseline_profile = 2 }
+				}
+			}
+			modifier = {
+				add = 100
+				check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+				OR = {
+					check_variable = { USA_mkultra_missing_baseline_profile = 3 }
+					check_variable = { USA_mkultra_missing_baseline_profile = 4 }
+				}
+			}
+		}
 	}
 
 	# Original fictional/gameplay-abstraction case. This dossier models defensive
@@ -368,7 +422,7 @@ USA_MKULTRA_RESEARCH = {
 			custom_effect_tooltip = USA_mkultra_apply_countermeasure_lessons_tt
 			USA_mkultra_apply_countermeasure_lessons = yes
 		}
-		ai_will_do = { factor = 100 }
+		ai_will_do = { factor = 150 }
 	}
 
 	USA_mkultra_archive_countermeasure = {
@@ -380,7 +434,47 @@ USA_MKULTRA_RESEARCH = {
 			custom_effect_tooltip = USA_mkultra_archive_countermeasure_tt
 			USA_mkultra_archive_countermeasure = yes
 		}
-		ai_will_do = { factor = 75 }
+		ai_will_do = { factor = 20 }
+	}
+
+	# Visible consequence clocks replace schema-2 hidden delayed events. They are
+	# non-selectable, survive charter closure, and delegate all material work to
+	# the same guarded events/effects used by migrated saves.
+	USA_mkultra_security_scare_countdown = {
+		icon = generic_intelligence_agency
+		activation = { always = no }
+		available = { always = no }
+		selectable_mission = no
+		days_mission_timeout = 60
+		is_good = no
+
+		timeout_effect = { country_event = { id = cwic_mkultra.220 } }
+		cancel_trigger = {
+			OR = {
+				NOT = { check_variable = { USA_mkultra_security_scare_state = 1 } }
+				has_country_flag = USA_mkultra_security_scare_resolved
+			}
+		}
+		cancel_effect = { USA_mkultra_mark_gui_dirty = yes }
+	}
+
+	USA_mkultra_basic_inquiry_notice = {
+		icon = generic_intelligence_agency
+		activation = { always = no }
+		available = { always = no }
+		selectable_mission = no
+		days_mission_timeout = 30
+		is_good = no
+
+		timeout_effect = { country_event = { id = cwic_mkultra.230 } }
+		cancel_trigger = {
+			OR = {
+				NOT = { has_country_flag = USA_mkultra_basic_inquiry_scheduled }
+				has_country_flag = USA_mkultra_basic_inquiry_resolved
+				NOT = { check_variable = { USA_mkultra_inquiry_state = 0 } }
+			}
+		}
+		cancel_effect = { USA_mkultra_mark_gui_dirty = yes }
 	}
 
 	USA_mkultra_terminate_charter = {
