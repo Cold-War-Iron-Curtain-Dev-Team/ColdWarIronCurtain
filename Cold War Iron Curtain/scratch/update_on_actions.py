@@ -1,4 +1,6 @@
-on_actions = {
+path = r'c:\Users\New\Documents\Paradox Interactive\Hearts of Iron IV\mod\CWIC Dev\Cold War Iron Curtain\common\on_actions\USA_MKUltra_on_actions.txt'
+
+new_content = """on_actions = {
 	on_startup = {
 		effect = {
 			if = {
@@ -125,3 +127,9 @@ on_actions = {
 		}
 	}
 }
+"""
+
+with open(path, 'w', encoding='utf-8', newline='\n') as f:
+    f.write(new_content)
+
+print("USA_MKUltra_on_actions.txt updated successfully!")

@@ -1,90 +1,11 @@
-add_namespace = cwic_mkultra
+events_path = r'c:\Users\New\Documents\Paradox Interactive\Hearts of Iron IV\mod\CWIC Dev\Cold War Iron Curtain\events\USA_MKUltra_events.txt'
 
-country_event = {
-	id = cwic_mkultra.100
-	title = cwic_mkultra.100.t
-	desc = cwic_mkultra.100.d
-	picture = GFX_MKUltra
-	is_triggered_only = yes
-	fire_only_once = yes
+with open(events_path, 'r', encoding='utf-8') as f:
+    text = f.read()
 
-	option = {
-		name = cwic_mkultra.100.a
-	}
-}
+text = text.replace('\r\n', '\n')
 
-# Original fictional/gameplay-abstraction consequence event. The defensive
-# finding changes the response cost; it does not validate the underlying claim.
-country_event = {
-	id = cwic_mkultra.220
-	title = cwic_mkultra.220.t
-	desc = cwic_mkultra.220.d
-	picture = GFX_MKUltra
-	is_triggered_only = yes
-	fire_only_once = yes
-	trigger = {
-		tag = USA
-		check_variable = { USA_mkultra_security_scare_state = 1 }
-		NOT = { has_country_flag = USA_mkultra_security_scare_resolved }
-	}
-
-	option = {
-		name = cwic_mkultra.220.a
-		trigger = {
-			has_country_flag = USA_mkultra_countermeasure_lessons_available
-			NOT = { has_country_flag = USA_mkultra_countermeasure_lessons_used }
-			has_political_power > 14
-		}
-		custom_effect_tooltip = USA_mkultra_security_scare_enhanced_tt
-		USA_mkultra_resolve_security_scare_enhanced = yes
-		ai_chance = { factor = 100 }
-	}
-	option = {
-		name = cwic_mkultra.220.b
-		trigger = { has_political_power > 29 }
-		custom_effect_tooltip = USA_mkultra_security_scare_conventional_tt
-		USA_mkultra_resolve_security_scare_conventional = yes
-		ai_chance = { factor = 50 }
-	}
-	option = {
-		name = cwic_mkultra.220.c
-		custom_effect_tooltip = USA_mkultra_security_scare_unfunded_tt
-		USA_mkultra_resolve_security_scare_unfunded = yes
-		ai_chance = { factor = 1 }
-	}
-}
-
-# Original fictional/basic oversight beat. This is intentionally self-contained
-# and does not stand in for the authored historical investigation chain in Phase 4.
-country_event = {
-	id = cwic_mkultra.230
-	title = cwic_mkultra.230.t
-	desc = cwic_mkultra.230.d
-	picture = GFX_MKUltra
-	is_triggered_only = yes
-	fire_only_once = yes
-	trigger = {
-		tag = USA
-		has_country_flag = USA_mkultra_basic_inquiry_scheduled
-		NOT = { has_country_flag = USA_mkultra_basic_inquiry_resolved }
-	}
-	immediate = { USA_mkultra_open_basic_inquiry = yes }
-
-	option = {
-		name = cwic_mkultra.230.a
-		trigger = { has_political_power > 24 }
-		custom_effect_tooltip = USA_mkultra_basic_inquiry_funded_tt
-		USA_mkultra_resolve_basic_inquiry_funded = yes
-		ai_chance = { factor = 100 }
-	}
-	option = {
-		name = cwic_mkultra.230.b
-		custom_effect_tooltip = USA_mkultra_basic_inquiry_fallback_tt
-		USA_mkultra_resolve_basic_inquiry_fallback = yes
-		ai_chance = { factor = 1 }
-	}
-}
-
+new_events = """
 # Historical Precursor Brief: Project BLUEBIRD and ARTICHOKE (1950-1951)
 country_event = {
 	id = cwic_mkultra.101
@@ -208,3 +129,11 @@ country_event = {
 		ai_chance = { factor = 100 }
 	}
 }
+"""
+
+text = text + new_events
+
+with open(events_path, 'w', encoding='utf-8', newline='\n') as f:
+    f.write(text)
+
+print("USA_MKUltra_events.txt updated successfully!")
