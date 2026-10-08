@@ -1,7 +1,7 @@
 
 
 
-espionage_casualty_script = {
+espionage_casualty_script_slot_1 = {
     set_variable_to_random = espionage_casualty_rng_1
     set_variable_to_random = espionage_casualty_rng_2
     set_variable_to_random = espionage_casualty_rng_3
@@ -62,8 +62,8 @@ espionage_casualty_script = {
             }
         }
     }
-    casualty_trait_impact_adjustment = yes              #Adjust the Rates Noted Above Depending on Specific Traits
-    casualty_trait_downgrade_impact_adjustment = yes    #Adjust Any Downward If Trait Applicable
+    #casualty_trait_impact_adjustment = yes              #Adjust the Rates Noted Above Depending on Specific Traits - Fires within loop
+    #casualty_trait_downgrade_impact_adjustment = yes     #Adjust Any Downward If Trait Applicable - Fires Pre loop
     set_variable = { operative_1_exposure_rate = 4 }
     set_variable = { operative_2_exposure_rate = 4 }
     set_variable = { operative_3_exposure_rate = 4 }
@@ -114,18 +114,30 @@ espionage_casualty_script = {
             var:operative_2_exposure_rate = {
                 set_variable = { operative_2_exposure_rate = 0 }
                 set_variable = { operative_2_wia = 1 }
+
+                set_variable = { operative_slot = 2 }
+                casualty_trait_downgrade_impact_adjustment = yes
             }
             var:operative_3_exposure_rate = {
                 set_variable = { operative_3_exposure_rate = 0 }
                 set_variable = { operative_3_wia = 1 }
+
+                set_variable = { operative_slot = 3 }
+                casualty_trait_downgrade_impact_adjustment = yes
             }
             var:operative_4_exposure_rate = {
                 set_variable = { operative_4_exposure_rate = 0 }
                 set_variable = { operative_4_wia = 1 }
+
+                set_variable = { operative_slot = 4 }
+                casualty_trait_downgrade_impact_adjustment = yes
             }
             var:operative_5_exposure_rate = {
                 set_variable = { operative_5_exposure_rate = 0 }
                 set_variable = { operative_5_wia = 1 }
+
+                set_variable = { operative_slot = 5 }
+                casualty_trait_downgrade_impact_adjustment = yes
             }
         }
     }
@@ -138,22 +150,67 @@ espionage_casualty_script = {
             var:operative_1_exposure_rate = {
                 set_variable = { operative_1_exposure_rate = 0 }
                 set_variable = { operative_1_cap = 1 }
+
+                set_variable = { operative_slot = 1 }
+                meta_effect = { 
+                    text = {
+                        set_variable = { operative_[CURRENT_SLOT]_mia^[CURRENT_PAGE] = slot_one_target }
+                    }
+                    CURRENT_PAGE = "[?current_page]"
+                    CURRENT_SLOT = "[?operative_slot]"
+                }   
             }
             var:operative_2_exposure_rate = {
                 set_variable = { operative_2_exposure_rate = 0 }
                 set_variable = { operative_2_cap = 1 }
+            
+                set_variable = { operative_slot = 2 }
+                meta_effect = { 
+                    text = {
+                        set_variable = { operative_[CURRENT_SLOT]_mia^[CURRENT_PAGE] = slot_one_target }
+                    }
+                    CURRENT_PAGE = "[?current_page]"
+                    CURRENT_SLOT = "[?operative_slot]"
+                }   
             }
             var:operative_3_exposure_rate = {
                 set_variable = { operative_3_exposure_rate = 0 }
                 set_variable = { operative_3_cap = 1 }
+
+                set_variable = { operative_slot = 3 }
+                meta_effect = { 
+                    text = {
+                        set_variable = { operative_[CURRENT_SLOT]_mia^[CURRENT_PAGE] = slot_one_target }
+                    }
+                    CURRENT_PAGE = "[?current_page]"
+                    CURRENT_SLOT = "[?operative_slot]"
+                }   
             }
             var:operative_4_exposure_rate = {
                 set_variable = { operative_4_exposure_rate = 0 }
                 set_variable = { operative_4_cap = 1 }
+
+                set_variable = { operative_slot = 4 }
+                meta_effect = { 
+                    text = {
+                        set_variable = { operative_[CURRENT_SLOT]_mia^[CURRENT_PAGE] = slot_one_target }
+                    }
+                    CURRENT_PAGE = "[?current_page]"
+                    CURRENT_SLOT = "[?operative_slot]"
+                }   
             }
             var:operative_5_exposure_rate = {
                 set_variable = { operative_5_exposure_rate = 0 }
                 set_variable = { operative_5_cap = 1 }
+
+                set_variable = { operative_slot = 5 }
+                meta_effect = { 
+                    text = {
+                        set_variable = { operative_[CURRENT_SLOT]_mia^[CURRENT_PAGE] = slot_one_target }
+                    }
+                    CURRENT_PAGE = "[?current_page]"
+                    CURRENT_SLOT = "[?operative_slot]"
+                }   
             }
         }
     }
@@ -421,13 +478,22 @@ finalize_casualty_impact_on_mission_end = { #Set WIA, Captured and KIA Impacts o
             remove_current_operative_5 = yes
         }
     }
-    #WIA
-
     #Captured
+
 }
 remove_current_operative_1 = {
+    set_variable = { squad_position = 1 }
+    meta_effect = { 
+        text = {
+            clear_array =  paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE]
+        }
+        CURRENT_PAGE = "[?current_page]"
+        SQUAD_POSITION = "[?squad_position]"
+    }    
+    
+
     set_variable = {
-        paramilitary_operative_squad_unit_1_level^current_page = -1
+        paramilitary_operative_squad_unit_1_level^current_page = 0  #null
     }   
     set_variable = {
         paramilitary_operative_squad_leader_type^current_page = -1
@@ -554,8 +620,16 @@ remove_current_operative_1 = {
 
 }
 remove_current_operative_2 = {
+    set_variable = { squad_position = 2 }
+    meta_effect = { 
+        text = {
+            clear_array =  paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE]
+        }
+        CURRENT_PAGE = "[?current_page]"
+        SQUAD_POSITION = "[?squad_position]"
+    }    
     set_variable = {
-        paramilitary_operative_squad_unit_2_level^current_page = -1
+        paramilitary_operative_squad_unit_2_level^current_page = 0
     }   
     set_variable = {
         paramilitary_operative_squad_unit_2_type^current_page = -1
@@ -682,8 +756,16 @@ remove_current_operative_2 = {
 
 }
 remove_current_operative_3 = {
+    set_variable = { squad_position = 3 }
+    meta_effect = { 
+        text = {
+            clear_array =  paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE]
+        }
+        CURRENT_PAGE = "[?current_page]"
+        SQUAD_POSITION = "[?squad_position]"
+    }    
     set_variable = {
-        paramilitary_operative_squad_unit_3_level^current_page = -1
+        paramilitary_operative_squad_unit_3_level^current_page = 0
     }   
     set_variable = {
         paramilitary_operative_squad_unit_3_type^current_page = -1
@@ -810,8 +892,16 @@ remove_current_operative_3 = {
 
 }
 remove_current_operative_4 = {
+    set_variable = { squad_position = 4 }
+    meta_effect = { 
+        text = {
+            clear_array =  paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE]
+        }
+        CURRENT_PAGE = "[?current_page]"
+        SQUAD_POSITION = "[?squad_position]"
+    }    
     set_variable = {
-        paramilitary_operative_squad_unit_4_level^current_page = -1
+        paramilitary_operative_squad_unit_4_level^current_page = 0
     }   
     set_variable = {
         paramilitary_operative_squad_unit_4_type^current_page = -1
@@ -939,9 +1029,17 @@ remove_current_operative_4 = {
 
 }
 remove_current_operative_5 = {
+    set_variable = { squad_position = 5 }
+    meta_effect = { 
+        text = {
+            clear_array =  paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE]
+        }
+        CURRENT_PAGE = "[?current_page]"
+        SQUAD_POSITION = "[?squad_position]"
+    }    
     #Member 5
     set_variable = {
-        paramilitary_operative_squad_unit_5_level^current_page = -1
+        paramilitary_operative_squad_unit_5_level^current_page = 0
     }   
     set_variable = {
         paramilitary_operative_squad_unit_5_type^current_page = -1
