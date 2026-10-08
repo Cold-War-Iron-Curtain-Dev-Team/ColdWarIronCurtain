@@ -1,0 +1,69 @@
+# Exposure-band review episodes (design 10.1 / 10.2). The 25-49 band is the
+# existing basic inquiry; these cover formal scrutiny (50-74) and public crisis
+# (75+). Each band crossing is a distinct basis and opens at most one episode.
+
+USA_mkultra_any_charter_active_trigger = {
+	OR = {
+		USA_mkultra_charter_active_trigger = yes
+		USA_mkultra_gateway_charter_active_trigger = yes
+	}
+}
+
+# A live inquiry owns the escalation; a new band waits for it to resolve.
+USA_mkultra_no_live_inquiry_trigger = {
+	NOT = { check_variable = { USA_mkultra_inquiry_state = 1 } }
+}
+
+USA_mkultra_formal_scrutiny_due_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	has_country_flag = USA_mkultra_initialized
+	NOT = { has_country_flag = USA_mkultra_feature_cutoff }
+	USA_mkultra_any_charter_active_trigger = yes
+	USA_mkultra_no_live_inquiry_trigger = yes
+	check_variable = { USA_mkultra_exposure > 49 }
+	NOT = { has_country_flag = USA_mkultra_formal_scrutiny_opened }
+}
+
+USA_mkultra_public_crisis_due_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	has_country_flag = USA_mkultra_initialized
+	NOT = { has_country_flag = USA_mkultra_feature_cutoff }
+	USA_mkultra_any_charter_active_trigger = yes
+	USA_mkultra_no_live_inquiry_trigger = yes
+	check_variable = { USA_mkultra_exposure > 74 }
+	NOT = { has_country_flag = USA_mkultra_public_crisis_opened }
+}
+
+# Design 14.2: the AI buys the second slot only when there is work to fill it.
+USA_mkultra_ai_has_work_for_second_slot_trigger = {
+	OR = {
+		AND = {
+			check_variable = { USA_mkultra_midnight_climax_stage = 1 }
+			OR = {
+				check_variable = { USA_mkultra_hypnosis_stage = 1 }
+				check_variable = { USA_mkultra_behavioral_stage = 1 }
+				check_variable = { USA_mkultra_countermeasure_stage = 1 }
+				check_variable = { USA_mkultra_mksearch_stage = 1 }
+			}
+		}
+		AND = {
+			check_variable = { USA_mkultra_hypnosis_stage = 1 }
+			OR = {
+				check_variable = { USA_mkultra_behavioral_stage = 1 }
+				check_variable = { USA_mkultra_countermeasure_stage = 1 }
+				check_variable = { USA_mkultra_mksearch_stage = 1 }
+			}
+		}
+		AND = {
+			check_variable = { USA_mkultra_behavioral_stage = 1 }
+			OR = {
+				check_variable = { USA_mkultra_countermeasure_stage = 1 }
+				check_variable = { USA_mkultra_mksearch_stage = 1 }
+			}
+		}
+		AND = {
+			check_variable = { USA_mkultra_countermeasure_stage = 1 }
+			check_variable = { USA_mkultra_mksearch_stage = 1 }
+		}
+	}
+}

@@ -1,0 +1,140 @@
+# Exposure-band review episodes (design 10.1 / 10.2): formal scrutiny (50-74)
+# and public crisis (75+). Evaluated when exposure changes at a stage start and
+# by the USA monthly handler as a recovery check. Each opens a live inquiry
+# (USA_mkultra_inquiry_state = 1), which pauses every new research start, and
+# every episode has a response that needs no Political Power.
+
+USA_mkultra_evaluate_exposure_bands = {
+	if = {
+		limit = {
+			tag = USA
+			# A pending basic inquiry owns the escalation until it resolves.
+			NOT = {
+				AND = {
+					has_country_flag = USA_mkultra_basic_inquiry_scheduled
+					NOT = { has_country_flag = USA_mkultra_basic_inquiry_resolved }
+				}
+			}
+		}
+		if = {
+			limit = { USA_mkultra_public_crisis_due_trigger = yes }
+			set_country_flag = USA_mkultra_public_crisis_opened
+			# Escalated past formal scrutiny: that band never opens separately.
+			set_country_flag = USA_mkultra_formal_scrutiny_opened
+			USA_mkultra_open_band_inquiry = yes
+			country_event = { id = cwic_mkultra.237 }
+		}
+		else_if = {
+			limit = { USA_mkultra_formal_scrutiny_due_trigger = yes }
+			set_country_flag = USA_mkultra_formal_scrutiny_opened
+			USA_mkultra_open_band_inquiry = yes
+			country_event = { id = cwic_mkultra.235 }
+		}
+	}
+}
+
+USA_mkultra_open_band_inquiry = {
+	set_variable = { USA_mkultra_inquiry_state = 1 }
+	# A higher band supersedes the unopened 25-49 internal challenge; otherwise
+	# its notice could never re-arm once the inquiry state has moved past 0.
+	if = {
+		limit = { NOT = { has_country_flag = USA_mkultra_basic_inquiry_scheduled } }
+		set_country_flag = USA_mkultra_basic_inquiry_resolved
+		set_country_flag = USA_mkultra_basic_inquiry_superseded
+	}
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+USA_mkultra_close_band_inquiry = {
+	set_variable = { USA_mkultra_inquiry_state = 2 }
+	USA_mkultra_clamp_variables = yes
+	USA_mkultra_gui_reconcile = yes
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+# Closure response shared by both episodes. Running work settles under the
+# normal rules; the CIA ending records that an inquiry closed it.
+USA_mkultra_close_charters_by_inquiry = {
+	if = {
+		limit = { USA_mkultra_charter_active_trigger = yes }
+		set_country_flag = USA_mkultra_closed_by_inquiry
+		USA_mkultra_terminate_charter = yes
+	}
+	USA_mkultra_close_gateway_charter = yes
+}
+
+###########################################################################
+# Formal scrutiny (50-74)
+###########################################################################
+
+USA_mkultra_resolve_formal_scrutiny_funded = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_inquiry_state = 1 }
+			has_political_power > 34
+		}
+		add_political_power = -35
+		add_to_variable = { USA_mkultra_exposure = -10 }
+		set_country_flag = USA_mkultra_formal_scrutiny_resolved
+		USA_mkultra_close_band_inquiry = yes
+	}
+}
+
+# No-PP response: the institution gives up its expanded remit.
+USA_mkultra_resolve_formal_scrutiny_narrow = {
+	if = {
+		limit = { check_variable = { USA_mkultra_inquiry_state = 1 } }
+		if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
+			# Work already running in the second slot settles normally; no new
+			# stage can start there.
+			set_variable = { USA_mkultra_capacity = 1 }
+			set_country_flag = USA_mkultra_authorization_narrowed
+		}
+		add_to_variable = { USA_mkultra_exposure = -5 }
+		set_country_flag = USA_mkultra_formal_scrutiny_resolved
+		USA_mkultra_close_band_inquiry = yes
+	}
+}
+
+USA_mkultra_resolve_formal_scrutiny_close = {
+	if = {
+		limit = { check_variable = { USA_mkultra_inquiry_state = 1 } }
+		USA_mkultra_close_charters_by_inquiry = yes
+		add_to_variable = { USA_mkultra_exposure = -5 }
+		set_country_flag = USA_mkultra_formal_scrutiny_resolved
+		USA_mkultra_close_band_inquiry = yes
+	}
+}
+
+###########################################################################
+# Public crisis (75+)
+###########################################################################
+
+# Design 10.2: a public restructuring reduces exposure by 15, once.
+USA_mkultra_resolve_public_crisis_funded = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_inquiry_state = 1 }
+			has_political_power > 49
+		}
+		add_political_power = -50
+		add_stability = -0.01
+		add_to_variable = { USA_mkultra_exposure = -15 }
+		set_country_flag = USA_mkultra_public_crisis_resolved
+		USA_mkultra_close_band_inquiry = yes
+	}
+}
+
+# No-PP response: the program closes in public. Closure happens before the
+# exposure change, so the CIA ending records a public collapse.
+USA_mkultra_resolve_public_crisis_fallback = {
+	if = {
+		limit = { check_variable = { USA_mkultra_inquiry_state = 1 } }
+		USA_mkultra_close_charters_by_inquiry = yes
+		add_stability = -0.03
+		add_to_variable = { USA_mkultra_exposure = -5 }
+		set_country_flag = USA_mkultra_public_crisis_resolved
+		USA_mkultra_close_band_inquiry = yes
+	}
+}
