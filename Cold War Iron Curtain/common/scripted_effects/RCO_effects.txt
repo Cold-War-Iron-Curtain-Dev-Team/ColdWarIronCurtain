@@ -3,27 +3,36 @@
 # Guide: top of events/RCO_events.txt
 ###########################################################################
 
-# Scope: ROOT = sender. Generic - never grows.
-# Called daily from on_actions and after an opportunity is used.
-# Opens/closes the per-sender flag RCO_open_<sender tag> on every target,
-# and keeps the sender's RCO_any_open flag + RCO_targets array (topbar alert).
+# Scope: THIS = one explicit target, ROOT = sender.
+# New opportunity countries have to be added to RCO_sync below as well as RCO_any.
+RCO_note_target = {
+	if = {
+		limit = { RCO_any = yes }
+		if = {
+			limit = { NOT = { has_country_flag = RCO_open_@ROOT } }
+			set_country_flag = RCO_open_@ROOT
+			ROOT = { clr_country_flag = RCO_alert_dismissed }
+		}
+		add_to_array = { ROOT.RCO_targets = THIS }
+	}
+	else_if = {
+		limit = { has_country_flag = RCO_open_@ROOT }
+		clr_country_flag = RCO_open_@ROOT
+	}
+}
+
+# Scope: ROOT = sender.
+# Called weekly from on_actions and after an opportunity is used.
+# Checks the Soviet target tags only, then rebuilds RCO_targets.
 RCO_sync = {
 	ROOT = { clear_array = RCO_targets }
-	every_country = {	# single pass: open, close and collect (was three every_country loops a day)
-		if = {
-			limit = { RCO_any = yes }
-			if = {
-				limit = { NOT = { has_country_flag = RCO_open_@ROOT } }
-				set_country_flag = RCO_open_@ROOT
-				ROOT = { clr_country_flag = RCO_alert_dismissed }	# new opportunity -> re-show alert
-			}
-			add_to_array = { ROOT.RCO_targets = THIS }
-		}
-		else_if = {
-			limit = { has_country_flag = RCO_open_@ROOT }
-			clr_country_flag = RCO_open_@ROOT
-		}
-	}
+	if = { limit = { country_exists = PDG } PDG = { RCO_note_target = yes } }
+	if = { limit = { country_exists = GRE } GRE = { RCO_note_target = yes } }
+	if = { limit = { country_exists = PRC } PRC = { RCO_note_target = yes } }
+	if = { limit = { country_exists = CHI } CHI = { RCO_note_target = yes } }
+	if = { limit = { country_exists = WGR } WGR = { RCO_note_target = yes } }
+	if = { limit = { country_exists = DDR } DDR = { RCO_note_target = yes } }
+	if = { limit = { country_exists = YUG } YUG = { RCO_note_target = yes } }
 	ROOT = {
 		if = {
 			limit = { check_variable = { RCO_targets^num > 0 } }
