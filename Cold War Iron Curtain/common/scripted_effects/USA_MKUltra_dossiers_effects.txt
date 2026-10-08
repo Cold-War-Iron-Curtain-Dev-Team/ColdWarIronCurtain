@@ -1,0 +1,675 @@
+# Additional CIA-charter dossiers (design 7): Hypnosis & Conditioning Claims and
+# Behavioral Assessment. Both are original fictional/composite contractor cases.
+#
+# Hypnosis stages: 0 locked, 1 available, 2 initial research, 3 initial report,
+# 4 renewal research, 5 renewal report, 6 replication research, 7 final
+# appraisal, 8 archived, 9 cancelled/foreclosed. Slot in USA_mkultra_hypnosis_slot.
+# Authored profile: a persuasive demonstration that does not survive independent
+# replication. Its finding is the value of rejecting it (design 9, "Reliable
+# internal appraisal").
+#
+# Behavioral stages: 0 locked, 1 available, 2 initial research, 3 initial report,
+# 4 replication research, 5 final appraisal, 6 archived, 7 cancelled,
+# 8 foreclosed. Slot in USA_mkultra_behavioral_slot. Profile drawn once at
+# commission (design 8.4): 1 narrow useful finding, 2 ordinary explanation,
+# 3 inconclusive, 4 administratively attractive but unsupported.
+
+# Shared exposure charge for a front-grant study stage (design 8.1-8.3): +2, the
+# expansion surcharge (+1 exposure, 5 PP) applied first, then compartmentalization
+# (-2, minimum 1).
+USA_mkultra_charge_front_grant_stage = {
+	set_temp_variable = { USA_mkultra_stage_exposure = 2 }
+	if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		add_political_power = -5
+		add_to_temp_variable = { USA_mkultra_stage_exposure = 1 }
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+		subtract_from_temp_variable = { USA_mkultra_stage_exposure = 2 }
+		if = {
+			limit = { check_variable = { USA_mkultra_stage_exposure < 1 } }
+			set_temp_variable = { USA_mkultra_stage_exposure = 1 }
+		}
+	}
+	add_to_variable = { USA_mkultra_exposure = USA_mkultra_stage_exposure }
+}
+
+# Shared charge for an independent replication stage: +1 exposure, +10 PP under
+# compartmentalization, expansion surcharge. Replication gets no secrecy discount.
+USA_mkultra_charge_replication_stage = {
+	add_to_variable = { USA_mkultra_exposure = 1 }
+	if = {
+		limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+		add_political_power = -10
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		add_political_power = -5
+		add_to_variable = { USA_mkultra_exposure = 1 }
+	}
+}
+
+# Design 9: the Reliable internal appraisal finding makes independent review of
+# two later contractor dossiers (Behavioral Assessment, MKSEARCH) 5 PP cheaper.
+USA_mkultra_apply_reliable_appraisal_discount = {
+	if = {
+		limit = { has_country_flag = USA_mkultra_reliable_appraisal_earned }
+		add_political_power = 5
+	}
+}
+
+###########################################################################
+# Hypnosis & Conditioning Claims
+###########################################################################
+
+USA_mkultra_unlock_hypnosis = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			date > 1953.6.1
+			check_variable = { USA_mkultra_hypnosis_stage = 0 }
+		}
+		set_country_flag = USA_mkultra_hypnosis_unlocked
+		set_variable = { USA_mkultra_hypnosis_stage = 1 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_hypnosis = {
+	if = {
+		limit = { USA_mkultra_can_start_hypnosis_trigger = yes }
+		set_country_flag = USA_mkultra_hypnosis_paid
+		set_country_flag = USA_mkultra_hypnosis_owner_cia
+		set_variable = { USA_mkultra_hypnosis_stage = 2 }
+		if = {
+			limit = { check_variable = { USA_mkultra_slot_1_state = 0 } }
+			set_variable = { USA_mkultra_hypnosis_slot = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_hypnosis_slot = 2 }
+		}
+		USA_mkultra_charge_front_grant_stage = yes
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_hypnosis_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_hypnosis = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_hypnosis_stage = 2 }
+			has_country_flag = USA_mkultra_hypnosis_paid
+			NOT = { has_country_flag = USA_mkultra_hypnosis_record_awarded }
+		}
+		set_country_flag = USA_mkultra_hypnosis_record_awarded
+		add_to_variable = { USA_mkultra_progress = 12 }
+		set_variable = { USA_mkultra_hypnosis_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_research }
+			remove_mission = USA_mkultra_hypnosis_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_hypnosis_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_hypnosis_renewal = {
+	if = {
+		limit = { USA_mkultra_can_renew_hypnosis_trigger = yes }
+		set_country_flag = USA_mkultra_hypnosis_renewal_paid
+		set_variable = { USA_mkultra_hypnosis_stage = 4 }
+		USA_mkultra_charge_front_grant_stage = yes
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_review }
+			remove_mission = USA_mkultra_hypnosis_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_hypnosis_renewal_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_hypnosis_renewal = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_hypnosis_stage = 4 }
+			has_country_flag = USA_mkultra_hypnosis_renewal_paid
+			NOT = { has_country_flag = USA_mkultra_hypnosis_renewal_record_awarded }
+		}
+		set_country_flag = USA_mkultra_hypnosis_renewal_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_hypnosis_stage = 5 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_renewal_research }
+			remove_mission = USA_mkultra_hypnosis_renewal_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_hypnosis_renewal_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_hypnosis_replication = {
+	if = {
+		limit = { USA_mkultra_can_replicate_hypnosis_trigger = yes }
+		# Moving straight to replication ends the renewal option (design 5.5).
+		if = {
+			limit = { check_variable = { USA_mkultra_hypnosis_stage = 3 } }
+			set_country_flag = USA_mkultra_hypnosis_renewal_foregone
+		}
+		set_country_flag = USA_mkultra_hypnosis_replication_paid
+		set_variable = { USA_mkultra_hypnosis_stage = 6 }
+		USA_mkultra_charge_replication_stage = yes
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_review }
+			remove_mission = USA_mkultra_hypnosis_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_renewal_review }
+			remove_mission = USA_mkultra_hypnosis_renewal_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_hypnosis_replication_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_hypnosis_replication = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_hypnosis_stage = 6 }
+			has_country_flag = USA_mkultra_hypnosis_replication_paid
+			NOT = { has_country_flag = USA_mkultra_hypnosis_replication_record_awarded }
+		}
+		set_country_flag = USA_mkultra_hypnosis_replication_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_hypnosis_stage = 7 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_replication_research }
+			remove_mission = USA_mkultra_hypnosis_replication_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_hypnosis_final_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_apply_reliable_appraisal = {
+	if = {
+		limit = { USA_mkultra_can_apply_reliable_appraisal_trigger = yes }
+		set_country_flag = USA_mkultra_reliable_appraisal_earned
+		USA_mkultra_archive_hypnosis = yes
+	}
+}
+
+USA_mkultra_archive_hypnosis = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			OR = {
+				check_variable = { USA_mkultra_hypnosis_stage = 3 }
+				check_variable = { USA_mkultra_hypnosis_stage = 5 }
+				check_variable = { USA_mkultra_hypnosis_stage = 7 }
+			}
+		}
+		set_country_flag = USA_mkultra_hypnosis_archived
+		set_variable = { USA_mkultra_hypnosis_stage = 8 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_review }
+			remove_mission = USA_mkultra_hypnosis_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_renewal_review }
+			remove_mission = USA_mkultra_hypnosis_renewal_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_final_review }
+			remove_mission = USA_mkultra_hypnosis_final_review
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# No refund; committed exposure stays.
+USA_mkultra_cancel_hypnosis = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_hypnosis_stage = 2 }
+				check_variable = { USA_mkultra_hypnosis_stage = 4 }
+				check_variable = { USA_mkultra_hypnosis_stage = 6 }
+			}
+		}
+		set_variable = { USA_mkultra_hypnosis_stage = 9 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_research }
+			remove_mission = USA_mkultra_hypnosis_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_renewal_research }
+			remove_mission = USA_mkultra_hypnosis_renewal_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_hypnosis_replication_research }
+			remove_mission = USA_mkultra_hypnosis_replication_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+###########################################################################
+# Behavioral Assessment
+###########################################################################
+
+USA_mkultra_unlock_behavioral = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			date > 1960.1.1
+			check_variable = { USA_mkultra_behavioral_stage = 0 }
+		}
+		set_country_flag = USA_mkultra_behavioral_unlocked
+		set_variable = { USA_mkultra_behavioral_stage = 1 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# Drawn once and stored; a later renewal, reload or successor never rerolls it.
+# Equal weights are a provisional playtest assumption (design 8.4).
+USA_mkultra_assign_behavioral_profile = {
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_behavioral_paid
+			NOT = { has_country_flag = USA_mkultra_behavioral_profile_assigned }
+		}
+		random_list = {
+			25 = { set_variable = { USA_mkultra_behavioral_profile = 1 } }
+			25 = { set_variable = { USA_mkultra_behavioral_profile = 2 } }
+			25 = { set_variable = { USA_mkultra_behavioral_profile = 3 } }
+			25 = { set_variable = { USA_mkultra_behavioral_profile = 4 } }
+		}
+		set_country_flag = USA_mkultra_behavioral_profile_assigned
+	}
+}
+
+USA_mkultra_start_behavioral = {
+	if = {
+		limit = { USA_mkultra_can_start_behavioral_trigger = yes }
+		set_country_flag = USA_mkultra_behavioral_paid
+		set_country_flag = USA_mkultra_behavioral_owner_cia
+		USA_mkultra_assign_behavioral_profile = yes
+		set_variable = { USA_mkultra_behavioral_stage = 2 }
+		if = {
+			limit = { check_variable = { USA_mkultra_slot_1_state = 0 } }
+			set_variable = { USA_mkultra_behavioral_slot = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_behavioral_slot = 2 }
+		}
+		USA_mkultra_charge_front_grant_stage = yes
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_behavioral_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_behavioral = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_behavioral_stage = 2 }
+			has_country_flag = USA_mkultra_behavioral_paid
+			NOT = { has_country_flag = USA_mkultra_behavioral_record_awarded }
+		}
+		set_country_flag = USA_mkultra_behavioral_record_awarded
+		add_to_variable = { USA_mkultra_progress = 12 }
+		set_variable = { USA_mkultra_behavioral_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_research }
+			remove_mission = USA_mkultra_behavioral_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_behavioral_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_behavioral_replication = {
+	if = {
+		limit = { USA_mkultra_can_replicate_behavioral_trigger = yes }
+		set_country_flag = USA_mkultra_behavioral_replication_paid
+		set_variable = { USA_mkultra_behavioral_stage = 4 }
+		USA_mkultra_charge_replication_stage = yes
+		USA_mkultra_apply_reliable_appraisal_discount = yes
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_review }
+			remove_mission = USA_mkultra_behavioral_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_behavioral_replication_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_behavioral_replication = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_behavioral_stage = 4 }
+			has_country_flag = USA_mkultra_behavioral_replication_paid
+			NOT = { has_country_flag = USA_mkultra_behavioral_replication_record_awarded }
+		}
+		set_country_flag = USA_mkultra_behavioral_replication_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_behavioral_stage = 5 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_replication_research }
+			remove_mission = USA_mkultra_behavioral_replication_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_behavioral_final_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# Bounded, once-only payoff for the narrow useful profile.
+USA_mkultra_apply_screening_finding = {
+	if = {
+		limit = { USA_mkultra_can_apply_screening_finding_trigger = yes }
+		set_country_flag = USA_mkultra_screening_finding_applied
+		add_timed_idea = {
+			idea = USA_mkultra_screening_finding
+			days = 365
+		}
+		USA_mkultra_archive_behavioral = yes
+	}
+}
+
+USA_mkultra_archive_behavioral = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			OR = {
+				check_variable = { USA_mkultra_behavioral_stage = 3 }
+				check_variable = { USA_mkultra_behavioral_stage = 5 }
+			}
+		}
+		set_country_flag = USA_mkultra_behavioral_archived
+		set_variable = { USA_mkultra_behavioral_stage = 6 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_review }
+			remove_mission = USA_mkultra_behavioral_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_final_review }
+			remove_mission = USA_mkultra_behavioral_final_review
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_cancel_behavioral = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_behavioral_stage = 2 }
+				check_variable = { USA_mkultra_behavioral_stage = 4 }
+			}
+		}
+		set_variable = { USA_mkultra_behavioral_stage = 7 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_research }
+			remove_mission = USA_mkultra_behavioral_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_behavioral_replication_research }
+			remove_mission = USA_mkultra_behavioral_replication_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+###########################################################################
+# Shared lifecycle hooks
+###########################################################################
+
+# CIA charter closure: running work cancelled, pending reports archived without
+# their findings, uncommissioned dossiers foreclosed.
+USA_mkultra_settle_extra_dossiers = {
+	USA_mkultra_cancel_hypnosis = yes
+	USA_mkultra_archive_hypnosis = yes
+	if = {
+		limit = { check_variable = { USA_mkultra_hypnosis_stage = 1 } }
+		set_variable = { USA_mkultra_hypnosis_stage = 9 }
+	}
+	USA_mkultra_cancel_behavioral = yes
+	USA_mkultra_archive_behavioral = yes
+	if = {
+		limit = { check_variable = { USA_mkultra_behavioral_stage = 1 } }
+		set_variable = { USA_mkultra_behavioral_stage = 8 }
+	}
+}
+
+# Called from USA_mkultra_phase_2_reconcile. Repairs derived state only.
+USA_mkultra_extra_dossiers_reconcile = {
+	USA_mkultra_assign_behavioral_profile = yes
+	if = {
+		limit = { has_country_flag = USA_mkultra_hypnosis_archived }
+		set_variable = { USA_mkultra_hypnosis_stage = 8 }
+	}
+	if = {
+		limit = { has_country_flag = USA_mkultra_behavioral_archived }
+		set_variable = { USA_mkultra_behavioral_stage = 6 }
+	}
+	if = {
+		limit = { USA_mkultra_charter_active_trigger = yes }
+		USA_mkultra_unlock_hypnosis = yes
+		USA_mkultra_unlock_behavioral = yes
+
+		# Completed stages whose stage variable was not advanced.
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 2 }
+				has_country_flag = USA_mkultra_hypnosis_record_awarded
+			}
+			set_variable = { USA_mkultra_hypnosis_stage = 3 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 4 }
+				has_country_flag = USA_mkultra_hypnosis_renewal_record_awarded
+			}
+			set_variable = { USA_mkultra_hypnosis_stage = 5 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 6 }
+				has_country_flag = USA_mkultra_hypnosis_replication_record_awarded
+			}
+			set_variable = { USA_mkultra_hypnosis_stage = 7 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_behavioral_stage = 2 }
+				has_country_flag = USA_mkultra_behavioral_record_awarded
+			}
+			set_variable = { USA_mkultra_behavioral_stage = 3 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_behavioral_stage = 4 }
+				has_country_flag = USA_mkultra_behavioral_replication_record_awarded
+			}
+			set_variable = { USA_mkultra_behavioral_stage = 5 }
+		}
+
+		# Restore the one timer that matches each persisted stage.
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 2 }
+				NOT = { has_active_mission = USA_mkultra_hypnosis_research }
+			}
+			activate_mission = USA_mkultra_hypnosis_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 3 }
+				NOT = { has_active_mission = USA_mkultra_hypnosis_review }
+			}
+			activate_mission = USA_mkultra_hypnosis_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 4 }
+				NOT = { has_active_mission = USA_mkultra_hypnosis_renewal_research }
+			}
+			activate_mission = USA_mkultra_hypnosis_renewal_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 5 }
+				NOT = { has_active_mission = USA_mkultra_hypnosis_renewal_review }
+			}
+			activate_mission = USA_mkultra_hypnosis_renewal_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 6 }
+				NOT = { has_active_mission = USA_mkultra_hypnosis_replication_research }
+			}
+			activate_mission = USA_mkultra_hypnosis_replication_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_hypnosis_stage = 7 }
+				NOT = { has_active_mission = USA_mkultra_hypnosis_final_review }
+			}
+			activate_mission = USA_mkultra_hypnosis_final_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_behavioral_stage = 2 }
+				NOT = { has_active_mission = USA_mkultra_behavioral_research }
+			}
+			activate_mission = USA_mkultra_behavioral_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_behavioral_stage = 3 }
+				NOT = { has_active_mission = USA_mkultra_behavioral_review }
+			}
+			activate_mission = USA_mkultra_behavioral_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_behavioral_stage = 4 }
+				NOT = { has_active_mission = USA_mkultra_behavioral_replication_research }
+			}
+			activate_mission = USA_mkultra_behavioral_replication_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_behavioral_stage = 5 }
+				NOT = { has_active_mission = USA_mkultra_behavioral_final_review }
+			}
+			activate_mission = USA_mkultra_behavioral_final_review
+		}
+	}
+}
+
+# Slot occupancy contribution, called from USA_mkultra_recompute_slot_states.
+USA_mkultra_extra_dossiers_slot_states = {
+	# Hypnosis: 2/4/6 research, 3/5/7 report.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_hypnosis_stage = 2 }
+				check_variable = { USA_mkultra_hypnosis_stage = 4 }
+				check_variable = { USA_mkultra_hypnosis_stage = 6 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_hypnosis_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_hypnosis_stage = 3 }
+				check_variable = { USA_mkultra_hypnosis_stage = 5 }
+				check_variable = { USA_mkultra_hypnosis_stage = 7 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_hypnosis_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+	# Behavioral: 2/4 research, 3/5 report.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_behavioral_stage = 2 }
+				check_variable = { USA_mkultra_behavioral_stage = 4 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_behavioral_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_behavioral_stage = 3 }
+				check_variable = { USA_mkultra_behavioral_stage = 5 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_behavioral_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+}

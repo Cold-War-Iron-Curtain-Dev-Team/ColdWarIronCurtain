@@ -1,0 +1,111 @@
+# Triggers for the Hypnosis & Conditioning Claims and Behavioral Assessment
+# dossiers. Affordability includes every scripted charge made on top of the
+# native decision cost, so a purchase never leaves PP negative.
+
+# Front-grant stage: 35 native, +5 expansion surcharge.
+USA_mkultra_can_afford_front_grant_stage_trigger = {
+	if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		has_political_power > 39
+	}
+	else = {
+		has_political_power > 34
+	}
+}
+
+# Replication stage: 30 native, +10 under compartmentalization, +5 surcharge.
+USA_mkultra_can_afford_replication_stage_trigger = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_information_policy = 2 }
+			check_variable = { USA_mkultra_capacity = 2 }
+		}
+		has_political_power > 44
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+		has_political_power > 39
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		has_political_power > 34
+	}
+	else = {
+		has_political_power > 29
+	}
+}
+
+# Hypnosis & Conditioning Claims
+USA_mkultra_can_start_hypnosis_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	USA_mkultra_has_free_slot_trigger = yes
+	check_variable = { USA_mkultra_hypnosis_stage = 1 }
+	NOT = { has_country_flag = USA_mkultra_hypnosis_paid }
+	USA_mkultra_can_afford_front_grant_stage_trigger = yes
+}
+
+USA_mkultra_can_renew_hypnosis_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_hypnosis_stage = 3 }
+	NOT = { has_country_flag = USA_mkultra_hypnosis_renewal_paid }
+	NOT = { has_country_flag = USA_mkultra_hypnosis_renewal_foregone }
+	NOT = { has_country_flag = USA_mkultra_hypnosis_archived }
+	USA_mkultra_can_afford_front_grant_stage_trigger = yes
+}
+
+USA_mkultra_can_replicate_hypnosis_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	OR = {
+		check_variable = { USA_mkultra_hypnosis_stage = 3 }
+		check_variable = { USA_mkultra_hypnosis_stage = 5 }
+	}
+	NOT = { has_country_flag = USA_mkultra_hypnosis_replication_paid }
+	NOT = { has_country_flag = USA_mkultra_hypnosis_archived }
+	USA_mkultra_can_afford_replication_stage_trigger = yes
+}
+
+USA_mkultra_can_apply_reliable_appraisal_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	check_variable = { USA_mkultra_hypnosis_stage = 7 }
+	has_country_flag = USA_mkultra_hypnosis_replication_record_awarded
+	NOT = { has_country_flag = USA_mkultra_reliable_appraisal_earned }
+}
+
+# Behavioral Assessment
+USA_mkultra_can_start_behavioral_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	USA_mkultra_has_free_slot_trigger = yes
+	check_variable = { USA_mkultra_behavioral_stage = 1 }
+	NOT = { has_country_flag = USA_mkultra_behavioral_paid }
+	USA_mkultra_can_afford_front_grant_stage_trigger = yes
+}
+
+USA_mkultra_can_replicate_behavioral_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_behavioral_stage = 3 }
+	NOT = { has_country_flag = USA_mkultra_behavioral_replication_paid }
+	NOT = { has_country_flag = USA_mkultra_behavioral_archived }
+	USA_mkultra_can_afford_replication_stage_trigger = yes
+}
+
+USA_mkultra_can_apply_screening_finding_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	check_variable = { USA_mkultra_behavioral_stage = 5 }
+	has_country_flag = USA_mkultra_behavioral_replication_record_awarded
+	check_variable = { USA_mkultra_behavioral_profile = 1 }
+	NOT = { has_country_flag = USA_mkultra_screening_finding_applied }
+}
+
+# AI: front-grant work only with the standard reserve (design 14.2).
+USA_mkultra_ai_can_afford_front_grant_trigger = {
+	OR = {
+		AND = {
+			NOT = { USA_mkultra_major_crisis_trigger = yes }
+			has_political_power > 134
+		}
+		AND = {
+			USA_mkultra_major_crisis_trigger = yes
+			has_political_power > 184
+		}
+	}
+}
