@@ -614,6 +614,7 @@ industrial_pulse = {
 	}
 
 	country_event = { id = food_pulse.1 days = 1 } # call recalc in 1 day (because of added capital bonus which only reflects after daily tick)
+	cwic_register_own_trade_offers = yes
 
 }
 
@@ -622,7 +623,11 @@ industrial_pulse_food_script = {
 	calc_pollution_country_factors = yes
 	every_owned_state = {
 		calc_state_pollution_effect = yes
-		food_consumption_calculator = yes
+		if = {
+			limit = { NOT = { has_variable = food_consumption_base } }
+			cwic_cache_state_category = yes
+		}
+		add_to_variable = { PREV.food_consumption = food_consumption_base }
 		add_to_variable = { PREV.fossil_fuel_plant_quantity = non_damaged_building_level@fossil_fuel_powerplant }
 		add_to_variable = { PREV.industrial_complex_quantity = non_damaged_building_level@industrial_complex }
 		add_to_variable = { PREV.office_park_quantity = non_damaged_building_level@office_park }
@@ -748,6 +753,7 @@ industrial_pulse_food_script = {
 
 		# Final Application
 		add_to_variable = { PREV.food_bonus = farm_output }
+		add_to_variable = { sd_view_dirty = 1 }
 		
 	}
 	
