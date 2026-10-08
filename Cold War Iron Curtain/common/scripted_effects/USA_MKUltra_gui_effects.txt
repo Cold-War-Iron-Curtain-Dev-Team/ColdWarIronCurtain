@@ -21,6 +21,35 @@ USA_mkultra_mark_gui_dirty = {
 	}
 }
 
+USA_mkultra_open_dashboard_effect = {
+	if = {
+		limit = {
+			tag = USA
+			is_ai = no
+			USA_mkultra_enabled_trigger = yes
+			has_country_flag = USA_mkultra_initialized
+		}
+		USA_mkultra_gui_reconcile = yes
+		set_variable = { USA_mkultra_dashboard_open = 1 }
+		set_variable = { USA_mkultra_selected_record = 0 }
+		set_variable = { USA_mkultra_record_file_open = 0 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_close_dashboard_effect = {
+	if = {
+		limit = {
+			tag = USA
+			has_country_flag = USA_mkultra_initialized
+		}
+		set_variable = { USA_mkultra_dashboard_open = 0 }
+		set_variable = { USA_mkultra_selected_record = 0 }
+		set_variable = { USA_mkultra_record_file_open = 0 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
 USA_mkultra_gui_reconcile = {
 	if = {
 		limit = {
@@ -86,6 +115,16 @@ USA_mkultra_gui_reconcile = {
 		add_to_array = { USA_mkultra_evidence_dimension_array = 4 }
 
 		if = {
+			limit = { has_variable = USA_mkultra_dashboard_open }
+			clamp_variable = {
+				var = USA_mkultra_dashboard_open
+				min = 0
+				max = 1
+			}
+		}
+		else = { set_variable = { USA_mkultra_dashboard_open = 0 } }
+
+		if = {
 			limit = { has_variable = USA_mkultra_selected_record }
 			clamp_variable = {
 				var = USA_mkultra_selected_record
@@ -107,6 +146,17 @@ USA_mkultra_gui_reconcile = {
 
 		# The selector and open state are discrete GUI values. Clamping alone would
 		# leave malformed fractions such as 1.5 hidden but still persisted.
+		if = {
+			limit = {
+				NOT = {
+					OR = {
+						check_variable = { USA_mkultra_dashboard_open = 0 }
+						check_variable = { USA_mkultra_dashboard_open = 1 }
+					}
+				}
+			}
+			set_variable = { USA_mkultra_dashboard_open = 0 }
+		}
 		if = {
 			limit = {
 				NOT = {
@@ -140,6 +190,11 @@ USA_mkultra_gui_reconcile = {
 		}
 
 		# A missing or unrevealed selection can never leave an orphaned overlay.
+		if = {
+			limit = { check_variable = { USA_mkultra_dashboard_open = 0 } }
+			set_variable = { USA_mkultra_selected_record = 0 }
+			set_variable = { USA_mkultra_record_file_open = 0 }
+		}
 		if = {
 			limit = { check_variable = { USA_mkultra_selected_record = 0 } }
 			set_variable = { USA_mkultra_record_file_open = 0 }
@@ -220,6 +275,10 @@ USA_mkultra_gui_initialize = {
 		if = {
 			limit = { NOT = { has_variable = USA_mkultra_selected_record } }
 			set_variable = { USA_mkultra_selected_record = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_dashboard_open } }
+			set_variable = { USA_mkultra_dashboard_open = 0 }
 		}
 		if = {
 			limit = { NOT = { has_variable = USA_mkultra_record_file_open } }
