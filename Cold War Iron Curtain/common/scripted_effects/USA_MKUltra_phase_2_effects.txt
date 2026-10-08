@@ -42,6 +42,10 @@ USA_mkultra_phase_2_initialize = {
 			set_variable = { USA_mkultra_gateway_assessment_stage = 0 }
 		}
 		if = {
+			limit = { NOT = { has_variable = USA_mkultra_gateway_charter_state } }
+			set_variable = { USA_mkultra_gateway_charter_state = 0 }
+		}
+		if = {
 			limit = { NOT = { has_variable = USA_mkultra_inquiry_state } }
 			set_variable = { USA_mkultra_inquiry_state = 0 }
 		}
@@ -594,8 +598,9 @@ USA_mkultra_phase_2_settle_charter_closure = {
 			}
 			USA_mkultra_archive_midnight_climax = yes
 		}
-		set_variable = { USA_mkultra_slot_1_state = 0 }
-		set_variable = { USA_mkultra_slot_2_state = 0 }
+		# Every CIA dossier is now closed; whatever still occupies a slot belongs
+		# to the Army charter and must keep it.
+		USA_mkultra_recompute_slot_states = yes
 		if = {
 			limit = { has_active_mission = USA_mkultra_midnight_climax_research }
 			remove_mission = USA_mkultra_midnight_climax_research
@@ -655,6 +660,33 @@ USA_mkultra_phase_2_reconcile = {
 	if = {
 		limit = { USA_mkultra_enabled_trigger = yes }
 		USA_mkultra_assign_missing_baseline_profile = yes
+
+		# Migration: earlier builds marked the Army charter by overwriting the CIA
+		# charter_state with 3, which left every Gateway start permanently gated
+		# off. Split it into the separate Army charter; the CIA charter it replaced
+		# is closed, which the authorization handoff always implied.
+		if = {
+			limit = { check_variable = { USA_mkultra_charter_state = 3 } }
+			set_country_flag = USA_mkultra_charter_terminated
+			set_variable = { USA_mkultra_charter_state = 2 }
+			if = {
+				limit = { has_idea = USA_mkultra_restricted_charter }
+				remove_ideas = USA_mkultra_restricted_charter
+			}
+		}
+		if = {
+			limit = {
+				has_country_flag = USA_mkultra_gateway_authorized
+				check_variable = { USA_mkultra_gateway_charter_state = 0 }
+			}
+			if = {
+				limit = { has_country_flag = USA_mkultra_air_decommissioned }
+				set_variable = { USA_mkultra_gateway_charter_state = 2 }
+			}
+			else = {
+				set_variable = { USA_mkultra_gateway_charter_state = 1 }
+			}
+		}
 
 		# Durable dispositions dominate malformed or partially migrated numeric
 		# stages. This only closes consumed work and removes stale timers; it never
@@ -847,34 +879,6 @@ USA_mkultra_phase_2_reconcile = {
 				}
 				activate_mission = USA_mkultra_midnight_climax_final_review
 			}
-			if = {
-				limit = {
-					check_variable = { USA_mkultra_gateway_assessment_stage = 2 }
-					NOT = { has_active_mission = USA_mkultra_gateway_assessment_research }
-				}
-				activate_mission = USA_mkultra_gateway_assessment_research
-			}
-			if = {
-				limit = {
-					check_variable = { USA_mkultra_gateway_assessment_stage = 3 }
-					NOT = { has_active_mission = USA_mkultra_gateway_assessment_review }
-				}
-				activate_mission = USA_mkultra_gateway_assessment_review
-			}
-			if = {
-				limit = {
-					check_variable = { USA_mkultra_gateway_assessment_stage = 4 }
-					NOT = { has_active_mission = USA_mkultra_gateway_assessment_replication_research }
-				}
-				activate_mission = USA_mkultra_gateway_assessment_replication_research
-			}
-			if = {
-				limit = {
-					check_variable = { USA_mkultra_gateway_assessment_stage = 5 }
-					NOT = { has_active_mission = USA_mkultra_gateway_assessment_final_review }
-				}
-				activate_mission = USA_mkultra_gateway_assessment_final_review
-			}
 
 			if = {
 				limit = {
@@ -1022,8 +1026,150 @@ USA_mkultra_phase_2_reconcile = {
 			remove_mission = USA_mkultra_basic_inquiry_notice
 		}
 
+		# Army charter timers live outside the CIA-charter block: the CIA charter
+		# is always closed by the time Gateway work exists.
+		if = {
+			limit = { USA_mkultra_gateway_charter_active_trigger = yes }
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_gateway_assessment_stage = 2 }
+					NOT = { has_active_mission = USA_mkultra_gateway_assessment_research }
+				}
+				activate_mission = USA_mkultra_gateway_assessment_research
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_gateway_assessment_stage = 3 }
+					NOT = { has_active_mission = USA_mkultra_gateway_assessment_review }
+				}
+				activate_mission = USA_mkultra_gateway_assessment_review
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_gateway_assessment_stage = 4 }
+					NOT = { has_active_mission = USA_mkultra_gateway_assessment_replication_research }
+				}
+				activate_mission = USA_mkultra_gateway_assessment_replication_research
+			}
+			if = {
+				limit = {
+					check_variable = { USA_mkultra_gateway_assessment_stage = 5 }
+					NOT = { has_active_mission = USA_mkultra_gateway_assessment_final_review }
+				}
+				activate_mission = USA_mkultra_gateway_assessment_final_review
+			}
+		}
+
+		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# Slot occupancy is derived state: rebuild it from the dossier stages, which are
+# authoritative. The per-dossier archive branches above reset slot 1 whenever a
+# dossier is archived, which freed a slot still held by Midnight Climax or
+# Gateway work and let a second dossier start in it.
+# Missing Baseline and Countermeasure always use slot 1; Midnight Climax and
+# Gateway record their slot when they start.
+USA_mkultra_recompute_slot_states = {
+	set_variable = { USA_mkultra_slot_1_state = 0 }
+	set_variable = { USA_mkultra_slot_2_state = 0 }
+
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_missing_baseline_stage = 1 }
+				check_variable = { USA_mkultra_missing_baseline_stage = 5 }
+				check_variable = { USA_mkultra_missing_baseline_stage = 7 }
+			}
+		}
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_missing_baseline_stage = 2 }
+				check_variable = { USA_mkultra_missing_baseline_stage = 6 }
+				check_variable = { USA_mkultra_missing_baseline_stage = 8 }
+			}
+		}
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+	}
+
+	if = {
+		limit = { check_variable = { USA_mkultra_countermeasure_stage = 2 } }
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_countermeasure_stage = 3 } }
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+	}
+
+	# Midnight Climax: 2/4/6 research, 3/5/7 report.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_midnight_climax_stage = 2 }
+				check_variable = { USA_mkultra_midnight_climax_stage = 4 }
+				check_variable = { USA_mkultra_midnight_climax_stage = 6 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_midnight_climax_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_midnight_climax_stage = 3 }
+				check_variable = { USA_mkultra_midnight_climax_stage = 5 }
+				check_variable = { USA_mkultra_midnight_climax_stage = 7 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_midnight_climax_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+
+	# Gateway: 2/4 research, 3/5 report.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_gateway_assessment_stage = 2 }
+				check_variable = { USA_mkultra_gateway_assessment_stage = 4 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_gateway_assessment_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_gateway_assessment_stage = 3 }
+				check_variable = { USA_mkultra_gateway_assessment_stage = 5 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_gateway_assessment_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
 	}
 }
 
@@ -1563,6 +1709,7 @@ USA_mkultra_start_gateway_assessment = {
 USA_mkultra_complete_gateway_assessment = {
 	if = {
 		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
 			check_variable = { USA_mkultra_gateway_assessment_stage = 2 }
 			has_country_flag = USA_mkultra_gateway_assessment_paid
 			NOT = { has_country_flag = USA_mkultra_gateway_assessment_record_awarded }
@@ -1622,6 +1769,7 @@ USA_mkultra_start_gateway_replication = {
 USA_mkultra_complete_gateway_replication = {
 	if = {
 		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
 			check_variable = { USA_mkultra_gateway_assessment_stage = 4 }
 			has_country_flag = USA_mkultra_gateway_assessment_replication_paid
 			NOT = { has_country_flag = USA_mkultra_gateway_assessment_replication_record_awarded }
@@ -1710,26 +1858,58 @@ USA_mkultra_cancel_gateway_assessment = {
 }
 
 USA_mkultra_resolve_gateway_authorize = {
-	set_country_flag = USA_mkultra_gateway_authorized
-	set_country_flag = USA_mkultra_gateway_assessment_unlocked
-	set_variable = { USA_mkultra_gateway_assessment_stage = 1 }
-	set_variable = { USA_mkultra_charter_state = 3 }
-	add_political_power = -25
 	if = {
 		limit = {
-			OR = {
-				check_variable = { USA_mkultra_records_state = 1 }
-				check_variable = { USA_mkultra_records_state = 2 }
-			}
+			USA_mkultra_enabled_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_gateway_authorized }
 		}
-		add_to_variable = { USA_mkultra_progress = 15 }
+		# Handoff (design 11.1): only one charter owns the slots. A CIA charter that
+		# is somehow still open is closed under the normal archive/cancel rules
+		# first; its unfinished stages never move into the Army charter.
+		if = {
+			limit = { USA_mkultra_charter_active_trigger = yes }
+			USA_mkultra_terminate_charter = yes
+		}
+		set_country_flag = USA_mkultra_gateway_authorized
+		set_country_flag = USA_mkultra_gateway_assessment_unlocked
+		set_variable = { USA_mkultra_gateway_charter_state = 1 }
+		if = {
+			limit = { check_variable = { USA_mkultra_gateway_assessment_stage = 0 } }
+			set_variable = { USA_mkultra_gateway_assessment_stage = 1 }
+		}
+		add_political_power = -25
+		# Preserved or sealed holdings give the new sponsor more to evaluate.
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = USA_mkultra_records_preserved
+					has_country_flag = USA_mkultra_records_sealed
+				}
+			}
+			add_to_variable = { USA_mkultra_progress = 15 }
+		}
+		else = {
+			add_to_variable = { USA_mkultra_progress = 10 }
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
 	}
-	else = {
-		add_to_variable = { USA_mkultra_progress = 10 }
+}
+
+# Closes the Army charter. Its own stages settle under the normal rules: running
+# work is cancelled (committed consequences stay), a pending report is archived.
+USA_mkultra_close_gateway_charter = {
+	if = {
+		limit = { USA_mkultra_gateway_charter_active_trigger = yes }
+		USA_mkultra_cancel_gateway_assessment = yes
+		USA_mkultra_archive_gateway_assessment = yes
+		set_variable = { USA_mkultra_gateway_charter_state = 2 }
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
 	}
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
 }
 
 USA_mkultra_resolve_gateway_archive_transfer = {
@@ -1778,9 +1958,13 @@ USA_mkultra_resolve_early_assessment_comparison = {
 
 USA_mkultra_resolve_air_review_decommission = {
 	set_country_flag = USA_mkultra_air_decommissioned
-	set_variable = { USA_mkultra_charter_state = 2 }
-	set_variable = { USA_mkultra_slot_1_state = 0 }
-	set_variable = { USA_mkultra_slot_2_state = 0 }
+	# Settle open work through the charter closures rather than zeroing slots,
+	# which left Gateway stages and their timers running on a closed program.
+	USA_mkultra_close_gateway_charter = yes
+	if = {
+		limit = { USA_mkultra_charter_active_trigger = yes }
+		USA_mkultra_terminate_charter = yes
+	}
 	add_political_power = 20
 	if = {
 		limit = { check_variable = { USA_mkultra_exposure > 19 } }
