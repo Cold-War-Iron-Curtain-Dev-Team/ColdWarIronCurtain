@@ -1,0 +1,39 @@
+# Remote-viewing appraisal triggers (Army charter, single slot).
+
+# Design 9: the one explicitly mapped transfer. The MKSEARCH surviving-lines
+# inventory spares the reconstruction fee, unless the 1973 order destroyed the
+# working files it maps (design 10.3: destruction loses transfer options).
+USA_mkultra_rv_archive_transfer_available_trigger = {
+	has_country_flag = USA_mkultra_mksearch_inventory_earned
+	NOT = { has_country_flag = USA_mkultra_records_destroyed }
+}
+
+USA_mkultra_can_start_remote_viewing_trigger = {
+	USA_mkultra_gateway_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_slot_1_state = 0 }
+	check_variable = { USA_mkultra_rv_stage = 1 }
+	NOT = { has_country_flag = USA_mkultra_rv_paid }
+	# 30 native, +20 reconstruction fee without the mapped transfer
+	if = {
+		limit = { USA_mkultra_rv_archive_transfer_available_trigger = yes }
+		has_political_power > 29
+	}
+	else = {
+		has_political_power > 49
+	}
+}
+
+USA_mkultra_can_review_remote_viewing_trigger = {
+	USA_mkultra_gateway_start_allowed_trigger = yes
+	check_variable = { USA_mkultra_rv_stage = 3 }
+	NOT = { has_country_flag = USA_mkultra_rv_review_paid }
+	NOT = { has_country_flag = USA_mkultra_rv_archived }
+	has_political_power > 29
+}
+
+USA_mkultra_can_apply_utility_standard_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	check_variable = { USA_mkultra_rv_stage = 5 }
+	has_country_flag = USA_mkultra_rv_review_record_awarded
+	NOT = { has_country_flag = USA_mkultra_rv_utility_standard }
+}

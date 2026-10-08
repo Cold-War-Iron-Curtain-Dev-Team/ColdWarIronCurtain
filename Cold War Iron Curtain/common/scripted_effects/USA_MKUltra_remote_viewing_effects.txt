@@ -1,0 +1,277 @@
+# Remote-viewing appraisal (design 7 / 11.1): the authorized remote-viewing remit
+# of the Army charter. Its existence is what makes the 1995 AIR review a
+# mechanical continuation-or-closure decision rather than a background brief.
+# Authored profile following the 1995 AIR evaluation [H4]: laboratory results
+# that interest the sponsor, without a demonstrated operational application.
+#
+# Remote-viewing stages: 0 locked, 1 available, 2 initial research, 3 initial
+# report, 4 utility review research, 5 final appraisal, 6 archived, 7 cancelled,
+# 8 foreclosed. The Army charter has a single slot, so it always uses slot 1.
+
+USA_mkultra_unlock_remote_viewing = {
+	if = {
+		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
+			check_variable = { USA_mkultra_rv_stage = 0 }
+			OR = {
+				check_variable = { USA_mkultra_gateway_assessment_stage = 6 }
+				check_variable = { USA_mkultra_gateway_assessment_stage = 7 }
+				date > 1986.1.1
+			}
+		}
+		set_country_flag = USA_mkultra_rv_unlocked
+		set_variable = { USA_mkultra_rv_stage = 1 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_remote_viewing = {
+	if = {
+		limit = { USA_mkultra_can_start_remote_viewing_trigger = yes }
+		set_country_flag = USA_mkultra_rv_paid
+		set_country_flag = USA_mkultra_rv_owner_army
+		set_variable = { USA_mkultra_rv_stage = 2 }
+		# Design 9: the one mapped archive transfer. Without a usable inventory of
+		# the earlier program, its material has to be reconstructed first.
+		if = {
+			limit = { NOT = { USA_mkultra_rv_archive_transfer_available_trigger = yes } }
+			add_political_power = -20
+			set_country_flag = USA_mkultra_rv_archive_reconstructed
+		}
+		else = {
+			set_country_flag = USA_mkultra_rv_archive_transferred
+		}
+		add_to_variable = { USA_mkultra_exposure = 2 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_rv_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_remote_viewing = {
+	if = {
+		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
+			check_variable = { USA_mkultra_rv_stage = 2 }
+			has_country_flag = USA_mkultra_rv_paid
+			NOT = { has_country_flag = USA_mkultra_rv_record_awarded }
+		}
+		set_country_flag = USA_mkultra_rv_record_awarded
+		add_to_variable = { USA_mkultra_progress = 14 }
+		set_variable = { USA_mkultra_rv_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_research }
+			remove_mission = USA_mkultra_rv_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_rv_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_remote_viewing_review = {
+	if = {
+		limit = { USA_mkultra_can_review_remote_viewing_trigger = yes }
+		set_country_flag = USA_mkultra_rv_review_paid
+		set_variable = { USA_mkultra_rv_stage = 4 }
+		add_to_variable = { USA_mkultra_exposure = 1 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_review }
+			remove_mission = USA_mkultra_rv_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_rv_utility_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_remote_viewing_review = {
+	if = {
+		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
+			check_variable = { USA_mkultra_rv_stage = 4 }
+			has_country_flag = USA_mkultra_rv_review_paid
+			NOT = { has_country_flag = USA_mkultra_rv_review_record_awarded }
+		}
+		set_country_flag = USA_mkultra_rv_review_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_rv_stage = 5 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_utility_research }
+			remove_mission = USA_mkultra_rv_utility_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_rv_final_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# The finding is a standard, not a capability: a way to separate an interesting
+# observation from an actionable one. It lets the 1995 review close on the record.
+USA_mkultra_apply_utility_standard = {
+	if = {
+		limit = { USA_mkultra_can_apply_utility_standard_trigger = yes }
+		set_country_flag = USA_mkultra_rv_utility_standard
+		USA_mkultra_archive_remote_viewing = yes
+	}
+}
+
+USA_mkultra_archive_remote_viewing = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			OR = {
+				check_variable = { USA_mkultra_rv_stage = 3 }
+				check_variable = { USA_mkultra_rv_stage = 5 }
+			}
+		}
+		set_country_flag = USA_mkultra_rv_archived
+		set_variable = { USA_mkultra_rv_stage = 6 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_review }
+			remove_mission = USA_mkultra_rv_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_final_review }
+			remove_mission = USA_mkultra_rv_final_review
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_cancel_remote_viewing = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_rv_stage = 2 }
+				check_variable = { USA_mkultra_rv_stage = 4 }
+			}
+		}
+		set_variable = { USA_mkultra_rv_stage = 7 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_research }
+			remove_mission = USA_mkultra_rv_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_rv_utility_research }
+			remove_mission = USA_mkultra_rv_utility_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# Army charter closure: running work cancelled, a pending report archived without
+# its finding, an uncommissioned dossier foreclosed.
+USA_mkultra_settle_remote_viewing = {
+	USA_mkultra_cancel_remote_viewing = yes
+	USA_mkultra_archive_remote_viewing = yes
+	if = {
+		limit = { check_variable = { USA_mkultra_rv_stage = 1 } }
+		set_variable = { USA_mkultra_rv_stage = 8 }
+	}
+}
+
+# Called from USA_mkultra_phase_2_reconcile. Repairs derived state only.
+USA_mkultra_remote_viewing_reconcile = {
+	if = {
+		limit = { has_country_flag = USA_mkultra_rv_archived }
+		set_variable = { USA_mkultra_rv_stage = 6 }
+	}
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_gateway_charter_state = 2 }
+			OR = {
+				check_variable = { USA_mkultra_rv_stage = 1 }
+				check_variable = { USA_mkultra_rv_stage = 2 }
+				check_variable = { USA_mkultra_rv_stage = 3 }
+				check_variable = { USA_mkultra_rv_stage = 4 }
+				check_variable = { USA_mkultra_rv_stage = 5 }
+			}
+		}
+		USA_mkultra_settle_remote_viewing = yes
+	}
+	if = {
+		limit = { USA_mkultra_gateway_charter_active_trigger = yes }
+		USA_mkultra_unlock_remote_viewing = yes
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_rv_stage = 2 }
+				has_country_flag = USA_mkultra_rv_record_awarded
+			}
+			set_variable = { USA_mkultra_rv_stage = 3 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_rv_stage = 4 }
+				has_country_flag = USA_mkultra_rv_review_record_awarded
+			}
+			set_variable = { USA_mkultra_rv_stage = 5 }
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_rv_stage = 2 }
+				NOT = { has_active_mission = USA_mkultra_rv_research }
+			}
+			activate_mission = USA_mkultra_rv_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_rv_stage = 3 }
+				NOT = { has_active_mission = USA_mkultra_rv_review }
+			}
+			activate_mission = USA_mkultra_rv_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_rv_stage = 4 }
+				NOT = { has_active_mission = USA_mkultra_rv_utility_research }
+			}
+			activate_mission = USA_mkultra_rv_utility_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_rv_stage = 5 }
+				NOT = { has_active_mission = USA_mkultra_rv_final_review }
+			}
+			activate_mission = USA_mkultra_rv_final_review
+		}
+	}
+}
+
+# Slot occupancy contribution, called from USA_mkultra_recompute_slot_states.
+USA_mkultra_remote_viewing_slot_states = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_rv_stage = 2 }
+				check_variable = { USA_mkultra_rv_stage = 4 }
+			}
+		}
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_rv_stage = 3 }
+				check_variable = { USA_mkultra_rv_stage = 5 }
+			}
+		}
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+	}
+}
+
+# 1995 AIR review without a remote-viewing remit: a background brief only.
+USA_mkultra_resolve_air_background_brief = {
+	set_country_flag = USA_mkultra_air_background_brief
+	USA_mkultra_mark_gui_dirty = yes
+}
