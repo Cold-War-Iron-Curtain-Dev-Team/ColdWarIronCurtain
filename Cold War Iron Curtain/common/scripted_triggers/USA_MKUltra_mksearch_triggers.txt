@@ -1,0 +1,66 @@
+# MKSEARCH continuation triggers. Affordability includes every scripted charge
+# made on top of the native decision cost, so a purchase never leaves PP negative.
+
+USA_mkultra_mksearch_window_open_trigger = {
+	has_country_flag = USA_mkultra_mksearch_remit
+	NOT = { has_country_flag = USA_mkultra_mksearch_funding_ended }
+}
+
+USA_mkultra_can_start_mksearch_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	USA_mkultra_mksearch_window_open_trigger = yes
+	USA_mkultra_has_free_slot_trigger = yes
+	check_variable = { USA_mkultra_mksearch_stage = 1 }
+	NOT = { has_country_flag = USA_mkultra_mksearch_paid }
+	# 25 native, +5 expansion surcharge
+	if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		has_political_power > 29
+	}
+	else = {
+		has_political_power > 24
+	}
+}
+
+USA_mkultra_can_replicate_mksearch_trigger = {
+	USA_mkultra_research_start_allowed_trigger = yes
+	USA_mkultra_mksearch_window_open_trigger = yes
+	check_variable = { USA_mkultra_mksearch_stage = 3 }
+	NOT = { has_country_flag = USA_mkultra_mksearch_replication_paid }
+	NOT = { has_country_flag = USA_mkultra_mksearch_archived }
+	# 30 native, +10 under compartmentalization, +5 expansion surcharge
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_information_policy = 2 }
+			check_variable = { USA_mkultra_capacity = 2 }
+		}
+		has_political_power > 44
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+		has_political_power > 39
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		has_political_power > 34
+	}
+	else = {
+		has_political_power > 29
+	}
+}
+
+USA_mkultra_can_apply_mksearch_inventory_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	check_variable = { USA_mkultra_mksearch_stage = 5 }
+	has_country_flag = USA_mkultra_mksearch_replication_record_awarded
+	NOT = { has_country_flag = USA_mkultra_mksearch_inventory_earned }
+}
+
+USA_mkultra_mksearch_stage_open_trigger = {
+	OR = {
+		check_variable = { USA_mkultra_mksearch_stage = 2 }
+		check_variable = { USA_mkultra_mksearch_stage = 3 }
+		check_variable = { USA_mkultra_mksearch_stage = 4 }
+		check_variable = { USA_mkultra_mksearch_stage = 5 }
+	}
+}

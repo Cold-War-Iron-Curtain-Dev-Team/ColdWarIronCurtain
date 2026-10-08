@@ -46,6 +46,10 @@ USA_mkultra_phase_2_initialize = {
 			set_variable = { USA_mkultra_gateway_charter_state = 0 }
 		}
 		if = {
+			limit = { NOT = { has_variable = USA_mkultra_mksearch_stage } }
+			set_variable = { USA_mkultra_mksearch_stage = 0 }
+		}
+		if = {
 			limit = { NOT = { has_variable = USA_mkultra_inquiry_state } }
 			set_variable = { USA_mkultra_inquiry_state = 0 }
 		}
@@ -598,6 +602,7 @@ USA_mkultra_phase_2_settle_charter_closure = {
 			}
 			USA_mkultra_archive_midnight_climax = yes
 		}
+		USA_mkultra_settle_mksearch = yes
 		# Every CIA dossier is now closed; whatever still occupies a slot belongs
 		# to the Army charter and must keep it.
 		USA_mkultra_recompute_slot_states = yes
@@ -1060,6 +1065,7 @@ USA_mkultra_phase_2_reconcile = {
 			}
 		}
 
+		USA_mkultra_mksearch_reconcile = yes
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
@@ -1133,6 +1139,38 @@ USA_mkultra_recompute_slot_states = {
 		}
 		if = {
 			limit = { check_variable = { USA_mkultra_midnight_climax_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+
+	# MKSEARCH: 2/4 research, 3/5 report.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mksearch_stage = 2 }
+				check_variable = { USA_mkultra_mksearch_stage = 4 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_mksearch_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mksearch_stage = 3 }
+				check_variable = { USA_mkultra_mksearch_stage = 5 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_mksearch_slot = 2 } }
 			set_variable = { USA_mkultra_slot_2_state = 2 }
 		}
 		else = {
@@ -1645,6 +1683,14 @@ USA_mkultra_seed_1980_archive = {
 		set_variable = { USA_mkultra_missing_baseline_stage = 3 }
 		set_variable = { USA_mkultra_countermeasure_stage = 4 }
 		set_variable = { USA_mkultra_midnight_climax_stage = 8 }
+		# MKSEARCH ran its course historically; scenario setup, not a player choice,
+		# so no inventory finding is granted.
+		set_country_flag = USA_mkultra_mksearch_remit
+		set_country_flag = USA_mkultra_mksearch_remit_offered
+		set_country_flag = USA_mkultra_mksearch_funding_ended
+		set_country_flag = USA_mkultra_mksearch_paid
+		set_country_flag = USA_mkultra_mksearch_archived
+		set_variable = { USA_mkultra_mksearch_stage = 6 }
 
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_gui_initialize = yes
