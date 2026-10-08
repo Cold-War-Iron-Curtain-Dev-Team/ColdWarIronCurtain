@@ -11,11 +11,11 @@ USA_mkultra_phase_2_initialize = {
 		limit = { USA_mkultra_enabled_trigger = yes }
 		if = {
 			limit = { NOT = { has_variable = USA_mkultra_schema_version } }
-			set_variable = { USA_mkultra_schema_version = 4 }
+			set_variable = { USA_mkultra_schema_version = 5 }
 		}
 		if = {
-			limit = { check_variable = { USA_mkultra_schema_version < 4 } }
-			set_variable = { USA_mkultra_schema_version = 4 }
+			limit = { check_variable = { USA_mkultra_schema_version < 5 } }
+			set_variable = { USA_mkultra_schema_version = 5 }
 		}
 		if = {
 			limit = { NOT = { has_variable = USA_mkultra_capacity } }
@@ -68,6 +68,53 @@ USA_mkultra_phase_2_initialize = {
 		if = {
 			limit = { NOT = { has_variable = USA_mkultra_security_scare_state } }
 			set_variable = { USA_mkultra_security_scare_state = 0 }
+		}
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_early_assessment_stage } }
+			if = {
+				limit = { has_country_flag = USA_mkultra_early_assessment_resolved }
+				set_variable = { USA_mkultra_early_assessment_stage = 3 }
+			}
+			else_if = {
+				limit = { has_country_flag = USA_mkultra_early_assessment_archived }
+				set_variable = { USA_mkultra_early_assessment_stage = 4 }
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_country_flag = USA_mkultra_early_preparedness
+						has_country_flag = USA_mkultra_early_appraisal_active
+					}
+				}
+				set_country_flag = USA_mkultra_early_assessment_committed
+				set_variable = { USA_mkultra_early_assessment_stage = 1 }
+			}
+			else = { set_variable = { USA_mkultra_early_assessment_stage = 0 } }
+		}
+		# Save-compatible extension of an archive seeded by an earlier schema.
+		if = {
+			limit = {
+				has_country_flag = USA_mkultra_historical_archive_seeded
+				NOT = { has_country_flag = USA_mkultra_archive_dossiers_seeded }
+			}
+			set_country_flag = USA_mkultra_archive_dossiers_seeded
+			set_country_flag = USA_mkultra_hypnosis_paid
+			set_country_flag = USA_mkultra_hypnosis_archived
+			set_variable = { USA_mkultra_hypnosis_stage = 8 }
+			set_country_flag = USA_mkultra_behavioral_paid
+			set_country_flag = USA_mkultra_behavioral_archived
+			set_country_flag = USA_mkultra_behavioral_profile_assigned
+			set_variable = { USA_mkultra_behavioral_profile = 2 }
+			set_variable = { USA_mkultra_behavioral_stage = 6 }
+		}
+		# Schema-4 saves could already have acknowledged the old non-terminal Y2K
+		# popup. Upgrade them to the feature cutoff without replaying any reward.
+		if = {
+			limit = {
+				has_country_flag = USA_mkultra_y2k_epilogue_resolved
+				NOT = { has_country_flag = USA_mkultra_feature_cutoff }
+			}
+			USA_mkultra_resolve_y2k_epilogue = yes
 		}
 		set_country_flag = USA_mkultra_phase_2_migrated
 		USA_mkultra_assign_missing_baseline_profile = yes
@@ -164,7 +211,7 @@ USA_mkultra_start_missing_baseline_renewal = {
 		set_country_flag = USA_mkultra_missing_baseline_renewal_paid
 		set_variable = { USA_mkultra_missing_baseline_stage = 5 }
 		set_variable = { USA_mkultra_slot_1_state = 1 }
-		add_to_variable = { USA_mkultra_exposure = 2 }
+		USA_mkultra_charge_front_grant_stage = yes
 		if = {
 			limit = { has_active_mission = USA_mkultra_missing_baseline_review }
 			remove_mission = USA_mkultra_missing_baseline_review
@@ -210,7 +257,7 @@ USA_mkultra_start_missing_baseline_replication = {
 		set_country_flag = USA_mkultra_missing_baseline_replication_paid
 		set_variable = { USA_mkultra_missing_baseline_stage = 7 }
 		set_variable = { USA_mkultra_slot_1_state = 1 }
-		add_to_variable = { USA_mkultra_exposure = 1 }
+		USA_mkultra_charge_replication_stage = yes
 		if = {
 			limit = { has_active_mission = USA_mkultra_missing_baseline_review }
 			remove_mission = USA_mkultra_missing_baseline_review
@@ -311,7 +358,7 @@ USA_mkultra_start_countermeasure = {
 		set_country_flag = USA_mkultra_countermeasure_owner_cia
 		set_variable = { USA_mkultra_countermeasure_stage = 2 }
 		set_variable = { USA_mkultra_slot_1_state = 1 }
-		add_to_variable = { USA_mkultra_exposure = 1 }
+		USA_mkultra_charge_low_exposure_front_grant_stage = yes
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_evaluate_basic_inquiry = yes
 		activate_mission = USA_mkultra_countermeasure_research
@@ -1081,6 +1128,7 @@ USA_mkultra_phase_2_reconcile = {
 		USA_mkultra_mksearch_reconcile = yes
 		USA_mkultra_extra_dossiers_reconcile = yes
 		USA_mkultra_remote_viewing_reconcile = yes
+		USA_mkultra_early_assessment_reconcile = yes
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
@@ -1195,6 +1243,7 @@ USA_mkultra_recompute_slot_states = {
 
 	USA_mkultra_extra_dossiers_slot_states = yes
 	USA_mkultra_remote_viewing_slot_states = yes
+	USA_mkultra_early_assessment_slot_states = yes
 
 	# Gateway: 2/4 research, 3/5 report.
 	if = {
@@ -1264,15 +1313,6 @@ USA_mkultra_apply_policy_compartmentalization = {
 	}
 }
 
-USA_mkultra_apply_policy_shared_review = {
-	if = {
-		limit = { USA_mkultra_can_policy_shared_review_trigger = yes }
-		set_variable = { USA_mkultra_information_policy = 1 }
-		USA_mkultra_gui_reconcile = yes
-		USA_mkultra_mark_gui_dirty = yes
-	}
-}
-
 USA_mkultra_unlock_midnight_climax = {
 	if = {
 		limit = {
@@ -1304,20 +1344,8 @@ USA_mkultra_start_midnight_climax = {
 			set_variable = { USA_mkultra_slot_2_state = 1 }
 		}
 
-		if = {
-			limit = { check_variable = { USA_mkultra_information_policy = 2 } }
-			add_to_variable = { USA_mkultra_exposure = 6 }
-		}
-		else = {
-			add_to_variable = { USA_mkultra_exposure = 8 }
-		}
+		USA_mkultra_charge_high_risk_front_grant_stage = yes
 		add_to_variable = { USA_mkultra_harm = 8 }
-
-		if = {
-			limit = { check_variable = { USA_mkultra_capacity = 2 } }
-			add_political_power = -5
-			add_to_variable = { USA_mkultra_exposure = 1 }
-		}
 
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_evaluate_basic_inquiry = yes
@@ -1392,20 +1420,8 @@ USA_mkultra_start_midnight_climax_renewal = {
 			set_variable = { USA_mkultra_slot_1_state = 1 }
 		}
 
-		if = {
-			limit = { check_variable = { USA_mkultra_information_policy = 2 } }
-			add_to_variable = { USA_mkultra_exposure = 6 }
-		}
-		else = {
-			add_to_variable = { USA_mkultra_exposure = 8 }
-		}
+		USA_mkultra_charge_high_risk_front_grant_stage = yes
 		add_to_variable = { USA_mkultra_harm = 8 }
-
-		if = {
-			limit = { check_variable = { USA_mkultra_capacity = 2 } }
-			add_political_power = -5
-			add_to_variable = { USA_mkultra_exposure = 1 }
-		}
 
 		if = {
 			limit = { has_active_mission = USA_mkultra_midnight_climax_review }
@@ -1462,17 +1478,7 @@ USA_mkultra_start_midnight_climax_replication = {
 			set_variable = { USA_mkultra_slot_1_state = 1 }
 		}
 
-		add_to_variable = { USA_mkultra_exposure = 1 }
-
-		if = {
-			limit = { check_variable = { USA_mkultra_information_policy = 2 } }
-			add_political_power = -10
-		}
-		if = {
-			limit = { check_variable = { USA_mkultra_capacity = 2 } }
-			add_political_power = -5
-			add_to_variable = { USA_mkultra_exposure = 1 }
-		}
+		USA_mkultra_charge_replication_stage = yes
 
 		if = {
 			limit = { has_active_mission = USA_mkultra_midnight_climax_review }
@@ -1574,6 +1580,9 @@ USA_mkultra_resolve_ig_review_tighten = {
 		limit = { tag = USA }
 		set_country_flag = USA_mkultra_ig_review_resolved
 		set_country_flag = USA_mkultra_ig_review_tightened
+		# The audit is the deliberate reorganization path back to shared review;
+		# information policy is not a freely reversible peacetime toggle.
+		set_variable = { USA_mkultra_information_policy = 1 }
 		add_political_power = -15
 		add_to_variable = { USA_mkultra_exposure = -10 }
 		USA_mkultra_clamp_variables = yes
@@ -1634,7 +1643,10 @@ USA_mkultra_resolve_records_retain = {
 # Design 10.2: one tier chosen from the record (computed when event 325 opens).
 USA_mkultra_resolve_church_committee = {
 	if = {
-		limit = { tag = USA }
+		limit = {
+			tag = USA
+			USA_mkultra_can_fund_church_response_trigger = yes
+		}
 		set_country_flag = USA_mkultra_church_committee_resolved
 		if = {
 			limit = { NOT = { has_variable = USA_mkultra_church_severity } }
@@ -1666,9 +1678,42 @@ USA_mkultra_resolve_church_committee = {
 	}
 }
 
-USA_mkultra_resolve_senate_hearing = {
+USA_mkultra_resolve_church_committee_fallback = {
 	if = {
 		limit = { tag = USA }
+		set_country_flag = USA_mkultra_church_committee_resolved
+		set_country_flag = USA_mkultra_church_unfunded_response
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_church_severity } }
+			USA_mkultra_compute_church_severity = yes
+		}
+		if = {
+			limit = { USA_mkultra_charter_active_trigger = yes }
+			set_country_flag = USA_mkultra_closed_by_inquiry
+			USA_mkultra_terminate_charter = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_church_severity = 3 } }
+			add_stability = -0.06
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_church_severity = 2 } }
+			add_stability = -0.04
+		}
+		else = { add_stability = -0.02 }
+		add_to_variable = { USA_mkultra_exposure = -5 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_senate_hearing = {
+	if = {
+		limit = {
+			tag = USA
+			USA_mkultra_can_fund_senate_response_trigger = yes
+		}
 		set_country_flag = USA_mkultra_senate_hearing_resolved
 		set_country_flag = USA_mkultra_invoices_survived
 		if = {
@@ -1689,6 +1734,32 @@ USA_mkultra_resolve_senate_hearing = {
 			add_political_power = -15
 		}
 		add_to_variable = { USA_mkultra_exposure = -10 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_senate_hearing_fallback = {
+	if = {
+		limit = { tag = USA }
+		set_country_flag = USA_mkultra_senate_hearing_resolved
+		set_country_flag = USA_mkultra_senate_unfunded_response
+		set_country_flag = USA_mkultra_invoices_survived
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_senate_severity } }
+			USA_mkultra_compute_senate_severity = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_senate_severity = 3 } }
+			add_stability = -0.04
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_senate_severity = 2 } }
+			add_stability = -0.03
+		}
+		else = { add_stability = -0.01 }
+		add_to_variable = { USA_mkultra_exposure = -5 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
@@ -1720,7 +1791,7 @@ USA_mkultra_seed_1980_archive = {
 		set_country_flag = USA_mkultra_senate_hearing_resolved
 		set_country_flag = USA_mkultra_historical_archive_seeded
 
-		set_variable = { USA_mkultra_schema_version = 4 }
+		set_variable = { USA_mkultra_schema_version = 5 }
 		set_variable = { USA_mkultra_charter_id = 1 }
 		set_variable = { USA_mkultra_charter_state = 2 }
 		set_variable = { USA_mkultra_capacity = 2 }
@@ -1742,6 +1813,19 @@ USA_mkultra_seed_1980_archive = {
 		set_country_flag = USA_mkultra_mksearch_paid
 		set_country_flag = USA_mkultra_mksearch_archived
 		set_variable = { USA_mkultra_mksearch_stage = 6 }
+		# The two composite contractor dossiers are present as inert archive files
+		# in the 1980 bookmark. Scenario setup reveals them without replaying costs,
+		# Research Record awards, or either dossier's optional finding.
+		set_country_flag = USA_mkultra_hypnosis_paid
+		set_country_flag = USA_mkultra_hypnosis_archived
+		set_country_flag = USA_mkultra_archive_dossiers_seeded
+		set_variable = { USA_mkultra_hypnosis_stage = 8 }
+		set_country_flag = USA_mkultra_behavioral_paid
+		set_country_flag = USA_mkultra_behavioral_archived
+		set_country_flag = USA_mkultra_behavioral_profile_assigned
+		set_variable = { USA_mkultra_behavioral_profile = 2 }
+		set_variable = { USA_mkultra_behavioral_stage = 6 }
+		set_variable = { USA_mkultra_early_assessment_stage = 0 }
 
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_gui_initialize = yes
@@ -1990,6 +2074,7 @@ USA_mkultra_close_gateway_charter = {
 		USA_mkultra_cancel_gateway_assessment = yes
 		USA_mkultra_archive_gateway_assessment = yes
 		USA_mkultra_settle_remote_viewing = yes
+		USA_mkultra_settle_early_assessment = yes
 		set_variable = { USA_mkultra_gateway_charter_state = 2 }
 		USA_mkultra_record_army_ending = yes
 		USA_mkultra_recompute_slot_states = yes
@@ -2010,38 +2095,6 @@ USA_mkultra_resolve_gateway_archive_transfer = {
 USA_mkultra_resolve_gateway_decline = {
 	set_country_flag = USA_mkultra_gateway_declined
 	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_early_assessment_preparedness = {
-	USA_mkultra_assign_early_assessment_profile = yes
-	set_country_flag = USA_mkultra_early_preparedness
-	add_political_power = -20
-	add_to_variable = { USA_mkultra_exposure = 5 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_early_assessment_appraisal = {
-	USA_mkultra_assign_early_assessment_profile = yes
-	set_country_flag = USA_mkultra_early_appraisal_active
-	add_political_power = -30
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_early_assessment_archive = {
-	set_country_flag = USA_mkultra_early_assessment_archived
-	add_to_variable = { USA_mkultra_progress = 4 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_early_assessment_comparison = {
-	USA_mkultra_assign_early_assessment_profile = yes
-	set_country_flag = USA_mkultra_early_assessment_resolved
-	add_to_variable = { USA_mkultra_progress = 8 }
-	USA_mkultra_clamp_variables = yes
 	USA_mkultra_mark_gui_dirty = yes
 }
 
@@ -2103,9 +2156,69 @@ USA_mkultra_resolve_cultural_afterlife_foia = {
 }
 
 USA_mkultra_resolve_y2k_epilogue = {
-	set_country_flag = USA_mkultra_y2k_epilogue_resolved
-	add_to_variable = { USA_mkultra_progress = 5 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
+	if = {
+		limit = { NOT = { has_country_flag = USA_mkultra_feature_cutoff } }
+		set_country_flag = USA_mkultra_y2k_epilogue_resolved
+		set_country_flag = USA_mkultra_feature_cutoff
+		clr_country_flag = USA_mkultra_y2k_epilogue_preparing
+		USA_mkultra_settle_early_assessment = yes
+		# The feature is terminal even if a malformed or very old save carried one
+		# of the original consequence clocks all the way to 1999.
+		if = {
+			limit = {
+				OR = {
+					check_variable = { USA_mkultra_security_scare_state = 1 }
+					has_active_mission = USA_mkultra_security_scare_countdown
+				}
+			}
+			set_country_flag = USA_mkultra_security_scare_resolved
+			set_variable = { USA_mkultra_security_scare_state = 2 }
+			if = {
+				limit = { has_active_mission = USA_mkultra_security_scare_countdown }
+				remove_mission = USA_mkultra_security_scare_countdown
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = USA_mkultra_basic_inquiry_scheduled
+					has_active_mission = USA_mkultra_basic_inquiry_notice
+				}
+				NOT = { has_country_flag = USA_mkultra_basic_inquiry_resolved }
+			}
+			set_country_flag = USA_mkultra_basic_inquiry_resolved
+			set_variable = { USA_mkultra_inquiry_state = 2 }
+			if = {
+				limit = { has_active_mission = USA_mkultra_basic_inquiry_notice }
+				remove_mission = USA_mkultra_basic_inquiry_notice
+			}
+		}
+		if = {
+			limit = { USA_mkultra_gateway_charter_active_trigger = yes }
+			USA_mkultra_close_gateway_charter = yes
+		}
+		if = {
+			limit = { USA_mkultra_charter_active_trigger = yes }
+			USA_mkultra_terminate_charter = yes
+		}
+		# Closed charters from earlier decades still need a durable ending value for
+		# the final archive, but the epilogue suppresses separate follow-up popups.
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_charter_state > 0 }
+				NOT = { has_country_flag = USA_mkultra_cia_ending_recorded }
+			}
+			USA_mkultra_record_cia_ending = yes
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_gateway_charter_state > 0 }
+				NOT = { has_country_flag = USA_mkultra_army_ending_recorded }
+			}
+			USA_mkultra_record_army_ending = yes
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
 }

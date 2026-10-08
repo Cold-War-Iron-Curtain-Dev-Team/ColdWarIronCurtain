@@ -1,0 +1,219 @@
+# The Assessment Arrived Early (fictional Gateway episode; design 11.2).
+# Stages: 0 not begun, 1 waiting for the matching event, 2 final comparison
+# pending, 3 resolved, 4 archived/cancelled. The profile is drawn once.
+
+USA_mkultra_start_early_assessment_timeline = {
+	USA_mkultra_assign_early_assessment_profile = yes
+	set_country_flag = USA_mkultra_early_assessment_committed
+	set_variable = { USA_mkultra_early_assessment_stage = 1 }
+	if = {
+		limit = { NOT = { has_active_mission = USA_mkultra_early_assessment_countdown } }
+		activate_mission = USA_mkultra_early_assessment_countdown
+	}
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+USA_mkultra_resolve_early_assessment_preparedness = {
+	if = {
+		limit = { USA_mkultra_can_choose_early_preparedness_trigger = yes }
+		USA_mkultra_start_early_assessment_timeline = yes
+		set_country_flag = USA_mkultra_early_preparedness
+		add_political_power = -20
+		add_to_variable = { USA_mkultra_exposure = 5 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_early_assessment_appraisal = {
+	if = {
+		limit = { USA_mkultra_can_choose_early_appraisal_trigger = yes }
+		USA_mkultra_start_early_assessment_timeline = yes
+		set_country_flag = USA_mkultra_early_appraisal_active
+		add_political_power = -30
+		activate_mission = USA_mkultra_early_appraisal_research
+		activate_mission = USA_mkultra_early_conventional_unlock
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_early_assessment_appraisal = {
+	if = {
+		limit = {
+			USA_mkultra_early_assessment_timeline_active_trigger = yes
+			has_country_flag = USA_mkultra_early_appraisal_active
+			NOT = { has_country_flag = USA_mkultra_early_appraisal_completed }
+		}
+		clr_country_flag = USA_mkultra_early_appraisal_active
+		set_country_flag = USA_mkultra_early_appraisal_completed
+		set_country_flag = USA_mkultra_early_appraisal_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_early_appraisal_research }
+			remove_mission = USA_mkultra_early_appraisal_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_unlock_early_conventional_preparedness = {
+	if = {
+		limit = { USA_mkultra_early_assessment_timeline_active_trigger = yes }
+		set_country_flag = USA_mkultra_early_conventional_available
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_fund_early_conventional_preparedness = {
+	if = {
+		limit = { USA_mkultra_can_fund_conventional_preparedness_trigger = yes }
+		set_country_flag = USA_mkultra_early_conventional_preparedness
+		clr_country_flag = USA_mkultra_early_conventional_available
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_fire_early_assessment_match = {
+	if = {
+		limit = {
+			USA_mkultra_early_assessment_timeline_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_early_matching_event_pending }
+		}
+		set_country_flag = USA_mkultra_early_matching_event_pending
+		country_event = { id = cwic_mkultra.421 }
+	}
+}
+
+USA_mkultra_resolve_early_assessment_match = {
+	if = {
+		limit = { USA_mkultra_early_assessment_timeline_active_trigger = yes }
+		clr_country_flag = USA_mkultra_early_matching_event_pending
+		clr_country_flag = USA_mkultra_early_conventional_available
+		set_country_flag = USA_mkultra_early_matching_event_occurred
+		set_variable = { USA_mkultra_early_assessment_stage = 2 }
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = USA_mkultra_early_preparedness
+					has_country_flag = USA_mkultra_early_conventional_preparedness
+				}
+			}
+			add_stability = -0.01
+		}
+		else = { add_stability = -0.03 }
+		activate_mission = USA_mkultra_early_final_comparison
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_early_assessment_comparison = {
+	if = {
+		limit = { USA_mkultra_can_receive_early_comparison_trigger = yes }
+		set_country_flag = USA_mkultra_early_assessment_resolved
+		set_variable = { USA_mkultra_early_assessment_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_early_final_comparison }
+			remove_mission = USA_mkultra_early_final_comparison
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_early_assessment_archive = {
+	if = {
+		limit = { check_variable = { USA_mkultra_early_assessment_stage = 0 } }
+		set_country_flag = USA_mkultra_early_assessment_archived
+		set_variable = { USA_mkultra_early_assessment_stage = 4 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# Charter closure, an inquiry, loss of the USA scope, or the feature cutoff stops
+# every outstanding timer. Paid preparation remains recorded; no late popup fires.
+USA_mkultra_settle_early_assessment = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_early_assessment_stage = 1 }
+				check_variable = { USA_mkultra_early_assessment_stage = 2 }
+			}
+		}
+		set_country_flag = USA_mkultra_early_assessment_cancelled
+		set_variable = { USA_mkultra_early_assessment_stage = 4 }
+	}
+	clr_country_flag = USA_mkultra_early_appraisal_active
+	clr_country_flag = USA_mkultra_early_conventional_available
+	clr_country_flag = USA_mkultra_early_matching_event_pending
+	if = {
+		limit = { has_active_mission = USA_mkultra_early_appraisal_research }
+		remove_mission = USA_mkultra_early_appraisal_research
+	}
+	if = {
+		limit = { has_active_mission = USA_mkultra_early_conventional_unlock }
+		remove_mission = USA_mkultra_early_conventional_unlock
+	}
+	if = {
+		limit = { has_active_mission = USA_mkultra_early_assessment_countdown }
+		remove_mission = USA_mkultra_early_assessment_countdown
+	}
+	if = {
+		limit = { has_active_mission = USA_mkultra_early_final_comparison }
+		remove_mission = USA_mkultra_early_final_comparison
+	}
+	USA_mkultra_recompute_slot_states = yes
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+USA_mkultra_early_assessment_reconcile = {
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = USA_mkultra_feature_cutoff
+				check_variable = { USA_mkultra_gateway_charter_state = 2 }
+				check_variable = { USA_mkultra_inquiry_state = 1 }
+			}
+			OR = {
+				check_variable = { USA_mkultra_early_assessment_stage = 1 }
+				check_variable = { USA_mkultra_early_assessment_stage = 2 }
+			}
+		}
+		USA_mkultra_settle_early_assessment = yes
+	}
+	if = {
+		limit = { USA_mkultra_early_assessment_timeline_active_trigger = yes }
+		if = {
+			limit = { NOT = { has_active_mission = USA_mkultra_early_assessment_countdown } }
+			activate_mission = USA_mkultra_early_assessment_countdown
+		}
+		if = {
+			limit = {
+				has_country_flag = USA_mkultra_early_appraisal_active
+				NOT = { has_active_mission = USA_mkultra_early_appraisal_research }
+			}
+			activate_mission = USA_mkultra_early_appraisal_research
+		}
+	}
+	if = {
+		limit = {
+			USA_mkultra_can_receive_early_comparison_trigger = yes
+			NOT = { has_active_mission = USA_mkultra_early_final_comparison }
+		}
+		activate_mission = USA_mkultra_early_final_comparison
+	}
+}
+
+# Army single-slot contribution, called by the shared slot-state rebuild.
+USA_mkultra_early_assessment_slot_states = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_early_assessment_stage = 1 }
+			has_country_flag = USA_mkultra_early_appraisal_active
+		}
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+	}
+}

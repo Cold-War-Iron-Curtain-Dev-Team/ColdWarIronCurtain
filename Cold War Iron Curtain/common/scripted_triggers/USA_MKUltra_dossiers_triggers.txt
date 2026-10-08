@@ -13,6 +13,15 @@ USA_mkultra_can_afford_front_grant_stage_trigger = {
 	}
 }
 
+# Midnight Climax stages cost 25 natively and inherit only the +5 expansion fee.
+USA_mkultra_can_afford_high_risk_stage_trigger = {
+	if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		has_political_power > 29
+	}
+	else = { has_political_power > 24 }
+}
+
 # Replication stage: 30 native, +10 under compartmentalization, +5 surcharge.
 USA_mkultra_can_afford_replication_stage_trigger = {
 	if = {
@@ -35,13 +44,37 @@ USA_mkultra_can_afford_replication_stage_trigger = {
 	}
 }
 
+# Behavioral Assessment and MKSEARCH can apply the Reliable Internal Appraisal
+# finding before their scripted surcharge, making the full purchase 5 PP cheaper.
+USA_mkultra_can_afford_discounted_replication_stage_trigger = {
+	if = {
+		limit = { NOT = { has_country_flag = USA_mkultra_reliable_appraisal_earned } }
+		USA_mkultra_can_afford_replication_stage_trigger = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { USA_mkultra_information_policy = 2 }
+			check_variable = { USA_mkultra_capacity = 2 }
+		}
+		has_political_power > 39
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+		has_political_power > 34
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_capacity = 2 } }
+		has_political_power > 29
+	}
+	else = { has_political_power > 24 }
+}
+
 # Hypnosis & Conditioning Claims
 USA_mkultra_can_start_hypnosis_trigger = {
 	USA_mkultra_research_start_allowed_trigger = yes
 	USA_mkultra_has_free_slot_trigger = yes
 	check_variable = { USA_mkultra_hypnosis_stage = 1 }
 	NOT = { has_country_flag = USA_mkultra_hypnosis_paid }
-	USA_mkultra_can_afford_front_grant_stage_trigger = yes
 }
 
 USA_mkultra_can_renew_hypnosis_trigger = {
@@ -50,7 +83,6 @@ USA_mkultra_can_renew_hypnosis_trigger = {
 	NOT = { has_country_flag = USA_mkultra_hypnosis_renewal_paid }
 	NOT = { has_country_flag = USA_mkultra_hypnosis_renewal_foregone }
 	NOT = { has_country_flag = USA_mkultra_hypnosis_archived }
-	USA_mkultra_can_afford_front_grant_stage_trigger = yes
 }
 
 USA_mkultra_can_replicate_hypnosis_trigger = {
@@ -61,7 +93,6 @@ USA_mkultra_can_replicate_hypnosis_trigger = {
 	}
 	NOT = { has_country_flag = USA_mkultra_hypnosis_replication_paid }
 	NOT = { has_country_flag = USA_mkultra_hypnosis_archived }
-	USA_mkultra_can_afford_replication_stage_trigger = yes
 }
 
 USA_mkultra_can_apply_reliable_appraisal_trigger = {
@@ -77,7 +108,6 @@ USA_mkultra_can_start_behavioral_trigger = {
 	USA_mkultra_has_free_slot_trigger = yes
 	check_variable = { USA_mkultra_behavioral_stage = 1 }
 	NOT = { has_country_flag = USA_mkultra_behavioral_paid }
-	USA_mkultra_can_afford_front_grant_stage_trigger = yes
 }
 
 USA_mkultra_can_replicate_behavioral_trigger = {
@@ -85,7 +115,6 @@ USA_mkultra_can_replicate_behavioral_trigger = {
 	check_variable = { USA_mkultra_behavioral_stage = 3 }
 	NOT = { has_country_flag = USA_mkultra_behavioral_replication_paid }
 	NOT = { has_country_flag = USA_mkultra_behavioral_archived }
-	USA_mkultra_can_afford_replication_stage_trigger = yes
 }
 
 USA_mkultra_can_apply_screening_finding_trigger = {
@@ -98,14 +127,59 @@ USA_mkultra_can_apply_screening_finding_trigger = {
 
 # AI: front-grant work only with the standard reserve (design 14.2).
 USA_mkultra_ai_can_afford_front_grant_trigger = {
-	OR = {
-		AND = {
-			NOT = { USA_mkultra_major_crisis_trigger = yes }
-			has_political_power > 134
+	if = {
+		limit = { USA_mkultra_major_crisis_trigger = yes }
+		if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
+			has_political_power > 189
 		}
-		AND = {
-			USA_mkultra_major_crisis_trigger = yes
+		else = { has_political_power > 184 }
+	}
+	else = {
+		if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
+			has_political_power > 139
+		}
+		else = { has_political_power > 134 }
+	}
+}
+
+USA_mkultra_ai_can_afford_replication_stage_trigger = {
+	if = {
+		limit = { USA_mkultra_major_crisis_trigger = yes }
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_information_policy = 2 }
+				check_variable = { USA_mkultra_capacity = 2 }
+			}
+			has_political_power > 194
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+			has_political_power > 189
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
 			has_political_power > 184
 		}
+		else = { has_political_power > 179 }
+	}
+	else = {
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_information_policy = 2 }
+				check_variable = { USA_mkultra_capacity = 2 }
+			}
+			has_political_power > 144
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_information_policy = 2 } }
+			has_political_power > 139
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
+			has_political_power > 134
+		}
+		else = { has_political_power > 129 }
 	}
 }

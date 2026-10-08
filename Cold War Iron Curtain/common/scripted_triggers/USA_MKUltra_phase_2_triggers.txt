@@ -2,6 +2,7 @@
 # exposure pauses starts, while report archival and charter termination remain free.
 USA_mkultra_research_start_allowed_trigger = {
 	USA_mkultra_charter_active_trigger = yes
+	NOT = { has_country_flag = USA_mkultra_feature_cutoff }
 	NOT = { check_variable = { USA_mkultra_inquiry_state = 1 } }
 	check_variable = { USA_mkultra_exposure < 75 }
 }
@@ -69,16 +70,7 @@ USA_mkultra_can_apply_countermeasure_lessons_trigger = {
 # Native decision costs: renewal/countermeasure cost 35 PP; replication costs
 # 30 PP. These guards are AI policy only and never run after payment.
 USA_mkultra_ai_can_afford_replication_trigger = {
-	OR = {
-		AND = {
-			NOT = { USA_mkultra_major_crisis_trigger = yes }
-			has_political_power > 129
-		}
-		AND = {
-			USA_mkultra_major_crisis_trigger = yes
-			has_political_power > 179
-		}
-	}
+	USA_mkultra_ai_can_afford_replication_stage_trigger = yes
 }
 
 # Phase 3: Capacity & Slot Triggers
@@ -124,7 +116,6 @@ USA_mkultra_can_expand_capacity_trigger = {
 	USA_mkultra_has_reviewed_report_trigger = yes
 	NOT = { check_variable = { USA_mkultra_inquiry_state = 1 } }
 	check_variable = { USA_mkultra_exposure < 75 }
-	has_political_power > 59
 }
 
 USA_mkultra_can_policy_compartmentalization_trigger = {
@@ -133,15 +124,6 @@ USA_mkultra_can_policy_compartmentalization_trigger = {
 	check_variable = { USA_mkultra_slot_1_state = 0 }
 	check_variable = { USA_mkultra_slot_2_state = 0 }
 	NOT = { check_variable = { USA_mkultra_inquiry_state = 1 } }
-	has_political_power > 19
-}
-
-USA_mkultra_can_policy_shared_review_trigger = {
-	USA_mkultra_charter_active_trigger = yes
-	check_variable = { USA_mkultra_information_policy = 2 }
-	check_variable = { USA_mkultra_slot_1_state = 0 }
-	check_variable = { USA_mkultra_slot_2_state = 0 }
-	has_political_power > 9
 }
 
 # Phase 4: Historical Lifecycle & Midnight Climax Triggers
@@ -149,7 +131,6 @@ USA_mkultra_can_review_precursor_trigger = {
 	USA_mkultra_enabled_trigger = yes
 	date < 1953.4.13
 	NOT = { has_country_flag = USA_mkultra_precursor_reviewed }
-	has_political_power > 9
 }
 
 USA_mkultra_can_start_midnight_climax_trigger = {
@@ -158,7 +139,6 @@ USA_mkultra_can_start_midnight_climax_trigger = {
 	check_variable = { USA_mkultra_midnight_climax_stage = 1 }
 	has_country_flag = USA_mkultra_midnight_climax_unlocked
 	NOT = { has_country_flag = USA_mkultra_midnight_climax_paid }
-	has_political_power > 24
 }
 
 USA_mkultra_can_renew_midnight_climax_trigger = {
@@ -168,7 +148,6 @@ USA_mkultra_can_renew_midnight_climax_trigger = {
 	check_variable = { USA_mkultra_midnight_climax_stage = 3 }
 	NOT = { has_country_flag = USA_mkultra_midnight_climax_renewal_paid }
 	NOT = { has_country_flag = USA_mkultra_midnight_climax_archived }
-	has_political_power > 24
 }
 
 USA_mkultra_can_replicate_midnight_climax_trigger = {
@@ -179,13 +158,6 @@ USA_mkultra_can_replicate_midnight_climax_trigger = {
 	}
 	NOT = { has_country_flag = USA_mkultra_midnight_climax_replication_paid }
 	NOT = { has_country_flag = USA_mkultra_midnight_climax_archived }
-	if = {
-		limit = { check_variable = { USA_mkultra_information_policy = 2 } }
-		has_political_power > 39
-	}
-	else = {
-		has_political_power > 29
-	}
 }
 
 USA_mkultra_ai_can_afford_expansion_trigger = {
@@ -202,15 +174,20 @@ USA_mkultra_ai_can_afford_expansion_trigger = {
 }
 
 USA_mkultra_ai_can_afford_midnight_climax_trigger = {
-	OR = {
-		AND = {
-			NOT = { USA_mkultra_major_crisis_trigger = yes }
-			has_political_power > 124
+	if = {
+		limit = { USA_mkultra_major_crisis_trigger = yes }
+		if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
+			has_political_power > 179
 		}
-		AND = {
-			USA_mkultra_major_crisis_trigger = yes
-			has_political_power > 174
+		else = { has_political_power > 174 }
+	}
+	else = {
+		if = {
+			limit = { check_variable = { USA_mkultra_capacity = 2 } }
+			has_political_power > 129
 		}
+		else = { has_political_power > 124 }
 	}
 }
 
@@ -224,6 +201,7 @@ USA_mkultra_gateway_charter_active_trigger = {
 
 USA_mkultra_gateway_start_allowed_trigger = {
 	USA_mkultra_gateway_charter_active_trigger = yes
+	NOT = { has_country_flag = USA_mkultra_feature_cutoff }
 	NOT = { check_variable = { USA_mkultra_inquiry_state = 1 } }
 	check_variable = { USA_mkultra_exposure < 75 }
 }
@@ -236,7 +214,6 @@ USA_mkultra_can_start_gateway_assessment_trigger = {
 	has_country_flag = USA_mkultra_gateway_assessment_unlocked
 	check_variable = { USA_mkultra_gateway_assessment_stage = 1 }
 	NOT = { has_country_flag = USA_mkultra_gateway_assessment_paid }
-	has_political_power > 24
 }
 
 USA_mkultra_can_replicate_gateway_assessment_trigger = {
@@ -244,7 +221,6 @@ USA_mkultra_can_replicate_gateway_assessment_trigger = {
 	check_variable = { USA_mkultra_gateway_assessment_stage = 3 }
 	NOT = { has_country_flag = USA_mkultra_gateway_assessment_replication_paid }
 	NOT = { has_country_flag = USA_mkultra_gateway_assessment_archived }
-	has_political_power > 24
 }
 
 USA_mkultra_ai_can_afford_gateway_assessment_trigger = {

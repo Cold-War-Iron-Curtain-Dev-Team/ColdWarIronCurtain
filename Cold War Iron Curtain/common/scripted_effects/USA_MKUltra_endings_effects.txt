@@ -129,7 +129,13 @@ USA_mkultra_record_cia_ending = {
 		else = {
 			set_variable = { USA_mkultra_cia_ending = 5 }
 		}
-		country_event = { id = cwic_mkultra.505 days = 1 }
+		if = {
+			limit = {
+				NOT = { has_country_flag = USA_mkultra_y2k_epilogue_resolved }
+				NOT = { has_country_flag = USA_mkultra_y2k_epilogue_preparing }
+			}
+			country_event = { id = cwic_mkultra.505 days = 1 }
+		}
 	}
 }
 
@@ -148,8 +154,38 @@ USA_mkultra_record_army_ending = {
 		else = {
 			set_variable = { USA_mkultra_army_ending = 3 }
 		}
-		country_event = { id = cwic_mkultra.506 days = 1 }
+		if = {
+			limit = {
+				NOT = { has_country_flag = USA_mkultra_y2k_epilogue_resolved }
+				NOT = { has_country_flag = USA_mkultra_y2k_epilogue_preparing }
+			}
+			country_event = { id = cwic_mkultra.506 days = 1 }
+		}
 	}
+}
+
+# Event 500 needs the ending variables before its description is rendered. This
+# records the report classifications without closing either charter or emitting
+# the ordinary charter-closure popups; the sole event option performs settlement.
+USA_mkultra_prepare_y2k_epilogue = {
+	set_country_flag = USA_mkultra_y2k_epilogue_preparing
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_charter_state > 0 }
+			NOT = { has_country_flag = USA_mkultra_cia_ending_recorded }
+		}
+		USA_mkultra_record_cia_ending = yes
+	}
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_gateway_charter_state > 0 }
+			NOT = { has_country_flag = USA_mkultra_army_ending_recorded }
+		}
+		USA_mkultra_record_army_ending = yes
+	}
+	# The cutoff occurs as the event opens. Its sole option is acknowledgement, so
+	# saving or exiting with the popup open cannot leave the feature half-closed.
+	USA_mkultra_resolve_y2k_epilogue = yes
 }
 
 ###########################################################################
@@ -162,8 +198,8 @@ USA_mkultra_assign_early_assessment_profile = {
 		limit = { NOT = { has_variable = USA_mkultra_early_assessment_profile } }
 		random_list = {
 			40 = { set_variable = { USA_mkultra_early_assessment_profile = 1 } }
-			35 = { set_variable = { USA_mkultra_early_assessment_profile = 2 } }
-			25 = { set_variable = { USA_mkultra_early_assessment_profile = 3 } }
+			40 = { set_variable = { USA_mkultra_early_assessment_profile = 2 } }
+			20 = { set_variable = { USA_mkultra_early_assessment_profile = 3 } }
 		}
 	}
 }
