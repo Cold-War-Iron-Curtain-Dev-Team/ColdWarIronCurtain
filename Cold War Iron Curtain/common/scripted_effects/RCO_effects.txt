@@ -8,25 +8,21 @@
 # Opens/closes the per-sender flag RCO_open_<sender tag> on every target,
 # and keeps the sender's RCO_any_open flag + RCO_targets array (topbar alert).
 RCO_sync = {
-	every_country = {
-		limit = {
-			RCO_any = yes
-			NOT = { has_country_flag = RCO_open_@ROOT }
-		}
-		set_country_flag = RCO_open_@ROOT
-		ROOT = { clr_country_flag = RCO_alert_dismissed }	# new opportunity -> re-show alert
-	}
-	every_country = {
-		limit = {
-			has_country_flag = RCO_open_@ROOT
-			RCO_any = no
-		}
-		clr_country_flag = RCO_open_@ROOT
-	}
 	ROOT = { clear_array = RCO_targets }
-	every_country = {
-		limit = { has_country_flag = RCO_open_@ROOT }
-		add_to_array = { ROOT.RCO_targets = THIS }
+	every_country = {	# single pass: open, close and collect (was three every_country loops a day)
+		if = {
+			limit = { RCO_any = yes }
+			if = {
+				limit = { NOT = { has_country_flag = RCO_open_@ROOT } }
+				set_country_flag = RCO_open_@ROOT
+				ROOT = { clr_country_flag = RCO_alert_dismissed }	# new opportunity -> re-show alert
+			}
+			add_to_array = { ROOT.RCO_targets = THIS }
+		}
+		else_if = {
+			limit = { has_country_flag = RCO_open_@ROOT }
+			clr_country_flag = RCO_open_@ROOT
+		}
 	}
 	ROOT = {
 		if = {
