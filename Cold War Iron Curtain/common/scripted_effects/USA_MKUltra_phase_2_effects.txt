@@ -1631,16 +1631,34 @@ USA_mkultra_resolve_records_retain = {
 	}
 }
 
+# Design 10.2: one tier chosen from the record (computed when event 325 opens).
 USA_mkultra_resolve_church_committee = {
 	if = {
 		limit = { tag = USA }
 		set_country_flag = USA_mkultra_church_committee_resolved
 		if = {
+			limit = { NOT = { has_variable = USA_mkultra_church_severity } }
+			USA_mkultra_compute_church_severity = yes
+		}
+		if = {
 			limit = { USA_mkultra_charter_active_trigger = yes }
+			set_country_flag = USA_mkultra_closed_by_inquiry
 			USA_mkultra_terminate_charter = yes
 		}
-		add_political_power = -50
-		add_stability = -0.02
+		if = {
+			limit = { check_variable = { USA_mkultra_church_severity = 3 } }
+			add_political_power = -75
+			add_stability = -0.03
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_church_severity = 2 } }
+			add_political_power = -50
+			add_stability = -0.02
+		}
+		else = {
+			add_political_power = -25
+			add_stability = -0.01
+		}
 		add_to_variable = { USA_mkultra_exposure = -15 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_gui_reconcile = yes
@@ -1653,8 +1671,23 @@ USA_mkultra_resolve_senate_hearing = {
 		limit = { tag = USA }
 		set_country_flag = USA_mkultra_senate_hearing_resolved
 		set_country_flag = USA_mkultra_invoices_survived
-		add_political_power = -25
-		add_stability = -0.01
+		if = {
+			limit = { NOT = { has_variable = USA_mkultra_senate_severity } }
+			USA_mkultra_compute_senate_severity = yes
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_senate_severity = 3 } }
+			add_political_power = -40
+			add_stability = -0.02
+		}
+		else_if = {
+			limit = { check_variable = { USA_mkultra_senate_severity = 2 } }
+			add_political_power = -25
+			add_stability = -0.01
+		}
+		else = {
+			add_political_power = -15
+		}
 		add_to_variable = { USA_mkultra_exposure = -10 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_gui_reconcile = yes
@@ -1918,6 +1951,7 @@ USA_mkultra_resolve_gateway_authorize = {
 		# first; its unfinished stages never move into the Army charter.
 		if = {
 			limit = { USA_mkultra_charter_active_trigger = yes }
+			set_country_flag = USA_mkultra_closed_by_handoff
 			USA_mkultra_terminate_charter = yes
 		}
 		set_country_flag = USA_mkultra_gateway_authorized
@@ -1957,6 +1991,7 @@ USA_mkultra_close_gateway_charter = {
 		USA_mkultra_archive_gateway_assessment = yes
 		USA_mkultra_settle_remote_viewing = yes
 		set_variable = { USA_mkultra_gateway_charter_state = 2 }
+		USA_mkultra_record_army_ending = yes
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
@@ -1979,6 +2014,7 @@ USA_mkultra_resolve_gateway_decline = {
 }
 
 USA_mkultra_resolve_early_assessment_preparedness = {
+	USA_mkultra_assign_early_assessment_profile = yes
 	set_country_flag = USA_mkultra_early_preparedness
 	add_political_power = -20
 	add_to_variable = { USA_mkultra_exposure = 5 }
@@ -1987,6 +2023,7 @@ USA_mkultra_resolve_early_assessment_preparedness = {
 }
 
 USA_mkultra_resolve_early_assessment_appraisal = {
+	USA_mkultra_assign_early_assessment_profile = yes
 	set_country_flag = USA_mkultra_early_appraisal_active
 	add_political_power = -30
 	USA_mkultra_clamp_variables = yes
@@ -2001,6 +2038,7 @@ USA_mkultra_resolve_early_assessment_archive = {
 }
 
 USA_mkultra_resolve_early_assessment_comparison = {
+	USA_mkultra_assign_early_assessment_profile = yes
 	set_country_flag = USA_mkultra_early_assessment_resolved
 	add_to_variable = { USA_mkultra_progress = 8 }
 	USA_mkultra_clamp_variables = yes

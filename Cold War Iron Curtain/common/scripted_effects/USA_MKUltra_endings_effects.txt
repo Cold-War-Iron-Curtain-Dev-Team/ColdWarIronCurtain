@@ -1,0 +1,169 @@
+# Inquiry severity (design 10.2) and charter endings (design 13).
+#
+# Inquiry severity picks one tier from the episode's record instead of adding
+# every possible penalty. Each charter records exactly one mechanical ending
+# when it closes; the final report can still describe several conditions.
+#
+# USA_mkultra_church_severity / USA_mkultra_senate_severity: 1 limited,
+# 2 moderate, 3 severe.
+# USA_mkultra_cia_ending: 1 public collapse, 2 related-program transfer,
+# 3 narrow validated remit, 4 paper empire, 5 orderly termination.
+# USA_mkultra_army_ending: 1 unresolved archive, 2 narrow validated remit,
+# 3 orderly termination.
+# USA_mkultra_early_assessment_profile (design 11.2): 1 ordinary explanation,
+# 2 exaggerated match, 3 narrow unresolved discrepancy.
+
+###########################################################################
+# Inquiry severity
+###########################################################################
+
+# Computed when event 325 opens, so the option tooltip shows the actual tier.
+USA_mkultra_compute_church_severity = {
+	set_temp_variable = { USA_mkultra_severity_score = 0 }
+	# Recorded conduct
+	if = {
+		limit = { check_variable = { USA_mkultra_harm > 29 } }
+		add_to_temp_variable = { USA_mkultra_severity_score = 2 }
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_harm > 14 } }
+		add_to_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	# Specific liabilities: the safehouses, and continuing after the 1963 audit
+	if = {
+		limit = { has_country_flag = USA_mkultra_midnight_climax_paid }
+		add_to_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	if = {
+		limit = { has_country_flag = USA_mkultra_mksearch_paid }
+		add_to_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_exposure > 74 } }
+		add_to_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	# Obstruction history
+	if = {
+		limit = { has_country_flag = USA_mkultra_records_destroyed }
+		add_to_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	# Institutional response
+	if = {
+		limit = { has_country_flag = USA_mkultra_ig_review_tightened }
+		subtract_from_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	if = {
+		limit = { has_country_flag = USA_mkultra_records_preserved }
+		subtract_from_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+
+	if = {
+		limit = { check_variable = { USA_mkultra_severity_score < 1 } }
+		set_variable = { USA_mkultra_church_severity = 1 }
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_severity_score < 3 } }
+		set_variable = { USA_mkultra_church_severity = 2 }
+	}
+	else = {
+		set_variable = { USA_mkultra_church_severity = 3 }
+	}
+}
+
+# The surviving invoices land differently depending on what the 1973 order did.
+USA_mkultra_compute_senate_severity = {
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = USA_mkultra_records_preserved
+				has_country_flag = USA_mkultra_records_sealed
+			}
+		}
+		set_variable = { USA_mkultra_senate_severity = 1 }
+	}
+	else_if = {
+		limit = { has_country_flag = USA_mkultra_records_destroyed }
+		set_variable = { USA_mkultra_senate_severity = 3 }
+	}
+	else = {
+		set_variable = { USA_mkultra_senate_severity = 2 }
+	}
+}
+
+###########################################################################
+# Charter endings
+###########################################################################
+
+# Every CIA finding that was actually retained or applied.
+USA_mkultra_record_cia_ending = {
+	if = {
+		limit = { NOT = { has_country_flag = USA_mkultra_cia_ending_recorded } }
+		set_country_flag = USA_mkultra_cia_ending_recorded
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						has_country_flag = USA_mkultra_closed_by_inquiry
+						check_variable = { USA_mkultra_church_severity = 3 }
+					}
+					check_variable = { USA_mkultra_exposure > 74 }
+				}
+			}
+			set_variable = { USA_mkultra_cia_ending = 1 }
+		}
+		else_if = {
+			limit = { has_country_flag = USA_mkultra_closed_by_handoff }
+			set_variable = { USA_mkultra_cia_ending = 2 }
+		}
+		else_if = {
+			limit = { USA_mkultra_cia_has_finding_trigger = yes }
+			set_variable = { USA_mkultra_cia_ending = 3 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { USA_mkultra_capacity = 2 }
+				check_variable = { USA_mkultra_progress > 49 }
+			}
+			set_variable = { USA_mkultra_cia_ending = 4 }
+		}
+		else = {
+			set_variable = { USA_mkultra_cia_ending = 5 }
+		}
+		country_event = { id = cwic_mkultra.505 days = 1 }
+	}
+}
+
+USA_mkultra_record_army_ending = {
+	if = {
+		limit = { NOT = { has_country_flag = USA_mkultra_army_ending_recorded } }
+		set_country_flag = USA_mkultra_army_ending_recorded
+		if = {
+			limit = { USA_mkultra_early_assessment_unresolved_trigger = yes }
+			set_variable = { USA_mkultra_army_ending = 1 }
+		}
+		else_if = {
+			limit = { has_country_flag = USA_mkultra_rv_utility_standard }
+			set_variable = { USA_mkultra_army_ending = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_army_ending = 3 }
+		}
+		country_event = { id = cwic_mkultra.506 days = 1 }
+	}
+}
+
+###########################################################################
+# The Assessment Arrived Early: stored episode profile (design 11.2)
+###########################################################################
+
+# Drawn once when the episode begins; the appraisal reveals it, never rerolls it.
+USA_mkultra_assign_early_assessment_profile = {
+	if = {
+		limit = { NOT = { has_variable = USA_mkultra_early_assessment_profile } }
+		random_list = {
+			40 = { set_variable = { USA_mkultra_early_assessment_profile = 1 } }
+			35 = { set_variable = { USA_mkultra_early_assessment_profile = 2 } }
+			25 = { set_variable = { USA_mkultra_early_assessment_profile = 3 } }
+		}
+	}
+}
