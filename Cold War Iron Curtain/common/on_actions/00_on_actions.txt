@@ -26,12 +26,19 @@ on_actions = {
 	}
 	on_monthly = {
 		effect = {
-
+			if = {
+				limit = { NOT = { has_global_flag = cwic_trade_exporter_lists_built } }
+				set_global_flag = { flag = cwic_trade_exporter_lists_built days = 25 }
+				cwic_rebuild_trade_exporter_lists = yes
+			}
 			if = {
 				limit = { NOT = { has_country_flag = active_insurgency } }
 				monthly_education_pulse = yes
 			}
-			ic_financial_monthly_pulse = yes
+			if = {
+				limit = { is_ai = no }
+				ic_financial_monthly_pulse = yes
+			}
 			if = {
 				limit = { tag = UNS }
 				export_script_for_pool = yes
@@ -61,81 +68,82 @@ on_actions = {
 				Food_Graph_Financial_Tab_Update = yes
 				Income_Graph_Financial_Tab_Update = yes
 				Electricity_Graph_Financial_Tab_Update = yes
-			}
-			add_to_variable = {
-				Current_Month = 1
-			}
-			add_to_variable = {
-				month_counter = 1
-			}
-			if = {	#Reset to January after December
-				limit = {
-					check_variable = {
-						Current_Month > 12
-					}
-				}
-				set_variable = {
+
+				add_to_variable = {
 					Current_Month = 1
 				}
-				#GDP YOY
-				set_variable = {
-					yoy_change_gdp = grossdomesticproduct
+				add_to_variable = {
+					month_counter = 1
 				}
-				subtract_from_variable = {
-					yoy_change_gdp = last_year_gdp
+				if = {	#Reset to January after December
+					limit = {
+						check_variable = {
+							Current_Month > 12
+						}
+					}
+					set_variable = {
+						Current_Month = 1
+					}
+					#GDP YOY
+					set_variable = {
+						yoy_change_gdp = grossdomesticproduct
+					}
+					subtract_from_variable = {
+						yoy_change_gdp = last_year_gdp
+					}
+					set_variable = {
+						last_year_gdp = grossdomesticproduct
+					}
+					#GDP-Debt YOY
+					set_variable = {
+						yoy_change_debt = GDP_Debt_Ratio
+					}
+					subtract_from_variable = {
+						yoy_change_debt = last_year_debt
+					}
+					set_variable = {
+						last_year_debt = GDP_Debt_Ratio
+					}
+					#Food YOY
+					set_variable = {
+						yoy_change_food = FoodBalanceTotal
+					}
+					subtract_from_variable = {
+						yoy_change_food = last_year_food
+					}
+					set_variable = {
+						last_year_food = FoodBalanceTotal
+					}
+					#Electricity YOY
+					set_variable = {
+						yoy_change_electricty = resource@coal
+					}
+					subtract_from_variable = {
+						yoy_change_electricty = last_year_electricty
+					}
+					set_variable = {
+						last_year_electricty = resource@coal
+					}
+					#Balance YOY
+					set_variable = {
+						yoy_change_balance = IncomeCheck
+					}
+					subtract_from_variable = {
+						yoy_change_balance = last_year_balance
+					}
+					set_variable = {
+						last_year_balance = IncomeCheck
+					}
 				}
-				set_variable = {
-					last_year_gdp = grossdomesticproduct
+				add_to_array = {
+					Month_Label = Current_Month
 				}
-				#GDP-Debt YOY
-				set_variable = {
-					yoy_change_debt = GDP_Debt_Ratio
+				if = {	#keeps in balance
+					limit = {
+						check_variable = { month_counter > 20 }
+					}
+					remove_from_array = { array = Month_Label index = 0 }
 				}
-				subtract_from_variable = {
-					yoy_change_debt = last_year_debt
-				}
-				set_variable = {
-					last_year_debt = GDP_Debt_Ratio
-				}
-				#Food YOY
-				set_variable = {
-					yoy_change_food = FoodBalanceTotal
-				}
-				subtract_from_variable = {
-					yoy_change_food = last_year_food
-				}
-				set_variable = {
-					last_year_food = FoodBalanceTotal
-				}
-				#Electricity YOY
-				set_variable = {
-					yoy_change_electricty = resource@coal
-				}
-				subtract_from_variable = {
-					yoy_change_electricty = last_year_electricty
-				}
-				set_variable = {
-					last_year_electricty = resource@coal
-				}
-				#Balance YOY
-				set_variable = {
-					yoy_change_balance = IncomeCheck
-				}
-				subtract_from_variable = {
-					yoy_change_balance = last_year_balance
-				}
-				set_variable = {
-					last_year_balance = IncomeCheck
-				}
-			}
-			add_to_array = {
-				Month_Label = Current_Month
-			}
-			if = {	#keeps in balance
-				limit = {
-					check_variable = { month_counter > 20 }
-				}
-				remove_from_array = { array = Month_Label index = 0 }
 			}
 
 			#ENG = {
