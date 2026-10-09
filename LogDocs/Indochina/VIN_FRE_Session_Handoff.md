@@ -567,8 +567,12 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-10-08. Remaining order:
+Updated 2026-10-09. Remaining order:
 
+0. Check 59 passed in `2026-10-09b`. Next AFK run: check 61 (resupply no
+   longer blocked by the Nam Bo focus) and re-score 58. Then the deferred
+   Trung Phan (VIE) issues the user raised on 2026-10-09, including
+   `VIE_Events.txt:7555`, and the State of Vietnam army-cap overrun.
 1. Next AFK run: score checks 53-58 first. 55 and 58 need a hover/glance
    in a player game; 56-57 come from `IC_AFK|NOTICE`. The VIN supply step now runs on
    every pulse (monthly), so Campaign Supply income, patronage and the
@@ -885,3 +889,34 @@ the 57 missing `VIN_CEFEO.1`-`.13` keys are written. 96 new notice events
 onward, `IC_Aid`, `VIN_Aid`, `FRE_Aid`) tell opponents, third parties and
 patrons about campaigns, operations and aid. Each event is bespoke, and
 each option has a small effect. Checks 55-58.
+
+## 2026-10-09 run review and error-log spam patch
+
+Logs in `_local/logs/2026-10-09/`; full record in the ledger's matching
+section. Clean arc, no FAIL lines: Dien Bien Phu fell on day 39 and Geneva
+concluded 1954-06-27 (+844). The southern Viet Minh capitulated 1953-08-04.
+The 95.9 million error lines were not Indochina code: 99.6% came from the
+trade exporter list removing absent values, and about 234,000 from an
+`is_ai` check in state scope in the religion drift. Both are fixed. The
+rework's own regression was the 2026-10-08 notice loc: literal line breaks
+stopped three loc files from loading past the first break. Fixed with `\n`
+escapes. Statically verified only; checks 59-60.
+
+## 2026-10-09 second run: error log clean, resupply gate fixed
+
+Logs in `_local/logs/2026-10-09b/`; full record in the ledger. error.log is
+8,647 lines (check 59 passed). Clean arc, no FAIL lines: Dien Bien Phu fell
+on day 28, Geneva concluded 1954-06-09 (+770). The southern Viet Minh
+capitulated 1952-09-23. Cause found in both 2026-10-09 runs: the Nam Bo
+Resistance focus gives the southern Viet Minh the Northern Supply Line idea
+for a year, and the monthly resupply treated that idea as the post-DBP
+funding and stopped. The gate now uses the post-DBP funding flag.
+Statically verified only; check 61.
+
+## 2026-10-09 patch: raid warnings and State of Vietnam script errors
+
+Statically verified only; ledger has the details, check 62. The Raid City
+and Raid Supply Hub types no longer use unit organisation, strength or
+recon in their success chance, which silences the hourly warning from a
+raid left without a unit. The Saigon-lost event now tests province control
+correctly, and Ngo Dinh Can is recruited at game start instead of by event.
