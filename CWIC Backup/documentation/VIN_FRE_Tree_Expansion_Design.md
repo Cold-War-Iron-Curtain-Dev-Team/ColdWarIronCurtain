@@ -2361,3 +2361,73 @@ by the first mission pulse on the same day, so two accruals land on
     against 2026-10-03c (Northwest 311, Lower Laos 296), Dien Bien Phu
     duration, VIN campaign results, NLF divisions, final margin. If VIN
     supply runs away, lower the per-month amounts before anything else.
+
+## 2026-10-08 patch: flag and trigger localisation, notice events
+
+User-chosen scope; statically verified only, no engine run.
+
+### Localisation cleanup
+
+- A static audit walked focus `available`/`bypass`/rewards, decision
+  `available`/effects and visible event options in the rework files,
+  following scripted effects and triggers, and skipping hidden and
+  custom-tooltip blocks. 288 Indochina flags that can reach a tooltip had
+  no loc; all now have keys (user decision: player-visible flags only;
+  about 1,190 internal flags remain unlocalised). Homes: `VIN_misc`,
+  `IC_FRE_Ops` (operations, packages, CEFEO intel), `FRE_misc`,
+  `CWIC_Indochina_Outcomes` (Geneva, France, State of Vietnam, USA).
+- 37 scripted triggers that expanded raw into focus and decision tooltips
+  are now wrapped internally in `custom_trigger_tooltip` with a
+  `<trigger>_TT` key, the convention already used by
+  `VIN_no_campaign_running_trigger`. This covers every caller at once. The
+  user had picked call-site wrapping; internal wrapping was used instead
+  because it is the existing convention and needs no call-site edits.
+  Composite availability triggers (hedgehog network, Dak Doa, Lower Laos,
+  Luang Prabang, post-Dien Bien Phu strategy, Chanson pacification) now show
+  one sentence listing their conditions instead of the individual checks.
+- `VIN_CEFEO.1`-`.13`, the CEFEO intelligence events, had no loc at all
+  (57 keys, never written). Added. Their options are still name-only.
+
+### Notice events
+
+User decisions: opponent notices, third-party notices and patron aid
+events; bespoke event per battle; every option carries a small effect
+matching its text. All hooks sit in `hidden_effect`, are guarded with
+`country_exists`, and log `IC_AFK|NOTICE|date|event|to`. Superseded
+results send nothing. No hook changes resolver behaviour.
+
+- VIN campaigns (`vin_notice_campaign_launch`/`_result` in
+  `VIN_Campaign_Effects.txt`, called from `vin_campaign_begin` and
+  `vin_campaign_resolve`; Dak Doa, Lower Laos and Luang Prabang hooks at
+  the end of the same file). `FRE_Intel.1`-`.11` to CEFEO: Cao-Bac and
+  Northwest recovery launch and result; results for Vinh Yen, Mao Khe, Day
+  River, Na San, Nghia Lo, Lai Chau; Lower Laos result. `VIN_Notice.1`:
+  Lower Laos result to VIN. `IC_Notice_VIN.1`-`.22` to the Tho, Nung,
+  France, PRC and USA (wins only), State of Vietnam, Tai Federation, Royal
+  Lao and the highland movement (`FUL`, Dak Doa).
+- CEFEO operations. `VIN_CEFEO.14`-`.29` to VIN or NLF: Bretagne, Adolphe,
+  Camargue launch and result; Mang Yang and Chu Dreh; Chanson pacification
+  and result; Bolovens airlift; the Castor focus shortcut; Atlante
+  northern-priority and unfunded paths. `IC_Notice_FRE.1`-`.14` to the State
+  of Vietnam, France, Tai Federation, Royal Lao and USA (only with
+  `FRE_American_Financing_Secured`).
+- Patron aid. `IC_Aid.1`-`.18` to donors and associated-state recipients
+  (PRC, SOV, USA, France, Yugoslavia, State of Vietnam, Royal Lao,
+  Cambodia), `VIN_Aid.1`-`.4`, `FRE_Aid.1`-`.3`. Hooked from the aid focus
+  rewards in `VIN_50s.txt` and `FRE_50s_Indochina.txt`, the patronage
+  success branches in `IC_VIN_Patronage_Effects.txt` (first delivery only,
+  nothing monthly) and `FRE_Associated_Armies_Effects.txt`. No equipment or
+  units are added by these events.
+
+### Consolidated-playtest checks added
+
+55. Hover the VIN campaign and FRE operation focuses: no raw flag names or
+    trigger internals; the `_TT` sentences render.
+56. `IC_AFK|NOTICE` after each launch and non-superseded result: Cao-Bac
+    launch gives `FRE_Intel.1` and `IC_Notice_VIN.1`; each VIN result its
+    `FRE_Intel` line plus third parties; Bretagne/Adolphe/Camargue give
+    `VIN_CEFEO.14`-`.19`; Castor, Pollux and Atlante give their
+    `IC_Notice_FRE` lines. No `NOTICE` line on a superseded result.
+57. Aid focuses give one `IC_Aid` line per donor and no monthly repeats.
+58. `error.log` has no unknown-event or missing-loc lines for the new
+    namespaces, and the `VIN_CEFEO.1`-`.13` events show text.
