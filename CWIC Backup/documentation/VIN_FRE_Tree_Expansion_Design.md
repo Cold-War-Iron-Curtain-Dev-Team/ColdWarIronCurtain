@@ -2361,3 +2361,185 @@ by the first mission pulse on the same day, so two accruals land on
     against 2026-10-03c (Northwest 311, Lower Laos 296), Dien Bien Phu
     duration, VIN campaign results, NLF divisions, final margin. If VIN
     supply runs away, lower the per-month amounts before anything else.
+
+## 2026-10-08 patch: flag and trigger localisation, notice events
+
+User-chosen scope; statically verified only, no engine run.
+
+### Localisation cleanup
+
+- A static audit walked focus `available`/`bypass`/rewards, decision
+  `available`/effects and visible event options in the rework files,
+  following scripted effects and triggers, and skipping hidden and
+  custom-tooltip blocks. 288 Indochina flags that can reach a tooltip had
+  no loc; all now have keys (user decision: player-visible flags only;
+  about 1,190 internal flags remain unlocalised). Homes: `VIN_misc`,
+  `IC_FRE_Ops` (operations, packages, CEFEO intel), `FRE_misc`,
+  `CWIC_Indochina_Outcomes` (Geneva, France, State of Vietnam, USA).
+- 37 scripted triggers that expanded raw into focus and decision tooltips
+  are now wrapped internally in `custom_trigger_tooltip` with a
+  `<trigger>_TT` key, the convention already used by
+  `VIN_no_campaign_running_trigger`. This covers every caller at once. The
+  user had picked call-site wrapping; internal wrapping was used instead
+  because it is the existing convention and needs no call-site edits.
+  Composite availability triggers (hedgehog network, Dak Doa, Lower Laos,
+  Luang Prabang, post-Dien Bien Phu strategy, Chanson pacification) now show
+  one sentence listing their conditions instead of the individual checks.
+- `VIN_CEFEO.1`-`.13`, the CEFEO intelligence events, had no loc at all
+  (57 keys, never written). Added. Their options are still name-only.
+
+### Notice events
+
+User decisions: opponent notices, third-party notices and patron aid
+events; bespoke event per battle; every option carries a small effect
+matching its text. All hooks sit in `hidden_effect`, are guarded with
+`country_exists`, and log `IC_AFK|NOTICE|date|event|to`. Superseded
+results send nothing. No hook changes resolver behaviour.
+
+- VIN campaigns (`vin_notice_campaign_launch`/`_result` in
+  `VIN_Campaign_Effects.txt`, called from `vin_campaign_begin` and
+  `vin_campaign_resolve`; Dak Doa, Lower Laos and Luang Prabang hooks at
+  the end of the same file). `FRE_Intel.1`-`.11` to CEFEO: Cao-Bac and
+  Northwest recovery launch and result; results for Vinh Yen, Mao Khe, Day
+  River, Na San, Nghia Lo, Lai Chau; Lower Laos result. `VIN_Notice.1`:
+  Lower Laos result to VIN. `IC_Notice_VIN.1`-`.22` to the Tho, Nung,
+  France, PRC and USA (wins only), State of Vietnam, Tai Federation, Royal
+  Lao and the highland movement (`FUL`, Dak Doa).
+- CEFEO operations. `VIN_CEFEO.14`-`.29` to VIN or NLF: Bretagne, Adolphe,
+  Camargue launch and result; Mang Yang and Chu Dreh; Chanson pacification
+  and result; Bolovens airlift; the Castor focus shortcut; Atlante
+  northern-priority and unfunded paths. `IC_Notice_FRE.1`-`.14` to the State
+  of Vietnam, France, Tai Federation, Royal Lao and USA (only with
+  `FRE_American_Financing_Secured`).
+- Patron aid. `IC_Aid.1`-`.18` to donors and associated-state recipients
+  (PRC, SOV, USA, France, Yugoslavia, State of Vietnam, Royal Lao,
+  Cambodia), `VIN_Aid.1`-`.4`, `FRE_Aid.1`-`.3`. Hooked from the aid focus
+  rewards in `VIN_50s.txt` and `FRE_50s_Indochina.txt`, the patronage
+  success branches in `IC_VIN_Patronage_Effects.txt` (first delivery only,
+  nothing monthly) and `FRE_Associated_Armies_Effects.txt`. No equipment or
+  units are added by these events.
+
+### Consolidated-playtest checks added
+
+55. Hover the VIN campaign and FRE operation focuses: no raw flag names or
+    trigger internals; the `_TT` sentences render.
+56. `IC_AFK|NOTICE` after each launch and non-superseded result: Cao-Bac
+    launch gives `FRE_Intel.1` and `IC_Notice_VIN.1`; each VIN result its
+    `FRE_Intel` line plus third parties; Bretagne/Adolphe/Camargue give
+    `VIN_CEFEO.14`-`.19`; Castor, Pollux and Atlante give their
+    `IC_Notice_FRE` lines. No `NOTICE` line on a superseded result.
+57. Aid focuses give one `IC_Aid` line per donor and no monthly repeats.
+58. `error.log` has no unknown-event or missing-loc lines for the new
+    namespaces, and the `VIN_CEFEO.1`-`.13` events show text.
+
+## 2026-10-09 AFK run review and error-log patch
+
+Logs in `_local/logs/2026-10-09/` (run to 1958-04). `error.log` held about
+95.9 million lines. Statically verified only; no engine run after the patch.
+
+### Run
+
+No `IC_AFK|FAIL` lines. Cao-Bac clean (day 27, 1950-02), Vinh Yen costly,
+Mao Khe and Day River failed, Nghia Lo, Hoa Binh (day 105), Northwest
+(day 28) and Na San clean. Pathet Lao raid stalemate (day 90). Bretagne and
+Mouette failed; Adolphe, Hirondelle and Brochet clean. Castor succeeded,
+Pollux was superseded by Dien Bien Phu (launched 1954-02-16, fell day 39).
+Lower Laos superseded. Post-DBP choice: negotiations, peace gate passed;
+scripted Geneva concluded 1954-06-27, final margin +844 (the highest so
+far). The southern Viet Minh capitulated to the State of Vietnam on
+1953-08-04, the day after a resupply (31 `NLF_RESUPPLY` lines, 10
+divisions). The Tho capitulated to VIN on Cao-Bac day 27. 44 `NOTICE` lines.
+
+### Error log
+
+| Source | Lines | Class |
+| --- | --- | --- |
+| `CWIC_trade_exporter_lists.txt` `remove_from_array` on a missing value | 95,529,677 | unrelated (trade), fixed |
+| `pop_effects.txt:263` `is_ai` in state scope | about 234,000 | unrelated (religion), fixed |
+| Raid City army-based modifiers | 3 x 67,180 | unrelated, untouched |
+| `Expected colon` in `CWIC_Indochina_Outcomes`, `FRE_events`, `VIN_events` loc | 3 | rework-local regression from 2026-10-08, fixed |
+| `VIE_Events.txt:7555` invalid `controller` target; `:3269`/`:3294` `recruit_character` | 4 | adjacent (VIE/Trung Phan), deferred by user |
+
+The loc regression: notice-event descriptions written on 2026-10-08
+contained literal line breaks. The parser stops at the first one, so every
+key after line 206, 373 and 815 of those files was lost. The breaks are now
+`\n` escapes (122 lines joined). Fixes:
+
+- `cwic_register_own_trade_offers`: each of the 29 `remove_from_array` calls
+  is wrapped in an `is_in_array` check.
+- `religous_drift_every_state_call`: `is_ai = no` is now `OWNER = { is_ai = no }`.
+
+### Consolidated-playtest checks added
+
+59. `error.log` has no `Expected colon` line and no
+    `CWIC_trade_exporter_lists` or `pop_effects.txt:263` line; its size is
+    in the thousands of lines, not millions.
+60. Check 58 is re-scored on the next run, since the loc after the break
+    points did not load in this one.
+
+## 2026-10-09 second AFK run: error log clean, southern resupply gate
+
+Logs in `_local/logs/2026-10-09b/` (run to 1956). Statically verified patch;
+no engine run after it.
+
+### Run
+
+No `IC_AFK|FAIL`. Cao-Bac clean (day 12), Vinh Yen and Mao Khe costly, Day
+River failed, Nghia Lo, Hoa Binh (day 105), Northwest and Na San clean.
+Bretagne clean; Adolphe was superseded by the Pathet Lao raid commit guard
+(its PASS checks fired); raid stalemate. Hirondelle and Brochet clean,
+Mouette failed, Castor succeeded, Pollux superseded. Dien Bien Phu fell on
+day 28; negotiations; Geneva concluded 1954-06-09, final margin +770.
+The southern Viet Minh capitulated to the State of Vietnam on 1952-09-23
+with 14 divisions. The State of Vietnam was over its army cap (30/20) in 13
+`ARMY_CAP` lines.
+
+### Error log
+
+Check 59 passed: 8,647 lines, no `Expected colon`, trade-list or
+`pop_effects.txt:263` lines. Indochina files: only the deferred
+`VIE_Events.txt:7555`/`:3269`/`:3294`. One `pop_effects.txt:42`
+`every_owned_state` in state scope (non-rework, single line, left alone).
+
+### Southern resupply gate
+
+`NLF_RESUPPLY_SKIP|gates=16` held for 8 months from 1952-01 here and 11
+months in `2026-10-09`, both times before the southern capitulation. Bit 16
+tested `NLF_Northern_Supply_Line`, but the Nam Bo Resistance focus event
+`SWF_VIN.14` also grants that idea for 365 days, so a pre-DBP focus shut the
+monthly resupply off for a year. `vin_nlf_northern_resupply_monthly` and bit
+16 now test VIN's `VIN_Post_DBP_Funded_NLF` flag, which only the post-DBP
+funding choice sets. The focus idea still applies its modifiers.
+
+### Consolidated-playtest checks added
+
+61. No `NLF_RESUPPLY_SKIP|gates=16` before the post-DBP choice; the
+    `NLF_RESUPPLY` series continues through 1952. Read whether the
+    southern Viet Minh survives longer.
+
+## 2026-10-09 patch: raid warnings and State of Vietnam script errors
+
+Statically verified only.
+
+- Raid City / Raid Supply Hub warnings (`raid_database_extras.cpp`): three
+  lines per hour per raid while a prepared raid has no land unit attached.
+  In `2026-10-09` one such raid ran from 1954-11 to 1958, after the war
+  ended, which no script can cancel; in `2026-10-09b` it ran for one week.
+  The `organisation`, `strength` and `recon` success factors are removed
+  from the six `raid_victory_point_*` and `raid_supply_node_*` types in
+  `Indochina_Raids.txt`. Experience, resistance, air, enemy-unit and intel
+  factors remain. The other 40 Indochina raid types keep them; they never
+  warned.
+- `VIE_Saigon_Captured.1` scoped `4401` as a state, but 4401 is the Saigon
+  province (state 286), so the trigger was invalid. It now reads
+  `NOT = { controls_province = 4401 }`.
+- `Diem.75` recruited `VIE_Ngo_Dinh_Can` at runtime (load-time warning). He
+  has no roles, so he is now recruited in the State of Vietnam history with
+  his brothers, and the two runtime recruits are gone. The Trung Phan
+  creation still checks `has_character` before moving him.
+
+### Consolidated-playtest checks added
+
+62. No `Raid City`/`Raid Supply Hub` lines and no `VIE_Events.txt` lines in
+    error.log. `VIE_Saigon_Captured.1` fires only when the southern Viet
+    Minh holds Saigon; Trung Phan still gets Ngo Dinh Can as its leader.

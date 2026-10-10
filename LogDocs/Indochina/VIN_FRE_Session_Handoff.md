@@ -567,9 +567,14 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-10-03. Remaining order:
+Updated 2026-10-09. Remaining order:
 
-1. Next AFK run: score checks 53-54 first. The VIN supply step now runs on
+0. Check 59 passed in `2026-10-09b`. Next AFK run: check 61 (resupply no
+   longer blocked by the Nam Bo focus) and re-score 58. Then the deferred
+   Trung Phan (VIE) issues the user raised on 2026-10-09, including
+   `VIE_Events.txt:7555`, and the State of Vietnam army-cap overrun.
+1. Next AFK run: score checks 53-58 first. 55 and 58 need a hover/glance
+   in a player game; 56-57 come from `IC_AFK|NOTICE`. The VIN supply step now runs on
    every pulse (monthly), so Campaign Supply income, patronage and the
    southern resupply all rise. If VIN supply runs away, lower the
    per-month amounts. Keep `surrender_limit = 0.5`; watch whether VIN is
@@ -577,12 +582,12 @@ Updated 2026-10-03. Remaining order:
 2. Deferred design items (user, 2026-10-03): the Geneva Laos clause, and
    now the Pathet Lao capitulating to CEFEO during Lower Laos (2026-10-03c).
    Not to be fixed until the user raises them.
-3. Next consolidated AFK run: score ledger checks 1-54. Passed:
+3. Next consolidated AFK run: score ledger checks 1-58. Passed:
    23, 30, 31, 33, 34, 36, 37, 39, 48, 50, 51, 52. Partial: 38.
    Failed: 35 (before the surrender limit), 46 (twice; passed in 03c), 49.
    Still open:
    9 and 13 (visual), 11, 12, 15, 16, 17-22, 24-28, 32, 40, 42, 43, 44, 45,
-   47, 53, 54.
+   47, 53-58.
 4. Read the `NLF_RESUPPLY` series, the penalty days, and the Dien Bien Phu
    duration first. Retune the resupply values only if the south is now too
    strong or VIN supply is starved. Also cover the Pathet
@@ -594,7 +599,9 @@ Updated 2026-10-03. Remaining order:
    Camargue contest rates, Lower Laos outcomes, the campaign-input totals,
    the Struggle writer-3 share, and the Dak Doa `10180` staging.
 6. The design's unbuilt list is empty. New content needs a new design
-   decision from the user.
+   decision from the user. Open loc items: about 1,190 internal flags
+   without loc (user deferred), and `VIN_CEFEO.1`-`.13` options are still
+   name-only.
 7. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
@@ -871,3 +878,45 @@ User decision; statically verified only. The VIN pulse is monthly, so the
 supply step (Campaign Supply income, patronage delivery, southern
 resupply, AI rifles) now runs on every pulse and the 28-step counter is
 gone. Checks 53-54.
+
+## 2026-10-08 localisation cleanup and notice events
+
+Statically verified only; full record in the ledger's matching section.
+288 player-visible Indochina flags got loc (user scope: visible only). 37
+scripted triggers are wrapped internally in `custom_trigger_tooltip`, and
+the 57 missing `VIN_CEFEO.1`-`.13` keys are written. 96 new notice events
+(`FRE_Intel`, `VIN_Notice`, `IC_Notice_VIN`, `IC_Notice_FRE`, `VIN_CEFEO.14`
+onward, `IC_Aid`, `VIN_Aid`, `FRE_Aid`) tell opponents, third parties and
+patrons about campaigns, operations and aid. Each event is bespoke, and
+each option has a small effect. Checks 55-58.
+
+## 2026-10-09 run review and error-log spam patch
+
+Logs in `_local/logs/2026-10-09/`; full record in the ledger's matching
+section. Clean arc, no FAIL lines: Dien Bien Phu fell on day 39 and Geneva
+concluded 1954-06-27 (+844). The southern Viet Minh capitulated 1953-08-04.
+The 95.9 million error lines were not Indochina code: 99.6% came from the
+trade exporter list removing absent values, and about 234,000 from an
+`is_ai` check in state scope in the religion drift. Both are fixed. The
+rework's own regression was the 2026-10-08 notice loc: literal line breaks
+stopped three loc files from loading past the first break. Fixed with `\n`
+escapes. Statically verified only; checks 59-60.
+
+## 2026-10-09 second run: error log clean, resupply gate fixed
+
+Logs in `_local/logs/2026-10-09b/`; full record in the ledger. error.log is
+8,647 lines (check 59 passed). Clean arc, no FAIL lines: Dien Bien Phu fell
+on day 28, Geneva concluded 1954-06-09 (+770). The southern Viet Minh
+capitulated 1952-09-23. Cause found in both 2026-10-09 runs: the Nam Bo
+Resistance focus gives the southern Viet Minh the Northern Supply Line idea
+for a year, and the monthly resupply treated that idea as the post-DBP
+funding and stopped. The gate now uses the post-DBP funding flag.
+Statically verified only; check 61.
+
+## 2026-10-09 patch: raid warnings and State of Vietnam script errors
+
+Statically verified only; ledger has the details, check 62. The Raid City
+and Raid Supply Hub types no longer use unit organisation, strength or
+recon in their success chance, which silences the hourly warning from a
+raid left without a unit. The Saigon-lost event now tests province control
+correctly, and Ngo Dinh Can is recruited at game start instead of by event.
