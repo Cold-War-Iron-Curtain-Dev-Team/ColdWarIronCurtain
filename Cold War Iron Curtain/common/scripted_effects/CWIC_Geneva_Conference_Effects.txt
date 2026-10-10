@@ -1107,8 +1107,27 @@ geneva_conf_initialize = {
 		add_to_array = { global.geneva_clause_current = 1 }	# elections postponed
 		add_to_array = { global.geneva_clause_current = 1 }	# timetabled withdrawal
 		add_to_array = { global.geneva_clause_current = 1 }	# neutrality
-		add_to_array = { global.geneva_clause_current = 1 }	# independent Laos/Cambodia
+		add_to_array = { global.geneva_clause_current = 2 }	# communist regroupment zones in Laos/Cambodia
 		add_to_array = { global.geneva_clause_current = 0 }	# no minority provision
+		if = {
+			limit = { country_exists = FRA }
+			set_temp_variable = { g_lc_comm = FRA.StruggleInvolvedNationsIndochinaCommunistScore }
+			set_temp_variable = { g_lc_anti = FRA.StruggleInvolvedNationsIndochinaProFranceScore }
+			add_to_temp_variable = { g_lc_anti = FRA.StruggleInvolvedNationsIndochinaProIndependenceScore }
+			set_temp_variable = { g_lc_comm_x2 = g_lc_comm }
+			multiply_temp_variable = { g_lc_comm_x2 = 2 }
+			if = {
+				limit = { any_country = { is_historical_focus_on = yes } }
+			}
+			else_if = {
+				limit = { check_variable = { g_lc_anti > g_lc_comm_x2 } }
+				set_variable = { global.geneva_clause_current^5 = 0 }
+			}
+			else_if = {
+				limit = { NOT = { check_variable = { g_lc_comm > g_lc_anti } } }
+				set_variable = { global.geneva_clause_current^5 = 1 }
+			}
+		}
 
 		geneva_conf_seed_severity = yes
 
