@@ -10278,6 +10278,8 @@ VIE_startup_guis = {
 startup_vietnam_minigame_placement = {
 	clear_array = xiangqi_row_x
 	clear_array = xiangqi_column_y
+	clear_array = xiangqi_attack_row_x
+	clear_array = xiangqi_attack_column_y
     #Piece Info
     set_variable = { xiangqi_Government_Elephant_piece_row = 6 }
     set_variable = { xiangqi_Government_Elephant_piece_col = 2 }
@@ -12200,13 +12202,6 @@ xiangqi_apply_selected_piece_move = {
 			set_variable = { xiangqi_Government_Horse_piece_row = ROOT.xiangqi_tmp_target_row }
 			set_variable = { xiangqi_Government_Horse_piece_col = ROOT.xiangqi_tmp_target_col }
 		}
-		if = {
-			limit = {
-				has_global_flag = Playing_Nhan_Van_VIN
-			}
-			set_variable = { xiangqi_ai_last_moved_side = ROOT.xiangqi_selected_piece_side }
-			set_variable = { xiangqi_ai_last_moved_type = ROOT.xiangqi_selected_piece_type }
-		}
 	}
 
 	#Reformist
@@ -12264,15 +12259,6 @@ xiangqi_apply_selected_piece_move = {
 			set_variable = { xiangqi_Reformist_Horse_last_col = ROOT.xiangqi_Reformist_Horse_piece_col }
 			set_variable = { xiangqi_Reformist_Horse_piece_row = ROOT.xiangqi_tmp_target_row }
 			set_variable = { xiangqi_Reformist_Horse_piece_col = ROOT.xiangqi_tmp_target_col }
-		}
-		set_variable = { xiangqi_ai_last_moved_side = ROOT.xiangqi_selected_piece_side }
-		set_variable = { xiangqi_ai_last_moved_type = ROOT.xiangqi_selected_piece_type }
-		if = {
-			limit = {
-				has_global_flag = Playing_Government_VIN
-			}
-			set_variable = { xiangqi_ai_last_moved_side = ROOT.xiangqi_selected_piece_side }
-			set_variable = { xiangqi_ai_last_moved_type = ROOT.xiangqi_selected_piece_type }
 		}
 	}
 
@@ -13834,7 +13820,7 @@ xiangqi_apply_damage_at_square = {
 		else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 7 } } set_temp_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Government_Soldier_attack_point } }
 	}
 	else_if = {
-		# Reformist attacker
+		limit = { check_variable = { xiangqi_selected_piece_side = 2 } }
 		if = { limit = { check_variable = { xiangqi_selected_piece_type = 1 } } set_temp_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Reformist_General_attack_point } }
 		else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 2 } } set_temp_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Reformist_Soldier_Front_attack_point } }
 		else_if = { limit = { check_variable = { xiangqi_selected_piece_type = 3 } } set_temp_variable = { xiangqi_tmp_damage = ROOT.xiangqi_Reformist_Elephant_attack_point } }
@@ -13858,8 +13844,9 @@ xiangqi_apply_damage_at_square = {
 				set_variable = { xiangqi_Government_General_piece_alive = -1 }
 				set_variable = { xiangqi_Government_General_piece_row = -1 }
 				set_variable = { xiangqi_Government_General_piece_col = -1 }
+				set_country_flag = VIN_Nhan_Van_Prevailed
 				complete_national_focus = VIN_Let_Hundred_Flowers_Bloom
-				remove_nhan_van_minigame_to_ui = yes
+				xiangqi_close_minigame = yes
 				add_to_array = { Fallen_Government_ID = 1 }
 			}
 		}
@@ -13924,7 +13911,8 @@ xiangqi_apply_damage_at_square = {
 			}
 		}
 	}
-	else = {
+	else_if = {
+		limit = { check_variable = { xiangqi_tmp_target_side = 2 } }
 		if = {
 			limit = { check_variable = { xiangqi_tmp_target_piece_type = 2 } }
 			subtract_from_variable = { xiangqi_Reformist_Soldier_Front_health_point = xiangqi_tmp_damage }
@@ -13992,8 +13980,9 @@ xiangqi_apply_damage_at_square = {
 				set_variable = { xiangqi_Reformist_General_piece_alive = -1 }
 				set_variable = { xiangqi_Reformist_General_piece_row = -1 }
 				set_variable = { xiangqi_Reformist_General_piece_col = -1 }
+				set_country_flag = VIN_Party_Line_Prevailed
 				complete_national_focus = VIN_Destroy_Reactionary_Thoughts
-				remove_nhan_van_minigame_to_ui = yes
+				xiangqi_close_minigame = yes
 				add_to_array = { Fallen_Reformist_ID = 1 }
 			}
 		}
@@ -15411,17 +15400,57 @@ xiangqi_ai_government_choose_nonreversal_move_index = {
 xiangqi_ai_take_turn = {
 	if = {
 		limit = {
+			xiangqi_game_in_progress = yes
 			has_global_flag = Playing_Nhan_Van_VIN
 		}
 		xiangqi_ai_government_take_turn = yes
 	}
 	else_if = {
 		limit = {
+			xiangqi_game_in_progress = yes
 			has_global_flag = Playing_Government_VIN
 		}
 		xiangqi_ai_reformist_take_turn = yes
 	}
-	else = { }
+}
+xiangqi_player_move = {
+	if = {
+		limit = {
+			xiangqi_game_in_progress = yes
+			xiangqi_selected_piece_is_players = yes
+			check_variable = { xiangqi_tmp_move_index > 0 }
+			NOT = { check_variable = { xiangqi_tmp_move_index > xiangqi_legal_move_count } }
+		}
+		hidden_effect = { xiangqi_apply_selected_piece_move = yes }
+		if = {
+			limit = { check_variable = { xiangqi_tmp_abort_move = 0 } }
+			hidden_effect = { xiangqi_ai_take_turn = yes }
+		}
+	}
+	else = {
+		hidden_effect = { xiangqi_clear_legal_moves = yes }
+		set_variable = { xiangqi_tmp_move_index = 0 }
+	}
+}
+xiangqi_player_attack = {
+	if = {
+		limit = {
+			xiangqi_game_in_progress = yes
+			xiangqi_selected_piece_is_players = yes
+			check_variable = { xiangqi_tmp_attack_index > 0 }
+			NOT = { check_variable = { xiangqi_tmp_attack_index > xiangqi_legal_attack_count } }
+		}
+		hidden_effect = { xiangqi_apply_selected_piece_attack = yes }
+		hidden_effect = { xiangqi_ai_take_turn = yes }
+	}
+	else = {
+		hidden_effect = { xiangqi_clear_legal_moves = yes }
+		set_variable = { xiangqi_tmp_attack_index = 0 }
+	}
+}
+xiangqi_close_minigame = {
+	set_variable = { VIN_Reformist_Minigame = 0 }
+	remove_nhan_van_minigame_to_ui = yes
 }
 add_nhan_van_minigame_to_ui = {
 	if = {
@@ -15442,13 +15471,8 @@ add_nhan_van_minigame_to_ui_debug = {
 	}
 }
 remove_nhan_van_minigame_to_ui = {
-	if = {
-		limit = {
-			NOT = { has_global_flag = Nhan_Van_Affair}
-		}
-		remove_from_array = {
-			country_politics_list = 333	#Nhan Van Minigame
-		}
+	remove_from_array = {
+		country_politics_list = 333	#Nhan Van Minigame
 	}
 }
 
