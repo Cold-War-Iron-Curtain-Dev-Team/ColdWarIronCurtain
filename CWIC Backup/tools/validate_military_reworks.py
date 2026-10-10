@@ -5693,6 +5693,37 @@ for tier in range(1, 6):
 if not re.search(r"mechanized_marine\s*=\s*\{[\s\S]*?\bactive\s*=\s*no", code_only(text(MOD / "common/units/CWIC-Special-Units.txt"))):
     fail("mechanized_marine must be technology-gated (active = no)")
 
+# A legacy tree node is titled by the one equipment it enables; with two it shows its raw
+# technology key, because the legacy technologies carry no name localisation of their own.
+for name, block, _ in technology_blocks:
+    if "name = armour_folder" not in block:
+        continue
+    enabled = re.search(r"enable_equipments\s*=\s*\{([^}]*)\}", block)
+    if enabled and len(enabled.group(1).split()) > 1:
+        fail(f"legacy armour technology {name} enables more than one equipment and loses its tree title")
+
+# Legacy carrier rows and designer carrier hulls share one set of visual levels, and the
+# entity aliases read a level as a hull generation. A legacy row must sit at the generation
+# whose era ladder points at it, or the earliest-below one when no generation does, so its
+# national model matches its own era on non-NSB.
+import build_designer_graphic_db as carrier_ladders
+
+legacy_carrier_rows = {
+    "light_tank_apc_chassis": {f"mechanized_equipment_{row}": row for row in range(1, 11)},
+    "light_tank_ifv_chassis": {f"mechanized_heavy_equipment_{row}": row for row in range(1, 9)},
+    "medium_tank_apc_chassis": {f"heavy_apc_equipment_{tier}": tier + 7 for tier in range(1, 4)},
+    "medium_tank_ifv_chassis": {"heavy_ifv_equipment_1": 8},
+}
+carrier_rows = dict(top_level_blocks(code_only(text(EQUIPMENT_DIR / "x_tank_chassis.txt")), "equipments"))
+for role, rows in legacy_carrier_rows.items():
+    ladder = [carrier_ladders.carrier_art_index(role, generation) for generation in range(10)]
+    for equipment, row in rows.items():
+        exact = [generation for generation, value in enumerate(ladder) if value == row]
+        expected = exact[0] if exact else max(g for g, value in enumerate(ladder) if value < row)
+        levels = top_level_values(carrier_rows.get(equipment, ""), "visual_level")
+        if levels != [str(expected)]:
+            fail(f"{equipment} visual_level {levels} must be {expected} to show its own era's model")
+
 validate_doctrine_rework()
 if "--doctrine-self-test" in sys.argv:
     run_doctrine_negative_fixtures()
