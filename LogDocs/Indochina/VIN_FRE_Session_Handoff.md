@@ -567,12 +567,13 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-10-09. Remaining order:
+Updated 2026-10-11. Remaining order:
 
 0. Check 59 passed in `2026-10-09b`. Next AFK run: check 61 (resupply no
    longer blocked by the Nam Bo focus) and re-score 58. Then the deferred
    Trung Phan (VIE) issues the user raised on 2026-10-09, including
    `VIE_Events.txt:7555`, and the State of Vietnam army-cap overrun.
+   Also score check 63 (crown domains annexed on Communist victory).
 1. Next AFK run: score checks 53-58 first. 55 and 58 need a hover/glance
    in a player game; 56-57 come from `IC_AFK|NOTICE`. The VIN supply step now runs on
    every pulse (monthly), so Campaign Supply income, patronage and the
@@ -920,3 +921,11 @@ and Raid Supply Hub types no longer use unit organisation, strength or
 recon in their success chance, which silences the hourly warning from a
 raid left without a unit. The Saigon-lost event now tests province control
 correctly, and Ngo Dinh Can is recruited at game start instead of by event.
+
+## 2026-10-11 patch: Nung annexation on Communist victory
+
+Statically verified only; ledger has the details, check 63. Discord
+report: the Nung territory stayed independent after a Viet Minh victory.
+The Communist victory ending never annexed the northern crown domains;
+it now annexes surviving TAM, TAI, NUN and THO before CEFEO dissolution.
+Next session order: add check 63 to the next AFK run's scoring list.
