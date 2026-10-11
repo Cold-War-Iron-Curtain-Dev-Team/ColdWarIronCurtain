@@ -1,0 +1,224 @@
+# Archive findings only. This charter adds no idea, modifier, or operative.
+
+CZE_psych_clamp_variables = {
+	clamp_variable = {
+		var = CZE_psych_record
+		min = 0
+		max = 100
+	}
+	clamp_variable = {
+		var = CZE_psych_scrutiny
+		min = 0
+		max = 100
+	}
+}
+
+CZE_psych_initialize = {
+	if = {
+		limit = {
+			CZE_psych_enabled_trigger = yes
+			NOT = { has_country_flag = CZE_psych_initialized }
+		}
+		set_variable = { CZE_psych_record = 0 }
+		set_variable = { CZE_psych_scrutiny = 0 }
+		set_variable = { CZE_psych_charter_state = 0 }
+		set_variable = { CZE_psych_demo_stage = 0 }
+		set_variable = { CZE_psych_slot = 0 }
+		set_country_flag = CZE_psych_initialized
+	}
+}
+
+CZE_psych_seed_1980 = {
+	if = {
+		limit = {
+			CZE_psych_enabled_trigger = yes
+			has_global_flag = cwic_bookmark_1980_start
+			NOT = { has_country_flag = CZE_psych_initialized }
+		}
+		set_variable = { CZE_psych_record = 15 }
+		set_variable = { CZE_psych_scrutiny = 3 }
+		set_variable = { CZE_psych_charter_state = 2 }
+		set_variable = { CZE_psych_demo_stage = 4 }
+		set_variable = { CZE_psych_slot = 0 }
+		set_country_flag = CZE_psych_initialized
+		set_country_flag = CZE_psych_demo_paid
+		set_country_flag = CZE_psych_claim_rejected
+		set_country_flag = CZE_psych_forwarded
+		set_global_flag = cwic_cze_psych_file_sent
+	}
+}
+
+CZE_psych_open_section = {
+	if = {
+		limit = { CZE_psych_can_open_trigger = yes }
+		set_variable = { CZE_psych_charter_state = 1 }
+		set_variable = { CZE_psych_demo_stage = 1 }
+		add_to_variable = { CZE_psych_record = 5 }
+		CZE_psych_clamp_variables = yes
+		country_event = { id = cwic_wp_psych.1 }
+	}
+}
+
+CZE_psych_start_demonstration = {
+	if = {
+		limit = { CZE_psych_can_commission_trigger = yes }
+		set_country_flag = CZE_psych_demo_paid
+		set_variable = { CZE_psych_demo_stage = 2 }
+		set_variable = { CZE_psych_slot = 1 }
+		add_to_variable = { CZE_psych_scrutiny = 2 }
+		CZE_psych_clamp_variables = yes
+		activate_mission = CZE_psych_demo_research
+	}
+}
+
+CZE_psych_complete_demonstration = {
+	if = {
+		limit = {
+			CZE_psych_charter_active_trigger = yes
+			check_variable = { CZE_psych_demo_stage = 2 }
+			has_country_flag = CZE_psych_demo_paid
+			NOT = { has_country_flag = CZE_psych_shelved }
+		}
+		set_country_flag = CZE_psych_advancing_stage
+		set_variable = { CZE_psych_demo_stage = 3 }
+		if = {
+			limit = { has_active_mission = CZE_psych_demo_research }
+			remove_mission = CZE_psych_demo_research
+		}
+		clr_country_flag = CZE_psych_advancing_stage
+		activate_mission = CZE_psych_demo_review
+	}
+}
+
+CZE_psych_archive_demonstration = {
+	if = {
+		limit = { CZE_psych_can_archive_trigger = yes }
+		set_country_flag = CZE_psych_claim_rejected
+		set_country_flag = CZE_psych_advancing_stage
+		add_to_variable = { CZE_psych_record = 10 }
+		set_variable = { CZE_psych_demo_stage = 4 }
+		set_variable = { CZE_psych_slot = 0 }
+		CZE_psych_clamp_variables = yes
+		if = {
+			limit = { has_active_mission = CZE_psych_demo_review }
+			remove_mission = CZE_psych_demo_review
+		}
+		clr_country_flag = CZE_psych_advancing_stage
+	}
+}
+
+# Removing a mission fires its cancel effect. Freeze and advancing flags keep a
+# shelved or finished study from being marked cancelled.
+CZE_psych_cancel_open_study = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = CZE_psych_freeze_missions }
+			NOT = { has_country_flag = CZE_psych_advancing_stage }
+			NOT = { has_country_flag = CZE_psych_claim_rejected }
+			NOT = { check_variable = { CZE_psych_charter_state = 1 } }
+			OR = {
+				check_variable = { CZE_psych_demo_stage = 2 }
+				check_variable = { CZE_psych_demo_stage = 3 }
+			}
+		}
+		set_variable = { CZE_psych_demo_stage = 5 }
+		set_variable = { CZE_psych_slot = 0 }
+	}
+}
+
+CZE_psych_forward_file = {
+	if = {
+		limit = { CZE_psych_can_forward_trigger = yes }
+		set_country_flag = CZE_psych_forwarded
+		add_to_variable = { CZE_psych_scrutiny = 1 }
+		CZE_psych_clamp_variables = yes
+		set_global_flag = cwic_cze_psych_file_sent
+		if = {
+			limit = { country_exists = SOV }
+			SOV = { country_event = { id = cwic_wp_psych.2 } }
+		}
+	}
+}
+
+CZE_psych_close_section = {
+	if = {
+		limit = { CZE_psych_can_close_trigger = yes }
+		CZE_psych_close_charter = yes
+	}
+}
+
+# The shelf blocks the ordinary close decision. This path is the 1969 event only.
+CZE_psych_close_from_shelf = {
+	if = {
+		limit = {
+			CZE_psych_charter_active_trigger = yes
+			has_country_flag = CZE_psych_shelved
+		}
+		clr_country_flag = CZE_psych_shelved
+		CZE_psych_close_charter = yes
+	}
+}
+
+CZE_psych_close_charter = {
+	if = {
+		limit = { NOT = { check_variable = { CZE_psych_demo_stage = 4 } } }
+		set_variable = { CZE_psych_demo_stage = 5 }
+	}
+	set_variable = { CZE_psych_slot = 0 }
+	set_variable = { CZE_psych_charter_state = 2 }
+	if = {
+		limit = { has_active_mission = CZE_psych_demo_research }
+		remove_mission = CZE_psych_demo_research
+	}
+	if = {
+		limit = { has_active_mission = CZE_psych_demo_review }
+		remove_mission = CZE_psych_demo_review
+	}
+}
+
+CZE_psych_continue_through_spring = {
+	if = {
+		limit = { CZE_psych_charter_active_trigger = yes }
+		add_to_variable = { CZE_psych_scrutiny = 5 }
+		CZE_psych_clamp_variables = yes
+	}
+}
+
+CZE_psych_shelve_section = {
+	if = {
+		limit = {
+			CZE_psych_charter_active_trigger = yes
+			NOT = { has_country_flag = CZE_psych_shelved }
+		}
+		set_country_flag = CZE_psych_shelved
+		set_country_flag = CZE_psych_freeze_missions
+		if = {
+			limit = { has_active_mission = CZE_psych_demo_research }
+			remove_mission = CZE_psych_demo_research
+		}
+		if = {
+			limit = { has_active_mission = CZE_psych_demo_review }
+			remove_mission = CZE_psych_demo_review
+		}
+		clr_country_flag = CZE_psych_freeze_missions
+	}
+}
+
+# A mission timer cannot pause. Reopening a shelved study starts that timer again.
+CZE_psych_reopen_shelved = {
+	if = {
+		limit = {
+			CZE_psych_charter_active_trigger = yes
+			has_country_flag = CZE_psych_shelved
+		}
+		clr_country_flag = CZE_psych_shelved
+		if = {
+			limit = { check_variable = { CZE_psych_demo_stage = 2 } }
+			activate_mission = CZE_psych_demo_research
+		}
+		if = {
+			limit = { check_variable = { CZE_psych_demo_stage = 3 } }
+			activate_mission = CZE_psych_demo_review
+		}
+	}
+}
