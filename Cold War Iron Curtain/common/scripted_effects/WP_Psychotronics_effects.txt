@@ -204,6 +204,59 @@ CZE_psych_shelve_section = {
 	}
 }
 
+DDR_psych_clamp_variables = {
+	clamp_variable = {
+		var = DDR_psych_record
+		min = 0
+		max = 100
+	}
+	clamp_variable = {
+		var = DDR_psych_scrutiny
+		min = 0
+		max = 100
+	}
+}
+
+DDR_psych_initialize = {
+	if = {
+		limit = {
+			DDR_psych_enabled_trigger = yes
+			NOT = { has_country_flag = DDR_psych_initialized }
+		}
+		set_variable = { DDR_psych_record = 0 }
+		set_variable = { DDR_psych_scrutiny = 0 }
+		set_variable = { DDR_psych_note_state = 0 }
+		set_country_flag = DDR_psych_initialized
+	}
+}
+
+DDR_psych_seed_1980 = {
+	if = {
+		limit = {
+			DDR_psych_enabled_trigger = yes
+			has_global_flag = cwic_bookmark_1980_start
+			NOT = { has_country_flag = DDR_psych_initialized }
+		}
+		set_variable = { DDR_psych_record = 5 }
+		set_variable = { DDR_psych_scrutiny = 1 }
+		set_variable = { DDR_psych_note_state = 1 }
+		set_country_flag = DDR_psych_initialized
+		set_country_flag = DDR_psych_note_filed
+	}
+}
+
+DDR_psych_file_watch_note = {
+	if = {
+		limit = { DDR_psych_can_file_note_trigger = yes }
+		set_country_flag = DDR_psych_note_filed
+		set_variable = { DDR_psych_note_state = 1 }
+		add_to_variable = { DDR_psych_record = 5 }
+		add_to_variable = { DDR_psych_scrutiny = 1 }
+		DDR_psych_clamp_variables = yes
+		country_event = { id = cwic_wp_psych.5 }
+	}
+}
+
 # A mission timer cannot pause. Reopening a shelved study starts that timer again.
 CZE_psych_reopen_shelved = {
 	if = {

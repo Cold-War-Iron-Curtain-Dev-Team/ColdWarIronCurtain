@@ -1,0 +1,173 @@
+# Archive findings only. This charter adds no idea, modifier, or operative.
+
+SOV_psych_clamp_variables = {
+	clamp_variable = {
+		var = SOV_psych_record
+		min = 0
+		max = 100
+	}
+	clamp_variable = {
+		var = SOV_psych_scrutiny
+		min = 0
+		max = 100
+	}
+}
+
+SOV_psych_initialize = {
+	if = {
+		limit = {
+			SOV_psych_enabled_trigger = yes
+			NOT = { has_country_flag = SOV_psych_initialized }
+		}
+		set_variable = { SOV_psych_record = 0 }
+		set_variable = { SOV_psych_scrutiny = 0 }
+		set_variable = { SOV_psych_charter_state = 0 }
+		set_variable = { SOV_psych_demo_stage = 0 }
+		set_variable = { SOV_psych_slot = 0 }
+		set_country_flag = SOV_psych_initialized
+	}
+}
+
+# The Prague file is already reviewed. The demonstration itself has not been run.
+SOV_psych_seed_1980 = {
+	if = {
+		limit = {
+			SOV_psych_enabled_trigger = yes
+			has_global_flag = cwic_bookmark_1980_start
+			NOT = { has_country_flag = SOV_psych_initialized }
+		}
+		set_variable = { SOV_psych_record = 5 }
+		set_variable = { SOV_psych_scrutiny = 0 }
+		set_variable = { SOV_psych_charter_state = 1 }
+		set_variable = { SOV_psych_demo_stage = 1 }
+		set_variable = { SOV_psych_slot = 0 }
+		set_country_flag = SOV_psych_initialized
+		set_country_flag = SOV_psych_prague_reviewed
+	}
+}
+
+SOV_psych_review_prague_file = {
+	if = {
+		limit = { SOV_psych_can_review_trigger = yes }
+		set_country_flag = SOV_psych_prague_reviewed
+		set_variable = { SOV_psych_charter_state = 1 }
+		set_variable = { SOV_psych_demo_stage = 1 }
+		add_to_variable = { SOV_psych_record = 5 }
+		SOV_psych_clamp_variables = yes
+		country_event = { id = cwic_sov_psych.1 }
+	}
+}
+
+SOV_psych_start_demonstration = {
+	if = {
+		limit = { SOV_psych_can_commission_trigger = yes }
+		set_country_flag = SOV_psych_demo_paid
+		set_variable = { SOV_psych_demo_stage = 2 }
+		set_variable = { SOV_psych_slot = 1 }
+		add_to_variable = { SOV_psych_scrutiny = 2 }
+		SOV_psych_clamp_variables = yes
+		activate_mission = SOV_psych_demo_research
+	}
+}
+
+SOV_psych_complete_demonstration = {
+	if = {
+		limit = {
+			SOV_psych_charter_active_trigger = yes
+			check_variable = { SOV_psych_demo_stage = 2 }
+			has_country_flag = SOV_psych_demo_paid
+		}
+		set_country_flag = SOV_psych_advancing_stage
+		set_variable = { SOV_psych_demo_stage = 3 }
+		if = {
+			limit = { has_active_mission = SOV_psych_demo_research }
+			remove_mission = SOV_psych_demo_research
+		}
+		clr_country_flag = SOV_psych_advancing_stage
+		activate_mission = SOV_psych_demo_review
+	}
+}
+
+SOV_psych_archive_demonstration = {
+	if = {
+		limit = { SOV_psych_can_archive_trigger = yes }
+		set_country_flag = SOV_psych_claim_rejected
+		set_country_flag = SOV_psych_advancing_stage
+		add_to_variable = { SOV_psych_record = 10 }
+		set_variable = { SOV_psych_demo_stage = 4 }
+		set_variable = { SOV_psych_slot = 0 }
+		SOV_psych_clamp_variables = yes
+		if = {
+			limit = { has_active_mission = SOV_psych_demo_review }
+			remove_mission = SOV_psych_demo_review
+		}
+		clr_country_flag = SOV_psych_advancing_stage
+	}
+}
+
+# Removing a mission fires its cancel effect. The advancing flag keeps a finished
+# study from being marked cancelled.
+SOV_psych_cancel_open_study = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_psych_advancing_stage }
+			NOT = { has_country_flag = SOV_psych_claim_rejected }
+			NOT = { check_variable = { SOV_psych_charter_state = 1 } }
+			OR = {
+				check_variable = { SOV_psych_demo_stage = 2 }
+				check_variable = { SOV_psych_demo_stage = 3 }
+			}
+		}
+		set_variable = { SOV_psych_demo_stage = 5 }
+		set_variable = { SOV_psych_slot = 0 }
+	}
+}
+
+SOV_psych_file_foreign_assessment = {
+	if = {
+		limit = { SOV_psych_can_assess_trigger = yes }
+		set_country_flag = SOV_psych_assessment_filed
+		add_to_variable = { SOV_psych_scrutiny = 1 }
+		SOV_psych_clamp_variables = yes
+		set_global_flag = cwic_psychotronic_claims_circulating
+		country_event = { id = cwic_sov_psych.2 }
+	}
+}
+
+SOV_psych_close_charter = {
+	if = {
+		limit = { NOT = { check_variable = { SOV_psych_demo_stage = 4 } } }
+		set_variable = { SOV_psych_demo_stage = 5 }
+	}
+	set_variable = { SOV_psych_slot = 0 }
+	set_variable = { SOV_psych_charter_state = 2 }
+	if = {
+		limit = { has_active_mission = SOV_psych_demo_research }
+		remove_mission = SOV_psych_demo_research
+	}
+	if = {
+		limit = { has_active_mission = SOV_psych_demo_review }
+		remove_mission = SOV_psych_demo_review
+	}
+}
+
+SOV_psych_close_section = {
+	if = {
+		limit = { SOV_psych_can_close_trigger = yes }
+		SOV_psych_close_charter = yes
+	}
+}
+
+SOV_psych_fund_academy_reply = {
+	if = {
+		limit = {
+			SOV_psych_charter_active_trigger = yes
+			NOT = { has_country_flag = SOV_psych_academy_funded }
+			has_political_power > 24
+		}
+		set_country_flag = SOV_psych_academy_funded
+		add_political_power = -25
+		add_to_variable = { SOV_psych_scrutiny = -5 }
+		SOV_psych_clamp_variables = yes
+	}
+}

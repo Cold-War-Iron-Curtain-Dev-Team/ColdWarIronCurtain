@@ -1,0 +1,70 @@
+# True only when the campaign has opted into the fictional S.T.A.L.K.E.R. file.
+# Nothing in the historical charters checks this.
+SOV_project_x_enabled_trigger = {
+	has_game_rule = {
+		rule = SOV_PROJECT_X_MODE
+		option = SOV_PROJECT_X_ON
+	}
+}
+
+SOV_psych_enabled_trigger = {
+	original_tag = SOV
+	NOT = {
+		has_game_rule = {
+			rule = SOV_PSYCHOTRONICS_MODE
+			option = SOV_PSYCHOTRONICS_OFF
+		}
+	}
+}
+
+SOV_psych_has_service_trigger = {
+	OR = {
+		has_idea = SOV_KGB
+		has_idea = SOV_KGB_Improved
+		has_idea = SOV_MGB
+	}
+}
+
+SOV_psych_charter_active_trigger = {
+	SOV_psych_enabled_trigger = yes
+	check_variable = { SOV_psych_charter_state = 1 }
+}
+
+SOV_psych_prague_file_ready_trigger = {
+	OR = {
+		has_global_flag = cwic_cze_psych_file_sent
+		date > 1968.1.1
+	}
+}
+
+SOV_psych_can_review_trigger = {
+	SOV_psych_enabled_trigger = yes
+	SOV_psych_has_service_trigger = yes
+	date > 1964.12.31
+	SOV_psych_prague_file_ready_trigger = yes
+	check_variable = { SOV_psych_charter_state = 0 }
+	NOT = { has_country_flag = SOV_psych_prague_reviewed }
+}
+
+SOV_psych_can_commission_trigger = {
+	SOV_psych_charter_active_trigger = yes
+	check_variable = { SOV_psych_demo_stage = 1 }
+	check_variable = { SOV_psych_slot = 0 }
+	NOT = { has_country_flag = SOV_psych_demo_paid }
+}
+
+SOV_psych_can_archive_trigger = {
+	SOV_psych_charter_active_trigger = yes
+	check_variable = { SOV_psych_demo_stage = 3 }
+	NOT = { has_country_flag = SOV_psych_claim_rejected }
+}
+
+SOV_psych_can_assess_trigger = {
+	SOV_psych_charter_active_trigger = yes
+	check_variable = { SOV_psych_demo_stage = 4 }
+	NOT = { has_global_flag = cwic_psychotronic_claims_circulating }
+}
+
+SOV_psych_can_close_trigger = {
+	SOV_psych_charter_active_trigger = yes
+}
