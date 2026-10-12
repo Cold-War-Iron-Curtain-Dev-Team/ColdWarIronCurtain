@@ -1,0 +1,75 @@
+scripted_gui = {
+	WP_Psychotronics_dashboard_gui = {
+		context_type = player_context
+		window_name = "WP_Psychotronics_dashboard_window"
+		dirty = WP_psych_gui_dirty
+		visible = {
+			is_ai = no
+			WP_psych_has_archive_access_trigger = yes
+			check_variable = { WP_psych_dashboard_open = 1 }
+		}
+		ai_enabled = { always = no }
+
+		dynamic_lists = {
+			WP_psych_dossier_grid = {
+				array = WP_psych_dossier_index_array
+				change_scope = no
+				entry_container = WP_psych_dossier_card
+				index = WP_psych_dossier_index
+			}
+		}
+
+		properties = {
+			WP_psych_record_bar = { frame = global.WP_psych_record }
+			WP_psych_scrutiny_bar = { frame = global.WP_psych_scrutiny }
+			WP_psych_coordination_bar = { frame = global.WP_psych_coordination }
+			# A country-local display cache keeps the GUI from reading the optional
+			# global anomaly variable when Project X is disabled.
+			WP_psych_anomaly_bar = { frame = WP_psych_gui_anomaly_display }
+		}
+
+		triggers = {
+			WP_psych_anomaly_label = { SOV_project_x_enabled_trigger = yes }
+			WP_psych_anomaly_bar = { SOV_project_x_enabled_trigger = yes }
+			WP_psych_anomaly_value = { SOV_project_x_enabled_trigger = yes }
+		}
+
+		effects = {
+			WP_psych_close_dashboard_click = { WP_psych_close_dashboard_effect = yes }
+			WP_psych_open_record_click = {
+				set_variable = { WP_psych_selected_record = WP_psych_dossier_index_array^WP_psych_dossier_index }
+				set_variable = { WP_psych_record_file_open = 1 }
+				WP_psych_gui_reconcile = yes
+				WP_psych_mark_gui_dirty = yes
+			}
+		}
+	}
+
+	WP_Psychotronics_record_file_gui = {
+		context_type = player_context
+		window_name = "WP_Psychotronics_record_file_window"
+		parent_scripted_gui = "WP_Psychotronics_dashboard_gui"
+		dirty = WP_psych_gui_dirty
+		visible = {
+			WP_psych_has_archive_access_trigger = yes
+			check_variable = { WP_psych_dashboard_open = 1 }
+			check_variable = { WP_psych_record_file_open = 1 }
+			check_variable = { WP_psych_selected_record > 0 }
+			check_variable = { WP_psych_selected_record < 10 }
+			if = {
+				limit = { check_variable = { WP_psych_selected_record = 9 } }
+				SOV_project_x_enabled_trigger = yes
+			}
+		}
+		ai_enabled = { always = no }
+
+		effects = {
+			WP_psych_close_record_click = {
+				set_variable = { WP_psych_record_file_open = 0 }
+				set_variable = { WP_psych_selected_record = 0 }
+				WP_psych_gui_reconcile = yes
+				WP_psych_mark_gui_dirty = yes
+			}
+		}
+	}
+}

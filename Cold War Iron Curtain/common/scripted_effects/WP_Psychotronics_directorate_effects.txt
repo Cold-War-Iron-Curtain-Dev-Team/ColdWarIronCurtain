@@ -1,0 +1,1494 @@
+# Warsaw Pact Psychotronics Directorate
+#
+# Shared values describe the quality and politics of a finite archive. They do
+# not measure paranormal power. Every dossier contribution is guarded by a
+# stable one-time flag so migration and save/load reconciliation are idempotent.
+
+WP_psych_clamp_global_variables = {
+	if = { limit = { has_variable = global.WP_psych_directorate_state } clamp_variable = { var = global.WP_psych_directorate_state min = 0 max = 4 } }
+	if = { limit = { has_variable = global.WP_psych_record } clamp_variable = { var = global.WP_psych_record min = 0 max = 100 } }
+	if = { limit = { has_variable = global.WP_psych_scrutiny } clamp_variable = { var = global.WP_psych_scrutiny min = 0 max = 100 } }
+	if = { limit = { has_variable = global.WP_psych_coordination } clamp_variable = { var = global.WP_psych_coordination min = 0 max = 100 } }
+	if = { limit = { has_variable = global.WP_psych_review_slot } clamp_variable = { var = global.WP_psych_review_slot min = 0 max = 9 } }
+	if = {
+		limit = { SOV_project_x_enabled_trigger = yes has_variable = global.WP_psych_anomaly_record }
+		clamp_variable = { var = global.WP_psych_anomaly_record min = 0 max = 100 }
+	}
+}
+
+WP_psych_evaluate_thresholds = {
+	if = {
+		limit = { has_global_flag = WP_psych_global_initialized }
+		WP_psych_clamp_global_variables = yes
+		if = {
+			limit = {
+				check_variable = { global.WP_psych_record > 24 }
+				NOT = { has_global_flag = WP_psych_second_dossier_wave_open }
+			}
+			set_global_flag = WP_psych_second_dossier_wave_open
+		}
+		if = {
+			limit = {
+				check_variable = { global.WP_psych_scrutiny > 49 }
+				check_variable = { global.WP_psych_directorate_state = 2 }
+			}
+			set_variable = { global.WP_psych_directorate_state = 3 }
+			set_global_flag = WP_psych_formal_review_active
+		}
+		if = {
+			limit = {
+				check_variable = { global.WP_psych_scrutiny > 74 }
+				check_variable = { global.WP_psych_directorate_state > 0 }
+				check_variable = { global.WP_psych_directorate_state < 4 }
+				NOT = { has_global_flag = WP_psych_funding_crisis_fired }
+			}
+			set_variable = { global.WP_psych_directorate_state = 3 }
+			set_global_flag = WP_psych_formal_review_active
+			set_global_flag = WP_psych_funding_crisis_active
+			set_global_flag = WP_psych_funding_crisis_fired
+			if = {
+				limit = { country_exists = SOV }
+				SOV = { country_event = { id = cwic_wp_directorate.20 } }
+			}
+		}
+	}
+}
+
+WP_psych_global_initialize = {
+	if = {
+		limit = { NOT = { has_global_flag = WP_psych_global_initialized } }
+		set_variable = { global.WP_psych_directorate_state = 0 }
+		set_variable = { global.WP_psych_record = 0 }
+		set_variable = { global.WP_psych_scrutiny = 0 }
+		set_variable = { global.WP_psych_coordination = 0 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		if = {
+			limit = { SOV_project_x_enabled_trigger = yes }
+			set_variable = { global.WP_psych_anomaly_record = 0 }
+		}
+		set_global_flag = WP_psych_global_initialized
+	}
+	WP_psych_clamp_global_variables = yes
+}
+
+WP_psych_add_shared_dossier_bonus = {
+	if = {
+		limit = { check_variable = { global.WP_psych_coordination > 69 } }
+		add_to_variable = { global.WP_psych_record = 2 }
+	}
+}
+
+WP_psych_contribute_CZE_archive = {
+	if = {
+		limit = {
+			check_variable = { global.WP_psych_directorate_state > 0 }
+			NOT = { has_global_flag = WP_psych_CZE_record_imported }
+			has_country_flag = WP_psych_directorate_participant
+		}
+		set_global_flag = WP_psych_CZE_record_imported
+		set_global_flag = WP_psych_any_member_dossier_archived
+		add_to_variable = { global.WP_psych_record = 15 }
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+WP_psych_share_CZE_archive = {
+	WP_psych_contribute_CZE_archive = yes
+	if = {
+		limit = {
+			check_variable = { global.WP_psych_directorate_state > 0 }
+			NOT = { has_global_flag = WP_psych_CZE_share_imported }
+			has_country_flag = WP_psych_directorate_participant
+		}
+		set_global_flag = WP_psych_CZE_share_imported
+		WP_psych_add_shared_dossier_bonus = yes
+		add_to_variable = { global.WP_psych_coordination = 5 }
+		add_to_variable = { global.WP_psych_scrutiny = 1 }
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+WP_psych_contribute_BUL_archive = {
+	if = {
+		limit = {
+			check_variable = { global.WP_psych_directorate_state > 0 }
+			NOT = { has_global_flag = WP_psych_BUL_record_imported }
+			has_country_flag = WP_psych_directorate_participant
+		}
+		set_global_flag = WP_psych_BUL_record_imported
+		set_global_flag = WP_psych_any_member_dossier_archived
+		add_to_variable = { global.WP_psych_record = 15 }
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+WP_psych_share_BUL_archive = {
+	WP_psych_contribute_BUL_archive = yes
+	if = {
+		limit = {
+			check_variable = { global.WP_psych_directorate_state > 0 }
+			NOT = { has_global_flag = WP_psych_BUL_share_imported }
+			has_country_flag = WP_psych_directorate_participant
+		}
+		set_global_flag = WP_psych_BUL_share_imported
+		WP_psych_add_shared_dossier_bonus = yes
+		add_to_variable = { global.WP_psych_coordination = 5 }
+		add_to_variable = { global.WP_psych_scrutiny = 1 }
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+WP_psych_contribute_SOV_archive = {
+	if = {
+		limit = { NOT = { has_global_flag = WP_psych_SOV_record_imported } }
+		set_global_flag = WP_psych_SOV_record_imported
+		add_to_variable = { global.WP_psych_record = 15 }
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+WP_psych_import_legacy_archives = {
+	if = {
+		limit = { country_exists = SOV }
+		SOV = {
+			if = {
+				limit = { check_variable = { SOV_psych_demo_stage = 4 } }
+				WP_psych_contribute_SOV_archive = yes
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = CZE }
+		CZE = {
+			if = {
+				limit = { check_variable = { CZE_psych_demo_stage = 4 } has_country_flag = WP_psych_directorate_participant }
+				WP_psych_contribute_CZE_archive = yes
+			}
+			if = {
+				limit = { has_country_flag = CZE_psych_forwarded }
+				WP_psych_share_CZE_archive = yes
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = BUL }
+		BUL = {
+			if = {
+				limit = { check_variable = { BUL_psych_demo_stage = 4 } has_country_flag = WP_psych_directorate_participant }
+				WP_psych_contribute_BUL_archive = yes
+			}
+			if = {
+				limit = { has_country_flag = BUL_psych_forwarded }
+				WP_psych_share_BUL_archive = yes
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = POL }
+		POL = {
+			if = {
+				limit = {
+					has_country_flag = POL_psych_note_filed
+					has_country_flag = WP_psych_directorate_participant
+					NOT = { has_global_flag = WP_psych_POL_record_imported }
+				}
+				set_global_flag = WP_psych_POL_record_imported
+				set_global_flag = WP_psych_any_member_dossier_archived
+				if = {
+					limit = { has_country_flag = POL_psych_rigorous_disposition }
+					add_to_variable = { global.WP_psych_record = 12 }
+					add_to_variable = { global.WP_psych_scrutiny = -5 }
+				}
+				else = {
+					add_to_variable = { global.WP_psych_record = 6 }
+					add_to_variable = { global.WP_psych_scrutiny = 4 }
+				}
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_coordination = 5 }
+				set_variable = { POL_psych_note_state = 4 }
+				set_variable = { POL_psych_slot = 0 }
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = DDR }
+		DDR = {
+			if = {
+				limit = {
+					has_country_flag = DDR_psych_note_filed
+					has_country_flag = WP_psych_directorate_participant
+					NOT = { has_global_flag = WP_psych_DDR_record_imported }
+				}
+				set_global_flag = WP_psych_DDR_record_imported
+				set_global_flag = WP_psych_any_member_dossier_archived
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_record = 8 }
+				add_to_variable = { global.WP_psych_scrutiny = -5 }
+				add_to_variable = { global.WP_psych_coordination = 5 }
+				set_variable = { DDR_psych_note_state = 4 }
+				set_variable = { DDR_psych_slot = 0 }
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = HUN }
+		HUN = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant check_variable = { HUN_psych_dossier_stage = 4 } NOT = { has_global_flag = WP_psych_HUN_record_imported } }
+				set_global_flag = WP_psych_HUN_record_imported
+				set_global_flag = WP_psych_any_member_dossier_archived
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_record = 10 }
+				add_to_variable = { global.WP_psych_scrutiny = -3 }
+				add_to_variable = { global.WP_psych_coordination = 5 }
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = ROM }
+		ROM = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant has_country_flag = ROM_psych_data_shared check_variable = { ROM_psych_dossier_stage = 4 } NOT = { has_global_flag = WP_psych_ROM_record_imported } }
+				set_global_flag = WP_psych_ROM_record_imported
+				set_global_flag = WP_psych_any_member_dossier_archived
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_record = 12 }
+				add_to_variable = { global.WP_psych_coordination = 5 }
+				add_to_variable = { global.WP_psych_scrutiny = 3 }
+			}
+		}
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+WP_psych_invite_eligible_members = {
+	if = { limit = { country_exists = CZE } CZE = { if = { limit = { WP_psych_joint_eligible_trigger = yes NOT = { has_country_flag = WP_psych_directorate_invited } } set_country_flag = WP_psych_directorate_invited country_event = { id = cwic_wp_directorate.1 } } } }
+	if = { limit = { country_exists = BUL } BUL = { if = { limit = { WP_psych_joint_eligible_trigger = yes NOT = { has_country_flag = WP_psych_directorate_invited } } set_country_flag = WP_psych_directorate_invited country_event = { id = cwic_wp_directorate.1 } } } }
+	if = { limit = { country_exists = POL } POL = { if = { limit = { WP_psych_joint_eligible_trigger = yes NOT = { has_country_flag = WP_psych_directorate_invited } } set_country_flag = WP_psych_directorate_invited country_event = { id = cwic_wp_directorate.1 } } } }
+	if = { limit = { country_exists = HUN } HUN = { if = { limit = { WP_psych_joint_eligible_trigger = yes NOT = { has_country_flag = WP_psych_directorate_invited } } set_country_flag = WP_psych_directorate_invited country_event = { id = cwic_wp_directorate.1 } } } }
+	if = { limit = { country_exists = ROM } ROM = { if = { limit = { WP_psych_joint_eligible_trigger = yes NOT = { has_country_flag = WP_psych_directorate_invited } } set_country_flag = WP_psych_directorate_invited country_event = { id = cwic_wp_directorate.1 } } } }
+	if = { limit = { country_exists = DDR } DDR = { if = { limit = { WP_psych_joint_eligible_trigger = yes NOT = { has_country_flag = WP_psych_directorate_invited } } set_country_flag = WP_psych_directorate_invited country_event = { id = cwic_wp_directorate.1 } } } }
+}
+
+WP_psych_accept_directorate = {
+	set_country_flag = WP_psych_directorate_participant
+	set_country_flag = WP_psych_archive_access
+	clr_country_flag = WP_psych_withdrawn
+	if = { limit = { original_tag = POL NOT = { has_country_flag = POL_psych_initialized } } POL_psych_initialize = yes }
+	if = { limit = { original_tag = DDR NOT = { has_country_flag = DDR_psych_initialized } } DDR_psych_initialize = yes }
+	if = { limit = { original_tag = HUN check_variable = { HUN_psych_dossier_stage = 0 } } set_variable = { HUN_psych_dossier_stage = 1 } }
+	if = { limit = { original_tag = ROM check_variable = { ROM_psych_dossier_stage = 0 } } set_variable = { ROM_psych_dossier_stage = 1 } }
+	if = { limit = { country_exists = SOV } SOV = { WP_psych_import_legacy_archives = yes } }
+	WP_psych_gui_initialize = yes
+}
+
+SOV_psych_form_directorate = {
+	if = {
+		limit = { SOV_psych_can_form_directorate_trigger = yes }
+		WP_psych_global_initialize = yes
+		set_variable = { global.WP_psych_directorate_state = 1 }
+		set_variable = { global.WP_psych_coordination = 50 }
+		set_country_flag = WP_psych_directorate_participant
+		set_country_flag = WP_psych_archive_access
+		set_country_flag = SOV_psych_directorate_formed
+		set_variable = { SOV_psych_integrated_stage = 1 }
+		WP_psych_import_legacy_archives = yes
+		WP_psych_invite_eligible_members = yes
+		activate_mission = SOV_psych_directorate_organization
+		WP_psych_gui_initialize = yes
+	}
+}
+
+SOV_psych_activate_directorate = {
+	if = {
+		limit = { check_variable = { global.WP_psych_directorate_state = 1 } }
+		set_variable = { global.WP_psych_directorate_state = 2 }
+		WP_psych_invite_eligible_members = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+SOV_psych_repair_coordination = {
+	if = {
+		limit = { SOV_psych_can_repair_coordination_trigger = yes }
+		add_to_variable = { global.WP_psych_coordination = 20 }
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+# Poland: a bounded cybernetics and statistical audit.
+POL_psych_start_audit = {
+	if = {
+		limit = { POL_psych_can_open_audit_trigger = yes }
+		set_country_flag = POL_psych_audit_paid
+		set_variable = { POL_psych_note_state = 2 }
+		set_variable = { POL_psych_slot = 1 }
+		activate_mission = POL_psych_audit_research
+	}
+}
+
+POL_psych_complete_audit = {
+	if = {
+		limit = { check_variable = { POL_psych_note_state = 2 } }
+		set_country_flag = POL_psych_advancing_stage
+		set_variable = { POL_psych_note_state = 3 }
+		if = { limit = { has_active_mission = POL_psych_audit_research } remove_mission = POL_psych_audit_research }
+		clr_country_flag = POL_psych_advancing_stage
+		activate_mission = POL_psych_audit_review
+	}
+}
+
+POL_psych_cancel_audit = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = POL_psych_advancing_stage }
+			OR = {
+				check_variable = { POL_psych_note_state = 2 }
+				check_variable = { POL_psych_note_state = 3 }
+			}
+		}
+		set_country_flag = POL_psych_advancing_stage
+		set_variable = { POL_psych_note_state = 6 }
+		set_variable = { POL_psych_slot = 0 }
+		if = { limit = { has_active_mission = POL_psych_audit_research } remove_mission = POL_psych_audit_research }
+		if = { limit = { has_active_mission = POL_psych_audit_review } remove_mission = POL_psych_audit_review }
+		clr_country_flag = POL_psych_advancing_stage
+	}
+}
+
+POL_psych_archive_rigorous = {
+	if = {
+		limit = { POL_psych_can_archive_audit_trigger = yes }
+		set_country_flag = POL_psych_advancing_stage
+		set_variable = { POL_psych_note_state = 4 }
+		set_variable = { POL_psych_slot = 0 }
+		set_country_flag = POL_psych_note_filed
+		set_country_flag = POL_psych_rigorous_disposition
+		if = { limit = { has_active_mission = POL_psych_audit_review } remove_mission = POL_psych_audit_review }
+		clr_country_flag = POL_psych_advancing_stage
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } NOT = { has_global_flag = WP_psych_POL_record_imported } }
+			set_global_flag = WP_psych_POL_record_imported
+			set_global_flag = WP_psych_any_member_dossier_archived
+			add_to_variable = { global.WP_psych_record = 12 }
+			add_to_variable = { global.WP_psych_scrutiny = -5 }
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant }
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_coordination = 5 }
+			}
+		}
+		if = {
+			limit = { NOT = { has_country_flag = POL_psych_computing_bonus_awarded } }
+			set_country_flag = POL_psych_computing_bonus_awarded
+			add_tech_bonus = { name = POL_psych_statistics_bonus uses = 1 bonus = 0.25 category = computing_tech }
+		}
+		WP_psych_evaluate_thresholds = yes
+		country_event = { id = cwic_wp_directorate.5 }
+	}
+}
+
+POL_psych_archive_sponsor_friendly = {
+	if = {
+		limit = { POL_psych_can_archive_audit_trigger = yes }
+		set_country_flag = POL_psych_advancing_stage
+		set_variable = { POL_psych_note_state = 4 }
+		set_variable = { POL_psych_slot = 0 }
+		set_country_flag = POL_psych_note_filed
+		set_country_flag = POL_psych_sponsor_disposition
+		if = { limit = { has_active_mission = POL_psych_audit_review } remove_mission = POL_psych_audit_review }
+		clr_country_flag = POL_psych_advancing_stage
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } NOT = { has_global_flag = WP_psych_POL_record_imported } }
+			set_global_flag = WP_psych_POL_record_imported
+			set_global_flag = WP_psych_any_member_dossier_archived
+			add_to_variable = { global.WP_psych_record = 6 }
+			add_to_variable = { global.WP_psych_scrutiny = 4 }
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant }
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_coordination = 5 }
+			}
+		}
+		WP_psych_evaluate_thresholds = yes
+		country_event = { id = cwic_wp_directorate.6 }
+	}
+}
+
+# Hungary: modest instrumentation and therapeutic-pedagogy review.
+HUN_psych_initialize = {
+	if = {
+		limit = { HUN_psych_enabled_trigger = yes NOT = { has_country_flag = HUN_psych_initialized } }
+		set_variable = { HUN_psych_dossier_stage = 1 }
+		set_variable = { HUN_psych_slot = 0 }
+		set_country_flag = HUN_psych_initialized
+	}
+}
+
+HUN_psych_start_review = {
+	if = {
+		limit = { HUN_psych_can_commission_trigger = yes }
+		set_variable = { HUN_psych_dossier_stage = 2 }
+		set_variable = { HUN_psych_slot = 1 }
+		activate_mission = HUN_psych_instrumentation_research
+	}
+}
+
+HUN_psych_complete_review = {
+	if = {
+		limit = { check_variable = { HUN_psych_dossier_stage = 2 } }
+		set_country_flag = HUN_psych_advancing_stage
+		set_variable = { HUN_psych_dossier_stage = 3 }
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_research } remove_mission = HUN_psych_instrumentation_research }
+		clr_country_flag = HUN_psych_advancing_stage
+		activate_mission = HUN_psych_instrumentation_review
+	}
+}
+
+HUN_psych_cancel_review = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = HUN_psych_advancing_stage }
+			OR = { check_variable = { HUN_psych_dossier_stage = 2 } check_variable = { HUN_psych_dossier_stage = 3 } }
+		}
+		set_country_flag = HUN_psych_advancing_stage
+		set_variable = { HUN_psych_dossier_stage = 6 }
+		set_variable = { HUN_psych_slot = 0 }
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_research } remove_mission = HUN_psych_instrumentation_research }
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_review } remove_mission = HUN_psych_instrumentation_review }
+		clr_country_flag = HUN_psych_advancing_stage
+	}
+}
+
+HUN_psych_archive_review = {
+	if = {
+		limit = { HUN_psych_can_archive_trigger = yes }
+		set_country_flag = HUN_psych_advancing_stage
+		set_variable = { HUN_psych_dossier_stage = 4 }
+		set_variable = { HUN_psych_slot = 0 }
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_review } remove_mission = HUN_psych_instrumentation_review }
+		clr_country_flag = HUN_psych_advancing_stage
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } NOT = { has_global_flag = WP_psych_HUN_record_imported } }
+			set_global_flag = WP_psych_HUN_record_imported
+			set_global_flag = WP_psych_any_member_dossier_archived
+			add_to_variable = { global.WP_psych_record = 10 }
+			add_to_variable = { global.WP_psych_scrutiny = -3 }
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant }
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_coordination = 5 }
+			}
+		}
+		if = {
+			limit = { NOT = { has_country_flag = HUN_psych_electronics_bonus_awarded } }
+			set_country_flag = HUN_psych_electronics_bonus_awarded
+			add_tech_bonus = { name = HUN_psych_instrumentation_bonus uses = 1 bonus = 0.25 category = electronics }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+HUN_psych_withhold_review = {
+	if = {
+		limit = { HUN_psych_can_archive_trigger = yes }
+		set_country_flag = HUN_psych_advancing_stage
+		set_variable = { HUN_psych_dossier_stage = 5 }
+		set_variable = { HUN_psych_slot = 0 }
+		set_country_flag = HUN_psych_report_withheld
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_review } remove_mission = HUN_psych_instrumentation_review }
+		clr_country_flag = HUN_psych_advancing_stage
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_coordination = -8 }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+# Romania: the network's principal sharing dispute.
+ROM_psych_initialize = {
+	if = {
+		limit = { ROM_psych_enabled_trigger = yes NOT = { has_country_flag = ROM_psych_initialized } }
+		set_variable = { ROM_psych_dossier_stage = 1 }
+		set_variable = { ROM_psych_slot = 0 }
+		set_country_flag = ROM_psych_initialized
+	}
+}
+
+ROM_psych_start_study = {
+	if = {
+		limit = { ROM_psych_can_commission_trigger = yes }
+		set_variable = { ROM_psych_dossier_stage = 2 }
+		set_variable = { ROM_psych_slot = 1 }
+		activate_mission = ROM_psych_biophysics_research
+	}
+}
+
+ROM_psych_complete_study = {
+	if = {
+		limit = { check_variable = { ROM_psych_dossier_stage = 2 } }
+		set_country_flag = ROM_psych_advancing_stage
+		set_variable = { ROM_psych_dossier_stage = 3 }
+		if = { limit = { has_active_mission = ROM_psych_biophysics_research } remove_mission = ROM_psych_biophysics_research }
+		clr_country_flag = ROM_psych_advancing_stage
+		activate_mission = ROM_psych_biophysics_review
+	}
+}
+
+ROM_psych_cancel_study = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = ROM_psych_advancing_stage }
+			OR = { check_variable = { ROM_psych_dossier_stage = 2 } check_variable = { ROM_psych_dossier_stage = 3 } }
+		}
+		set_country_flag = ROM_psych_advancing_stage
+		set_variable = { ROM_psych_dossier_stage = 6 }
+		set_variable = { ROM_psych_slot = 0 }
+		if = { limit = { has_active_mission = ROM_psych_biophysics_research } remove_mission = ROM_psych_biophysics_research }
+		if = { limit = { has_active_mission = ROM_psych_biophysics_review } remove_mission = ROM_psych_biophysics_review }
+		clr_country_flag = ROM_psych_advancing_stage
+	}
+}
+
+ROM_psych_share_raw_data = {
+	if = {
+		limit = { ROM_psych_can_dispose_trigger = yes }
+		set_country_flag = ROM_psych_advancing_stage
+		set_variable = { ROM_psych_dossier_stage = 4 }
+		set_variable = { ROM_psych_slot = 0 }
+		set_country_flag = ROM_psych_data_shared
+		if = { limit = { has_active_mission = ROM_psych_biophysics_review } remove_mission = ROM_psych_biophysics_review }
+		clr_country_flag = ROM_psych_advancing_stage
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } NOT = { has_global_flag = WP_psych_ROM_record_imported } }
+			set_global_flag = WP_psych_ROM_record_imported
+			set_global_flag = WP_psych_any_member_dossier_archived
+			WP_psych_add_shared_dossier_bonus = yes
+			add_to_variable = { global.WP_psych_record = 12 }
+			add_to_variable = { global.WP_psych_coordination = 5 }
+			add_to_variable = { global.WP_psych_scrutiny = 3 }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = ROM_psych_electronics_bonus_awarded } }
+			set_country_flag = ROM_psych_electronics_bonus_awarded
+			add_tech_bonus = { name = ROM_psych_biophysics_bonus uses = 1 bonus = 0.25 category = electronics }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+ROM_psych_compartmentalize = {
+	if = {
+		limit = { ROM_psych_can_dispose_trigger = yes }
+		set_country_flag = ROM_psych_advancing_stage
+		set_variable = { ROM_psych_dossier_stage = 5 }
+		set_variable = { ROM_psych_slot = 0 }
+		set_country_flag = ROM_psych_data_withheld
+		if = { limit = { has_active_mission = ROM_psych_biophysics_review } remove_mission = ROM_psych_biophysics_review }
+		clr_country_flag = ROM_psych_advancing_stage
+		add_political_power = 10
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_coordination = -10 }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+SOV_psych_request_romanian_file = {
+	set_country_flag = SOV_psych_romanian_negotiation_used
+	if = {
+		limit = { country_exists = ROM }
+		ROM = {
+			if = { limit = { has_country_flag = ROM_psych_data_withheld } country_event = { id = cwic_wp_directorate.8 } }
+		}
+	}
+}
+
+ROM_psych_release_after_negotiation = {
+	if = {
+		limit = { WP_psych_joint_eligible_trigger = yes has_country_flag = WP_psych_directorate_participant has_country_flag = ROM_psych_data_withheld NOT = { has_global_flag = WP_psych_ROM_record_imported } }
+		clr_country_flag = ROM_psych_data_withheld
+		set_country_flag = ROM_psych_data_shared
+		set_variable = { ROM_psych_dossier_stage = 4 }
+		set_global_flag = WP_psych_ROM_record_imported
+		set_global_flag = WP_psych_any_member_dossier_archived
+		WP_psych_add_shared_dossier_bonus = yes
+		add_to_variable = { global.WP_psych_record = 12 }
+		add_to_variable = { global.WP_psych_coordination = 5 }
+		add_to_variable = { global.WP_psych_scrutiny = 3 }
+		if = {
+			limit = { NOT = { has_country_flag = ROM_psych_electronics_bonus_awarded } }
+			set_country_flag = ROM_psych_electronics_bonus_awarded
+			add_tech_bonus = { name = ROM_psych_biophysics_bonus uses = 1 bonus = 0.25 category = electronics }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+# East Germany verifies personnel, fraud indicators, and foreign collection
+# interest. It never runs a paranormal laboratory in this system.
+DDR_psych_start_security_review = {
+	if = {
+		limit = { DDR_psych_can_start_security_review_trigger = yes }
+		set_variable = { DDR_psych_note_state = 2 }
+		set_variable = { DDR_psych_slot = 1 }
+		set_country_flag = DDR_psych_review_paid
+		activate_mission = DDR_psych_security_review
+	}
+}
+
+DDR_psych_cancel_security_review = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = DDR_psych_advancing_stage }
+			check_variable = { DDR_psych_note_state = 2 }
+		}
+		set_country_flag = DDR_psych_advancing_stage
+		set_variable = { DDR_psych_note_state = 6 }
+		set_variable = { DDR_psych_slot = 0 }
+		if = { limit = { has_active_mission = DDR_psych_security_review } remove_mission = DDR_psych_security_review }
+		clr_country_flag = DDR_psych_advancing_stage
+	}
+}
+
+DDR_psych_complete_security_review = {
+	if = {
+		limit = { check_variable = { DDR_psych_note_state = 2 } }
+		set_country_flag = DDR_psych_advancing_stage
+		set_variable = { DDR_psych_note_state = 4 }
+		set_variable = { DDR_psych_slot = 0 }
+		set_country_flag = DDR_psych_note_filed
+		if = { limit = { has_active_mission = DDR_psych_security_review } remove_mission = DDR_psych_security_review }
+		clr_country_flag = DDR_psych_advancing_stage
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } NOT = { has_global_flag = WP_psych_DDR_record_imported } }
+			set_global_flag = WP_psych_DDR_record_imported
+			set_global_flag = WP_psych_any_member_dossier_archived
+			add_to_variable = { global.WP_psych_record = 8 }
+			add_to_variable = { global.WP_psych_scrutiny = -5 }
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant }
+				WP_psych_add_shared_dossier_bonus = yes
+				add_to_variable = { global.WP_psych_coordination = 5 }
+			}
+		}
+		add_timed_idea = { idea = DDR_psych_security_procedures days = 180 }
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+DDR_psych_complete_aggressive_review = {
+	DDR_psych_complete_security_review = yes
+	set_country_flag = DDR_psych_aggressive_surveillance
+	if = {
+		limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } }
+		add_to_variable = { global.WP_psych_coordination = 3 }
+		add_to_variable = { global.WP_psych_scrutiny = 5 }
+	}
+	WP_psych_evaluate_thresholds = yes
+}
+
+# Soviet integrated appraisal: the only Historical study using the central slot.
+SOV_psych_start_integrated_assessment = {
+	if = {
+		limit = { SOV_psych_can_integrate_directorate_trigger = yes }
+		set_variable = { SOV_psych_integrated_stage = 2 }
+		set_variable = { global.WP_psych_review_slot = 1 }
+		if = {
+			limit = {
+				has_global_flag = cwic_us_remote_viewing_claims_circulating
+				country_exists = USA
+				USA = { USA_mkultra_enabled_trigger = yes }
+			}
+			add_political_power = 5
+			add_to_variable = { global.WP_psych_scrutiny = 1 }
+			set_global_flag = WP_psych_US_urgency_applied
+		}
+		activate_mission = SOV_psych_integrated_research
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+SOV_psych_complete_integrated_research = {
+	if = {
+		limit = { check_variable = { SOV_psych_integrated_stage = 2 } }
+		set_country_flag = SOV_psych_integrated_advancing
+		set_variable = { SOV_psych_integrated_stage = 3 }
+		if = { limit = { has_active_mission = SOV_psych_integrated_research } remove_mission = SOV_psych_integrated_research }
+		clr_country_flag = SOV_psych_integrated_advancing
+		activate_mission = SOV_psych_integrated_review
+	}
+}
+
+SOV_psych_cancel_integrated_assessment = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_psych_integrated_advancing }
+			OR = { check_variable = { SOV_psych_integrated_stage = 2 } check_variable = { SOV_psych_integrated_stage = 3 } }
+		}
+		set_variable = { SOV_psych_integrated_stage = 6 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+	}
+}
+
+SOV_psych_resolve_integrated_assessment = {
+	if = {
+		limit = { check_variable = { SOV_psych_integrated_stage = 3 } }
+		set_country_flag = SOV_psych_integrated_advancing
+		if = { limit = { has_active_mission = SOV_psych_integrated_review } remove_mission = SOV_psych_integrated_review }
+		set_variable = { SOV_psych_integrated_stage = 4 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		set_country_flag = SOV_psych_integrated_complete
+		clr_country_flag = SOV_psych_integrated_advancing
+		if = {
+			limit = {
+				check_variable = { global.WP_psych_record > 69 }
+				check_variable = { global.WP_psych_scrutiny < 50 }
+				check_variable = { global.WP_psych_coordination > 49 }
+			}
+			set_country_flag = SOV_psych_methodological_archive
+			add_tech_bonus = { name = SOV_psych_integrated_computing_bonus uses = 1 bonus = 0.25 category = computing_tech }
+			country_event = { id = cwic_wp_directorate.10 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { global.WP_psych_record > 39 }
+				check_variable = { global.WP_psych_scrutiny < 75 }
+			}
+			set_country_flag = SOV_psych_fragmented_archive
+			add_political_power = 20
+			country_event = { id = cwic_wp_directorate.11 }
+		}
+		else = {
+			set_country_flag = SOV_psych_claims_without_program
+			set_variable = { global.WP_psych_directorate_state = 3 }
+			set_global_flag = WP_psych_formal_review_active
+			country_event = { id = cwic_wp_directorate.12 }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+WP_psych_answer_presidium = {
+	if = {
+		limit = { WP_psych_can_answer_presidium_trigger = yes }
+		add_to_variable = { global.WP_psych_scrutiny = -15 }
+		set_variable = { global.WP_psych_directorate_state = 2 }
+		clr_global_flag = WP_psych_formal_review_active
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+WP_psych_compartmentalize_directorate = {
+	if = {
+		limit = { check_variable = { global.WP_psych_directorate_state = 3 } check_variable = { global.WP_psych_scrutiny < 75 } }
+		add_to_variable = { global.WP_psych_scrutiny = -10 }
+		add_to_variable = { global.WP_psych_coordination = -10 }
+		set_variable = { global.WP_psych_directorate_state = 2 }
+		clr_global_flag = WP_psych_formal_review_active
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+WP_psych_cancel_central_work = {
+	# The original Soviet controlled demonstration is a central file too. Close
+	# an unfinished study immediately so permanent archival cannot leave its
+	# mission waiting for a later cancellation tick.
+	if = {
+		limit = {
+			OR = {
+				check_variable = { SOV_psych_demo_stage = 2 }
+				check_variable = { SOV_psych_demo_stage = 3 }
+			}
+		}
+		set_country_flag = SOV_psych_advancing_stage
+		set_variable = { SOV_psych_demo_stage = 6 }
+		set_variable = { SOV_psych_slot = 0 }
+		if = { limit = { has_active_mission = SOV_psych_demo_research } remove_mission = SOV_psych_demo_research }
+		if = { limit = { has_active_mission = SOV_psych_demo_review } remove_mission = SOV_psych_demo_review }
+		clr_country_flag = SOV_psych_advancing_stage
+	}
+	set_country_flag = SOV_psych_integrated_advancing
+	if = {
+		limit = { OR = { check_variable = { SOV_psych_integrated_stage = 2 } check_variable = { SOV_psych_integrated_stage = 3 } } }
+		set_variable = { SOV_psych_integrated_stage = 6 }
+	}
+	if = {
+		limit = { check_variable = { SOV_project_x_stage > 0 } check_variable = { SOV_project_x_stage < 8 } }
+		set_variable = { SOV_project_x_stage = 9 }
+		set_country_flag = SOV_project_x_terminated
+	}
+	if = { limit = { has_active_mission = SOV_psych_integrated_research } remove_mission = SOV_psych_integrated_research }
+	if = { limit = { has_active_mission = SOV_psych_integrated_review } remove_mission = SOV_psych_integrated_review }
+	if = { limit = { has_active_mission = SOV_project_x_screening } remove_mission = SOV_project_x_screening }
+	if = { limit = { has_active_mission = SOV_project_x_resonance } remove_mission = SOV_project_x_resonance }
+	if = { limit = { has_active_mission = SOV_project_x_prototype } remove_mission = SOV_project_x_prototype }
+	if = { limit = { has_active_mission = SOV_psych_directorate_organization } remove_mission = SOV_psych_directorate_organization }
+	clr_country_flag = SOV_psych_integrated_advancing
+	set_variable = { global.WP_psych_review_slot = 0 }
+}
+
+# Permanent closure and Pact dissolution must remove each unfinished member
+# mission exactly once. Completed, withheld, transferred, and already-cancelled
+# dossiers are deliberately left untouched so their archival record survives.
+WP_psych_cancel_all_member_work = {
+	if = {
+		limit = { country_exists = CZE }
+		CZE = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant OR = { check_variable = { CZE_psych_demo_stage = 1 } check_variable = { CZE_psych_demo_stage = 2 } check_variable = { CZE_psych_demo_stage = 3 } } }
+				set_country_flag = CZE_psych_advancing_stage
+				set_variable = { CZE_psych_demo_stage = 6 }
+				set_variable = { CZE_psych_slot = 0 }
+				set_variable = { CZE_psych_charter_state = 2 }
+				if = { limit = { has_active_mission = CZE_psych_demo_research } remove_mission = CZE_psych_demo_research }
+				if = { limit = { has_active_mission = CZE_psych_demo_review } remove_mission = CZE_psych_demo_review }
+				clr_country_flag = CZE_psych_advancing_stage
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = BUL }
+		BUL = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant OR = { check_variable = { BUL_psych_demo_stage = 1 } check_variable = { BUL_psych_demo_stage = 2 } check_variable = { BUL_psych_demo_stage = 3 } } }
+				set_country_flag = BUL_psych_advancing_stage
+				set_variable = { BUL_psych_demo_stage = 6 }
+				set_variable = { BUL_psych_slot = 0 }
+				set_variable = { BUL_psych_charter_state = 2 }
+				if = { limit = { has_active_mission = BUL_psych_demo_research } remove_mission = BUL_psych_demo_research }
+				if = { limit = { has_active_mission = BUL_psych_demo_review } remove_mission = BUL_psych_demo_review }
+				clr_country_flag = BUL_psych_advancing_stage
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = POL }
+		POL = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant OR = { check_variable = { POL_psych_note_state = 1 } check_variable = { POL_psych_note_state = 2 } check_variable = { POL_psych_note_state = 3 } } }
+				set_country_flag = POL_psych_advancing_stage
+				set_variable = { POL_psych_note_state = 6 }
+				set_variable = { POL_psych_slot = 0 }
+				if = { limit = { has_active_mission = POL_psych_audit_research } remove_mission = POL_psych_audit_research }
+				if = { limit = { has_active_mission = POL_psych_audit_review } remove_mission = POL_psych_audit_review }
+				clr_country_flag = POL_psych_advancing_stage
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = HUN }
+		HUN = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant OR = { check_variable = { HUN_psych_dossier_stage = 1 } check_variable = { HUN_psych_dossier_stage = 2 } check_variable = { HUN_psych_dossier_stage = 3 } } }
+				set_country_flag = HUN_psych_advancing_stage
+				set_variable = { HUN_psych_dossier_stage = 6 }
+				set_variable = { HUN_psych_slot = 0 }
+				if = { limit = { has_active_mission = HUN_psych_instrumentation_research } remove_mission = HUN_psych_instrumentation_research }
+				if = { limit = { has_active_mission = HUN_psych_instrumentation_review } remove_mission = HUN_psych_instrumentation_review }
+				clr_country_flag = HUN_psych_advancing_stage
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = ROM }
+		ROM = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant OR = { check_variable = { ROM_psych_dossier_stage = 1 } check_variable = { ROM_psych_dossier_stage = 2 } check_variable = { ROM_psych_dossier_stage = 3 } } }
+				set_country_flag = ROM_psych_advancing_stage
+				set_variable = { ROM_psych_dossier_stage = 6 }
+				set_variable = { ROM_psych_slot = 0 }
+				if = { limit = { has_active_mission = ROM_psych_biophysics_research } remove_mission = ROM_psych_biophysics_research }
+				if = { limit = { has_active_mission = ROM_psych_biophysics_review } remove_mission = ROM_psych_biophysics_review }
+				clr_country_flag = ROM_psych_advancing_stage
+			}
+		}
+	}
+	if = {
+		limit = { country_exists = DDR }
+		DDR = {
+			if = {
+				limit = { has_country_flag = WP_psych_directorate_participant OR = { check_variable = { DDR_psych_note_state = 1 } check_variable = { DDR_psych_note_state = 2 } } }
+				set_country_flag = DDR_psych_advancing_stage
+				set_variable = { DDR_psych_note_state = 6 }
+				set_variable = { DDR_psych_slot = 0 }
+				if = { limit = { has_active_mission = DDR_psych_security_review } remove_mission = DDR_psych_security_review }
+				clr_country_flag = DDR_psych_advancing_stage
+			}
+		}
+	}
+}
+
+# on_annex runs while the defeated country scope is still available. Mirror an
+# unfinished national stage into a global cancellation flag before the country
+# disappears so the shared records room can continue to show its disposition.
+WP_psych_handle_annexed_country = {
+	if = {
+		limit = { original_tag = CZE OR = { check_variable = { CZE_psych_demo_stage = 1 } check_variable = { CZE_psych_demo_stage = 2 } check_variable = { CZE_psych_demo_stage = 3 } } }
+		set_global_flag = WP_psych_CZE_dossier_cancelled
+		set_country_flag = CZE_psych_advancing_stage
+		set_variable = { CZE_psych_demo_stage = 6 }
+		set_variable = { CZE_psych_slot = 0 }
+		if = { limit = { has_active_mission = CZE_psych_demo_research } remove_mission = CZE_psych_demo_research }
+		if = { limit = { has_active_mission = CZE_psych_demo_review } remove_mission = CZE_psych_demo_review }
+		clr_country_flag = CZE_psych_advancing_stage
+	}
+	if = {
+		limit = { original_tag = BUL OR = { check_variable = { BUL_psych_demo_stage = 1 } check_variable = { BUL_psych_demo_stage = 2 } check_variable = { BUL_psych_demo_stage = 3 } } }
+		set_global_flag = WP_psych_BUL_dossier_cancelled
+		set_country_flag = BUL_psych_advancing_stage
+		set_variable = { BUL_psych_demo_stage = 6 }
+		set_variable = { BUL_psych_slot = 0 }
+		if = { limit = { has_active_mission = BUL_psych_demo_research } remove_mission = BUL_psych_demo_research }
+		if = { limit = { has_active_mission = BUL_psych_demo_review } remove_mission = BUL_psych_demo_review }
+		clr_country_flag = BUL_psych_advancing_stage
+	}
+	if = {
+		limit = { original_tag = POL OR = { check_variable = { POL_psych_note_state = 1 } check_variable = { POL_psych_note_state = 2 } check_variable = { POL_psych_note_state = 3 } } }
+		set_global_flag = WP_psych_POL_dossier_cancelled
+		set_country_flag = POL_psych_advancing_stage
+		set_variable = { POL_psych_note_state = 6 }
+		set_variable = { POL_psych_slot = 0 }
+		if = { limit = { has_active_mission = POL_psych_audit_research } remove_mission = POL_psych_audit_research }
+		if = { limit = { has_active_mission = POL_psych_audit_review } remove_mission = POL_psych_audit_review }
+		clr_country_flag = POL_psych_advancing_stage
+	}
+	if = {
+		limit = { original_tag = HUN OR = { check_variable = { HUN_psych_dossier_stage = 1 } check_variable = { HUN_psych_dossier_stage = 2 } check_variable = { HUN_psych_dossier_stage = 3 } } }
+		set_global_flag = WP_psych_HUN_dossier_cancelled
+		set_country_flag = HUN_psych_advancing_stage
+		set_variable = { HUN_psych_dossier_stage = 6 }
+		set_variable = { HUN_psych_slot = 0 }
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_research } remove_mission = HUN_psych_instrumentation_research }
+		if = { limit = { has_active_mission = HUN_psych_instrumentation_review } remove_mission = HUN_psych_instrumentation_review }
+		clr_country_flag = HUN_psych_advancing_stage
+	}
+	if = {
+		limit = { original_tag = ROM OR = { check_variable = { ROM_psych_dossier_stage = 1 } check_variable = { ROM_psych_dossier_stage = 2 } check_variable = { ROM_psych_dossier_stage = 3 } } }
+		set_global_flag = WP_psych_ROM_dossier_cancelled
+		set_country_flag = ROM_psych_advancing_stage
+		set_variable = { ROM_psych_dossier_stage = 6 }
+		set_variable = { ROM_psych_slot = 0 }
+		if = { limit = { has_active_mission = ROM_psych_biophysics_research } remove_mission = ROM_psych_biophysics_research }
+		if = { limit = { has_active_mission = ROM_psych_biophysics_review } remove_mission = ROM_psych_biophysics_review }
+		clr_country_flag = ROM_psych_advancing_stage
+	}
+	if = {
+		limit = { original_tag = DDR OR = { check_variable = { DDR_psych_note_state = 1 } check_variable = { DDR_psych_note_state = 2 } } }
+		set_global_flag = WP_psych_DDR_dossier_cancelled
+		set_country_flag = DDR_psych_advancing_stage
+		set_variable = { DDR_psych_note_state = 6 }
+		set_variable = { DDR_psych_slot = 0 }
+		if = { limit = { has_active_mission = DDR_psych_security_review } remove_mission = DDR_psych_security_review }
+		clr_country_flag = DDR_psych_advancing_stage
+	}
+	if = {
+		limit = { original_tag = SOV }
+		set_global_flag = WP_psych_SOV_authority_lost
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } check_variable = { global.WP_psych_directorate_state < 4 } }
+			WP_psych_archive_directorate = yes
+		}
+	}
+}
+
+WP_psych_archive_directorate = {
+	if = {
+		limit = { NOT = { has_global_flag = WP_psych_directorate_archived } }
+		if = { limit = { country_exists = CZE } CZE = { if = { limit = { has_country_flag = WP_psych_archive_access } country_event = { id = cwic_wp_directorate.23 } } } }
+		if = { limit = { country_exists = BUL } BUL = { if = { limit = { has_country_flag = WP_psych_archive_access } country_event = { id = cwic_wp_directorate.23 } } } }
+		if = { limit = { country_exists = POL } POL = { if = { limit = { has_country_flag = WP_psych_archive_access } country_event = { id = cwic_wp_directorate.23 } } } }
+		if = { limit = { country_exists = HUN } HUN = { if = { limit = { has_country_flag = WP_psych_archive_access } country_event = { id = cwic_wp_directorate.23 } } } }
+		if = { limit = { country_exists = ROM } ROM = { if = { limit = { has_country_flag = WP_psych_archive_access } country_event = { id = cwic_wp_directorate.23 } } } }
+		if = { limit = { country_exists = DDR } DDR = { if = { limit = { has_country_flag = WP_psych_archive_access } country_event = { id = cwic_wp_directorate.23 } } } }
+	}
+	set_variable = { global.WP_psych_directorate_state = 4 }
+	set_variable = { global.WP_psych_review_slot = 0 }
+	set_global_flag = WP_psych_directorate_archived
+	clr_global_flag = WP_psych_formal_review_active
+	clr_global_flag = WP_psych_funding_crisis_active
+	WP_psych_cancel_all_member_work = yes
+	if = {
+		limit = { country_exists = SOV }
+		SOV = { WP_psych_cancel_central_work = yes }
+	}
+	WP_psych_clamp_global_variables = yes
+}
+
+WP_psych_crisis_disclose = {
+	if = {
+		limit = { WP_psych_can_respond_to_crisis_trigger = yes }
+		set_global_flag = WP_psych_funding_crisis_resolved
+		clr_global_flag = WP_psych_funding_crisis_active
+		add_to_variable = { global.WP_psych_scrutiny = -25 }
+		add_to_variable = { global.WP_psych_coordination = 5 }
+		set_variable = { global.WP_psych_directorate_state = 3 }
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+WP_psych_crisis_compartmentalize = {
+	if = {
+		limit = { WP_psych_can_respond_to_crisis_trigger = yes }
+		set_global_flag = WP_psych_funding_crisis_resolved
+		clr_global_flag = WP_psych_funding_crisis_active
+		add_to_variable = { global.WP_psych_scrutiny = -15 }
+		add_to_variable = { global.WP_psych_coordination = -15 }
+		set_variable = { global.WP_psych_directorate_state = 3 }
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+# Fictional, opt-in Project X prequel. Historical findings remain intact; stage
+# 7 on eligible dossier variables only records transfer of a copy.
+SOV_project_x_establish = {
+	if = {
+		limit = { SOV_project_x_can_establish_trigger = yes }
+		set_variable = { SOV_project_x_stage = 1 }
+		set_variable = { global.WP_psych_anomaly_record = 0 }
+		add_to_variable = { global.WP_psych_scrutiny = 10 }
+		set_country_flag = SOV_project_x_chartered
+		if = { limit = { check_variable = { SOV_psych_demo_stage = 4 } } set_country_flag = SOV_project_x_SOV_file_transferred set_variable = { SOV_psych_demo_stage = 7 } }
+		if = {
+			limit = { has_global_flag = WP_psych_CZE_record_imported }
+			set_global_flag = WP_psych_CZE_transferred_to_project_x
+			if = { limit = { country_exists = CZE } CZE = { if = { limit = { check_variable = { CZE_psych_demo_stage = 4 } } set_variable = { CZE_psych_demo_stage = 7 } } } }
+		}
+		if = {
+			limit = { has_global_flag = WP_psych_BUL_record_imported }
+			set_global_flag = WP_psych_BUL_transferred_to_project_x
+			if = { limit = { country_exists = BUL } BUL = { if = { limit = { check_variable = { BUL_psych_demo_stage = 4 } } set_variable = { BUL_psych_demo_stage = 7 } } } }
+		}
+		if = {
+			limit = { has_global_flag = WP_psych_POL_record_imported }
+			set_global_flag = WP_psych_POL_transferred_to_project_x
+			if = { limit = { country_exists = POL } POL = { if = { limit = { check_variable = { POL_psych_note_state = 4 } } set_variable = { POL_psych_note_state = 7 } } } }
+		}
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+SOV_project_x_start_screening = {
+	if = {
+		limit = { SOV_project_x_can_screen_trigger = yes }
+		set_variable = { SOV_project_x_stage = 2 }
+		set_variable = { global.WP_psych_review_slot = 9 }
+		activate_mission = SOV_project_x_screening
+	}
+}
+
+SOV_project_x_complete_screening = {
+	if = {
+		limit = { check_variable = { SOV_project_x_stage = 2 } }
+		set_country_flag = SOV_project_x_advancing
+		if = { limit = { has_country_flag = SOV_project_x_SOV_file_transferred } add_to_variable = { global.WP_psych_anomaly_record = 10 } }
+		if = { limit = { has_global_flag = WP_psych_CZE_transferred_to_project_x } add_to_variable = { global.WP_psych_anomaly_record = 10 } }
+		if = { limit = { has_global_flag = WP_psych_BUL_transferred_to_project_x } add_to_variable = { global.WP_psych_anomaly_record = 10 } }
+		if = { limit = { has_global_flag = WP_psych_POL_transferred_to_project_x } add_to_variable = { global.WP_psych_anomaly_record = 10 } }
+		if = { limit = { check_variable = { global.WP_psych_anomaly_record > 15 } } set_variable = { global.WP_psych_anomaly_record = 15 } }
+		set_variable = { SOV_project_x_stage = 3 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		if = { limit = { has_active_mission = SOV_project_x_screening } remove_mission = SOV_project_x_screening }
+		clr_country_flag = SOV_project_x_advancing
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+SOV_project_x_start_resonance = {
+	if = {
+		limit = { SOV_project_x_can_resonance_trigger = yes }
+		set_variable = { SOV_project_x_stage = 4 }
+		set_variable = { global.WP_psych_review_slot = 9 }
+		activate_mission = SOV_project_x_resonance
+	}
+}
+
+SOV_project_x_complete_resonance = {
+	if = {
+		limit = { check_variable = { SOV_project_x_stage = 4 } }
+		set_country_flag = SOV_project_x_advancing
+		if = {
+			limit = { check_variable = { global.WP_psych_record > 59 } check_variable = { global.WP_psych_scrutiny < 50 } }
+			add_to_variable = { global.WP_psych_anomaly_record = 20 }
+			set_country_flag = SOV_project_x_resonance_clean
+		}
+		else_if = {
+			limit = { check_variable = { global.WP_psych_record > 49 } }
+			add_to_variable = { global.WP_psych_anomaly_record = 10 }
+			add_to_variable = { global.WP_psych_scrutiny = 10 }
+			set_country_flag = SOV_project_x_resonance_underdocumented
+		}
+		else = {
+			add_to_variable = { global.WP_psych_scrutiny = 10 }
+			set_country_flag = SOV_project_x_resonance_failed
+		}
+		set_variable = { SOV_project_x_stage = 5 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		if = { limit = { has_active_mission = SOV_project_x_resonance } remove_mission = SOV_project_x_resonance }
+		clr_country_flag = SOV_project_x_advancing
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+SOV_project_x_start_prototype = {
+	if = {
+		limit = { SOV_project_x_can_prototype_trigger = yes }
+		add_command_power = -25
+		set_variable = { SOV_project_x_stage = 6 }
+		set_variable = { global.WP_psych_review_slot = 9 }
+		activate_mission = SOV_project_x_prototype
+	}
+}
+
+SOV_project_x_complete_prototype = {
+	if = {
+		limit = { check_variable = { SOV_project_x_stage = 6 } }
+		set_country_flag = SOV_project_x_advancing
+		set_variable = { SOV_project_x_stage = 7 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		if = { limit = { has_active_mission = SOV_project_x_prototype } remove_mission = SOV_project_x_prototype }
+		clr_country_flag = SOV_project_x_advancing
+		if = {
+			limit = {
+				check_variable = { global.WP_psych_record > 69 }
+				check_variable = { global.WP_psych_coordination > 49 }
+				check_variable = { global.WP_psych_scrutiny < 50 }
+			}
+			set_country_flag = SOV_project_x_clean_success
+		}
+		else_if = {
+			limit = { check_variable = { global.WP_psych_record > 49 } check_variable = { global.WP_psych_scrutiny < 75 } }
+			set_country_flag = SOV_project_x_unstable_success
+		}
+		else = { set_country_flag = SOV_project_x_failure }
+		country_event = { id = cwic_wp_directorate.30 }
+	}
+}
+
+SOV_project_x_cancel_active_stage = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_project_x_advancing }
+			OR = {
+				check_variable = { SOV_project_x_stage = 2 }
+				check_variable = { SOV_project_x_stage = 4 }
+				check_variable = { SOV_project_x_stage = 6 }
+			}
+		}
+		set_variable = { SOV_project_x_stage = 9 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		set_country_flag = SOV_project_x_terminated
+	}
+}
+
+SOV_project_x_contain = {
+	set_country_flag = SOV_project_x_established
+	set_country_flag = SOV_project_x_contained
+	set_variable = { SOV_project_x_stage = 8 }
+	add_timed_idea = { idea = SOV_project_x_contained_program days = 730 }
+	WP_psych_archive_directorate = yes
+}
+
+SOV_project_x_operationalize = {
+	set_country_flag = SOV_project_x_established
+	set_country_flag = SOV_project_x_noosphere_prototype
+	set_variable = { SOV_project_x_stage = 8 }
+	add_timed_idea = { idea = SOV_project_x_operational_program days = 730 }
+	add_to_variable = { global.WP_psych_scrutiny = 25 }
+	add_to_variable = { global.WP_psych_coordination = -15 }
+	WP_psych_evaluate_thresholds = yes
+	country_event = { id = cwic_wp_directorate.31 days = 7 }
+}
+
+SOV_project_x_terminate = {
+	set_country_flag = SOV_project_x_terminated
+	set_variable = { SOV_project_x_stage = 9 }
+	WP_psych_cancel_central_work = yes
+}
+
+# Presentation-only GUI state. Material actions remain in decisions/missions.
+WP_psych_mark_gui_dirty = {
+	if = { limit = { NOT = { has_variable = WP_psych_gui_dirty } } set_variable = { WP_psych_gui_dirty = 0 } }
+	add_to_variable = { WP_psych_gui_dirty = 1 }
+	if = { limit = { check_variable = { WP_psych_gui_dirty > 100000 } } set_variable = { WP_psych_gui_dirty = 1 } }
+}
+
+WP_psych_gui_reconcile = {
+	clear_array = WP_psych_dossier_index_array
+	add_to_array = { WP_psych_dossier_index_array = 1 }
+	if = {
+		limit = { WP_psych_historical_network_enabled_trigger = yes }
+		add_to_array = { WP_psych_dossier_index_array = 2 }
+		add_to_array = { WP_psych_dossier_index_array = 3 }
+		add_to_array = { WP_psych_dossier_index_array = 4 }
+		add_to_array = { WP_psych_dossier_index_array = 5 }
+		add_to_array = { WP_psych_dossier_index_array = 6 }
+		add_to_array = { WP_psych_dossier_index_array = 7 }
+	}
+	add_to_array = { WP_psych_dossier_index_array = 8 }
+	if = { limit = { SOV_project_x_enabled_trigger = yes } add_to_array = { WP_psych_dossier_index_array = 9 } }
+	if = { limit = { NOT = { has_variable = WP_psych_dashboard_open } } set_variable = { WP_psych_dashboard_open = 0 } }
+	if = { limit = { NOT = { has_variable = WP_psych_selected_record } } set_variable = { WP_psych_selected_record = 0 } }
+	if = { limit = { NOT = { has_variable = WP_psych_record_file_open } } set_variable = { WP_psych_record_file_open = 0 } }
+	if = { limit = { NOT = { has_variable = WP_psych_gui_anomaly_display } } set_variable = { WP_psych_gui_anomaly_display = 0 } }
+	if = {
+		limit = { SOV_project_x_enabled_trigger = yes has_variable = global.WP_psych_anomaly_record }
+		set_variable = { WP_psych_gui_anomaly_display = global.WP_psych_anomaly_record }
+	}
+	else = { set_variable = { WP_psych_gui_anomaly_display = 0 } }
+	clamp_variable = { var = WP_psych_dashboard_open min = 0 max = 1 }
+	clamp_variable = { var = WP_psych_selected_record min = 0 max = 9 }
+	clamp_variable = { var = WP_psych_record_file_open min = 0 max = 1 }
+	clamp_variable = { var = WP_psych_gui_anomaly_display min = 0 max = 100 }
+	if = { limit = { check_variable = { WP_psych_dashboard_open = 0 } } set_variable = { WP_psych_selected_record = 0 } set_variable = { WP_psych_record_file_open = 0 } }
+	if = { limit = { check_variable = { WP_psych_selected_record = 0 } } set_variable = { WP_psych_record_file_open = 0 } }
+	if = { limit = { check_variable = { WP_psych_selected_record = 9 } NOT = { SOV_project_x_enabled_trigger = yes } } set_variable = { WP_psych_selected_record = 0 } set_variable = { WP_psych_record_file_open = 0 } }
+}
+
+WP_psych_gui_initialize = {
+	if = {
+		limit = { WP_psych_has_archive_access_trigger = yes }
+		WP_psych_gui_reconcile = yes
+		set_country_flag = WP_psych_gui_initialized
+		WP_psych_mark_gui_dirty = yes
+	}
+}
+
+WP_psych_open_dashboard_effect = {
+	if = {
+		limit = { is_ai = no WP_psych_has_archive_access_trigger = yes }
+		WP_psych_gui_reconcile = yes
+		set_variable = { WP_psych_dashboard_open = 1 }
+		set_variable = { WP_psych_selected_record = 0 }
+		set_variable = { WP_psych_record_file_open = 0 }
+		WP_psych_mark_gui_dirty = yes
+	}
+}
+
+WP_psych_close_dashboard_effect = {
+	set_variable = { WP_psych_dashboard_open = 0 }
+	set_variable = { WP_psych_selected_record = 0 }
+	set_variable = { WP_psych_record_file_open = 0 }
+	WP_psych_mark_gui_dirty = yes
+}
+
+WP_psych_seed_1980_global = {
+	WP_psych_global_initialize = yes
+	if = {
+		limit = {
+			has_global_flag = cwic_bookmark_1980_start
+			SOV_psych_enabled_trigger = yes
+			WP_psych_historical_network_enabled_trigger = yes
+			NOT = { has_global_flag = WP_psych_1980_global_seeded }
+		}
+		set_variable = { global.WP_psych_directorate_state = 2 }
+		set_variable = { global.WP_psych_record = 50 }
+		set_variable = { global.WP_psych_scrutiny = 10 }
+		set_variable = { global.WP_psych_coordination = 60 }
+		set_variable = { global.WP_psych_review_slot = 0 }
+		set_global_flag = WP_psych_1980_global_seeded
+		set_global_flag = WP_psych_second_dossier_wave_open
+		set_global_flag = WP_psych_CZE_record_imported
+		set_global_flag = WP_psych_CZE_share_imported
+		set_global_flag = WP_psych_BUL_record_imported
+		set_global_flag = WP_psych_BUL_share_imported
+		set_global_flag = WP_psych_POL_record_imported
+		set_global_flag = WP_psych_DDR_record_imported
+		set_global_flag = WP_psych_any_member_dossier_archived
+		set_country_flag = WP_psych_directorate_participant
+		set_country_flag = WP_psych_archive_access
+		set_country_flag = SOV_psych_directorate_formed
+		set_variable = { SOV_psych_integrated_stage = 1 }
+		if = {
+			limit = { SOV_project_x_enabled_trigger = yes }
+			set_variable = { global.WP_psych_anomaly_record = 0 }
+			set_country_flag = SOV_project_x_1980_assessment_equivalent
+		}
+		if = { limit = { country_exists = CZE } CZE = { WP_psych_seed_1980_member = yes } }
+		if = { limit = { country_exists = BUL } BUL = { WP_psych_seed_1980_member = yes } }
+		if = { limit = { country_exists = POL } POL = { WP_psych_seed_1980_member = yes } }
+		if = { limit = { country_exists = HUN } HUN = { WP_psych_seed_1980_member = yes } }
+		if = { limit = { country_exists = ROM } ROM = { WP_psych_seed_1980_member = yes } }
+		if = { limit = { country_exists = DDR } DDR = { WP_psych_seed_1980_member = yes } }
+	}
+	else_if = {
+		limit = {
+			has_global_flag = cwic_bookmark_1980_start
+			SOV_psych_enabled_trigger = yes
+			NOT = { has_global_flag = WP_psych_1980_global_seeded }
+		}
+		# Soviet-only fallback: no member files or Directorate are fabricated.
+		set_variable = { global.WP_psych_record = 60 }
+		set_variable = { global.WP_psych_scrutiny = 10 }
+		set_variable = { global.WP_psych_coordination = 0 }
+		set_variable = { SOV_psych_integrated_stage = 4 }
+		set_country_flag = SOV_psych_integrated_complete
+		if = {
+			limit = { SOV_project_x_enabled_trigger = yes }
+			set_country_flag = WP_psych_archive_access
+			set_country_flag = WP_psych_directorate_participant
+		}
+		set_global_flag = WP_psych_1980_global_seeded
+	}
+	WP_psych_clamp_global_variables = yes
+}
+
+WP_psych_seed_1980_member = {
+	if = {
+		limit = { has_global_flag = cwic_bookmark_1980_start check_variable = { global.WP_psych_directorate_state = 2 } WP_psych_joint_eligible_trigger = yes }
+		set_country_flag = WP_psych_directorate_participant
+		set_country_flag = WP_psych_archive_access
+		set_country_flag = WP_psych_directorate_invited
+		if = { limit = { original_tag = HUN NOT = { has_country_flag = HUN_psych_initialized } } HUN_psych_initialize = yes }
+		if = {
+			limit = { original_tag = ROM }
+			if = { limit = { NOT = { has_country_flag = ROM_psych_initialized } } ROM_psych_initialize = yes }
+			set_variable = { ROM_psych_dossier_stage = 5 }
+			set_variable = { ROM_psych_slot = 0 }
+			set_country_flag = ROM_psych_data_withheld
+		}
+		WP_psych_gui_initialize = yes
+	}
+}
+
+WP_psych_migrate_legacy_country = {
+	if = {
+		limit = { NOT = { has_country_flag = WP_psych_lifecycle_migrated } }
+		if = {
+			limit = { original_tag = CZE check_variable = { CZE_psych_demo_stage = 5 } }
+			set_variable = { CZE_psych_demo_stage = 6 }
+		}
+		if = {
+			limit = { original_tag = BUL check_variable = { BUL_psych_demo_stage = 5 } }
+			set_variable = { BUL_psych_demo_stage = 6 }
+		}
+		if = {
+			limit = { original_tag = SOV check_variable = { SOV_psych_demo_stage = 5 } }
+			set_variable = { SOV_psych_demo_stage = 6 }
+		}
+		if = {
+			limit = { original_tag = DDR has_country_flag = DDR_psych_note_filed check_variable = { DDR_psych_note_state = 1 } }
+			set_variable = { DDR_psych_note_state = 4 }
+		}
+		if = {
+			limit = { original_tag = DDR has_country_flag = DDR_psych_initialized NOT = { has_country_flag = DDR_psych_note_filed } check_variable = { DDR_psych_note_state = 0 } }
+			set_variable = { DDR_psych_note_state = 1 }
+		}
+		if = {
+			limit = { original_tag = POL has_country_flag = POL_psych_note_filed check_variable = { POL_psych_note_state = 1 } }
+			set_variable = { POL_psych_note_state = 4 }
+		}
+		if = {
+			limit = { original_tag = POL has_country_flag = POL_psych_initialized NOT = { has_country_flag = POL_psych_note_filed } check_variable = { POL_psych_note_state = 0 } }
+			set_variable = { POL_psych_note_state = 1 }
+		}
+		set_country_flag = WP_psych_lifecycle_migrated
+	}
+}
+
+WP_psych_reconcile_country = {
+	WP_psych_migrate_legacy_country = yes
+	WP_psych_gui_reconcile = yes
+	if = { limit = { original_tag = CZE } CZE_psych_clamp_variables = yes }
+	if = { limit = { original_tag = BUL } BUL_psych_clamp_variables = yes }
+	if = { limit = { original_tag = POL } POL_psych_clamp_variables = yes }
+	if = { limit = { original_tag = DDR } DDR_psych_clamp_variables = yes }
+	if = { limit = { original_tag = HUN } clamp_variable = { var = HUN_psych_dossier_stage min = 0 max = 7 } clamp_variable = { var = HUN_psych_slot min = 0 max = 1 } }
+	if = { limit = { original_tag = ROM } clamp_variable = { var = ROM_psych_dossier_stage min = 0 max = 7 } clamp_variable = { var = ROM_psych_slot min = 0 max = 1 } }
+	if = { limit = { original_tag = CZE OR = { check_variable = { CZE_psych_demo_stage = 2 } check_variable = { CZE_psych_demo_stage = 3 } } } set_variable = { CZE_psych_slot = 1 } }
+	if = { limit = { original_tag = CZE NOT = { OR = { check_variable = { CZE_psych_demo_stage = 2 } check_variable = { CZE_psych_demo_stage = 3 } } } } set_variable = { CZE_psych_slot = 0 } }
+	if = { limit = { original_tag = BUL OR = { check_variable = { BUL_psych_demo_stage = 2 } check_variable = { BUL_psych_demo_stage = 3 } } } set_variable = { BUL_psych_slot = 1 } }
+	if = { limit = { original_tag = BUL NOT = { OR = { check_variable = { BUL_psych_demo_stage = 2 } check_variable = { BUL_psych_demo_stage = 3 } } } } set_variable = { BUL_psych_slot = 0 } }
+	if = { limit = { original_tag = POL OR = { check_variable = { POL_psych_note_state = 2 } check_variable = { POL_psych_note_state = 3 } } } set_variable = { POL_psych_slot = 1 } }
+	if = { limit = { original_tag = POL NOT = { OR = { check_variable = { POL_psych_note_state = 2 } check_variable = { POL_psych_note_state = 3 } } } } set_variable = { POL_psych_slot = 0 } }
+	if = { limit = { original_tag = DDR check_variable = { DDR_psych_note_state = 2 } } set_variable = { DDR_psych_slot = 1 } }
+	if = { limit = { original_tag = DDR NOT = { check_variable = { DDR_psych_note_state = 2 } } } set_variable = { DDR_psych_slot = 0 } }
+	if = { limit = { original_tag = HUN OR = { check_variable = { HUN_psych_dossier_stage = 2 } check_variable = { HUN_psych_dossier_stage = 3 } } } set_variable = { HUN_psych_slot = 1 } }
+	if = { limit = { original_tag = HUN NOT = { OR = { check_variable = { HUN_psych_dossier_stage = 2 } check_variable = { HUN_psych_dossier_stage = 3 } } } } set_variable = { HUN_psych_slot = 0 } }
+	if = { limit = { original_tag = ROM OR = { check_variable = { ROM_psych_dossier_stage = 2 } check_variable = { ROM_psych_dossier_stage = 3 } } } set_variable = { ROM_psych_slot = 1 } }
+	if = { limit = { original_tag = ROM NOT = { OR = { check_variable = { ROM_psych_dossier_stage = 2 } check_variable = { ROM_psych_dossier_stage = 3 } } } } set_variable = { ROM_psych_slot = 0 } }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = CZE check_variable = { CZE_psych_demo_stage = 2 } NOT = { has_country_flag = CZE_psych_shelved } NOT = { has_active_mission = CZE_psych_demo_research } } activate_mission = CZE_psych_demo_research }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = CZE check_variable = { CZE_psych_demo_stage = 3 } NOT = { has_country_flag = CZE_psych_shelved } NOT = { has_active_mission = CZE_psych_demo_review } } activate_mission = CZE_psych_demo_review }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = BUL check_variable = { BUL_psych_demo_stage = 2 } NOT = { has_active_mission = BUL_psych_demo_research } } activate_mission = BUL_psych_demo_research }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = BUL check_variable = { BUL_psych_demo_stage = 3 } NOT = { has_active_mission = BUL_psych_demo_review } } activate_mission = BUL_psych_demo_review }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = POL check_variable = { POL_psych_note_state = 2 } NOT = { has_active_mission = POL_psych_audit_research } } activate_mission = POL_psych_audit_research }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = POL check_variable = { POL_psych_note_state = 3 } NOT = { has_active_mission = POL_psych_audit_review } } activate_mission = POL_psych_audit_review }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = HUN check_variable = { HUN_psych_dossier_stage = 2 } NOT = { has_active_mission = HUN_psych_instrumentation_research } } activate_mission = HUN_psych_instrumentation_research }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = HUN check_variable = { HUN_psych_dossier_stage = 3 } NOT = { has_active_mission = HUN_psych_instrumentation_review } } activate_mission = HUN_psych_instrumentation_review }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = ROM check_variable = { ROM_psych_dossier_stage = 2 } NOT = { has_active_mission = ROM_psych_biophysics_research } } activate_mission = ROM_psych_biophysics_research }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = ROM check_variable = { ROM_psych_dossier_stage = 3 } NOT = { has_active_mission = ROM_psych_biophysics_review } } activate_mission = ROM_psych_biophysics_review }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } original_tag = DDR check_variable = { DDR_psych_note_state = 2 } NOT = { has_active_mission = DDR_psych_security_review } } activate_mission = DDR_psych_security_review }
+	if = {
+		limit = {
+			has_country_flag = WP_psych_directorate_participant
+			NOT = { original_tag = SOV }
+			OR = { NOT = { has_government = communism } NOT = { is_in_faction_with = SOV } }
+		}
+		set_country_flag = WP_psych_withdrawn
+		set_country_flag = WP_psych_archive_access
+		clr_country_flag = WP_psych_directorate_participant
+		clr_country_flag = WP_psych_directorate_invited
+		if = { limit = { original_tag = CZE OR = { check_variable = { CZE_psych_demo_stage = 2 } check_variable = { CZE_psych_demo_stage = 3 } } } CZE_psych_close_charter = yes }
+		if = { limit = { original_tag = BUL OR = { check_variable = { BUL_psych_demo_stage = 2 } check_variable = { BUL_psych_demo_stage = 3 } } } BUL_psych_close_charter = yes }
+		if = { limit = { original_tag = POL OR = { check_variable = { POL_psych_note_state = 2 } check_variable = { POL_psych_note_state = 3 } } } POL_psych_cancel_audit = yes }
+		if = { limit = { original_tag = HUN OR = { check_variable = { HUN_psych_dossier_stage = 2 } check_variable = { HUN_psych_dossier_stage = 3 } } } HUN_psych_cancel_review = yes }
+		if = { limit = { original_tag = ROM OR = { check_variable = { ROM_psych_dossier_stage = 2 } check_variable = { ROM_psych_dossier_stage = 3 } } } ROM_psych_cancel_study = yes }
+		if = { limit = { original_tag = DDR check_variable = { DDR_psych_note_state = 2 } } DDR_psych_cancel_security_review = yes }
+	}
+	if = {
+		limit = { country_exists = SOV check_variable = { global.WP_psych_directorate_state > 0 } check_variable = { global.WP_psych_directorate_state < 4 } }
+		SOV = { WP_psych_import_legacy_archives = yes }
+	}
+	if = {
+		limit = { NOT = { country_exists = SOV } check_variable = { global.WP_psych_directorate_state > 0 } check_variable = { global.WP_psych_directorate_state < 4 } }
+		WP_psych_archive_directorate = yes
+	}
+}
+
+WP_psych_reconcile_SOV = {
+	WP_psych_global_initialize = yes
+	WP_psych_migrate_legacy_country = yes
+	SOV_psych_clamp_variables = yes
+	if = { limit = { OR = { check_variable = { SOV_psych_demo_stage = 2 } check_variable = { SOV_psych_demo_stage = 3 } } } set_variable = { SOV_psych_slot = 1 } }
+	if = { limit = { NOT = { OR = { check_variable = { SOV_psych_demo_stage = 2 } check_variable = { SOV_psych_demo_stage = 3 } } } } set_variable = { SOV_psych_slot = 0 } }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } check_variable = { SOV_psych_demo_stage = 2 } NOT = { has_active_mission = SOV_psych_demo_research } } activate_mission = SOV_psych_demo_research }
+	if = { limit = { NOT = { check_variable = { global.WP_psych_directorate_state = 4 } } check_variable = { SOV_psych_demo_stage = 3 } NOT = { has_active_mission = SOV_psych_demo_review } } activate_mission = SOV_psych_demo_review }
+	if = { limit = { check_variable = { global.WP_psych_directorate_state = 1 } has_country_flag = SOV_psych_directorate_formed NOT = { has_active_mission = SOV_psych_directorate_organization } } activate_mission = SOV_psych_directorate_organization }
+	if = {
+		limit = { check_variable = { global.WP_psych_directorate_state > 0 } check_variable = { global.WP_psych_directorate_state < 4 } OR = { is_in_faction = no NOT = { has_government = communism } } }
+		WP_psych_archive_directorate = yes
+	}
+	if = {
+		limit = { check_variable = { SOV_psych_integrated_stage = 2 } NOT = { has_active_mission = SOV_psych_integrated_research } }
+		activate_mission = SOV_psych_integrated_research
+		set_variable = { global.WP_psych_review_slot = 1 }
+	}
+	if = {
+		limit = { check_variable = { SOV_psych_integrated_stage = 3 } NOT = { has_active_mission = SOV_psych_integrated_review } }
+		activate_mission = SOV_psych_integrated_review
+		set_variable = { global.WP_psych_review_slot = 1 }
+	}
+	if = { limit = { check_variable = { SOV_project_x_stage = 2 } NOT = { has_active_mission = SOV_project_x_screening } } activate_mission = SOV_project_x_screening set_variable = { global.WP_psych_review_slot = 9 } }
+	if = { limit = { check_variable = { SOV_project_x_stage = 4 } NOT = { has_active_mission = SOV_project_x_resonance } } activate_mission = SOV_project_x_resonance set_variable = { global.WP_psych_review_slot = 9 } }
+	if = { limit = { check_variable = { SOV_project_x_stage = 6 } NOT = { has_active_mission = SOV_project_x_prototype } } activate_mission = SOV_project_x_prototype set_variable = { global.WP_psych_review_slot = 9 } }
+	if = {
+		limit = {
+			check_variable = { global.WP_psych_review_slot > 0 }
+			NOT = {
+				OR = {
+					check_variable = { SOV_psych_integrated_stage = 2 }
+					check_variable = { SOV_psych_integrated_stage = 3 }
+					check_variable = { SOV_project_x_stage = 2 }
+					check_variable = { SOV_project_x_stage = 4 }
+					check_variable = { SOV_project_x_stage = 6 }
+				}
+			}
+		}
+		set_variable = { global.WP_psych_review_slot = 0 }
+	}
+	WP_psych_import_legacy_archives = yes
+	WP_psych_evaluate_thresholds = yes
+	WP_psych_gui_reconcile = yes
+}

@@ -11,6 +11,9 @@ CZE_psych_clamp_variables = {
 		min = 0
 		max = 100
 	}
+	clamp_variable = { var = CZE_psych_charter_state min = 0 max = 2 }
+	clamp_variable = { var = CZE_psych_demo_stage min = 0 max = 7 }
+	clamp_variable = { var = CZE_psych_slot min = 0 max = 1 }
 }
 
 CZE_psych_initialize = {
@@ -98,6 +101,12 @@ CZE_psych_archive_demonstration = {
 		add_to_variable = { CZE_psych_record = 10 }
 		set_variable = { CZE_psych_demo_stage = 4 }
 		set_variable = { CZE_psych_slot = 0 }
+		if = {
+			limit = { NOT = { has_country_flag = CZE_psych_electronics_bonus_awarded } }
+			set_country_flag = CZE_psych_electronics_bonus_awarded
+			add_tech_bonus = { name = CZE_psych_instrumentation_bonus uses = 1 bonus = 0.25 category = electronics }
+		}
+		WP_psych_contribute_CZE_archive = yes
 		CZE_psych_clamp_variables = yes
 		if = {
 			limit = { has_active_mission = CZE_psych_demo_review }
@@ -115,13 +124,12 @@ CZE_psych_cancel_open_study = {
 			NOT = { has_country_flag = CZE_psych_freeze_missions }
 			NOT = { has_country_flag = CZE_psych_advancing_stage }
 			NOT = { has_country_flag = CZE_psych_claim_rejected }
-			NOT = { check_variable = { CZE_psych_charter_state = 1 } }
 			OR = {
 				check_variable = { CZE_psych_demo_stage = 2 }
 				check_variable = { CZE_psych_demo_stage = 3 }
 			}
 		}
-		set_variable = { CZE_psych_demo_stage = 5 }
+		set_variable = { CZE_psych_demo_stage = 6 }
 		set_variable = { CZE_psych_slot = 0 }
 	}
 }
@@ -133,6 +141,7 @@ CZE_psych_forward_file = {
 		add_to_variable = { CZE_psych_scrutiny = 1 }
 		CZE_psych_clamp_variables = yes
 		set_global_flag = cwic_cze_psych_file_sent
+		WP_psych_share_CZE_archive = yes
 		if = {
 			limit = { country_exists = SOV }
 			SOV = { country_event = { id = cwic_wp_psych.2 } }
@@ -161,8 +170,8 @@ CZE_psych_close_from_shelf = {
 
 CZE_psych_close_charter = {
 	if = {
-		limit = { NOT = { check_variable = { CZE_psych_demo_stage = 4 } } }
-		set_variable = { CZE_psych_demo_stage = 5 }
+		limit = { NOT = { OR = { check_variable = { CZE_psych_demo_stage = 4 } check_variable = { CZE_psych_demo_stage = 7 } } } }
+		set_variable = { CZE_psych_demo_stage = 6 }
 	}
 	set_variable = { CZE_psych_slot = 0 }
 	set_variable = { CZE_psych_charter_state = 2 }
@@ -210,6 +219,8 @@ DDR_psych_clamp_variables = {
 		min = 0
 		max = 100
 	}
+	clamp_variable = { var = DDR_psych_note_state min = 0 max = 7 }
+	clamp_variable = { var = DDR_psych_slot min = 0 max = 1 }
 	clamp_variable = {
 		var = DDR_psych_scrutiny
 		min = 0
@@ -225,7 +236,8 @@ DDR_psych_initialize = {
 		}
 		set_variable = { DDR_psych_record = 0 }
 		set_variable = { DDR_psych_scrutiny = 0 }
-		set_variable = { DDR_psych_note_state = 0 }
+		set_variable = { DDR_psych_note_state = 1 }
+		set_variable = { DDR_psych_slot = 0 }
 		set_country_flag = DDR_psych_initialized
 	}
 }
@@ -237,11 +249,13 @@ DDR_psych_seed_1980 = {
 			has_global_flag = cwic_bookmark_1980_start
 			NOT = { has_country_flag = DDR_psych_initialized }
 		}
-		set_variable = { DDR_psych_record = 5 }
-		set_variable = { DDR_psych_scrutiny = 1 }
-		set_variable = { DDR_psych_note_state = 1 }
+		set_variable = { DDR_psych_record = 8 }
+		set_variable = { DDR_psych_scrutiny = 0 }
+		set_variable = { DDR_psych_note_state = 4 }
+		set_variable = { DDR_psych_slot = 0 }
 		set_country_flag = DDR_psych_initialized
 		set_country_flag = DDR_psych_note_filed
+		add_timed_idea = { idea = DDR_psych_security_procedures days = 180 }
 	}
 }
 
@@ -273,5 +287,251 @@ CZE_psych_reopen_shelved = {
 			limit = { check_variable = { CZE_psych_demo_stage = 3 } }
 			activate_mission = CZE_psych_demo_review
 		}
+	}
+}
+
+BUL_psych_clamp_variables = {
+	clamp_variable = {
+		var = BUL_psych_record
+		min = 0
+		max = 100
+	}
+	clamp_variable = { var = BUL_psych_charter_state min = 0 max = 2 }
+	clamp_variable = { var = BUL_psych_demo_stage min = 0 max = 7 }
+	clamp_variable = { var = BUL_psych_slot min = 0 max = 1 }
+	clamp_variable = {
+		var = BUL_psych_scrutiny
+		min = 0
+		max = 100
+	}
+}
+
+BUL_psych_initialize = {
+	if = {
+		limit = {
+			BUL_psych_enabled_trigger = yes
+			NOT = { has_country_flag = BUL_psych_initialized }
+		}
+		set_variable = { BUL_psych_record = 0 }
+		set_variable = { BUL_psych_scrutiny = 0 }
+		set_variable = { BUL_psych_charter_state = 0 }
+		set_variable = { BUL_psych_demo_stage = 0 }
+		set_variable = { BUL_psych_slot = 0 }
+		set_country_flag = BUL_psych_initialized
+	}
+}
+
+BUL_psych_seed_1980 = {
+	if = {
+		limit = {
+			BUL_psych_enabled_trigger = yes
+			has_global_flag = cwic_bookmark_1980_start
+			NOT = { has_country_flag = BUL_psych_initialized }
+		}
+		set_variable = { BUL_psych_record = 15 }
+		set_variable = { BUL_psych_scrutiny = 4 }
+		set_variable = { BUL_psych_charter_state = 1 }
+		set_variable = { BUL_psych_demo_stage = 4 }
+		set_variable = { BUL_psych_slot = 0 }
+		set_country_flag = BUL_psych_initialized
+		set_country_flag = BUL_psych_demo_paid
+		set_country_flag = BUL_psych_claim_rejected
+		set_country_flag = BUL_psych_forwarded
+		set_global_flag = cwic_bul_psych_file_sent
+	}
+}
+
+BUL_psych_open_institute = {
+	if = {
+		limit = { BUL_psych_can_open_trigger = yes }
+		set_variable = { BUL_psych_charter_state = 1 }
+		set_variable = { BUL_psych_demo_stage = 1 }
+		add_to_variable = { BUL_psych_record = 5 }
+		BUL_psych_clamp_variables = yes
+		country_event = { id = cwic_wp_psych.6 }
+	}
+}
+
+BUL_psych_start_study = {
+	if = {
+		limit = { BUL_psych_can_commission_trigger = yes }
+		set_country_flag = BUL_psych_demo_paid
+		set_variable = { BUL_psych_demo_stage = 2 }
+		set_variable = { BUL_psych_slot = 1 }
+		add_to_variable = { BUL_psych_scrutiny = 2 }
+		BUL_psych_clamp_variables = yes
+		activate_mission = BUL_psych_demo_research
+	}
+}
+
+BUL_psych_complete_study = {
+	if = {
+		limit = {
+			BUL_psych_charter_active_trigger = yes
+			check_variable = { BUL_psych_demo_stage = 2 }
+			has_country_flag = BUL_psych_demo_paid
+		}
+		set_country_flag = BUL_psych_advancing_stage
+		set_variable = { BUL_psych_demo_stage = 3 }
+		if = {
+			limit = { has_active_mission = BUL_psych_demo_research }
+			remove_mission = BUL_psych_demo_research
+		}
+		clr_country_flag = BUL_psych_advancing_stage
+		activate_mission = BUL_psych_demo_review
+	}
+}
+
+BUL_psych_archive_study = {
+	if = {
+		limit = { BUL_psych_can_archive_trigger = yes }
+		set_country_flag = BUL_psych_claim_rejected
+		set_country_flag = BUL_psych_advancing_stage
+		add_to_variable = { BUL_psych_record = 10 }
+		set_variable = { BUL_psych_demo_stage = 4 }
+		set_variable = { BUL_psych_slot = 0 }
+		add_timed_idea = { idea = BUL_psych_intensive_training days = 180 }
+		WP_psych_contribute_BUL_archive = yes
+		BUL_psych_clamp_variables = yes
+		if = {
+			limit = { has_active_mission = BUL_psych_demo_review }
+			remove_mission = BUL_psych_demo_review
+		}
+		clr_country_flag = BUL_psych_advancing_stage
+	}
+}
+
+BUL_psych_cancel_open_study = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = BUL_psych_advancing_stage }
+			NOT = { has_country_flag = BUL_psych_claim_rejected }
+			OR = {
+				check_variable = { BUL_psych_demo_stage = 2 }
+				check_variable = { BUL_psych_demo_stage = 3 }
+			}
+		}
+		set_variable = { BUL_psych_demo_stage = 6 }
+		set_variable = { BUL_psych_slot = 0 }
+	}
+}
+
+BUL_psych_forward_file = {
+	if = {
+		limit = { BUL_psych_can_forward_trigger = yes }
+		set_country_flag = BUL_psych_forwarded
+		add_to_variable = { BUL_psych_scrutiny = 1 }
+		BUL_psych_clamp_variables = yes
+		set_global_flag = cwic_bul_psych_file_sent
+		WP_psych_share_BUL_archive = yes
+		if = {
+			limit = { country_exists = SOV }
+			SOV = { country_event = { id = cwic_wp_psych.9 } }
+		}
+	}
+}
+
+BUL_psych_close_institute = {
+	if = {
+		limit = { BUL_psych_can_close_trigger = yes }
+		BUL_psych_close_charter = yes
+	}
+}
+
+BUL_psych_close_charter = {
+	if = {
+		limit = { NOT = { OR = { check_variable = { BUL_psych_demo_stage = 4 } check_variable = { BUL_psych_demo_stage = 7 } } } }
+		set_variable = { BUL_psych_demo_stage = 6 }
+	}
+	set_variable = { BUL_psych_slot = 0 }
+	set_variable = { BUL_psych_charter_state = 2 }
+	if = {
+		limit = { has_active_mission = BUL_psych_demo_research }
+		remove_mission = BUL_psych_demo_research
+	}
+	if = {
+		limit = { has_active_mission = BUL_psych_demo_review }
+		remove_mission = BUL_psych_demo_review
+	}
+}
+
+BUL_psych_audit_defend = {
+	if = {
+		limit = { BUL_psych_charter_active_trigger = yes }
+		add_to_variable = { BUL_psych_scrutiny = 5 }
+		add_political_power = -15
+		if = {
+			limit = { has_country_flag = WP_psych_directorate_participant check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = 5 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		BUL_psych_clamp_variables = yes
+	}
+}
+
+BUL_psych_audit_dismantle = {
+	if = {
+		limit = { BUL_psych_charter_active_trigger = yes }
+		BUL_psych_close_charter = yes
+	}
+}
+
+POL_psych_clamp_variables = {
+	clamp_variable = {
+		var = POL_psych_record
+		min = 0
+		max = 100
+	}
+	clamp_variable = { var = POL_psych_note_state min = 0 max = 7 }
+	clamp_variable = { var = POL_psych_slot min = 0 max = 1 }
+	clamp_variable = {
+		var = POL_psych_scrutiny
+		min = 0
+		max = 100
+	}
+}
+
+POL_psych_initialize = {
+	if = {
+		limit = {
+			POL_psych_enabled_trigger = yes
+			NOT = { has_country_flag = POL_psych_initialized }
+		}
+		set_variable = { POL_psych_record = 0 }
+		set_variable = { POL_psych_scrutiny = 0 }
+		set_variable = { POL_psych_note_state = 1 }
+		set_variable = { POL_psych_slot = 0 }
+		set_country_flag = POL_psych_initialized
+	}
+}
+
+POL_psych_seed_1980 = {
+	if = {
+		limit = {
+			POL_psych_enabled_trigger = yes
+			has_global_flag = cwic_bookmark_1980_start
+			NOT = { has_country_flag = POL_psych_initialized }
+		}
+		set_variable = { POL_psych_record = 12 }
+		set_variable = { POL_psych_scrutiny = 0 }
+		set_variable = { POL_psych_note_state = 4 }
+		set_variable = { POL_psych_slot = 0 }
+		set_country_flag = POL_psych_initialized
+		set_country_flag = POL_psych_note_filed
+		set_country_flag = POL_psych_rigorous_disposition
+		set_country_flag = POL_psych_computing_bonus_awarded
+		add_tech_bonus = { name = POL_psych_statistics_bonus uses = 1 bonus = 0.25 category = computing_tech }
+	}
+}
+
+POL_psych_file_watch_note = {
+	if = {
+		limit = { POL_psych_can_file_note_trigger = yes }
+		set_country_flag = POL_psych_note_filed
+		set_variable = { POL_psych_note_state = 1 }
+		add_to_variable = { POL_psych_record = 5 }
+		add_to_variable = { POL_psych_scrutiny = 1 }
+		POL_psych_clamp_variables = yes
+		country_event = { id = cwic_wp_psych.8 }
 	}
 }

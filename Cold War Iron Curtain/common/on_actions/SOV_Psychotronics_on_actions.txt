@@ -22,6 +22,10 @@ on_actions = {
 						}
 						SOV_psych_initialize = yes
 					}
+					if = {
+						limit = { has_global_flag = cwic_bookmark_1980_start SOV_psych_enabled_trigger = yes }
+						WP_psych_seed_1980_global = yes
+					}
 				}
 			}
 		}
@@ -29,6 +33,20 @@ on_actions = {
 
 	on_monthly_SOV = {
 		effect = {
+			if = {
+				limit = {
+					SOV_psych_enabled_trigger = yes
+					OR = {
+						has_country_flag = SOV_psych_initialized
+						has_global_flag = WP_psych_global_initialized
+					}
+				}
+				WP_psych_reconcile_SOV = yes
+				if = {
+					limit = { check_variable = { global.WP_psych_directorate_state > 0 } check_variable = { global.WP_psych_directorate_state < 4 } }
+					WP_psych_invite_eligible_members = yes
+				}
+			}
 			if = {
 				limit = {
 					SOV_psych_enabled_trigger = yes
@@ -62,6 +80,11 @@ on_actions = {
 					NOT = { has_country_flag = SOV_psych_epilogue_fired }
 				}
 				set_country_flag = SOV_psych_epilogue_fired
+				if = {
+					limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+					WP_psych_archive_directorate = yes
+					country_event = { id = cwic_wp_directorate.22 }
+				}
 				country_event = { id = cwic_sov_psych.4 }
 			}
 		}
