@@ -9,7 +9,24 @@ on_actions = {
 	}
 	on_daily_FRA = {
 		effect = {
-			ic_afk_validation_daily_tick = yes
+			# Telemetry only. Skip it where the theatre never existed (1980+ starts) and
+			# retire it three years after the war ends instead of polling for the rest of the game.
+			if = {
+				limit = {
+					has_global_flag = ic_failsafe_theatre_present
+					NOT = { has_global_flag = IC_AFK_Validation_Retired }
+				}
+				ic_afk_validation_daily_tick = yes
+				if = {
+					limit = { has_global_flag = Indochina_War_Over }
+					add_to_variable = { global.ic_afk_postwar_days = 1 }
+					if = {
+						limit = { check_variable = { global.ic_afk_postwar_days > 1094 } }
+						set_global_flag = IC_AFK_Validation_Retired
+						log = "IC_AFK|RETIRED|date=[GetDateText]|postwar_days=[?global.ic_afk_postwar_days]"
+					}
+				}
+			}
 		}
 	}
 	on_capitulation_immediate = {

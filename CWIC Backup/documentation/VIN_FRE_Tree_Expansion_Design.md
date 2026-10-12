@@ -2543,3 +2543,25 @@ Statically verified only.
 62. No `Raid City`/`Raid Supply Hub` lines and no `VIE_Events.txt` lines in
     error.log. `VIE_Saigon_Captured.1` fires only when the southern Viet
     Minh holds Saigon; Trung Phan still gets Ngo Dinh Can as its leader.
+
+## 2026-10-11 patch: Nung territory survives a Communist victory
+
+Statically verified only. Discord report (VIN, 1949 start): CEFEO
+capitulated by peace deal during the Day River campaign, Viet Minh later
+won the Struggle, and the Nung Autonomous Territory stayed independent.
+
+- Cause: `indochina_struggle_communist_victory` annexes VIE and NLF but
+  no northern crown domain. The southern, federal and balkanized endings
+  all annex them. Domains not already consumed by a clean campaign
+  (Cao-Bac THO, Hoa Binh TAM, Dien Bien Phu TAI) survive; NUN has no
+  campaign annexation. If CEFEO still exists, `fre_hand_back_crown_domains`
+  even turns them into French puppets; if CEFEO was already removed by a
+  peace deal they stay independent.
+- Fix: the VIN block of the Communist victory now annexes surviving TAM,
+  TAI, NUN and THO before CEFEO dissolution. MEO is unchanged.
+
+### Consolidated-playtest checks added
+
+63. After `Indochina_Struggle_Ending.1`, NUN, TAI, TAM and THO no longer
+    exist and state `1281` belongs to VIN, both when CEFEO capitulated by
+    peace deal and when it dissolved by script.
