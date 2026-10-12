@@ -75,15 +75,28 @@ on_actions = {
 			if = {
 				limit = {
 					SOV_psych_enabled_trigger = yes
-					has_country_flag = SOV_psych_prague_reviewed
+					# Any Soviet involvement ends here, not only a reviewed Prague file;
+					# a directorate convened without the review was never archived.
+					OR = {
+						has_country_flag = SOV_psych_prague_reviewed
+						has_country_flag = SOV_psych_initialized
+						check_variable = { global.WP_psych_directorate_state > 0 }
+					}
 					date > 1991.8.1
 					NOT = { has_country_flag = SOV_psych_epilogue_fired }
 				}
 				set_country_flag = SOV_psych_epilogue_fired
 				if = {
-					limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+					limit = {
+						check_variable = { global.WP_psych_directorate_state > 0 }
+						check_variable = { global.WP_psych_directorate_state < 4 }
+					}
 					WP_psych_archive_directorate = yes
 					country_event = { id = cwic_wp_directorate.22 }
+				}
+				if = {
+					limit = { SOV_psych_charter_active_trigger = yes }
+					SOV_psych_close_charter = yes
 				}
 				country_event = { id = cwic_sov_psych.4 }
 			}

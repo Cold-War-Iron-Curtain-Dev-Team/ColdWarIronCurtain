@@ -1838,20 +1838,7 @@ USA_mkultra_seed_1980_archive = {
 
 
 # Phase 5: Gateway Extension & Historical Endings
-USA_mkultra_unlock_gateway_assessment = {
-	if = {
-		limit = {
-			USA_mkultra_enabled_trigger = yes
-			check_variable = { USA_mkultra_gateway_assessment_stage = 0 }
-			NOT = { has_country_flag = USA_mkultra_gateway_assessment_unlocked }
-		}
-		set_country_flag = USA_mkultra_gateway_assessment_unlocked
-		set_variable = { USA_mkultra_gateway_assessment_stage = 1 }
-		USA_mkultra_gui_reconcile = yes
-		USA_mkultra_mark_gui_dirty = yes
-	}
-}
-
+# (The Gateway Assessment is unlocked inside the event 400 authorization.)
 USA_mkultra_start_gateway_assessment = {
 	if = {
 		limit = { USA_mkultra_can_start_gateway_assessment_trigger = yes }
@@ -2075,6 +2062,12 @@ USA_mkultra_close_gateway_charter = {
 		limit = { USA_mkultra_gateway_charter_active_trigger = yes }
 		USA_mkultra_cancel_gateway_assessment = yes
 		USA_mkultra_archive_gateway_assessment = yes
+		# Never commissioned: close it out so its decision does not linger.
+		if = {
+			limit = { check_variable = { USA_mkultra_gateway_assessment_stage = 1 } }
+			set_country_flag = USA_mkultra_gateway_assessment_foreclosed
+			set_variable = { USA_mkultra_gateway_assessment_stage = 7 }
+		}
 		USA_mkultra_settle_remote_viewing = yes
 		USA_mkultra_settle_early_assessment = yes
 		set_variable = { USA_mkultra_gateway_charter_state = 2 }
@@ -2138,6 +2131,7 @@ USA_mkultra_resolve_air_review_seal = {
 
 USA_mkultra_resolve_cultural_afterlife_deny = {
 	set_country_flag = USA_mkultra_cultural_afterlife_resolved
+	set_country_flag = USA_mkultra_cultural_afterlife_denied
 	add_to_variable = { USA_mkultra_exposure = 2 }
 	USA_mkultra_clamp_variables = yes
 	USA_mkultra_mark_gui_dirty = yes
@@ -2145,6 +2139,7 @@ USA_mkultra_resolve_cultural_afterlife_deny = {
 
 USA_mkultra_resolve_cultural_afterlife_foia = {
 	set_country_flag = USA_mkultra_cultural_afterlife_resolved
+	set_country_flag = USA_mkultra_cultural_afterlife_foia
 	add_political_power = -10
 	if = {
 		limit = { check_variable = { USA_mkultra_exposure > 4 } }
