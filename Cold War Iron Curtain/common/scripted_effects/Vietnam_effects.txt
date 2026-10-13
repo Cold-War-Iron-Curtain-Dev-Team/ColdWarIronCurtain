@@ -578,6 +578,7 @@ VIN_open_power_struggle = {
 		}
 		VIN_refresh_power_struggle = yes
 		mark_focus_tree_layout_dirty = yes
+		activate_mission = VIN_Danh_Coup_Countdown
 	}
 }
 
@@ -601,6 +602,53 @@ VIN_Danh_purge_conspirators = {
 		retire_character = VIN_Tran_Ngoc_Danh
 		set_country_flag = VIN_Danh_Coup_Failed
 		VIN_close_power_struggle = yes
+	}
+}
+
+VIN_Danh_resolve_coup = {
+	VIN = {
+		if = {
+			limit = { NOT = { has_country_flag = VIN_Danh_Coup_Launched } }
+			set_country_flag = VIN_Danh_Coup_Launched
+			if = {
+				limit = {
+					has_country_flag = VIN_Backs_Danh
+					OR = {
+						AND = {
+							is_ai = yes
+							has_game_rule = { rule = VIN_ai_stalinist_coup option = VIN_STALINIST_COUP_AI_GUARANTEED }
+						}
+						AND = {
+							has_country_flag = SOV_Permit_Danh_Coup
+							check_variable = { VIN_Stalinist_Support > VIN_Ho_Support }
+							OR = {
+								has_country_flag = SOV_Aid_Danh
+								has_country_flag = VIN_soviet_recognition_deferred
+								has_country_flag = VIN_Ho_Purged_Left
+							}
+						}
+					}
+				}
+				country_event = VIN_Danh.20
+			}
+			else_if = {
+				limit = {
+					has_country_flag = VIN_Backs_Ho
+					NOT = {
+						AND = {
+							is_ai = yes
+							has_game_rule = { rule = VIN_ai_stalinist_coup option = VIN_STALINIST_COUP_AI_NEVER }
+						}
+					}
+					check_variable = { VIN_Stalinist_Support > VIN_Ho_Support }
+					check_variable = { VIN_SOV_Favor > 84 }
+				}
+				country_event = VIN_Danh.20
+			}
+			else = {
+				country_event = VIN_Danh.21
+			}
+		}
 	}
 }
 
