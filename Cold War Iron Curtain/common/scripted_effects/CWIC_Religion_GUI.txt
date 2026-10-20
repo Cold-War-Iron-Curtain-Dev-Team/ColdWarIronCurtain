@@ -319,12 +319,10 @@ religion_proselytization_cost = {
     else_if = { limit = { pop_level_15_check = yes } multiply_temp_variable = { prosyletization_cost_pp = 2.5 } multiply_temp_variable = { prosyletization_cost_money = 4 } }
     else_if = { limit = { pop_level_20_check = yes } multiply_temp_variable = { prosyletization_cost_pp = 5 } multiply_temp_variable = { prosyletization_cost_money = 5 } }
     else = { }
-    # Final application (deduct resources)
+    # Store positive costs for the confirmation screen.
     hidden_effect = {
-        set_variable = { ROOT.pros_cost_pp = { value = temp.prosyletization_cost_pp multiply = -1 } } 
+        set_variable = { ROOT.pros_cost_pp = temp.prosyletization_cost_pp }
         set_variable = { ROOT.pros_cost_money = temp.prosyletization_cost_money }
-        #add_political_power = prosy_cost_pp
-        #subtract_from_variable = { currentMoney = prosy_cost_money }
     }
     
 }
@@ -350,8 +348,9 @@ finalize_religion_campaign_effect = {
         else = { }
         add_to_variable = { sd_view_dirty = 1 }
     }
-	var:owner = {
-		add_political_power = pros_cost_pp
+	ROOT = {
+		set_temp_variable = { religion_campaign_pp_payment = { value = pros_cost_pp multiply = -1 } }
+		add_political_power = temp.religion_campaign_pp_payment
 		subtract_from_variable = { currentMoney = pros_cost_money }
 	}
 
