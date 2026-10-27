@@ -37,14 +37,22 @@ faction_goal_win_the_cold_war_1950s = {
 	available = {
 
 	}
-	# FIX 2026-07-05: completed was an EMPTY block. Empty triggers evaluate as
-	# TRUE, so the goal completed the instant the AI selected it (+150 power
-	# projection each time) and the AI immediately tried to add it again —
-	# a constant source of invalid add_faction_goal commands in the faction AI.
-	# Set to a real win condition or a flag your cold-war-victory script sets;
-	# 'always = no' keeps it as a visible aspiration that never auto-completes.
 	completed = {
-		always = no
+		if = {
+			limit = { original_tag = USA }
+			OR = {
+				NOT = { country_exists = SOV }
+				SOV = { has_capitulated = yes }
+				SOV = { is_faction_leader = no }
+			}
+		}
+		else = {
+			OR = {
+				NOT = { country_exists = USA }
+				USA = { has_capitulated = yes }
+				USA = { is_faction_leader = no }
+			}
+		}
 	}
 	complete_effect = {
 		add_faction_power_projection = 150
@@ -61,7 +69,7 @@ faction_goal_resource_control = {
 	name = resource_control_goal_name
 	description = resource_control_goal_desc
 	category = long_term
-	group = resources_to_market_icon
+	group = FOCUS_FILTER_INDUSTRY
 	visible = {
 
 	}
@@ -163,152 +171,6 @@ faction_goal_resource_control = {
  ##  #  # ### #  # #  # 
 
 
-faction_goal_secure_chinese_waters = {
-	name = secure_chinese_waters_goal_name
-	description = secure_chinese_waters_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_NAVY_XP
-	allowed = {
-	}
-	visible = {
-		FROM = {
-			is_literally_china = yes
-			has_war = yes
-			OR = {
-				has_faction_template = faction_template_chinese_united_front
-				has_faction_template = faction_template_wang_front
-			}
-		}
-	}
-	available = {
-		FROM = { has_war_with_major = yes }
-	}
-	completed = {
-		has_war_with_major = yes 
-		has_naval_control = 75
-		has_naval_control = 76
-		has_naval_control = 77
-	}
-	complete_effect = {
-		add_faction_power_projection = 100
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = THE_FACTION_LEADER
-		add_faction_initiative = 1
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  { 
-					faction_members 
-				}
-				
-				name = ALL_FACTION_MEMBERS
-			}
-			custom_effect_tooltip = ALL_FACTION_MEMBERS
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_secure_chinese_waters } }
-				navy_experience = 50
-			}
-		}
-	}
-	ai_will_do = {
-		base = 1
-		modifier = {
-			add = 2 # If more dockyards then more realistically attainable
-			num_of_naval_factories > 39
-		}
-		modifier = {
-			factor = 2 # If stronger navy/weaker enemy navy then more realistically attainable
-			alliance_naval_strength_ratio > 0.5
-		}
-		modifier = {
-			factor = 2 # After controlled all of China's land states you should look towards the ocean
-			collection_size = {
-				input = {
-					input = collection:china_potential_core_mainland_states
-					operators = {
-						limit = {
-							OR = {
-								controller = { is_in_faction_with = JAP }
-								is_controlled_by = JAP
-							}
-						}
-					}
-					name = COLLECTION_NO_JAPANESE_IN_CHINA
-				}
-				value < 1
-			}
-		}
-	}
-}
-
-
-faction_goal_no_japanese_in_china = {
-	name = faction_goal_no_japanese_in_china_name
-	description = faction_goal_no_japanese_in_china_desc
-	category = long_term
-	group = FOCUS_FILTER_ANNEXATION
-	allowed = {
-		
-	}
-	visible = {
-		FROM = {
-			is_literally_china = yes
-			any_enemy_country = {
-				original_tag = JAP
-			}
-		}
-		
-	}
-	completed = {
-		collection_size = {
-			input = {
-				input = collection:china_potential_core_mainland_states
-				operators = {
-					limit = {
-						OR = {
-							controller = { is_in_faction_with = JAP }
-							is_controlled_by = JAP
-						}
-					}
-				}
-				name = COLLECTION_NO_JAPANESE_IN_CHINA
-			}
-			value < 1
-		}
-	}
-	complete_effect = {
-		add_faction_power_projection = 100
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = THE_FACTION_LEADER
-		add_faction_initiative = 1
-		custom_effect_tooltip = generic_skip_one_line_tt
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  { 
-					faction_members 
-					limit = {
-						faction_influence_ratio > 0.3
-					}
-				}
-				name = INFLUENCE_ABOVE_30_PERCENT
-			}
-			add_faction_influence_ratio = 0.2
-			add_faction_initiative = 1
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_no_japanese_in_china } }
-				add_political_power = 100
-				army_experience = 100
-				add_manpower = 100000
-			}
-		}
-	}
-	ai_will_do = {
-		base = 10 # Do itttt!
-	}
-}
-
-
  ###  ##  ###   ##  #  # 
    # #  # #  # #  # ## # 
    # #### ###  #### # ## 
@@ -317,227 +179,11 @@ faction_goal_no_japanese_in_china = {
 
 
 # Align China
-faction_goal_align_china = {
-	name = align_china_goal_name
-	description = align_china_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_ANNEXATION
-	visible = {
-		FROM = {
-			original_tag = JAP
-		}
-	}
-	completed = {
-		collection_size = {
-			input = {
-				input = collection:countries_china
-				operators = {
-					limit = {
-						exists = yes 
-						has_capitulated = no
-						NOT = { is_subject_of = ROOT }
-					}
-				}
-				name = COLLECTION_UNCAPITULATED_INDEPENDENT_CHINESE_COUNTRIES
-			}
-			value < 3
-		}
-	}
-	complete_effect = {
-		add_faction_power_projection = 300
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = THE_FACTION_LEADER
-		add_faction_initiative = 1
-		if = {
-			limit = { NOT = { has_completed_goal = faction_goal_align_china } }
-			add_popularity = {
-				ideology = ROOT
-				popularity = 0.1
-			}
-		}
-		custom_effect_tooltip = generic_skip_one_line_tt
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  { 
-					faction_members 
-					limit = {
-						faction_influence_ratio > 0.3
-					}
-				}
-				
-				name = INFLUENCE_ABOVE_30_PERCENT
-			}
-			custom_effect_tooltip = INFLUENCE_ABOVE_30_PERCENT
-			add_faction_initiative = 1
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_align_china } }
-				add_political_power = 100
-			}
-		}
-	}
-	ai_will_do = {
-		base = 1
-		modifier = {
-			add = 9 # Early game prio
-			date < 1941.1.1
-		}
-	}
-}
-
-faction_goal_war_on_communism_in_asia = {
-	name = war_on_communism_in_asia_goal_name
-	description = war_on_communism_in_asia_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_POLITICAL_CHARACTER
-	allowed = {
-		
-	}
-	visible = {
-		FROM = {
-			original_tag = JAP
-			has_completed_focus = JAP_the_great_spiritual_evil
-		}
-	}
-	completed = {
-		collection_size = {
-			input = {
-				input = collection:communist_countries_asia
-				operators = {
-					limit = {
-						exists = yes 
-						has_capitulated = no 
-						NOT = { has_war_with = ROOT }
-					}
-				}
-				name = COLLECTION_WAR_WITH_COMMUNIST_COUNTRIES_ASIA
-			}
-			value < 1
-		}
-	}
-	complete_effect = {
-		add_faction_power_projection = 100
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = THE_FACTION_LEADER
-		add_faction_initiative = 1
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  { 
-					faction_members 
-				}
-				
-				name = ALL_FACTION_MEMBERS
-			}
-			custom_effect_tooltip = ALL_FACTION_MEMBERS
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_war_on_communism_in_asia } }
-				add_war_support = 0.05
-			}
-		}
-	}
-	ai_will_do = {
-		base = 0
-		modifier = {
-			add = 100 # Prio when taken the focus
-			has_completed_focus = JAP_strike_down_the_enemy_of_the_people
-		}
-	}
-}
-
-
 #  #  ##  ##  
 #  # #   #  # 
 #  #  #  #### 
 #  #   # #  # 
  ##  ##  #  # 
-
-
-faction_goal_contain_japanese_expansion_asia = {
-	name = contain_japanese_expansion_asia_goal_name
-	description = contain_japanese_expansion_asia_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_ANNEXATION
-	allowed = {
-		
-	}
-	visible = {
-		FROM = {
-			original_tag = USA
-			has_country_flag = USA_unlock_contain_japanese_goal
-		}
-		date > 1940.1.1
-		collection_size = {
-			input = {
-				input = collection:country_and_all_subjects_controlled_non_core_states
-				name = COLLECTION_OCCUPIED_STATES_BY_JAPAN_OR_FACTION_MEMBERS
-			}
-			value > 29
-		}
-	}
-	completed = {
-		JAP = {
-			IF = {
-				limit = {
-					is_in_faction = no
-				}
-				collection_size = {
-					input = {
-						input = collection:country_and_all_subjects_controlled_non_core_states
-						name = COLLECTION_OCCUPIED_STATES_BY_JAPAN_OR_FACTION_MEMBERS
-					}
-					value < 20
-				}
-			}
-			ELSE = {
-				collection_size = {
-					input = {
-						input = collection:faction_controlled_non_core_states
-						name = COLLECTION_OCCUPIED_STATES_BY_JAPAN_OR_FACTION_MEMBERS
-					}
-					value < 20
-				}
-			}
-		}		
-	}
-	complete_effect = {
-		add_faction_power_projection = 100
-		every_collection_element = {
-			input = {
-				input = game:scope
-				operators =  { 
-					faction_members 
-					limit = {
-						faction_influence_ratio > 0.3
-					}
-				}
-				
-				name = INFLUENCE_ABOVE_30_PERCENT
-			}
-			custom_effect_tooltip = INFLUENCE_ABOVE_30_PERCENT
-			add_faction_initiative = 1
-		}
-	}
-	ai_will_do = {
-		base = 0
-		modifier = {
-			add = 1 # Start considering it when Japan is growing a lot
-			collection_size = {
-				input = {
-					input = collection:country_and_all_subjects_controlled_non_core_states
-					name = COLLECTION_OCCUPIED_STATES_BY_JAPAN_OR_FACTION_MEMBERS
-				}
-				value > 49
-			}
-		}
-		modifier = {
-			add = 10 # Really do it when at war
-			any_enemy_country = {
-				original_tag = JAP
-			}
-		}
-	}
-}
 
 
  ##  ##  #   # ### ### ###     #  # #  # ###  ##  #  # 
@@ -647,149 +293,11 @@ faction_goal_eastern_european_security = {
 #    #  # #   #  # #  # #  # 
 #     ##  ### #  # #  # ###  
 
-faction_goal_eliminate_the_twin_threats = {
-	name = eliminate_the_twin_threats_goal_name
-	description = eliminate_the_twin_threats_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_POLITICAL_CHARACTER
-	visible = {
-		FROM = { 
-			original_tag = POL 
-			NOT = { is_in_faction_with = SOV }
-			NOT = { is_in_faction_with = GER }
-		}
-	}
-	completed = {
-		SOV = {
-			OR = {
-				exists = no
-				is_in_faction_with = ROOT 
-			}
-		}
-		GER = {
-			OR = {
-				exists = no
-				is_in_faction_with = ROOT 
-			}
-		}
-	}
-	complete_effect = {
-		add_faction_power_projection = 1000
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = INFLUENCE_ABOVE_30_PERCENT
-		every_faction_member = {
-			limit = { faction_influence_ratio > 0.3 }
-			add_faction_initiative = 1
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_eliminate_the_twin_threats } }
-				add_political_power = 200
-			}
-		}
-	}
-	ai_will_do = {
-		base = 0
-	}
-}
-
-
 ### #  # ###     #   ### ### ### #   ###     ### #  # ### ### #  # ### ### 
  #  #  # #       #    #   #   #  #   #       #   ## #  #  #   ## #  #  #   
  #  #### ##      #    #   #   #  #   ##      ##  # ##  #  ##  # ##  #  ##  
  #  #  # #       #    #   #   #  #   #       #   #  #  #  #   #  #  #  #   
  #  #  # ###     ### ###  #   #  ### ###     ### #  #  #  ### #  #  #  ### 
-
-faction_goal_disarm_aggression_central_powers = {
-	name = disarm_aggression_central_powers_goal_name
-	description = disarm_aggression_central_powers_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_POLITICAL_CHARACTER
-	visible = {
-		FROM = {
-			OR = {
-				original_tag = FRA
-				original_tag = CZE
-			}
-			has_government = democratic
-		}
-		OR = {
-			any_country_with_original_tag = {
-				original_tag_to_check = GER
-				NOT = { has_government = democratic }
-			}
-			any_country_with_original_tag = {
-				original_tag_to_check = HUN
-				NOT = { has_government = democratic }
-			}
-			any_country_with_original_tag = {
-				original_tag_to_check = AUS
-				NOT = { has_government = democratic }
-			}
-			any_country_with_original_tag = {
-				original_tag_to_check = BUL
-				NOT = { has_government = democratic }
-			}
-		}
-	}
-	completed = {
-		OR = {
-			any_country_with_original_tag = {
-				original_tag_to_check = GER
-				OR = {
-					is_in_faction_with = ROOT
-					has_government = democratic
-				}
-			}
-			GER = { exists = no }
-		}
-		OR = {
-			any_country_with_original_tag = {
-				original_tag_to_check = HUN
-				OR = {
-					is_in_faction_with = ROOT
-					has_government = democratic
-				}
-			}
-			HUN = { exists = no }
-		}
-		OR = {
-			any_country_with_original_tag = {
-				original_tag_to_check = AUS
-				OR = {
-					is_in_faction_with = ROOT
-					has_government = democratic
-				}
-			}
-			AUS = { exists = no }
-		}
-		OR = {
-			any_country_with_original_tag = {
-				original_tag_to_check = BUL
-				OR = {
-					is_in_faction_with = ROOT
-					has_government = democratic
-				}
-			}
-			BUL = { exists = no }
-		}
-	}
-	complete_effect = {
-		add_faction_power_projection = 1000
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = INFLUENCE_ABOVE_30_PERCENT
-		every_faction_member = {
-			limit = { faction_influence_ratio > 0.3 }
-			add_faction_initiative = 1
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_disarm_aggression_central_powers } }
-				add_political_power = 200
-			}
-		}
-	}
-	ai_will_do = {
-		base = 0
-	}
-}
-
 
 ##########################################################
 
@@ -1444,71 +952,6 @@ faction_goal_defeat_of_fascism = {
 }
 
 # Defeat of Anti-fascists 
-faction_goal_defeat_of_anti_fascists = {
-	name = defeat_of_anti_fascists_goal_name
-	description = defeat_of_anti_fascists_goal_desc
-	category = long_term
-	group = FOCUS_FILTER_CONSOLIDATION
-	visible = {
-		collection_size = {
-			input = {
-				input = game:scope
-				operators = {
-					faction_members
-					limit = {
-						OR = {
-							has_government = communism
-							has_government = democratic
-						}
-					}
-				}
-				name = FACTION
-			}
-			value < 1
-		}
-	}
-	available = {
-
-	}
-	completed = {
-		collection_size = {
-			input = {
-				input = collection:anti_fascist_controlled_states_my_continent
-				name = COLLECTION_STATES_MY_CONTINENT_CONTROLLED_DEMOCRATIC_COMMUNIST
-			}
-			value < 1
-		}
-		
-	}
-	complete_effect = {
-		add_faction_power_projection = 500
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = THE_FACTION_LEADER
-		add_faction_initiative = 1
-		custom_effect_tooltip = generic_skip_one_line_tt
-		custom_effect_tooltip = ALL_FACTION_MEMBERS
-		every_faction_member = {
-			IF = {
-				limit = { NOT = { has_completed_goal = faction_goal_defeat_of_anti_fascists } }
-				add_popularity = {
-					ideology = fascism
-					popularity = 0.2
-				}
-				add_political_power = 100
-			}
-		}
-	}
-	ai_will_do = {
-		base = 0
-		modifier = {
-			add = 1 # If war with communists you probably hate them
-			any_enemy_country = {
-				has_government = communism
-			}
-		}
-	}
-}
-
 # Defeat of Anti-communists
 faction_goal_defeat_of_anti_communists = {
 	name = defeat_of_anti_communists_goal_name
