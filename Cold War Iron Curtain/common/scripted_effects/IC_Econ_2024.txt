@@ -908,20 +908,24 @@ calculate_national_productivity_factor_var = {
 
 
 get_electricity_debuff = {
-	set_variable = {
-		electricity_debuff_factor = {
-			value = 1
-			if = {
-				limit = {
-					value = resource@coal
-					less_than = 0
+	set_variable = { electricity_debuff_factor = 1 }
+	if = {
+		limit = { check_variable = { total_factory_amount > 0 } }
+		set_variable = {
+			electricity_debuff_factor = {
+				value = 1
+				if = {
+					limit = {
+						value = resource@coal
+						less_than = 0
+					}
+					subtract = {
+						value = resource@coal
+						multiply = -1
+						divide = total_factory_amount
+					}
+					max = 0
 				}
-				subtract = {
-					value = resource@coal
-					multiply = -1
-					divide = total_factory_amount
-				}
-				max = 0
 			}
 		}
 	}
@@ -958,8 +962,8 @@ check_individual_factory_productivity = {
 	set_variable = { rsc_productivity_factor_var = other_resources_income_bonus_drift }
 	add_to_variable = { rsc_productivity_factor_var = 1 }			
 
-	#set_variable = { doc_productivity_factor_var = dockyard_income_bonus_drift }
-	#add_to_variable = { doc_productivity_factor_var = 1 }		
+	set_variable = { doc_productivity_factor_var = dockyard_income_bonus_drift }
+	add_to_variable = { doc_productivity_factor_var = 1 }
 }
 
 cwic_cache_market_income_multipliers = {
@@ -1579,9 +1583,6 @@ calc_welfare_expenditure = {
 	set_variable = {
 		welfare_cost_adjustment_policy = welfare_expenditure
 	}
-	multiply_variable = {
-		welfare_expenditure = modifier@welfare_spending_modifier 
-	}
 	clamp_variable = {
 		var = welfare_expenditure
 		min = 0
@@ -1951,7 +1952,7 @@ calc_navy_army_expenditure = {
 	multiply_variable = { navy_army_expenditure = 0.5 }
 	multiply_variable = { navy_army_expenditure = modifier@navy_spending_modifier }
 	clamp_variable = {
-		var = air_army_expenditure
+		var = navy_army_expenditure
 		min = 0
 	}
 }
@@ -1973,7 +1974,7 @@ calc_nuke_army_expenditure = {
 	multiply_temp_variable = { slbm_expenditure = 20 }
 
 	set_temp_variable = { nuke_expenditure = num_of_nukes }
-	multiply_temp_variable = { num_of_nukes = 10 }
+	multiply_temp_variable = { nuke_expenditure = 10 }
 
 	add_to_variable = { nuke_army_expenditure = srbm_expenditure }
 	add_to_variable = { nuke_army_expenditure = irbm_expenditure }
