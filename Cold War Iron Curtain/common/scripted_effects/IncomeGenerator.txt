@@ -457,6 +457,1271 @@ income_effect = {
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / tourism_infrastructure_total = [?tourism_infrastructure_total]" }
 	#Overall Multipliers#
+	ic_calc_trade_exports = yes
+	#Tax Rate Here?
+	add_to_variable = {
+		IncomeTotal = custom_income
+	}
+	add_to_variable = {
+		IncomeTotal = resource_income
+	}
+	add_to_variable = {
+		IncomeTotal = consumer_goods_export_income
+	}
+	set_variable = {
+		display_income = IncomeTotal
+	}
+	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / resource_income = [?resource_income]" }
+	#if = { limit = { is_ai = no } #log = "TOTAL INCOME: [?IncomeTotal]" }
+	#### EXPENSES ####
+	#if = { limit = { is_ai = no } #log = "------ EXPENSES ------" }
+	set_variable = {
+		CorruptIncomeLoss = CorruptionLevel
+	}
+	multiply_variable = {
+		CorruptIncomeLoss = 0.5
+	}
+	set_variable = {
+		CorruptLoss = IncomeTotal
+	}
+	multiply_variable = {
+		CorruptLoss = CorruptIncomeLoss
+	}
+	add_to_variable = { totalexp = CorruptLoss }
+	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / CorruptLoss = [?CorruptLoss]" }
+	ic_calc_trade_imports = yes
+	add_to_variable = { totalexp = resource_cost }
+	subtract_from_variable = {
+		IncomeTotal = resource_cost
+	}
+	subtract_from_variable = {
+		IncomeTotal = custom_expenses
+	}
+	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / resource_cost = [?resource_cost]" }
+	#Insurgency Costs
+	set_variable = {
+		total_insurgency_funding = paigc_funding
+	}
+	add_to_variable = {
+		total_insurgency_funding = los_funding
+	}
+	add_to_variable = {
+		total_insurgency_funding = vie_funding
+	}
+	add_to_variable = {
+		total_insurgency_funding = vin_funding
+	}
+	add_to_variable = {
+		total_insurgency_funding = mpla_funding
+	}
+	add_to_variable = {
+		total_insurgency_funding = unita_funding
+	}
+	add_to_variable = {
+		total_insurgency_funding = fnla_funding
+	}
+	subtract_from_variable = {
+		IncomeTotal = total_insurgency_funding
+	}
+	#Policy Costs
+	set_variable = { total_expenses = 0 }
+	add_to_variable = { total_expenses = CorruptLoss }
+	add_to_variable = { total_expenses = military_total_exp }
+	add_to_variable = { total_expenses = welfare_expenditure }
+	add_to_variable = { total_expenses = policing_expenditure }
+	add_to_variable = { total_expenses = education_expenditure }
+	add_to_variable = { total_expenses = healthcare_expenditure }
+	add_to_variable = { total_expenses = public_services_expenditure }
+
+	subtract_from_variable = { IncomeTotal = total_expenses }
+	#Domestic Cost (already accounted in total, just for display)
+	set_variable = {
+		domestic_cost = CorruptLoss
+	}
+	add_to_variable = {
+		domestic_cost = total_insurgency_funding
+	}
+	add_to_variable = {
+		domestic_cost = resource_cost
+	}
+	add_to_variable = {
+		domestic_cost = custom_expenses
+	}
+	set_variable = {
+		SubsidiyCheck = IncomeTotal
+	}	# this IncomeTotal is the sum of all Income minus Corruption, Imports cost, Insurgency Funding Costs and Policy Costs
+	multiply_variable = {
+		SubsidiyCheck = 0.25
+	}
+	if = {
+		limit = {
+			has_country_flag = Soviet_Subsidies
+		}
+		set_variable = {
+			subsidiy_base = 0
+		}
+		add_to_variable = {
+			subsidiy_base = land_army_expenditure
+		}
+		add_to_variable = {
+			subsidiy_base = welfare_cost
+		}
+		add_to_variable = {
+			subsidiy_base = cpi_cost
+		}
+		add_to_variable = {
+			subsidiy_base = edu_cost
+		}
+		add_to_variable = {
+			subsidiy_base = health_cost
+		}
+		add_to_variable = {
+			subsidiy_base = pub_cost
+		}
+		multiply_variable = {
+			subsidiy_base = 0.25
+		}
+		subtract_from_variable = {
+			SOV.currentMoney = subsidiy_base
+		}
+		add_to_variable = {
+			IncomeTotal = subsidiy_base
+		}
+	}
+	add_to_variable = {
+		currentMoney = IncomeTotal
+	}	# add income to money
+	set_variable = { pulse_deficit = 0 }
+	if = {
+		limit = {
+			check_variable = {
+				currentMoney < 0
+			}
+		}
+		set_variable = {
+			pulse_deficit = currentMoney
+		}
+		multiply_variable = {
+			pulse_deficit = -1
+		}
+	}
+	set_variable = {
+		IncomeCheck = IncomeTotal
+	}
+	set_variable = {
+		IncomePlannerCheck = IncomeCheck
+	}
+	set_variable = {
+		currentDebtPayments = 0
+	}
+	for_each_loop = {
+		array = debtPaymentArray
+		index = i
+		if = {
+			limit = {
+				check_variable = {
+					debtTotalsArray^i > 0
+				}
+			}
+			subtract_from_variable = {
+				debtTotalsArray^i = debtPaymentArray^i
+			}
+			subtract_from_variable = {
+				currentMoney = debtPaymentArray^i
+			}
+			subtract_from_variable = {
+				currentDebt = debtPaymentArray^i
+			}
+			add_to_variable = {
+				currentDebtPayments = debtPaymentArray^i
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					check_variable = {
+						debtOwnerArray^i = THIS.ID
+					}
+				}
+				NOT = {
+					check_variable = {
+						debtOwnerArray^i = GER.ID
+					}
+				}
+			}
+			var:debtOwnerArray^i = {
+				add_to_variable = {
+					currentMoney = debtPaymentArray^i
+				}
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					debtOwnerArray^i = GER.ID
+				}
+			}
+			var:debtOwnerArray^i = {
+				add_to_variable = {
+					currentMoney = debtPaymentArray^i
+				}
+				set_temp_variable = {
+					temp_debt_pay = debtPaymentArray^i
+				}
+				for_loop_effect = {
+					end = influence_array^num
+					value = v
+					if = {
+						limit = {
+							check_variable = {
+								influence_array^v = GER
+							}
+						}
+						subtract_from_variable = {
+							influence_array_val^v = temp_debt_pay
+						}
+					}
+				}
+			}
+		}
+		loan_payoff_change_to_liquidity = yes
+		if = {
+			limit = {
+				check_variable = {
+					var = debtTotalsArray^i
+					compare = less_than_or_equals
+					value = 0
+				}
+			}
+			set_variable = {
+				debtTotalsArray^i = 0
+			}
+			set_variable = {
+				debtPaymentArray^i = 0
+			}
+			set_variable = {
+				debtOwnerArray^i = 0
+			}
+			set_variable = {
+				debtOwnerDomesticStatusArray^i = 0
+			}
+		}
+	}
+	set_variable = {
+		display_balance = {
+			value = IncomeCheck subtract = currentDebtPayments
+		}
+	}
+	set_variable = {
+		domesticTotalDebtK = domesticTotalDebt
+	}
+	#divide_variable = { domesticTotalDebtK = 1000 }
+	set_variable = {
+		TotalDebtk = currentDebt
+	}
+	#divide_variable = { TotalDebtk = 1000 }
+	set_variable = {
+		gdpDomesticDebtLimit = 0.4
+	}
+	if = {
+		limit = {
+			check_variable = {
+				grossdomesticproduct > 1
+			}
+		}
+		add_to_variable = {
+			gdpDomesticDebtLimit = 0.1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				grossdomesticproduct > 5
+			}
+		}
+		add_to_variable = {
+			gdpDomesticDebtLimit = 0.1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				grossdomesticproduct > 10
+			}
+		}
+		add_to_variable = {
+			gdpDomesticDebtLimit = 0.1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				grossdomesticproduct > 100
+			}
+		}
+		add_to_variable = {
+			gdpDomesticDebtLimit = 0.1
+		}
+	}
+	if = {
+		limit = {
+			check_variable = {
+				grossdomesticproduct > 1000
+			}
+		}
+		add_to_variable = {
+			gdpDomesticDebtLimit = 0.1
+		}
+	}
+	if = {
+		#Fallback
+		limit = {
+			check_variable = {
+				Interest_Rate = 0
+			}
+		}
+		set_variable = {
+			Interest_Rate = 1.04
+		}
+	}
+	if = {
+		#Monthly Auto Debt Section
+		limit = {
+			check_variable = {
+				pulse_deficit > currentMoney
+			}
+		}
+		#Austerity and Default Checks
+		if = {
+			# ============================================================
+			# Austerity and Default Checks (solvency, legacy behavior)
+			# ============================================================
+			if = {
+				limit = {
+					check_variable = { defaultCheck < currentDebt }
+					check_variable = { Credit_Rating < 10 }
+					NOT = {
+						check_variable = { defaultCheck = 0 }
+					}
+					NOT = {
+						original_tag = NLF
+					}
+				}
+				if = {
+					limit = {
+						NOT = { has_idea = Recent_Default }
+					}
+
+					# Mark default status for later systems (market lockout, IMF eligibility, etc.)
+					set_country_flag = CWIC_DEFAULTED
+					set_country_flag = CWIC_MARKET_LOCKOUT
+
+					# Optional: immediate rating hit (tunable)
+					subtract_from_variable = { Credit_Rating = 2 }
+					if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
+
+					# Optional: macro shock (tunable)
+					add_to_variable = { CWIC_inflation_mom = 0.010 }
+					add_to_variable = { CWIC_black_market_pressure = 0.10 }
+
+					country_event = CWIC_ECON_PENALTIES.2
+				}
+			}
+			else_if = {
+				limit = {
+					check_variable = { austerityCheck < currentDebt }
+					NOT = {
+						check_variable = { defaultCheck = 0 }
+					}
+					NOT = {
+						original_tag = NLF
+					}
+					check_variable = { Credit_Rating < 10 }
+				}
+				if = {
+					limit = { NOT = { has_idea = Recent_Austerity_Measures } }
+					country_event = CWIC_ECON_PENALTIES.1
+				}
+			}
+			else = {
+			}
+		}
+
+		#New
+		if = {
+			limit = {
+				check_variable = {
+					CurrentReserveMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 1
+			}
+			save_global_event_target_as = this_loan_country
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			add_to_array = {
+				purchase_length = 7
+			}
+			add_to_array = {
+				purchase_length = 10
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = ReserveCurrentInterestRate
+			}
+			add_to_array = {
+				currentInterestRateCalc = ReserveCurrentInterestRate
+			}
+			add_to_array = {
+				currentInterestRateCalc = ReserveCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 2
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					available_liquidity > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 2
+			}			#Not Eligible
+			save_global_event_target_as = this_loan_country
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			add_to_array = {
+				purchase_length = 10
+			}
+			add_to_array = {
+				purchase_length = 15
+			}
+			add_to_array = {
+				purchase_length = 20
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = Interest_Rate
+			}
+			add_to_array = {
+				currentInterestRateCalc = Interest_Rate
+			}
+			set_variable = {
+				Interest_Rate_Adjusted = Interest_Rate
+			}
+			multiply_variable = {
+				Interest_Rate_Adjusted = 1.2
+			}
+			add_to_array = {
+				currentInterestRateCalc = Interest_Rate_Adjusted
+			}
+			multiply_variable = {
+				Interest_Rate_Adjusted = 1.2
+			}
+			add_to_array = {
+				currentInterestRateCalc = Interest_Rate_Adjusted
+			}
+			set_variable = {
+				max_index = 3
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		#World Bank                  5Y
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentWorldMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 10
+			}
+			WBK = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			add_to_array = {
+				purchase_length = 10
+			}
+			add_to_array = {
+				purchase_length = 15
+			}
+			add_to_array = {
+				purchase_length = 20
+			}
+			add_to_array = {
+				purchase_length = 25
+			}
+			add_to_array = {
+				purchase_length = 30
+			}
+			add_to_array = {
+				purchase_length = 35
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = 1.35
+			}
+			add_to_array = {
+				currentInterestRateCalc = 1.35
+			}
+			add_to_array = {
+				currentInterestRateCalc = 1.62
+			}
+			add_to_array = {
+				currentInterestRateCalc = 1.95
+			}
+			add_to_array = {
+				currentInterestRateCalc = 2.34
+			}
+			add_to_array = {
+				currentInterestRateCalc = 2.81
+			}
+			add_to_array = {
+				currentInterestRateCalc = 3.37
+			}
+			set_variable = {
+				max_index = 6
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentMorganMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 8
+			}
+			JPM = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = MorganCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 0
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentParisMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 3
+			}
+			BNP = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = ParisCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 0
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentBarclaysMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 4
+			}
+			BRC = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = BarclaysCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 0
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentMitsubishiMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 5
+			}
+			CHY = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = MitsubishiCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 0
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentDeutscheMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 7
+			}
+			DBA = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = DeutscheCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 0
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					CurrentSuisseMaxBorrowable > pulse_deficit
+				}
+			}
+			set_variable = {
+				bank_name_prompt = 6
+			}
+			SKA = {
+				save_global_event_target_as = this_loan_country
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 5
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = SuisseCurrentInterestRate
+			}
+			set_variable = {
+				max_index = 0
+			}
+			set_variable = {
+				current_index = 0
+			}
+		}
+		else = {
+			GER = {
+				save_global_event_target_as = this_loan_country
+			}
+			set_variable = {
+				bank_name_prompt = 9
+			}
+			clear_array = purchase_length
+			add_to_array = {
+				purchase_length = 1
+			}
+			add_to_array = {
+				purchase_length = 2
+			}
+			add_to_array = {
+				purchase_length = 3
+			}
+			add_to_array = {
+				purchase_length = 4
+			}
+			clear_array = currentInterestRateCalc
+			add_to_array = {
+				currentInterestRateCalc = 7
+			}
+			add_to_array = {
+				currentInterestRateCalc = 9
+			}
+			add_to_array = {
+				currentInterestRateCalc = 12
+			}
+			add_to_array = {
+				currentInterestRateCalc = 15
+			}
+			set_variable = {
+				max_index = 3
+			}
+			set_variable = {
+				current_index = 1
+			}	
+		}
+		automatic_loan_setting = yes
+	}
+	if = {
+		limit = { is_ai = no }
+		create_pie_chart = yes
+	}
+	#Stuff for AI Building Priorities
+	set_variable = {
+		refinery_total = 0
+	}
+	add_to_variable = {
+		refinery_total = tungsten_factory_total
+	}
+	add_to_variable = {
+		refinery_total = steel_works_total
+	}
+	add_to_variable = {
+		refinery_total = oil_refinery_total
+	}
+	set_variable = {
+		oilincome = 0
+	}
+	set_variable = {
+		steelincome = 0
+	}
+	set_variable = {
+		tungstenincome = 0
+	}
+	add_to_variable = {
+		oilincome = oil_refinery_total
+	}
+	add_to_variable = {
+		steelincome = steel_works_total
+	}
+	add_to_variable = {
+		tungstenincome = tungsten_factory_total
+	}
+	ai_economic_planning = yes
+	set_variable = {
+		IncomeTotal = 0
+	}
+	set_variable = {
+		ROOT.industrial_complex_total = 0
+	}
+	set_variable = {
+		ROOT.farm_total = 0
+	}
+	set_variable = {
+		ROOT.dockyard_total = 0
+	}
+	set_variable = {
+		ROOT.oil_refinery_total = 0
+	}
+	set_variable = {
+		ROOT.steel_works_total = 0
+	}
+	set_variable = {
+		ROOT.tungsten_factory_total = 0
+	}
+	set_variable = {
+		ROOT.office_park_total = 0
+	}
+
+	
+	cwic_capital_controls_monthly_effects = yes
+	cwic_black_market_monthly_update = yes
+	cwic_black_market_tier_assign = yes
+	cwic_black_market_apply_outputs = yes
+	cwic_currency_monthly_cooldowns = yes
+	cwic_fx_regime_monthly = yes
+	cwic_inflation_monthly_pulse = yes
+	cwic_calc_inflation_pressure_index = yes
+	cwic_reserve_currency_update = yes
+
+	#Mob Seperatism Rollup
+	cwic_calc_stability_percent = yes
+	cwic_finalize_separatism_rollup = yes 
+
+	cwic_calc_nationalization_pressure_index = yes
+	cwic_calc_governance_stress_index_fast = yes
+	cwic_apply_governance_stress_modifiers_country = yes
+
+	cwic_calc_corporate_risk_index = yes
+	cwic_calc_global_budget_risk_factor = yes
+	cwic_calc_global_budget_shock_factor = yes
+
+	cwic_country_add_all_corp_profits = yes
+
+	# TODO(MNC): cwic_country_mnc_presence_growth is not defined anywhere yet (never was, per git history).
+	# Re-enable once the effect is written in the MNC scripted effects.
+	# cwic_country_mnc_presence_growth = yes
+
+	# TODO(MNC): cwic_mnc_set_auto_invest_pool_flags_country is not defined anywhere yet.
+	# Re-enable once the effect is written in the MNC scripted effects.
+	# cwic_mnc_set_auto_invest_pool_flags_country = yes
+	cwic_mnc_apply_sector_presence_effects_country = yes
+	cwic_mnc_apply_elite_capture_effects_country = yes
+	cwic_mnc_apply_state_backlash_effects_country = yes
+	if = {
+		limit = {
+			has_global_flag = Crisis_Check_Evaluation_1
+		}
+		CWIC_evaluate_national_crises = yes
+	}
+}
+
+military_expenditure = {
+	add_to_variable = {
+		IncomeCheck = land_army_expenditure
+	}
+	#Personnel Pay and Space+Nuke
+	calc_land_army_expenditure = yes
+	calc_air_army_expenditure = yes
+	calc_navy_army_expenditure = yes
+	calc_nuke_army_expenditure = yes
+	calc_space_expenditure = yes
+
+
+	##calc for corruption/subsidies
+	set_variable = {
+		mil_expend_display = land_army_expenditure
+	}
+	set_variable = {
+		navy_expend_display = navy_army_expenditure
+	}
+	set_variable = {
+		af_expend_display = air_army_expenditure
+	}
+	##
+	##
+	multiply_variable = {
+		land_army_expenditure = global.GlobalDebit
+	}	#COST DIVIDER
+	multiply_variable = {
+		mil_expend_display = global.GlobalDebit
+	}	#COST DIVIDER
+	multiply_variable = {
+		navy_army_expenditure = global.GlobalDebit
+	}	#COST DIVIDER
+	multiply_variable = {
+		navy_expend_display = global.GlobalDebit
+	}	#COST DIVIDER
+	multiply_variable = {
+		air_army_expenditure = global.GlobalDebit
+	}	#COST DIVIDER
+	multiply_variable = {
+		af_expend_display = global.GlobalDebit
+	}	#COST DIVIDER
+	##
+	set_variable = {
+		mil_expend_subsidy = land_army_expenditure
+	}
+	multiply_variable = {
+		mil_expend_subsidy = 0.25
+	}
+	set_variable = {
+		mil_expend_subsidy_tot = 0
+	}
+	set_variable = {
+		navy_expend_subsidy = navy_army_expenditure
+	}
+	multiply_variable = {
+		navy_expend_subsidy = 0.25
+	}
+	set_variable = {
+		navy_expend_subsidy_tot = 0
+	}
+	set_variable = {
+		af_expend_subsidy = air_army_expenditure
+	}
+	multiply_variable = {
+		af_expend_subsidy = 0.25
+	}
+	set_variable = {
+		af_expend_subsidy_tot = 0
+	}
+	for_each_scope_loop = {
+		array = ROOT.military_subsidies
+		meta_effect = {
+			text = {
+				add_to_variable = {
+					mil_expend_subsidy_tot = [ROOTTAG].mil_expend_subsidy
+				}
+				add_to_variable = {
+					navy_expend_subsidy_tot = [ROOTTAG].mil_expend_subsidy
+				}
+				add_to_variable = {
+					af_expend_subsidy_tot = [ROOTTAG].mil_expend_subsidy
+				}
+			}
+			ROOTTAG = "[?var:mil_subsidy_id.GetTag]"
+		}
+		subtract_from_variable = {
+			land_army_expenditure = mil_expend_subsidy
+		}
+		subtract_from_variable = {
+			navy_army_expenditure = mil_expend_subsidy
+		}
+		subtract_from_variable = {
+			air_army_expenditure = mil_expend_subsidy
+		}
+		for_loop_effect = {
+			end = influence_array^num
+			value = v
+			if = {
+				limit = {
+					check_variable = {
+						influence_array^v = mil_subsidy_id
+					}
+				}
+				add_to_variable = {
+					influence_array_val^v = mil_expend_subsidy
+				}
+				set_country_flag = found
+			}
+		}
+		recalculate_influence = yes
+	}
+	##
+	add_to_variable = {
+		land_army_expenditure = mil_expend_subsidy_tot
+	}
+	set_variable = {
+		mil_expend_cor_penalty = land_army_expenditure
+	}
+	multiply_variable = {
+		mil_expend_cor_penalty = CorruptPolicyExcess
+	}
+	add_to_variable = {
+		land_army_expenditure = mil_expend_cor_penalty
+	}
+	#add_to_variable = { mil_cost_display = mil_cost_cor_penalty }
+	#
+	add_to_variable = {
+		navy_army_expenditure = navy_expend_subsidy_tot
+	}
+	set_variable = {
+		navy_expend_cor_penalty = navy_army_expenditure
+	}
+	multiply_variable = {
+		navy_expend_cor_penalty = CorruptPolicyExcess
+	}
+	add_to_variable = {
+		navy_army_expenditure = navy_expend_cor_penalty
+	}
+	#add_to_variable = { navy = navy_cost_cor_penalty }
+	#
+	add_to_variable = {
+		air_army_expenditure = af_expend_subsidy_tot
+	}
+	set_variable = {
+		af_expend_cor_penalty = air_army_expenditure
+	}
+	multiply_variable = {
+		af_expend_cor_penalty = CorruptPolicyExcess
+	}
+	add_to_variable = {
+		air_army_expenditure = af_expend_cor_penalty
+	}
+	#add_to_variable = { af_cost_display = af_cost_cor_penalty }
+	#
+	set_variable = {
+		mil_gui_total = 0
+	}
+	set_variable = {
+		navy_gui_total = 0
+	}
+	set_variable = {
+		af_gui_total = 0
+	}
+	set_variable = {
+		sf_gui_total = 0
+	}
+	#Make Monthly
+	divide_variable = { land_army_expenditure = 1.5 }
+	divide_variable = { navy_army_expenditure = 2.5 }
+	divide_variable = { air_army_expenditure = 2.25 }
+	divide_variable = { nuke_army_expenditure = 1 }
+	add_to_variable = {
+		mil_gui_total = land_army_expenditure
+	}
+	add_to_variable = {
+		navy_gui_total = navy_army_expenditure
+	}
+	add_to_variable = {
+		af_gui_total = air_army_expenditure
+	}
+	add_to_variable = {
+		sf_gui_total = nuke_army_expenditure
+	}
+	add_to_variable = {
+		sf_gui_total = space_expenditure
+	}
+	#Addition
+	set_variable = { military_total_exp = mil_gui_total }
+	add_to_variable = { military_total_exp = navy_gui_total }
+	add_to_variable = { military_total_exp = af_gui_total }
+	add_to_variable = { military_total_exp = sf_gui_total }
+}
+
+agency_calc_operative_slots = {
+	count_agency_upgrades = yes
+	set_variable = {
+		operative_slot_bonus = num_agency_upgrades_real
+	}
+	divide_variable = {
+		operative_slot_bonus = global.upgrades_per_operative
+	}	#Number of agency upgrades divided by agency upgrades per operative gain
+	round_variable = operative_slot_bonus
+	if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 1
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_1
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 2
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_2
+		remove_ideas = operative_slots_from_upgrade_1		#Remove needs to be below to not delete existing operatives
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 3
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_3
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 4
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_4
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 5
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_5
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+			operative_slots_from_upgrade_4
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 6
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_6
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+			operative_slots_from_upgrade_4
+			operative_slots_from_upgrade_5
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 7
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_7
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+			operative_slots_from_upgrade_4
+			operative_slots_from_upgrade_5
+			operative_slots_from_upgrade_6
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 8
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_8
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+			operative_slots_from_upgrade_4
+			operative_slots_from_upgrade_5
+			operative_slots_from_upgrade_6
+			operative_slots_from_upgrade_7
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				operative_slot_bonus = 9
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_9
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+			operative_slots_from_upgrade_4
+			operative_slots_from_upgrade_5
+			operative_slots_from_upgrade_6
+			operative_slots_from_upgrade_7
+			operative_slots_from_upgrade_8
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = {
+				var = operative_slot_bonus
+				compare = greater_than_or_equals
+				value = 10
+			}
+		}
+		add_ideas = operative_slots_from_upgrade_10
+		remove_ideas = {
+			#Remove needs to be below to not delete existing operatives
+			operative_slots_from_upgrade_1
+			operative_slots_from_upgrade_2
+			operative_slots_from_upgrade_3
+			operative_slots_from_upgrade_4
+			operative_slots_from_upgrade_5
+			operative_slots_from_upgrade_6
+			operative_slots_from_upgrade_7
+			operative_slots_from_upgrade_8
+			operative_slots_from_upgrade_9
+		}
+	}
+}
+GDP_Extra_Calcs = {
+	##GDP calcs
+	set_variable = {
+		grossdomesticproduct_fake = grossdomesticproduct
+	}
+	divide_variable = {
+		grossdomesticproduct_fake = 1050
+	}	#Fake display multiplier
+	clear_legacy_gdp_graph = yes
+
+	##monthly counter
+	add_to_variable = {
+		checkdone = 0
+	}	##counts months since start
+	set_variable = {
+		yearlycheck = checkdone
+	}
+	set_variable = {
+		yearlymodulo = yearlycheck
+	}
+	modulo_variable = {
+		yearlymodulo = 12
+	}	##checks if a year is complete
+	if = {
+		limit = {
+			check_variable = {
+				yearlymodulo = 0
+			}
+		}
+		calculate_gdp_growth = yes
+	}
+	##runinit for initial start
+	add_to_variable = {
+		initrun = 0
+	}	##first run
+	if = {
+		limit = {
+			check_variable = {
+				initrun = 0
+			}
+		}
+		#arab league init
+		set_variable = {
+			QAT.Domestic_Progressbar_Total = 0
+		}
+		add_to_variable = {
+			initrun = 1
+		}
+		set_variable = {
+			gdp_growth_curr = 0
+		}		##reset init GDP growth counter
+	}
+	add_to_variable = {
+		checkdone = 1
+	}	##counts ingame months
+}
+
+ic_calc_trade_exports = {
 	set_variable = {
 		resource_income = 0
 	}
@@ -1222,37 +2487,9 @@ income_effect = {
 	multiply_variable = {
 		consumer_goods_export_income = trade_credit_factor
 	}
-	#Tax Rate Here?
-	add_to_variable = {
-		IncomeTotal = custom_income
-	}
-	add_to_variable = {
-		IncomeTotal = resource_income
-	}
-	add_to_variable = {
-		IncomeTotal = consumer_goods_export_income
-	}
-	set_variable = {
-		display_income = IncomeTotal
-	}
-	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / resource_income = [?resource_income]" }
-	#if = { limit = { is_ai = no } #log = "TOTAL INCOME: [?IncomeTotal]" }
-	#### EXPENSES ####
-	#if = { limit = { is_ai = no } #log = "------ EXPENSES ------" }
-	set_variable = {
-		CorruptIncomeLoss = CorruptionLevel
-	}
-	multiply_variable = {
-		CorruptIncomeLoss = 0.5
-	}
-	set_variable = {
-		CorruptLoss = IncomeTotal
-	}
-	multiply_variable = {
-		CorruptLoss = CorruptIncomeLoss
-	}
-	add_to_variable = { totalexp = CorruptLoss }
-	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / CorruptLoss = [?CorruptLoss]" }
+}
+
+ic_calc_trade_imports = {
 	set_variable = {
 		resource_cost = 0
 	}
@@ -1348,526 +2585,178 @@ income_effect = {
 	}
 	for_each_scope_loop = {
 		array = Food_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						food_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				food_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.rubber_imports = ROOT.foodImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.rubber_imports = ROOT.foodImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = Nuclear_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						nuclear_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				nuclear_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.chromium_imports = ROOT.chromiumImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.chromium_imports = ROOT.chromiumImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = Oil_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						oil_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				oil_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.oil_imports = ROOT.oilImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.oil_imports = ROOT.oilImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = Steel_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						steel_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				steel_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.steel_imports = ROOT.steelImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.steel_imports = ROOT.steelImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = Aluminium_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						aluminium_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				aluminium_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.aluminium_imports = ROOT.aluminiumImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.aluminium_imports = ROOT.aluminiumImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = RareEarth_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						tungsten_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				tungsten_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.tungsten_imports = ROOT.rareEarthImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.tungsten_imports = ROOT.rareEarthImportTargetMonthly^THIS
 		}
 	}
 
 	#Consumer Goods Import Costs
 	for_each_scope_loop = {
 		array = CgBasicT0_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgBasicT0_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgBasicT0_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgBasicT0_imports = ROOT.CgBasicT0ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgBasicT0_imports = ROOT.CgBasicT0ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgBasicT1_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgBasicT1_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgBasicT1_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgBasicT1_imports = ROOT.CgBasicT1ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgBasicT1_imports = ROOT.CgBasicT1ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgBasicT2_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgBasicT2_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgBasicT2_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgBasicT2_imports = ROOT.CgBasicT2ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgBasicT2_imports = ROOT.CgBasicT2ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgBasicT3_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgBasicT3_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgBasicT3_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgBasicT3_imports = ROOT.CgBasicT3ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgBasicT3_imports = ROOT.CgBasicT3ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgBasicT4_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgBasicT4_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgBasicT4_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgBasicT4_imports = ROOT.CgBasicT4ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgBasicT4_imports = ROOT.CgBasicT4ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgBasicT5_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgBasicT5_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgBasicT5_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgBasicT5_imports = ROOT.CgBasicT5ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgBasicT5_imports = ROOT.CgBasicT5ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgDurableT0_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgDurableT0_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgDurableT0_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgDurableT0_imports = ROOT.CgDurableT0ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgDurableT0_imports = ROOT.CgDurableT0ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgDurableT1_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgDurableT1_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgDurableT1_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgDurableT1_imports = ROOT.CgDurableT1ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgDurableT1_imports = ROOT.CgDurableT1ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgDurableT2_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgDurableT2_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgDurableT2_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgDurableT2_imports = ROOT.CgDurableT2ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgDurableT2_imports = ROOT.CgDurableT2ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgDurableT3_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgDurableT3_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgDurableT3_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgDurableT3_imports = ROOT.CgDurableT3ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgDurableT3_imports = ROOT.CgDurableT3ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgDurableT4_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgDurableT4_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgDurableT4_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgDurableT4_imports = ROOT.CgDurableT4ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgDurableT4_imports = ROOT.CgDurableT4ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgDurableT5_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgDurableT5_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgDurableT5_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgDurableT5_imports = ROOT.CgDurableT5ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgDurableT5_imports = ROOT.CgDurableT5ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgVehiclesT0_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgVehiclesT0_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgVehiclesT0_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgVehiclesT0_imports = ROOT.CgVehiclesT0ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgVehiclesT0_imports = ROOT.CgVehiclesT0ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgVehiclesT1_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgVehiclesT1_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgVehiclesT1_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgVehiclesT1_imports = ROOT.CgVehiclesT1ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgVehiclesT1_imports = ROOT.CgVehiclesT1ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgVehiclesT2_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgVehiclesT2_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgVehiclesT2_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgVehiclesT2_imports = ROOT.CgVehiclesT2ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgVehiclesT2_imports = ROOT.CgVehiclesT2ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgVehiclesT3_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgVehiclesT3_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgVehiclesT3_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgVehiclesT3_imports = ROOT.CgVehiclesT3ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgVehiclesT3_imports = ROOT.CgVehiclesT3ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgVehiclesT4_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgVehiclesT4_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgVehiclesT4_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgVehiclesT4_imports = ROOT.CgVehiclesT4ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgVehiclesT4_imports = ROOT.CgVehiclesT4ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgVehiclesT5_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgVehiclesT5_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgVehiclesT5_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgVehiclesT5_imports = ROOT.CgVehiclesT5ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgVehiclesT5_imports = ROOT.CgVehiclesT5ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgElectronicsT1_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgElectronicsT1_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgElectronicsT1_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgElectronicsT1_imports = ROOT.CgElectronicsT1ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgElectronicsT1_imports = ROOT.CgElectronicsT1ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgElectronicsT2_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgElectronicsT2_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgElectronicsT2_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgElectronicsT2_imports = ROOT.CgElectronicsT2ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgElectronicsT2_imports = ROOT.CgElectronicsT2ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgElectronicsT3_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgElectronicsT3_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgElectronicsT3_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgElectronicsT3_imports = ROOT.CgElectronicsT3ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgElectronicsT3_imports = ROOT.CgElectronicsT3ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgElectronicsT4_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgElectronicsT4_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgElectronicsT4_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgElectronicsT4_imports = ROOT.CgElectronicsT4ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgElectronicsT4_imports = ROOT.CgElectronicsT4ImportTargetMonthly^THIS
 		}
 	}
 	for_each_scope_loop = {
 		array = CgElectronicsT5_Import_List
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						cgElectronicsT5_import_check = 1
-					}
-				}
-			}
-			set_temp_variable = {
-				cgElectronicsT5_import_check = 1
-			}
-			add_to_variable = {
-				ROOT.cgElectronicsT5_imports = ROOT.CgElectronicsT5ImportTargetMonthly^THIS
-			}
+		add_to_variable = {
+			ROOT.cgElectronicsT5_imports = ROOT.CgElectronicsT5ImportTargetMonthly^THIS
 		}
 	}
 	set_variable = {
@@ -1908,1234 +2797,4 @@ income_effect = {
 			add = oil_imports
 		}
 	}
-	add_to_variable = { totalexp = resource_cost }
-	subtract_from_variable = {
-		IncomeTotal = resource_cost
-	}
-	subtract_from_variable = {
-		IncomeTotal = custom_expenses
-	}
-	subtract_from_variable = {
-		IncomeTotal = total_insurgency_funding
-	}
-	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / resource_cost = [?resource_cost]" }
-	#Insurgency Costs
-	set_variable = {
-		total_insurgency_funding = paigc_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = los_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = vie_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = vin_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = mpla_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = unita_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = fnla_funding
-	}
-	#Policy Costs
-	set_variable = { total_expenses = 0 }
-	add_to_variable = { total_expenses = CorruptLoss }
-	add_to_variable = { total_expenses = military_total_exp }
-	add_to_variable = { total_expenses = welfare_expenditure }
-	add_to_variable = { total_expenses = policing_expenditure }
-	add_to_variable = { total_expenses = education_expenditure }
-	add_to_variable = { total_expenses = healthcare_expenditure }
-	add_to_variable = { total_expenses = public_services_expenditure }
-
-	subtract_from_variable = { IncomeTotal = total_expenses }
-	#Domestic Cost (already accounted in total, just for display)
-	set_variable = {
-		domestic_cost = CorruptLoss
-	}
-	add_to_variable = {
-		domestic_cost = total_insurgency_funding
-	}
-	add_to_variable = {
-		domestic_cost = resource_cost
-	}
-	add_to_variable = {
-		domestic_cost = custom_expenses
-	}
-	set_variable = {
-		SubsidiyCheck = IncomeTotal
-	}	# this IncomeTotal is the sum of all Income minus Corruption, Imports cost, Insurgency Funding Costs and Policy Costs
-	multiply_variable = {
-		SubsidiyCheck = 0.25
-	}
-	if = {
-		limit = {
-			has_country_flag = Soviet_Subsidies
-		}
-		set_variable = {
-			subsidiy_base = 0
-		}
-		add_to_variable = {
-			subsidiy_base = land_army_expenditure
-		}
-		add_to_variable = {
-			subsidiy_base = welfare_cost
-		}
-		add_to_variable = {
-			subsidiy_base = cpi_cost
-		}
-		add_to_variable = {
-			subsidiy_base = edu_cost
-		}
-		add_to_variable = {
-			subsidiy_base = health_cost
-		}
-		add_to_variable = {
-			subsidiy_base = pub_cost
-		}
-		multiply_variable = {
-			subsidiy_base = 0.25
-		}
-		subtract_from_variable = {
-			SOV.currentMoney = subsidiy_base
-		}
-		add_to_variable = {
-			IncomeTotal = subsidiy_base
-		}
-	}
-	add_to_variable = {
-		currentMoney = IncomeTotal
-	}	# add income to money
-	set_variable = { pulse_deficit = 0 }
-	if = {
-		limit = {
-			check_variable = {
-				currentMoney < 0
-			}
-		}
-		set_variable = {
-			pulse_deficit = currentMoney
-		}
-		multiply_variable = {
-			pulse_deficit = -1
-		}
-	}
-	set_variable = {
-		IncomeCheck = IncomeTotal
-	}
-	set_variable = {
-		IncomePlannerCheck = IncomeCheck
-	}
-	set_variable = {
-		currentDebtPayments = 0
-	}
-	for_each_loop = {
-		array = debtPaymentArray
-		index = i
-		if = {
-			limit = {
-				check_variable = {
-					debtTotalsArray^i > 0
-				}
-			}
-			subtract_from_variable = {
-				debtTotalsArray^i = debtPaymentArray^i
-			}
-			subtract_from_variable = {
-				currentMoney = debtPaymentArray^i
-			}
-			subtract_from_variable = {
-				currentDebt = debtPaymentArray^i
-			}
-			add_to_variable = {
-				currentDebtPayments = debtPaymentArray^i
-			}
-		}
-		if = {
-			limit = {
-				NOT = {
-					check_variable = {
-						debtOwnerArray^i = THIS.ID
-					}
-				}
-				NOT = {
-					check_variable = {
-						debtOwnerArray^i = GER.ID
-					}
-				}
-			}
-			var:debtOwnerArray^i = {
-				add_to_variable = {
-					currentMoney = debtPaymentArray^i
-				}
-			}
-		}
-		if = {
-			limit = {
-				check_variable = {
-					debtOwnerArray^i = GER.ID
-				}
-			}
-			var:debtOwnerArray^i = {
-				add_to_variable = {
-					currentMoney = debtPaymentArray^i
-				}
-				set_temp_variable = {
-					temp_debt_pay = debtPaymentArray^i
-				}
-				for_loop_effect = {
-					end = influence_array^num
-					value = v
-					if = {
-						limit = {
-							check_variable = {
-								influence_array^v = GER
-							}
-						}
-						subtract_from_variable = {
-							influence_array_val^v = temp_debt_pay
-						}
-					}
-				}
-			}
-		}
-		loan_payoff_change_to_liquidity = yes
-		if = {
-			limit = {
-				check_variable = {
-					var = debtTotalsArray^i
-					compare = less_than_or_equals
-					value = 0
-				}
-			}
-			set_variable = {
-				debtTotalsArray^i = 0
-			}
-			set_variable = {
-				debtPaymentArray^i = 0
-			}
-			set_variable = {
-				debtOwnerArray^i = 0
-			}
-			set_variable = {
-				debtOwnerDomesticStatusArray^i = 0
-			}
-		}
-	}
-	set_variable = {
-		display_balance = {
-			value = IncomeCheck subtract = currentDebtPayments
-		}
-	}
-	set_variable = {
-		domesticTotalDebtK = domesticTotalDebt
-	}
-	#divide_variable = { domesticTotalDebtK = 1000 }
-	set_variable = {
-		TotalDebtk = currentDebt
-	}
-	#divide_variable = { TotalDebtk = 1000 }
-	set_variable = {
-		gdpDomesticDebtLimit = 0.4
-	}
-	if = {
-		limit = {
-			check_variable = {
-				grossdomesticproduct > 1
-			}
-		}
-		add_to_variable = {
-			gdpDomesticDebtLimit = 0.1
-		}
-	}
-	if = {
-		limit = {
-			check_variable = {
-				grossdomesticproduct > 5
-			}
-		}
-		add_to_variable = {
-			gdpDomesticDebtLimit = 0.1
-		}
-	}
-	if = {
-		limit = {
-			check_variable = {
-				grossdomesticproduct > 10
-			}
-		}
-		add_to_variable = {
-			gdpDomesticDebtLimit = 0.1
-		}
-	}
-	if = {
-		limit = {
-			check_variable = {
-				grossdomesticproduct > 100
-			}
-		}
-		add_to_variable = {
-			gdpDomesticDebtLimit = 0.1
-		}
-	}
-	if = {
-		limit = {
-			check_variable = {
-				grossdomesticproduct > 1000
-			}
-		}
-		add_to_variable = {
-			gdpDomesticDebtLimit = 0.1
-		}
-	}
-	if = {
-		#Fallback
-		limit = {
-			check_variable = {
-				Interest_Rate = 0
-			}
-		}
-		set_variable = {
-			Interest_Rate = 1.04
-		}
-	}
-	if = {
-		#Monthly Auto Debt Section
-		limit = {
-			check_variable = {
-				pulse_deficit > currentMoney
-			}
-		}
-		#Austerity and Default Checks
-		if = {
-			# ============================================================
-			# Austerity and Default Checks (solvency, legacy behavior)
-			# ============================================================
-			if = {
-				limit = {
-					check_variable = { defaultCheck < currentDebt }
-					check_variable = { Credit_Rating < 10 }
-					NOT = {
-						check_variable = { defaultCheck = 0 }
-					}
-					NOT = {
-						original_tag = NLF
-					}
-				}
-				if = {
-					limit = {
-						NOT = { has_idea = Recent_Default }
-					}
-
-					# Mark default status for later systems (market lockout, IMF eligibility, etc.)
-					set_country_flag = CWIC_DEFAULTED
-					set_country_flag = CWIC_MARKET_LOCKOUT
-
-					# Optional: immediate rating hit (tunable)
-					subtract_from_variable = { Credit_Rating = 2 }
-					if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
-
-					# Optional: macro shock (tunable)
-					add_to_variable = { CWIC_inflation_mom = 0.010 }
-					add_to_variable = { CWIC_black_market_pressure = 0.10 }
-
-					country_event = CWIC_ECON_PENALTIES.2
-				}
-			}
-			else_if = {
-				limit = {
-					check_variable = { austerityCheck < currentDebt }
-					NOT = {
-						check_variable = { defaultCheck = 0 }
-					}
-					NOT = {
-						original_tag = NLF
-					}
-					check_variable = { Credit_Rating < 10 }
-				}
-				if = {
-					limit = { NOT = { has_idea = Recent_Austerity_Measures } }
-					country_event = CWIC_ECON_PENALTIES.1
-				}
-			}
-			else = {
-			}
-		}
-
-		#New
-		if = {
-			limit = {
-				check_variable = {
-					ReserveMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 1
-			}
-			save_global_event_target_as = this_loan_country
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 7
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			add_to_array = {
-				currentInterestRateCalc = ReserveCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 2
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					available_liquidity > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 2
-			}			#Not Eligible
-			save_global_event_target_as = this_loan_country
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			add_to_array = {
-				purchase_length = 15
-			}
-			add_to_array = {
-				purchase_length = 20
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate
-			}
-			set_variable = {
-				Interest_Rate_Adjusted = Interest_Rate
-			}
-			multiply_variable = {
-				Interest_Rate_Adjusted = 1.2
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate_Adjusted
-			}
-			multiply_variable = {
-				Interest_Rate_Adjusted = 1.2
-			}
-			add_to_array = {
-				currentInterestRateCalc = Interest_Rate_Adjusted
-			}
-			set_variable = {
-				max_index = 3
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		#World Bank                  5Y
-		else_if = {
-			limit = {
-				check_variable = {
-					WorldMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 10
-			}
-			WBK = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			add_to_array = {
-				purchase_length = 10
-			}
-			add_to_array = {
-				purchase_length = 15
-			}
-			add_to_array = {
-				purchase_length = 20
-			}
-			add_to_array = {
-				purchase_length = 25
-			}
-			add_to_array = {
-				purchase_length = 30
-			}
-			add_to_array = {
-				purchase_length = 35
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = 1.35
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.35
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.62
-			}
-			add_to_array = {
-				currentInterestRateCalc = 1.95
-			}
-			add_to_array = {
-				currentInterestRateCalc = 2.34
-			}
-			add_to_array = {
-				currentInterestRateCalc = 2.81
-			}
-			add_to_array = {
-				currentInterestRateCalc = 3.37
-			}
-			set_variable = {
-				max_index = 6
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					MorganMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 8
-			}
-			JPM = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = MorganCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					ParisMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 3
-			}
-			BNP = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = ParisCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					BarclaysMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 4
-			}
-			BRC = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = BarclaysCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					MitsubishiMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 5
-			}
-			CHY = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = MitsubishiCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					DeutscheMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 7
-			}
-			DBA = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = DeutscheCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else_if = {
-			limit = {
-				check_variable = {
-					SuisseMaxBorrowable > pulse_deficit
-				}
-			}
-			set_variable = {
-				bank_name_prompt = 6
-			}
-			SKA = {
-				save_global_event_target_as = this_loan_country
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 5
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = SuisseCurrentInterestRate
-			}
-			set_variable = {
-				max_index = 0
-			}
-			set_variable = {
-				current_index = 0
-			}
-		}
-		else = {
-			GER = {
-				save_global_event_target_as = this_loan_country
-			}
-			set_variable = {
-				bank_name_prompt = 9
-			}
-			clear_array = purchase_length
-			add_to_array = {
-				purchase_length = 1
-			}
-			add_to_array = {
-				purchase_length = 2
-			}
-			add_to_array = {
-				purchase_length = 3
-			}
-			add_to_array = {
-				purchase_length = 4
-			}
-			clear_array = currentInterestRateCalc
-			add_to_array = {
-				currentInterestRateCalc = 7
-			}
-			add_to_array = {
-				currentInterestRateCalc = 9
-			}
-			add_to_array = {
-				currentInterestRateCalc = 12
-			}
-			add_to_array = {
-				currentInterestRateCalc = 15
-			}
-			set_variable = {
-				max_index = 3
-			}
-			set_variable = {
-				current_index = 1
-			}	
-		}
-		automatic_loan_setting = yes
-	}
-	if = {
-		limit = { is_ai = no }
-		create_pie_chart = yes
-	}
-	#Stuff for AI Building Priorities
-	set_variable = {
-		refinery_total = 0
-	}
-	add_to_variable = {
-		refinery_total = tungsten_factory_total
-	}
-	add_to_variable = {
-		refinery_total = steel_works_total
-	}
-	add_to_variable = {
-		refinery_total = oil_refinery_total
-	}
-	set_variable = {
-		oilincome = 0
-	}
-	set_variable = {
-		steelincome = 0
-	}
-	set_variable = {
-		tungstenincome = 0
-	}
-	add_to_variable = {
-		oilincome = oil_refinery_total
-	}
-	add_to_variable = {
-		steelincome = steel_works_total
-	}
-	add_to_variable = {
-		tungstenincome = tungsten_factory_total
-	}
-	ai_economic_planning = yes
-	set_variable = {
-		IncomeTotal = 0
-	}
-	set_variable = {
-		ROOT.industrial_complex_total = 0
-	}
-	set_variable = {
-		ROOT.farm_total = 0
-	}
-	set_variable = {
-		ROOT.dockyard_total = 0
-	}
-	set_variable = {
-		ROOT.oil_refinery_total = 0
-	}
-	set_variable = {
-		ROOT.steel_works_total = 0
-	}
-	set_variable = {
-		ROOT.tungsten_factory_total = 0
-	}
-	set_variable = {
-		ROOT.office_park_total = 0
-	}
-
-	
-	cwic_capital_controls_monthly_effects = yes
-	cwic_black_market_monthly_update = yes
-	cwic_black_market_tier_assign = yes
-	cwic_black_market_apply_outputs = yes
-	cwic_currency_monthly_cooldowns = yes
-	cwic_fx_regime_monthly = yes
-	cwic_inflation_monthly_pulse = yes
-	cwic_calc_inflation_pressure_index = yes
-	cwic_reserve_currency_update = yes
-
-	#Mob Seperatism Rollup
-	cwic_calc_stability_percent = yes
-	cwic_finalize_separatism_rollup = yes 
-
-	cwic_calc_nationalization_pressure_index = yes
-	cwic_calc_governance_stress_index_fast = yes
-	cwic_apply_governance_stress_modifiers_country = yes
-
-	cwic_calc_corporate_risk_index = yes
-	cwic_calc_global_budget_risk_factor = yes
-	cwic_calc_global_budget_shock_factor = yes
-
-	cwic_country_add_all_corp_profits = yes
-
-	# TODO(MNC): cwic_country_mnc_presence_growth is not defined anywhere yet (never was, per git history).
-	# Re-enable once the effect is written in the MNC scripted effects.
-	# cwic_country_mnc_presence_growth = yes
-
-	# TODO(MNC): cwic_mnc_set_auto_invest_pool_flags_country is not defined anywhere yet.
-	# Re-enable once the effect is written in the MNC scripted effects.
-	# cwic_mnc_set_auto_invest_pool_flags_country = yes
-	cwic_mnc_apply_sector_presence_effects_country = yes
-	cwic_mnc_apply_elite_capture_effects_country = yes
-	cwic_mnc_apply_state_backlash_effects_country = yes
-	if = {
-		limit = {
-			has_global_flag = Crisis_Check_Evaluation_1
-		}
-		CWIC_evaluate_national_crises = yes
-	}
 }
-
-military_expenditure = {
-	add_to_variable = {
-		IncomeCheck = land_army_expenditure
-	}
-	#Personnel Pay and Space+Nuke
-	calc_land_army_expenditure = yes
-	calc_air_army_expenditure = yes
-	calc_navy_army_expenditure = yes
-	calc_nuke_army_expenditure = yes
-	calc_space_expenditure = yes
-
-
-	##calc for corruption/subsidies
-	set_variable = {
-		mil_expend_display = land_army_expenditure
-	}
-	set_variable = {
-		navy_expend_display = navy_army_expenditure
-	}
-	set_variable = {
-		af_expend_display = air_army_expenditure
-	}
-	##
-	##
-	multiply_variable = {
-		land_army_expenditure = global.GlobalDebit
-	}	#COST DIVIDER
-	multiply_variable = {
-		mil_expend_display = global.GlobalDebit
-	}	#COST DIVIDER
-	multiply_variable = {
-		navy_army_expenditure = global.GlobalDebit
-	}	#COST DIVIDER
-	multiply_variable = {
-		navy_expend_display = global.GlobalDebit
-	}	#COST DIVIDER
-	multiply_variable = {
-		air_army_expenditure = global.GlobalDebit
-	}	#COST DIVIDER
-	multiply_variable = {
-		af_expend_display = global.GlobalDebit
-	}	#COST DIVIDER
-	##
-	set_variable = {
-		mil_expend_subsidy = land_army_expenditure
-	}
-	multiply_variable = {
-		mil_expend_subsidy = 0.25
-	}
-	set_variable = {
-		mil_expend_subsidy_tot = 0
-	}
-	set_variable = {
-		navy_expend_subsidy = navy_army_expenditure
-	}
-	multiply_variable = {
-		navy_expend_subsidy = 0.25
-	}
-	set_variable = {
-		navy_expend_subsidy_tot = 0
-	}
-	set_variable = {
-		af_expend_subsidy = air_army_expenditure
-	}
-	multiply_variable = {
-		af_expend_subsidy = 0.25
-	}
-	set_variable = {
-		af_expend_subsidy_tot = 0
-	}
-	for_each_scope_loop = {
-		array = ROOT.military_subsidies
-		meta_effect = {
-			text = {
-				add_to_variable = {
-					mil_expend_subsidy_tot = [ROOTTAG].mil_expend_subsidy
-				}
-				add_to_variable = {
-					navy_expend_subsidy_tot = [ROOTTAG].mil_expend_subsidy
-				}
-				add_to_variable = {
-					af_expend_subsidy_tot = [ROOTTAG].mil_expend_subsidy
-				}
-			}
-			ROOTTAG = "[?var:mil_subsidy_id.GetTag]"
-		}
-		subtract_from_variable = {
-			land_army_expenditure = mil_expend_subsidy
-		}
-		subtract_from_variable = {
-			navy_army_expenditure = mil_expend_subsidy
-		}
-		subtract_from_variable = {
-			air_army_expenditure = mil_expend_subsidy
-		}
-		for_loop_effect = {
-			end = influence_array^num
-			value = v
-			if = {
-				limit = {
-					check_variable = {
-						influence_array^v = mil_subsidy_id
-					}
-				}
-				add_to_variable = {
-					influence_array_val^v = mil_expend_subsidy
-				}
-				set_country_flag = found
-			}
-		}
-		recalculate_influence = yes
-	}
-	##
-	add_to_variable = {
-		land_army_expenditure = mil_expend_subsidy_tot
-	}
-	set_variable = {
-		mil_expend_cor_penalty = land_army_expenditure
-	}
-	multiply_variable = {
-		mil_expend_cor_penalty = CorruptPolicyExcess
-	}
-	add_to_variable = {
-		land_army_expenditure = mil_expend_cor_penalty
-	}
-	#add_to_variable = { mil_cost_display = mil_cost_cor_penalty }
-	#
-	add_to_variable = {
-		navy_army_expenditure = navy_expend_subsidy_tot
-	}
-	set_variable = {
-		navy_expend_cor_penalty = navy_army_expenditure
-	}
-	multiply_variable = {
-		navy_expend_cor_penalty = CorruptPolicyExcess
-	}
-	add_to_variable = {
-		navy_army_expenditure = navy_expend_cor_penalty
-	}
-	#add_to_variable = { navy = navy_cost_cor_penalty }
-	#
-	add_to_variable = {
-		air_army_expenditure = af_expend_subsidy_tot
-	}
-	set_variable = {
-		af_expend_cor_penalty = air_army_expenditure
-	}
-	multiply_variable = {
-		af_expend_cor_penalty = CorruptPolicyExcess
-	}
-	add_to_variable = {
-		air_army_expenditure = af_expend_cor_penalty
-	}
-	#add_to_variable = { af_cost_display = af_cost_cor_penalty }
-	#
-	set_variable = {
-		mil_gui_total = 0
-	}
-	set_variable = {
-		navy_gui_total = 0
-	}
-	set_variable = {
-		af_gui_total = 0
-	}
-	set_variable = {
-		sf_gui_total = 0
-	}
-	#Make Monthly
-	divide_variable = { land_army_expenditure = 1.5 }
-	divide_variable = { navy_army_expenditure = 2.5 }
-	divide_variable = { air_army_expenditure = 2.25 }
-	divide_variable = { nuke_army_expenditure = 1 }
-	add_to_variable = {
-		mil_gui_total = land_army_expenditure
-	}
-	add_to_variable = {
-		navy_gui_total = navy_army_expenditure
-	}
-	add_to_variable = {
-		af_gui_total = air_army_expenditure
-	}
-	add_to_variable = {
-		sf_gui_total = nuke_army_expenditure
-	}
-	add_to_variable = {
-		sf_gui_total = space_expenditure
-	}
-	#Addition
-	set_variable = { military_total_exp = mil_gui_total }
-	add_to_variable = { military_total_exp = navy_gui_total }
-	add_to_variable = { military_total_exp = af_gui_total }
-	add_to_variable = { military_total_exp = sf_gui_total }
-}
-
-agency_calc_operative_slots = {
-	count_agency_upgrades = yes
-	set_variable = {
-		operative_slot_bonus = num_agency_upgrades_real
-	}
-	divide_variable = {
-		operative_slot_bonus = global.upgrades_per_operative
-	}	#Number of agency upgrades divided by agency upgrades per operative gain
-	round_variable = operative_slot_bonus
-	if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 1
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_1
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 2
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_2
-		remove_ideas = operative_slots_from_upgrade_1		#Remove needs to be below to not delete existing operatives
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 3
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_3
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 4
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_4
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 5
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_5
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-			operative_slots_from_upgrade_4
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 6
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_6
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-			operative_slots_from_upgrade_4
-			operative_slots_from_upgrade_5
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 7
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_7
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-			operative_slots_from_upgrade_4
-			operative_slots_from_upgrade_5
-			operative_slots_from_upgrade_6
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 8
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_8
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-			operative_slots_from_upgrade_4
-			operative_slots_from_upgrade_5
-			operative_slots_from_upgrade_6
-			operative_slots_from_upgrade_7
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				operative_slot_bonus = 9
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_9
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-			operative_slots_from_upgrade_4
-			operative_slots_from_upgrade_5
-			operative_slots_from_upgrade_6
-			operative_slots_from_upgrade_7
-			operative_slots_from_upgrade_8
-		}
-	}
-	else_if = {
-		limit = {
-			check_variable = {
-				var = operative_slot_bonus
-				compare = greater_than_or_equals
-				value = 10
-			}
-		}
-		add_ideas = operative_slots_from_upgrade_10
-		remove_ideas = {
-			#Remove needs to be below to not delete existing operatives
-			operative_slots_from_upgrade_1
-			operative_slots_from_upgrade_2
-			operative_slots_from_upgrade_3
-			operative_slots_from_upgrade_4
-			operative_slots_from_upgrade_5
-			operative_slots_from_upgrade_6
-			operative_slots_from_upgrade_7
-			operative_slots_from_upgrade_8
-			operative_slots_from_upgrade_9
-		}
-	}
-}
-GDP_Extra_Calcs = {
-	##GDP calcs
-	set_variable = {
-		grossdomesticproduct_fake = grossdomesticproduct
-	}
-	divide_variable = {
-		grossdomesticproduct_fake = 1050
-	}	#Fake display multiplier
-	clear_legacy_gdp_graph = yes
-
-	##monthly counter
-	add_to_variable = {
-		checkdone = 0
-	}	##counts months since start
-	set_variable = {
-		yearlycheck = checkdone
-	}
-	set_variable = {
-		yearlymodulo = yearlycheck
-	}
-	modulo_variable = {
-		yearlymodulo = 12
-	}	##checks if a year is complete
-	if = {
-		limit = {
-			check_variable = {
-				yearlymodulo = 0
-			}
-		}
-		calculate_gdp_growth = yes
-	}
-	##runinit for initial start
-	add_to_variable = {
-		initrun = 0
-	}	##first run
-	if = {
-		limit = {
-			check_variable = {
-				initrun = 0
-			}
-		}
-		#arab league init
-		set_variable = {
-			QAT.Domestic_Progressbar_Total = 0
-		}
-		add_to_variable = {
-			initrun = 1
-		}
-		set_variable = {
-			gdp_growth_curr = 0
-		}		##reset init GDP growth counter
-	}
-	add_to_variable = {
-		checkdone = 1
-	}	##counts ingame months
-}
-
