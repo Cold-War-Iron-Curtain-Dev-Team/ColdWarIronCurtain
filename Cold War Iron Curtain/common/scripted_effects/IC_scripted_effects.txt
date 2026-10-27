@@ -6,41 +6,41 @@ ic_financial_monthly_pulse = {
 	}
 	else = {
 	#checks for export shortages
-	country_event = trade.2
-	country_event = trade.3
-	country_event = trade.4
-	country_event = trade.5
-	country_event = trade.6
-	country_event = trade.7
+	oilDeliveryCuts = yes
+	steelDeliveryCuts = yes
+	rareEarthDeliveryCuts = yes
+	aluminiumDeliveryCuts = yes
+	chromiumDeliveryCuts = yes
+	foodDeliveryCuts = yes
 
 	# Consumer Goods
-	country_event = trade.40	#Tier 0s I forgot existed
-	country_event = trade.41	#Tier 0s I forgot existed
-	country_event = trade.42	#Tier 0s I forgot existed
+	cgBasicT0DeliveryCuts = yes
+	cgDurableT0DeliveryCuts = yes
+	cgVehiclesT0DeliveryCuts = yes
 
-	country_event = trade.20	# Basic T1
-	country_event = trade.21	# Basic T2
-	country_event = trade.22	# Basic T3
-	country_event = trade.23	# Basic T4
-	country_event = trade.24	# Basic T5
+	cgBasicT1DeliveryCuts = yes
+	cgBasicT2DeliveryCuts = yes
+	cgBasicT3DeliveryCuts = yes
+	cgBasicT4DeliveryCuts = yes
+	cgBasicT5DeliveryCuts = yes
 
-	country_event = trade.25	# Durable T1
-	country_event = trade.26	# Durable T2
-	country_event = trade.27	# Durable T3
-	country_event = trade.28	# Durable T4
-	country_event = trade.29	# Durable T5
+	cgDurableT1DeliveryCuts = yes
+	cgDurableT2DeliveryCuts = yes
+	cgDurableT3DeliveryCuts = yes
+	cgDurableT4DeliveryCuts = yes
+	cgDurableT5DeliveryCuts = yes
 
-	country_event = trade.30	# Vehicles T1
-	country_event = trade.31	# Vehicles T2
-	country_event = trade.32	# Vehicles T3
-	country_event = trade.33	# Vehicles T4
-	country_event = trade.34	# Vehicles T5
+	cgVehiclesT1DeliveryCuts = yes
+	cgVehiclesT2DeliveryCuts = yes
+	cgVehiclesT3DeliveryCuts = yes
+	cgVehiclesT4DeliveryCuts = yes
+	cgVehiclesT5DeliveryCuts = yes
 
-	country_event = trade.35	# Electronics T1
-	country_event = trade.36	# Electronics T2
-	country_event = trade.37	# Electronics T3
-	country_event = trade.38	# Electronics T4
-	country_event = trade.39	# Electronics T5
+	cgElectronicsT1DeliveryCuts = yes
+	cgElectronicsT2DeliveryCuts = yes
+	cgElectronicsT3DeliveryCuts = yes
+	cgElectronicsT4DeliveryCuts = yes
+	cgElectronicsT5DeliveryCuts = yes
 
 	set_variable = { national_total_lower_class_pop = 0 }
 	set_variable = { national_total_middle_class_pop = 0 }
@@ -740,27 +740,50 @@ ic_pulse = {
 	if = {
 		limit = {
 			tag = VIN
-			date > 1949.9.1
+			date > 1949.10.1
 			date < 1954.10.31
 		}
 		country_event = SWF_VIN.151
 	}
-
-	# Indochina wrap-up fallback: only runs when France AND every Indochina
-	# struggle participant are AI controlled, so a player inside the struggle
-	# never has the minigame bypassed. Started in late May 1954 the 60-day
-	# timer expires ~21 July 1954, the OTL Geneva Accords date. The post-1957
-	# window catches AI-only stalemates that missed the historical window.
+	if = {
+		limit = {
+			tag = VIN
+			date > 1960.1.1
+			has_country_flag = VIN_STL_Eastern_Bloc_Integrated
+			NOT = { has_country_flag = VIN_STL_Sino_Soviet_Rift }
+		}
+		set_country_flag = VIN_STL_Sino_Soviet_Rift
+		if = {
+			limit = { country_exists = PRC }
+			add_opinion_modifier = { target = PRC modifier = large_decrease }
+			PRC = { add_opinion_modifier = { target = VIN modifier = large_decrease } }
+		}
+		if = {
+			limit = { country_exists = CHI }
+			add_opinion_modifier = { target = CHI modifier = large_decrease }
+			CHI = { add_opinion_modifier = { target = VIN modifier = large_decrease } }
+		}
+	}
+	if = {
+		limit = {
+			date > 1949.9.1
+			date < 1949.10.02
+			NOT = { has_country_flag = Indochina_War_104_flag }
+			indochina_involvement_trigger = yes
+		}
+		country_event = Indochina_War.104
+	}
 	if = {
 		limit = {
 			tag = FRA
 			NOT = { has_global_flag = Indochina_War_Over }
 			NOT = { has_global_flag = Indochina_War_Timer_Active }
 			indochina_struggle_all_participants_ai_trigger = yes
+			NOT = { indochina_war_still_being_fought_trigger = yes }	# let the campaign, the raid or the siege produce its own result first
 			OR = {
 				AND = {
 					date > 1954.5.20
-					date < 1954.7.10
+					date < 1955.7.1
 					# Let a human USA finish the VIN reunification event chain
 					# instead of resolving under them; the 1957 fallback still
 					# catches an abandoned chain.
@@ -923,7 +946,7 @@ ic_pulse = {
 	if = {
 		limit = {
 			tag = SOV
-			has_idea = SOV_Ongoing_mass_dismissals_in_the_Ministry_of_Internal_Affairs
+			has_country_flag = SOV_sotu_SOV_Ongoing_mass_dismissals_in_the_Ministry_of_Internal_Affairs
 			NOT = {
 				has_country_flag = corruption_lowered_Internal_Affairs
 			}
@@ -940,7 +963,7 @@ ic_pulse = {
 	if = {
 		limit = {
 			tag = SOV
-			has_idea = SOV_Mass_reshuffles_and_dismissals_in_the_party_and_administrative_apparatus
+			has_country_flag = SOV_sotu_SOV_Mass_reshuffles_and_dismissals_in_the_party_and_administrative_apparatus
 			NOT = {
 				has_country_flag = mass_reshuffles
 			}
@@ -1106,7 +1129,6 @@ ic_pulse = {
 				tag = ENG
 				tag = DDR
 				tag = ADR
-				tag = MLA
 				tag = SRT
 				tag = KRD
 				tag = SOV
@@ -1287,13 +1309,6 @@ ic_pulse = {
 		}
 		if = {
 			limit = {
-				tag = MLA
-				has_global_flag = MAL_EMERGENCY_MLA_Victory
-			}
-			load_focus_tree = MLA_60s
-		}
-		if = {
-			limit = {
 				tag = SRT
 			}
 			load_focus_tree = 60s_SRT
@@ -1441,6 +1456,18 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = FIN
+			date > 1969.12.31
+			date < 1970.05.15
+			NOT = {
+				has_country_flag = focus_tree_70_reset_FIN
+			}
+		}
+		set_country_flag = focus_tree_70_reset_FIN
+		load_focus_tree = 70s_FIN
+	}
+	if = {
+		limit = {
 			tag = ROM
 			date > 1965.04.02
 			date < 1965.07.22
@@ -1523,27 +1550,6 @@ ic_pulse = {
 		}
 		country_event = MLA_OTL.1
 		set_global_flag = henry_gurney_assassinated
-	}
-	if = {
-		limit = {
-			tag = MLA
-			date > 1955.12.15
-			date < 1956.01.16
-			NOT = { has_global_flag = baling_talks }
-			NOT = { has_global_flag = MAL_EMERGENCY_MLA_Victory }
-		}
-		MLA = { country_event = MLA_OTL.4 }
-		set_global_flag = baling_talks
-	}
-	if = {
-		limit = {
-			tag = MLA
-			date > 1972.12.31
-			date < 1973.01.31
-			NOT = { has_country_flag = focus_tree_73_reset }
-		}
-		load_focus_tree = { tree = MLA_70s keep_completed = yes }
-		set_country_flag = focus_tree_73_reset
 	}
 	# Admiral Retires - MAL PHI SIA #
 	if = {
@@ -2601,11 +2607,13 @@ ic_pulse = {
 			}
 		}
 		remove_ideas = korean_war
-		dismantle_faction = yes
-		#USA = { dismantle_faction = yes }
-		PRC = { dismantle_faction = yes }
-		KPA = { dismantle_faction = yes }
-		KOR = { dismantle_faction = yes }
+		if = {
+			limit = {
+				is_faction_leader = yes
+				has_faction_template = faction_template_peoples_liberation_front
+			}
+			dismantle_faction = yes
+		}
 		if = {
 			limit = {
 				PRC = {
@@ -2650,7 +2658,7 @@ ic_pulse = {
 				has_war_with = ALG
 			}
 		}
-		country_event = algeria.1002
+		# country_event = algeria.1002 - doesnt exist
 	}
 	if = {
 		limit = {
@@ -2910,42 +2918,42 @@ ic_pulse = {
 						remove_building = { type = infrastructure level = 1 } }
 					5 = {
 						#log = "[THIS.Owner.GetTag]:[THIS.GetName]: reduce state cat:"
-						if = { limit = { has_state_category = pop1dev1 } set_state_category = pop1  }
-						else_if = { limit = { has_state_category = pop1dev2 } set_state_category = pop1dev1 }
-						else_if = { limit = { has_state_category = pop1dev3 } set_state_category = pop1dev2 }
-						else_if = { limit = { has_state_category = pop1dev4 } set_state_category = pop1dev3 }
-						else_if = { limit = { has_state_category = pop2dev1 } set_state_category = pop2 }
-						else_if = { limit = { has_state_category = pop2dev2 } set_state_category = pop2dev1 }
-						else_if = { limit = { has_state_category = pop2dev3 } set_state_category = pop2dev2 }
-						else_if = { limit = { has_state_category = pop2dev4 } set_state_category = pop2dev3 }
-						else_if = { limit = { has_state_category = pop3dev1 } set_state_category = pop3 }
-						else_if = { limit = { has_state_category = pop3dev2 } set_state_category = pop3dev1 }
-						else_if = { limit = { has_state_category = pop3dev3 } set_state_category = pop3dev2 }
-						else_if = { limit = { has_state_category = pop3dev4 } set_state_category = pop3dev3 }
-						else_if = { limit = { has_state_category = pop4dev1 } set_state_category = pop4 }
-						else_if = { limit = { has_state_category = pop4dev2 } set_state_category = pop4dev1 }
-						else_if = { limit = { has_state_category = pop4dev3 } set_state_category = pop4dev2 }
-						else_if = { limit = { has_state_category = pop4dev4 } set_state_category = pop4dev3 }
-						else_if = { limit = { has_state_category = pop5dev1 } set_state_category = pop5 }
-						else_if = { limit = { has_state_category = pop5dev2 } set_state_category = pop5dev1 }
-						else_if = { limit = { has_state_category = pop5dev3 } set_state_category = pop5dev2 }
-						else_if = { limit = { has_state_category = pop5dev4 } set_state_category = pop5dev3 }
-						else_if = { limit = { has_state_category = pop7dev1 } set_state_category = pop7 }
-						else_if = { limit = { has_state_category = pop7dev2 } set_state_category = pop7dev1 }
-						else_if = { limit = { has_state_category = pop7dev3 } set_state_category = pop7dev2 }
-						else_if = { limit = { has_state_category = pop7dev4 } set_state_category = pop7dev3 }
-						else_if = { limit = { has_state_category = pop10dev1 } set_state_category = pop10 }
-						else_if = { limit = { has_state_category = pop10dev2 } set_state_category = pop10dev1 }
-						else_if = { limit = { has_state_category = pop10dev3 } set_state_category = pop10dev2 }
-						else_if = { limit = { has_state_category = pop10dev4 } set_state_category = pop10dev3 }
-						else_if = { limit = { has_state_category = pop15dev1 } set_state_category = pop15 }
-						else_if = { limit = { has_state_category = pop15dev2 } set_state_category = pop15dev1 }
-						else_if = { limit = { has_state_category = pop15dev3 } set_state_category = pop15dev2 }
-						else_if = { limit = { has_state_category = pop15dev4 } set_state_category = pop15dev3 }
-						else_if = { limit = { has_state_category = pop20dev1 } set_state_category = pop20 }
-						else_if = { limit = { has_state_category = pop20dev2 } set_state_category = pop20dev1 }
-						else_if = { limit = { has_state_category = pop20dev3 } set_state_category = pop20dev2 }
-						else_if = { limit = { has_state_category = pop20dev4 } set_state_category = pop20dev3 }
+						if = { limit = { has_state_category = pop1dev1 } set_state_category = pop1   cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop1dev2 } set_state_category = pop1dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop1dev3 } set_state_category = pop1dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop1dev4 } set_state_category = pop1dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop2dev1 } set_state_category = pop2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop2dev2 } set_state_category = pop2dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop2dev3 } set_state_category = pop2dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop2dev4 } set_state_category = pop2dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop3dev1 } set_state_category = pop3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop3dev2 } set_state_category = pop3dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop3dev3 } set_state_category = pop3dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop3dev4 } set_state_category = pop3dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop4dev1 } set_state_category = pop4  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop4dev2 } set_state_category = pop4dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop4dev3 } set_state_category = pop4dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop4dev4 } set_state_category = pop4dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop5dev1 } set_state_category = pop5  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop5dev2 } set_state_category = pop5dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop5dev3 } set_state_category = pop5dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop5dev4 } set_state_category = pop5dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop7dev1 } set_state_category = pop7  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop7dev2 } set_state_category = pop7dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop7dev3 } set_state_category = pop7dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop7dev4 } set_state_category = pop7dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop10dev1 } set_state_category = pop10  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop10dev2 } set_state_category = pop10dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop10dev3 } set_state_category = pop10dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop10dev4 } set_state_category = pop10dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop15dev1 } set_state_category = pop15  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop15dev2 } set_state_category = pop15dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop15dev3 } set_state_category = pop15dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop15dev4 } set_state_category = pop15dev3  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop20dev1 } set_state_category = pop20  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop20dev2 } set_state_category = pop20dev1  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop20dev3 } set_state_category = pop20dev2  cwic_cache_state_category = yes }
+						else_if = { limit = { has_state_category = pop20dev4 } set_state_category = pop20dev3  cwic_cache_state_category = yes }
 					}
 					10 = {
 						if = { limit = { has_resources_amount = { resource = chromium amount > 0 } } add_resource = { type = chromium amount = -1 } }
@@ -3468,13 +3476,13 @@ ic_pulse = {
 			date > 1970.1.1
 		}
 		set_country_flag = KOK_80s_Kya_Shin_Change
-		set_portraits = { 
+		set_portraits = {
 			character = KOK_Pheung_Kya_Shin
 			civilian = { large = "gfx/leaders/KOK/Pheung_Kya-shin_80s.dds" }
 			army = { large = "gfx/leaders/KOK/Pheung_Kya-shin_80s.dds" }
 		}
 	}
-	
+
 	if = {
 		limit = {
 			owns_state = 619
@@ -3501,7 +3509,7 @@ ic_pulse = {
 		limit = {
 			tag = USA
 			date > 1952.07.15
-			date < 1952.09.31
+		date < 1952.10.1
 			NOT = { has_country_flag = USA_1952_Nominations }
 		}
 		set_country_flag = USA_1952_Nominations
@@ -3512,7 +3520,7 @@ ic_pulse = {
 		limit = {
 			tag = USA
 			date > 1956.07.15
-			date < 1956.09.31
+		date < 1956.10.1
 		}
 		country_event = usa.1956
 		country_event = usa.19562
@@ -3841,11 +3849,14 @@ ic_pulse = {
 		limit = {
 			tag = MEO
 			date > 1959.10.01
-			date < 1952.11.01
+			date < 1959.11.01
+			has_completed_focus = MEO_creation_of_the_autonomous_zone_of_thaimeo	# only the zone has a 1959 row to revolt against
+			NOT = { has_country_flag = MEO_1959_revolt_opened }	# the pulse ticks daily; open the row once
 		}
+		set_country_flag = MEO_1959_revolt_opened
+		complete_national_focus = MEO_the_duong_trung_nhan_revolt
 		country_event = MEO.18
 	}
-
 
 	#Chile Events
 	if = {
@@ -4854,6 +4865,7 @@ ic_pulse = {
 	#Suriname Skeleton Content
 	if = {
 		limit = {
+			tag = SUR
 			date > 1980.02.23
 			date < 1980.03.23
 		}
@@ -4861,6 +4873,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1982.12.07
 			date < 1983.01.07
 		}
@@ -4868,6 +4881,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1988.01.25
 			date < 1988.02.25
 		}
@@ -4875,6 +4889,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1990.12.24
 			date < 1991.01.24
 		}
@@ -4882,6 +4897,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1991.09.16
 			date < 1991.10.16
 		}
@@ -4889,6 +4905,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1996.09.15
 			date < 1996.10.15
 		}
@@ -4896,6 +4913,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 2000.08.12
 			date < 2000.09.12
 		}
@@ -4903,6 +4921,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1986.07.22
 			date < 1986.08.22
 		}
@@ -4910,6 +4929,7 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			tag = SUR
 			date > 1992.08.08
 			date < 1992.09.08
 		}
@@ -5769,6 +5789,17 @@ ic_pulse = {
 	###                                MIDDLE EAST                                 ###
 	################################################################################
 
+	### Oman - Qaboos becomes leader - ###
+	if = {
+		limit = {
+			tag = OMA
+			date > 1970.07.01
+			date < 1970.08.01
+		}
+		country_event = Oman.1
+	}
+
+
 	### --- Egypt (Placeholder) --- ###
 
 	#Placeholder Egypt stuff
@@ -6196,18 +6227,8 @@ ic_pulse = {
 		}
 		news_event = news.1512
 	}
-	if = {
-		limit = {
-			OR = {
-				MLA = { is_subject_of = ENG }
-				AND = {
-					791 = { is_owned_by = ENG }
-					MAL = { is_subject_of = ENG }
-				}
-			}
-		}
-		country_event = mal.2
-	}
+	# mal.2 was dispatched from here for every country on every pulse, with no date or Emergency gate: it silently
+	# annexed MLA into MAL and handed Pahang to MAL. The Emergency's own victory effects own those outcomes now.
 
 
 
@@ -6854,6 +6875,18 @@ ic_pulse = {
 	if = {
 		limit = {
 			original_tag = GRE
+			has_country_leader = {
+				name = "Alexandros Papagos"
+				ruling_only = yes
+			}
+			date > 1955.10.1
+			date < 1955.11.1
+		}
+		country_event = { id = greece.6 days = 0 }
+	}
+	if = {
+		limit = {
+			original_tag = GRE
 			date > 1953.8.1
 			date < 1953.8.31
 		}
@@ -7413,42 +7446,31 @@ ic_pulse = {
 		}
 		country_event = NLF_Flavor.1
 	}
-	if = {
+	if = {	# Nguyen Binh's 1951 recall, the Stung Treng ambush and the southern command succession
+		limit = { tag = VIN }
+		vin_binh_course_pulse = yes
+	}
+	if = {	# Viet Minh campaign supply: init, monthly accrual and the stuck-campaign backstop
 		limit = {
-			tag = NLF
-			date > 1951.9.28
-			date < 1951.10.29
-			NOT = {
-				has_country_flag = Binh_Outcome
-			}
+			tag = VIN
+			NOT = { has_global_flag = Indochina_War_Over }
 		}
-		set_country_flag = Binh_Outcome
-		VIN = {
-			complete_national_focus = VIN_Nguyen_Binh_Ambush
-		}
-		random_list = {
-			3 = {
-				country_event = Binh_Cung_Leadership.1
-				VIN = { country_event = Binh_Cung_Leadership.1 complete_national_focus = VIN_Death_of_Nguyen_Binh }
-				VIE = { country_event = Binh_Cung_Leadership.2 }
-				FRA = { country_event = Binh_Cung_Leadership.2 }
-				FRE = { country_event = Binh_Cung_Leadership.2 }
+		vin_campaign_initialize = yes
+		vin_indochina_ai_initialize = yes
+		vin_campaign_watchdog = yes
+		log = "IC_AFK|VIN_PULSE|date=[GetDateText]|supply=[?VIN_Campaign_Supply|0]"
+		vin_accrue_monthly_supply = yes	# ic_pulse runs about every 31 days: one pulse is one month
+		if = {
+			limit = { is_ai = yes }
+			set_temp_variable = { vin_ai_rifles = 600 }
+			if = {
+				limit = { has_global_flag = PRC_Victory }
+				set_temp_variable = { vin_ai_rifles = 1200 }
 			}
-			2 = {
-				modifier = {
-					factor = 14
-					840 = {
-						OR = {
-							is_controlled_by = NLF
-							is_controlled_by = VIN
-						}
-					}
-				}
-				country_event = Binh_Cung_Leadership.3
-				VIN = { country_event = Binh_Cung_Leadership.3 complete_national_focus = VIN_Nguyen_Binh_Survives }
-				VIE = { country_event = Binh_Cung_Leadership.4 }
-				FRA = { country_event = Binh_Cung_Leadership.4 }
-				FRE = { country_event = Binh_Cung_Leadership.4 }
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = vin_ai_rifles
+				producer = PRC
 			}
 		}
 	}
@@ -7456,7 +7478,8 @@ ic_pulse = {
 		limit = {
 			tag = VIN
 			date > 1953.3.01
-			date < 1953.3.30
+			date < 1955.3.30 # 2 year late trigger just in case
+			VIN_no_campaign_running_trigger = yes	# Laos waits its turn; it used to open a second front mid-campaign
 			NOT = {
 				has_global_flag = Phase3
 			}
@@ -7467,35 +7490,7 @@ ic_pulse = {
 				modifier = unplanned_offensive
 			}
 		}
-		LAO = {
-			transfer_state = 1295
-			add_state_core = 1295
-			add_state_core = 841
-			add_state_core = 670
-			add_state_core = 1196
-			add_state_core = 1198
-			add_state_core = 1191
-			add_state_core = 1187
-			set_capital = { state = 1295 }
-			keep_current_politics = yes
-		}
-		VIN = {
-			country_event = VINLAO.1
-			release_autonomy = {
-				target = LAO
-				autonomy_state = autonomy_easternbloc
-			}
-		}
-		LOS = {
-			declare_war_on = {
-				target = LAO
-				type = annex_everything
-			}
-			declare_war_on = {
-				target = VIN
-				type = puppet_wargoal_focus
-			}
-		}
+		country_event = { id = VINLAO.10 days = 1 }	# Hanoi decides whether to cross into Laos at all
 	}
 	if = {
 		limit = {
@@ -7559,24 +7554,42 @@ ic_pulse = {
 				manual_attack = yes # default yes. if no ai will not do manual pokes at enemy (only for front orders)
 			}
 		}
-		786 = {
-			create_unit = {
-				division = "name = \"\" division_template = \"Division d'Infanterie\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
-				owner = FRA
-				allow_spawning_on_enemy_provs = yes
-				prioritize_location = 4075
+		if = {
+			limit = { country_exists = FRA }
+			FRA = {
+				division_template = {
+					name = "Division de Marche du Tonkin"
+					regiments = {
+						infantry = { x = 0 y = 0 }
+						infantry = { x = 0 y = 1 }
+						infantry = { x = 0 y = 2 }
+						infantry = { x = 1 y = 0 }
+						artillery = { x = 2 y = 0 }
+					}
+					support = {
+						engineer = { x = 0 y = 0 }
+					}
+				}
 			}
-			create_unit = {
-				division = "name = \"\" division_template = \"Division d'Infanterie\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
-				owner = FRA
-				allow_spawning_on_enemy_provs = yes
-				prioritize_location = 1185
-			}
-			create_unit = {
-				division = "name = \"\" division_template = \"Division d'Infanterie\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
-				owner = FRA
-				allow_spawning_on_enemy_provs = yes
-				prioritize_location = 13770
+			786 = {
+				create_unit = {
+					division = "name = \"\" division_template = \"Division de Marche du Tonkin\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
+					owner = FRA
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 4075
+				}
+				create_unit = {
+					division = "name = \"\" division_template = \"Division de Marche du Tonkin\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
+					owner = FRA
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 1185
+				}
+				create_unit = {
+					division = "name = \"\" division_template = \"Division de Marche du Tonkin\" start_experience_factor = 4.0 start_equipment_factor = 1.0"
+					owner = FRA
+					allow_spawning_on_enemy_provs = yes
+					prioritize_location = 13770
+				}
 			}
 		}
 		# 1287 = {
@@ -7683,6 +7696,14 @@ ic_pulse = {
 			}
 		}
 		country_event = QuyChe_16.1
+	}
+	if = {
+		limit = {
+			tag = VIE
+			date > 1955.7.01
+			date < 1955.8.01
+		}
+		country_event = VIE_Historical.11
 	}
 	if = {
 		limit = {
@@ -9025,6 +9046,11 @@ ic_pulse = {
 			has_country_leader = { name = "Joseph Stalin" ruling_only = yes }
 			NOT = { has_country_flag = SOV_german_question_active }
 			NOT = { has_country_flag = SOV_german_question_fired }
+			# The Stalin Notes offer the Western powers a unified, neutral
+			# Germany. If the KPD won the 1949 election there is nothing left
+			# to offer - Bonn is already ours - so the whole arc is skipped and
+			# the Red Bonn branch takes its place on the tree.
+			NOT = { has_country_flag = SOV_WGR49_kpd_victory }
 		}
 		set_country_flag = SOV_german_question_fired
 		country_event = germanquestion.1
@@ -9592,6 +9618,400 @@ ic_pulse = {
 		news_event = cultural_events.7
 		set_country_flag = cultural_events_seven
 	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1980.05.01
+			date < 1980.06.01
+			NOT = { has_country_flag = flavor80_helens }
+		}
+		news_event = flavor80.1
+		set_country_flag = flavor80_helens
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1980.12.01
+			date < 1981.01.01
+			NOT = { has_country_flag = flavor80_lennon }
+		}
+		news_event = flavor80.2
+		set_country_flag = flavor80_lennon
+	}
+	if = {
+		limit = {
+			tag = ITA
+			date > 1980.08.01
+			date < 1980.09.01
+			NOT = { has_country_flag = flavor80_bologna }
+		}
+		news_event = flavor80.3
+		set_country_flag = flavor80_bologna
+	}
+	if = {
+		limit = {
+			tag = SPR
+			date > 1981.02.01
+			date < 1981.03.01
+			NOT = { has_country_flag = flavor80_23f }
+		}
+		news_event = flavor80.4
+		set_country_flag = flavor80_23f
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1984.03.01
+			date < 1984.04.01
+			NOT = { has_country_flag = flavor80_miners }
+		}
+		news_event = flavor80.5
+		set_country_flag = flavor80_miners
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1985.07.01
+			date < 1985.08.01
+			NOT = { has_country_flag = flavor80_live_aid }
+		}
+		news_event = flavor80.6
+		set_country_flag = flavor80_live_aid
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1986.01.01
+			date < 1986.02.01
+			NOT = { has_country_flag = flavor80_challenger }
+		}
+		news_event = flavor80.7
+		set_country_flag = flavor80_challenger
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1987.10.01
+			date < 1987.11.01
+			NOT = { has_country_flag = flavor80_black_monday }
+		}
+		news_event = flavor80.8
+		set_country_flag = flavor80_black_monday
+	}
+	if = {
+		limit = {
+			tag = WGR
+			date > 1990.10.01
+			date < 1990.11.01
+			NOT = { has_country_flag = flavor90_reunification }
+		}
+		news_event = flavor90.1
+		set_country_flag = flavor90_reunification
+	}
+	if = {
+		limit = {
+			tag = HOL
+			date > 1992.02.01
+			date < 1992.03.01
+			NOT = { has_country_flag = flavor90_maastricht }
+		}
+		news_event = flavor90.2
+		set_country_flag = flavor90_maastricht
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1992.05.01
+			date < 1992.06.01
+			NOT = { has_country_flag = flavor90_la_riots }
+		}
+		news_event = flavor90.3
+		set_country_flag = flavor90_la_riots
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1994.05.01
+			date < 1994.06.01
+			NOT = { has_country_flag = flavor90_channel }
+		}
+		news_event = flavor90.4
+		set_country_flag = flavor90_channel
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1995.04.01
+			date < 1995.05.01
+			NOT = { has_country_flag = flavor90_oklahoma }
+		}
+		news_event = flavor90.5
+		set_country_flag = flavor90_oklahoma
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1997.07.01
+			date < 1997.08.01
+			NOT = { has_country_flag = flavor90_hong_kong }
+		}
+		news_event = flavor90.6
+		set_country_flag = flavor90_hong_kong
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1997.08.01
+			date < 1997.09.01
+			NOT = { has_country_flag = flavor90_diana }
+		}
+		news_event = flavor90.7
+		set_country_flag = flavor90_diana
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1999.12.01
+			date < 2000.01.01
+			NOT = { has_country_flag = flavor90_y2k }
+		}
+		news_event = flavor90.8
+		set_country_flag = flavor90_y2k
+	}
+
+	### --- Germany flavor --- ###
+	if = {
+		limit = {
+			tag = WGR
+			date > 1977.10.01
+			date < 1977.11.01
+			NOT = { has_country_flag = flavorger_autumn }
+		}
+		news_event = flavorger.1
+		set_country_flag = flavorger_autumn
+	}
+	if = {
+		limit = {
+			tag = WGR
+			date > 1982.10.01
+			date < 1982.11.01
+			NOT = { has_country_flag = flavorger_kohl }
+		}
+		news_event = flavorger.2
+		set_country_flag = flavorger_kohl
+	}
+	if = {
+		limit = {
+			tag = DDR
+			date > 1989.11.01
+			date < 1989.12.01
+			NOT = { has_country_flag = flavorger_wall }
+		}
+		news_event = flavorger.3
+		set_country_flag = flavorger_wall
+	}
+
+	### --- Italy flavor --- ###
+	if = {
+		limit = {
+			tag = ITA
+			date > 1978.05.01
+			date < 1978.06.01
+			NOT = { has_country_flag = flavorita_moro }
+		}
+		news_event = flavorita.1
+		set_country_flag = flavorita_moro
+	}
+	if = {
+		limit = {
+			tag = ITA
+			date > 1981.05.01
+			date < 1981.06.01
+			NOT = { has_country_flag = flavorita_pope }
+		}
+		news_event = flavorita.2
+		set_country_flag = flavorita_pope
+	}
+	if = {
+		limit = {
+			tag = ITA
+			date > 1982.07.01
+			date < 1982.08.01
+			NOT = { has_country_flag = flavorita_worldcup }
+		}
+		news_event = flavorita.3
+		set_country_flag = flavorita_worldcup
+	}
+	if = {
+		limit = {
+			tag = ITA
+			date > 1992.02.01
+			date < 1992.03.01
+			NOT = { has_country_flag = flavorita_mani }
+		}
+		news_event = flavorita.4
+		set_country_flag = flavorita_mani
+	}
+
+	### --- France flavor --- ###
+	if = {
+		limit = {
+			tag = FRA
+			date > 1968.05.01
+			date < 1968.06.01
+			NOT = { has_country_flag = flavorfra_may68 }
+		}
+		news_event = flavorfra.1
+		set_country_flag = flavorfra_may68
+	}
+	if = {
+		limit = {
+			tag = FRA
+			date > 1981.09.01
+			date < 1981.10.01
+			NOT = { has_country_flag = flavorfra_tgv }
+		}
+		news_event = flavorfra.2
+		set_country_flag = flavorfra_tgv
+	}
+	if = {
+		limit = {
+			tag = FRA
+			date > 1985.07.01
+			date < 1985.08.01
+			NOT = { has_country_flag = flavorfra_rainbow }
+		}
+		news_event = flavorfra.3
+		set_country_flag = flavorfra_rainbow
+	}
+	if = {
+		limit = {
+			tag = FRA
+			date > 1996.01.01
+			date < 1996.02.01
+			NOT = { has_country_flag = flavorfra_mitterrand }
+		}
+		news_event = flavorfra.4
+		set_country_flag = flavorfra_mitterrand
+	}
+
+	### --- Britain flavor --- ###
+	if = {
+		limit = {
+			tag = ENG
+			date > 1984.10.01
+			date < 1984.11.01
+			NOT = { has_country_flag = flavoreng_brighton }
+		}
+		news_event = flavoreng.1
+		set_country_flag = flavoreng_brighton
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1988.07.01
+			date < 1988.08.01
+			NOT = { has_country_flag = flavoreng_piper }
+		}
+		news_event = flavoreng.2
+		set_country_flag = flavoreng_piper
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1990.03.01
+			date < 1990.04.01
+			NOT = { has_country_flag = flavoreng_polltax }
+		}
+		news_event = flavoreng.3
+		set_country_flag = flavoreng_polltax
+	}
+	if = {
+		limit = {
+			tag = ENG
+			date > 1998.04.01
+			date < 1998.05.01
+			NOT = { has_country_flag = flavoreng_goodfriday }
+		}
+		news_event = flavoreng.4
+		set_country_flag = flavoreng_goodfriday
+	}
+
+	### --- Taiwan flavor --- ###
+	if = {
+		limit = {
+			tag = CHI
+			date > 1987.07.01
+			date < 1987.08.01
+			NOT = { has_country_flag = flavorchi_martial }
+		}
+		news_event = flavorchi.1
+		set_country_flag = flavorchi_martial
+	}
+	if = {
+		limit = {
+			tag = CHI
+			date > 1990.03.01
+			date < 1990.04.01
+			NOT = { has_country_flag = flavorchi_lily }
+		}
+		news_event = flavorchi.2
+		set_country_flag = flavorchi_lily
+	}
+	if = {
+		limit = {
+			tag = CHI
+			date > 1996.03.01
+			date < 1996.04.01
+			NOT = { has_country_flag = flavorchi_election }
+		}
+		news_event = flavorchi.3
+		set_country_flag = flavorchi_election
+	}
+
+	### --- Media flavor --- ###
+	if = {
+		limit = {
+			tag = USA
+			date > 1981.08.01
+			date < 1981.09.01
+			NOT = { has_country_flag = flavormedia_mtv }
+		}
+		news_event = flavormedia.1
+		set_country_flag = flavormedia_mtv
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1985.03.01
+			date < 1985.04.01
+			NOT = { has_country_flag = flavormedia_wrestlemania }
+		}
+		news_event = flavormedia.2
+		set_country_flag = flavormedia_wrestlemania
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1989.12.01
+			date < 1990.01.01
+			NOT = { has_country_flag = flavormedia_simpsons }
+		}
+		news_event = flavormedia.3
+		set_country_flag = flavormedia_simpsons
+	}
+	if = {
+		limit = {
+			tag = USA
+			date > 1994.09.01
+			date < 1994.10.01
+			NOT = { has_country_flag = flavormedia_friends }
+		}
+		news_event = flavormedia.4
+		set_country_flag = flavormedia_friends
+	}
+
+	cwic_tech_revolution_pulse = yes
 	if = {
 		limit = {
 			tag = USA
@@ -12626,14 +13046,6 @@ ic_pulse = {
 			}
 		country_event = codwar.1
 	}
-	if = {
-		limit = {
-				original_tag = VIE
-				date > 1955.04.01
-				date < 1955.06.01
-			}
-		country_event = Sect_Crisis.1
-	}
 	 if = {
 		limit = {
 				original_tag = YUG
@@ -13052,7 +13464,37 @@ ic_pulse = {
 		set_country_flag = US_CIVIL_RIGHTS_20
 		news_event = USA_CIVIL_RIGHTS.20
 	}
-
+	
+	### --- Andorra --- ###
+	
+	#Andorra Events
+	if = {
+		limit = {
+			date > 1969.04.01
+			date < 1969.05.01
+			tag = ANR
+			NOT = { has_global_flag = WW3_Started }
+		}
+		country_event = anr.1
+	}
+	if = {
+		limit = {
+			date > 1971.04.01
+			date < 1971.05.01
+			tag = ANR
+			NOT = { has_global_flag = WW3_Started }
+		}
+		country_event = anr.2
+	}
+	if = {
+		limit = {
+			date > 2003.05.01
+			date < 2003.06.01
+			tag = ANR
+			NOT = { has_global_flag = WW3_Started }
+		}
+		country_event = anr.3
+	}
 
 	### --- Nigeria (Action Group founding) --- ###
 
@@ -14037,9 +14479,10 @@ ic_pulse = {
 	}
 	if = {
 		limit = {
+			date > 1976.1.1	# reunification renamed the state and Saigon in 1976; an earlier conquest is still the DRV
 			VIN = {
 				NOT = {
-					has_cosmetic_tag = VIN_unified
+					has_country_flag = VIN_reunified
 				}
 				controls_state = 757
 				controls_state = 1287
@@ -14051,7 +14494,11 @@ ic_pulse = {
 			}
 		}
 		VIN = {
-			set_cosmetic_tag = VIN_unified
+			set_country_flag = VIN_reunified
+			if = {
+				limit = { has_cosmetic_tag = DRV }
+				drop_cosmetic_tag = yes	# base VIN loc is already the Socialist Republic of Viet Nam
+			}
 			286 = {
 				set_state_name = "Ho Chi Minh City"
 			}
@@ -14330,7 +14777,7 @@ ic_pulse = {
 		clr_country_flag = CWIC_HOG_UI_ENABLED
 		set_country_flag = GRE_Monarchy_Abolished
 	}
-	
+
 	if = {
 		limit = {
 			tag = MOR
@@ -16101,7 +16548,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1950.6.1
 				date < 1950.6.30
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 			}
 			country_event = { id = jap_yoshida.3 }
 			set_country_flag = JAP_Yoshida_3_Done
@@ -16111,7 +16558,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1950.7.1
 				date < 1950.7.31
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 				NOT = { has_country_flag = JAP_Yoshida_3_Done }
 			}
 			country_event = { id = jap_yoshida.3 }
@@ -16122,7 +16569,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1951.1.1
 				date < 1951.1.31
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 			}
 			country_event = { id = jap_yoshida.10 }
 			set_country_flag = JAP_Yoshida_10_Done
@@ -16132,7 +16579,7 @@ ic_pulse = {
 				tag = JAP
 				date > 1951.2.1
 				date < 1951.2.28
-				#NOT = { has_global_flag = ROC_victory }
+				#NOT = { has_global_flag = ROC_Victory }
 				NOT = { has_country_flag = JAP_Yoshida_10_Done }
 			}
 			country_event = { id = jap_yoshida.10 }
@@ -16319,6 +16766,156 @@ ic_pulse = {
 			news_event = cultural_events.6
 			set_country_flag = cultural_events_six
 		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1985.08.01
+				date < 1985.09.01
+				NOT = { has_country_flag = flavorjap_jal123 }
+			}
+			news_event = flavorjap.1
+			set_country_flag = flavorjap_jal123
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1985.09.01
+				date < 1985.10.01
+				NOT = { has_country_flag = flavorjap_plaza }
+			}
+			news_event = flavorjap.2
+			set_country_flag = flavorjap_plaza
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1988.06.01
+				date < 1988.07.01
+				NOT = { has_country_flag = flavorjap_recruit }
+			}
+			news_event = flavorjap.3
+			set_country_flag = flavorjap_recruit
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1989.01.01
+				date < 1989.02.01
+				NOT = { has_country_flag = flavorjap_showa }
+			}
+			news_event = flavorjap.4
+			set_country_flag = flavorjap_showa
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1990.01.01
+				date < 1990.02.01
+				NOT = { has_country_flag = flavorjap_bubble }
+			}
+			news_event = flavorjap.5
+			set_country_flag = flavorjap_bubble
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1995.01.01
+				date < 1995.02.01
+				NOT = { has_country_flag = flavorjap_kobe }
+			}
+			news_event = flavorjap.6
+			set_country_flag = flavorjap_kobe
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1995.03.01
+				date < 1995.04.01
+				NOT = { has_country_flag = flavorjap_aum }
+			}
+			news_event = flavorjap.7
+			set_country_flag = flavorjap_aum
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1996.02.01
+				date < 1996.03.01
+				NOT = { has_country_flag = flavorjap_pokemon }
+			}
+			news_event = flavorjap.8
+			set_country_flag = flavorjap_pokemon
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1979.07.01
+				date < 1979.08.01
+				NOT = { has_country_flag = flavorjap_walkman }
+			}
+			news_event = flavorjap.9
+			set_country_flag = flavorjap_walkman
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1982.10.01
+				date < 1982.11.01
+				NOT = { has_country_flag = flavorjap_cd }
+			}
+			news_event = flavorjap.10
+			set_country_flag = flavorjap_cd
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1989.09.01
+				date < 1989.10.01
+				NOT = { has_country_flag = flavorjap_columbia }
+			}
+			news_event = flavorjap.11
+			set_country_flag = flavorjap_columbia
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1991.06.01
+				date < 1991.07.01
+				NOT = { has_country_flag = flavorjap_nintendo_split }
+			}
+			news_event = flavorjap.12
+			set_country_flag = flavorjap_nintendo_split
+		}
+		if = {
+			limit = {
+				tag = JAP
+				date > 1994.12.01
+				date < 1995.01.01
+				NOT = { has_country_flag = flavorjap_playstation }
+			}
+			news_event = flavorjap.13
+			set_country_flag = flavorjap_playstation
+		}
+		if = {
+			limit = {
+				tag = HOL
+				date > 1991.10.01
+				date < 1991.11.01
+				NOT = { has_country_flag = flavorjap_cdi }
+			}
+			news_event = flavorjap.14
+			set_country_flag = flavorjap_cdi
+		}
+		if = {
+			limit = {
+				tag = HOL
+				date > 1998.01.01
+				date < 1998.02.01
+				NOT = { has_country_flag = flavorjap_cdi_end }
+			}
+			news_event = flavorjap.15
+			set_country_flag = flavorjap_cdi_end
+		}
 
 	### --- Republic of China (Taiwan) --- ###
 
@@ -16346,6 +16943,7 @@ ic_pulse = {
 				}
 			}
 			country_event = { id = KMT_Civilwar.22 }
+			clr_country_flag = lost_northwest
 		}
 		if = {
 			limit = {
@@ -16364,7 +16962,7 @@ ic_pulse = {
 				NOT = {
 					has_global_flag = ROC_taiwan
 					has_global_flag = CCW_Over
-					has_global_flag = CHI_gxc_flees
+					has_country_flag = CHI_gxc_flees
 				}
 			}
 			country_event = { id = KMT_Civilwar.27 }
@@ -16415,7 +17013,91 @@ ic_pulse = {
 		}
 
 
+	### --- Soviet Union --- ###
+
+		if = {
+			limit = {
+				tag = SOV
+				date > 1957.10.01
+				date < 1957.11.01
+				NOT = { has_country_flag = flavorsov_sputnik }
+			}
+			news_event = flavorsov.1
+			set_country_flag = flavorsov_sputnik
+		}
+		if = {
+			limit = {
+				tag = SOV
+				date > 1961.04.01
+				date < 1961.05.01
+				NOT = { has_country_flag = flavorsov_gagarin }
+			}
+			news_event = flavorsov.2
+			set_country_flag = flavorsov_gagarin
+		}
+		if = {
+			limit = {
+				tag = SOV
+				date > 1986.04.01
+				date < 1986.05.01
+				NOT = { has_country_flag = flavorsov_chernobyl }
+			}
+			news_event = flavorsov.3
+			set_country_flag = flavorsov_chernobyl
+		}
+		if = {
+			limit = {
+				tag = SOV
+				date > 1989.02.01
+				date < 1989.03.01
+				NOT = { has_country_flag = flavorsov_afghan_out }
+			}
+			news_event = flavorsov.4
+			set_country_flag = flavorsov_afghan_out
+		}
+
 	### --- People's Republic of China --- ###
+
+		if = {
+			limit = {
+				tag = PRC
+				date > 1976.10.01
+				date < 1976.11.01
+				NOT = { has_country_flag = flavorprc_gang }
+			}
+			news_event = flavorprc.1
+			set_country_flag = flavorprc_gang
+		}
+		if = {
+			limit = {
+				tag = PRC
+				date > 1978.12.01
+				date < 1979.01.01
+				NOT = { has_country_flag = flavorprc_plenum }
+			}
+			news_event = flavorprc.2
+			set_country_flag = flavorprc_plenum
+		}
+		if = {
+			limit = {
+				tag = PRC
+				date > 1989.06.01
+				date < 1989.07.01
+				NOT = { has_country_flag = flavorprc_square }
+			}
+			news_event = flavorprc.3
+			set_country_flag = flavorprc_square
+		}
+		if = {
+			limit = {
+				tag = PRC
+				date > 1997.02.01
+				date < 1997.03.01
+				NOT = { has_country_flag = flavorprc_deng }
+			}
+			news_event = flavorprc.4
+			set_country_flag = flavorprc_deng
+		}
 
 	################################################################################
 	###                             OCEANIA / PACIFIC                             ###
@@ -17124,12 +17806,12 @@ ic_pulse = {
 			}
 		country_event = Suriname_news.1
 	}
-			# TODO: PRC section was truncated here — content is missing
+	# TODO: PRC section was truncated here — content is missing
 
 	################################################################################
 	###                             PORTRAIT CHANGES                             ###
 	################################################################################
-
+	
 	# Portrait Changes - Albania
 	if = {
 		limit = {
@@ -17233,6 +17915,58 @@ ic_pulse = {
 			portrait = "gfx/leaders/ALB/Rexhep_Krasniqi_80s.dds"
 		}
 	}
+	
+	# Portrait Changes - Austria
+	if = {
+		limit = {
+			original_tag = AUS
+			has_country_leader = {
+				name = "Bruno Kreisky"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = AUS_Kreisky_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = AUS_Kreisky_80s_Change
+		set_country_leader_portrait = {
+			ideology = Social_Democratic
+			portrait = "gfx/leaders/AUS/Bruno_Kreisky_80s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = AUS
+			has_country_leader = {
+				name = "Franz Vranitzky"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = AUS_Vranitzky_90s_Change }
+			date > 1991.1.1
+		}
+		set_country_flag = AUS_Vranitzky_90s_Change
+		set_country_leader_portrait = {
+			ideology = Social_Democratic
+			portrait = "gfx/leaders/AUS/Franz_Vranitzky_90s.dds"
+		}
+	}
+	
+	# Portrait Changes - Belgium
+	if = {
+		limit = {
+			original_tag = BEL
+			has_country_leader = {
+				name = "Wilfried Martens"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = BEL_Martens_90s_Change }
+			date > 1986.1.1
+		}
+		set_country_flag = BEL_Martens_90s_Change
+		set_country_leader_portrait = {
+			ideology = Christian_Democratic
+			portrait = "gfx/leaders/BEL/Wilfried_Martens_90s.dds"
+		}
+	}
 
 	# Portrait Changes - Botswana
 	if = {
@@ -17265,6 +17999,72 @@ ic_pulse = {
 		set_country_leader_portrait = {
 			ideology = conservative
 			portrait = "gfx/leaders/BOT/Seretse_Khama_80s.dds"
+		}
+	}
+	
+	# Portrait Changes - Bulgaria
+	if = {
+		limit = {
+			original_tag = BUL
+			has_country_leader = {
+				name = "Todor Zhivkov"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = BUL_Zhivkov_60s_Change }
+			date > 1960.1.1
+			}
+		set_country_flag = BUL_Zhivkov_60s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/BUL/Todor_Zhivkov_60s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = BUL
+			has_country_leader = {
+				name = "Todor Zhivkov"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = BUL_Zhivkov_70s_Change }
+			date > 1970.1.1
+			}
+		set_country_flag = BUL_Zhivkov_70s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/BUL/Todor_Zhivkov_70s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = BUL
+			has_country_leader = {
+				name = "Simeon II"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = BUL_Simeon_70s_Change }
+			date > 1973.1.1
+			}
+		set_country_flag = BUL_Simeon_70s_Change
+		set_country_leader_portrait = {
+			ideology = monarchism
+			portrait = "gfx/leaders/BUL/Simeon_II_70s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = BUL
+			has_country_leader = {
+				name = "Todor Zhivkov"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = BUL_Zhivkov_80s_Change }
+			date > 1980.1.1
+			}
+		set_country_flag = BUL_Zhivkov_80s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/BUL/Todor_Zhivkov_80s.dds"
 		}
 	}
 
@@ -17330,6 +18130,40 @@ ic_pulse = {
 		}
 	}
 	
+	# Portrait Changes - Czechoslovakia
+	if = {
+		limit = {
+			original_tag = CZE
+			has_country_leader = {
+				name = "Antonín Novotný"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = CZE_Novotny_60s_Change }
+			date > 1962.1.1
+		}
+		set_country_flag = CZE_Novotny_60s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/CZE/Antonin_Novotny_60s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = CZE
+			has_country_leader = {
+				name = "Gustav Husak"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = CZE_Husak_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = CZE_Husak_80s_Change
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/CZE/Gustav_Husak_80s.dds"
+		}
+	}
+
 	# Portrait Changes - Denmark
 	if = {
 		limit = {
@@ -17343,7 +18177,7 @@ ic_pulse = {
 			civilian = { large = "gfx/leaders/DEN/Anker_Jorgensen_80s.dds" }
 		}
 	}
-	
+
 
 	# Portrait Changes - Egypt
 	if = {
@@ -17386,7 +18220,7 @@ ic_pulse = {
 			portrait = "gfx/leaders/EGY/Anwar_Sadat_80s.dds"
 		}
 	}
-	
+
 	# Portrait Changes - England (Britain)
 	if = {
 		limit = {
@@ -17493,8 +18327,8 @@ ic_pulse = {
 			ideology = monarchist
 		}
 	}
-	
-	
+
+
 	# Portrait Changes - Ethiopia
 	if = {
 		limit = {
@@ -17556,8 +18390,9 @@ ic_pulse = {
 		}
 		set_country_flag = IRQ_Saddam_Hussein_80s_Change
 		IRQ_Saddam_Hussein = { set_portraits =
-			{ civilian =
-				{ large = "gfx/leaders/IRQ/Saddam_Hussein_80s.dds" }
+			{
+				civilian = { large = "gfx/leaders/IRQ/Saddam_Hussein_80s.dds" }
+				army = { large = "gfx/leaders/IRQ/Saddam_Hussein_80s.dds" }
 			}
 		}
 	}
@@ -17567,10 +18402,11 @@ ic_pulse = {
 			NOT = { has_country_flag = IRQ_Saddam_Hussein_90s_Change }
 			date > 1990.1.1
 		}
-		set_country_flag = IRQ_Saddam_Hussein_80s_Change
+		set_country_flag = IRQ_Saddam_Hussein_90s_Change
 		IRQ_Saddam_Hussein = { set_portraits =
-			{ civilian =
-				{ large = "gfx/leaders/IRQ/Saddam_Hussein_90s.dds" }
+			{
+				civilian = { large = "gfx/leaders/IRQ/Saddam_Hussein_90s.dds" }
+				army = { large = "gfx/leaders/IRQ/Saddam_Hussein_90s.dds" }
 			}
 		}
 	}
@@ -17580,12 +18416,90 @@ ic_pulse = {
 			NOT = { has_country_flag = IRQ_Saddam_Hussein_00s_Change }
 			date > 2000.1.1
 		}
-		set_country_flag = IRQ_Saddam_Hussein_80s_Change
+		set_country_flag = IRQ_Saddam_Hussein_00s_Change
 		IRQ_Saddam_Hussein = { set_portraits =
-			{ civilian =
-				{ large = "gfx/leaders/IRQ/Saddam_Hussein_00sEarly.dds" }
+			{
+				civilian = { large = "gfx/leaders/IRQ/Saddam_Hussein_00s.dds" }
+				army = { large = "gfx/leaders/IRQ/Saddam_Hussein_00s.dds" }
 			}
 		}
+	}
+	
+	# Portrait Changes - Italy
+	if = {
+		limit = {
+			original_tag = ITA
+			has_country_flag = ITA_Umberto_60s
+			NOT = { has_country_flag = ITA_Umberto_70s_Change }
+			date > 1970.1.1
+		}
+		set_country_flag = ITA_Umberto_70s_Change
+		set_country_leader_portrait = {
+			ideology = monarchism
+			portrait = "gfx/leaders/ITA/Monarchy/Umberto_II_70s.dds"
+		}
+		clr_country_flag = ITA_Umberto_60s
+		set_country_flag = ITA_Umberto_70s
+	}
+	if = {
+		limit = {
+			original_tag = ITA
+			has_country_flag = ITA_Umberto_70s
+			NOT = { has_country_flag = ITA_Umberto_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = ITA_Umberto_80s_Change
+		set_country_leader_portrait = {
+			ideology = monarchism
+			portrait = "gfx/leaders/ITA/Monarchy/Umberto_II_80s.dds"
+		}
+		clr_country_flag = ITA_Umberto_70s
+		set_country_flag = ITA_Umberto_80s
+	}
+	if = {
+		limit = {
+			original_tag = ITA
+			has_country_flag = ITA_Emmanuel_70s
+			NOT = { has_country_flag = ITA_Emmanuel_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = ITA_Emmanuel_80s_Change
+		set_country_leader_portrait = {
+			ideology = monarchism
+			portrait = "gfx/leaders/ITA/Monarchy/Victor_Emmanuel_IV_80s.dds"
+		}
+		clr_country_flag = ITA_Emmanuel_70s
+		set_country_flag = ITA_Emmanuel_80s
+	}
+	if = {
+		limit = {
+			original_tag = ITA
+			has_country_flag = ITA_Emmanuel_80s
+			NOT = { has_country_flag = ITA_Emmanuel_90s_Change }
+			date > 1990.1.1
+		}
+		set_country_flag = ITA_Emmanuel_90s_Change
+		set_country_leader_portrait = {
+			ideology = monarchism
+			portrait = "gfx/leaders/ITA/Monarchy/Victor_Emmanuel_IV_90s.dds"
+		}
+		clr_country_flag = ITA_Emmanuel_80s
+		set_country_flag = ITA_Emmanuel_90s
+	}
+	if = {
+		limit = {
+			original_tag = ITA
+			has_country_flag = ITA_Emmanuel_90s
+			NOT = { has_country_flag = ITA_Emmanuel_00s_Change }
+			date > 2000.1.1
+		}
+		set_country_flag = ITA_Emmanuel_00s_Change
+		set_country_leader_portrait = {
+			ideology = monarchism
+			portrait = "gfx/leaders/ITA/Monarchy/Victor_Emmanuel_IV_00s.dds"
+		}
+		clr_country_flag = ITA_Emmanuel_90s
+		set_country_flag = ITA_Emmanuel_00s
 	}
 
 	# Portrait Changes - Kenya
@@ -17637,7 +18551,7 @@ ic_pulse = {
 			portrait = "gfx/leaders/KEN/Daniel_arap_Moi_00s.dds"
 		}
 	}
-	
+
 	# Portrait Changes - Libya
 	if = {
 		limit = {
@@ -17646,7 +18560,7 @@ ic_pulse = {
 			date > 1970.1.1
 			}
 		set_country_flag = LBA_Gaddafi_70s_Change
-		set_portraits = { 
+		set_portraits = {
 			character = LBA_Muammar_Gaddafi
 			civilian = { large = "gfx/leaders/LBA/Muammar_Gaddafi_70s.dds" }
 			army = { large = "gfx/leaders/LBA/Muammar_Gaddafi_70s.dds" }
@@ -17659,13 +18573,13 @@ ic_pulse = {
 			date > 1980.1.1
 			}
 		set_country_flag = LBA_Gaddafi_80s_Change
-		set_portraits = { 
+		set_portraits = {
 			character = LBA_Muammar_Gaddafi
 			civilian = { large = "gfx/leaders/LBA/Muammar_Gaddafi_80s.dds" }
 			army = { large = "gfx/leaders/LBA/Muammar_Gaddafi_80s.dds" }
 		}
 	}
-	
+
 	# Portrait Changes - North Korea
 	if = {
 		limit = {
@@ -17700,7 +18614,7 @@ ic_pulse = {
 			date > 1980.1.1
 		}
 		set_country_flag = KPA_Kim_80s_Change
-		set_portraits = { 
+		set_portraits = {
 			character = KPA_kim_ilsung
 			civilian = { large = "gfx/leaders/KPA/Kim_Il_Sung_80s.dds" }
 		}
@@ -17712,7 +18626,7 @@ ic_pulse = {
 			date > 1990.1.1
 		}
 		set_country_flag = KPA_Kim_90s_Change
-		set_portraits = { 
+		set_portraits = {
 			character = KPA_kim_ilsung
 			civilian = { large = "gfx/leaders/KPA/Kim_Il_Sung_90s.dds" }
 		}
@@ -17732,6 +18646,70 @@ ic_pulse = {
 		}
 	}
 
+	# Portrait Changes - Oman
+	if = {
+		limit = {
+			tag = OMA
+			NOT = { has_country_flag = OMA_Said_Portrait_60s }
+			date > 1960.1.1
+		}
+		set_country_flag = OMA_Said_Portrait_60s
+		set_portraits = {
+			character = OMA_Said_bin_Taimur
+			civilian = { large = "gfx/leaders/OMA/Said_bin_Taimur_60s.dds" }
+		}
+	}
+
+	# Portrait Changes - Paraguay
+	if = {
+		limit = {
+			original_tag = PAR
+			has_country_leader = {
+				name = "Alfredo Stroessner"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = PAR_Storessner_60s_Change }
+			date > 1962.1.1
+			}
+		set_country_flag = PAR_Storessner_60s_Change
+		set_country_leader_portrait = {
+			ideology = neutrality
+			portrait = "gfx/leaders/PAR/Alfredo_Stroessner_60s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = PAR
+			has_country_leader = {
+				name = "Alfredo Stroessner"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = PAR_Storessner_70s_Change }
+			date > 1970.1.1
+			}
+		set_country_flag = PAR_Storessner_70s_Change
+		set_country_leader_portrait = {
+			ideology = neutrality
+			portrait = "gfx/leaders/PAR/Alfredo_Stroessner_70s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = PAR
+			has_country_leader = {
+				name = "Alfredo Stroessner"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = PAR_Storessner_80s_Change }
+			date > 1980.1.1
+			}
+		set_country_flag = PAR_Storessner_80s_Change
+		set_country_leader_portrait = {
+			ideology = neutrality
+			portrait = "gfx/leaders/PAR/Alfredo_Stroessner_80s.dds"
+		}
+	}
+
 	# Portrait Changes - People's Republic of China
 	if = {
 		limit = {
@@ -17740,7 +18718,7 @@ ic_pulse = {
 			date > 1962.1.1
 		}
 		set_country_flag = PRC_Mao_60s_Change
-		set_portraits = { 
+		set_portraits = {
 			character = PRC_Mao_Zedong
 			civilian = { large = "gfx/leaders/PRC/Mao_Zedong_1960.png" }
 		}
@@ -17752,9 +18730,43 @@ ic_pulse = {
 			date > 1970.1.1
 		}
 		set_country_flag = PRC_Mao_70s_Change
-		set_portraits = { 
+		set_portraits = {
 			character = PRC_Mao_Zedong
 			civilian = { large = "gfx/leaders/PRC/Mao_Zedong_1966.png" }
+		}
+	}
+	
+	# Portrait Changes - Peru
+	if = {
+		limit = {
+			original_tag = PRU
+			has_country_leader = {
+				name = "Francisco Morales Bermúdez"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = PRU_Bermudez_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = PRU_Bermudez_80s_Change
+		set_country_leader_portrait = {
+			ideology = neutrality
+			portrait = "gfx/leaders/PRU/Francisco_Moralez_Bermudez_80s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = PRU
+			has_country_leader = {
+				name = "Alberto Fujimori"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = PRU_Fujimori_00s_Change }
+			date > 1998.1.1
+		}
+		set_country_flag = PRU_Fujimori_00s_Change
+		set_country_leader_portrait = {
+			ideology = fascism
+			portrait = "gfx/leaders/PRU/Alberto_Fujimori_00s.dds"
 		}
 	}
 
@@ -18212,30 +19224,6 @@ ic_pulse = {
 	if = {
 		limit = {
 			tag = SOV
-			NOT = { has_country_flag = SOV_Khruschev_Portrait_60s }
-			date > 1960.1.1
-		}
-		set_country_flag = SOV_Khruschev_Portrait_60s
-		set_portraits = {
-			character = SOV_Nikita_Khrushchev
-			civilian = { large = "gfx/leaders/SOV/Nikita_Khrushchev_60s.dds" }
-		}
-	}
-	if = {
-		limit = {
-			tag = SOV
-			NOT = { has_country_flag = SOV_Khruschev_Portrait_70s }
-			date > 1970.1.1
-		}
-		set_country_flag = SOV_Khruschev_Portrait_70s
-		set_portraits = {
-			character = SOV_Nikita_Khrushchev
-			civilian = { large = "gfx/leaders/SOV/Nikita_Khrushchev_70s.dds" }
-		}
-	}
-	if = {
-		limit = {
-			tag = SOV
 			NOT = { has_country_flag = SOV_Brezhnev_Portrait_70s }
 			date > 1970.1.1
 		}
@@ -18255,6 +19243,78 @@ ic_pulse = {
 		set_portraits = {
 			character = SOV_Leonid_Brezhnev
 			civilian = { large = "gfx/leaders/SOV/Leonid_Brezhnev_80s.dds" }
+		}
+	}
+	if = {
+		limit = {
+			tag = SOV
+			has_country_leader = {
+				name = "Lazar Kaganovich"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = SOV_Kaganovich_Portrait_60s }
+			date > 1964.1.1
+		}
+		set_country_flag = SOV_Kaganovich_Portrait_60s
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/SOV/Lazar_Kaganovich_60s.dds"
+		}
+	}
+	if = {
+		limit = {
+			tag = SOV
+			has_country_leader = {
+				name = "Lazar Kaganovich"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = SOV_Kaganovich_Portrait_70s }
+			date > 1972.1.1
+		}
+		set_country_flag = SOV_Kaganovich_Portrait_70s
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/SOV/Lazar_Kaganovich_70s.dds"
+		}
+	}
+	if = {
+		limit = {
+			tag = SOV
+			has_country_leader = {
+				name = "Lazar Kaganovich"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = SOV_Kaganovich_Portrait_80s }
+			date > 1980.1.1
+		}
+		set_country_flag = SOV_Kaganovich_Portrait_80s
+		set_country_leader_portrait = {
+			ideology = communism
+			portrait = "gfx/leaders/SOV/Lazar_Kaganovich_80s.dds"
+		}
+	}
+	if = {
+		limit = {
+			tag = SOV
+			NOT = { has_country_flag = SOV_Khruschev_Portrait_60s }
+			date > 1960.1.1
+		}
+		set_country_flag = SOV_Khruschev_Portrait_60s
+		set_portraits = {
+			character = SOV_Nikita_Khrushchev
+			civilian = { large = "gfx/leaders/SOV/Nikita_Khrushchev_60s.dds" }
+		}
+	}
+	if = {
+		limit = {
+			tag = SOV
+			NOT = { has_country_flag = SOV_Khruschev_Portrait_70s }
+			date > 1970.1.1
+		}
+		set_country_flag = SOV_Khruschev_Portrait_70s
+		set_portraits = {
+			character = SOV_Nikita_Khrushchev
+			civilian = { large = "gfx/leaders/SOV/Nikita_Khrushchev_70s.dds" }
 		}
 	}
 	if = {
@@ -18388,51 +19448,31 @@ ic_pulse = {
 	if = {
 		limit = {
 			original_tag = VIN
-			NOT = { has_country_flag = vin_leader_change_1986_Hist }
-			date > 1986.7.1
-			has_country_leader = { character = VIN_Le_Duan ruling_only = yes }
+			NOT = { has_country_flag = vin_truong_chinh_portrait_postwar }
+			OR = {
+				has_global_flag = Indochina_War_Over
+				date > 1955.1.1
+			}
 		}
-		set_country_flag = vin_leader_change_1986_Hist
-		retire_character = VIN_Le_Duan
+		set_country_flag = vin_truong_chinh_portrait_postwar
 		VIN_Truong_Chinh = {
-			set_portraits = { civilian = { large = GFX_Truong_Chinh_Old } }
-		}
-		add_country_leader_role = {
-			character = VIN_Truong_Chinh
-			promote_leader = yes
-			country_leader = {
-				ideology = ho_chi_minh_thought
-			}
+			set_portraits = { civilian = { large = GFX_Truong_Chinh } }
 		}
 	}
 	if = {
 		limit = {
 			original_tag = VIN
-			NOT = { has_country_flag = vin_leader_change_1987_Hist }
-			date > 1987.1.1
-			has_country_leader = { character = VIN_Truong_Chinh ruling_only = yes }
-		}
-		set_country_flag = vin_leader_change_1987_Hist
-		retire_character = VIN_Truong_Chinh
-		add_country_leader_role = {
-			character = VIN_Nguyen_Chi_Thanh
-			promote_leader = yes
-			country_leader = {
-				ideology = ho_chi_minh_thought
-			}
-		}
-	}
-	if = {
-		limit = {
-			original_tag = VIN
-			NOT = { has_country_flag = vin_leader_change_1980_Maoist }
+			NOT = { has_country_flag = vin_truong_chinh_portrait_old }
 			date > 1976.1.1
-			has_country_leader = { character = VIN_Truong_Chinh ruling_only = yes }
 		}
-		set_country_flag = vin_leader_change_1980_Maoist
+		set_country_flag = vin_truong_chinh_portrait_old
 		VIN_Truong_Chinh = {
 			set_portraits = { civilian = { large = GFX_Truong_Chinh_Old } }
 		}
+	}
+	if = {
+		limit = { tag = VIN }
+		VIN_leadership_pulse = yes
 	}
 	if = {
 		limit = {
@@ -18508,5 +19548,13 @@ ic_pulse = {
 			ideology = socialist
 			portrait = "gfx/leaders/ZIM/Robert_Mugabe_00s.dds"
 		}
+	}
+	if = {
+		limit = {
+			original_tag = SOV
+			date > 1969.1.01
+			date < 1969.2.01
+		}
+		news_event = ARM_SOV.1
 	}
 }

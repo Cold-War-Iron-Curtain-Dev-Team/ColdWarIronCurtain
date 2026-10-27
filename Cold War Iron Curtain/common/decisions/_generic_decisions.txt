@@ -1485,42 +1485,32 @@ variables_calculation_category = {
 	}
 	ic_trade = {
 		allowed = {
-			tag = UNS
+			always = no
+		}
+		visible = {
+			always = no
 		}
 		available = {
 			always = no
 		}
 		activation = {
-
+			always = no
 		}
 		selectable_mission = yes
 		days_mission_timeout = 30
 		
 		timeout_effect = {
-			export_script_for_pool = yes
-			credit_calculation_work = yes
-			every_country = {
-				if = {
-					limit = {
-						OR = {
-							check_variable = {
-								trade_automation = 2
-							}
-							is_ai = yes
-						}
-					}
-					country_event = trade.1
-					#trade_check = yes
-				}
+			hidden_effect = {
+				# Retired: export_script_for_pool, credit_calculation_work, and trade.1 now run from on_monthly.
 			}
-			activate_mission = ic_trade
-			#export_script_for_pool = yes
 		}
 	}
 	ic_Financial = {
 		allowed = {
+			always = no
 		}
 		visible = {
+			always = no
 		}
 		available = {
 			always = no
@@ -1872,9 +1862,18 @@ variables_calculation_category = {
 				province = 3944
 			}
 			CHI = {
-				create_faction_from_template = { template = faction_template_generic name = "Anti-Communist Salvation Front" }
-				add_to_faction = KOR
-				add_to_faction = USA
+				if = {
+					limit = { is_in_faction = no }
+					create_faction_from_template = { template = faction_template_generic name = "Anti-Communist Salvation Front" }
+				}
+				if = {
+					limit = { is_faction_leader = yes KOR = { is_in_faction = no } }
+					add_to_faction = KOR
+				}
+				if = {
+					limit = { is_faction_leader = yes USA = { is_in_faction = no } }
+					add_to_faction = USA
+				}
 				declare_war_on = {
 					target = PRC
 					type = annex_everything
@@ -2806,76 +2805,76 @@ operations = {
 		}
 	}
 
-	Retreat_to_Manchuria = {
-		icon = generic_prepare_civil_war
-		visible = {
-			tag = PRC
-			NOT = { has_global_flag = CCW_Over }
-		}
-		allowed = {
-			tag = PRC
-		}
-		available = {
-			always = no
-		}
-		activation = {
-			tag = PRC
-			has_war_with = CHI
-			CHI = {
-				has_global_flag = roc_stalled_ccp
-			}
-			NOT = { has_global_flag = CCW_Over }
-			CHI = {
-				controls_state = 606
-				controls_state = 613
-				controls_state = 598
-				controls_state = 596
-				controls_state = 597
-				controls_state = 614
-				controls_state = 620
-				controls_state = 607
-				controls_state = 615
-				controls_state = 622		
-			}
-		}
-		cost = 0
-
-		fire_only_once = yes
-		selectable_mission = yes
-
-		days_mission_timeout = 50
-
-		#complete_effect = {
-		#	news_event = Shanghai_Campaign.1
-		#}
-
-		timeout_effect = {
-			if = {
-				limit = {
-					CHI = {
-						controls_state = 606
-						controls_state = 613
-						controls_state = 598
-						controls_state = 596
-						controls_state = 597
-						controls_state = 614
-						controls_state = 620
-						controls_state = 607
-						controls_state = 615
-						controls_state = 622
-					}	
-				}
-				PRC_Lose_CCW = yes
-			}
-			else = {
-				
-			}
-		}
-
-		ai_will_do = {
-			factor = 0
-		}
-	}
+	#Retreat_to_Manchuria = {
+	#	icon = generic_prepare_civil_war
+	#	visible = {
+	#		tag = PRC
+	#		NOT = { has_global_flag = CCW_Over }
+	#	}
+	#	allowed = {
+	#		tag = PRC
+	#	}
+	#	available = {
+	#		always = no
+	#	}
+	#	activation = {
+	#		tag = PRC
+	#		has_war_with = CHI
+	#		CHI = {
+	#			has_global_flag = roc_stalled_ccp
+	#		}
+	#		NOT = { has_global_flag = CCW_Over }
+	#		CHI = {
+	#			controls_state = 606
+	#			controls_state = 613
+	#			controls_state = 598
+	#			controls_state = 596
+	#			controls_state = 597
+	#			controls_state = 614
+	#			controls_state = 620
+	#			controls_state = 607
+	#			controls_state = 615
+	#			controls_state = 622		
+	#		}
+	#	}
+	#	cost = 0
+	#
+	#	fire_only_once = yes
+	#	selectable_mission = yes
+	#
+	#	days_mission_timeout = 50
+	#
+	#	#complete_effect = {
+	#	#	news_event = Shanghai_Campaign.1
+	#	#}
+	#
+	#	timeout_effect = {
+	#		if = {
+	#			limit = {
+	#				CHI = {
+	#					controls_state = 606
+	#					controls_state = 613
+	#					controls_state = 598
+	#					controls_state = 596
+	#					controls_state = 597
+	#					controls_state = 614
+	#					controls_state = 620
+	#					controls_state = 607
+	#					controls_state = 615
+	#					controls_state = 622
+	#				}	
+	#			}
+	#			PRC_Lose_CCW = yes
+	#		}
+	#		else = {
+	#			
+	#		}
+	#	}
+	#
+	#	ai_will_do = {
+	#		factor = 0
+	#	}
+	#}
 	
 
 	Hangang_Bridge_Bombing = {
@@ -3580,6 +3579,9 @@ foreign_politics = {
 			is_ai = yes
 			has_war = yes
 			has_idea = defcon_system_1
+			check_variable = { num_of_nukes > 0 }
+			check_variable = { wmd_strike_ongoing < 1 }
+			check_variable = { wmd_strike_cooldown_var < 1 }
 			check_variable = { var = wmd_missiles_total value = var:missile_cost compare = greater_than_or_equals }
 			OR = {
 				original_tag = USA
@@ -3597,7 +3599,10 @@ foreign_politics = {
 			wmd_select_all_enemies = yes
 			wmd_distance_calculator = yes
 			wmd_check_strike_missiles = yes
-			wmd_nuke_launch = yes
+			if = {
+				limit = { check_variable = { WMD_target_states_array^num > 0 } }
+				wmd_nuke_launch = yes
+			}
 		}
 	}
     COMECON_DOCKYARD_Investment = {

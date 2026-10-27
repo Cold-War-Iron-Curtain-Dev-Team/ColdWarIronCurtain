@@ -1,0 +1,127 @@
+###########################################################################
+# Regime Change Opportunities (RCO) - effects
+# Guide: top of events/RCO_events.txt
+###########################################################################
+
+# Scope: THIS = one explicit target, ROOT = sender.
+# New opportunity countries have to be added to RCO_sync below as well as RCO_any.
+RCO_note_target = {
+	if = {
+		limit = { RCO_any = yes }
+		if = {
+			limit = { NOT = { has_country_flag = RCO_open_@ROOT } }
+			set_country_flag = RCO_open_@ROOT
+			ROOT = { clr_country_flag = RCO_alert_dismissed }
+		}
+		add_to_array = { ROOT.RCO_targets = THIS }
+	}
+	else_if = {
+		limit = { has_country_flag = RCO_open_@ROOT }
+		clr_country_flag = RCO_open_@ROOT
+	}
+}
+
+# Scope: ROOT = sender.
+# Called weekly from on_actions and after an opportunity is used.
+# Checks the Soviet target tags only, then rebuilds RCO_targets.
+RCO_sync = {
+	ROOT = { clear_array = RCO_targets }
+	if = { limit = { country_exists = PDG } PDG = { RCO_note_target = yes } }
+	if = { limit = { country_exists = GRE } GRE = { RCO_note_target = yes } }
+	if = { limit = { country_exists = PRC } PRC = { RCO_note_target = yes } }
+	if = { limit = { country_exists = CHI } CHI = { RCO_note_target = yes } }
+	if = { limit = { country_exists = WGR } WGR = { RCO_note_target = yes } }
+	if = { limit = { country_exists = DDR } DDR = { RCO_note_target = yes } }
+	if = { limit = { country_exists = YUG } YUG = { RCO_note_target = yes } }
+	ROOT = {
+		if = {
+			limit = { check_variable = { RCO_targets^num > 0 } }
+			set_country_flag = RCO_any_open
+		}
+		else = {
+			clr_country_flag = RCO_any_open
+		}
+	}
+}
+
+# Scope: THIS = target, ROOT = sender (diplomacy button complete_effect).
+# Remembers the target and opens the choice event for the sender.
+RCO_choose = {
+	set_variable = { ROOT.RCO_target = THIS.id }
+	ROOT = { country_event = RCO.1 }
+}
+
+# Scope: SOV. Openers for the first Soviet opportunities, which depend on live
+# states (capitulation, dates) rather than on a single event. Each one raises
+# its flag while the window is open and lowers it when it closes.
+# New opportunities don't need to go here: raise the flag from the content
+# where the opportunity arises.
+RCO_SOV_openers = {
+	# Greece - the Democratic Army is collapsing
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_Percentage_agreement }
+			country_exists = PDG
+			PDG = { surrender_progress > 0.4 }
+		}
+		PDG = { set_country_flag = RCO_sov_greece }
+		GRE = { set_country_flag = RCO_sov_greece }
+	}
+	else = {
+		PDG = { clr_country_flag = RCO_sov_greece }
+		GRE = { clr_country_flag = RCO_sov_greece }
+	}
+	# China - the PLA is on the verge of defeat
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_Manchurian_Interventon }
+			country_exists = PRC
+			PRC = { surrender_progress > 0.79 }
+		}
+		PRC = { set_country_flag = RCO_sov_china }
+		CHI = { set_country_flag = RCO_sov_china }
+	}
+	else = {
+		PRC = { clr_country_flag = RCO_sov_china }
+		CHI = { clr_country_flag = RCO_sov_china }
+	}
+	# West Germany - the 1949 Bundestag election
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_WGR49_interfered }
+			date < 1951.1.1
+		}
+		WGR = { set_country_flag = RCO_sov_wgr49 }
+	}
+	else = {
+		WGR = { clr_country_flag = RCO_sov_wgr49 }
+	}
+	# Germany - the Stalin Note
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_Stalin_Note }
+			has_country_leader = { character = SOV_Joseph_Stalin ruling_only = yes }
+			date > 1952.1.1
+			NOT = { WGR = { has_country_leader = { character = WGR_Maximillian_Reimann ruling_only = yes } } }
+		}
+		WGR = { set_country_flag = RCO_sov_stalin_note }
+		DDR = { set_country_flag = RCO_sov_stalin_note }
+	}
+	else = {
+		WGR = { clr_country_flag = RCO_sov_stalin_note }
+		DDR = { clr_country_flag = RCO_sov_stalin_note }
+	}
+	# Yugoslavia - Tito surrounded
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_YUG_Invasion }
+			date < 1953.1.1
+			country_exists = PDG
+			PDG = { owns_state = 47 }
+		}
+		YUG = { set_country_flag = RCO_sov_yug }
+	}
+	else = {
+		YUG = { clr_country_flag = RCO_sov_yug }
+	}
+}
