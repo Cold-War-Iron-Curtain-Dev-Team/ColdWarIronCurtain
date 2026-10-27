@@ -1338,7 +1338,6 @@ gdp_calculation_effect = {
 	# multiply_variable = { pop_corporateclass_tax_rate = modifier@tax_rate_corporate }
 	# after generate_tax_info
 	# after generate_tax_info
-	if = { limit = { is_ai = no } log =  [?ROOT.CWIC_DM_CG_OFFICE_PARK_INCOME_BONUS] }
 	set_variable = { pop_lowerclass_tax_rate = modifier@tax_rate_lower_class }
 	set_variable = { pop_lowerclass_tax_rate_bonus = pop_lowerclass_tax_rate }
 	multiply_variable = { pop_lowerclass_tax_rate_bonus = effective_tax_rate }
@@ -1381,7 +1380,10 @@ gdp_calculation_effect = {
 		get_total_infrastructure = yes	#For Public Services Expenses
 
 		reset_potential_problems = yes
-		check_state_developement = yes
+		if = {
+			limit = { NOT = { has_variable = state_development } }
+			cwic_cache_state_category = yes
+		}
 		check_buildings = yes
 		calculate_free_building_slots = yes
 		check_resources = yes
@@ -1564,8 +1566,19 @@ calc_welfare_expenditure = {
 	divide_variable = { welfare_expenditure = 2000 }
 	multiply_variable = { welfare_expenditure = average_development }
 
-	#now apply multiplier of idea
-	multiply_variable = { welfare_expenditure = 1 }
+	#now apply multiplier of idea (policy_welfare_temp_X). Countries without any welfare policy idea keep the old full cost (x1)
+	set_temp_variable = { welfare_policy_mult = modifier@welfare_spending_modifier }
+	if = {
+		limit = {
+			check_variable = { welfare_policy_mult < 0.0005 }
+		}
+		set_temp_variable = { welfare_policy_mult = 1 }
+	}
+	multiply_variable = { welfare_expenditure = welfare_policy_mult }
+
+	set_variable = {
+		welfare_cost_adjustment_policy = welfare_expenditure
+	}
 	multiply_variable = {
 		welfare_expenditure = modifier@welfare_spending_modifier 
 	}

@@ -105,6 +105,28 @@ wmd_nuke_launch = {
 	if = { limit = { check_variable = { strike_level_tier1_selected = 1 } } set_variable = { wmd_temp_news_tier = 1 } }
 	else_if = { limit = { check_variable = { strike_level_tier2_selected = 1 } } set_variable = { wmd_temp_news_tier = 2 } }
 	else_if = { limit = { check_variable = { strike_level_tier3_selected = 1 } } set_variable = { wmd_temp_news_tier = 3 } }
+	# Preserve the scripted crisis authorization until every queued strike resolves.
+	set_variable = { wmd_strike_cuban_crisis = 0 }
+	if = {
+		limit = {
+			OR = {
+				check_variable = { strike_level_usa_cubamc_selected = 1 }
+				check_variable = { strike_level_sov_cubamc_selected = 1 }
+			}
+		}
+		set_variable = { wmd_strike_cuban_crisis = 1 }
+	}
+	set_temp_variable = { icbm_cost = missile_cost }
+	multiply_temp_variable = { icbm_cost = -1 }
+	if = { limit =  { has_tech = icbm1 }
+		add_equipment_to_stockpile = { type = icbm_equipment amount = icbm_cost }
+	}
+	else_if = { limit =  { has_tech = irbm1 }
+		add_equipment_to_stockpile = { type = irbm_equipment amount = icbm_cost }
+	}
+	else = {
+		add_equipment_to_stockpile = { type = srbm_equipment amount = icbm_cost }
+	}
 	set_variable = { wmd_strike_ongoing = 1 }
 	for_each_loop = {
 		# array for nuking events
@@ -126,17 +148,6 @@ wmd_nuke_launch = {
 	}
 	wmd_reset = yes
 	clear_variable = wmd_nuke_target_state 
-	set_temp_variable = { icbm_cost = missile_cost }
-	multiply_temp_variable = { icbm_cost = -1 }
-	if = { limit =  { has_tech = icbm1 }
-		add_equipment_to_stockpile = { type = icbm_equipment amount = icbm_cost }
-	}
-	else_if = { limit =  { has_tech = irbm1 }
-		add_equipment_to_stockpile = { type = irbm_equipment amount = icbm_cost }
-	}
-	else = {
-		add_equipment_to_stockpile = { type = srbm_equipment amount = icbm_cost }
-	}
 }
 
 wmd_damage_loop_effect = {
@@ -145,42 +156,42 @@ wmd_damage_loop_effect = {
 	if = { limit = { ROOT = { has_tech = atomic_weapons_armament_I } }
 		PREV.FROM = {
 			#log = "    reduce state development (state: [?THIS.GetName])"
-			if = { limit = { has_state_category = pop1dev1 } set_state_category = pop1 }
-			if = { limit = { has_state_category = pop1dev2 } set_state_category = pop1dev1 }
-			if = { limit = { has_state_category = pop1dev3 } set_state_category = pop1dev2 }
-			if = { limit = { has_state_category = pop1dev4 } set_state_category = pop1dev3 }
-			if = { limit = { has_state_category = pop2dev1 } set_state_category = pop2 }
-			if = { limit = { has_state_category = pop2dev2 } set_state_category = pop2dev1 }
-			if = { limit = { has_state_category = pop2dev3 } set_state_category = pop2dev2 }
-			if = { limit = { has_state_category = pop2dev4 } set_state_category = pop2dev3 }
-			if = { limit = { has_state_category = pop3dev1 } set_state_category = pop3 }
-			if = { limit = { has_state_category = pop3dev2 } set_state_category = pop3dev1 }
-			if = { limit = { has_state_category = pop3dev3 } set_state_category = pop3dev2 }
-			if = { limit = { has_state_category = pop3dev4 } set_state_category = pop3dev3 }
-			if = { limit = { has_state_category = pop4dev1 } set_state_category = pop4 }
-			if = { limit = { has_state_category = pop4dev2 } set_state_category = pop4dev1 }
-			if = { limit = { has_state_category = pop4dev3 } set_state_category = pop4dev2 }
-			if = { limit = { has_state_category = pop4dev4 } set_state_category = pop4dev3 }
-			if = { limit = { has_state_category = pop5dev1 } set_state_category = pop5 }
-			if = { limit = { has_state_category = pop5dev2 } set_state_category = pop5dev1 }
-			if = { limit = { has_state_category = pop5dev3 } set_state_category = pop5dev2 }
-			if = { limit = { has_state_category = pop5dev4 } set_state_category = pop5dev3 }
-			if = { limit = { has_state_category = pop7dev1 } set_state_category = pop7 }
-			if = { limit = { has_state_category = pop7dev2 } set_state_category = pop7dev1 }
-			if = { limit = { has_state_category = pop7dev3 } set_state_category = pop7dev2 }
-			if = { limit = { has_state_category = pop7dev4 } set_state_category = pop7dev3 }
-			if = { limit = { has_state_category = pop10dev1 } set_state_category = pop10 }
-			if = { limit = { has_state_category = pop10dev2 } set_state_category = pop10dev1 }
-			if = { limit = { has_state_category = pop10dev3 } set_state_category = pop10dev2 }
-			if = { limit = { has_state_category = pop10dev4 } set_state_category = pop10dev3 }
-			if = { limit = { has_state_category = pop15dev1 } set_state_category = pop15 }
-			if = { limit = { has_state_category = pop15dev2 } set_state_category = pop15dev1 }
-			if = { limit = { has_state_category = pop15dev3 } set_state_category = pop15dev2 }
-			if = { limit = { has_state_category = pop15dev4 } set_state_category = pop15dev3 }
-			if = { limit = { has_state_category = pop20dev1 } set_state_category = pop20 }
-			if = { limit = { has_state_category = pop20dev2 } set_state_category = pop20dev1 }
-			if = { limit = { has_state_category = pop20dev3 } set_state_category = pop20dev2 }
-			if = { limit = { has_state_category = pop20dev4 } set_state_category = pop20dev3 }
+			if = { limit = { has_state_category = pop1dev1 } set_state_category = pop1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop1dev2 } set_state_category = pop1dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop1dev3 } set_state_category = pop1dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop1dev4 } set_state_category = pop1dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop2dev1 } set_state_category = pop2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop2dev2 } set_state_category = pop2dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop2dev3 } set_state_category = pop2dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop2dev4 } set_state_category = pop2dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop3dev1 } set_state_category = pop3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop3dev2 } set_state_category = pop3dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop3dev3 } set_state_category = pop3dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop3dev4 } set_state_category = pop3dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop4dev1 } set_state_category = pop4  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop4dev2 } set_state_category = pop4dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop4dev3 } set_state_category = pop4dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop4dev4 } set_state_category = pop4dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop5dev1 } set_state_category = pop5  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop5dev2 } set_state_category = pop5dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop5dev3 } set_state_category = pop5dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop5dev4 } set_state_category = pop5dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop7dev1 } set_state_category = pop7  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop7dev2 } set_state_category = pop7dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop7dev3 } set_state_category = pop7dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop7dev4 } set_state_category = pop7dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop10dev1 } set_state_category = pop10  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop10dev2 } set_state_category = pop10dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop10dev3 } set_state_category = pop10dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop10dev4 } set_state_category = pop10dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop15dev1 } set_state_category = pop15  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop15dev2 } set_state_category = pop15dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop15dev3 } set_state_category = pop15dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop15dev4 } set_state_category = pop15dev3  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop20dev1 } set_state_category = pop20  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop20dev2 } set_state_category = pop20dev1  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop20dev3 } set_state_category = pop20dev2  cwic_cache_state_category = yes }
+			if = { limit = { has_state_category = pop20dev4 } set_state_category = pop20dev3  cwic_cache_state_category = yes }
 		}
 	}
 

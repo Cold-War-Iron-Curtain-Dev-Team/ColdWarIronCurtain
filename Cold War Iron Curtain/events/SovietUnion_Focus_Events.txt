@@ -157,11 +157,13 @@ country_event = { #Percentage go or not
 	desc = sov_percentage_agreement.1.desc
 	picture = GFX_SOV_STL_1
 	is_triggered_only = yes
+	immediate = {
+		set_country_flag = SOV_Percentage_agreement
+	}
 	option = {
 		name = sov_percentage_agreement.1.a
-		set_country_flag = SOV_Followed_Percentage_Agreements
-		mark_focus_tree_layout_dirty = yes
-		complete_national_focus = SOV_Stalin_Follow_the_Percentage_Agreements
+		add_stability = 0.035
+		add_threat = -5
 		ai_chance = {
 			factor = 99
 			modifier = {
@@ -172,23 +174,99 @@ country_event = { #Percentage go or not
 	}
 	option = {
 		name = sov_percentage_agreement.1.b
-		set_country_flag = SOV_Rejected_Percentage_Agreements
-		mark_focus_tree_layout_dirty = yes
-		complete_national_focus = SOV_Stalin_Soviet_Intervention_in_the_Greek_Civil_War
+		if = {
+			limit = {
+				country_exists = PDG
+			}
+			every_country = {
+				limit = {
+					is_in_faction_with = SOV
+				}
+				add_to_war = {
+					targeted_alliance = PDG
+					enemy = GRE
+					hostility_reason = asked_to_join
+				}
+			}
+		}
+		else = {
+			declare_war_on = {
+				target = GRE
+				type = annex_everything
+			}
+			GRE = { 1672 = { transfer_state_to = PDG } }
+		}
+		add_to_faction = PDG
+		PDG = {
+			add_ideas = soviet_advisors
+			add_manpower = 25000
+			remove_ideas = cold_war_civil_war_ideological_idea
+		}
+		add_to_array = { sphere_tag_list = PDG.id }
+		PDG = {
+			set_country_flag = Is_In_Sphere
+			set_variable = {
+				Sphere_Leader = SOV.id
+			}
+		}
+		set_global_flag = PDG_INTERVENTION
 	}
 }
-country_event = { #Percentage go or not
-	id = sov_german_question.1
-	immediate = { }
-	title = sov_german_question.1.t
-	desc = sov_german_question.1.desc
+
+# ==========================================================================
+#  Greek Civil War side branch flavour (news only, no choices). Fired from
+#  the matching focus in common/national_focus/SOV_Greek_Civil_War_Branch.txt.
+# ==========================================================================
+
+
+
+
+
+
+# The German Question - the 1949 West German election arc now starts from the
+# Regime Change Opportunity button (flag RCO_sov_wgr49 -> RCO.1 -> SOV_WGR.1).
+
+# ==========================================================================
+#  A RED BONN - fired from WGRElection.1 option c when the KPD wins.
+# ==========================================================================
+country_event = {
+	id = sov_german_question.2
+	title = sov_german_question.2.t
+	desc = sov_german_question.2.d
 	picture = GFX_WGR_Bundeshaus_Bonn
+
 	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		set_country_flag = SOV_WGR49_kpd_victory
+		mark_focus_tree_layout_dirty = yes
+	}
+
 	option = {
-		name = sov_german_question.1.a
-		complete_national_focus = SOV_Stalin_The_German_Question
+		name = sov_german_question.2.a
+		add_political_power = 50
 	}
 }
+news_event = {
+	id = sov_german_question.3
+	title = sov_german_question.3.t
+	desc = sov_german_question.3.d
+	picture = GFX_WGR_Reunification_of_Germany
+
+	major = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = sov_german_question.3.a
+	}
+}
+
+
+# --- Branch flavour (news only, no choices) -------------------------------
+
+
 country_event = { #Percentage go or not
 	id = sov_turkey_in_nato.1
 	immediate = { }
@@ -214,7 +292,6 @@ country_event = { #Percentage go or not
 				has_game_rule = { rule = SOV_turkey_question option = SOV_TUR_RELENT }
 			}
 		}
-		complete_national_focus = SOV_Turkish_NATO_Application
 		TUR = {
 			country_event = sov_turkey_in_nato.2
 		}
@@ -237,7 +314,11 @@ country_event = { #Percentage go or not
 				has_game_rule = { rule = SOV_turkey_question option = SOV_TUR_RELENT }
 			}
 		}
-		complete_national_focus = SOV_Turkey_Defiance
+		add_stability = 0.05
+		add_named_threat = {
+			threat = -10
+			name = Deescalation
+		}
 	}
 }
 country_event = { #Percentage go or not
@@ -250,15 +331,16 @@ country_event = { #Percentage go or not
 	option = {
 		name = sov_turkey_in_nato.2.a #Push for their removal
 		remove_ideas = nato_member
-		ai_chance = { factor = 99 }
+		ai_chance = { factor = 1 }
 		leave_faction = yes
-		SOV = {
-			complete_national_focus = SOV_Turkey_Fold
+		add_named_threat = {
+			threat = -10
+			name = Deescalation
 		}
 	}
 	option = {
 		name = sov_turkey_in_nato.2.b #Backdown
-		ai_chance = { factor = 1 }
+		ai_chance = { factor = 99	}
 		SOV = {
 			country_event = sov_turkey_in_nato.3
 		}
@@ -290,8 +372,7 @@ country_event = { #Percentage go or not
 				has_game_rule = { rule = SOV_turkey_question option = SOV_TUR_RELENT }
 			}
 		}
-		complete_national_focus = SOV_Turkey_Fold
-		complete_national_focus = SOV_Demand_Turkish_Subordination
+		TUR = { country_event = TUR_SOV.1 }
 	}
 	option = {
 		name = sov_turkey_in_nato.3.b #Backdown
@@ -302,7 +383,10 @@ country_event = { #Percentage go or not
 				has_game_rule = { rule = SOV_turkey_question option = SOV_TUR_ULTIMATUM }
 			}
 		}
-		complete_national_focus = SOV_Turkey_Defiance
+		add_named_threat = {
+			threat = -10
+			name = Deescalation
+		}
 	}
 }
 country_event = { #Guide to Soviet
@@ -2087,3 +2171,38 @@ country_event = {
 		}
 	}
 }
+# ==========================================================================
+#  Chinese Civil War side branch flavour (news only, no choices). Fired from
+#  the matching focus in common/national_focus/SOV_Chinese_Civil_War_Branch.txt.
+# ==========================================================================
+add_namespace = sov_china_branch
+
+
+
+news_event = {
+	id = sov_china_branch.3			# fired by the 20th Congress (Khrushchev branch, SOV_Stalin.txt)
+	title = sov_china_branch.3.t
+	desc = sov_china_branch.3.d
+	picture = GFX_twentieth_congress_of_the_cpsu
+
+	major = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = sov_china_branch.3.a
+	}
+}
+
+
+
+
+# ==========================================================================
+#  Post-war Korea side branch flavour (news only, no choices). Fired from the
+#  matching focus in common/national_focus/SOV_Korean_Settlement_Branch.txt.
+# ==========================================================================
+
+
+
+
+

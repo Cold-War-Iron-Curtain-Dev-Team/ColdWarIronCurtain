@@ -187,6 +187,13 @@ NDefines.NAI.VARIANT_UPGRADE_MIN_XP = 9999999
 NDefines.NAI.MAX_AHEAD_RESEARCH_PENALTY = 0
 NDefines.NAI.RESEARCH_AHEAD_OF_TIME_FACTOR = 9999999
 
+-- Performance Optimizations
+NDefines.NAI.DAYS_BETWEEN_DECISION_CHECKS = 3 -- Check AI decisions every 3 days instead of daily, saving ~66% of AI decision trigger evaluation CPU cost
+NDefines.NAI.HOURS_BETWEEN_MILITARY_ASSESMENT = 48 -- Re-evaluate military postures every 48 hours
+NDefines.NAI.AI_UPDATE_ROLES_INTERVAL = 48 -- Interval for updating division roles
+NDefines.NAI.UPDATE_TACTICS_INTERVAL = 24 -- Combat tactic recalculation interval
+NDefines.NGame.COMBAT_LOG_MAX_MONTHS = 6 -- Limit combat log retention to 6 months to reduce memory and savegame bloat
+
 NDefines.NProduction.MAX_EQUIPMENT_RESOURCES_NEED = 4
 NDefines.NProduction.MAX_CIV_FACTORIES_PER_LINE = 10
 NDefines.NProduction.BASE_FACTORY_SPEED_NAV = 2.5 -- Double construction time for ships, vanilla 25
