@@ -342,6 +342,48 @@ process_credit_rating = {
 		}
 	}
 	else = {
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating = 1
+				}
+			}
+			set_variable = {
+				Credit_Progress = 0
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating = 9
+				}
+			}
+			set_variable = {
+				Credit_Progress = 0
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = Credit_Rating_Locked
+				}
+				check_variable = {
+					Credit_Rating > 6
+				}
+				check_variable = {
+					industrial_base_tier < 5
+				}
+			}
+			set_variable = {
+				Credit_Progress = 0
+			}
+		}
 		# Money printing erodes credit credibility over time
 		if = { limit = { has_country_flag = CWIC_money_printing_active } add_to_variable = { Credit_Progress = -1 } }
 
@@ -633,48 +675,6 @@ process_credit_rating = {
 				NOT = {
 					has_country_flag = Credit_Rating_Locked
 				}
-				check_variable = {
-					Credit_Rating = 1
-				}
-			}
-			set_variable = {
-				Credit_Progress = 0
-			}
-		}
-		if = {
-			limit = {
-				NOT = {
-					has_country_flag = Credit_Rating_Locked
-				}
-				check_variable = {
-					Credit_Rating = 9
-				}
-			}
-			set_variable = {
-				Credit_Progress = 0
-			}
-		}
-		if = {
-			limit = {
-				NOT = {
-					has_country_flag = Credit_Rating_Locked
-				}
-				check_variable = {
-					Credit_Rating > 6
-				}
-				check_variable = {
-					industrial_base_tier < 5
-				}
-			}
-			set_variable = {
-				Credit_Progress = 0
-			}
-		}
-		if = {
-			limit = {
-				NOT = {
-					has_country_flag = Credit_Rating_Locked
-				}
 				has_border_war = yes
 			}
 			add_to_variable = {
@@ -764,6 +764,19 @@ process_credit_rating = {
 			}
 			multiply_variable = {
 				DebtRiskAversionGood = 4
+			}
+		}
+		else_if = {
+			limit = {
+				check_variable = {
+					Credit_Rating = 10
+				}
+			}
+			multiply_variable = {
+				DebtRiskAversionBad = 10
+			}
+			multiply_variable = {
+				DebtRiskAversionGood = 5
 			}
 		}
 		else_if = {
@@ -1284,11 +1297,6 @@ set_interest_rates = {
 		multiply_variable = { Interest_Rate = reserve_mult }
 
 		# Inflation premium dampening scales with trust
-		set_temp_variable = { infl_discount = CWIC_reserve_trust }
-		multiply_temp_variable = { infl_discount = 0.50 }      # max 50% dampening
-		set_temp_variable = { infl_mult = 1 }
-		subtract_from_temp_variable = { infl_mult = infl_discount }
-		multiply_variable = { infl_premium = infl_mult }
 	}
 
 	# Inflation risk premium: higher inflation increases borrowing costs
@@ -1306,6 +1314,11 @@ set_interest_rates = {
 				check_variable = { CWIC_reserve_currency > 0 }
 			}
 			multiply_temp_variable = { infl_premium = 0.50 } # tuning knob
+			set_temp_variable = { infl_discount = CWIC_reserve_trust }
+			multiply_temp_variable = { infl_discount = 0.50 }
+			set_temp_variable = { infl_mult = 1 }
+			subtract_from_temp_variable = { infl_mult = infl_discount }
+			multiply_temp_variable = { infl_premium = infl_mult }
 		}
 
 		add_to_variable = { Interest_Rate = infl_premium }
@@ -1450,6 +1463,89 @@ set_reserve_rate = {
 	multiply_variable = {
 		ReserveMaxBorrowable = 0.5
 	}
+	subtract_from_variable = {
+		OldReserveMaxBorrowable = ReserveMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldWorldMaxBorrowable = WorldMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldMorganMaxBorrowable = MorganMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldParisMaxBorrowable = ParisMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldBarclaysMaxBorrowable = BarclaysMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldMitsubishiMaxBorrowable = MitsubishiMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldDeutscheMaxBorrowable = DeutscheMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldSuisseMaxBorrowable = SuisseMaxBorrowable
+	}
+	subtract_from_variable = {
+		OldIMFMaxBorrowable = IMFMaxBorrowable
+	}
+	#New
+	multiply_variable = {
+		OldReserveMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldWorldMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldMorganMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldParisMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldBarclaysMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldMitsubishiMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldDeutscheMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldSuisseMaxBorrowable = -1
+	}
+	multiply_variable = {
+		OldIMFMaxBorrowable = -1
+	}
+	#
+	add_to_variable = {
+		CurrentReserveMaxBorrowable = OldReserveMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentWorldMaxBorrowable = OldWorldMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentMorganMaxBorrowable = OldMorganMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentParisMaxBorrowable = OldParisMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentBarclaysMaxBorrowable = OldBarclaysMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentMitsubishiMaxBorrowable = OldMitsubishiMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentDeutscheMaxBorrowable = OldDeutscheMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentSuisseMaxBorrowable = OldSuisseMaxBorrowable
+	}
+	add_to_variable = {
+		CurrentIMFMaxBorrowable = OldIMFMaxBorrowable
+	}
 }
 
 calculate_loan_details = {
@@ -1467,6 +1563,9 @@ calculate_loan_details = {
 	}
 	multiply_variable = {
 		potential_loan_total_adj = potential_loan_interest
+	}
+	multiply_variable = {
+		potential_loan_total_adj = purchase_length^current_index
 	}
 	add_to_variable = {
 		potential_loan_total = potential_loan_total_adj
@@ -1506,6 +1605,9 @@ automatic_loan_setting = {
 	multiply_variable = {
 		potential_loan_total_adj = potential_loan_interest
 	}
+	multiply_variable = {
+		potential_loan_total_adj = purchase_length^current_index
+	}
 	add_to_variable = {
 		potential_loan_total = potential_loan_total_adj
 	}
@@ -1527,6 +1629,16 @@ automatic_loan_setting = {
 	}
 	add_to_variable = {
 		currentDebt = loan_amount
+	}
+	if = {
+		limit = {
+			check_variable = {
+				bank_name_prompt = 2
+			}
+		}
+		add_to_variable = {
+			domesticTotalDebt = loan_amount
+		}
 	}
 	add_to_array = {
 		debtTotalsArray = loan_amount
@@ -1674,89 +1786,6 @@ monthly_borrowing_and_interest_pulse = {
 	#	ParisMaxBorrowable
 	#	BarclaysMaxBorrowable
 	#}	
-	subtract_from_variable = {
-		OldReserveMaxBorrowable = ReserveMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldWorldMaxBorrowable = WorldMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldMorganMaxBorrowable = MorganMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldParisMaxBorrowable = ParisMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldBarclaysMaxBorrowable = BarclaysMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldMitsubishiMaxBorrowable = MitsubishiMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldDeutscheMaxBorrowable = DeutscheMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldSuisseMaxBorrowable = SuisseMaxBorrowable
-	}
-	subtract_from_variable = {
-		OldIMFMaxBorrowable = IMFMaxBorrowable
-	}
-	#New
-	multiply_variable = {
-		OldReserveMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldWorldMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldMorganMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldParisMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldBarclaysMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldMitsubishiMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldDeutscheMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldSuisseMaxBorrowable = -1
-	}
-	multiply_variable = {
-		OldIMFMaxBorrowable = -1
-	}
-	#
-	add_to_variable = {
-		CurrentReserveMaxBorrowable = OldReserveMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentWorldMaxBorrowable = OldWorldMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentMorganMaxBorrowable = OldMorganMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentParisMaxBorrowable = OldParisMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentBarclaysMaxBorrowable = OldBarclaysMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentMitsubishiMaxBorrowable = OldMitsubishiMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentDeutscheMaxBorrowable = OldDeutscheMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentSuisseMaxBorrowable = OldSuisseMaxBorrowable
-	}
-	add_to_variable = {
-		CurrentIMFMaxBorrowable = OldIMFMaxBorrowable
-	}
 }
 
 loan_payoff_change_to_liquidity = {
@@ -1779,6 +1808,10 @@ loan_payoff_change_to_liquidity = {
 		}
 		subtract_from_variable = {
 			domesticTotalDebt = debtPaymentArray^i
+		}
+		clamp_variable = {
+			var = domesticTotalDebt
+			min = 0
 		}
 	}
 	else_if = {
@@ -1824,7 +1857,7 @@ loan_payoff_change_to_liquidity = {
 	else_if = {
 		limit = {
 			check_variable = {
-				debtOwnerDomesticStatusArray^i = 4
+				debtOwnerDomesticStatusArray^i = 5
 			}
 		}
 		add_to_variable = {
@@ -1834,7 +1867,7 @@ loan_payoff_change_to_liquidity = {
 	else_if = {
 		limit = {
 			check_variable = {
-				debtOwnerDomesticStatusArray^i = 4
+				debtOwnerDomesticStatusArray^i = 7
 			}
 		}
 		add_to_variable = {
@@ -1844,7 +1877,7 @@ loan_payoff_change_to_liquidity = {
 	else_if = {
 		limit = {
 			check_variable = {
-				debtOwnerDomesticStatusArray^i = 4
+				debtOwnerDomesticStatusArray^i = 6
 			}
 		}
 		add_to_variable = {
@@ -1854,7 +1887,7 @@ loan_payoff_change_to_liquidity = {
 	else_if = {
 		limit = {
 			check_variable = {
-				debtOwnerDomesticStatusArray^i = 4
+				debtOwnerDomesticStatusArray^i = 9
 			}
 		}
 		add_to_variable = {
@@ -2309,37 +2342,6 @@ get_decade_industrial_base_capita = {
 	}
 }
 
-cwic_default_monthly_check = {
-
-	# Safety init
-	if = { limit = { NOT = { has_variable = currentDebtPayments } } set_variable = { currentDebtPayments = 0 } }
-	if = { limit = { NOT = { has_variable = currentMoney } } set_variable = { currentMoney = 0 } }
-	if = { limit = { NOT = { has_variable = Credit_Rating } } set_variable = { Credit_Rating = 7 } }
-
-	# Evaluate only if payments exist
-	if = {
-		limit = { check_variable = { currentDebtPayments > 0.01 } }
-
-		# Liquidity default: cannot cover debt service this month
-		if = {
-			limit = { check_variable = { currentMoney < currentDebtPayments } }
-
-			set_country_flag = CWIC_DEFAULTED
-			set_country_flag = CWIC_MARKET_LOCKOUT
-
-			# Immediate credibility hit (tunable)
-			subtract_from_variable = { Credit_Rating = 2 }
-			if = { limit = { check_variable = { Credit_Rating < 1 } } set_variable = { Credit_Rating = 1 } }
-
-			# Macro shock (tunable)
-			add_to_variable = { CWIC_inflation_mom = 0.010 }
-			add_to_variable = { CWIC_black_market_pressure = 0.10 }
-
-			# Clamp black market
-			if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
-		}
-	}
-}
 cwic_clear_default_status = {
 	clr_country_flag = CWIC_DEFAULTED
 	clr_country_flag = CWIC_MARKET_LOCKOUT
