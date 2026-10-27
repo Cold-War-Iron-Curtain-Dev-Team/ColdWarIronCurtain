@@ -19,6 +19,7 @@ the clamps are correct, and the real bug was the black-market leak's sign.
 | Left by design | F2 (EEC/EFTA bonus kept), R4, R5, R7, R3 revive-or-cut decision, C3 balance constants |
 | Deferred pending dev feedback | R1 AI multi-supplier buying (cheap variant: cheapest first, rest unsorted as fallback); AI money stipend (yearly base from engine factory counts, scaled monthly by economic modifiers, capped, paused while in debt, ceiling on hoarding). Today AI money is frozen at game-start levels apart from decision spending and player payments. |
 | Deferred pending dev feedback | Replace the 60-day policy-change lock (`Recent_*_Change` flags, `Finance_Tab.txt`) with a political power cost. The 60-day lock is intentional (players disliked multi-year locks); tooltips updated to match. The `*_cooldown` ideas in `IC_Policies.txt` are defined but never applied. |
+| Fixed (economic systems) | Axis steps bounded to 0-18 and skipped for special systems (x >= 20), so content can no longer push a country off the grid or into Palace/Feudal; `has_social_corporatist_economy` limited to x 7-12; z=1 variants now reachable in the name, description and icon-description lookups (base entries exclude z = 1), settable with `cwic_set_economic_variant` / `cwic_clear_economic_variant`; `ECON_SYSTEM_PARTICIPATORY_ECONOMY_DESC2` key fixed. |
 | Not done | Collapsing the copy-paste CG tier blocks and profiling (needs an in-game run); F4, F5, F6 |
 
 Trade export and import settlement are `ic_calc_trade_exports` / `ic_calc_trade_imports`
