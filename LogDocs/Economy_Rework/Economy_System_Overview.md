@@ -18,6 +18,7 @@ the clamps are correct, and the real bug was the black-market leak's sign.
 | Not real on re-read | P3 (gain is reset per state), R11 (`nuclear_total` is the running chromium tally; `nuclearImports` is written), T3, B6 (`totalexp` is read by GUI/COMECON) |
 | Left by design | F2 (EEC/EFTA bonus kept), R4, R5, R7, R3 revive-or-cut decision, C3 balance constants |
 | Deferred pending dev feedback | R1 AI multi-supplier buying (cheap variant: cheapest first, rest unsorted as fallback); AI money stipend (yearly base from engine factory counts, scaled monthly by economic modifiers, capped, paused while in debt, ceiling on hoarding). Today AI money is frozen at game-start levels apart from decision spending and player payments. |
+| Deferred pending dev feedback | Replace the 60-day policy-change lock (`Recent_*_Change` flags, `Finance_Tab.txt`) with a political power cost. The 60-day lock is intentional (players disliked multi-year locks); tooltips updated to match. The `*_cooldown` ideas in `IC_Policies.txt` are defined but never applied. |
 | Not done | Collapsing the copy-paste CG tier blocks and profiling (needs an in-game run); F4, F5, F6 |
 
 Trade export and import settlement are `ic_calc_trade_exports` / `ic_calc_trade_imports`
