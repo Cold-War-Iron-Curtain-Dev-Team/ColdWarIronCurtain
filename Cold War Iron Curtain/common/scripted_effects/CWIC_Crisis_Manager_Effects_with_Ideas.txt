@@ -511,6 +511,7 @@ CWIC_evaluate_national_crises = {
     CWIC_clear_macro_crisis_flags = yes
     CWIC_clear_compound_crisis_flags = yes
     CWIC_evaluate_macro_crisis_flags = yes
+    CWIC_buffer_contraction_and_fiscal_crises = yes
     CWIC_evaluate_compound_crisis_flags = yes
 
     CWIC_clear_macro_crisis_ideas = yes
@@ -520,6 +521,90 @@ CWIC_evaluate_national_crises = {
 
     # GUI-facing country arrays
     CWIC_update_active_crisis_arrays = yes
+}
+
+cwic_crisis_buffer_step = {
+    if = {
+        limit = {
+            has_country_flag = CWIC_CRISIS_GRACE
+            check_variable = { cwic_buf_raw > cwic_buf_level }
+        }
+        set_temp_variable = { cwic_buf_raw = cwic_buf_level }
+    }
+    if = {
+        limit = { check_variable = { cwic_buf_raw > cwic_buf_level } }
+        add_to_temp_variable = { cwic_buf_up = 1 }
+        set_temp_variable = { cwic_buf_down = 0 }
+        if = {
+            limit = { check_variable = { cwic_buf_up > 2 } }
+            set_temp_variable = { cwic_buf_level = cwic_buf_raw }
+            set_temp_variable = { cwic_buf_up = 0 }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { cwic_buf_raw < cwic_buf_level } }
+        add_to_temp_variable = { cwic_buf_down = 1 }
+        set_temp_variable = { cwic_buf_up = 0 }
+        if = {
+            limit = { check_variable = { cwic_buf_down > 2 } }
+            subtract_from_temp_variable = { cwic_buf_level = 1 }
+            set_temp_variable = { cwic_buf_down = 0 }
+        }
+    }
+    else = {
+        set_temp_variable = { cwic_buf_up = 0 }
+        set_temp_variable = { cwic_buf_down = 0 }
+    }
+}
+
+CWIC_buffer_contraction_and_fiscal_crises = {
+    set_temp_variable = { cwic_buf_raw = 0 }
+    if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME } set_temp_variable = { cwic_buf_raw = 4 } }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH } set_temp_variable = { cwic_buf_raw = 3 } }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM } set_temp_variable = { cwic_buf_raw = 2 } }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW } set_temp_variable = { cwic_buf_raw = 1 } }
+    set_temp_variable = { cwic_buf_level = CWIC_contraction_buffer_level }
+    set_temp_variable = { cwic_buf_up = CWIC_contraction_buffer_up }
+    set_temp_variable = { cwic_buf_down = CWIC_contraction_buffer_down }
+    cwic_crisis_buffer_step = yes
+    set_variable = { CWIC_contraction_buffer_level = cwic_buf_level }
+    set_variable = { CWIC_contraction_buffer_up = cwic_buf_up }
+    set_variable = { CWIC_contraction_buffer_down = cwic_buf_down }
+
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH
+    clr_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME
+    if = { limit = { check_variable = { CWIC_contraction_buffer_level > 0 } } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION }
+    if = { limit = { check_variable = { CWIC_contraction_buffer_level = 4 } } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_EXTREME }
+    else_if = { limit = { check_variable = { CWIC_contraction_buffer_level = 3 } } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_HIGH }
+    else_if = { limit = { check_variable = { CWIC_contraction_buffer_level = 2 } } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_MEDIUM }
+    else_if = { limit = { check_variable = { CWIC_contraction_buffer_level = 1 } } set_country_flag = CWIC_CRISIS_ECONOMIC_CONTRACTION_LOW }
+
+    set_temp_variable = { cwic_buf_raw = 0 }
+    if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_EXTREME } set_temp_variable = { cwic_buf_raw = 4 } }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_HIGH } set_temp_variable = { cwic_buf_raw = 3 } }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_MEDIUM } set_temp_variable = { cwic_buf_raw = 2 } }
+    else_if = { limit = { has_country_flag = CWIC_CRISIS_FISCAL_LOW } set_temp_variable = { cwic_buf_raw = 1 } }
+    set_temp_variable = { cwic_buf_level = CWIC_fiscal_buffer_level }
+    set_temp_variable = { cwic_buf_up = CWIC_fiscal_buffer_up }
+    set_temp_variable = { cwic_buf_down = CWIC_fiscal_buffer_down }
+    cwic_crisis_buffer_step = yes
+    set_variable = { CWIC_fiscal_buffer_level = cwic_buf_level }
+    set_variable = { CWIC_fiscal_buffer_up = cwic_buf_up }
+    set_variable = { CWIC_fiscal_buffer_down = cwic_buf_down }
+
+    clr_country_flag = CWIC_CRISIS_FISCAL
+    clr_country_flag = CWIC_CRISIS_FISCAL_LOW
+    clr_country_flag = CWIC_CRISIS_FISCAL_MEDIUM
+    clr_country_flag = CWIC_CRISIS_FISCAL_HIGH
+    clr_country_flag = CWIC_CRISIS_FISCAL_EXTREME
+    if = { limit = { check_variable = { CWIC_fiscal_buffer_level > 0 } } set_country_flag = CWIC_CRISIS_FISCAL }
+    if = { limit = { check_variable = { CWIC_fiscal_buffer_level = 4 } } set_country_flag = CWIC_CRISIS_FISCAL_EXTREME }
+    else_if = { limit = { check_variable = { CWIC_fiscal_buffer_level = 3 } } set_country_flag = CWIC_CRISIS_FISCAL_HIGH }
+    else_if = { limit = { check_variable = { CWIC_fiscal_buffer_level = 2 } } set_country_flag = CWIC_CRISIS_FISCAL_MEDIUM }
+    else_if = { limit = { check_variable = { CWIC_fiscal_buffer_level = 1 } } set_country_flag = CWIC_CRISIS_FISCAL_LOW }
 }
 cwic_calculate_fiscal_ratio_proxies = {
 

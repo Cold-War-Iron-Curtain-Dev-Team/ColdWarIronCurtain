@@ -1,13 +1,12 @@
 # ============================================================
 # scripted_effects/CWIC_GDP_Growth_Effects.txt
 # GDP storage + monthly annualized growth + yearly YoY growth
+# Growth is measured only on states the country owned in both periods,
+# so gaining or losing territory never reads as growth or contraction.
 # ============================================================
 
 cwic_init_gdp_growth_tracking = {
-	# Run once on game start / country setup for countries using the CWIC economy
 	set_variable = { CWIC_gdp_current = grossdomesticproduct }
-	set_variable = { CWIC_gdp_last_month = grossdomesticproduct }
-	set_variable = { CWIC_gdp_last_year = grossdomesticproduct }
 
 	set_variable = { CWIC_gdp_growth_mom_annualized = 0 }
 	set_variable = { CWIC_real_gdp_growth_yoy = 0 }
@@ -16,82 +15,91 @@ cwic_init_gdp_growth_tracking = {
 	set_variable = { CWIC_gdp_growth_yoy_prev2 = 0 }
 }
 
+cwic_begin_gdp_growth_pass = {
+	set_variable = { cwic_gdp_prev_pass = cwic_gdp_pass }
+	add_to_variable = { cwic_gdp_pass = 1 }
+	set_variable = { cwic_gdp_prev_state_count = cwic_gdp_state_count }
+	set_variable = { cwic_gdp_state_count = 0 }
+	set_variable = { cwic_gdp_kept_state_count = 0 }
+	set_variable = { cwic_gdp_kept_now = 0 }
+	set_variable = { cwic_gdp_kept_last_month = 0 }
+	set_variable = { cwic_gdp_kept_now_year = 0 }
+	set_variable = { cwic_gdp_kept_last_year = 0 }
+}
+
+cwic_track_state_gdp_for_growth = {
+	set_temp_variable = { cwic_state_gdp_now = net_factory_earnings }
+	add_to_temp_variable = { cwic_state_gdp_now = pop_lowerclass_gross_wage }
+	add_to_temp_variable = { cwic_state_gdp_now = pop_middleclass_gross_wage }
+	add_to_temp_variable = { cwic_state_gdp_now = pop_substinents_gross_wage }
+	add_to_temp_variable = { cwic_state_gdp_now = pop_artisan_gross_wage }
+	add_to_temp_variable = { cwic_state_gdp_now = pop_upperclass_gross_wage }
+
+	if = {
+		limit = {
+			has_variable = cwic_gdp_owner_month
+			check_variable = { cwic_gdp_owner_month = PREV.id }
+			check_variable = { cwic_gdp_pass_seen = PREV.cwic_gdp_prev_pass }
+		}
+		add_to_variable = { PREV.cwic_gdp_kept_now = cwic_state_gdp_now }
+		add_to_variable = { PREV.cwic_gdp_kept_last_month = cwic_gdp_state_last_month }
+		add_to_variable = { PREV.cwic_gdp_kept_state_count = 1 }
+	}
+
+	if = {
+		limit = { NOT = { has_variable = cwic_gdp_owner_year } }
+		set_variable = { cwic_gdp_state_last_year = cwic_state_gdp_now }
+		set_variable = { cwic_gdp_owner_year = PREV.id }
+		set_variable = { cwic_gdp_year_seen = PREV.cwic_gdp_year_index }
+	}
+	if = {
+		limit = {
+			check_variable = { cwic_gdp_owner_year = PREV.id }
+			check_variable = { cwic_gdp_year_seen = PREV.cwic_gdp_year_index }
+		}
+		add_to_variable = { PREV.cwic_gdp_kept_now_year = cwic_state_gdp_now }
+		add_to_variable = { PREV.cwic_gdp_kept_last_year = cwic_gdp_state_last_year }
+	}
+
+	set_variable = { cwic_gdp_state_last_month = cwic_state_gdp_now }
+	set_variable = { cwic_gdp_owner_month = PREV.id }
+	set_variable = { cwic_gdp_pass_seen = PREV.cwic_gdp_pass }
+	add_to_variable = { PREV.cwic_gdp_state_count = 1 }
+}
+
 cwic_store_gdp_and_monthly_growth = {
-	# Called after grossdomesticproduct has been fully calculated for the month
 	set_variable = { CWIC_gdp_current = grossdomesticproduct }
 
-	# Safety init in case a country was spawned / released after game start
+	# Monthly growth annualized on retained states, percent*100: -250 = -2.50%
+	set_variable = { CWIC_gdp_growth_mom_annualized = 0 }
 	if = {
-		limit = {
-			OR = {
-				NOT = { has_variable = CWIC_gdp_last_month }
-				check_variable = { CWIC_gdp_last_year < 0 }
-                check_variable = { CWIC_gdp_last_year = 0 }
-			}
-		}
-		set_variable = { CWIC_gdp_last_month = CWIC_gdp_current }
-	}
-	if = {
-		limit = {
-			OR = {
-				NOT = { has_variable = CWIC_gdp_last_year }
-				check_variable = { CWIC_gdp_last_year < 0 }
-                check_variable = { CWIC_gdp_last_year = 0 }
-			}
-		}
-		set_variable = { CWIC_gdp_last_year = CWIC_gdp_current }
+		limit = { check_variable = { cwic_gdp_kept_last_month > 0.1 } }
+		set_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_kept_now }
+		subtract_from_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_kept_last_month }
+		divide_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_kept_last_month }
+		multiply_temp_variable = { cwic_gdp_growth_tmp = 120000 }
+		set_variable = { CWIC_gdp_growth_mom_annualized = cwic_gdp_growth_tmp }
 	}
 
-	# Monthly growth annualized:
-	# ((current - last_month) / last_month) * 1200
-	# Stored as percent*100, so -250 = -2.50%
-	set_temp_variable = { cwic_gdp_growth_tmp = CWIC_gdp_current }
-	subtract_from_temp_variable = { cwic_gdp_growth_tmp = CWIC_gdp_last_month }
-
-	set_temp_variable = { cwic_gdp_growth_denominator = CWIC_gdp_last_month }
 	if = {
-		limit = { check_variable = { cwic_gdp_growth_denominator < 0.1 } }
-		set_temp_variable = { cwic_gdp_growth_denominator = 0.1 }
+		limit = { check_variable = { cwic_gdp_kept_state_count < cwic_gdp_prev_state_count } }
+		set_country_flag = { flag = CWIC_CRISIS_GRACE days = 180 value = 1 }
 	}
-
-	divide_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_growth_denominator }
-	multiply_temp_variable = { cwic_gdp_growth_tmp = 120000 }
-	set_variable = { CWIC_gdp_growth_mom_annualized = cwic_gdp_growth_tmp }
-
-	# Roll forward monthly baseline
-	set_variable = { CWIC_gdp_last_month = CWIC_gdp_current }
 }
 
 cwic_update_yearly_gdp_growth = {
-	# Call once per year after at least one monthly GDP calc has already happened
-	# YoY growth:
-	# ((current - last_year) / last_year) * 100
-	# Stored as percent*100, so 375 = 3.75%
+	# YoY growth on states owned at the last yearly roll and still owned, percent*100: 375 = 3.75%
 	set_variable = { CWIC_gdp_current = grossdomesticproduct }
 
+	set_variable = { CWIC_real_gdp_growth_yoy = 0 }
 	if = {
-		limit = {
-			OR = {
-				NOT = { has_variable = CWIC_gdp_last_year }
-				check_variable = { CWIC_gdp_last_year < 0 }
-                check_variable = { CWIC_gdp_last_year = 0 }
-			}
-		}
-		set_variable = { CWIC_gdp_last_year = CWIC_gdp_current }
+		limit = { check_variable = { cwic_gdp_kept_last_year > 0.1 } }
+		set_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_kept_now_year }
+		subtract_from_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_kept_last_year }
+		divide_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_kept_last_year }
+		multiply_temp_variable = { cwic_gdp_growth_tmp = 10000 }
+		set_variable = { CWIC_real_gdp_growth_yoy = cwic_gdp_growth_tmp }
 	}
-
-	set_temp_variable = { cwic_gdp_growth_tmp = CWIC_gdp_current }
-	subtract_from_temp_variable = { cwic_gdp_growth_tmp = CWIC_gdp_last_year }
-
-	set_temp_variable = { cwic_gdp_growth_denominator = CWIC_gdp_last_year }
-	if = {
-		limit = { check_variable = { cwic_gdp_growth_denominator < 0.1 } }
-		set_temp_variable = { cwic_gdp_growth_denominator = 0.1 }
-	}
-
-	divide_temp_variable = { cwic_gdp_growth_tmp = cwic_gdp_growth_denominator }
-	multiply_temp_variable = { cwic_gdp_growth_tmp = 10000 }
-	set_variable = { CWIC_real_gdp_growth_yoy = cwic_gdp_growth_tmp }
 
 	# 3-year smoothing buffer
 	set_temp_variable = { cwic_gdp_growth_smooth = CWIC_real_gdp_growth_yoy }
@@ -100,8 +108,21 @@ cwic_update_yearly_gdp_growth = {
 	divide_temp_variable = { cwic_gdp_growth_smooth = 3 }
 	set_variable = { CWIC_gdp_growth_yoy = cwic_gdp_growth_smooth }
 
-	# Roll forward yearly history
 	set_variable = { CWIC_gdp_growth_yoy_prev2 = CWIC_gdp_growth_yoy_prev1 }
 	set_variable = { CWIC_gdp_growth_yoy_prev1 = CWIC_real_gdp_growth_yoy }
-	set_variable = { CWIC_gdp_last_year = CWIC_gdp_current }
+
+	# Roll the yearly baseline to the states measured in the latest monthly pass
+	if = {
+		limit = { has_variable = cwic_gdp_pass }
+		add_to_variable = { cwic_gdp_year_index = 1 }
+		every_owned_state = {
+			limit = {
+				check_variable = { cwic_gdp_owner_month = PREV.id }
+				check_variable = { cwic_gdp_pass_seen = PREV.cwic_gdp_pass }
+			}
+			set_variable = { cwic_gdp_state_last_year = cwic_gdp_state_last_month }
+			set_variable = { cwic_gdp_owner_year = PREV.id }
+			set_variable = { cwic_gdp_year_seen = PREV.cwic_gdp_year_index }
+		}
+	}
 }
