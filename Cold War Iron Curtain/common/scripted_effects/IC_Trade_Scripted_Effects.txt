@@ -113,7 +113,6 @@ export_script_for_pool = {
 		# ------------------------------------------------------------
 		# Aluminium Section
 		# ------------------------------------------------------------
-		set_variable = { aluminium_test = aluminiumExport }
 
 		subtract_from_variable = { aluminiumExport = aluminium_consumption }
 
@@ -155,13 +154,13 @@ export_script_for_pool = {
 		subtract_from_variable = { currentAvailableoilExport = currentExportedoil }
 		country_event = trade.2
 		
-		set_variable = { currentAvailableFoodExport = foodExport }
-		round_variable = currentAvailableFoodExport
-		subtract_from_variable = { currentAvailableFoodExport = currentExportedFood }
+		set_variable = { currentAvailablefoodExport = foodExport }
+		round_variable = currentAvailablefoodExport
+		subtract_from_variable = { currentAvailablefoodExport = currentExportedFood }
 
 		if = {
 			limit = {
-				check_variable = { currentAvailableFoodExport < 0 }
+				check_variable = { currentAvailablefoodExport < 0 }
 			}
 			country_event = trade.7
 		}
@@ -212,50 +211,6 @@ export_script_for_pool = {
 	}
 }
 
-startup_price_setting = { 
-	set_variable = { global.oilBasePrice = 0.2 }
-	set_variable = { global.steelBasePrice = 0.1 }
-	set_variable = { global.foodBasePrice = 0.15 }
-	set_variable = { global.chromiumBasePrice = 2 }
-	set_variable = { global.rareEarthBasePrice = 0.3 }
-	set_variable = { global.aluminiumBasePrice = 0.1 }
-
-	# Consumer Goods Prices
-	set_variable = { global.cgBasicT0BasePrice = 0.03 }
-	set_variable = { global.cgDurableT0BasePrice = 0.08 }
-	set_variable = { global.cgVehiclesT0BasePrice = 0.35 }
-
-	set_variable = { global.cgBasicT1BasePrice = 0.05 }
-	set_variable = { global.cgBasicT2BasePrice = 0.08 }
-	set_variable = { global.cgBasicT3BasePrice = 0.12 }
-	set_variable = { global.cgBasicT4BasePrice = 0.18 }
-	set_variable = { global.cgBasicT5BasePrice = 0.25 }
-
-	set_variable = { global.cgDurableT1BasePrice = 0.12 }
-	set_variable = { global.cgDurableT2BasePrice = 0.20 }
-	set_variable = { global.cgDurableT3BasePrice = 0.35 }
-	set_variable = { global.cgDurableT4BasePrice = 0.55 }
-	set_variable = { global.cgDurableT5BasePrice = 0.80 }
-
-	set_variable = { global.cgVehiclesT1BasePrice = 0.50 }
-	set_variable = { global.cgVehiclesT2BasePrice = 0.85 }
-	set_variable = { global.cgVehiclesT3BasePrice = 1.25 }
-	set_variable = { global.cgVehiclesT4BasePrice = 1.75 }
-	set_variable = { global.cgVehiclesT5BasePrice = 2.50 }
-
-	set_variable = { global.cgElectronicsT1BasePrice = 0.20 }
-	set_variable = { global.cgElectronicsT2BasePrice = 0.35 }
-	set_variable = { global.cgElectronicsT3BasePrice = 0.60 }
-	set_variable = { global.cgElectronicsT4BasePrice = 0.95 }
-	set_variable = { global.cgElectronicsT5BasePrice = 1.40 }
-}
-test_script = {
-	startup_price_setting = yes
-	USA = {
-		export_script_for_pool = yes
-		buy_nuclear_material = yes
-	}
-}
 generate_available_chromium_import_array = {
 	clear_array = ROOT.chromiumExporters
 	clear_array = ROOT.chromiumExporterInfo
@@ -314,9 +269,6 @@ generate_available_chromium_import_array = {
 				}
 				set_temp_variable = {
 					price_Adjuster = 0
-				}
-				add_to_variable = {
-					price_Adjuster = ROOT.price_adjust_chromium^THIS
 				}
 				if = {
 					limit = {
@@ -406,12 +358,8 @@ generate_available_chromium_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = {
-					chromiumExportCash = price_adjustment_ideas2
-				}
 		        #Shipping Cost
 		        set_temp_variable = { exporter_capital = capital }
-		        set_variable = { exp_test = capital }
 		        var:exporter_capital = {
 		            set_variable = { PREV.shipping_cost = distance_to@ROOT.capital } #This needs to be a normal variable
 		        }
@@ -424,7 +372,7 @@ generate_available_chromium_import_array = {
 		        divide_variable = {
 		            shipping_cost = 100
 		        }
-		        set_temp_variable = { modifier_temp = shipping_cost_effect }
+		        set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 		        add_to_temp_variable = { modifier_temp = 1 }
 		        multiply_variable = { shipping_cost = modifier_temp }
 		        add_to_variable = { shipping_cost = 1 }
@@ -441,6 +389,9 @@ generate_available_chromium_import_array = {
 				set_variable = {
 					chromiumExporterPrice^ROOT = chromiumExportCash
 				}
+				set_temp_variable = { rank_temp = chromiumExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { chromiumExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -571,7 +522,7 @@ sort_price_number_aluminium = {
         #end = aluminiumExporters^num
         #value = v
         add_to_array = { 
-            PREV.aluminiumExportPriceRate = aluminiumExporterPrice^ROOT
+            PREV.aluminiumExportPriceRate = aluminiumExporterRank^ROOT
         }
     }
 	clear_array = aluminiumCurrentImport
@@ -658,7 +609,7 @@ sort_price_number_chromium = {
         #end = chromiumExporters^num
         #value = v
         add_to_array = { 
-            PREV.chromiumExportPriceRate = chromiumExporterPrice^ROOT
+            PREV.chromiumExportPriceRate = chromiumExporterRank^ROOT
         }
     }
 	clear_array = chromiumCurrentImport
@@ -1033,8 +984,8 @@ chromium_import_ai = {
            if = {
                 limit = {
                     OR = {
-                        NOT = { check_variable = { ROOT.trade_infrastructure_total_available < 1 } }
-                        NOT = { check_variable = { ROOT.nuclear_total > -1 } }
+                        check_variable = { ROOT.trade_infrastructure_total_available < 1 }
+                        check_variable = { ROOT.nuclear_total > -1 }
                     }
                 }
                 set_temp_variable = { cheapest_brk = 1 }
@@ -1193,9 +1144,6 @@ generate_available_food_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = {
-					foodExportCash = price_adjustment_ideas2
-				}
 		        if = {
 		            limit = {
 		                tag = JAP
@@ -1206,7 +1154,6 @@ generate_available_food_import_array = {
 		        }
 		        #Shipping Cost
 		        set_temp_variable = { exporter_capital = capital }
-		        set_variable = { exp_test = capital }
 		        var:exporter_capital = {
 		            set_variable = { PREV.shipping_cost = distance_to@ROOT.capital } #This needs to be a normal variable
 		        }
@@ -1219,7 +1166,7 @@ generate_available_food_import_array = {
 		        divide_variable = {
 		            shipping_cost = 100
 		        }
-		        set_temp_variable = { modifier_temp = shipping_cost_effect }
+		        set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 		        add_to_temp_variable = { modifier_temp = 1 }
 		        multiply_variable = { shipping_cost = modifier_temp }
 		        add_to_variable = { shipping_cost = 1 }
@@ -1235,6 +1182,9 @@ generate_available_food_import_array = {
 				set_variable = {
 					foodExporterPrice^PREV.PREV = foodExportCash
 				}
+				set_temp_variable = { rank_temp = foodExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { foodExporterRank^PREV.PREV = rank_temp }
 	
 		}
 	}
@@ -1367,7 +1317,7 @@ sort_price_number_food = {
         #end = foodExporters^num
         #value = v
         add_to_array = { 
-            PREV.foodExportPriceRate = foodExporterPrice^ROOT
+            PREV.foodExportPriceRate = foodExporterRank^ROOT
         }
     }
 	clear_array = foodCurrentImport
@@ -1746,8 +1696,8 @@ food_import_ai = {
            if = {
                 limit = {
                     OR = {
-                        NOT = { check_variable = { ROOT.trade_infrastructure_total_available < 1 } }
-                        NOT = { check_variable = { ROOT.food_total > -1 } }
+                        check_variable = { ROOT.trade_infrastructure_total_available < 1 }
+                        check_variable = { ROOT.food_total > -1 }
                     }
                 }
                 set_temp_variable = { cheapest_brk = 1 }
@@ -1816,9 +1766,6 @@ generate_available_oil_import_array = {
 				}
 				set_temp_variable = {
 					price_Adjuster = 0
-				}
-				add_to_variable = {
-					price_Adjuster = ROOT.price_adjust_oil^THIS
 				}
 				if = {
 					limit = {
@@ -1907,12 +1854,8 @@ generate_available_oil_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = {
-					oilExportCash = price_adjustment_ideas2
-				}
 		        #Shipping Cost
 		        set_temp_variable = { exporter_capital = capital }
-		        set_variable = { exp_test = capital }
 		        var:exporter_capital = {
 		            set_variable = { PREV.shipping_cost = distance_to@ROOT.capital } #This needs to be a normal variable
 		        }
@@ -1925,7 +1868,7 @@ generate_available_oil_import_array = {
 		        divide_variable = {
 		            shipping_cost = 100
 		        }
-		        set_temp_variable = { modifier_temp = shipping_cost_effect }
+		        set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 		        add_to_temp_variable = { modifier_temp = 1 }
 		        multiply_variable = { shipping_cost = modifier_temp }
 		        add_to_variable = { shipping_cost = 1 }
@@ -1942,6 +1885,9 @@ generate_available_oil_import_array = {
 				set_variable = {
 					oilExporterPrice^ROOT = oilExportCash
 				}
+				set_temp_variable = { rank_temp = oilExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { oilExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -2142,7 +2088,7 @@ sort_price_number_oil = {
         #end = oilExporters^num
         #value = v
         add_to_array = { 
-            PREV.oilExportPriceRate = oilExporterPrice^ROOT
+            PREV.oilExportPriceRate = oilExporterRank^ROOT
         }
     }
 	clear_array = oilCurrentImport
@@ -2458,8 +2404,8 @@ oil_import_ai = {
            if = {
                 limit = {
                     OR = {
-                        NOT = { check_variable = { ROOT.trade_infrastructure_total_available < 1 } }
-                        NOT = { check_variable = { ROOT.oil_total > -1 } }
+                        check_variable = { ROOT.trade_infrastructure_total_available < 1 }
+                        check_variable = { ROOT.oil_total > -1 }
                     }
                 }
                 set_temp_variable = { cheapest_brk = 1 }
@@ -2708,8 +2654,8 @@ steel_import_ai = {
            if = {
                 limit = {
                     OR = {
-                        NOT = { check_variable = { ROOT.trade_infrastructure_total_available < 1 } }
-                        NOT = { check_variable = { ROOT.steel_total > -1 } }
+                        check_variable = { ROOT.trade_infrastructure_total_available < 1 }
+                        check_variable = { ROOT.steel_total > -1 }
                     }
                 }
                 set_temp_variable = { cheapest_brk = 1 }
@@ -2778,9 +2724,6 @@ generate_available_steel_import_array = {
 				set_temp_variable = {
 					price_Adjuster = 0
 				}
-				add_to_variable = {
-					price_Adjuster = ROOT.price_adjust_steel^THIS
-				}
 				if = {
 					limit = {
 						is_subject_of = ROOT
@@ -2808,16 +2751,6 @@ generate_available_steel_import_array = {
 						steelExportCash = price_Adj
 					}
 				}
-				#DOM = {
-				#	set_variable = {
-				#		price_adjust_steel^USA = 0.5
-				#	}
-				#}
-				#USA = {
-				#	set_variable = {
-				#		price_adjust_steel^DOM = 0.5
-				#	}
-				#}
 				if = {
 					limit = {
 						NOT = {
@@ -2878,12 +2811,8 @@ generate_available_steel_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = {
-					steelExportCash = price_adjustment_ideas2
-				}
 		        #Shipping Cost
 		        set_temp_variable = { exporter_capital = capital }
-		        set_variable = { exp_test = capital }
 		        var:exporter_capital = {
 		            set_variable = { PREV.shipping_cost = distance_to@ROOT.capital } #This needs to be a normal variable
 		        }
@@ -2896,7 +2825,7 @@ generate_available_steel_import_array = {
 		        divide_variable = {
 		            shipping_cost = 100
 		        }
-		        set_temp_variable = { modifier_temp = shipping_cost_effect }
+		        set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 		        add_to_temp_variable = { modifier_temp = 1 }
 		        multiply_variable = { shipping_cost = modifier_temp }
 		        add_to_variable = { shipping_cost = 1 }
@@ -2913,6 +2842,9 @@ generate_available_steel_import_array = {
 				set_variable = {
 					steelExporterPrice^ROOT = steelExportCash
 				}
+				set_temp_variable = { rank_temp = steelExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { steelExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -3045,7 +2977,7 @@ sort_price_number_steel = {
         #end = steelExporters^num
         #value = v
         add_to_array = { 
-            PREV.steelExportPriceRate = steelExporterPrice^ROOT
+            PREV.steelExportPriceRate = steelExporterRank^ROOT
         }
     }
 	clear_array = steelCurrentImport
@@ -3328,12 +3260,8 @@ generate_available_aluminium_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = {
-					aluminiumExportCash = price_adjustment_ideas2
-				}
 		        #Shipping Cost
 		        set_temp_variable = { exporter_capital = capital }
-		        set_variable = { exp_test = capital }
 		        var:exporter_capital = {
 		            set_variable = { PREV.shipping_cost = distance_to@ROOT.capital } #This needs to be a normal variable
 		        }
@@ -3346,7 +3274,7 @@ generate_available_aluminium_import_array = {
 		        divide_variable = {
 		            shipping_cost = 100
 		        }
-		        set_temp_variable = { modifier_temp = shipping_cost_effect }
+		        set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 		        add_to_temp_variable = { modifier_temp = 1 }
 		        multiply_variable = { shipping_cost = modifier_temp }
 		        add_to_variable = { shipping_cost = 1 }
@@ -3363,6 +3291,9 @@ generate_available_aluminium_import_array = {
 				set_variable = {
 					aluminiumExporterPrice^ROOT = aluminiumExportCash
 				}
+				set_temp_variable = { rank_temp = aluminiumExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { aluminiumExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -3636,12 +3567,8 @@ generate_available_rareEarth_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = {
-					rareEarthExportCash = price_adjustment_ideas2
-				}
 		        #Shipping Cost
 		        set_temp_variable = { exporter_capital = capital }
-		        set_variable = { exp_test = capital }
 		        var:exporter_capital = {
 		            set_variable = { PREV.shipping_cost = distance_to@ROOT.capital } #This needs to be a normal variable
 		        }
@@ -3654,7 +3581,7 @@ generate_available_rareEarth_import_array = {
 		        divide_variable = {
 		            shipping_cost = 100
 		        }
-		        set_temp_variable = { modifier_temp = shipping_cost_effect }
+		        set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 		        add_to_temp_variable = { modifier_temp = 1 }
 		        multiply_variable = { shipping_cost = modifier_temp }
 		        add_to_variable = { shipping_cost = 1 }
@@ -3671,6 +3598,9 @@ generate_available_rareEarth_import_array = {
 				set_variable = {
 					rareEarthExporterPrice^ROOT = rareEarthExportCash
 				}
+				set_temp_variable = { rank_temp = rareEarthExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { rareEarthExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -3805,7 +3735,7 @@ sort_price_number_rareEarth = {
         #end = rareEarthExporters^num
         #value = v
         add_to_array = { 
-            PREV.rareEarthExportPriceRate = rareEarthExporterPrice^ROOT
+            PREV.rareEarthExportPriceRate = rareEarthExporterRank^ROOT
         }
     }
 	clear_array = rareEarthCurrentImport
@@ -4180,8 +4110,8 @@ rareEarth_import_ai = {
            if = {
                 limit = {
                     OR = {
-                        NOT = { check_variable = { ROOT.trade_infrastructure_total_available < 1 } }
-                        NOT = { check_variable = { ROOT.rareEarth_total > -1 } }
+                        check_variable = { ROOT.trade_infrastructure_total_available < 1 }
+                        check_variable = { ROOT.rareEarth_total > -1 }
                     }
                 }
                 set_temp_variable = { cheapest_brk = 1 }
@@ -4494,8 +4424,8 @@ aluminium_import_ai = {
            if = {
                 limit = {
                     OR = {
-                        NOT = { check_variable = { ROOT.trade_infrastructure_total_available < 1 } }
-                        NOT = { check_variable = { ROOT.aluminium_total > -1 } }
+                        check_variable = { ROOT.trade_infrastructure_total_available < 1 }
+                        check_variable = { ROOT.aluminium_total > -1 }
                     }
                 }
                 set_temp_variable = { cheapest_brk = 1 }
@@ -4507,7 +4437,7 @@ sort_price_number_chromium_ai = {
 	clear_array = chromiumExportPriceRate
 	for_each_scope_loop = {
 		array = chromiumExporters
-		add_to_array = { PREV.chromiumExportPriceRate = chromiumExporterPrice^ROOT }
+		add_to_array = { PREV.chromiumExportPriceRate = chromiumExporterRank^ROOT }
 	}
 	if = {
 		limit = { check_variable = { chromiumExportPriceRate^num > 0 } }
@@ -4516,15 +4446,16 @@ sort_price_number_chromium_ai = {
 			value = trade_ai_min_price
 			index = trade_ai_min_index
 		}
-		set_temp_variable = { trade_ai_selected_price = trade_ai_min_price }
-		set_temp_variable = { trade_ai_selected_info = chromiumExporters^trade_ai_min_index }
 		set_temp_variable = { trade_ai_selected_exporter = chromiumExporters^trade_ai_min_index }
-		clear_array = chromiumExportPriceRate
+		set_variable = { chromiumExportPriceRate^trade_ai_min_index = chromiumExportPriceRate^0 }
+		set_variable = { chromiumExporters^trade_ai_min_index = chromiumExporters^0 }
+		set_variable = { chromiumExportPriceRate^0 = trade_ai_min_price }
+		set_variable = { chromiumExporters^0 = trade_ai_selected_exporter }
 		clear_array = chromiumExporterInfo
-		clear_array = chromiumExporters
-		add_to_array = { chromiumExportPriceRate = trade_ai_selected_price }
-		add_to_array = { chromiumExporterInfo = trade_ai_selected_info }
-		add_to_array = { chromiumExporters = trade_ai_selected_exporter }
+		for_each_loop = {
+			array = chromiumExporters
+			add_to_array = { chromiumExporterInfo = v }
+		}
 	}
 }
 
@@ -4532,7 +4463,7 @@ sort_price_number_food_ai = {
 	clear_array = foodExportPriceRate
 	for_each_scope_loop = {
 		array = foodExporters
-		add_to_array = { PREV.foodExportPriceRate = foodExporterPrice^ROOT }
+		add_to_array = { PREV.foodExportPriceRate = foodExporterRank^ROOT }
 	}
 	if = {
 		limit = { check_variable = { foodExportPriceRate^num > 0 } }
@@ -4541,15 +4472,16 @@ sort_price_number_food_ai = {
 			value = trade_ai_min_price
 			index = trade_ai_min_index
 		}
-		set_temp_variable = { trade_ai_selected_price = trade_ai_min_price }
-		set_temp_variable = { trade_ai_selected_info = foodExporters^trade_ai_min_index }
 		set_temp_variable = { trade_ai_selected_exporter = foodExporters^trade_ai_min_index }
-		clear_array = foodExportPriceRate
+		set_variable = { foodExportPriceRate^trade_ai_min_index = foodExportPriceRate^0 }
+		set_variable = { foodExporters^trade_ai_min_index = foodExporters^0 }
+		set_variable = { foodExportPriceRate^0 = trade_ai_min_price }
+		set_variable = { foodExporters^0 = trade_ai_selected_exporter }
 		clear_array = foodExporterInfo
-		clear_array = foodExporters
-		add_to_array = { foodExportPriceRate = trade_ai_selected_price }
-		add_to_array = { foodExporterInfo = trade_ai_selected_info }
-		add_to_array = { foodExporters = trade_ai_selected_exporter }
+		for_each_loop = {
+			array = foodExporters
+			add_to_array = { foodExporterInfo = v }
+		}
 	}
 }
 
@@ -4557,7 +4489,7 @@ sort_price_number_oil_ai = {
 	clear_array = oilExportPriceRate
 	for_each_scope_loop = {
 		array = oilExporters
-		add_to_array = { PREV.oilExportPriceRate = oilExporterPrice^ROOT }
+		add_to_array = { PREV.oilExportPriceRate = oilExporterRank^ROOT }
 	}
 	if = {
 		limit = { check_variable = { oilExportPriceRate^num > 0 } }
@@ -4566,15 +4498,16 @@ sort_price_number_oil_ai = {
 			value = trade_ai_min_price
 			index = trade_ai_min_index
 		}
-		set_temp_variable = { trade_ai_selected_price = trade_ai_min_price }
-		set_temp_variable = { trade_ai_selected_info = oilExporters^trade_ai_min_index }
 		set_temp_variable = { trade_ai_selected_exporter = oilExporters^trade_ai_min_index }
-		clear_array = oilExportPriceRate
+		set_variable = { oilExportPriceRate^trade_ai_min_index = oilExportPriceRate^0 }
+		set_variable = { oilExporters^trade_ai_min_index = oilExporters^0 }
+		set_variable = { oilExportPriceRate^0 = trade_ai_min_price }
+		set_variable = { oilExporters^0 = trade_ai_selected_exporter }
 		clear_array = oilExporterInfo
-		clear_array = oilExporters
-		add_to_array = { oilExportPriceRate = trade_ai_selected_price }
-		add_to_array = { oilExporterInfo = trade_ai_selected_info }
-		add_to_array = { oilExporters = trade_ai_selected_exporter }
+		for_each_loop = {
+			array = oilExporters
+			add_to_array = { oilExporterInfo = v }
+		}
 	}
 }
 
@@ -4582,7 +4515,7 @@ sort_price_number_steel_ai = {
 	clear_array = steelExportPriceRate
 	for_each_scope_loop = {
 		array = steelExporters
-		add_to_array = { PREV.steelExportPriceRate = steelExporterPrice^ROOT }
+		add_to_array = { PREV.steelExportPriceRate = steelExporterRank^ROOT }
 	}
 	if = {
 		limit = { check_variable = { steelExportPriceRate^num > 0 } }
@@ -4591,15 +4524,16 @@ sort_price_number_steel_ai = {
 			value = trade_ai_min_price
 			index = trade_ai_min_index
 		}
-		set_temp_variable = { trade_ai_selected_price = trade_ai_min_price }
-		set_temp_variable = { trade_ai_selected_info = steelExporters^trade_ai_min_index }
 		set_temp_variable = { trade_ai_selected_exporter = steelExporters^trade_ai_min_index }
-		clear_array = steelExportPriceRate
+		set_variable = { steelExportPriceRate^trade_ai_min_index = steelExportPriceRate^0 }
+		set_variable = { steelExporters^trade_ai_min_index = steelExporters^0 }
+		set_variable = { steelExportPriceRate^0 = trade_ai_min_price }
+		set_variable = { steelExporters^0 = trade_ai_selected_exporter }
 		clear_array = steelExporterInfo
-		clear_array = steelExporters
-		add_to_array = { steelExportPriceRate = trade_ai_selected_price }
-		add_to_array = { steelExporterInfo = trade_ai_selected_info }
-		add_to_array = { steelExporters = trade_ai_selected_exporter }
+		for_each_loop = {
+			array = steelExporters
+			add_to_array = { steelExporterInfo = v }
+		}
 	}
 }
 
@@ -4607,7 +4541,7 @@ sort_price_number_rareEarth_ai = {
 	clear_array = rareEarthExportPriceRate
 	for_each_scope_loop = {
 		array = rareEarthExporters
-		add_to_array = { PREV.rareEarthExportPriceRate = rareEarthExporterPrice^ROOT }
+		add_to_array = { PREV.rareEarthExportPriceRate = rareEarthExporterRank^ROOT }
 	}
 	if = {
 		limit = { check_variable = { rareEarthExportPriceRate^num > 0 } }
@@ -4616,15 +4550,16 @@ sort_price_number_rareEarth_ai = {
 			value = trade_ai_min_price
 			index = trade_ai_min_index
 		}
-		set_temp_variable = { trade_ai_selected_price = trade_ai_min_price }
-		set_temp_variable = { trade_ai_selected_info = rareEarthExporters^trade_ai_min_index }
 		set_temp_variable = { trade_ai_selected_exporter = rareEarthExporters^trade_ai_min_index }
-		clear_array = rareEarthExportPriceRate
+		set_variable = { rareEarthExportPriceRate^trade_ai_min_index = rareEarthExportPriceRate^0 }
+		set_variable = { rareEarthExporters^trade_ai_min_index = rareEarthExporters^0 }
+		set_variable = { rareEarthExportPriceRate^0 = trade_ai_min_price }
+		set_variable = { rareEarthExporters^0 = trade_ai_selected_exporter }
 		clear_array = rareEarthExporterInfo
-		clear_array = rareEarthExporters
-		add_to_array = { rareEarthExportPriceRate = trade_ai_selected_price }
-		add_to_array = { rareEarthExporterInfo = trade_ai_selected_info }
-		add_to_array = { rareEarthExporters = trade_ai_selected_exporter }
+		for_each_loop = {
+			array = rareEarthExporters
+			add_to_array = { rareEarthExporterInfo = v }
+		}
 	}
 }
 
@@ -4632,7 +4567,7 @@ sort_price_number_aluminium_ai = {
 	clear_array = aluminiumExportPriceRate
 	for_each_scope_loop = {
 		array = aluminiumExporters
-		add_to_array = { PREV.aluminiumExportPriceRate = aluminiumExporterPrice^ROOT }
+		add_to_array = { PREV.aluminiumExportPriceRate = aluminiumExporterRank^ROOT }
 	}
 	if = {
 		limit = { check_variable = { aluminiumExportPriceRate^num > 0 } }
@@ -4641,19 +4576,35 @@ sort_price_number_aluminium_ai = {
 			value = trade_ai_min_price
 			index = trade_ai_min_index
 		}
-		set_temp_variable = { trade_ai_selected_price = trade_ai_min_price }
-		set_temp_variable = { trade_ai_selected_info = aluminiumExporters^trade_ai_min_index }
 		set_temp_variable = { trade_ai_selected_exporter = aluminiumExporters^trade_ai_min_index }
-		clear_array = aluminiumExportPriceRate
+		set_variable = { aluminiumExportPriceRate^trade_ai_min_index = aluminiumExportPriceRate^0 }
+		set_variable = { aluminiumExporters^trade_ai_min_index = aluminiumExporters^0 }
+		set_variable = { aluminiumExportPriceRate^0 = trade_ai_min_price }
+		set_variable = { aluminiumExporters^0 = trade_ai_selected_exporter }
 		clear_array = aluminiumExporterInfo
-		clear_array = aluminiumExporters
-		add_to_array = { aluminiumExportPriceRate = trade_ai_selected_price }
-		add_to_array = { aluminiumExporterInfo = trade_ai_selected_info }
-		add_to_array = { aluminiumExporters = trade_ai_selected_exporter }
+		for_each_loop = {
+			array = aluminiumExporters
+			add_to_array = { aluminiumExporterInfo = v }
+		}
 	}
 }
 
+cwic_ai_refresh_trade_capacity = {
+	set_variable = { trade_infrastructure_total = 0 }
+	every_owned_state = {
+		add_to_variable = { PREV.trade_infrastructure_total = building_level@air_base }
+		add_to_variable = { PREV.trade_infrastructure_total = building_level@office_park }
+		add_to_variable = { PREV.trade_infrastructure_total = building_level@state_infrastructure }
+	}
+	multiply_variable = { trade_infrastructure_total = 8 }
+	set_variable = { trade_infrastructure_total_available = trade_infrastructure_total }
+	subtract_from_variable = { trade_infrastructure_total_available = trade_infrastructure_total_used }
+}
 trade_check = {
+	if = {
+		limit = { is_ai = yes }
+		cwic_ai_refresh_trade_capacity = yes
+	}
 	food_import_ai = yes
     oil_import_ai = yes
     steel_import_ai = yes
@@ -4664,13 +4615,6 @@ trade_check = {
 
 
 
-test_for_Trade_modifiers = {
-
-
-	set_variable = {
-		test3 = NGA.modifier@extra_trade_to_overlord_factor
-	}
-}
 reset_all_orders = {
 	#Oil
 	add_to_variable = {
@@ -5266,7 +5210,6 @@ generate_available_cg_basic_t0_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgBasicT0ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5279,7 +5222,7 @@ generate_available_cg_basic_t0_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5291,6 +5234,9 @@ generate_available_cg_basic_t0_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgBasicT0ExporterPrice^ROOT = cgBasicT0ExportCash }
+				set_temp_variable = { rank_temp = cgBasicT0ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgBasicT0ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -5371,7 +5317,6 @@ generate_available_cg_basic_t1_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgBasicT1ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5384,7 +5329,7 @@ generate_available_cg_basic_t1_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5396,6 +5341,9 @@ generate_available_cg_basic_t1_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgBasicT1ExporterPrice^ROOT = cgBasicT1ExportCash }
+				set_temp_variable = { rank_temp = cgBasicT1ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgBasicT1ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -5476,7 +5424,6 @@ generate_available_cg_basic_t2_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgBasicT2ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5489,7 +5436,7 @@ generate_available_cg_basic_t2_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5501,6 +5448,9 @@ generate_available_cg_basic_t2_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgBasicT2ExporterPrice^ROOT = cgBasicT2ExportCash }
+				set_temp_variable = { rank_temp = cgBasicT2ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgBasicT2ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -5581,7 +5531,6 @@ generate_available_cg_basic_t3_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgBasicT3ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5594,7 +5543,7 @@ generate_available_cg_basic_t3_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5606,6 +5555,9 @@ generate_available_cg_basic_t3_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgBasicT3ExporterPrice^ROOT = cgBasicT3ExportCash }
+				set_temp_variable = { rank_temp = cgBasicT3ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgBasicT3ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -5686,7 +5638,6 @@ generate_available_cg_basic_t4_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgBasicT4ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5699,7 +5650,7 @@ generate_available_cg_basic_t4_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5711,6 +5662,9 @@ generate_available_cg_basic_t4_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgBasicT4ExporterPrice^ROOT = cgBasicT4ExportCash }
+				set_temp_variable = { rank_temp = cgBasicT4ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgBasicT4ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -5791,7 +5745,6 @@ generate_available_cg_basic_t5_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgBasicT5ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5804,7 +5757,7 @@ generate_available_cg_basic_t5_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5816,6 +5769,9 @@ generate_available_cg_basic_t5_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgBasicT5ExporterPrice^ROOT = cgBasicT5ExportCash }
+				set_temp_variable = { rank_temp = cgBasicT5ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgBasicT5ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -5900,7 +5856,6 @@ generate_available_cg_durable_t0_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgDurableT0ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -5913,7 +5868,7 @@ generate_available_cg_durable_t0_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -5925,6 +5880,9 @@ generate_available_cg_durable_t0_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgDurableT0ExporterPrice^ROOT = cgDurableT0ExportCash }
+				set_temp_variable = { rank_temp = cgDurableT0ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgDurableT0ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6005,7 +5963,6 @@ generate_available_cg_durable_t1_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgDurableT1ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6018,7 +5975,7 @@ generate_available_cg_durable_t1_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6030,6 +5987,9 @@ generate_available_cg_durable_t1_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgDurableT1ExporterPrice^ROOT = cgDurableT1ExportCash }
+				set_temp_variable = { rank_temp = cgDurableT1ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgDurableT1ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6110,7 +6070,6 @@ generate_available_cg_durable_t2_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgDurableT2ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6123,7 +6082,7 @@ generate_available_cg_durable_t2_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6135,6 +6094,9 @@ generate_available_cg_durable_t2_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgDurableT2ExporterPrice^ROOT = cgDurableT2ExportCash }
+				set_temp_variable = { rank_temp = cgDurableT2ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgDurableT2ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6215,7 +6177,6 @@ generate_available_cg_durable_t3_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgDurableT3ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6228,7 +6189,7 @@ generate_available_cg_durable_t3_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6240,6 +6201,9 @@ generate_available_cg_durable_t3_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgDurableT3ExporterPrice^ROOT = cgDurableT3ExportCash }
+				set_temp_variable = { rank_temp = cgDurableT3ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgDurableT3ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6320,7 +6284,6 @@ generate_available_cg_durable_t4_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgDurableT4ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6333,7 +6296,7 @@ generate_available_cg_durable_t4_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6345,6 +6308,9 @@ generate_available_cg_durable_t4_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgDurableT4ExporterPrice^ROOT = cgDurableT4ExportCash }
+				set_temp_variable = { rank_temp = cgDurableT4ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgDurableT4ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6425,7 +6391,6 @@ generate_available_cg_durable_t5_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgDurableT5ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6438,7 +6403,7 @@ generate_available_cg_durable_t5_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6450,6 +6415,9 @@ generate_available_cg_durable_t5_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgDurableT5ExporterPrice^ROOT = cgDurableT5ExportCash }
+				set_temp_variable = { rank_temp = cgDurableT5ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgDurableT5ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6534,7 +6502,6 @@ generate_available_cg_vehicles_t0_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgVehiclesT0ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6547,7 +6514,7 @@ generate_available_cg_vehicles_t0_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6559,6 +6526,9 @@ generate_available_cg_vehicles_t0_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgVehiclesT0ExporterPrice^ROOT = cgVehiclesT0ExportCash }
+				set_temp_variable = { rank_temp = cgVehiclesT0ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgVehiclesT0ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6639,7 +6609,6 @@ generate_available_cg_vehicles_t1_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgVehiclesT1ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6652,7 +6621,7 @@ generate_available_cg_vehicles_t1_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6664,6 +6633,9 @@ generate_available_cg_vehicles_t1_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgVehiclesT1ExporterPrice^ROOT = cgVehiclesT1ExportCash }
+				set_temp_variable = { rank_temp = cgVehiclesT1ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgVehiclesT1ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6744,7 +6716,6 @@ generate_available_cg_vehicles_t2_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgVehiclesT2ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6757,7 +6728,7 @@ generate_available_cg_vehicles_t2_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6769,6 +6740,9 @@ generate_available_cg_vehicles_t2_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgVehiclesT2ExporterPrice^ROOT = cgVehiclesT2ExportCash }
+				set_temp_variable = { rank_temp = cgVehiclesT2ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgVehiclesT2ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6849,7 +6823,6 @@ generate_available_cg_vehicles_t3_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgVehiclesT3ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6862,7 +6835,7 @@ generate_available_cg_vehicles_t3_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6874,6 +6847,9 @@ generate_available_cg_vehicles_t3_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgVehiclesT3ExporterPrice^ROOT = cgVehiclesT3ExportCash }
+				set_temp_variable = { rank_temp = cgVehiclesT3ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgVehiclesT3ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -6954,7 +6930,6 @@ generate_available_cg_vehicles_t4_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgVehiclesT4ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -6967,7 +6942,7 @@ generate_available_cg_vehicles_t4_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -6979,6 +6954,9 @@ generate_available_cg_vehicles_t4_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgVehiclesT4ExporterPrice^ROOT = cgVehiclesT4ExportCash }
+				set_temp_variable = { rank_temp = cgVehiclesT4ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgVehiclesT4ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -7059,7 +7037,6 @@ generate_available_cg_vehicles_t5_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgVehiclesT5ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -7072,7 +7049,7 @@ generate_available_cg_vehicles_t5_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -7084,6 +7061,9 @@ generate_available_cg_vehicles_t5_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgVehiclesT5ExporterPrice^ROOT = cgVehiclesT5ExportCash }
+				set_temp_variable = { rank_temp = cgVehiclesT5ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgVehiclesT5ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -7168,7 +7148,6 @@ generate_available_cg_consumer_electronics_t1_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgElectronicsT1ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -7181,7 +7160,7 @@ generate_available_cg_consumer_electronics_t1_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -7193,6 +7172,9 @@ generate_available_cg_consumer_electronics_t1_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgElectronicsT1ExporterPrice^ROOT = cgElectronicsT1ExportCash }
+				set_temp_variable = { rank_temp = cgElectronicsT1ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgElectronicsT1ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -7273,7 +7255,6 @@ generate_available_cg_consumer_electronics_t2_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgElectronicsT2ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -7286,7 +7267,7 @@ generate_available_cg_consumer_electronics_t2_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -7298,6 +7279,9 @@ generate_available_cg_consumer_electronics_t2_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgElectronicsT2ExporterPrice^ROOT = cgElectronicsT2ExportCash }
+				set_temp_variable = { rank_temp = cgElectronicsT2ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgElectronicsT2ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -7378,7 +7362,6 @@ generate_available_cg_consumer_electronics_t3_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgElectronicsT3ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -7391,7 +7374,7 @@ generate_available_cg_consumer_electronics_t3_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -7403,6 +7386,9 @@ generate_available_cg_consumer_electronics_t3_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgElectronicsT3ExporterPrice^ROOT = cgElectronicsT3ExportCash }
+				set_temp_variable = { rank_temp = cgElectronicsT3ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgElectronicsT3ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -7483,7 +7469,6 @@ generate_available_cg_consumer_electronics_t4_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgElectronicsT4ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -7496,7 +7481,7 @@ generate_available_cg_consumer_electronics_t4_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -7508,6 +7493,9 @@ generate_available_cg_consumer_electronics_t4_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgElectronicsT4ExporterPrice^ROOT = cgElectronicsT4ExportCash }
+				set_temp_variable = { rank_temp = cgElectronicsT4ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgElectronicsT4ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -7588,7 +7576,6 @@ generate_available_cg_consumer_electronics_t5_import_array = {
 				subtract_from_variable = {
 					price_adjustment_ideas2 = modifier@global_trade_bonus_adjustment
 				}
-				multiply_variable = { cgElectronicsT5ExportCash = price_adjustment_ideas2 }
 
 				# Shipping Cost
 				set_temp_variable = { exporter_capital = capital }
@@ -7601,7 +7588,7 @@ generate_available_cg_consumer_electronics_t5_import_array = {
 				round_variable = shipping_cost
 				divide_variable = { shipping_cost = 100 }
 
-				set_temp_variable = { modifier_temp = shipping_cost_effect }
+				set_temp_variable = { modifier_temp = ROOT.shipping_cost_effect }
 				add_to_temp_variable = { modifier_temp = 1 }
 				multiply_variable = { shipping_cost = modifier_temp }
 				add_to_variable = { shipping_cost = 1 }
@@ -7613,6 +7600,9 @@ generate_available_cg_consumer_electronics_t5_import_array = {
 
 				clear_variable = price_Adjuster
 				set_variable = { cgElectronicsT5ExporterPrice^ROOT = cgElectronicsT5ExportCash }
+				set_temp_variable = { rank_temp = cgElectronicsT5ExportCash }
+				multiply_temp_variable = { rank_temp = price_adjustment_ideas2 }
+				set_variable = { cgElectronicsT5ExporterRank^ROOT = rank_temp }
 	
 		}
 	}
@@ -10627,7 +10617,7 @@ sort_price_number_cg_basic_t0 = {
 	for_each_scope_loop = {
 		array = cgBasicT0Exporters
 		add_to_array = { 
-			PREV.cgBasicT0ExportPriceRate = cgBasicT0ExporterPrice^ROOT
+			PREV.cgBasicT0ExportPriceRate = cgBasicT0ExporterRank^ROOT
 		}
 	}
 
@@ -10714,7 +10704,7 @@ sort_price_number_cg_basic_t1 = {
 	for_each_scope_loop = {
 		array = cgBasicT1Exporters
 		add_to_array = { 
-			PREV.cgBasicT1ExportPriceRate = cgBasicT1ExporterPrice^ROOT
+			PREV.cgBasicT1ExportPriceRate = cgBasicT1ExporterRank^ROOT
 		}
 	}
 
@@ -10801,7 +10791,7 @@ sort_price_number_cg_basic_t2 = {
 	for_each_scope_loop = {
 		array = cgBasicT2Exporters
 		add_to_array = { 
-			PREV.cgBasicT2ExportPriceRate = cgBasicT2ExporterPrice^ROOT
+			PREV.cgBasicT2ExportPriceRate = cgBasicT2ExporterRank^ROOT
 		}
 	}
 
@@ -10888,7 +10878,7 @@ sort_price_number_cg_basic_t3 = {
 	for_each_scope_loop = {
 		array = cgBasicT3Exporters
 		add_to_array = { 
-			PREV.cgBasicT3ExportPriceRate = cgBasicT3ExporterPrice^ROOT
+			PREV.cgBasicT3ExportPriceRate = cgBasicT3ExporterRank^ROOT
 		}
 	}
 
@@ -10975,7 +10965,7 @@ sort_price_number_cg_basic_t4 = {
 	for_each_scope_loop = {
 		array = cgBasicT4Exporters
 		add_to_array = { 
-			PREV.cgBasicT4ExportPriceRate = cgBasicT4ExporterPrice^ROOT
+			PREV.cgBasicT4ExportPriceRate = cgBasicT4ExporterRank^ROOT
 		}
 	}
 
@@ -11062,7 +11052,7 @@ sort_price_number_cg_basic_t5 = {
 	for_each_scope_loop = {
 		array = cgBasicT5Exporters
 		add_to_array = { 
-			PREV.cgBasicT5ExportPriceRate = cgBasicT5ExporterPrice^ROOT
+			PREV.cgBasicT5ExportPriceRate = cgBasicT5ExporterRank^ROOT
 		}
 	}
 
@@ -11149,7 +11139,7 @@ sort_price_number_cg_durable_t0 = {
 	for_each_scope_loop = {
 		array = cgDurableT0Exporters
 		add_to_array = { 
-			PREV.cgDurableT0ExportPriceRate = cgDurableT0ExporterPrice^ROOT
+			PREV.cgDurableT0ExportPriceRate = cgDurableT0ExporterRank^ROOT
 		}
 	}
 
@@ -11236,7 +11226,7 @@ sort_price_number_cg_durable_t1 = {
 	for_each_scope_loop = {
 		array = cgDurableT1Exporters
 		add_to_array = { 
-			PREV.cgDurableT1ExportPriceRate = cgDurableT1ExporterPrice^ROOT
+			PREV.cgDurableT1ExportPriceRate = cgDurableT1ExporterRank^ROOT
 		}
 	}
 
@@ -11323,7 +11313,7 @@ sort_price_number_cg_durable_t2 = {
 	for_each_scope_loop = {
 		array = cgDurableT2Exporters
 		add_to_array = { 
-			PREV.cgDurableT2ExportPriceRate = cgDurableT2ExporterPrice^ROOT
+			PREV.cgDurableT2ExportPriceRate = cgDurableT2ExporterRank^ROOT
 		}
 	}
 
@@ -11410,7 +11400,7 @@ sort_price_number_cg_durable_t3 = {
 	for_each_scope_loop = {
 		array = cgDurableT3Exporters
 		add_to_array = { 
-			PREV.cgDurableT3ExportPriceRate = cgDurableT3ExporterPrice^ROOT
+			PREV.cgDurableT3ExportPriceRate = cgDurableT3ExporterRank^ROOT
 		}
 	}
 
@@ -11497,7 +11487,7 @@ sort_price_number_cg_durable_t4 = {
 	for_each_scope_loop = {
 		array = cgDurableT4Exporters
 		add_to_array = { 
-			PREV.cgDurableT4ExportPriceRate = cgDurableT4ExporterPrice^ROOT
+			PREV.cgDurableT4ExportPriceRate = cgDurableT4ExporterRank^ROOT
 		}
 	}
 
@@ -11584,7 +11574,7 @@ sort_price_number_cg_durable_t5 = {
 	for_each_scope_loop = {
 		array = cgDurableT5Exporters
 		add_to_array = { 
-			PREV.cgDurableT5ExportPriceRate = cgDurableT5ExporterPrice^ROOT
+			PREV.cgDurableT5ExportPriceRate = cgDurableT5ExporterRank^ROOT
 		}
 	}
 
@@ -11671,7 +11661,7 @@ sort_price_number_cg_vehicles_t0 = {
 	for_each_scope_loop = {
 		array = cgVehiclesT0Exporters
 		add_to_array = { 
-			PREV.cgVehiclesT0ExportPriceRate = cgVehiclesT0ExporterPrice^ROOT
+			PREV.cgVehiclesT0ExportPriceRate = cgVehiclesT0ExporterRank^ROOT
 		}
 	}
 
@@ -11758,7 +11748,7 @@ sort_price_number_cg_vehicles_t1 = {
 	for_each_scope_loop = {
 		array = cgVehiclesT1Exporters
 		add_to_array = { 
-			PREV.cgVehiclesT1ExportPriceRate = cgVehiclesT1ExporterPrice^ROOT
+			PREV.cgVehiclesT1ExportPriceRate = cgVehiclesT1ExporterRank^ROOT
 		}
 	}
 
@@ -11845,7 +11835,7 @@ sort_price_number_cg_vehicles_t2 = {
 	for_each_scope_loop = {
 		array = cgVehiclesT2Exporters
 		add_to_array = { 
-			PREV.cgVehiclesT2ExportPriceRate = cgVehiclesT2ExporterPrice^ROOT
+			PREV.cgVehiclesT2ExportPriceRate = cgVehiclesT2ExporterRank^ROOT
 		}
 	}
 
@@ -11932,7 +11922,7 @@ sort_price_number_cg_vehicles_t3 = {
 	for_each_scope_loop = {
 		array = cgVehiclesT3Exporters
 		add_to_array = { 
-			PREV.cgVehiclesT3ExportPriceRate = cgVehiclesT3ExporterPrice^ROOT
+			PREV.cgVehiclesT3ExportPriceRate = cgVehiclesT3ExporterRank^ROOT
 		}
 	}
 
@@ -12019,7 +12009,7 @@ sort_price_number_cg_vehicles_t4 = {
 	for_each_scope_loop = {
 		array = cgVehiclesT4Exporters
 		add_to_array = { 
-			PREV.cgVehiclesT4ExportPriceRate = cgVehiclesT4ExporterPrice^ROOT
+			PREV.cgVehiclesT4ExportPriceRate = cgVehiclesT4ExporterRank^ROOT
 		}
 	}
 
@@ -12106,7 +12096,7 @@ sort_price_number_cg_vehicles_t5 = {
 	for_each_scope_loop = {
 		array = cgVehiclesT5Exporters
 		add_to_array = { 
-			PREV.cgVehiclesT5ExportPriceRate = cgVehiclesT5ExporterPrice^ROOT
+			PREV.cgVehiclesT5ExportPriceRate = cgVehiclesT5ExporterRank^ROOT
 		}
 	}
 
@@ -12193,7 +12183,7 @@ sort_price_number_cg_electronics_t1 = {
 	for_each_scope_loop = {
 		array = cgElectronicsT1Exporters
 		add_to_array = { 
-			PREV.cgElectronicsT1ExportPriceRate = cgElectronicsT1ExporterPrice^ROOT
+			PREV.cgElectronicsT1ExportPriceRate = cgElectronicsT1ExporterRank^ROOT
 		}
 	}
 
@@ -12280,7 +12270,7 @@ sort_price_number_cg_electronics_t2 = {
 	for_each_scope_loop = {
 		array = cgElectronicsT2Exporters
 		add_to_array = { 
-			PREV.cgElectronicsT2ExportPriceRate = cgElectronicsT2ExporterPrice^ROOT
+			PREV.cgElectronicsT2ExportPriceRate = cgElectronicsT2ExporterRank^ROOT
 		}
 	}
 
@@ -12367,7 +12357,7 @@ sort_price_number_cg_electronics_t3 = {
 	for_each_scope_loop = {
 		array = cgElectronicsT3Exporters
 		add_to_array = { 
-			PREV.cgElectronicsT3ExportPriceRate = cgElectronicsT3ExporterPrice^ROOT
+			PREV.cgElectronicsT3ExportPriceRate = cgElectronicsT3ExporterRank^ROOT
 		}
 	}
 
@@ -12454,7 +12444,7 @@ sort_price_number_cg_electronics_t4 = {
 	for_each_scope_loop = {
 		array = cgElectronicsT4Exporters
 		add_to_array = { 
-			PREV.cgElectronicsT4ExportPriceRate = cgElectronicsT4ExporterPrice^ROOT
+			PREV.cgElectronicsT4ExportPriceRate = cgElectronicsT4ExporterRank^ROOT
 		}
 	}
 
@@ -12541,7 +12531,7 @@ sort_price_number_cg_electronics_t5 = {
 	for_each_scope_loop = {
 		array = cgElectronicsT5Exporters
 		add_to_array = { 
-			PREV.cgElectronicsT5ExportPriceRate = cgElectronicsT5ExporterPrice^ROOT
+			PREV.cgElectronicsT5ExportPriceRate = cgElectronicsT5ExporterRank^ROOT
 		}
 	}
 

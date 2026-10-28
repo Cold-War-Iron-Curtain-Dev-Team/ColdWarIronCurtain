@@ -55,21 +55,87 @@ ic_financial_monthly_pulse = {
 	set_variable = { national_total_employed_pops = 0 }
 
 	income_effect = yes
-	add_to_variable = { currentMoney = modifier@war_reperations }
 	set_variable = { steel_resource_bonus = 0 }
 	set_variable = { oil_resource_bonus = 0 }
 	set_variable = { aluminium_resource_bonus = 0 }
 	set_variable = { nuclear_resource_bonus = 0 }
 	set_variable = { rare_earth_bonus = 0 }
-	#Resource Concessions Setup
-	set_variable = { tungstenConcessionsGains = 0 }
-	set_variable = { tungstenConcession = 0 }
 
 	resource_bonus_script = yes
 	industrial_pulse = yes
 
 	monthly_borrowing_and_interest_pulse = yes
-	#cwic_default_monthly_check = yes
+	}
+}
+
+cwic_ai_refresh_gdp_on_territory_change = {
+	set_variable = { cwic_ai_state_count_now = 0 }
+	every_owned_state = { add_to_variable = { PREV.cwic_ai_state_count_now = 1 } }
+	if = {
+		limit = { NOT = { has_variable = cwic_ai_gdp_state_count } }
+		set_variable = { cwic_ai_gdp_state_count = cwic_ai_state_count_now }
+	}
+	else_if = {
+		limit = { NOT = { check_variable = { cwic_ai_gdp_state_count = cwic_ai_state_count_now } } }
+		set_variable = { cwic_ai_gdp_state_count = cwic_ai_state_count_now }
+		gdp_calculation_effect = yes
+	}
+}
+
+cwic_ai_money_stipend = {
+	if = {
+		limit = { NOT = { has_variable = ai_stipend_start_income } }
+		set_variable = { ai_stipend_start_income = { value = IncomeCheck max = 0 } }
+		set_variable = {
+			ai_stipend_start_factories = {
+				value = num_of_civilian_factories
+				add = num_of_military_factories
+				add = num_of_naval_factories
+				max = 1
+			}
+		}
+		set_variable = { ai_stipend_month = 0 }
+	}
+	if = {
+		limit = { check_variable = { ai_stipend_month = 0 } }
+		set_variable = {
+			ai_stipend_base = {
+				value = num_of_civilian_factories
+				add = num_of_military_factories
+				add = num_of_naval_factories
+				divide = ai_stipend_start_factories
+				multiply = ai_stipend_start_income
+				max = 0
+			}
+		}
+	}
+	add_to_variable = { ai_stipend_month = 1 }
+	if = {
+		limit = { check_variable = { ai_stipend_month > 11 } }
+		set_variable = { ai_stipend_month = 0 }
+	}
+	if = {
+		limit = {
+			check_variable = { ai_stipend_base > 0 }
+			NOT = { check_variable = { currentMoney < 0 } }
+		}
+		set_temp_variable = { ai_stipend_ceiling = { value = ai_stipend_base multiply = 24 } }
+		if = {
+			limit = { check_variable = { currentMoney < ai_stipend_ceiling } }
+			set_temp_variable = {
+				ai_stipend_pay = {
+					value = 1
+					add = modifier@productivity_factor
+					add = modifier@industrial_park_income_bonus
+					add = modifier@office_park_income_bonus
+					add = modifier@military_factory_income_bonus
+					max = 0
+					min = 1.5
+					multiply = ai_stipend_base
+				}
+			}
+			add_to_variable = { currentMoney = ai_stipend_pay }
+		}
 	}
 }
 
@@ -90,7 +156,6 @@ ic_pulse = {
 	set_variable = { temp_check = THIS.id }
 	set_variable = { oil_consumption_total_desired = 0 }
 
-	#resource_concession_evaluation = yes
 	add_to_variable = { global.ic_pulse_check = 1 }
 	set_variable = { Exploit_Limit = global.Exploit_Limit }
 	add_to_variable = { Exploit_Limit = Exploit_Limit_Adjustment }
