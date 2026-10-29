@@ -3871,6 +3871,7 @@ fre_operation_launch = {
 		VIN = { clr_country_flag = VIN_Limited_Campaign_Armistice_Pending }
 	}
 	set_variable = { FRE_op_days_elapsed = 0 }
+	clear_variable = FRE_op_collapse_threshold
 	set_variable = { FRE_op_objective_hold_days = 0 }
 	clr_country_flag = FRE_Brochet_Objective_Lost
 	clr_country_flag = FRE_Operation_Contested
@@ -3906,7 +3907,89 @@ fre_operation_launch = {
 	if = { limit = { check_variable = { FRE_op_current > 2 } } indochina_call_all_vin_fre_theater_forces = yes }
 	if = { limit = { check_variable = { FRE_op_current = 7 } } fre_camargue_deploy_garrison = yes }
 	log = "FRE_OP_TRACE: LAUNCH exit id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
-	activate_mission = FRE_Operation_Timer
+	fre_operation_add_objective_vps = yes
+	if = { limit = { check_variable = { FRE_op_current = 3 } } activate_mission = FRE_Op_Mouette_Objective }
+	else_if = { limit = { check_variable = { FRE_op_current = 4 } } activate_mission = FRE_Op_Brochet_Objective }
+	else_if = { limit = { check_variable = { FRE_op_current = 5 } } activate_mission = FRE_Op_Bretagne_Objective }
+	else_if = { limit = { check_variable = { FRE_op_current = 6 } } activate_mission = FRE_Op_Adolphe_Objective }
+	else_if = { limit = { check_variable = { FRE_op_current = 7 } } activate_mission = FRE_Op_Camargue_Objective }
+	else = { activate_mission = FRE_Operation_Timer }
+}
+
+fre_operation_add_objective_vps = {
+	if = {
+		limit = { check_variable = { FRE_op_current = 3 } NOT = { has_country_flag = FRE_Temporary_Objective_VP_Mouette } }
+		1762 = { add_victory_points = { province = 11909 value = 1 } }
+		786 = {
+			add_victory_points = { province = 1185 value = 1 }
+			add_victory_points = { province = 13753 value = 1 }
+		}
+		set_country_flag = FRE_Temporary_Objective_VP_Mouette
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 4 } NOT = { has_country_flag = FRE_Temporary_Objective_VP_Brochet } }
+		786 = { add_victory_points = { province = 13755 value = 1 } }
+		set_country_flag = FRE_Temporary_Objective_VP_Brochet
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 5 } NOT = { has_country_flag = FRE_Temporary_Objective_VP_Bretagne } }
+		786 = {
+			add_victory_points = { province = 1185 value = 1 }
+			add_victory_points = { province = 13753 value = 1 }
+		}
+		set_country_flag = FRE_Temporary_Objective_VP_Bretagne
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 6 } NOT = { has_country_flag = FRE_Temporary_Objective_VP_Adolphe } }
+		671 = { add_victory_points = { province = 13754 value = 1 } }
+		set_country_flag = FRE_Temporary_Objective_VP_Adolphe
+	}
+	else_if = {
+		limit = { check_variable = { FRE_op_current = 7 } NOT = { has_country_flag = FRE_Temporary_Objective_VP_Camargue } }
+		1759 = {
+			add_victory_points = { province = 4379 value = 1 }
+			add_victory_points = { province = 16445 value = 1 }
+		}
+		set_country_flag = FRE_Temporary_Objective_VP_Camargue
+	}
+}
+
+fre_operation_remove_objective_vps = {
+	if = {
+		limit = { has_country_flag = FRE_Temporary_Objective_VP_Mouette }
+		1762 = { add_victory_points = { province = 11909 value = -1 } }
+		786 = {
+			add_victory_points = { province = 1185 value = -1 }
+			add_victory_points = { province = 13753 value = -1 }
+		}
+		clr_country_flag = FRE_Temporary_Objective_VP_Mouette
+	}
+	if = {
+		limit = { has_country_flag = FRE_Temporary_Objective_VP_Brochet }
+		786 = { add_victory_points = { province = 13755 value = -1 } }
+		clr_country_flag = FRE_Temporary_Objective_VP_Brochet
+	}
+	if = {
+		limit = { has_country_flag = FRE_Temporary_Objective_VP_Bretagne }
+		786 = {
+			add_victory_points = { province = 1185 value = -1 }
+			add_victory_points = { province = 13753 value = -1 }
+		}
+		clr_country_flag = FRE_Temporary_Objective_VP_Bretagne
+	}
+	if = {
+		limit = { has_country_flag = FRE_Temporary_Objective_VP_Adolphe }
+		671 = { add_victory_points = { province = 13754 value = -1 } }
+		clr_country_flag = FRE_Temporary_Objective_VP_Adolphe
+	}
+	if = {
+		limit = { has_country_flag = FRE_Temporary_Objective_VP_Camargue }
+		1759 = {
+			add_victory_points = { province = 4379 value = -1 }
+			add_victory_points = { province = 16445 value = -1 }
+		}
+		clr_country_flag = FRE_Temporary_Objective_VP_Camargue
+	}
 }
 
 fre_operation_update_hold = {
@@ -3992,6 +4075,15 @@ fre_limited_operation_daily_tick = {
 	if = {
 		limit = { has_country_flag = FRE_Limited_Operation_Active }
 		add_to_variable = { FRE_op_days_elapsed = 1 }
+		if = {
+			limit = {
+				NOT = { has_variable = FRE_op_collapse_threshold }
+				check_variable = { FRE_op_days_elapsed > 1 }
+			}
+			indochina_limited_war_snapshot_collapse_threshold = yes
+			set_variable = { FRE_op_collapse_threshold = ic_collapse_threshold }
+			log = "FRE_OP_TRACE: COLLAPSE_THRESHOLD id=[?FRE_op_current|0] threshold=[?FRE_op_collapse_threshold|0]"
+		}
 		log = "FRE_OP_TRACE: DAILY before_objective id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
 		fre_operation_update_contest = yes
 		fre_operation_update_hold = yes
@@ -4021,6 +4113,12 @@ fre_operation_check_resolution = {
 		limit = { fre_operation_theatre_closed = yes }
 		log = "FRE_OP_TRACE: RESOLUTION branch=theatre_closed id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] phase=[?global.Indochina_War_Active_Phase|0]"
 		set_temp_variable = { fre_op_outcome = 5 }
+		fre_operation_resolve_outcome = yes
+	}
+	else_if = {
+		limit = { fre_operation_collapse_trigger = yes }
+		log = "FRE_OP_TRACE: RESOLUTION branch=collapse id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] threshold=[?FRE_op_collapse_threshold|0]"
+		set_temp_variable = { fre_op_outcome = 4 }
 		fre_operation_resolve_outcome = yes
 	}
 	else_if = {
@@ -4237,6 +4335,7 @@ fre_operation_resolve = {
 			log = "FRE_OP_TRACE: RESOLUTION caller=FRA_timer_backstop id=[?FRE_op_current|0] day=[?FRE_op_days_elapsed|0] hold=[?FRE_op_objective_hold_days|0]"
 			if = { limit = { fre_operation_objective_met = yes } set_temp_variable = { fre_op_outcome = 2 } }
 			else_if = { limit = { fre_operation_theatre_closed = yes } set_temp_variable = { fre_op_outcome = 5 } }
+			else_if = { limit = { OR = { check_variable = { FRE_op_current = 5 } check_variable = { FRE_op_current = 7 } } NOT = { has_country_flag = FRE_Operation_Contested } } set_temp_variable = { fre_op_outcome = 3 } }
 			else = { set_temp_variable = { fre_op_outcome = 4 } }
 			fre_operation_resolve_outcome = yes
 		}
@@ -4286,6 +4385,8 @@ fre_operation_finish = {
 		log = "FRE_OP_TRACE: FINISH no_operation_owned_war id=[?FRE_op_current|0] outcome=[?FRE_op_last_outcome|0]"
 	}
 	clr_country_flag = FRE_Limited_Operation_Owns_War
+	indochina_limited_war_close_outsider_wars = yes
+	clear_variable = FRE_op_collapse_threshold
 	set_variable = { FRE_op_days_elapsed = 0 }
 	set_variable = { FRE_op_objective_hold_days = 0 }
 	set_variable = { FRE_op_commitment_tier = 0 }
@@ -4296,6 +4397,12 @@ fre_operation_finish = {
 	set_variable = { FRE_op_price_maximum = 0 }
 	FRA = { remove_mission = FRE_Operation_Timer }	# compatibility: old saves hosted this timer on France
 	remove_mission = FRE_Operation_Timer
+	remove_mission = FRE_Op_Mouette_Objective
+	remove_mission = FRE_Op_Brochet_Objective
+	remove_mission = FRE_Op_Bretagne_Objective
+	remove_mission = FRE_Op_Adolphe_Objective
+	remove_mission = FRE_Op_Camargue_Objective
+	fre_operation_remove_objective_vps = yes
 	set_variable = { FRE_op_timer_days = 0 }
 }
 

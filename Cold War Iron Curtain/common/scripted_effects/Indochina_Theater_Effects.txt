@@ -2791,6 +2791,54 @@ indochina_call_all_vin_fre_theater_forces = {
 		}
 	}
 
+	if = {
+		limit = {
+			country_exists = VIN
+			country_exists = NUN
+			country_exists = THO
+			VIN = {
+				has_country_flag = VIN_Campaign_Cao_Bac_Active
+				has_war_with = THO
+			}
+			NUN = {
+				is_subject_of = FRE
+				NOT = { has_war_with = VIN }
+				NOT = { vin_aligned_country_trigger = yes }
+			}
+		}
+		NUN = {
+			add_to_war = {
+				targeted_alliance = THO
+				enemy = VIN
+				hostility_reason = asked_to_join
+			}
+		}
+	}
+
+	if = {
+		limit = {
+			country_exists = VIN
+			country_exists = NUN
+			country_exists = FRE
+			VIN = {
+				has_country_flag = VIN_Campaign_Mao_Khe_Active
+				has_war_with = FRE
+			}
+			NUN = {
+				is_subject_of = FRE
+				NOT = { has_war_with = VIN }
+				NOT = { vin_aligned_country_trigger = yes }
+			}
+		}
+		NUN = {
+			add_to_war = {
+				targeted_alliance = FRE
+				enemy = VIN
+				hostility_reason = asked_to_join
+			}
+		}
+	}
+
 }
 
 ic_laos_raid_release_pathet_lao = {
@@ -3978,6 +4026,79 @@ indochina_failsafe_white_peace_theatre = {
 			white_peace = event_target:ic_wp_a
 		}
 	}
+	# VIN can grow past the is_major threshold; a war between two Vietnamese principals is always a theatre war
+	if = { limit = { country_exists = VIN country_exists = VIE } VIN = { if = { limit = { has_war_with = VIE } white_peace = VIE } } }
+	if = { limit = { country_exists = VIN country_exists = NLF } VIN = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	if = { limit = { country_exists = VIE country_exists = NLF } VIE = { if = { limit = { has_war_with = NLF } white_peace = NLF } } }
+	indochina_limited_war_close_outsider_wars = yes
+}
+
+indochina_limited_war_snapshot_collapse_threshold = {
+	set_temp_variable = { ic_collapse_threshold = 0.3 }
+	if = { limit = { surrender_progress > 0.1 } set_temp_variable = { ic_collapse_threshold = 0.4 } }
+	if = { limit = { surrender_progress > 0.2 } set_temp_variable = { ic_collapse_threshold = 0.5 } }
+	if = { limit = { surrender_progress > 0.3 } set_temp_variable = { ic_collapse_threshold = 0.6 } }
+	if = { limit = { surrender_progress > 0.4 } set_temp_variable = { ic_collapse_threshold = 0.7 } }
+	if = { limit = { surrender_progress > 0.5 } set_temp_variable = { ic_collapse_threshold = 0.8 } }
+	if = { limit = { surrender_progress > 0.6 } set_temp_variable = { ic_collapse_threshold = 0.9 } }
+	if = { limit = { surrender_progress > 0.7 } set_temp_variable = { ic_collapse_threshold = 1 } }
+}
+
+indochina_limited_war_record_outsider = {
+	if = {
+		limit = {
+			NOT = { has_global_flag = Indochina_War_Over }
+			indochina_limited_war_window_trigger = yes
+		}
+		if = {
+			limit = {
+				ROOT = { indochina_limited_war_belligerent_trigger = yes }
+				FROM = { NOT = { ic_failsafe_theatre_tag_trigger = yes } }
+				NOT = { is_in_array = { array = global.indochina_limited_war_outsiders value = FROM } }
+			}
+			add_to_array = { array = global.indochina_limited_war_outsiders value = FROM }
+			log = "IC_AFK|LIMITED_WAR_OUTSIDER|date=[GetDateText]|local=[ROOT.GetTag]|outsider=[FROM.GetTag]"
+		}
+		else_if = {
+			limit = {
+				FROM = { indochina_limited_war_belligerent_trigger = yes }
+				ROOT = { NOT = { ic_failsafe_theatre_tag_trigger = yes } }
+				NOT = { is_in_array = { array = global.indochina_limited_war_outsiders value = ROOT } }
+			}
+			add_to_array = { array = global.indochina_limited_war_outsiders value = ROOT }
+			log = "IC_AFK|LIMITED_WAR_OUTSIDER|date=[GetDateText]|local=[FROM.GetTag]|outsider=[ROOT.GetTag]"
+		}
+	}
+}
+
+indochina_limited_war_close_outsider_wars = {
+	if = {
+		limit = {
+			check_variable = { global.indochina_limited_war_outsiders^num > 0 }
+			OR = {
+				has_global_flag = Indochina_War_Over
+				NOT = { indochina_limited_war_window_trigger = yes }
+			}
+		}
+		for_each_scope_loop = {
+			array = global.indochina_limited_war_outsiders
+			if = {
+				limit = { exists = yes }
+				save_event_target_as = ic_lw_outsider
+				log = "IC_AFK|LIMITED_WAR_OUTSIDER_CLOSE|date=[GetDateText]|outsider=[THIS.GetTag]"
+				every_country = {
+					limit = {
+						ic_failsafe_theatre_tag_trigger = yes
+						NOT = { tag = FRA }
+						has_war_with = event_target:ic_lw_outsider
+					}
+					log = "IC_AFK|LIMITED_WAR_OUTSIDER_PEACE|date=[GetDateText]|local=[THIS.GetTag]"
+					white_peace = event_target:ic_lw_outsider
+				}
+			}
+		}
+		clear_array = global.indochina_limited_war_outsiders
+	}
 }
 
 # Five of the ten endings leave the corps standing. Hand it to whoever actually
@@ -4040,7 +4161,10 @@ indochina_failsafe_force_cleanup_if_needed = {
 			OR = {
 				ic_failsafe_militarily_decided_trigger = yes
 				ic_failsafe_no_theatre_war_trigger = yes
-				has_global_flag = ic_failsafe_geneva_aborted
+				AND = {
+					has_global_flag = ic_failsafe_geneva_aborted
+					NOT = { ic_failsafe_vin_escalation_live_trigger = yes }
+				}
 			}
 		}
 		log = "[GetDateText]: Indochina failsafe - no ending payload landed on a war that cannot continue, forcing the terminator"
@@ -4088,7 +4212,10 @@ indochina_failsafe_postflight_if_settled = {
 			OR = {
 				ic_failsafe_militarily_decided_trigger = yes
 				ic_failsafe_no_theatre_war_trigger = yes
-				has_global_flag = ic_failsafe_geneva_aborted
+				AND = {
+					has_global_flag = ic_failsafe_geneva_aborted
+					NOT = { ic_failsafe_vin_escalation_live_trigger = yes }
+				}
 			}
 		}
 		indochina_failsafe_postflight = yes
@@ -4356,6 +4483,7 @@ indochina_failsafe_watchdog_tick = {
 
 		if = {	# the latch is set with nothing behind it, or we cut it and the war still has not closed
 			limit = {
+				NOT = { ic_failsafe_vin_escalation_live_trigger = yes }
 				OR = {
 					ic_failsafe_geneva_latched_dead_trigger = yes
 					AND = {

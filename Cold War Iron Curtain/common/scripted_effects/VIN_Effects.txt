@@ -6588,6 +6588,7 @@ vin_campaign_restore_northern_front = {
 	786 = { vin_campaign_restore_unplanned_state = yes }
 	1280 = { vin_campaign_restore_unplanned_state = yes }
 	1768 = { vin_campaign_restore_unplanned_state = yes }
+	1281 = { vin_campaign_restore_unplanned_state = yes }
 }
 
 vin_campaign_open_planned_state = {
@@ -6616,6 +6617,7 @@ vin_campaign_apply_planned_offensive = {
 		limit = { check_variable = { VIN_camp_current = 4 } }
 		1280 = { vin_campaign_open_planned_state = yes }
 		1768 = { vin_campaign_open_planned_state = yes }
+		1281 = { vin_campaign_open_planned_state = yes }
 	}
 	else_if = {
 		limit = { check_variable = { VIN_camp_current = 5 } }
@@ -6624,6 +6626,7 @@ vin_campaign_apply_planned_offensive = {
 	else_if = {
 		limit = { check_variable = { VIN_camp_current = 6 } }
 		786 = { vin_campaign_open_planned_state = yes }
+		1281 = { vin_campaign_open_planned_state = yes }
 	}
 	else_if = {
 		limit = { check_variable = { VIN_camp_current = 7 } }
@@ -6937,6 +6940,7 @@ vin_campaign_declare_war = {
 	set_variable = { VIN_Overextension_Streak_Days = 0 }
 	vin_campaign_update_overextension = yes
 	set_variable = { VIN_camp_days_elapsed = 0 }
+	clear_variable = VIN_camp_collapse_threshold
 	set_variable = { VIN_camp_deadline_x = 120 }	# a clean campaign
 	set_variable = { VIN_camp_deadline_y = 210 }	# past this the offensive has failed
 	set_variable = { VIN_camp_objective_hold_days = 0 }
@@ -7248,6 +7252,15 @@ vin_campaign_objective_tick = {
 		}
 		vin_limited_campaign_add_objective_vps = yes
 		add_to_variable = { VIN_camp_days_elapsed = 1 }
+		if = {
+			limit = {
+				NOT = { has_variable = VIN_camp_collapse_threshold }
+				check_variable = { VIN_camp_days_elapsed > 1 }
+			}
+			indochina_limited_war_snapshot_collapse_threshold = yes
+			set_variable = { VIN_camp_collapse_threshold = ic_collapse_threshold }
+			log = "VIN_CAMPAIGN_TRACE: COLLAPSE_THRESHOLD campaign=[?VIN_camp_current|0] threshold=[?VIN_camp_collapse_threshold|0]"
+		}
 		vin_limited_campaign_update_objective_hold = yes
 		if = { limit = { has_idea = VIN_Campaign_AI_Support } remove_ideas = VIN_Campaign_AI_Support }
 		if = { limit = { has_idea = VIN_Indochina_AI_Support } remove_ideas = VIN_Indochina_AI_Support }
@@ -7302,6 +7315,7 @@ vin_limited_campaign_close_spillover_wars = {
 			}
 			clr_country_flag = VIN_Limited_Campaign_Armistice_Pending
 		}
+		indochina_limited_war_close_outsider_wars = yes
 	}
 }
 
@@ -7346,6 +7360,12 @@ vin_campaign_check_resolution = {
 		}
 		clr_country_flag = VIN_Hoa_Binh_Amarante_Withdrawal_Ready
 		set_temp_variable = { vin_camp_outcome = 1 }	# the parent owns Amarante's voluntary withdrawal result
+		vin_campaign_resolve = yes
+	}
+	else_if = {
+		limit = { vin_campaign_collapse_trigger = yes }
+		log = "VIN_CAMPAIGN_TRACE: RESOLUTION branch=collapse campaign=[?VIN_camp_current|0] day=[?VIN_camp_days_elapsed|0] threshold=[?VIN_camp_collapse_threshold|0]"
+		set_temp_variable = { vin_camp_outcome = 4 }
 		vin_campaign_resolve = yes
 	}
 	else_if = {
@@ -7781,6 +7801,7 @@ vin_northwest_recovery_close_owned_war = {
 		clear_global_event_target = VIN_northwest_recovery_target
 		vin_northwest_recovery_clear_war_snapshot = yes
 	}
+	indochina_limited_war_close_outsider_wars = yes
 }
 
 vin_campaign_finish = {
@@ -7896,6 +7917,7 @@ vin_campaign_finish = {
 	vin_campaign_remove_war_spirits = yes
 	vin_limited_campaign_remove_objective_vps = yes
 	set_variable = { VIN_camp_objective_hold_days = 0 }
+	clear_variable = VIN_camp_collapse_threshold
 	clr_country_flag = VIN_Campaign_Resolving
 	FRA = { remove_mission = VIN_Campaign_Objective_Timer }	# compatibility: old saves hosted this timer on France
 	remove_mission = VIN_Campaign_Objective_Timer
@@ -10236,6 +10258,13 @@ vin_patronage_chinese_complete = {
 		add_equipment_to_stockpile = { type = support_equipment_1 amount = 100 producer = PRC }
 		set_temp_variable = { geneva_lev_amount = 25 }
 		geneva_add_communist_leverage = yes
+		if = {
+			limit = { country_exists = PRC }
+			set_temp_variable = { percent_change = 15 }
+			set_temp_variable = { tag_index = PRC.id }
+			set_temp_variable = { influence_target = ROOT.id }
+			change_influence_percentage = yes
+		}
 		log = "IC_AFK|PATRONAGE|date=[GetDateText]|choice=chinese|campaign_supply=[?VIN_Campaign_Supply|0]"
 		hidden_effect = {
 			if = {
@@ -10279,6 +10308,13 @@ vin_patronage_soviet_complete = {
 		add_equipment_to_stockpile = { type = auto_cannon_equipment_1 amount = 40 producer = SOV }
 		set_temp_variable = { geneva_lev_amount = 40 }
 		geneva_add_communist_leverage = yes
+		if = {
+			limit = { country_exists = SOV }
+			set_temp_variable = { percent_change = 15 }
+			set_temp_variable = { tag_index = SOV.id }
+			set_temp_variable = { influence_target = ROOT.id }
+			change_influence_percentage = yes
+		}
 		log = "IC_AFK|PATRONAGE|date=[GetDateText]|choice=soviet|campaign_supply=[?VIN_Campaign_Supply|0]"
 		hidden_effect = {
 			if = {
@@ -10304,6 +10340,16 @@ vin_patronage_monthly_delivery = {
 			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 400 producer = PRC }
 			add_equipment_to_stockpile = { type = support_equipment_1 amount = 30 producer = PRC }
 			log = "IC_AFK|PATRONAGE_DELIVERY|date=[GetDateText]|source=chinese|infantry=400|support=30"
+			if = {
+				limit = { date > 1952.1.1 date < 1954.1.1 }
+				add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 200 producer = PRC }
+				add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = PRC }
+			}
+			if = {
+				limit = { date > 1954.1.1 date < 1955.1.1 }
+				add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 400 producer = PRC }
+				add_equipment_to_stockpile = { type = support_equipment_1 amount = 40 producer = PRC }
+			}
 		}
 		else_if = {
 			limit = { has_country_flag = VIN_Patronage_Soviet }
@@ -10312,4 +10358,11 @@ vin_patronage_monthly_delivery = {
 			log = "IC_AFK|PATRONAGE_DELIVERY|date=[GetDateText]|source=soviet|artillery=25|anti_air=8"
 		}
 	}
+}
+
+VIN_Convert_Post_War_Economy = {
+	clear_current_economic_modifiers = yes
+	set_variable = { economic_x_axis = 6 }
+	set_variable = { economic_y_axis = 9 }
+	startup_economics = yes
 }

@@ -12,9 +12,24 @@ VIN_indochina_campaign_window_trigger = {
 		NOT = { has_global_flag = Indochina_War_Over }
 		NOT = { has_global_flag = geneva_conference_concluded }
 		check_variable = { global.Indochina_War_Active_Phase < 9 }
+		# Castor, Pollux and Atlante are ownership-neutral and intentionally overlap the 1953-54 campaigns
 		OR = {
 			NOT = { country_exists = FRE }
-			FRE = { NOT = { has_country_flag = FRE_Limited_Operation_Active } }
+			FRE = {
+				NOT = {
+					OR = {
+						has_country_flag = FRE_Limited_Operation_Pending
+						has_country_flag = FRE_Limited_Operation_Active
+						has_country_flag = FRE_Mission_Operation_Lorraine_Activated
+						has_country_flag = FRE_Mission_Operation_Hirondelle_Activated
+						has_country_flag = FRE_Mission_Operation_Mouette_Activated
+						has_country_flag = FRE_Mission_Operation_Brochet_Activated
+						has_country_flag = FRE_Mission_Operation_Bretagne_Activated
+						has_country_flag = FRE_Mission_Operation_Adolphe_Activated
+						has_country_flag = FRE_Mission_Operation_Camargue_Activated
+					}
+				}
+			}
 		}
 	}
 }
@@ -102,24 +117,24 @@ vin_campaign_objective_met_trigger = {
 	OR = {
 		AND = {
 			check_variable = { VIN_camp_current = 1 }
-			controls_province = 10075	# the gate from Dong Bac Bo
-			controls_province = 12075
-			controls_province = 13775
-			controls_province = 16526	# the gate onto Hoa Binh
-			controls_province = 16527
+			OR = { controls_province = 10075 any_country = { vin_aligned_country_trigger = yes controls_province = 10075 } }	# the gate from Dong Bac Bo
+			OR = { controls_province = 12075 any_country = { vin_aligned_country_trigger = yes controls_province = 12075 } }
+			OR = { controls_province = 13775 any_country = { vin_aligned_country_trigger = yes controls_province = 13775 } }
+			OR = { controls_province = 16526 any_country = { vin_aligned_country_trigger = yes controls_province = 16526 } }	# the gate onto Hoa Binh
+			OR = { controls_province = 16527 any_country = { vin_aligned_country_trigger = yes controls_province = 16527 } }
 		}
 		AND = {
 			check_variable = { VIN_camp_current = 2 }
-			controls_state = 1766
+			1766 = { controller = { vin_aligned_country_trigger = yes } }
 		}
 		AND = {
 			check_variable = { VIN_camp_current = 3 }
-			controls_province = 4529
+			OR = { controls_province = 4529 any_country = { vin_aligned_country_trigger = yes controls_province = 4529 } }
 		}
 		AND = {
 			check_variable = { VIN_camp_current = 4 }
-			controls_state = 1280
-			controls_state = 1768
+			1280 = { controller = { vin_aligned_country_trigger = yes } }
+			1768 = { controller = { vin_aligned_country_trigger = yes } }
 		}
 		AND = {
 			check_variable = { VIN_camp_current = 5 }
@@ -154,26 +169,31 @@ vin_campaign_objective_met_trigger = {
 
 vin_limited_campaign_raw_objective_trigger = {
 	OR = {
-		AND = { check_variable = { VIN_camp_current = 5 } controls_province = 12075 }
-		AND = { check_variable = { VIN_camp_current = 6 } controls_province = 13772 }
+		AND = { check_variable = { VIN_camp_current = 5 } OR = { controls_province = 12075 any_country = { vin_aligned_country_trigger = yes controls_province = 12075 } } }
+		AND = { check_variable = { VIN_camp_current = 6 } OR = { controls_province = 13772 any_country = { vin_aligned_country_trigger = yes controls_province = 13772 } } }
 		AND = {
 			check_variable = { VIN_camp_current = 7 }
-			controls_province = 1185
-			controls_province = 13753
-			controls_province = 13755
+			OR = { controls_province = 1185 any_country = { vin_aligned_country_trigger = yes controls_province = 1185 } }
+			OR = { controls_province = 13753 any_country = { vin_aligned_country_trigger = yes controls_province = 13753 } }
+			OR = { controls_province = 13755 any_country = { vin_aligned_country_trigger = yes controls_province = 13755 } }
 		}
-		AND = { check_variable = { VIN_camp_current = 8 } controls_province = 13757 }
-		AND = { check_variable = { VIN_camp_current = 10 } controls_province = 13773 }
-		AND = { check_variable = { VIN_camp_current = 11 } controls_province = 13765 }
+		AND = { check_variable = { VIN_camp_current = 8 } OR = { controls_province = 13757 any_country = { vin_aligned_country_trigger = yes controls_province = 13757 } } }
+		AND = { check_variable = { VIN_camp_current = 10 } OR = { controls_province = 13773 any_country = { vin_aligned_country_trigger = yes controls_province = 13773 } } }
+		AND = { check_variable = { VIN_camp_current = 11 } OR = { controls_province = 13765 any_country = { vin_aligned_country_trigger = yes controls_province = 13765 } } }
 		AND = {
 			check_variable = { VIN_camp_current = 9 }
-			controls_province = 10075
-			controls_province = 12075
-			controls_province = 13775
-			controls_province = 16526
-			controls_province = 16527
+			OR = { controls_province = 10075 any_country = { vin_aligned_country_trigger = yes controls_province = 10075 } }
+			OR = { controls_province = 12075 any_country = { vin_aligned_country_trigger = yes controls_province = 12075 } }
+			OR = { controls_province = 13775 any_country = { vin_aligned_country_trigger = yes controls_province = 13775 } }
+			OR = { controls_province = 16526 any_country = { vin_aligned_country_trigger = yes controls_province = 16526 } }
+			OR = { controls_province = 16527 any_country = { vin_aligned_country_trigger = yes controls_province = 16527 } }
 		}
 	}
+}
+
+vin_campaign_collapse_trigger = {
+	has_variable = VIN_camp_collapse_threshold
+	surrender_progress > var:VIN_camp_collapse_threshold
 }
 
 VIN_vinh_yen_terminal_trigger = { custom_trigger_tooltip = { tooltip = VIN_vinh_yen_terminal_trigger_TT OR = { has_country_flag = VIN_Campaign_Vinh_Yen_Result_Clean has_country_flag = VIN_Campaign_Vinh_Yen_Result_Costly has_country_flag = VIN_Campaign_Vinh_Yen_Result_Aborted has_country_flag = VIN_Campaign_Vinh_Yen_Result_Failure has_country_flag = VIN_Campaign_Vinh_Yen_Result_Superseded } } }
@@ -501,7 +521,6 @@ vin_campaign_vin_overextended_trigger = {
 		AND = {
 			check_variable = { VIN_camp_current = 4 }
 			OR = {
-				vin_controls_foreign_nung_ground_trigger = yes
 				vin_controls_foreign_ha_giang_ground_trigger = yes
 				vin_controls_foreign_northwest_corridor_trigger = yes
 				vin_controls_foreign_northwest_outlier_trigger = yes
@@ -527,7 +546,6 @@ vin_campaign_vin_overextended_trigger = {
 			check_variable = { VIN_camp_current = 6 }
 			OR = {
 				vin_controls_foreign_cao_bac_ground_trigger = yes
-				vin_controls_foreign_nung_ground_trigger = yes
 				vin_controls_foreign_ha_giang_ground_trigger = yes
 				vin_controls_foreign_northwest_corridor_trigger = yes
 				vin_controls_foreign_northwest_outlier_trigger = yes
