@@ -251,11 +251,11 @@ Treat alternate Castor/Dien Bien terminals, Amarante/day-`210`, Lorraine focus-o
 
 ## Deferred work and known limits
 
-- A second graduated overextension tier; the current contract intentionally uses one severe tier.
-- Generalized response-package work beyond the implemented Northwest/Lorraine, Hoa Binh, Vinh Yen, Mao Khe, Day River, Na San, and Dien Bien Phu cases, plus the remaining historical operations beginning with Dak Doa.
-- Genuine Northwest-failure recovery route into the Dien Bien focus; current ownership gate remains.
+- Done 2026-10-01 (`4929d21dec`): the severe overextension tier. Done 2026-08-22: the Dak Doa response package (`FRE_Dak_Doa.1`/`.2`).
+- Generalized response-package work beyond the implemented Northwest/Lorraine, Hoa Binh, Vinh Yen, Mao Khe, Day River, Na San, Dien Bien Phu and Dak Doa cases needs a new design decision.
+- Northwest-failure recovery: `VIN_Reopen_the_Northwest_Corridor` relaunches the campaign after a failure, but `VIN_Prepare_Dien` still requires owning state `1761`; no separate route into the Dien Bien focus.
 - Extended engine coverage of French Indochina startup migration, intentional defection exits, and dissolution ordering; the core faction membership and separate-war behavior have initial acceptance.
-- Removal of now-unassigned legacy adjacency-rule definitions after more engine coverage; their CSV assignments are already retired.
+- Done 2026-10-01 (`4929d21dec`): unassigned legacy adjacency rules removed. The four remaining `INDOCHINESE_WAR_*` rules are still assigned in `adjacencies.csv` and stay.
 - Named historical THO colonial leadership research.
 - Alternate-terminal balance coverage for Castor/Dien Bien, Lorraine, the post-DBP southern choices, and the revised Hoa Binh payout values. Their historical path and Hoa Binh's underlying lifecycle are accepted.
 
@@ -567,13 +567,15 @@ completed in `Indochina_AFK_Playtest.md`.
 
 ### Next session order
 
-Updated 2026-10-11. Remaining order:
+Updated 2026-10-29. Remaining order:
 
 0. Check 59 passed in `2026-10-09b`. Next AFK run: check 61 (resupply no
-   longer blocked by the Nam Bo focus) and re-score 58. Then the deferred
-   Trung Phan (VIE) issues the user raised on 2026-10-09, including
-   `VIE_Events.txt:7555`, and the State of Vietnam army-cap overrun.
-   Also score check 63 (crown domains annexed on Communist victory).
+   longer blocked by the Nam Bo focus) and re-score 58. The `VIE_Events.txt`
+   `controller` and `recruit_character` errors were fixed in `b750a77fb6`
+   (2026-10-09). Still open: the State of Vietnam army-cap overrun (30/20 in
+   `2026-10-09b`); there is no VIE-specific cap enforcement yet.
+   Also score checks 63 and 64 (crown domains annexed on Communist victory
+   and on the Geneva ending).
 1. Next AFK run: score checks 53-58 first. 55 and 58 need a hover/glance
    in a player game; 56-57 come from `IC_AFK|NOTICE`. The VIN supply step now runs on
    every pulse (monthly), so Campaign Supply income, patronage and the
