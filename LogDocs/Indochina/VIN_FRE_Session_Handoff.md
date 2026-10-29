@@ -928,4 +928,44 @@ Statically verified only; ledger has the details, check 63. Discord
 report: the Nung territory stayed independent after a Viet Minh victory.
 The Communist victory ending never annexed the northern crown domains;
 it now annexes surviving TAM, TAI, NUN and THO before CEFEO dissolution.
-Next session order: add check 63 to the next AFK run's scoring list.
+
+## 2026-10-27 patch: operation and campaign objective clarity
+
+Statically verified only; ledger has the details, checks 64-67.
+Playtester: Bretagne did not show its target, and taking Thanh Hoa did
+not succeed. The objective is Phat Diem and Ninh Binh in the Red River
+Delta, counted only once the Viet Minh engage; Thanh Hoa city only
+triggered overextension. CEFEO operations 3-7 now have their own
+objective missions with province highlights and temporary map labels,
+the operation tooltip names the objective and engagement state, and all
+campaign and operation clocks show a one-line deadline tooltip instead of
+the full cleanup effect list. Operation and campaign texts were audited
+against the script by a cwic-writer pass. An unengaged Bretagne or
+Camargue now aborts consistently at the timeout.
+
+Next session order: add checks 63-67 to the next AFK run's scoring list;
+ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-10-28 patch: player report triage
+
+Statically verified only; the ledger has the details, checks 68-72. Fixed:
+- The Nguyen Binh focus softlock when NLF was annexed.
+- VIN campaigns launching during Lorraine-Camargue operations (Castor,
+  Pollux and Atlante are deliberately exempt).
+- The failsafe forcing the never-ending ending on a live post-DBP
+  escalation.
+- VIN-VIE wars surviving the failsafe white peace.
+- Oversized tooltips and raw `_TT_NOT` keys.
+
+The VIN economy rework was applied the same day after the user's decisions
+(ledger "VIN war economy, credit, power", checks 73-79).
+
+Next session order:
+1. Score checks 63-80 in the next run. Read VIN `Credit_Rating`,
+   `National_HDI`, `grossdomesticproduct` and the active crisis list.
+2. If VIN still sits in a medium fiscal crisis, lock the credit rating
+   during the war or add a VIN-only crisis clear.
+3. Confirm with the user whether `VIN_Follow_a_Flexible_Path` should keep
+   its Social Democratic popularity. The aid events, the power plant
+   decision and the popularity cleanup are done; the `fiscal_collapse`
+   ladder is intended.
