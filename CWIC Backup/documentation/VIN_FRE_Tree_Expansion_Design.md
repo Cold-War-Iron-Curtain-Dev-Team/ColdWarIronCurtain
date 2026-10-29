@@ -2830,6 +2830,17 @@ Statically verified only. User decisions on every open handoff item.
   the same day at the user's request. THO keeps `THO_Council` on purpose:
   its leadership stays deliberately ambiguous.
 
+- Review after the branch move (same day): `FRE_Cao_Bac` had no
+  `add_namespace`, so both Cao Bac events would not load; added. The three
+  Cao Bac commit effects now require `FRE_Cao_Bac_Response_Choice_Pending`,
+  so a late answer after cleanup charges nothing and adds no modifier.
+  Cao Bac flags got loc in `IC_FRE_Ops_l_english.yml`. Neutral Laos: LAO
+  now receives `841` and `1295` and takes `1295` as capital before the
+  other states go to Royal Lao, and is freed from VIN with `set_autonomy`
+  instead of `release`. The Lower Laos capitulation no longer calls
+  `lao_convert_to_normal_economy`, which created Pathet Lao divisions just
+  before Royal Lao annexed them.
+
 ### Consolidated-playtest checks added
 
 82. VIE `IC_AFK|ARMY_CAP` lines stay at or below the cap once the gate engages.
