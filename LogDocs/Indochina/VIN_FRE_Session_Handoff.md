@@ -256,7 +256,7 @@ Treat alternate Castor/Dien Bien terminals, Amarante/day-`210`, Lorraine focus-o
 - Done 2026-10-29: `VIN_Prepare_Dien` also unlocks after a successful Reopen the Northwest Corridor campaign without owning state `1761`.
 - Extended engine coverage of French Indochina startup migration, intentional defection exits, and dissolution ordering; the core faction membership and separate-war behavior have initial acceptance.
 - Done 2026-10-01 (`4929d21dec`): unassigned legacy adjacency rules removed. The four remaining `INDOCHINESE_WAR_*` rules are still assigned in `adjacencies.csv` and stay.
-- Done 2026-10-29: THO colonial leader is Lt Col Pierre Charton (documented Cao Bang commander, a stand-in for French military authority); no verifiable Tho zone president was found.
+- Closed 2026-10-29 (user): THO keeps the generic territorial council on purpose; do not name a colonial leader.
 - Alternate-terminal balance coverage for Castor/Dien Bien, Lorraine, the post-DBP southern choices, and the revised Hoa Binh payout values. Their historical path and Hoa Binh's underlying lifecycle are accepted.
 
 ## Guardrails for the next session
@@ -982,12 +982,13 @@ Next session order: add check 81 to the 63-80 scoring list above.
 
 ## 2026-10-29 patch: open-item sweep
 
-Statically verified only; ledger "open-item sweep", checks 82-115. Every
+Statically verified only; ledger "open-item sweep", checks 82-112. Every
 open handoff item was resolved on the user's decisions: State of Vietnam
 AI recruitment gate, `VIN_CEFEO.1`-`.13` option effects, neutral Laos keeps
 the Pathet Lao in Phongsaly and Houaphanh, Lower Laos capitulation goes to
-Royal Lao, Prepare Dien unlock after a recovered Northwest, 14 flag labels,
-the Cao Bac response package and a named THO leader. Work moved from
-`Econ-fix` to `development-branch` this session.
-Next session order: score checks 63 and 81-115 in the next run; check 82
+Royal Lao, Prepare Dien unlock after a recovered Northwest, 14 flag labels
+and the Cao Bac response package. A named THO leader was added and reverted
+at the user's request; THO keeps its deliberately unnamed council. Work
+moved from `Econ-fix` to `development-branch` this session.
+Next session order: score checks 63 and 81-112 in the next run; check 82
 first, since negative `build_army` is unproven.
