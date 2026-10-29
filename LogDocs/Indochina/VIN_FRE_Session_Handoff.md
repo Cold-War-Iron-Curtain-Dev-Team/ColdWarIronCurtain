@@ -252,11 +252,11 @@ Treat alternate Castor/Dien Bien terminals, Amarante/day-`210`, Lorraine focus-o
 ## Deferred work and known limits
 
 - Done 2026-10-01 (`4929d21dec`): the severe overextension tier. Done 2026-08-22: the Dak Doa response package (`FRE_Dak_Doa.1`/`.2`).
-- Generalized response-package work beyond the implemented Northwest/Lorraine, Hoa Binh, Vinh Yen, Mao Khe, Day River, Na San, Dien Bien Phu and Dak Doa cases needs a new design decision.
-- Northwest-failure recovery: `VIN_Reopen_the_Northwest_Corridor` relaunches the campaign after a failure, but `VIN_Prepare_Dien` still requires owning state `1761`; no separate route into the Dien Bien focus.
+- Done 2026-10-29: Cao Bac response package (`FRE_Cao_Bac.1`/`.2`). Every VIN campaign with a CEFEO stake now has one; CEFEO offensives 2, 3, 5, 6 and 7 are answered by the `VIN_CEFEO` events instead.
+- Done 2026-10-29: `VIN_Prepare_Dien` also unlocks after a successful Reopen the Northwest Corridor campaign without owning state `1761`.
 - Extended engine coverage of French Indochina startup migration, intentional defection exits, and dissolution ordering; the core faction membership and separate-war behavior have initial acceptance.
 - Done 2026-10-01 (`4929d21dec`): unassigned legacy adjacency rules removed. The four remaining `INDOCHINESE_WAR_*` rules are still assigned in `adjacencies.csv` and stay.
-- Named historical THO colonial leadership research.
+- Done 2026-10-29: THO colonial leader is Lt Col Pierre Charton (documented Cao Bang commander, a stand-in for French military authority); no verifiable Tho zone president was found.
 - Alternate-terminal balance coverage for Castor/Dien Bien, Lorraine, the post-DBP southern choices, and the revised Hoa Binh payout values. Their historical path and Hoa Binh's underlying lifecycle are accepted.
 
 ## Guardrails for the next session
@@ -572,19 +572,18 @@ Updated 2026-10-29. Remaining order:
 0. Check 59 passed in `2026-10-09b`. Next AFK run: check 61 (resupply no
    longer blocked by the Nam Bo focus) and re-score 58. The `VIE_Events.txt`
    `controller` and `recruit_character` errors were fixed in `b750a77fb6`
-   (2026-10-09). Still open: the State of Vietnam army-cap overrun (30/20 in
-   `2026-10-09b`); there is no VIE-specific cap enforcement yet.
-   Also score checks 63 and 64 (crown domains annexed on Communist victory
-   and on the Geneva ending).
+   (2026-10-09). The State of Vietnam army-cap overrun now has an AI
+   recruitment gate (2026-10-29, checks 82-86). Also score checks 63 and 81
+   (crown domains annexed on Communist victory and on the Geneva ending).
 1. Next AFK run: score checks 53-58 first. 55 and 58 need a hover/glance
    in a player game; 56-57 come from `IC_AFK|NOTICE`. The VIN supply step now runs on
    every pulse (monthly), so Campaign Supply income, patronage and the
    southern resupply all rise. If VIN supply runs away, lower the
    per-month amounts. Keep `surrender_limit = 0.5`; watch whether VIN is
    now too strong (Hoa Binh day 26 in 2026-10-03c).
-2. Deferred design items (user, 2026-10-03): the Geneva Laos clause, and
-   now the Pathet Lao capitulating to CEFEO during Lower Laos (2026-10-03c).
-   Not to be fixed until the user raises them.
+2. Done 2026-10-29 (user decisions): the Geneva neutral-Laos term keeps the
+   Pathet Lao in Phongsaly and Houaphanh, and a Pathet Lao capitulation to
+   CEFEO goes to Royal Lao. Score checks 92-101.
 3. Next consolidated AFK run: score ledger checks 1-58. Passed:
    23, 30, 31, 33, 34, 36, 37, 39, 48, 50, 51, 52. Partial: 38.
    Failed: 35 (before the surrender limit), 46 (twice; passed in 03c), 49.
@@ -602,9 +601,9 @@ Updated 2026-10-29. Remaining order:
    Camargue contest rates, Lower Laos outcomes, the campaign-input totals,
    the Struggle writer-3 share, and the Dak Doa `10180` staging.
 6. The design's unbuilt list is empty. New content needs a new design
-   decision from the user. Open loc items: about 1,190 internal flags
-   without loc (user deferred), and `VIN_CEFEO.1`-`.13` options are still
-   name-only.
+   decision from the user. Loc: 14 player-visible flags were labelled on
+   2026-10-29; the remaining 259 unlocalised flags never display.
+   `VIN_CEFEO.1`-`.13` options now have effects.
 7. Keep the consolidated-playtest list current: every patch adds its expected
    observations to that list.
 
@@ -980,3 +979,15 @@ Cao Bang and Lang Son whenever THO existed and CEFEO dissolution handed
 THO back to France. The Geneva branch now annexes a THO that is not a
 VIN subject before dissolution; the Viet Bac zone is unchanged.
 Next session order: add check 81 to the 63-80 scoring list above.
+
+## 2026-10-29 patch: open-item sweep
+
+Statically verified only; ledger "open-item sweep", checks 82-115. Every
+open handoff item was resolved on the user's decisions: State of Vietnam
+AI recruitment gate, `VIN_CEFEO.1`-`.13` option effects, neutral Laos keeps
+the Pathet Lao in Phongsaly and Houaphanh, Lower Laos capitulation goes to
+Royal Lao, Prepare Dien unlock after a recovered Northwest, 14 flag labels,
+the Cao Bac response package and a named THO leader. Work moved from
+`Econ-fix` to `development-branch` this session.
+Next session order: score checks 63 and 81-115 in the next run; check 82
+first, since negative `build_army` is unproven.

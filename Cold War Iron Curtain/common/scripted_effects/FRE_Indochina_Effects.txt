@@ -1840,6 +1840,7 @@ fre_dissolution_cleanup = {
 	fre_hoa_binh_response_cleanup = yes
 	fre_dbp_response_cleanup = yes
 	fre_preparation_response_cleanup = yes
+	fre_cao_bac_response_cleanup = yes
 	fre_preparation_disband_garrison = yes
 	fre_hedgehog_network_cleanup = yes
 	fre_highlands_cleanup = yes
@@ -5303,4 +5304,113 @@ fre_preparation_response_cleanup = {
 		if = { limit = { has_idea = FRE_Preparation_Supported } remove_ideas = FRE_Preparation_Supported }
 		if = { limit = { has_idea = FRE_Preparation_Maximum } remove_ideas = FRE_Preparation_Maximum }
 	} }
+}
+
+# Cao Bac response package (FRE defends Cao Bang 1280 and Lang Son 1768 against the
+# VIN campaign). Bounded by the VIN parent campaign; never transfers territory, makes
+# peace, or resolves the campaign.
+fre_cao_bac_response_remove_modifier = {
+	1280 = {
+		if = { limit = { has_dynamic_modifier = { modifier = FRE_Cao_Bac_Hold_Defense } } remove_dynamic_modifier = { modifier = FRE_Cao_Bac_Hold_Defense } }
+		if = { limit = { has_dynamic_modifier = { modifier = FRE_Cao_Bac_Reinforce_Defense } } remove_dynamic_modifier = { modifier = FRE_Cao_Bac_Reinforce_Defense } }
+	}
+	1768 = {
+		if = { limit = { has_dynamic_modifier = { modifier = FRE_Cao_Bac_Hold_Defense } } remove_dynamic_modifier = { modifier = FRE_Cao_Bac_Hold_Defense } }
+		if = { limit = { has_dynamic_modifier = { modifier = FRE_Cao_Bac_Reinforce_Defense } } remove_dynamic_modifier = { modifier = FRE_Cao_Bac_Reinforce_Defense } }
+	}
+}
+
+fre_cao_bac_response_clear_postures = {
+	clr_country_flag = FRE_Cao_Bac_Posture_Hold
+	clr_country_flag = FRE_Cao_Bac_Posture_Reinforce
+	clr_country_flag = FRE_Cao_Bac_Posture_Withdraw
+}
+
+fre_cao_bac_response_clear_results = {
+	clr_country_flag = FRE_Cao_Bac_Result_Held
+	clr_country_flag = FRE_Cao_Bac_Result_Overrun
+	clr_country_flag = FRE_Cao_Bac_Result_Evacuated
+	clr_country_flag = FRE_Cao_Bac_Result_Superseded
+}
+
+fre_cao_bac_response_begin = {
+	fre_cao_bac_response_remove_modifier = yes
+	fre_cao_bac_response_clear_postures = yes
+	fre_cao_bac_response_clear_results = yes
+	set_country_flag = FRE_Cao_Bac_Response_Active
+	set_country_flag = FRE_Cao_Bac_Response_Choice_Pending
+	log = "IC_RESPONSE|package=8|stage=before_selection|credits=[?FRE_War_Credits|0]|manpower_k=[?manpower_k|0]|patience=[?FRE_Metropole_Patience|0]"
+	country_event = { id = FRE_Cao_Bac.1 hours = 1 }
+}
+
+fre_cao_bac_commit_hold = {
+	fre_cao_bac_response_clear_postures = yes
+	clr_country_flag = FRE_Cao_Bac_Response_Choice_Pending
+	set_country_flag = FRE_Cao_Bac_Posture_Hold
+	set_temp_variable = { fre_credit_amount = -15 }
+	fre_change_war_credits = yes
+	add_manpower = -600
+	set_temp_variable = { fre_patience_delta = -1 }
+	fre_metropole_patience_change = yes
+	1280 = { add_dynamic_modifier = { modifier = FRE_Cao_Bac_Hold_Defense days = -1 } }
+	1768 = { add_dynamic_modifier = { modifier = FRE_Cao_Bac_Hold_Defense days = -1 } }
+}
+
+fre_cao_bac_commit_reinforce = {
+	fre_cao_bac_response_clear_postures = yes
+	clr_country_flag = FRE_Cao_Bac_Response_Choice_Pending
+	set_country_flag = FRE_Cao_Bac_Posture_Reinforce
+	set_temp_variable = { fre_credit_amount = -60 }
+	fre_change_war_credits = yes
+	add_manpower = -2000
+	set_temp_variable = { fre_patience_delta = -4 }
+	fre_metropole_patience_change = yes
+	1280 = { add_dynamic_modifier = { modifier = FRE_Cao_Bac_Reinforce_Defense days = -1 } }
+	1768 = { add_dynamic_modifier = { modifier = FRE_Cao_Bac_Reinforce_Defense days = -1 } }
+}
+
+fre_cao_bac_commit_withdraw = {
+	fre_cao_bac_response_clear_postures = yes
+	clr_country_flag = FRE_Cao_Bac_Response_Choice_Pending
+	set_country_flag = FRE_Cao_Bac_Posture_Withdraw
+	set_temp_variable = { fre_credit_amount = -10 }
+	fre_change_war_credits = yes
+	add_manpower = -400
+	set_temp_variable = { fre_patience_delta = -1 }
+	fre_metropole_patience_change = yes
+	fre_cao_bac_response_remove_modifier = yes
+}
+
+fre_cao_bac_response_record_result = {
+	fre_cao_bac_response_clear_results = yes
+	if = {
+		limit = { VIN = { check_variable = { VIN_camp_last_outcome = 5 } } }
+		set_country_flag = FRE_Cao_Bac_Result_Superseded
+	}
+	else_if = {
+		limit = { has_country_flag = FRE_Cao_Bac_Posture_Withdraw }
+		set_country_flag = FRE_Cao_Bac_Result_Evacuated
+	}
+	else_if = {
+		limit = { VIN = { OR = { check_variable = { VIN_camp_last_outcome = 1 } check_variable = { VIN_camp_last_outcome = 2 } } } }
+		set_country_flag = FRE_Cao_Bac_Result_Overrun
+		fre_cao_bac_response_remove_modifier = yes
+	}
+	else = {
+		set_country_flag = FRE_Cao_Bac_Result_Held
+	}
+}
+
+fre_cao_bac_response_cleanup = {
+	fre_cao_bac_response_remove_modifier = yes
+	clr_country_flag = FRE_Cao_Bac_Response_Active
+	clr_country_flag = FRE_Cao_Bac_Response_Choice_Pending
+	fre_cao_bac_response_clear_postures = yes
+}
+
+fre_cao_bac_resolve_from_campaign = {
+	fre_cao_bac_response_record_result = yes
+	log = "IC_RESPONSE|package=8|stage=after_resolution|credits=[?FRE_War_Credits|0]|manpower_k=[?manpower_k|0]|patience=[?FRE_Metropole_Patience|0]"
+	fre_cao_bac_response_cleanup = yes
+	country_event = { id = FRE_Cao_Bac.2 hours = 4 }
 }
