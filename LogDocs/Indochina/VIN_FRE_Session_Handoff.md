@@ -969,3 +969,12 @@ Next session order:
    its Social Democratic popularity. The aid events, the power plant
    decision and the popularity cleanup are done; the `fiscal_collapse`
    ladder is intended.
+
+## 2026-10-29 patch: Tho annexation on the Geneva ending
+
+Statically verified only; ledger has the details, check 81. Tester
+report: the Tho territory survived the Geneva ending. The ending skipped
+Cao Bang and Lang Son whenever THO existed and CEFEO dissolution handed
+THO back to France. The Geneva branch now annexes a THO that is not a
+VIN subject before dissolution; the Viet Bac zone is unchanged.
+Next session order: add check 81 to the 63-80 scoring list above.

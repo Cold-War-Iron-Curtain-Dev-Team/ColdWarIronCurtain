@@ -2768,3 +2768,23 @@ plants.
 
 80. `VIN_Econ.5/.6` show a single money line and the influence changes
     apply. The power plant decision builds a power plant.
+
+## 2026-10-29 patch: Tho territory survives the Geneva ending
+
+Statically verified only. Tester report: Viet Minh never annexed THO,
+the game reached the Geneva ending, and the Tho territory stayed alive.
+
+- Cause: `indochina_struggle_run_geneva_ending_effect` hands VIN the
+  northern states but skips Cao Bang (`1280`) and Lang Son (`1768`)
+  whenever THO exists, which only fits the Viet Bac zone. A THO still
+  under CEFEO was then handed back to France by
+  `fre_hand_back_crown_domains` inside `fre_dissolution_cleanup`.
+- Fix: before CEFEO dissolution, the Geneva branch annexes THO into VIN
+  when THO exists and is not a VIN subject. A Viet Bac zone THO is kept.
+  TAI, TAM and NUN were already removed by the state transfers.
+
+### Consolidated-playtest checks added
+
+81. After a Geneva ending where THO was still a CEFEO domain, THO no
+    longer exists and states `1280` and `1768` belong to VIN. With the
+    Viet Bac zone granted, THO survives as a VIN subject.
