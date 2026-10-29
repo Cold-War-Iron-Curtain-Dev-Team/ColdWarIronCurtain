@@ -526,7 +526,7 @@ Existing tree landmarks:
 - A post-failure recovery route from an unsuccessful Northwest campaign into Dien Bien Phu. The present focus still requires ownership of `1761`; this patch repairs the false failures caused by lost modifiers/supply but does not turn a genuine Northwest defeat into a free valley campaign.
 - Extended engine coverage of the implemented northern/southern French Indochina command interface, especially old-save migration, intentional defection exits, and CEFEO dissolution ordering. Core faction membership and separate-war behavior passed the initial playtest on 2026-08-13.
 - Deletion of the now-unassigned legacy northern adjacency-rule definitions after the unrestricted connections pass an engine map test. Their CSV assignments are already retired, so they no longer affect movement.
-- Named colonial THO leadership research; the restoration patch uses a generic territorial council.
+- Closed 2026-10-29 (user): THO keeps the generic territorial council on purpose; its colonial leadership stays deliberately unnamed.
 
 ### French Indochina command implementation
 
@@ -2826,9 +2826,9 @@ Statically verified only. User decisions on every open handoff item.
   `fre_dissolution_cleanup`. No transfer, peace or parent resolution.
   CEFEO offensives 2, 3, 5, 6, 7 get no package; VIN's side of them is the
   `VIN_CEFEO` events.
-- THO leader: `THO_Pierre_Charton` replaces `THO_Council`. Charton
-  commanded the Cao Bang subsector in 1950; he stands in for French
-  military authority. No verifiable president of a Tho zone was found.
+- THO leader: a named leader (Pierre Charton) was added and then reverted
+  the same day at the user's request. THO keeps `THO_Council` on purpose:
+  its leadership stays deliberately ambiguous.
 
 ### Consolidated-playtest checks added
 
@@ -2871,7 +2871,3 @@ Statically verified only. User decisions on every open handoff item.
 111. At campaign end `FRE_Cao_Bac.2` shows the matching result and the
      modifiers are gone.
 112. The package transfers no territory and makes no peace.
-113. At the 1949 start the Tho territory shows Pierre Charton with a
-     generic portrait and a readable biography.
-114. A colonial THO keeps its existing custody and campaign behaviour.
-115. With the Viet Bac zone, Chu Van Tan still leads THO.
