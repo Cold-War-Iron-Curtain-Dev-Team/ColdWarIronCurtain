@@ -2788,3 +2788,90 @@ the game reached the Geneva ending, and the Tho territory stayed alive.
 81. After a Geneva ending where THO was still a CEFEO domain, THO no
     longer exists and states `1280` and `1768` belong to VIN. With the
     Viet Bac zone granted, THO survives as a VIN subject.
+
+## 2026-10-29 patch: open-item sweep
+
+Statically verified only. User decisions on every open handoff item.
+
+- State of Vietnam army cap: the AI cap (30, or 25 with associated-state
+  armies) was only enforced by the post-war demobilisation chain.
+  `VIE_ai_army_at_cap` (VIE_Triggers) reuses
+  `CWIC_has_reached_maximum_divisions`; the `VIE_army_cap_recruitment_gate`
+  ai_strategy (`common/ai_strategy/VIE.txt`) sets `build_army` to -100
+  while at cap. Units are kept. Risk: negative `build_army` is new to the
+  mod; if the engine clamps it, switch to `unit_ratio`.
+- `VIN_CEFEO.1`-`.13`: every option now has an effect in the same style as
+  `.14` onward.
+- Geneva Laos: under the neutral Laos and Cambodia term the Pathet Lao are
+  no longer annexed. They keep Phongsaly (`841`) and Houaphanh (`1295`),
+  give their other states to Royal Lao, leave the faction and stop being a
+  VIN subject. The regroupment term keeps its mechanics and is renamed
+  "Pathet Lao Zones under Viet Minh Patronage".
+- Lower Laos: `ic_laos_capitulation_to_royal_lao` (Theater effects),
+  called from `wars_on_actions.txt`, handles a Pathet Lao capitulation to
+  CEFEO, France or a CEFEO ally: Lao states held by FRE or FRA return to
+  Royal Lao, which annexes the Pathet Lao as in the existing Royal Lao
+  victory branch.
+- `VIN_Prepare_Dien` is also available after a successful Reopen the
+  Northwest Corridor campaign (`VIN_Campaign_Northwest_Recovery_Result_Costly`;
+  every recovery success is costly) without owning `1761`.
+- Flag loc: 956 flags in the rework files, 683 already localised, 14
+  player-visible flags labelled, 259 that never display skipped.
+  `VIN_Post_DBP_Settlement_After_South` is checked and cleared but never
+  set anywhere.
+- Cao Bac response package (package 8): `FRE_Cao_Bac.1`/`.2`, effects
+  `fre_cao_bac_*` in FRE_Indochina_Effects, modifiers
+  `FRE_Cao_Bac_Hold_Defense`/`_Reinforce_Defense` on `1280`/`1768`, hooks
+  in the VIN campaign launch, resolve and finish paths and in
+  `fre_dissolution_cleanup`. No transfer, peace or parent resolution.
+  CEFEO offensives 2, 3, 5, 6, 7 get no package; VIN's side of them is the
+  `VIN_CEFEO` events.
+- THO leader: `THO_Pierre_Charton` replaces `THO_Council`. Charton
+  commanded the Cao Bang subsector in 1950; he stands in for French
+  military authority. No verifiable president of a Tho zone was found.
+
+### Consolidated-playtest checks added
+
+82. VIE `IC_AFK|ARMY_CAP` lines stay at or below the cap once the gate engages.
+83. At cap the State of Vietnam AI queues no new divisions.
+84. No VIE divisions are disbanded when the gate engages.
+85. Under cap, VIE recruitment resumes.
+86. A player State of Vietnam recruits normally.
+87. Each `VIN_CEFEO.1`-`.13` option shows an effect tooltip.
+88. Choosing either option applies the shown effect.
+89. AI VIN picks both options over several runs.
+90. The `VIN_CEFEO` event timing is unchanged.
+91. No `VIN_Events.txt` lines in error.log.
+92. Neutral Laos term with a won Pathet Lao raid: LAO exists with only
+    Phongsaly and Houaphanh.
+93. Royal Lao holds every other former Pathet Lao state.
+94. LAO is outside the faction and not a VIN subject.
+95. The neutral option label names the two provinces.
+96. Regroupment term: Pathet Lao keep VIN autonomy and are not annexed.
+97. Pathet Lao capitulating to CEFEO during Lower Laos: Royal Lao annexes
+    them and no Lao state is owned by FRE or FRA.
+98. A Pathet Lao capitulation to Royal Lao behaves as before.
+99. After 97 the Lower Laos operation cleans up normally.
+100. No Geneva Laos term effect fires on a LAO that no longer exists.
+101. No `wars_on_actions.txt` lines in error.log.
+102. Failed Tay Bac, then successful Northwest Recovery: Prepare Dien is
+     available without owning `1761`.
+103. Failed Northwest Recovery: Prepare Dien stays unavailable unless VIN
+     owns `1761`.
+104. The new Prepare Dien condition reads as a sentence.
+105. Danh branch and Soviet reply conditions show names, not flags.
+106. Adolphe, Bretagne, Brochet, Camargue and Mouette objective tooltips
+     show operation names.
+107. Bolovens, southern-command and State of Vietnam alliance conditions are
+     readable.
+108. Cao Bac launch with CEFEO alive fires `FRE_Cao_Bac.1` with three options.
+109. Hold or Reinforce adds its modifier to `1280` and `1768` and charges
+     the shown costs.
+110. Withdraw adds no modifier and the result shows the evacuation text.
+111. At campaign end `FRE_Cao_Bac.2` shows the matching result and the
+     modifiers are gone.
+112. The package transfers no territory and makes no peace.
+113. At the 1949 start the Tho territory shows Pierre Charton with a
+     generic portrait and a readable biography.
+114. A colonial THO keeps its existing custody and campaign behaviour.
+115. With the Viet Bac zone, Chu Van Tan still leads THO.

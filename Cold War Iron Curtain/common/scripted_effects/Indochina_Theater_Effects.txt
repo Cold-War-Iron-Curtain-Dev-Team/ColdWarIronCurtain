@@ -1902,6 +1902,7 @@ indochina_struggle_run_geneva_ending_effect = {
 				if = {
 					limit = {
 						country_exists = LAO
+						NOT = { AND = { has_global_flag = geneva_conference_concluded check_variable = { global.geneva_laos_cambodia_term = 1 } } }
 						OR = {
 							NOT = { country_exists = VIN }
 							AND = {
@@ -1912,6 +1913,37 @@ indochina_struggle_run_geneva_ending_effect = {
 					}
 					annex_country = { target = LAO }
 				}
+			}
+		}
+		# Neutral-Laos term: the Pathet Lao are not annexed. They keep the two
+		# regroupment provinces (Phongsaly 841, Houaphanh 1295) as a neutral zone
+		# pending reintegration. Every other Pathet Lao province returns to the
+		# Kingdom, and the Pathet Lao leave the faction and VIN's subject list.
+		if = {
+			limit = {
+				country_exists = LAO
+				country_exists = LOS
+				has_global_flag = geneva_conference_concluded
+				check_variable = { global.geneva_laos_cambodia_term = 1 }
+			}
+			LAO = {
+				set_capital = { state = 841 }
+				every_owned_state = {
+					limit = {
+						NOT = { state = 841 }
+						NOT = { state = 1295 }
+					}
+					transfer_state_to = LOS
+				}
+				leave_faction = yes
+				if = {
+					limit = { is_subject_of = VIN }
+					VIN = { release = LAO }
+				}
+			}
+			if = {
+				limit = { country_exists = VIN }
+				VIN = { white_peace = LAO }
 			}
 		}
 		if = {
@@ -3508,6 +3540,38 @@ ic_laos_raid_dissolve_lao = {
 	if = {
 		limit = { country_exists = LAO country_exists = LOS }
 		LOS = { annex_country = { target = LAO } }
+	}
+}
+
+# Called from LAO scope (wars_on_actions.txt) when the Pathet Lao capitulates to
+# the French side (FRE/FRA or a FRE ally). The Royal Lao take the result: Lao
+# states the French side owns are handed to LOS, then LOS annexes LAO.
+ic_laos_capitulation_to_royal_lao = {
+	if = {
+		limit = { country_exists = LOS }
+		LOS = {
+			if = { limit = { 1187 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1187 }
+			if = { limit = { 1191 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1191 }
+			if = { limit = { 1196 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1196 }
+			if = { limit = { 1198 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1198 }
+			if = { limit = { 1295 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1295 }
+			if = { limit = { 1750 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1750 }
+			if = { limit = { 1794 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1794 }
+			if = { limit = { 1795 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1795 }
+			if = { limit = { 1796 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1796 }
+			if = { limit = { 1993 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1993 }
+			if = { limit = { 1997 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 1997 }
+			if = { limit = { 670 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 670 }
+			if = { limit = { 841 = { OR = { is_owned_by = FRE is_owned_by = FRA } } } transfer_state = 841 }
+		}
+	}
+	if = {
+		limit = { country_exists = LOS }
+		lao_convert_to_normal_economy = yes
+		LOS = {
+			white_peace = LAO
+			annex_country = { target = LAO }
+		}
 	}
 }
 
