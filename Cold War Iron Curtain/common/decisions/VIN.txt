@@ -142,11 +142,14 @@ VIN_Developmental_Scheme = {
 		target_trigger = {
 			AND = {
 				FROM = {
-					is_owned_by = ROOT
+					OR = {
+						is_owned_by = ROOT
+						is_controlled_by = ROOT
+					}
 				}
 				FROM = {
 					free_building_slots = {
-						building = industrial_complex
+						building = fossil_fuel_powerplant
 						size > 1
 					}
 				}
@@ -168,10 +171,370 @@ VIN_Developmental_Scheme = {
 		remove_effect = {
 			FROM = {
 				add_building_construction = {
-					type = industrial_complex
-					level = 2
+					type = fossil_fuel_powerplant
+					level = 1
 					instant_build = yes
 				}
+			}
+		}
+	}
+}
+
+VIN_Danh_Power_Struggle = {
+	VIN_Danh_Coup_Countdown = {
+		icon = generic_prepare_civil_war
+		allowed = {
+			original_tag = VIN
+		}
+		activation = {
+			always = no
+		}
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		days_mission_timeout = 365
+		selectable_mission = no
+		is_good = no
+		cancel_trigger = {
+			OR = {
+				NOT = { has_country_flag = VIN_Danh_Struggle_Active }
+				has_country_flag = VIN_Danh_Coup_Launched
+			}
+		}
+		timeout_effect = {
+			if = {
+				limit = { has_country_flag = VIN_Backs_Danh }
+				custom_effect_tooltip = VIN_Danh_Countdown_Danh_tt
+			}
+			else = {
+				custom_effect_tooltip = VIN_Danh_Countdown_Ho_tt
+			}
+			hidden_effect = {
+				VIN_Danh_resolve_coup = yes
+			}
+		}
+	}
+	VIN_Danh_Stalinist_Agitation = {
+		icon = generic_political_discourse
+		allowed = {
+			original_tag = VIN
+		}
+		activation = {
+			always = no
+		}
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		days_mission_timeout = 30
+		selectable_mission = no
+		is_good = no
+		cancel_trigger = {
+			OR = {
+				NOT = {
+					custom_trigger_tooltip = {
+						tooltip = VIN_Danh_Struggle_Open_tt
+						has_country_flag = VIN_Danh_Struggle_Active
+					}
+				}
+				NOT = {
+					custom_trigger_tooltip = {
+						tooltip = VIN_Sided_With_Ho_tt
+						has_country_flag = VIN_Backs_Ho
+					}
+				}
+			}
+		}
+		timeout_effect = {
+			custom_effect_tooltip = VIN_Danh_Stalinist_Agitation_tt
+			hidden_effect = {
+				set_temp_variable = { struggle_change = 8 }
+				VIN_Change_Stalinist_Support = yes
+				set_temp_variable = { struggle_change = 6 }
+				VIN_Change_SOV_Favor = yes
+				activate_mission = VIN_Danh_Stalinist_Agitation
+			}
+		}
+	}
+	VIN_Ho_Rallies_Committee = {
+		icon = generic_political_discourse
+		allowed = {
+			original_tag = VIN
+		}
+		activation = {
+			always = no
+		}
+		available = {
+			hidden_trigger = {
+				always = no
+			}
+		}
+		days_mission_timeout = 30
+		selectable_mission = no
+		is_good = no
+		cancel_trigger = {
+			OR = {
+				NOT = {
+					custom_trigger_tooltip = {
+						tooltip = VIN_Danh_Struggle_Open_tt
+						has_country_flag = VIN_Danh_Struggle_Active
+					}
+				}
+				NOT = {
+					custom_trigger_tooltip = {
+						tooltip = VIN_Sided_With_Danh_tt
+						has_country_flag = VIN_Backs_Danh
+					}
+				}
+			}
+		}
+		timeout_effect = {
+			custom_effect_tooltip = VIN_Ho_Rallies_Committee_tt
+			hidden_effect = {
+				if = {
+					limit = { has_completed_focus = VIN_STL_Isolate_Thermidorians }
+					set_temp_variable = { struggle_change = 2 }
+				}
+				else = {
+					set_temp_variable = { struggle_change = 4 }
+				}
+				VIN_Change_Ho_Support = yes
+				if = {
+					limit = { has_country_flag = SOV_Aid_Danh }
+					set_temp_variable = { struggle_change = -1 }
+				}
+				else = {
+					set_temp_variable = { struggle_change = -3 }
+				}
+				VIN_Change_SOV_Favor = yes
+				if = {
+					limit = { check_variable = { VIN_Stalinist_Support > VIN_Ho_Support } }
+					set_temp_variable = { struggle_change = -2 }
+					VIN_Change_Stalinist_Support = yes
+				}
+				activate_mission = VIN_Ho_Rallies_Committee
+			}
+		}
+	}
+	VIN_Danh_Circulate_Letters = {
+		icon = generic_political_discourse
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Danh_tt
+				has_country_flag = VIN_Backs_Danh
+			}
+		}
+		cost = 25
+		days_re_enable = 30
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { struggle_change = 5 }
+			VIN_Change_Stalinist_Support = yes
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_political_power < 50
+			}
+		}
+	}
+	VIN_Danh_Appeal_to_Grigoryan = {
+		icon = generic_prepare_civil_war
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Danh_tt
+				has_country_flag = VIN_Backs_Danh
+			}
+		}
+		cost = 25
+		days_re_enable = 30
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { struggle_change = 5 }
+			VIN_Change_SOV_Favor = yes
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_political_power < 50
+			}
+		}
+	}
+	VIN_Danh_Rally_Orthodox_Cadres = {
+		icon = generic_propaganda
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Danh_tt
+				has_country_flag = VIN_Backs_Danh
+			}
+		}
+		cost = 45
+		days_re_enable = 30
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { struggle_change = 10 }
+			VIN_Change_Stalinist_Support = yes
+			add_stability = -0.02
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				OR = {
+					has_political_power < 70
+					has_stability < 0.40
+				}
+			}
+		}
+	}
+	VIN_Danh_Expose_Ho_Deviations = {
+		icon = generic_political_discourse
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Danh_tt
+				has_country_flag = VIN_Backs_Danh
+			}
+		}
+		cost = 25
+		days_re_enable = 30
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { struggle_change = -5 }
+			VIN_Change_Ho_Support = yes
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_political_power < 50
+			}
+		}
+	}
+	VIN_Danh_Bring_In_Duan_Tho = {
+		icon = generic_prepare_civil_war
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			has_completed_focus = VIN_STL_Recruit_Giang_Liem_Army_Group
+		}
+		cost = 65
+		fire_only_once = yes
+		complete_effect = {
+			set_temp_variable = { struggle_change = 15 }
+			VIN_Change_Stalinist_Support = yes
+			add_stability = -0.05
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_stability < 0.40
+			}
+		}
+	}
+	VIN_Danh_Expose_Ho_Marriage = {
+		icon = generic_political_discourse
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+			has_country_flag = VIN_Tang_Letter_Ignored
+			NOT = { has_country_flag = VIN_Tang_Recognized }
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Danh_tt
+				has_country_flag = VIN_Backs_Danh
+			}
+		}
+		cost = 40
+		fire_only_once = yes
+		complete_effect = {
+			VIN = { country_event = { id = VIN_Tang.4 } }
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_political_power < 60
+			}
+		}
+	}
+	VIN_Ho_Recall_Danh_From_Prague = {
+		icon = generic_political_discourse
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Ho_tt
+				has_country_flag = VIN_Backs_Ho
+			}
+		}
+		cost = 25
+		days_re_enable = 15
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { struggle_change = -5 }
+			VIN_Change_Stalinist_Support = yes
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_political_power < 50
+			}
+			modifier = {
+				factor = 3
+				check_variable = { VIN_Stalinist_Support > 25 }
+			}
+		}
+	}
+	VIN_Ho_Assure_Moscow = {
+		icon = generic_prepare_civil_war
+		visible = {
+			has_country_flag = VIN_Danh_Struggle_Active
+		}
+		available = {
+			custom_trigger_tooltip = {
+				tooltip = VIN_Sided_With_Ho_tt
+				has_country_flag = VIN_Backs_Ho
+			}
+		}
+		cost = 25
+		days_re_enable = 15
+		fire_only_once = no
+		complete_effect = {
+			set_temp_variable = { struggle_change = -5 }
+			VIN_Change_SOV_Favor = yes
+			set_temp_variable = { struggle_change = 5 }
+			VIN_Change_Ho_Support = yes
+		}
+		ai_will_do = {
+			base = 10
+			modifier = {
+				factor = 0
+				has_political_power < 50
+			}
+			modifier = {
+				factor = 3
+				check_variable = { VIN_SOV_Favor > 50 }
 			}
 		}
 	}

@@ -1209,8 +1209,22 @@ country_event = {
 			factor = 80
 		}
 		VIN = {
-			set_temp_variable = { money_to_gain = 0.4 }
+			set_temp_variable = { money_to_gain = 3 }
 			add_money_with_tooltip_effect = yes
+			if = {
+				limit = { country_exists = SOV }
+				set_temp_variable = { percent_change = 5 }
+				set_temp_variable = { tag_index = SOV.id }
+				set_temp_variable = { influence_target = THIS.id }
+				change_influence_percentage = yes
+			}
+			if = {
+				limit = { country_exists = PRC }
+				set_temp_variable = { percent_change = 5 }
+				set_temp_variable = { tag_index = PRC.id }
+				set_temp_variable = { influence_target = THIS.id }
+				change_influence_percentage = yes
+			}
 			add_timed_idea = {
 				idea = VIN_Econ_Soviet_Aid
 				days = 365
@@ -1254,8 +1268,15 @@ country_event = {
 			factor = 40
 		}
 		VIN = {
-			set_temp_variable = { money_to_gain = 0.4 }
+			set_temp_variable = { money_to_gain = 5 }
 			add_money_with_tooltip_effect = yes
+			if = {
+				limit = { country_exists = USA }
+				set_temp_variable = { percent_change = 5 }
+				set_temp_variable = { tag_index = USA.id }
+				set_temp_variable = { influence_target = THIS.id }
+				change_influence_percentage = yes
+			}
 			add_timed_idea = {
 				idea = VIN_Econ_American_Aid
 				days = 365
@@ -1295,8 +1316,6 @@ country_event = {
 
 	option = {
 		name = VIN_Econ.7.a
-		set_temp_variable = { money_to_gain = 0.2 }
-		add_money_with_tooltip_effect = yes
 		add_timed_idea = {
 			idea = VIN_Econ_Dong_Currency
 			days = 365
@@ -1317,8 +1336,6 @@ country_event = {
 
 	option = {
 		name = VIN_Econ.8.a
-		set_temp_variable = { money_to_gain = 0.3 }
-		add_money_with_tooltip_effect = yes
 		add_timed_idea = {
 			idea = VIN_Econ_National_Bank_Credit
 			days = 365
@@ -2214,6 +2231,11 @@ country_event = {
 		add_timed_idea = {
 			idea = VIN_LR_Quynh_Luu_Unrest
 			days = 180
+		}
+		if = {
+			limit = { has_country_leader = { character = VIN_Truong_Chinh ruling_only = yes } }
+			custom_effect_tooltip = VIN_Land_Reform_Chinh_Resigns_TT
+			VIN_set_general_secretary_ho_chi_minh = yes
 		}
 	}
 }
@@ -3907,6 +3929,13 @@ country_event = {
 				target = SOV
 				modifier = small_increase
 			}
+			if = {
+				limit = { has_country_flag = VIN_Danh_Struggle_Active }
+				set_temp_variable = { struggle_change = 15 }
+				VIN_Change_Stalinist_Support = yes
+				set_temp_variable = { struggle_change = 10 }
+				VIN_Change_SOV_Favor = yes
+			}
 		}
 	}
 }
@@ -3990,6 +4019,13 @@ country_event = {
 			add_opinion_modifier = {
 				target = SOV
 				modifier = small_increase
+			}
+			if = {
+				limit = { has_country_flag = VIN_Danh_Struggle_Active }
+				set_temp_variable = { struggle_change = 15 }
+				VIN_Change_Stalinist_Support = yes
+				set_temp_variable = { struggle_change = 10 }
+				VIN_Change_SOV_Favor = yes
 			}
 		}
 	}
@@ -4384,6 +4420,11 @@ country_event = {
 	is_triggered_only = yes
 	fire_only_once = yes
 
+	trigger = {
+		NOT = { has_country_flag = VIN_Danh_Coup_Launched }
+		NOT = { has_country_flag = VIN_Danh_Struggle_Active }
+	}
+
 	option = {
 		name = SWF_VIN.150.a
 		set_party_name = {
@@ -4409,6 +4450,12 @@ country_event = {
 		name = SWF_VIN.151.a
 		add_stability = 0.02
 		add_political_power = 20
+		if = {
+			limit = { has_country_flag = VIN_Danh_Struggle_Active }
+			set_country_flag = VIN_Ho_Purged_Left
+			set_temp_variable = { struggle_change = 10 }
+			VIN_Change_Stalinist_Support = yes
+		}
 		if = {
 			limit = { country_exists = VIE }
 			VIE = {
@@ -4563,7 +4610,7 @@ country_event = {
 		clr_country_flag = VIN_second_congress_us_moderation
 		clr_country_flag = VIN_second_congress_socialist_camp_orientation
 		set_country_flag = VIN_second_congress_revolutionary_socialist_orientation
-		set_party_name = { 
+		set_party_name = {
 			ideology = communism
 			long_name = VIN_party_than_lien_xo
 			name = VIN_party_than_lien_xo
@@ -4587,7 +4634,7 @@ country_event = {
 		clr_country_flag = VIN_second_congress_revolutionary_socialist_orientation
 		clr_country_flag = VIN_second_congress_socialist_camp_orientation
 		set_country_flag = VIN_second_congress_us_moderation
-		set_party_name = { 
+		set_party_name = {
 			ideology = communism
 			long_name = VIN_party_than_lien_xo
 			name = VIN_party_than_lien_xo
@@ -4605,7 +4652,7 @@ country_event = {
 	option = {
 		name = SWF_VIN.51.c
 		ai_chance = { base = 85 }
-		set_party_name = { 
+		set_party_name = {
 			ideology = communism
 			long_name = VIN_party_than_lien_xo
 			name = VIN_party_than_lien_xo
@@ -4687,13 +4734,24 @@ country_event = {
 		add_popularity = { ideology = socialist popularity = 0.10 }
 		add_popularity = { ideology = communism popularity = -0.05 }
 		add_stability = 0.03
+		if = {
+			limit = { has_country_flag = VIN_Danh_Struggle_Active }
+			set_temp_variable = { struggle_change = 10 }
+			VIN_Change_Stalinist_Support = yes
+		}
 
 		country_event = { id = SWF_VIN.54 hours = 1 }
 	}
 
 	option = {
 		name = SWF_VIN.53.b
-		ai_chance = { base = 20 }
+		ai_chance = {
+			base = 20
+			modifier = {
+				factor = 0
+				has_country_flag = VIN_Danh_Coup_Failed
+			}
+		}
 
 		clr_country_flag = VIN_second_congress_revolutionary_socialism
 		clr_country_flag = VIN_second_congress_hcm_marxism
@@ -4702,6 +4760,11 @@ country_event = {
 
 		add_popularity = { ideology = communism popularity = 0.10 }
 		add_opinion_modifier = { target = SOV modifier = medium_increase }
+		if = {
+			limit = { has_country_flag = VIN_Danh_Struggle_Active }
+			set_temp_variable = { struggle_change = 5 }
+			VIN_Change_SOV_Favor = yes
+		}
 
 		country_event = { id = SWF_VIN.54 hours = 1 }
 	}
@@ -4718,6 +4781,11 @@ country_event = {
 		add_popularity = { ideology = communism popularity = 0.05 }
 		add_stability = 0.05
 		add_political_power = 50
+		if = {
+			limit = { has_country_flag = VIN_Danh_Struggle_Active }
+			set_temp_variable = { struggle_change = 10 }
+			VIN_Change_Stalinist_Support = yes
+		}
 
 		country_event = { id = SWF_VIN.54 hours = 1 }
 	}
@@ -4843,6 +4911,10 @@ country_event = {
 		add_stability = 0.03
 		add_political_power = 50
 		add_war_support = 0.02
+		if = {
+			limit = { has_country_flag = VIN_Danh_Struggle_Active }
+			VIN_close_power_struggle = yes
+		}
 	}
 }
 
@@ -4983,65 +5055,249 @@ country_event = {
 	desc = { text = VIN_CEFEO.1.d_withheld trigger = { FRE = { has_country_flag = FRE_Lorraine_Response_Withheld } } }
 	picture = GFX_report_event_tanks_vietnam
 	is_triggered_only = yes
-	option = { name = VIN_CEFEO.1.a }
+	option = {
+		name = VIN_CEFEO.1.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.1.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
 }
 
-country_event = { id = VIN_CEFEO.2 title = VIN_CEFEO.2.t desc = VIN_CEFEO.2.d picture = GFX_report_event_generic_soldiers is_triggered_only = yes option = { name = VIN_CEFEO.2.a } }
+country_event = {
+	id = VIN_CEFEO.2 title = VIN_CEFEO.2.t desc = VIN_CEFEO.2.d picture = GFX_report_event_generic_soldiers is_triggered_only = yes
+	option = {
+		name = VIN_CEFEO.2.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.2.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
+}
 country_event = {
 	id = VIN_CEFEO.3 title = VIN_CEFEO.3.t picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
 	desc = { text = VIN_CEFEO.3.d_clean trigger = { FRE = { has_country_flag = FRE_Operation_Hirondelle_Result_Clean } } }
 	desc = { text = VIN_CEFEO.3.d_costly trigger = { FRE = { has_country_flag = FRE_Operation_Hirondelle_Result_Costly } } }
 	desc = { text = VIN_CEFEO.3.d_failure trigger = { FRE = { OR = { has_country_flag = FRE_Operation_Hirondelle_Result_Failure has_country_flag = FRE_Operation_Hirondelle_Result_Aborted } } } }
 	desc = { text = VIN_CEFEO.3.d_superseded trigger = { FRE = { has_country_flag = FRE_Operation_Hirondelle_Result_Superseded } } }
-	option = { name = VIN_CEFEO.close }
+	option = {
+		name = VIN_CEFEO.3.a
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Hirondelle_Result_Superseded } } }
+			army_experience = 5
+		}
+		ai_chance = { base = 55 }
+	}
+	option = {
+		name = VIN_CEFEO.3.b
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Hirondelle_Result_Superseded } } }
+			add_war_support = 0.01
+			add_political_power = -10
+		}
+		ai_chance = { base = 45 }
+	}
 }
 
-country_event = { id = VIN_CEFEO.4 title = VIN_CEFEO.4.t desc = VIN_CEFEO.4.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes option = { name = VIN_CEFEO.4.a } }
+country_event = {
+	id = VIN_CEFEO.4 title = VIN_CEFEO.4.t desc = VIN_CEFEO.4.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
+	option = {
+		name = VIN_CEFEO.4.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.4.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
+}
 country_event = {
 	id = VIN_CEFEO.5 title = VIN_CEFEO.5.t picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
 	desc = { text = VIN_CEFEO.5.d_clean trigger = { FRE = { has_country_flag = FRE_Operation_Mouette_Result_Clean } } }
 	desc = { text = VIN_CEFEO.5.d_costly trigger = { FRE = { has_country_flag = FRE_Operation_Mouette_Result_Costly } } }
 	desc = { text = VIN_CEFEO.5.d_failure trigger = { FRE = { OR = { has_country_flag = FRE_Operation_Mouette_Result_Failure has_country_flag = FRE_Operation_Mouette_Result_Aborted } } } }
 	desc = { text = VIN_CEFEO.5.d_superseded trigger = { FRE = { has_country_flag = FRE_Operation_Mouette_Result_Superseded } } }
-	option = { name = VIN_CEFEO.close }
+	option = {
+		name = VIN_CEFEO.5.a
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Mouette_Result_Superseded } } }
+			army_experience = 5
+		}
+		ai_chance = { base = 55 }
+	}
+	option = {
+		name = VIN_CEFEO.5.b
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Mouette_Result_Superseded } } }
+			add_war_support = 0.01
+			add_political_power = -10
+		}
+		ai_chance = { base = 45 }
+	}
 }
 
-country_event = { id = VIN_CEFEO.6 title = VIN_CEFEO.6.t desc = VIN_CEFEO.6.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes option = { name = VIN_CEFEO.6.a } }
+country_event = {
+	id = VIN_CEFEO.6 title = VIN_CEFEO.6.t desc = VIN_CEFEO.6.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
+	option = {
+		name = VIN_CEFEO.6.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.6.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
+}
 country_event = {
 	id = VIN_CEFEO.7 title = VIN_CEFEO.7.t picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
 	desc = { text = VIN_CEFEO.7.d_clean trigger = { FRE = { has_country_flag = FRE_Operation_Brochet_Result_Clean } } }
 	desc = { text = VIN_CEFEO.7.d_costly trigger = { FRE = { has_country_flag = FRE_Operation_Brochet_Result_Costly } } }
 	desc = { text = VIN_CEFEO.7.d_failure trigger = { FRE = { OR = { has_country_flag = FRE_Operation_Brochet_Result_Failure has_country_flag = FRE_Operation_Brochet_Result_Aborted } } } }
 	desc = { text = VIN_CEFEO.7.d_superseded trigger = { FRE = { has_country_flag = FRE_Operation_Brochet_Result_Superseded } } }
-	option = { name = VIN_CEFEO.close }
+	option = {
+		name = VIN_CEFEO.7.a
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Brochet_Result_Superseded } } }
+			army_experience = 5
+		}
+		ai_chance = { base = 55 }
+	}
+	option = {
+		name = VIN_CEFEO.7.b
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Brochet_Result_Superseded } } }
+			add_war_support = 0.01
+			add_political_power = -10
+		}
+		ai_chance = { base = 45 }
+	}
 }
 
-country_event = { id = VIN_CEFEO.8 title = VIN_CEFEO.8.t desc = VIN_CEFEO.8.d picture = GFX_report_event_generic_soldiers is_triggered_only = yes option = { name = VIN_CEFEO.8.a } }
+country_event = {
+	id = VIN_CEFEO.8 title = VIN_CEFEO.8.t desc = VIN_CEFEO.8.d picture = GFX_report_event_generic_soldiers is_triggered_only = yes
+	option = {
+		name = VIN_CEFEO.8.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.8.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
+}
 country_event = {
 	id = VIN_CEFEO.9 title = VIN_CEFEO.9.t picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
 	desc = { text = VIN_CEFEO.9.d_success trigger = { FRE = { has_country_flag = FRE_Operation_Castor_Result_Success } } }
 	desc = { text = VIN_CEFEO.9.d_failure trigger = { FRE = { has_country_flag = FRE_Operation_Castor_Result_Failure } } }
 	desc = { text = VIN_CEFEO.9.d_superseded trigger = { FRE = { has_country_flag = FRE_Operation_Castor_Result_Superseded } } }
-	option = { name = VIN_CEFEO.close }
+	option = {
+		name = VIN_CEFEO.9.a
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Castor_Result_Superseded } } }
+			army_experience = 5
+		}
+		ai_chance = { base = 55 }
+	}
+	option = {
+		name = VIN_CEFEO.9.b
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Castor_Result_Superseded } } }
+			add_war_support = 0.01
+			add_political_power = -10
+		}
+		ai_chance = { base = 45 }
+	}
 }
 
-country_event = { id = VIN_CEFEO.10 title = VIN_CEFEO.10.t desc = VIN_CEFEO.10.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes option = { name = VIN_CEFEO.10.a } }
+country_event = {
+	id = VIN_CEFEO.10 title = VIN_CEFEO.10.t desc = VIN_CEFEO.10.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
+	option = {
+		name = VIN_CEFEO.10.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.10.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
+}
 country_event = {
 	id = VIN_CEFEO.11 title = VIN_CEFEO.11.t picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
 	desc = { text = VIN_CEFEO.11.d_preserved trigger = { FRE = { has_country_flag = FRE_Operation_Pollux_Result_Preserved } } }
 	desc = { text = VIN_CEFEO.11.d_loss trigger = { FRE = { has_country_flag = FRE_Operation_Pollux_Result_Column_Loss } } }
 	desc = { text = VIN_CEFEO.11.d_superseded trigger = { FRE = { has_country_flag = FRE_Operation_Pollux_Result_Superseded } } }
-	option = { name = VIN_CEFEO.close }
+	option = {
+		name = VIN_CEFEO.11.a
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Pollux_Result_Superseded } } }
+			army_experience = 5
+		}
+		ai_chance = { base = 55 }
+	}
+	option = {
+		name = VIN_CEFEO.11.b
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Pollux_Result_Superseded } } }
+			add_war_support = 0.01
+			add_political_power = -10
+		}
+		ai_chance = { base = 45 }
+	}
 }
 
-country_event = { id = VIN_CEFEO.12 title = VIN_CEFEO.12.t desc = VIN_CEFEO.12.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes option = { name = VIN_CEFEO.12.a } }
+country_event = {
+	id = VIN_CEFEO.12 title = VIN_CEFEO.12.t desc = VIN_CEFEO.12.d picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
+	option = {
+		name = VIN_CEFEO.12.a
+		add_command_power = 5
+		ai_chance = { base = 40 }
+	}
+	option = {
+		name = VIN_CEFEO.12.b
+		army_experience = 5
+		add_political_power = -10
+		ai_chance = { base = 60 }
+	}
+}
 country_event = {
 	id = VIN_CEFEO.13 title = VIN_CEFEO.13.t picture = GFX_report_event_tanks_vietnam is_triggered_only = yes
 	desc = { text = VIN_CEFEO.13.d_success trigger = { FRE = { OR = { has_country_flag = FRE_Operation_Atlante_Result_Central_Success has_country_flag = FRE_Operation_Atlante_Result_Vietnamese_Foothold } } } }
 	desc = { text = VIN_CEFEO.13.d_stalled trigger = { FRE = { has_country_flag = FRE_Operation_Atlante_Result_Stalled } } }
 	desc = { text = VIN_CEFEO.13.d_north trigger = { FRE = { has_country_flag = FRE_Operation_Atlante_Result_Northern_Priority } } }
 	desc = { text = VIN_CEFEO.13.d_superseded trigger = { FRE = { has_country_flag = FRE_Operation_Atlante_Result_Superseded } } }
-	option = { name = VIN_CEFEO.close }
+	option = {
+		name = VIN_CEFEO.13.a
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Atlante_Result_Superseded } } }
+			army_experience = 5
+		}
+		ai_chance = { base = 55 }
+	}
+	option = {
+		name = VIN_CEFEO.13.b
+		if = {
+			limit = { FRE = { NOT = { has_country_flag = FRE_Operation_Atlante_Result_Superseded } } }
+			add_war_support = 0.01
+			add_political_power = -10
+		}
+		ai_chance = { base = 45 }
+	}
 }
 
 add_namespace = VIN_Camp
@@ -5553,5 +5809,890 @@ country_event = {
 		name = VIN_CEFEO.29.b
 		army_experience = 5
 		ai_chance = { base = 50 }
+	}
+}
+
+add_namespace = VIN_Danh
+
+country_event = {
+	id = VIN_Danh.1
+	title = VIN_Danh.1.t
+	desc = VIN_Danh.1.d
+	picture = GFX_report_event_generic_read_write
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		hidden_effect = {
+			VIN_open_power_struggle = yes
+		}
+	}
+
+	option = {
+		name = VIN_Danh.1.a
+		set_country_flag = VIN_Backs_Danh
+		mark_focus_tree_layout_dirty = yes
+		set_temp_variable = { struggle_change = 5 }
+		VIN_Change_Stalinist_Support = yes
+		custom_effect_tooltip = VIN_Backs_Danh_tt
+		SOV = { country_event = { id = VIN_Danh.2 days = 90 } }
+		activate_mission = VIN_Ho_Rallies_Committee
+		ai_chance = {
+			base = 0
+			modifier = {
+				add = 30
+				has_game_rule = { rule = VIN_ai_stalinist_coup option = VIN_STALINIST_COUP_AI_MAY }
+			}
+			modifier = {
+				add = 100
+				has_game_rule = { rule = VIN_ai_stalinist_coup option = VIN_STALINIST_COUP_AI_GUARANTEED }
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Danh.1.b
+		set_country_flag = VIN_Backs_Ho
+		set_temp_variable = { struggle_change = 5 }
+		VIN_Change_Ho_Support = yes
+		custom_effect_tooltip = VIN_Backs_Ho_tt
+		SOV = { country_event = { id = VIN_Danh.2 days = 90 } }
+		activate_mission = VIN_Danh_Stalinist_Agitation
+		ai_chance = {
+			base = 70
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = VIN_ai_stalinist_coup option = VIN_STALINIST_COUP_AI_GUARANTEED }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Danh.2
+	title = VIN_Danh.2.t
+	desc = VIN_Danh.2.d
+	picture = GFX_report_event_generic_read_write
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.2.a
+		VIN = {
+			set_temp_variable = { struggle_change = -10 }
+			VIN_Change_SOV_Favor = yes
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				VIN = { has_country_flag = VIN_Backs_Danh }
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Danh.2.b
+		VIN = {
+			set_temp_variable = { struggle_change = 10 }
+			VIN_Change_SOV_Favor = yes
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				VIN = { has_country_flag = VIN_Backs_Ho }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Danh.3
+	title = VIN_Danh.3.t
+	desc = VIN_Danh.3.d
+	picture = GFX_report_event_military_planning
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.3.a
+		set_temp_variable = { struggle_change = 10 }
+		VIN_Change_Stalinist_Support = yes
+		add_political_power = -25
+		ai_chance = { base = 50 }
+	}
+
+	option = {
+		name = VIN_Danh.3.b
+		set_temp_variable = { struggle_change = -10 }
+		VIN_Change_Ho_Support = yes
+		add_stability = -0.03
+		ai_chance = { base = 50 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.4
+	title = VIN_Danh.4.t
+	desc = VIN_Danh.4.d
+	picture = GFX_report_event_stalin_propaganda
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.4.a
+		set_temp_variable = { struggle_change = 10 }
+		VIN_Change_Stalinist_Support = yes
+		add_political_power = -35
+		ai_chance = { base = 50 }
+	}
+
+	option = {
+		name = VIN_Danh.4.b
+		set_temp_variable = { struggle_change = 10 }
+		VIN_Change_SOV_Favor = yes
+		add_stability = -0.05
+		ai_chance = { base = 50 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.10
+	title = VIN_Danh.10.t
+	desc = VIN_Danh.10.d
+	picture = GFX_report_event_soviet_soldiers
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.10.a
+		send_equipment = { target = VIN type = infantry_equipment_1 amount = 2000 }
+		add_political_power = -25
+		VIN = {
+			set_country_flag = SOV_Aid_Danh
+			set_variable = { VIN_Danh_Moscow_Reply = 1 }
+			country_event = { id = VIN_Danh.13 days = 3 }
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				VIN = { check_variable = { VIN_SOV_Favor < 50 } }
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Danh.10.b
+		VIN = {
+			set_country_flag = SOV_Refuse_Aid_Danh
+			set_variable = { VIN_Danh_Moscow_Reply = 2 }
+			country_event = { id = VIN_Danh.13 days = 3 }
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				VIN = { check_variable = { VIN_SOV_Favor > 49 } }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Danh.11
+	title = VIN_Danh.11.t
+	desc = VIN_Danh.11.d
+	picture = GFX_report_event_stalin_meeting
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.11.a
+		add_political_power = -50
+		VIN = {
+			set_country_flag = SOV_Permit_Danh_Coup
+			set_variable = { VIN_Danh_Moscow_Reply = 3 }
+			country_event = { id = VIN_Danh.13 days = 3 }
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				VIN = { check_variable = { VIN_SOV_Favor < 85 } }
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Danh.11.b
+		add_opinion_modifier = { target = VIN modifier = small_increase }
+		VIN = {
+			set_country_flag = SOV_Refuse_Danh_Coup
+			set_variable = { VIN_Danh_Moscow_Reply = 4 }
+			country_event = { id = VIN_Danh.13 days = 3 }
+		}
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				VIN = { check_variable = { VIN_SOV_Favor > 84 } }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Danh.13
+	title = VIN_Danh.13.t
+	desc = {
+		text = VIN_Danh.13.d_aid
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 1 } }
+	}
+	desc = {
+		text = VIN_Danh.13.d_no_aid
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 2 } }
+	}
+	desc = {
+		text = VIN_Danh.13.d_permit
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 3 } }
+	}
+	desc = {
+		text = VIN_Danh.13.d_refuse
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 4 } }
+	}
+	desc = {
+		text = VIN_Danh.13.d_volunteers
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 5 } }
+	}
+	desc = {
+		text = VIN_Danh.13.d_no_volunteers
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 6 } }
+	}
+	picture = GFX_report_event_generic_read_write
+	is_triggered_only = yes
+
+	option = {
+		name = VIN_Danh.13.a
+		trigger = {
+			check_variable = { VIN_Danh_Moscow_Reply = 1 }
+			has_country_flag = SOV_Aid_Danh
+		}
+		set_temp_variable = { struggle_change = 10 }
+		VIN_Change_Stalinist_Support = yes
+		clear_variable = VIN_Danh_Moscow_Reply
+	}
+
+	option = {
+		name = VIN_Danh.13.b
+		trigger = {
+			check_variable = { VIN_Danh_Moscow_Reply = 2 }
+			has_country_flag = SOV_Refuse_Aid_Danh
+		}
+		set_temp_variable = { struggle_change = -5 }
+		VIN_Change_Stalinist_Support = yes
+		set_temp_variable = { struggle_change = -5 }
+		VIN_Change_SOV_Favor = yes
+		clear_variable = VIN_Danh_Moscow_Reply
+	}
+
+	option = {
+		name = VIN_Danh.13.c
+		trigger = {
+			check_variable = { VIN_Danh_Moscow_Reply = 3 }
+			has_country_flag = SOV_Permit_Danh_Coup
+		}
+		set_temp_variable = { struggle_change = 10 }
+		VIN_Change_Stalinist_Support = yes
+		clear_variable = VIN_Danh_Moscow_Reply
+	}
+
+	option = {
+		name = VIN_Danh.13.d
+		trigger = {
+			check_variable = { VIN_Danh_Moscow_Reply = 4 }
+			has_country_flag = SOV_Refuse_Danh_Coup
+		}
+		set_temp_variable = { struggle_change = -10 }
+		VIN_Change_Stalinist_Support = yes
+		set_temp_variable = { struggle_change = -10 }
+		VIN_Change_SOV_Favor = yes
+		clear_variable = VIN_Danh_Moscow_Reply
+	}
+	option = {
+		name = VIN_Danh.13.e
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 5 } }
+		army_experience = 25
+		clear_variable = VIN_Danh_Moscow_Reply
+	}
+
+	option = {
+		name = VIN_Danh.13.f
+		trigger = { check_variable = { VIN_Danh_Moscow_Reply = 6 } }
+		add_political_power = 25
+		clear_variable = VIN_Danh_Moscow_Reply
+	}
+}
+
+country_event = {
+	id = VIN_Danh.20
+	title = VIN_Danh.20.t
+	desc = {
+		text = VIN_Danh.20.d
+		trigger = { has_country_flag = VIN_Backs_Danh }
+	}
+	desc = {
+		text = VIN_Danh.20.d_ho
+		trigger = { NOT = { has_country_flag = VIN_Backs_Danh } }
+	}
+	picture = GFX_report_event_saf_coup
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.20.a
+		VIN_set_general_secretary_tran_ngoc_danh = yes
+		set_party_name = {
+			ideology = communism
+			long_name = VIN_party_stalin_tran_ngoc_danh
+			name = VIN_party_stalin_tran_ngoc_danh
+		}
+		add_popularity = { ideology = communism popularity = 0.10 }
+		add_stability = -0.10
+		add_opinion_modifier = { target = SOV modifier = large_increase }
+		set_country_flag = VIN_Danh_Coup_Succeeded
+		VIN_close_power_struggle = yes
+		every_country = {
+			limit = { is_major = yes }
+			news_event = { id = VIN_Danh.30 hours = 6 }
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Danh.21
+	title = VIN_Danh.21.t
+	desc = {
+		text = VIN_Danh.21.d
+		trigger = { has_country_flag = VIN_Backs_Danh }
+	}
+	desc = {
+		text = VIN_Danh.21.d_ho
+		trigger = { NOT = { has_country_flag = VIN_Backs_Danh } }
+	}
+	picture = GFX_report_event_soviet_purge_trial
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.21.a
+		add_stability = 0.10
+		add_political_power = 50
+		add_opinion_modifier = { target = SOV modifier = medium_decrease }
+		VIN_Danh_purge_conspirators = yes
+		ai_chance = { base = 40 }
+	}
+
+	option = {
+		name = VIN_Danh.21.b
+		add_stability = 0.10
+		add_political_power = -50
+		add_opinion_modifier = { target = SOV modifier = small_increase }
+		VIN_Danh_purge_conspirators = yes
+		ai_chance = {
+			base = 60
+			modifier = {
+				factor = 2
+				is_historical_focus_on = yes
+			}
+		}
+	}
+}
+
+news_event = {
+	id = VIN_Danh.30
+	title = VIN_Danh.30.t
+	desc = VIN_Danh.30.d
+	picture = GFX_news_event_generals_coup
+	is_triggered_only = yes
+
+	option = {
+		name = VIN_Danh.30.a
+	}
+}
+
+country_event = {
+	id = VIN_Danh.40
+	title = VIN_Danh.40.t
+	desc = VIN_Danh.40.d
+	picture = GFX_report_event_stalin_01
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.40.a
+		remove_advisor_role = {
+			character = VIN_Le_Liem
+			slot = political_advisor
+		}
+		add_advisor_role = {
+			character = VIN_Le_Liem
+			advisor = {
+				slot = political_advisor
+				idea_token = VIN_Le_Liem_reformer_advisor
+				cost = 150
+				traits = { VIN_Destalinizing_Reformer }
+				ai_will_do = { factor = 1 }
+			}
+			activate = yes
+		}
+		add_stability = -0.03
+		add_opinion_modifier = { target = SOV modifier = small_increase }
+		SOV = { add_opinion_modifier = { target = VIN modifier = small_increase } }
+		ai_chance = {
+			base = 60
+			modifier = {
+				factor = 2
+				is_historical_focus_on = yes
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Danh.40.b
+		remove_advisor_role = {
+			character = VIN_Le_Liem
+			slot = political_advisor
+		}
+		add_political_power = -50
+		add_stability = 0.03
+		add_popularity = { ideology = communism popularity = 0.03 }
+		ai_chance = { base = 40 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.12
+	title = VIN_Danh.12.t
+	desc = VIN_Danh.12.d
+	picture = GFX_report_event_soviet_soldiers_tank
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.12.a
+		VIN = {
+			add_equipment_to_stockpile = {
+				type = infantry_equipment_1
+				amount = 3000
+				producer = SOV
+			}
+			add_equipment_to_stockpile = {
+				type = artillery_equipment_1
+				amount = 200
+				producer = SOV
+			}
+			add_equipment_to_stockpile = {
+				type = support_equipment_1
+				amount = 300
+				producer = SOV
+			}
+			add_equipment_to_stockpile = {
+				type = motorized_equipment_1
+				amount = 200
+				producer = SOV
+			}
+			set_variable = { VIN_Danh_Moscow_Reply = 5 }
+			country_event = { id = VIN_Danh.13 days = 3 }
+		}
+		add_political_power = -50
+		add_opinion_modifier = { target = VIN modifier = medium_increase }
+		ai_chance = {
+			base = 70
+			modifier = {
+				factor = 0.2
+				has_opinion = { target = VIN value < 0 }
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Danh.12.b
+		VIN = {
+			set_variable = { VIN_Danh_Moscow_Reply = 6 }
+			country_event = { id = VIN_Danh.13 days = 3 }
+		}
+		ai_chance = { base = 30 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.50
+	title = VIN_Danh.50.t
+	desc = VIN_Danh.50.d
+	picture = GFX_report_event_military_planning
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.50.a
+		army_experience = 25
+		add_political_power = -25
+		ai_chance = { base = 60 }
+	}
+
+	option = {
+		name = VIN_Danh.50.b
+		army_experience = 10
+		add_war_support = 0.05
+		add_stability = -0.02
+		ai_chance = { base = 40 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.51
+	title = VIN_Danh.51.t
+	desc = VIN_Danh.51.d
+	picture = GFX_report_event_soviet_soldiers
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.51.a
+		add_tech_bonus = {
+			name = VIN_Danh.51.a
+			bonus = 0.5
+			uses = 1
+			category = electronics
+		}
+		ai_chance = { base = 50 }
+	}
+
+	option = {
+		name = VIN_Danh.51.b
+		add_tech_bonus = {
+			name = VIN_Danh.51.b
+			bonus = 0.5
+			uses = 1
+			category = land_doctrine
+		}
+		ai_chance = { base = 50 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.52
+	title = VIN_Danh.52.t
+	desc = VIN_Danh.52.d
+	picture = GFX_report_event_soviet_tank_parade
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.52.a
+		if = {
+			limit = { has_idea = VIN_STL_Hong_Ve_Army }
+			swap_ideas = {
+				remove_idea = VIN_STL_Hong_Ve_Army
+				add_idea = VIN_STL_Deep_Battle_Army
+			}
+		}
+		else_if = {
+			limit = { has_idea = VIN_peoples_army }
+			swap_ideas = {
+				remove_idea = VIN_peoples_army
+				add_idea = VIN_STL_Deep_Battle_Army
+			}
+		}
+		else = {
+			add_ideas = VIN_STL_Deep_Battle_Army
+		}
+		ai_chance = { base = 50 }
+	}
+
+	option = {
+		name = VIN_Danh.52.b
+		if = {
+			limit = { has_idea = VIN_STL_Hong_Ve_Army }
+			swap_ideas = {
+				remove_idea = VIN_STL_Hong_Ve_Army
+				add_idea = VIN_STL_Defence_In_Depth_Army
+			}
+		}
+		else_if = {
+			limit = { has_idea = VIN_peoples_army }
+			swap_ideas = {
+				remove_idea = VIN_peoples_army
+				add_idea = VIN_STL_Defence_In_Depth_Army
+			}
+		}
+		else = {
+			add_ideas = VIN_STL_Defence_In_Depth_Army
+		}
+		ai_chance = { base = 50 }
+	}
+}
+
+country_event = {
+	id = VIN_Danh.53
+	title = VIN_Danh.53.t
+	desc = VIN_Danh.53.d
+	picture = GFX_report_event_soviet_purge_officers_01
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Danh.53.a
+		retire_character = VIN_Vo_Nguyen_Giap
+		retire_character = VIN_Nguyen_Chi_Thanh
+		retire_character = VIN_Van_Tien_Dung
+		retire_character = VIN_Hoang_Van_Thai
+		add_stability = 0.10
+		add_political_power = 50
+		army_experience = -25
+		ai_chance = { base = 50 }
+	}
+
+	option = {
+		name = VIN_Danh.53.b
+		retire_character = VIN_Vo_Nguyen_Giap
+		retire_character = VIN_Nguyen_Chi_Thanh
+		add_stability = 0.05
+		ai_chance = { base = 30 }
+	}
+
+	option = {
+		name = VIN_Danh.53.c
+		add_political_power = -50
+		add_stability = -0.05
+		ai_chance = { base = 20 }
+	}
+}
+
+add_namespace = VIN_Tang
+
+country_event = {
+	id = VIN_Tang.1
+	title = VIN_Tang.1.t
+	desc = VIN_Tang.1.d
+	picture = GFX_VIN_Tang_Tuyet_Minh_1
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		NOT = { has_global_flag = ROC_Victory }
+	}
+
+	option = {
+		name = VIN_Tang.1.a
+		set_country_flag = VIN_Tang_Letter_Ignored
+		add_stability = 0.02
+		custom_effect_tooltip = VIN_Tang_Letter_Ignored_tt
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 10
+				is_historical_focus_on = yes
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Tang.1.b
+		add_political_power = -25
+		VIN = { country_event = { id = VIN_Tang.3 days = 20 } }
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Tang.2
+	title = VIN_Tang.2.t
+	desc = VIN_Tang.2.d
+	picture = GFX_VIN_Tang_Tuyet_Minh_2
+	fire_only_once = yes
+
+	trigger = {
+		original_tag = VIN
+		has_country_flag = VIN_Tang_Letter_Ignored
+		has_global_flag = Geneva_Conference_Negotiations_Complete
+		date > 1956.1.1
+		NOT = { has_country_flag = VIN_Danh_Coup_Succeeded }
+		NOT = { has_country_flag = VIN_Tang_Arrived }
+	}
+
+	mean_time_to_happen = {
+		days = 30
+	}
+
+	option = {
+		name = VIN_Tang.2.a
+		add_stability = 0.02
+		PRC = { add_opinion_modifier = { target = VIN modifier = VIN_Tang_Tuyet_Minh_Cared_For } }
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 10
+				is_historical_focus_on = yes
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Tang.2.b
+		add_political_power = -35
+		add_stability = -0.02
+		VIN = { country_event = { id = VIN_Tang.3 days = 14 } }
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Tang.3
+	title = { text = VIN_Tang.3.t trigger = { NOT = { has_country_flag = VIN_Tang_Arrived } } }
+	title = { text = VIN_Tang.3.t_alt trigger = { has_country_flag = VIN_Tang_Arrived } }
+	desc = { text = VIN_Tang.3.d trigger = { NOT = { has_country_flag = VIN_Tang_Arrived } } }
+	desc = { text = VIN_Tang.3.d_alt trigger = { has_country_flag = VIN_Tang_Arrived } }
+	picture = GFX_VIN_Tang_Tuyet_Minh_3
+	is_triggered_only = yes
+
+	option = {
+		name = VIN_Tang.3.a
+		add_stability = 0.03
+		add_war_support = 0.02
+		set_country_flag = VIN_Tang_Recognized
+		if = {
+			limit = { country_exists = PRC }
+			PRC = { add_opinion_modifier = { target = VIN modifier = VIN_Recognized_Tang_Tuyet_Minh } }
+		}
+		if = {
+			limit = { has_country_flag = VIN_Danh_Struggle_Active }
+			set_temp_variable = { struggle_change = 5 }
+			VIN_Change_Ho_Support = yes
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Tang.4
+	title = VIN_Tang.4.t
+	desc = { text = VIN_Tang.4.d trigger = { NOT = { has_country_flag = VIN_Tang_Arrived } } }
+	desc = { text = VIN_Tang.4.d_alt trigger = { has_country_flag = VIN_Tang_Arrived } }
+	picture = GFX_VIN_Tang_Tuyet_Minh_1
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Tang.4.a
+		set_temp_variable = { struggle_change = -12 }
+		VIN_Change_Ho_Support = yes
+		add_stability = -0.03
+		ai_chance = { base = 50 }
+	}
+
+	option = {
+		name = VIN_Tang.4.b
+		set_temp_variable = { struggle_change = -5 }
+		VIN_Change_Ho_Support = yes
+		set_temp_variable = { struggle_change = 8 }
+		VIN_Change_SOV_Favor = yes
+		ai_chance = { base = 50 }
+	}
+}
+
+country_event = {
+	id = VIN_Tang.5
+	title = VIN_Tang.5.t
+	desc = VIN_Tang.5.d
+	picture = GFX_VIN_Tang_Tuyet_Minh_1
+	fire_only_once = yes
+
+	trigger = {
+		original_tag = VIN
+		has_global_flag = ROC_Victory
+		date < 1954.1.1
+		NOT = { has_country_flag = VIN_Tang_Recognized }
+		NOT = { has_country_flag = VIN_Danh_Coup_Succeeded }
+	}
+
+	mean_time_to_happen = {
+		days = 60
+	}
+
+	option = {
+		name = VIN_Tang.5.a
+		set_country_flag = VIN_Tang_Arrived
+		add_stability = 0.01
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 10
+				is_historical_focus_on = yes
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Tang.5.b
+		set_country_flag = VIN_Tang_Arrived
+		add_political_power = -25
+		VIN = { country_event = { id = VIN_Tang.6 days = 21 } }
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
+	}
+}
+
+country_event = {
+	id = VIN_Tang.6
+	title = VIN_Tang.6.t
+	desc = VIN_Tang.6.d
+	picture = GFX_VIN_Tang_Tuyet_Minh_2
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	option = {
+		name = VIN_Tang.6.a
+		add_political_power = -10
+		add_stability = 0.02
+		ai_chance = {
+			base = 10
+			modifier = {
+				factor = 10
+				is_historical_focus_on = yes
+			}
+		}
+	}
+
+	option = {
+		name = VIN_Tang.6.b
+		add_political_power = -35
+		add_stability = -0.02
+		VIN = { country_event = { id = VIN_Tang.3 days = 7 } }
+		ai_chance = {
+			base = 5
+			modifier = {
+				factor = 0
+				is_historical_focus_on = yes
+			}
+		}
 	}
 }

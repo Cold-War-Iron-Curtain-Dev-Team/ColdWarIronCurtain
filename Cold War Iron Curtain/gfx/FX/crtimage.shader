@@ -126,7 +126,7 @@ PixelShader =
 		}
 		float rand_1_05(float2 uv)
 		{
-			float2 noises = (frac(sin(dot(uv ,float2(12.9898,78.233)*2.0)) * 43758.5453));
+			float2 noises = float2(frac(sin(dot(uv ,float2(12.9898,78.233)*2.0)) * 43758.5453));
 			return abs(noises.x + noises.y) * 0.5;
 		}
 		float stripes(float2 uv)
@@ -257,7 +257,7 @@ PixelShader =
 		}
 		float rand_1_05(float2 uv)
 		{
-			float2 noises = (frac(sin(dot(uv ,float2(12.9898,78.233)*2.0)) * 43758.5453));
+			float2 noises = float2(frac(sin(dot(uv ,float2(12.9898,78.233)*2.0)) * 43758.5453));
 			return abs(noises.x + noises.y) * 0.5;
 		}
 		float stripes(float2 uv)

@@ -526,7 +526,7 @@ Existing tree landmarks:
 - A post-failure recovery route from an unsuccessful Northwest campaign into Dien Bien Phu. The present focus still requires ownership of `1761`; this patch repairs the false failures caused by lost modifiers/supply but does not turn a genuine Northwest defeat into a free valley campaign.
 - Extended engine coverage of the implemented northern/southern French Indochina command interface, especially old-save migration, intentional defection exits, and CEFEO dissolution ordering. Core faction membership and separate-war behavior passed the initial playtest on 2026-08-13.
 - Deletion of the now-unassigned legacy northern adjacency-rule definitions after the unrestricted connections pass an engine map test. Their CSV assignments are already retired, so they no longer affect movement.
-- Named colonial THO leadership research; the restoration patch uses a generic territorial council.
+- Closed 2026-10-29 (user): THO keeps the generic territorial council on purpose; its colonial leadership stays deliberately unnamed.
 
 ### French Indochina command implementation
 
@@ -2565,3 +2565,320 @@ won the Struggle, and the Nung Autonomous Territory stayed independent.
 63. After `Indochina_Struggle_Ending.1`, NUN, TAI, TAM and THO no longer
     exist and state `1281` belongs to VIN, both when CEFEO capitulated by
     peace deal and when it dissolved by script.
+
+## 2026-10-27 patch: operation and campaign objective clarity
+
+Statically verified only. Playtester report (2026-10-24): Operation
+Bretagne gave no hover hint of the target, and taking Thanh Hoa did not
+succeed.
+
+- Cause: CEFEO operations had one generic `FRE_Operation_Timer` whose
+  tooltip showed only day counts, no highlight and no map label. The
+  Bretagne focus text named Thanh Hoa (as an overextension warning), while
+  the real objective is Phat Diem `13753` and Ninh Binh `1185` in state
+  `786`, counted only after the Viet Minh engage. Holding Thanh-Hoa city
+  `11936` triggered Operational Overextension instead.
+- Script: per-operation objective missions `FRE_Op_{Mouette,Brochet,
+  Bretagne,Adolphe,Camargue}_Objective` in `Indochina_War.txt` replace the
+  generic timer for ops 3-7 (Hirondelle keeps it), with exact
+  `highlight_provinces`, the same `var:FRE_op_timer_days` timeout and
+  `fre_operation_resolve` backstop. `fre_operation_add/remove_objective_vps`
+  add reversible one-point map labels, one flag per operation, mirroring
+  `vin_limited_campaign_add_objective_vps`; `fre_operation_finish` removes
+  the missions and labels. New `GetFREOperationObjective` and
+  `GetFREOperationContestStatus` in `FRE_CEFEO_Scripted_Loc.txt` feed
+  `FRE_Limited_Operation_Status_tt` and `FRE_Ops.1.d`.
+- Every VIN/NLF campaign clock, the FRE timer and the abort decision now
+  wrap their resolver in `hidden_effect` behind a one-line
+  `custom_effect_tooltip`; the hover no longer lists the full cleanup
+  (idea removals, annexations, white peaces).
+- `fre_operation_resolve` (timer backstop) now returns Aborted for an
+  uncontested Bretagne/Camargue, matching the daily uncontested branch, so
+  the timer and the daily tick cannot disagree at day Y+1.
+- Loc (cwic-writer, verified): objective texts, contest status, card names
+  and descs, four timeout tooltips, VP names `11909` Phu Nho Quan, `13754`
+  Yen Chau, `4379` Van Trinh, `16445` My Thuy. Op descs corrected against
+  script: Hirondelle (transport-days, not territory), Mouette (Phu Nho
+  Quan plus Ninh Binh or Phat Diem), Brochet (Central Day River Line on day
+  35, not Hung Yen), Bretagne, Adolphe, Camargue, availability tooltips,
+  VIN campaign objective texts ("daily ticks" to "days"). Duplicate
+  `FRE_Ops.1.*` removed from `French_Indochina_l_english.yml`.
+
+### Consolidated-playtest checks added
+
+64. During Bretagne, the FRE decision panel shows "Operation Bretagne"
+    objective mission; hovering highlights Phat Diem and Ninh Binh, both
+    show map labels, and the tooltip shows the objective and engagement
+    status. Labels disappear after the result.
+65. Hovering any VIN campaign clock or the FRE operation mission shows the
+    one-line deadline tooltip, not the cleanup effect list. No
+    `custom_effect_tooltip`/missing-loc errors in error.log.
+66. An unengaged Bretagne or Camargue ends `Result_Aborted`, whether the
+    daily tick or the mission timeout fires first.
+67. Temporary objective VPs do not leak: after each operation, provinces
+    `11909 1185 13753 13755 13754 4379 16445` carry no extra VP.
+
+## 2026-10-28 patch: player report, Binh softlock, campaign gate, forced ending, tooltips
+
+Statically verified only. Player report (2026-10-28), logs archived in
+`_local/logs/2026-10-28/`.
+
+- Binh softlock: `vin_binh_resolve_recall` (`VIN_Effects.txt`) sets
+  `Binh_Outcome` but completes `VIN_Nguyen_Binh_Ambush` only while NLF
+  exists. With NLF annexed by VIE, Ambush, Death and Survives stayed
+  `always = no` and the tree dead-ended. `VIN_Nguyen_Binh_Ambush` and
+  `VIN_Nguyen_Binh_Survives` (`VIN_50s.txt`) now also bypass on
+  `Binh_Outcome` and no NLF; the Kieu Cong Cung focus already bypassed on
+  no NLF.
+- Campaign during a CEFEO operation: `VIN_indochina_campaign_window_trigger`
+  checked only `FRE_Limited_Operation_Active`. It now also blocks on
+  `FRE_Limited_Operation_Pending` and the Lorraine, Hirondelle, Mouette,
+  Brochet, Bretagne, Adolphe and Camargue mission flags. Castor, Pollux
+  and Atlante are deliberately exempt, because Lai Chau, Dien Bien Phu
+  and Lower Laos overlap them by design. The tooltip and `_NOT` text were
+  updated.
+- Forced "never-ending conflict" ending after the post-DBP escalation
+  (log: 02 May escalation, 31 May dead-latch clear, 28 Sep "Geneva track
+  never recovered", then the terminator). The latch watchdog treated the
+  deliberate Geneva suppression as a stall. New
+  `ic_failsafe_vin_escalation_live_trigger` (`Indochina_Theater_Triggers.txt`)
+  exempts the latch stall counter, the terminator rung and the postflight
+  rung (`Indochina_Theater_Effects.txt`) while the southern war is live and
+  neither side has capitulated. The decisive/capitulation rungs still fire.
+- VIN and VIE stayed at war after the terminator. `indochina_failsafe_white_peace_theatre`
+  guards both sides with `is_major = no`. [INFERENCE] By 1954 VIN
+  (29 divisions, 1.87M manpower) passes the major threshold. Explicit
+  VIN-VIE, VIN-NLF and VIE-NLF white peaces were added after the sweep.
+- Tooltips: the reward of `VIN_Prepare_Dien` and of nine campaign focuses,
+  the `VIN_Abort_Limited_Campaign` decision, and `VINLAO.10.a` (Sam Neua)
+  now show one `custom_effect_tooltip` with the original effects in
+  `hidden_effect`, order unchanged. `VIN_Lower_Laos_Offensive_tt` and
+  `VIN_All_In_Luang_Prabang_tt` were trimmed. About thirty missing
+  `*_TT_NOT` keys were added, including the two raw keys in the report.
+- Economy (analysis only, nothing applied; pending user decisions):
+  - VIN gets the generic profiles. HDI-derived `Credit_Rating` below 5 by
+    itself trips the medium fiscal crisis.
+  - The generic debt seed includes a World Bank tranche.
+  - x=6 start taxes are 14/12/7/5, against VIE's pre-industrial 6/4/3/2.
+  - There is no economy law, so VIN runs on the `civilian_economy` default.
+  - Focus money rewards are at 1/10 of VIE's scale.
+  - Proposal: x=28 war axis plus `partial_economic_mobilisation` in VIN's
+    history, a VIN credit override and zero-debt entry in shared economy
+    files (marked approval-only), and a focus-by-focus remap to
+    `add_money_with_tooltip_effect`, `change_influence_percentage`, the
+    credit-progress effects and the tax-step effects.
+  - Historical anchors: tax in kind (Decree 13-SL, 1 May 1951), the
+    National Bank (Decree 15-SL, 6 May 1951), and Chinese aid of 21,517 t
+    from May 1950 to Jun 1954
+    (indochine.uqam.ca/en/historical-dictionary/30-aid-chinese-communist.html).
+
+### Consolidated-playtest checks added
+
+68. With NLF annexed before Sep 1951, after the recall window Ambush and
+    Survives show as bypassed and Fate of Kieu Cong Cung onward is
+    reachable.
+69. While Lorraine through Camargue, or a pending limited operation, is
+    active, VIN campaign focuses are unavailable with the window tooltip.
+    During Castor, Pollux or Atlante, Lai Chau, Dien Bien Phu and Lower
+    Laos still open.
+70. After the post-DBP escalation with no capitulation, no "Geneva track
+    never recovered" or terminator line appears. A VIE capitulation still
+    lands the Communist victory.
+71. After any failsafe postflight, VIN, VIE and NLF have no war with each
+    other.
+72. The hovers of `VIN_Prepare_Dien`, the campaign focuses, Call Off the
+    Limited Offensive and the Sam Neua option are a few lines each, with no
+    raw `_TT_NOT` keys. No missing-loc errors.
+
+## 2026-10-28 patch: VIN war economy, credit, power
+
+Statically verified only. User decisions: VIN-only and FIW-only shared
+edits; Soviet subsidy only via COMECON; war-economy model; early power
+plants.
+
+- Start state (`VIN - Vietnam.txt`): `economic_x_axis = 28` (war economy;
+  start taxes now use the 6/4/3/2 pre-industrial levels) and
+  `partial_economic_mobilisation`. `VIN_Begin_Post_War_Reconstruction`
+  runs the new `VIN_Convert_Post_War_Economy` (x=6, y=9).
+- Shared economy files, each with a `tag = VIN` branch gated on
+  `Indochina_War_Over` and `geneva_conference_concluded`:
+  - `StartupMoney.txt`: zero starting debt.
+  - `IC_Loans_and_Interest_Rate_Effects.txt`: starting `Credit_Rating = 5`.
+  - `IncomeGenerator.txt`: a rolling 45-day `CWIC_CRISIS_GRACE` before the
+    crisis check. Grace caps escalation only; it does not clear an
+    existing crisis, and the rating is not locked, so credit progress
+    still works.
+- Subsidy: `Soviet_Subsidies` is set only by `VIN_STL_Join_COMECON` and
+  `VIN_COMECON_Integration`.
+- Patronage: the Chinese and Soviet patronage focuses give +15 influence
+  and equipment, no cash. Chinese monthly equipment steps up in 1952-53
+  and again in 1954.
+- Power: `fossil_fuel_powerplant`, instant, each guarded on VIN
+  owner/controller:
+  - `VIN_Repairing_Key_Infrastructures`: states 1762 and 1280.
+  - `VIN_Expand_Bo_Ho_Electricity_Plant`: 1760 and 881.
+  - `VIN_Electrify_Hong_River_Delta`: 1763 and 1761.
+  - `VIN_Electrify_Viet_Bac_and_Tay_Bac`: 1767 and 1766.
+- Money: 16 legacy `currentMoney` rewards are now
+  `add_money_with_tooltip_effect` at the VIE scale (-8 to +8).
+  Additional rewards:
+  - `VIN_Utilizing_Patriotic_Donations`: +5 credit progress.
+  - `VIN_Implement_Financial_Reforms`: +10 credit progress, +3 money.
+  - `VIN_Establish_the_National_Bank`: +15 credit progress, +5 money.
+  - Rent reduction and collaborator-property focuses: lower the tax steps.
+- Not done:
+  - The aid-event money in `VIN_Econ.5/.6`.
+  - Removing the `fiscal_collapse_N` swaps (readers not audited).
+  - The proposal's popularity cleanup.
+  - The `VIN_Build_Power_Plant` decision, which still builds an
+    industrial complex.
+
+### Consolidated-playtest checks added
+
+73. At VIN start the war-economy axis and partial mobilisation are active,
+    starting debt is 0, credit rating is 5, and there is no fiscal crisis.
+74. The fiscal crisis does not escalate during the war.
+    `CWIC_CRISIS_GRACE` is VIN-only.
+75. Power plants appear only in VIN-held states from the four power
+    focuses (1762 1280 1760 881 1763 1761 1767 1766).
+76. Focus money tooltips show a single money line with the table amounts.
+    The donation focus and both bank focuses raise credit progress.
+77. The Soviet subsidy starts only after a COMECON focus; no other tag
+    gains or loses a subsidy, debt or credit.
+78. The patronage focuses raise PRC/SOV influence by 15. Chinese
+    equipment steps up in 1952 and 1954.
+79. After `VIN_Begin_Post_War_Reconstruction` the axis is x=6, y=9, and
+    the VIN-only crisis grace stops after Geneva or the end of the war.
+
+### Follow-up (same day)
+
+- The `fiscal_collapse_N` swaps are intended: they are the inflation-spirit
+  ladder (user). They are kept.
+- Aid events (`events/VIN_Events.txt`):
+  - `VIN_Econ.5`: money 0.4 -> 3, plus +5 SOV and PRC influence.
+  - `VIN_Econ.6`: money 0.4 -> 5, plus +5 USA influence.
+  - `VIN_Econ.7/.8`: event money removed; it duplicated the focus money.
+- `VIN_Build_Power_Plant` (`common/decisions/VIN.txt`) now builds
+  `fossil_fuel_powerplant` in a state VIN owns or controls.
+- Social Democratic, liberal and conservative popularity was replaced with
+  communism +0.02 in `VIN_Utilizing_Patriotic_Donations`,
+  `VIN_Rally_The_Gio_Tri_Thuc` and `VIN_Follow_a_Flexible_Path`. The
+  last is the independent route and may need its original popularity
+  back.
+
+80. `VIN_Econ.5/.6` show a single money line and the influence changes
+    apply. The power plant decision builds a power plant.
+
+## 2026-10-29 patch: Tho territory survives the Geneva ending
+
+Statically verified only. Tester report: Viet Minh never annexed THO,
+the game reached the Geneva ending, and the Tho territory stayed alive.
+
+- Cause: `indochina_struggle_run_geneva_ending_effect` hands VIN the
+  northern states but skips Cao Bang (`1280`) and Lang Son (`1768`)
+  whenever THO exists, which only fits the Viet Bac zone. A THO still
+  under CEFEO was then handed back to France by
+  `fre_hand_back_crown_domains` inside `fre_dissolution_cleanup`.
+- Fix: before CEFEO dissolution, the Geneva branch annexes THO into VIN
+  when THO exists and is not a VIN subject. A Viet Bac zone THO is kept.
+  TAI, TAM and NUN were already removed by the state transfers.
+
+### Consolidated-playtest checks added
+
+81. After a Geneva ending where THO was still a CEFEO domain, THO no
+    longer exists and states `1280` and `1768` belong to VIN. With the
+    Viet Bac zone granted, THO survives as a VIN subject.
+
+## 2026-10-29 patch: open-item sweep
+
+Statically verified only. User decisions on every open handoff item.
+
+- State of Vietnam army cap: the AI cap (30, or 25 with associated-state
+  armies) was only enforced by the post-war demobilisation chain.
+  `VIE_ai_army_at_cap` (VIE_Triggers) reuses
+  `CWIC_has_reached_maximum_divisions`; the `VIE_army_cap_recruitment_gate`
+  ai_strategy (`common/ai_strategy/VIE.txt`) sets `build_army` to -100
+  while at cap. Units are kept. Risk: negative `build_army` is new to the
+  mod; if the engine clamps it, switch to `unit_ratio`.
+- `VIN_CEFEO.1`-`.13`: every option now has an effect in the same style as
+  `.14` onward.
+- Geneva Laos: under the neutral Laos and Cambodia term the Pathet Lao are
+  no longer annexed. They keep Phongsaly (`841`) and Houaphanh (`1295`),
+  give their other states to Royal Lao, leave the faction and stop being a
+  VIN subject. The regroupment term keeps its mechanics and is renamed
+  "Pathet Lao Zones under Viet Minh Patronage".
+- Lower Laos: `ic_laos_capitulation_to_royal_lao` (Theater effects),
+  called from `wars_on_actions.txt`, handles a Pathet Lao capitulation to
+  CEFEO, France or a CEFEO ally: Lao states held by FRE or FRA return to
+  Royal Lao, which annexes the Pathet Lao as in the existing Royal Lao
+  victory branch.
+- `VIN_Prepare_Dien` is also available after a successful Reopen the
+  Northwest Corridor campaign (`VIN_Campaign_Northwest_Recovery_Result_Costly`;
+  every recovery success is costly) without owning `1761`.
+- Flag loc: 956 flags in the rework files, 683 already localised, 14
+  player-visible flags labelled, 259 that never display skipped.
+  `VIN_Post_DBP_Settlement_After_South` is checked and cleared but never
+  set anywhere.
+- Cao Bac response package (package 8): `FRE_Cao_Bac.1`/`.2`, effects
+  `fre_cao_bac_*` in FRE_Indochina_Effects, modifiers
+  `FRE_Cao_Bac_Hold_Defense`/`_Reinforce_Defense` on `1280`/`1768`, hooks
+  in the VIN campaign launch, resolve and finish paths and in
+  `fre_dissolution_cleanup`. No transfer, peace or parent resolution.
+  CEFEO offensives 2, 3, 5, 6, 7 get no package; VIN's side of them is the
+  `VIN_CEFEO` events.
+- THO leader: a named leader (Pierre Charton) was added and then reverted
+  the same day at the user's request. THO keeps `THO_Council` on purpose:
+  its leadership stays deliberately ambiguous.
+
+- Review after the branch move (same day): `FRE_Cao_Bac` had no
+  `add_namespace`, so both Cao Bac events would not load; added. The three
+  Cao Bac commit effects now require `FRE_Cao_Bac_Response_Choice_Pending`,
+  so a late answer after cleanup charges nothing and adds no modifier.
+  Cao Bac flags got loc in `IC_FRE_Ops_l_english.yml`. Neutral Laos: LAO
+  now receives `841` and `1295` and takes `1295` as capital before the
+  other states go to Royal Lao, and is freed from VIN with `set_autonomy`
+  instead of `release`. The Lower Laos capitulation no longer calls
+  `lao_convert_to_normal_economy`, which created Pathet Lao divisions just
+  before Royal Lao annexed them.
+
+### Consolidated-playtest checks added
+
+82. VIE `IC_AFK|ARMY_CAP` lines stay at or below the cap once the gate engages.
+83. At cap the State of Vietnam AI queues no new divisions.
+84. No VIE divisions are disbanded when the gate engages.
+85. Under cap, VIE recruitment resumes.
+86. A player State of Vietnam recruits normally.
+87. Each `VIN_CEFEO.1`-`.13` option shows an effect tooltip.
+88. Choosing either option applies the shown effect.
+89. AI VIN picks both options over several runs.
+90. The `VIN_CEFEO` event timing is unchanged.
+91. No `VIN_Events.txt` lines in error.log.
+92. Neutral Laos term with a won Pathet Lao raid: LAO exists with only
+    Phongsaly and Houaphanh.
+93. Royal Lao holds every other former Pathet Lao state.
+94. LAO is outside the faction and not a VIN subject.
+95. The neutral option label names the two provinces.
+96. Regroupment term: Pathet Lao keep VIN autonomy and are not annexed.
+97. Pathet Lao capitulating to CEFEO during Lower Laos: Royal Lao annexes
+    them and no Lao state is owned by FRE or FRA.
+98. A Pathet Lao capitulation to Royal Lao behaves as before.
+99. After 97 the Lower Laos operation cleans up normally.
+100. No Geneva Laos term effect fires on a LAO that no longer exists.
+101. No `wars_on_actions.txt` lines in error.log.
+102. Failed Tay Bac, then successful Northwest Recovery: Prepare Dien is
+     available without owning `1761`.
+103. Failed Northwest Recovery: Prepare Dien stays unavailable unless VIN
+     owns `1761`.
+104. The new Prepare Dien condition reads as a sentence.
+105. Danh branch and Soviet reply conditions show names, not flags.
+106. Adolphe, Bretagne, Brochet, Camargue and Mouette objective tooltips
+     show operation names.
+107. Bolovens, southern-command and State of Vietnam alliance conditions are
+     readable.
+108. Cao Bac launch with CEFEO alive fires `FRE_Cao_Bac.1` with three options.
+109. Hold or Reinforce adds its modifier to `1280` and `1768` and charges
+     the shown costs.
+110. Withdraw adds no modifier and the result shows the evacuation text.
+111. At campaign end `FRE_Cao_Bac.2` shows the matching result and the
+     modifiers are gone.
+112. The package transfers no territory and makes no peace.

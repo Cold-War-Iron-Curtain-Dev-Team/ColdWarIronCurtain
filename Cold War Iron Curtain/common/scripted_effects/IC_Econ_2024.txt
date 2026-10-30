@@ -515,7 +515,7 @@ calculate_theoretical_population = {
 			theoretical_pop_sum = {
 				value = THIS.buildings^0
 				multiply = THIS.State_Employment^0
-				add = { value = THIS.buildings^1 multiply = THIS.State_Employment^2 }
+				add = { value = THIS.buildings^1 multiply = THIS.State_Employment^1 }
 				add = { value = THIS.buildings^2 multiply = THIS.State_Employment^1 }
 				add = { value = THIS.buildings^3 multiply = THIS.State_Employment^2 }
 				add = { value = THIS.buildings^5 multiply = THIS.State_Employment^3 }
@@ -908,20 +908,24 @@ calculate_national_productivity_factor_var = {
 
 
 get_electricity_debuff = {
-	set_variable = {
-		electricity_debuff_factor = {
-			value = 1
-			if = {
-				limit = {
-					value = resource@coal
-					less_than = 0
+	set_variable = { electricity_debuff_factor = 1 }
+	if = {
+		limit = { check_variable = { total_factory_amount > 0 } }
+		set_variable = {
+			electricity_debuff_factor = {
+				value = 1
+				if = {
+					limit = {
+						value = resource@coal
+						less_than = 0
+					}
+					subtract = {
+						value = resource@coal
+						multiply = -1
+						divide = total_factory_amount
+					}
+					max = 0
 				}
-				subtract = {
-					value = resource@coal
-					multiply = -1
-					divide = total_factory_amount
-				}
-				max = 0
 			}
 		}
 	}
@@ -958,8 +962,8 @@ check_individual_factory_productivity = {
 	set_variable = { rsc_productivity_factor_var = other_resources_income_bonus_drift }
 	add_to_variable = { rsc_productivity_factor_var = 1 }			
 
-	#set_variable = { doc_productivity_factor_var = dockyard_income_bonus_drift }
-	#add_to_variable = { doc_productivity_factor_var = 1 }		
+	set_variable = { doc_productivity_factor_var = dockyard_income_bonus_drift }
+	add_to_variable = { doc_productivity_factor_var = 1 }
 }
 
 cwic_cache_market_income_multipliers = {
@@ -1375,6 +1379,7 @@ gdp_calculation_effect = {
 	set_variable = { total_office_parks = 0 }
 	cwic_begin_separatism_rollup  = yes
 	CWIC_econ_drift_vars = yes
+	cwic_begin_gdp_growth_pass = yes
 	every_owned_state = {
 		income_effect_every_owned_scope = yes 
 		get_total_infrastructure = yes	#For Public Services Expenses
@@ -1401,6 +1406,7 @@ gdp_calculation_effect = {
 		calculate_net_poptype_earnings = yes
 
 		calculate_sum_up_total = yes
+		cwic_track_state_gdp_for_growth = yes
 
 	}
 	divide_variable = { grossdomesticproduct = 10 }
@@ -1500,17 +1506,6 @@ calculate_sum_up_total = {
 
 	#log = "[?grossdomesticproduct]"
 }
-#Tax Debug
-give_everyone_base_tax = {
-	every_country = {
-		add_ideas = {
-			policy_taxrate_lower_temp_1
-			policy_taxrate_lower_middle_temp_1
-			policy_taxrate_corporate_temp_1
-			policy_taxrate_temp_1
-		}
-	}
-}
 
 #Expenses
 
@@ -1578,9 +1573,6 @@ calc_welfare_expenditure = {
 
 	set_variable = {
 		welfare_cost_adjustment_policy = welfare_expenditure
-	}
-	multiply_variable = {
-		welfare_expenditure = modifier@welfare_spending_modifier 
 	}
 	clamp_variable = {
 		var = welfare_expenditure
@@ -1951,7 +1943,7 @@ calc_navy_army_expenditure = {
 	multiply_variable = { navy_army_expenditure = 0.5 }
 	multiply_variable = { navy_army_expenditure = modifier@navy_spending_modifier }
 	clamp_variable = {
-		var = air_army_expenditure
+		var = navy_army_expenditure
 		min = 0
 	}
 }
@@ -1973,7 +1965,7 @@ calc_nuke_army_expenditure = {
 	multiply_temp_variable = { slbm_expenditure = 20 }
 
 	set_temp_variable = { nuke_expenditure = num_of_nukes }
-	multiply_temp_variable = { num_of_nukes = 10 }
+	multiply_temp_variable = { nuke_expenditure = 10 }
 
 	add_to_variable = { nuke_army_expenditure = srbm_expenditure }
 	add_to_variable = { nuke_army_expenditure = irbm_expenditure }
@@ -2546,8 +2538,11 @@ cwic_calc_corporate_risk_index = {
 	set_variable = { CWIC_corporate_risk_index = risk }
 }
 CWIC_clean_initial_gdp_record = {
-	clear_variable = CWIC_gdp_last_month
-	clear_variable = CWIC_gdp_last_year
+	every_owned_state = {
+		clear_variable = cwic_gdp_owner_month
+		clear_variable = cwic_gdp_owner_year
+	}
+	set_variable = { cwic_gdp_state_count = 0 }
 }
 CWIC_force_update_econ_drift_vars = {
 	set_variable = { industrial_park_income_bonus_drift = modifier@industrial_park_income_bonus }

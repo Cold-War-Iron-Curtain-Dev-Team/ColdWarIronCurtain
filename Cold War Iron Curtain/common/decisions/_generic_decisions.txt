@@ -1505,41 +1505,6 @@ variables_calculation_category = {
 			}
 		}
 	}
-	ic_Financial = {
-		allowed = {
-			always = no
-		}
-		visible = {
-			always = no
-		}
-		available = {
-			always = no
-		}
-		activation = {
-			always = no
-		}
-		#is_good = yes
-
-		selectable_mission = yes
-		days_mission_timeout = 30
-		
-		timeout_effect = {
-			hidden_effect = {
-				# Retired: ic_financial_monthly_pulse now runs from on_monthly.
-			}
-		}
-		complete_effect = {
-			hidden_effect = {
-				every_country = {
-					income_effect = yes
-				}
-			}
-		}
-		ai_will_do = {
-			factor = 100
-		}
-	}	
-
 	ic_Financial_Start = {
 		allowed = {
 		}
@@ -1862,9 +1827,18 @@ variables_calculation_category = {
 				province = 3944
 			}
 			CHI = {
-				create_faction_from_template = { template = faction_template_generic name = "Anti-Communist Salvation Front" }
-				add_to_faction = KOR
-				add_to_faction = USA
+				if = {
+					limit = { is_in_faction = no }
+					create_faction_from_template = { template = faction_template_generic name = "Anti-Communist Salvation Front" }
+				}
+				if = {
+					limit = { is_faction_leader = yes KOR = { is_in_faction = no } }
+					add_to_faction = KOR
+				}
+				if = {
+					limit = { is_faction_leader = yes USA = { is_in_faction = no } }
+					add_to_faction = USA
+				}
 				declare_war_on = {
 					target = PRC
 					type = annex_everything
@@ -3570,6 +3544,9 @@ foreign_politics = {
 			is_ai = yes
 			has_war = yes
 			has_idea = defcon_system_1
+			check_variable = { num_of_nukes > 0 }
+			check_variable = { wmd_strike_ongoing < 1 }
+			check_variable = { wmd_strike_cooldown_var < 1 }
 			check_variable = { var = wmd_missiles_total value = var:missile_cost compare = greater_than_or_equals }
 			OR = {
 				original_tag = USA
@@ -3587,7 +3564,10 @@ foreign_politics = {
 			wmd_select_all_enemies = yes
 			wmd_distance_calculator = yes
 			wmd_check_strike_missiles = yes
-			wmd_nuke_launch = yes
+			if = {
+				limit = { check_variable = { WMD_target_states_array^num > 0 } }
+				wmd_nuke_launch = yes
+			}
 		}
 	}
     COMECON_DOCKYARD_Investment = {

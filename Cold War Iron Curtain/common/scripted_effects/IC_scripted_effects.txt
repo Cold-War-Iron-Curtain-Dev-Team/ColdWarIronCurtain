@@ -55,21 +55,87 @@ ic_financial_monthly_pulse = {
 	set_variable = { national_total_employed_pops = 0 }
 
 	income_effect = yes
-	add_to_variable = { currentMoney = modifier@war_reperations }
 	set_variable = { steel_resource_bonus = 0 }
 	set_variable = { oil_resource_bonus = 0 }
 	set_variable = { aluminium_resource_bonus = 0 }
 	set_variable = { nuclear_resource_bonus = 0 }
 	set_variable = { rare_earth_bonus = 0 }
-	#Resource Concessions Setup
-	set_variable = { tungstenConcessionsGains = 0 }
-	set_variable = { tungstenConcession = 0 }
 
 	resource_bonus_script = yes
 	industrial_pulse = yes
 
 	monthly_borrowing_and_interest_pulse = yes
-	#cwic_default_monthly_check = yes
+	}
+}
+
+cwic_ai_refresh_gdp_on_territory_change = {
+	set_variable = { cwic_ai_state_count_now = 0 }
+	every_owned_state = { add_to_variable = { PREV.cwic_ai_state_count_now = 1 } }
+	if = {
+		limit = { NOT = { has_variable = cwic_ai_gdp_state_count } }
+		set_variable = { cwic_ai_gdp_state_count = cwic_ai_state_count_now }
+	}
+	else_if = {
+		limit = { NOT = { check_variable = { cwic_ai_gdp_state_count = cwic_ai_state_count_now } } }
+		set_variable = { cwic_ai_gdp_state_count = cwic_ai_state_count_now }
+		gdp_calculation_effect = yes
+	}
+}
+
+cwic_ai_money_stipend = {
+	if = {
+		limit = { NOT = { has_variable = ai_stipend_start_income } }
+		set_variable = { ai_stipend_start_income = { value = IncomeCheck max = 0 } }
+		set_variable = {
+			ai_stipend_start_factories = {
+				value = num_of_civilian_factories
+				add = num_of_military_factories
+				add = num_of_naval_factories
+				max = 1
+			}
+		}
+		set_variable = { ai_stipend_month = 0 }
+	}
+	if = {
+		limit = { check_variable = { ai_stipend_month = 0 } }
+		set_variable = {
+			ai_stipend_base = {
+				value = num_of_civilian_factories
+				add = num_of_military_factories
+				add = num_of_naval_factories
+				divide = ai_stipend_start_factories
+				multiply = ai_stipend_start_income
+				max = 0
+			}
+		}
+	}
+	add_to_variable = { ai_stipend_month = 1 }
+	if = {
+		limit = { check_variable = { ai_stipend_month > 11 } }
+		set_variable = { ai_stipend_month = 0 }
+	}
+	if = {
+		limit = {
+			check_variable = { ai_stipend_base > 0 }
+			NOT = { check_variable = { currentMoney < 0 } }
+		}
+		set_temp_variable = { ai_stipend_ceiling = { value = ai_stipend_base multiply = 24 } }
+		if = {
+			limit = { check_variable = { currentMoney < ai_stipend_ceiling } }
+			set_temp_variable = {
+				ai_stipend_pay = {
+					value = 1
+					add = modifier@productivity_factor
+					add = modifier@industrial_park_income_bonus
+					add = modifier@office_park_income_bonus
+					add = modifier@military_factory_income_bonus
+					max = 0
+					min = 1.5
+					multiply = ai_stipend_base
+				}
+			}
+			add_to_variable = { currentMoney = ai_stipend_pay }
+		}
 	}
 }
 
@@ -90,7 +156,6 @@ ic_pulse = {
 	set_variable = { temp_check = THIS.id }
 	set_variable = { oil_consumption_total_desired = 0 }
 
-	#resource_concession_evaluation = yes
 	add_to_variable = { global.ic_pulse_check = 1 }
 	set_variable = { Exploit_Limit = global.Exploit_Limit }
 	add_to_variable = { Exploit_Limit = Exploit_Limit_Adjustment }
@@ -741,10 +806,29 @@ ic_pulse = {
 	if = {
 		limit = {
 			tag = VIN
-			date > 1949.9.1
+			date > 1949.10.1
 			date < 1954.10.31
 		}
 		country_event = SWF_VIN.151
+	}
+	if = {
+		limit = {
+			tag = VIN
+			date > 1960.1.1
+			has_country_flag = VIN_STL_Eastern_Bloc_Integrated
+			NOT = { has_country_flag = VIN_STL_Sino_Soviet_Rift }
+		}
+		set_country_flag = VIN_STL_Sino_Soviet_Rift
+		if = {
+			limit = { country_exists = PRC }
+			add_opinion_modifier = { target = PRC modifier = large_decrease }
+			PRC = { add_opinion_modifier = { target = VIN modifier = large_decrease } }
+		}
+		if = {
+			limit = { country_exists = CHI }
+			add_opinion_modifier = { target = CHI modifier = large_decrease }
+			CHI = { add_opinion_modifier = { target = VIN modifier = large_decrease } }
+		}
 	}
 	if = {
 		limit = {
@@ -2589,11 +2673,13 @@ ic_pulse = {
 			}
 		}
 		remove_ideas = korean_war
-		dismantle_faction = yes
-		#USA = { dismantle_faction = yes }
-		PRC = { dismantle_faction = yes }
-		KPA = { dismantle_faction = yes }
-		KOR = { dismantle_faction = yes }
+		if = {
+			limit = {
+				is_faction_leader = yes
+				has_faction_template = faction_template_peoples_liberation_front
+			}
+			dismantle_faction = yes
+		}
 		if = {
 			limit = {
 				PRC = {
@@ -7676,6 +7762,14 @@ ic_pulse = {
 			}
 		}
 		country_event = QuyChe_16.1
+	}
+	if = {
+		limit = {
+			tag = VIE
+			date > 1955.7.01
+			date < 1955.8.01
+		}
+		country_event = VIE_Historical.11
 	}
 	if = {
 		limit = {
@@ -18149,6 +18243,18 @@ ic_pulse = {
 			civilian = { large = "gfx/leaders/DEN/Anker_Jorgensen_80s.dds" }
 		}
 	}
+	if = {
+		limit = {
+			tag = DEN
+			NOT = { has_country_flag = DEN_Rasmussen_Portrait_00s }
+			date > 1998.3.11
+		}
+		set_country_flag = DEN_Rasmussen_Portrait_00s
+		set_portraits = {
+			character = DEN_Poul_Nyrup_Rasmussen
+			civilian = { large = "gfx/leaders/DEN/Poul_Nyrup_Rasmussen_00s.dds" }
+		}
+	}
 
 
 	# Portrait Changes - Egypt
@@ -18334,7 +18440,105 @@ ic_pulse = {
 			portrait = "gfx/leaders/ETH/Haile_Selassie_70s.dds"
 		}
 	}
-
+	
+	# Portrait Changes - Finland
+	if = {
+		limit = {
+			original_tag = FIN
+			has_country_leader = {
+				name = "Urho Kekkonen"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = FIN_Kekkonen_60s_Change }
+			date > 1960.1.1
+		}
+		set_country_flag = FIN_Kekkonen_60s_Change
+		set_country_leader_portrait = {
+			ideology = centrist
+			portrait = "gfx/leaders/FIN/Urho_Kekkonen_60s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = FIN
+			has_country_leader = {
+				name = "Urho Kekkonen"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = FIN_Kekkonen_70s_Change }
+			date > 1970.1.1
+		}
+		set_country_flag = FIN_Kekkonen_70s_Change
+		set_country_leader_portrait = {
+			ideology = centrist
+			portrait = "gfx/leaders/FIN/Urho_Kekkonen_70s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = FIN
+			has_country_leader = {
+				name = "Urho Kekkonen"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = FIN_Kekkonen_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = FIN_Kekkonen_80s_Change
+		set_country_leader_portrait = {
+			ideology = centrist
+			portrait = "gfx/leaders/FIN/Urho_Kekkonen_80s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = FIN
+			has_country_leader = {
+				name = "Mauno Koivisto"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = FIN_Koivisto_80s_Change }
+			date > 1980.1.1
+		}
+		set_country_flag = FIN_Koivisto_80s_Change
+		set_country_leader_portrait = {
+			ideology = socialist
+			portrait = "gfx/leaders/FIN/Mauno_Koivisto_80s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = FIN
+			has_country_leader = {
+				name = "Mauno Koivisto"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = FIN_Koivisto_90s_Change }
+			date > 1990.1.1
+		}
+		set_country_flag = FIN_Koivisto_90s_Change
+		set_country_leader_portrait = {
+			ideology = socialist
+			portrait = "gfx/leaders/FIN/Mauno_Koivisto_90s.dds"
+		}
+	}
+	if = {
+		limit = {
+			original_tag = FIN
+			has_country_leader = {
+				name = "Martti Ahtisaari"
+				ruling_only = yes
+			}
+			NOT = { has_country_flag = FIN_Ahtisaari_00s_Change }
+			date > 1990.1.1
+		}
+		set_country_flag = FIN_Ahtisaari_00s_Change
+		set_country_leader_portrait = {
+			ideology = socialist
+			portrait = "gfx/leaders/FIN/Martti_Ahtisaari_00s.dds"
+		}
+	}
+	
 	# Portrait Changes - Guinea
 	if = {
 		limit = {
@@ -18362,8 +18566,9 @@ ic_pulse = {
 		}
 		set_country_flag = IRQ_Saddam_Hussein_80s_Change
 		IRQ_Saddam_Hussein = { set_portraits =
-			{ civilian =
-				{ large = "gfx/leaders/IRQ/Saddam_Hussein_80s.dds" }
+			{
+				civilian = { large = "gfx/leaders/IRQ/Saddam_Hussein_80s.dds" }
+				army = { large = "gfx/leaders/IRQ/Saddam_Hussein_80s.dds" }
 			}
 		}
 	}
@@ -18373,10 +18578,11 @@ ic_pulse = {
 			NOT = { has_country_flag = IRQ_Saddam_Hussein_90s_Change }
 			date > 1990.1.1
 		}
-		set_country_flag = IRQ_Saddam_Hussein_80s_Change
+		set_country_flag = IRQ_Saddam_Hussein_90s_Change
 		IRQ_Saddam_Hussein = { set_portraits =
-			{ civilian =
-				{ large = "gfx/leaders/IRQ/Saddam_Hussein_90s.dds" }
+			{
+				civilian = { large = "gfx/leaders/IRQ/Saddam_Hussein_90s.dds" }
+				army = { large = "gfx/leaders/IRQ/Saddam_Hussein_90s.dds" }
 			}
 		}
 	}
@@ -18386,10 +18592,11 @@ ic_pulse = {
 			NOT = { has_country_flag = IRQ_Saddam_Hussein_00s_Change }
 			date > 2000.1.1
 		}
-		set_country_flag = IRQ_Saddam_Hussein_80s_Change
+		set_country_flag = IRQ_Saddam_Hussein_00s_Change
 		IRQ_Saddam_Hussein = { set_portraits =
-			{ civilian =
-				{ large = "gfx/leaders/IRQ/Saddam_Hussein_00sEarly.dds" }
+			{
+				civilian = { large = "gfx/leaders/IRQ/Saddam_Hussein_00s.dds" }
+				army = { large = "gfx/leaders/IRQ/Saddam_Hussein_00s.dds" }
 			}
 		}
 	}
@@ -19417,51 +19624,31 @@ ic_pulse = {
 	if = {
 		limit = {
 			original_tag = VIN
-			NOT = { has_country_flag = vin_leader_change_1986_Hist }
-			date > 1986.7.1
-			has_country_leader = { character = VIN_Le_Duan ruling_only = yes }
+			NOT = { has_country_flag = vin_truong_chinh_portrait_postwar }
+			OR = {
+				has_global_flag = Indochina_War_Over
+				date > 1955.1.1
+			}
 		}
-		set_country_flag = vin_leader_change_1986_Hist
-		retire_character = VIN_Le_Duan
+		set_country_flag = vin_truong_chinh_portrait_postwar
 		VIN_Truong_Chinh = {
-			set_portraits = { civilian = { large = GFX_Truong_Chinh_Old } }
-		}
-		add_country_leader_role = {
-			character = VIN_Truong_Chinh
-			promote_leader = yes
-			country_leader = {
-				ideology = ho_chi_minh_thought
-			}
+			set_portraits = { civilian = { large = GFX_Truong_Chinh } }
 		}
 	}
 	if = {
 		limit = {
 			original_tag = VIN
-			NOT = { has_country_flag = vin_leader_change_1987_Hist }
-			date > 1987.1.1
-			has_country_leader = { character = VIN_Truong_Chinh ruling_only = yes }
-		}
-		set_country_flag = vin_leader_change_1987_Hist
-		retire_character = VIN_Truong_Chinh
-		add_country_leader_role = {
-			character = VIN_Nguyen_Chi_Thanh
-			promote_leader = yes
-			country_leader = {
-				ideology = ho_chi_minh_thought
-			}
-		}
-	}
-	if = {
-		limit = {
-			original_tag = VIN
-			NOT = { has_country_flag = vin_leader_change_1980_Maoist }
+			NOT = { has_country_flag = vin_truong_chinh_portrait_old }
 			date > 1976.1.1
-			has_country_leader = { character = VIN_Truong_Chinh ruling_only = yes }
 		}
-		set_country_flag = vin_leader_change_1980_Maoist
+		set_country_flag = vin_truong_chinh_portrait_old
 		VIN_Truong_Chinh = {
 			set_portraits = { civilian = { large = GFX_Truong_Chinh_Old } }
 		}
+	}
+	if = {
+		limit = { tag = VIN }
+		VIN_leadership_pulse = yes
 	}
 	if = {
 		limit = {
