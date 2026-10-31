@@ -1,0 +1,4890 @@
+# Company effects reconciled with current development. Edit the templates and regenerate.
+
+#@each sector=hydrocarbons
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_oil_output_index, and local presence var corp_<corp>_presence_hydrocarbons (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_hydrocarbons }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_hydrocarbons }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_oil_output_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+
+#@each sector=mining
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_mining_output_index, and local presence var corp_<corp>_presence_mining (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_mining }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_mining }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_mining_output_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+
+#@each sector=agri
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_agriculture_output_index, and local presence var corp_<corp>_presence_agri (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_agri }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_agri }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_agriculture_output_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+
+#@each sector=manufacturing
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_manufacturing_index, and local presence var corp_<corp>_presence_manufacturing (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_manufacturing }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_manufacturing }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_manufacturing_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+
+#@each sector=electronics
+cwic_country_add_profit_<corp> = {
+	# Adds this country's operating profit contribution for <corp> into the global monthly pool.
+	# Requires: global.CWIC_CORP_BASE_PROFIT_UNIT, CWIC_electronics_index, and local presence var corp_<corp>_presence_electronics (0..5)
+	if = {
+		limit = { has_variable = corp_<corp>_presence_electronics }
+
+		# presence_factor = presence / 5 (v1 linear)
+		set_temp_variable = { p = corp_<corp>_presence_electronics }
+		divide_temp_variable = { p = 5 }
+		clamp_temp_variable = { var = p min = 0 max = 1 }
+
+		# profit_add = BASE_UNIT * sector_index * presence_factor
+		set_temp_variable = { profit_add = global.CWIC_CORP_BASE_PROFIT_UNIT }
+		multiply_temp_variable = { profit_add = CWIC_electronics_index }
+		multiply_temp_variable = { profit_add = p }
+
+		add_to_variable = { global.CWIC_CORP_<corp>_profit_month = profit_add }
+	}
+}
+#@end
+
+#@each sector=hydrocarbons
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_hydrocarbons }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+#@each sector=mining
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_mining }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+#@each sector=agri
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_agri }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+#@each keys=gm,ford,chrysler,vw,fiat,renault,peugeot,daimler_benz,toyota,nissan,dupont,dow,basf,bayer
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_manufacturing }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+#@each keys=ge
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend bud<corp>t.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_manufacturing }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_bud<corp>t = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_bud<corp>t_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired bud<corp>t
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# bud<corp>t cannot exceed available cash
+	set_temp_variable = { bud<corp>t = desired }
+	if = {
+		limit = { check_variable = { bud<corp>t > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { bud<corp>t = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_bud<corp>t = bud<corp>t }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+#@each sector=electronics
+cwic_finalize_corp_<corp> = {
+	# Finalizes prior-month operating profit into cash/cap and sets this month's spend budget.
+
+	# gross = last month's accumulated operating profit
+	set_temp_variable = { gross = global.CWIC_CORP_<corp>_profit_month }
+
+	# repatriated = gross * sector repatriation rate
+	set_temp_variable = { rep = gross }
+	multiply_temp_variable = { rep = global.CWIC_sector_repatriation_electronics }
+
+	# optional macro haircut from overall corporate risk (keeps cash from exploding in high-risk worlds)
+	# hair = clamp(0.50..1.00, 1 - (CWIC_corporate_risk_index/200))
+	set_temp_variable = { rf = CWIC_corporate_risk_index }
+	divide_temp_variable = { rf = 200 }
+	set_temp_variable = { hair = 1 }
+	subtract_from_temp_variable = { hair = rf }
+	clamp_temp_variable = { var = hair min = 0.5 max = 1.0 }
+	multiply_temp_variable = { rep = hair }
+
+	# cash += rep (cash persists)
+	add_to_variable = { global.CWIC_CORP_<corp>_cash = rep }
+	clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+
+	# cap += rep * 0.25 (retained earnings expand long-run capacity; tune later)
+	set_temp_variable = { cap_add = rep }
+	multiply_temp_variable = { cap_add = 0.25 }
+	add_to_variable = { global.CWIC_CORP_<corp>_cap = cap_add }
+
+	# shock factor (per corp)
+	set_temp_variable = { shock_factor = 1.0 }
+	if = {
+		limit = { check_variable = { global.CWIC_CORP_<corp>_shock_timer > 0 } }
+		set_temp_variable = { shock_factor = 0.5 }
+		# tick shock timer down (1 month)
+		subtract_from_variable = { global.CWIC_CORP_<corp>_shock_timer = 1 }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_shock_timer min = 0 max = 120 }
+	}
+
+	# desired_budget = cash * invest_rate * macro_risk_factor * shock_factor
+	set_temp_variable = { desired = global.CWIC_CORP_<corp>_cash }
+	multiply_temp_variable = { desired = global.CWIC_CORP_INVEST_RATE }
+	multiply_temp_variable = { desired = CWIC_global_budget_risk_factor }
+	multiply_temp_variable = { desired = shock_factor }
+
+	# clamp desired budget
+	clamp_temp_variable = { var = desired min = global.CWIC_CORP_BUDGET_MIN max = global.CWIC_CORP_BUDGET_MAX }
+
+	# budget cannot exceed available cash
+	set_temp_variable = { budget = desired }
+	if = {
+		limit = { check_variable = { budget > global.CWIC_CORP_<corp>_cash } }
+		set_temp_variable = { budget = global.CWIC_CORP_<corp>_cash }
+	}
+
+	set_variable = { global.CWIC_CORP_<corp>_budget = budget }
+
+	# book-keeping
+	set_variable = { global.CWIC_CORP_<corp>_profit_last = gross }
+}
+#@end
+
+#@each sector=hydrocarbons
+cwic_corp_<corp>_invest_presence_hydrocarbons = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_hydrocarbons }
+			set_temp_variable = { cur = corp_<corp>_presence_hydrocarbons }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_hydrocarbons = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_hydrocarbons } }
+					set_variable = { corp_<corp>_presence_hydrocarbons = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_hydrocarbons = 1 }
+					clamp_variable = { var = corp_<corp>_presence_hydrocarbons min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+#@each sector=mining
+cwic_corp_<corp>_invest_presence_mining = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_mining }
+			set_temp_variable = { cur = corp_<corp>_presence_mining }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_mining = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_mining } }
+					set_variable = { corp_<corp>_presence_mining = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_mining = 1 }
+					clamp_variable = { var = corp_<corp>_presence_mining min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+#@each sector=agri
+cwic_corp_<corp>_invest_presence_agri = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_agri }
+			set_temp_variable = { cur = corp_<corp>_presence_agri }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_agri = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_agri } }
+					set_variable = { corp_<corp>_presence_agri = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_agri = 1 }
+					clamp_variable = { var = corp_<corp>_presence_agri min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+#@each keys=gm,ford,chrysler,vw,fiat,renault,peugeot,daimler_benz,toyota,nissan,dupont,dow,basf,bayer
+cwic_corp_<corp>_invest_presence_manufacturing = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_manufacturing }
+			set_temp_variable = { cur = corp_<corp>_presence_manufacturing }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_manufacturing = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_manufacturing } }
+					set_variable = { corp_<corp>_presence_manufacturing = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_manufacturing = 1 }
+					clamp_variable = { var = corp_<corp>_presence_manufacturing min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+#@each keys=ge
+cwic_corp_<corp>_invest_presence_manufacturing = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_manufacturing }
+			set_temp_variable = { cur = corp_<corp>_presence_manufacturing }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# tar<corp>t_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { tar<corp>t_tier = cur }
+			add_to_temp_variable = { tar<corp>t_tier = 1 }
+			clamp_temp_variable = { var = tar<corp>t_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_manufacturing = yes
+
+			# Gate by cash and by bud<corp>t remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_bud<corp>t_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_bud<corp>t_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_bud<corp>t_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_bud<corp>t_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_manufacturing } }
+					set_variable = { corp_<corp>_presence_manufacturing = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_manufacturing = 1 }
+					clamp_variable = { var = corp_<corp>_presence_manufacturing min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+#@each sector=electronics
+cwic_corp_<corp>_invest_presence_electronics = {
+
+	# Do nothing if no cash
+	if = {
+		limit = { NOT = { check_variable = { global.CWIC_CORP_<corp>_cash > 0 } } }
+	}
+	else = {
+
+		# Determine current tier
+		set_temp_variable = { cur = 0 }
+		if = {
+			limit = { has_variable = corp_<corp>_presence_electronics }
+			set_temp_variable = { cur = corp_<corp>_presence_electronics }
+		}
+
+		# If already maxed (tier 5), stop
+		if = {
+			limit = { check_variable = { cur > 4 } }
+		}
+		else = {
+
+			# target_tier = cur + 1 (or 1 if new)
+			set_temp_variable = { target_tier = cur }
+			add_to_temp_variable = { target_tier = 1 }
+			clamp_temp_variable = { var = target_tier min = 1 max = 5 }
+
+			# compute invest_cost for this sector in this country
+			cwic_calc_presence_upgrade_cost_electronics = yes
+
+			# Gate by cash and by budget remaining
+			if = {
+				limit = {
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_cash > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+					}
+					OR = {
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining > invest_cost }
+						check_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+					}
+				}
+
+				# Spend
+				subtract_from_variable = { global.CWIC_CORP_<corp>_cash = invest_cost }
+				subtract_from_variable = { global.CWIC_CORP_<corp>_budget_remaining = invest_cost }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 1000000 }
+				clamp_variable = { var = global.CWIC_CORP_<corp>_budget_remaining min = 0 max = 1000000 }
+
+				# Apply: entry or upgrade
+				if = {
+					limit = { NOT = { has_variable = corp_<corp>_presence_electronics } }
+					set_variable = { corp_<corp>_presence_electronics = 1 }
+				}
+				else = {
+					add_to_variable = { corp_<corp>_presence_electronics = 1 }
+					clamp_variable = { var = corp_<corp>_presence_electronics min = 0 max = 5 }
+				}
+
+				# Optional: host-country effects as presence rises (stub)
+				# cwic_apply_corp_presence_effects_<corp> = yes
+			}
+		}
+	}
+}
+#@end
+
+#@each keys=exxon,mobil,chevron,texaco
+cwic_mnc_nationalize_<corp>_hydrocarbons = {
+	# Targeted nationalization: Exxon (hydrocarbons)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_hydrocarbons } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_hydrocarbons } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_hydrocarbons }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_HYDRO }
+		set_temp_variable = { tmp = CWIC_oil_output_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_hydrocarbons }
+		else = { subtract_from_variable = { corp_<corp>_presence_hydrocarbons = 1 } clamp_variable = { var = corp_<corp>_presence_hydrocarbons min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_hydrocarbons
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_hydrocarbons days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each keys=gulf_oil,amoco,conoco,sinclair_oil,shell,bp,total_cfp,eni,iberia_cepsa,statoil,aramco,pdvsa,nnpc,sonatrach,pertamina,pemex
+cwic_mnc_nationalize_<corp>_hydrocarbons = {
+	# Targeted nationalization: Gulf Oil (hydrocarbons)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_hydrocarbons } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_hydrocarbons } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_hydrocarbons }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_HYDRO }
+		set_temp_variable = { tmp = CWIC_oil_output_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_hydrocarbons }
+		else = { subtract_from_variable = { corp_<corp>_presence_hydrocarbons = 1 } clamp_variable = { var = corp_<corp>_presence_hydrocarbons min = 0 max = 5 } }
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_hydrocarbons days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each keys=rio_tinto,anglo_american,de_beers,lonrho
+cwic_mnc_nationalize_<corp>_mining = {
+	# Targeted nationalization: Rio Tinto (mining)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_mining } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_mining } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_mining }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_MINING }
+		set_temp_variable = { tmp = CWIC_mining_output_index }
+		divide_temp_variable = { tmp = 3 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_mining }
+		else = { subtract_from_variable = { corp_<corp>_presence_mining = 1 } clamp_variable = { var = corp_<corp>_presence_mining min = 0 max = 5 } }
+	
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_mining days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each keys=inmetco,inco,alcoa,kennecott,anaconda_copper,noranda,sumitomo_mining,gecamines
+cwic_mnc_nationalize_<corp>_mining = {
+	# Targeted nationalization: Inmetco (mining)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_mining } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_mining } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_mining }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_MINING }
+		set_temp_variable = { tmp = CWIC_mining_output_index }
+		divide_temp_variable = { tmp = 3 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_mining }
+		else = { subtract_from_variable = { corp_<corp>_presence_mining = 1 } clamp_variable = { var = corp_<corp>_presence_mining min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_mining
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_mining days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each sector=agri
+cwic_mnc_nationalize_<corp>_agri = {
+	# Targeted nationalization: United Fruit (agri)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_agri } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_agri } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_agri }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_AGRI }
+		set_temp_variable = { tmp = CWIC_agriculture_output_index }
+		divide_temp_variable = { tmp = 3 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_agri }
+		else = { subtract_from_variable = { corp_<corp>_presence_agri = 1 } clamp_variable = { var = corp_<corp>_presence_agri min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_agri
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_agri days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each sector=manufacturing
+cwic_mnc_nationalize_<corp>_manufacturing = {
+	# Targeted nationalization: Gm (manufacturing)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_manufacturing } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_manufacturing } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_manufacturing }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_MFG }
+		set_temp_variable = { tmp = CWIC_manufacturing_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_manufacturing }
+		else = { subtract_from_variable = { corp_<corp>_presence_manufacturing = 1 } clamp_variable = { var = corp_<corp>_presence_manufacturing min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_manufacturing
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_manufacturing days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each sector=electronics
+cwic_mnc_nationalize_<corp>_electronics = {
+	# Targeted nationalization: IBM (electronics)
+	if = { limit = { NOT = { has_variable = corp_<corp>_presence_electronics } } }
+	else_if = { limit = { has_country_flag = cwic_mnc_frozen_<corp>_electronics } }
+	else = {
+		set_temp_variable = { cur = corp_<corp>_presence_electronics }
+		set_temp_variable = { seize_amount = cur }
+		multiply_temp_variable = { seize_amount = global.CWIC_MNC_NAT_SEIZE_UNIT_ELEC }
+		set_temp_variable = { tmp = CWIC_electronics_index }
+		divide_temp_variable = { tmp = 4 }
+		clamp_temp_variable = { var = tmp min = 0.5 max = 2.0 }
+		multiply_temp_variable = { seize_amount = tmp }
+		set_temp_variable = { corp_cash = global.CWIC_CORP_<corp>_cash }
+		if = { limit = { check_variable = { seize_amount > corp_cash } } set_temp_variable = { seize_amount = corp_cash } }
+		add_to_variable = { currentMoney = seize_amount }
+		subtract_from_variable = { global.CWIC_CORP_<corp>_cash = seize_amount }
+		clamp_variable = { var = global.CWIC_CORP_<corp>_cash min = 0 max = 100000000 }
+		if = { limit = { check_variable = { cur = 1 } } clear_variable = corp_<corp>_presence_electronics }
+		else = { subtract_from_variable = { corp_<corp>_presence_electronics = 1 } clamp_variable = { var = corp_<corp>_presence_electronics min = 0 max = 5 } }
+		set_country_flag = cwic_mnc_frozen_<corp>_electronics
+		set_country_flag = { flag = cwic_mnc_frozen_<corp>_electronics days = 180 }
+		add_to_variable = { CWIC_nationalization_pressure_index = 0.15 }
+		clamp_variable = { var = CWIC_nationalization_pressure_index min = 0 max = 5 }
+		add_to_variable = { CWIC_instability_index_corp_factor = 0.05 }
+		clamp_variable = { var = CWIC_instability_index_corp_factor min = 0 max = 3 }
+	}
+}
+#@end
+
+#@each sector=hydrocarbons
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+
+#@each sector=mining
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+
+#@each sector=agri
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+
+#@each sector=manufacturing
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+
+#@each sector=electronics
+cwic_corp_<corp>_recalc_presence_total = {
+	set_temp_variable = { tmp_presence_total = 0 }
+	if = { limit = { has_variable = corp_<corp>_presence_hydrocarbons } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_hydrocarbons } }
+	if = { limit = { has_variable = corp_<corp>_presence_mining } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_mining } }
+	if = { limit = { has_variable = corp_<corp>_presence_agri } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_agri } }
+	if = { limit = { has_variable = corp_<corp>_presence_manufacturing } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_manufacturing } }
+	if = { limit = { has_variable = corp_<corp>_presence_electronics } add_to_temp_variable = { tmp_presence_total = corp_<corp>_presence_electronics } }
+	set_variable = { corp_<corp>_presence_total = tmp_presence_total }
+}
+#@end
+
+cwic_country_add_all_corp_profits = {
+	# Master call to accumulate all corp profit contributions for THIS country.
+	# Safe to call every month: each corp effect gates on has_variable = <corp_presence_var>.
+	cwic_country_add_profit_exxon = yes
+	cwic_country_add_profit_mobil = yes
+	cwic_country_add_profit_chevron = yes
+	cwic_country_add_profit_texaco = yes
+	cwic_country_add_profit_gulf_oil = yes
+	cwic_country_add_profit_amoco = yes
+	cwic_country_add_profit_conoco = yes
+	cwic_country_add_profit_sinclair_oil = yes
+	cwic_country_add_profit_shell = yes
+	cwic_country_add_profit_bp = yes
+	cwic_country_add_profit_total_cfp = yes
+	cwic_country_add_profit_eni = yes
+	cwic_country_add_profit_iberia_cepsa = yes
+	cwic_country_add_profit_statoil = yes
+	cwic_country_add_profit_aramco = yes
+	cwic_country_add_profit_pdvsa = yes
+	cwic_country_add_profit_nnpc = yes
+	cwic_country_add_profit_sonatrach = yes
+	cwic_country_add_profit_pertamina = yes
+	cwic_country_add_profit_pemex = yes
+	cwic_country_add_profit_rio_tinto = yes
+	cwic_country_add_profit_anglo_american = yes
+	cwic_country_add_profit_de_beers = yes
+	cwic_country_add_profit_lonrho = yes
+	cwic_country_add_profit_inmetco = yes
+	cwic_country_add_profit_inco = yes
+	cwic_country_add_profit_alcoa = yes
+	cwic_country_add_profit_kennecott = yes
+	cwic_country_add_profit_anaconda_copper = yes
+	cwic_country_add_profit_noranda = yes
+	cwic_country_add_profit_sumitomo_mining = yes
+	cwic_country_add_profit_gecamines = yes
+	cwic_country_add_profit_united_fruit = yes
+	cwic_country_add_profit_del_monte = yes
+	cwic_country_add_profit_dole = yes
+	cwic_country_add_profit_cargill = yes
+	cwic_country_add_profit_adm = yes
+	cwic_country_add_profit_bunge = yes
+	cwic_country_add_profit_unilever = yes
+	cwic_country_add_profit_nestle = yes
+	cwic_country_add_profit_cadbury = yes
+	cwic_country_add_profit_mitsui_bussan_agri = yes
+	cwic_country_add_profit_gm = yes
+	cwic_country_add_profit_ford = yes
+	cwic_country_add_profit_chrysler = yes
+	cwic_country_add_profit_vw = yes
+	cwic_country_add_profit_fiat = yes
+	cwic_country_add_profit_renault = yes
+	cwic_country_add_profit_peugeot = yes
+	cwic_country_add_profit_daimler_benz = yes
+	cwic_country_add_profit_toyota = yes
+	cwic_country_add_profit_nissan = yes
+	cwic_country_add_profit_ge = yes
+	cwic_country_add_profit_dupont = yes
+	cwic_country_add_profit_dow = yes
+	cwic_country_add_profit_basf = yes
+	cwic_country_add_profit_bayer = yes
+	cwic_country_add_profit_ibm = yes
+	cwic_country_add_profit_rca = yes
+	cwic_country_add_profit_att = yes
+	cwic_country_add_profit_itt = yes
+	cwic_country_add_profit_siemens = yes
+	cwic_country_add_profit_philips = yes
+	cwic_country_add_profit_olivetti = yes
+	cwic_country_add_profit_sony = yes
+	cwic_country_add_profit_panasonic = yes
+	cwic_country_add_profit_toshiba = yes
+}
+
+cwic_mnc_monthly_rollover = {
+	# IMPORTANT ORDER:
+	# 1) Finalize prior month using global.CWIC_CORP_*_profit_month (accumulated during last month)
+	# 2) Reset profit_month pools to 0 for the new month (countries will add into them during this month)
+
+	cwic_finalize_corp_exxon = yes
+	cwic_finalize_corp_mobil = yes
+	cwic_finalize_corp_chevron = yes
+	cwic_finalize_corp_texaco = yes
+	cwic_finalize_corp_gulf_oil = yes
+	cwic_finalize_corp_amoco = yes
+	cwic_finalize_corp_conoco = yes
+	cwic_finalize_corp_sinclair_oil = yes
+	cwic_finalize_corp_shell = yes
+	cwic_finalize_corp_bp = yes
+	cwic_finalize_corp_total_cfp = yes
+	cwic_finalize_corp_eni = yes
+	cwic_finalize_corp_iberia_cepsa = yes
+	cwic_finalize_corp_statoil = yes
+	cwic_finalize_corp_aramco = yes
+	cwic_finalize_corp_pdvsa = yes
+	cwic_finalize_corp_nnpc = yes
+	cwic_finalize_corp_sonatrach = yes
+	cwic_finalize_corp_pertamina = yes
+	cwic_finalize_corp_pemex = yes
+	cwic_finalize_corp_rio_tinto = yes
+	cwic_finalize_corp_anglo_american = yes
+	cwic_finalize_corp_de_beers = yes
+	cwic_finalize_corp_lonrho = yes
+	cwic_finalize_corp_inmetco = yes
+	cwic_finalize_corp_inco = yes
+	cwic_finalize_corp_alcoa = yes
+	cwic_finalize_corp_kennecott = yes
+	cwic_finalize_corp_anaconda_copper = yes
+	cwic_finalize_corp_noranda = yes
+	cwic_finalize_corp_sumitomo_mining = yes
+	cwic_finalize_corp_gecamines = yes
+	cwic_finalize_corp_united_fruit = yes
+	cwic_finalize_corp_del_monte = yes
+	cwic_finalize_corp_dole = yes
+	cwic_finalize_corp_cargill = yes
+	cwic_finalize_corp_adm = yes
+	cwic_finalize_corp_bunge = yes
+	cwic_finalize_corp_unilever = yes
+	cwic_finalize_corp_nestle = yes
+	cwic_finalize_corp_cadbury = yes
+	cwic_finalize_corp_mitsui_bussan_agri = yes
+	cwic_finalize_corp_gm = yes
+	cwic_finalize_corp_ford = yes
+	cwic_finalize_corp_chrysler = yes
+	cwic_finalize_corp_vw = yes
+	cwic_finalize_corp_fiat = yes
+	cwic_finalize_corp_renault = yes
+	cwic_finalize_corp_peugeot = yes
+	cwic_finalize_corp_daimler_benz = yes
+	cwic_finalize_corp_toyota = yes
+	cwic_finalize_corp_nissan = yes
+	cwic_finalize_corp_ge = yes
+	cwic_finalize_corp_dupont = yes
+	cwic_finalize_corp_dow = yes
+	cwic_finalize_corp_basf = yes
+	cwic_finalize_corp_bayer = yes
+	cwic_finalize_corp_ibm = yes
+	cwic_finalize_corp_rca = yes
+	cwic_finalize_corp_att = yes
+	cwic_finalize_corp_itt = yes
+	cwic_finalize_corp_siemens = yes
+	cwic_finalize_corp_philips = yes
+	cwic_finalize_corp_olivetti = yes
+	cwic_finalize_corp_sony = yes
+	cwic_finalize_corp_panasonic = yes
+	cwic_finalize_corp_toshiba = yes
+
+	# reset pools for new month
+	set_variable = { global.CWIC_CORP_exxon_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_mobil_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_chevron_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_texaco_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_gulf_oil_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_amoco_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_conoco_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_sinclair_oil_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_shell_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_bp_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_total_cfp_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_eni_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_iberia_cepsa_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_statoil_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_aramco_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_pdvsa_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_nnpc_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_sonatrach_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_pertamina_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_pemex_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_rio_tinto_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_anglo_american_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_de_beers_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_lonrho_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_inmetco_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_inco_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_alcoa_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_kennecott_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_anaconda_copper_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_noranda_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_sumitomo_mining_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_gecamines_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_united_fruit_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_del_monte_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_dole_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_cargill_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_adm_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_bunge_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_unilever_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_nestle_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_cadbury_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_mitsui_bussan_agri_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_gm_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_ford_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_chrysler_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_vw_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_fiat_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_renault_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_peugeot_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_daimler_benz_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_toyota_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_nissan_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_ge_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_dupont_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_dow_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_basf_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_bayer_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_ibm_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_rca_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_att_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_itt_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_siemens_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_philips_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_olivetti_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_sony_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_panasonic_profit_month = 0 }
+	set_variable = { global.CWIC_CORP_toshiba_profit_month = 0 }
+}
+
+cwic_mnc_auto_invest_global = {
+	# Call from GLOBAL monthly pulse after corp budgets are set,
+	# and after countries have set pool flags in their country-monthly.
+	# Auto-entry chance is tuned per-corp here. Change the chance value if needed.
+
+	# --- exxon (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_exxon_cash > 0 }
+			check_variable = { global.CWIC_CORP_exxon_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_exxon_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_exxon_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_exxon_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_exxon_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- mobil (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_mobil_cash > 0 }
+			check_variable = { global.CWIC_CORP_mobil_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_mobil_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_mobil_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_mobil_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_mobil_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- chevron (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_chevron_cash > 0 }
+			check_variable = { global.CWIC_CORP_chevron_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_chevron_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_chevron_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_chevron_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_chevron_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- texaco (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_texaco_cash > 0 }
+			check_variable = { global.CWIC_CORP_texaco_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_texaco_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_texaco_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_texaco_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_texaco_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- gulf_oil (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_gulf_oil_cash > 0 }
+			check_variable = { global.CWIC_CORP_gulf_oil_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_gulf_oil_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_gulf_oil_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_gulf_oil_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_gulf_oil_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- amoco (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_amoco_cash > 0 }
+			check_variable = { global.CWIC_CORP_amoco_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_amoco_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_amoco_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_amoco_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_amoco_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- conoco (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_conoco_cash > 0 }
+			check_variable = { global.CWIC_CORP_conoco_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_conoco_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_conoco_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_conoco_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_conoco_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- sinclair_oil (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_sinclair_oil_cash > 0 }
+			check_variable = { global.CWIC_CORP_sinclair_oil_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_sinclair_oil_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_sinclair_oil_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_sinclair_oil_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_sinclair_oil_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- shell (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_shell_cash > 0 }
+			check_variable = { global.CWIC_CORP_shell_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_shell_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_shell_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_shell_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_shell_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- bp (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_bp_cash > 0 }
+			check_variable = { global.CWIC_CORP_bp_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_bp_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_bp_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_bp_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_bp_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- total_cfp (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_total_cfp_cash > 0 }
+			check_variable = { global.CWIC_CORP_total_cfp_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_total_cfp_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_total_cfp_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_total_cfp_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_total_cfp_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- eni (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_eni_cash > 0 }
+			check_variable = { global.CWIC_CORP_eni_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_eni_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_eni_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_eni_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_eni_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- iberia_cepsa (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_iberia_cepsa_cash > 0 }
+			check_variable = { global.CWIC_CORP_iberia_cepsa_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_iberia_cepsa_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_iberia_cepsa_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_iberia_cepsa_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_iberia_cepsa_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- statoil (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_statoil_cash > 0 }
+			check_variable = { global.CWIC_CORP_statoil_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_statoil_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_statoil_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_statoil_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_statoil_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- aramco (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_aramco_cash > 0 }
+			check_variable = { global.CWIC_CORP_aramco_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_aramco_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_aramco_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_aramco_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_aramco_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- pdvsa (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_pdvsa_cash > 0 }
+			check_variable = { global.CWIC_CORP_pdvsa_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_pdvsa_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_pdvsa_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_pdvsa_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_pdvsa_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- nnpc (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_nnpc_cash > 0 }
+			check_variable = { global.CWIC_CORP_nnpc_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_nnpc_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_nnpc_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_nnpc_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_nnpc_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- sonatrach (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_sonatrach_cash > 0 }
+			check_variable = { global.CWIC_CORP_sonatrach_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_sonatrach_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_sonatrach_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_sonatrach_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_sonatrach_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- pertamina (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_pertamina_cash > 0 }
+			check_variable = { global.CWIC_CORP_pertamina_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_pertamina_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_pertamina_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_pertamina_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_pertamina_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- pemex (hydrocarbons) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_pemex_cash > 0 }
+			check_variable = { global.CWIC_CORP_pemex_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_hydrocarbons
+				has_variable = corp_pemex_presence_hydrocarbons
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_pemex_invest_presence_hydrocarbons = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_hydrocarbons
+					NOT = { has_variable = corp_pemex_presence_hydrocarbons }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_oil_output_index > 1.25 }
+				}
+				cwic_corp_pemex_invest_presence_hydrocarbons = yes
+			}
+		}
+	}
+
+	# --- rio_tinto (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_rio_tinto_cash > 0 }
+			check_variable = { global.CWIC_CORP_rio_tinto_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_rio_tinto_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_rio_tinto_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_rio_tinto_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_rio_tinto_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- anglo_american (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_anglo_american_cash > 0 }
+			check_variable = { global.CWIC_CORP_anglo_american_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_anglo_american_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_anglo_american_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_anglo_american_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_anglo_american_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- de_beers (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_de_beers_cash > 0 }
+			check_variable = { global.CWIC_CORP_de_beers_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_de_beers_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_de_beers_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_de_beers_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_de_beers_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- lonrho (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_lonrho_cash > 0 }
+			check_variable = { global.CWIC_CORP_lonrho_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_lonrho_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_lonrho_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_lonrho_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_lonrho_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- inmetco (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_inmetco_cash > 0 }
+			check_variable = { global.CWIC_CORP_inmetco_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_inmetco_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_inmetco_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_inmetco_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_inmetco_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- inco (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_inco_cash > 0 }
+			check_variable = { global.CWIC_CORP_inco_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_inco_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_inco_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_inco_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_inco_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- alcoa (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_alcoa_cash > 0 }
+			check_variable = { global.CWIC_CORP_alcoa_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_alcoa_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_alcoa_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_alcoa_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_alcoa_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- kennecott (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_kennecott_cash > 0 }
+			check_variable = { global.CWIC_CORP_kennecott_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_kennecott_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_kennecott_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_kennecott_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_kennecott_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- anaconda_copper (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_anaconda_copper_cash > 0 }
+			check_variable = { global.CWIC_CORP_anaconda_copper_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_anaconda_copper_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_anaconda_copper_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_anaconda_copper_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_anaconda_copper_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- noranda (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_noranda_cash > 0 }
+			check_variable = { global.CWIC_CORP_noranda_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_noranda_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_noranda_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_noranda_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_noranda_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- sumitomo_mining (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_sumitomo_mining_cash > 0 }
+			check_variable = { global.CWIC_CORP_sumitomo_mining_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_sumitomo_mining_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_sumitomo_mining_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_sumitomo_mining_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_sumitomo_mining_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- gecamines (mining) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_gecamines_cash > 0 }
+			check_variable = { global.CWIC_CORP_gecamines_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_mining
+				has_variable = corp_gecamines_presence_mining
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_gecamines_invest_presence_mining = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_mining
+					NOT = { has_variable = corp_gecamines_presence_mining }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_mining_output_index > 1.25 }
+				}
+				cwic_corp_gecamines_invest_presence_mining = yes
+			}
+		}
+	}
+
+	# --- united_fruit (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_united_fruit_cash > 0 }
+			check_variable = { global.CWIC_CORP_united_fruit_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_united_fruit_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_united_fruit_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_united_fruit_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_united_fruit_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- del_monte (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_del_monte_cash > 0 }
+			check_variable = { global.CWIC_CORP_del_monte_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_del_monte_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_del_monte_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_del_monte_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_del_monte_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- dole (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_dole_cash > 0 }
+			check_variable = { global.CWIC_CORP_dole_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_dole_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_dole_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_dole_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_dole_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- cargill (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_cargill_cash > 0 }
+			check_variable = { global.CWIC_CORP_cargill_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_cargill_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_cargill_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_cargill_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_cargill_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- adm (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_adm_cash > 0 }
+			check_variable = { global.CWIC_CORP_adm_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_adm_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_adm_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_adm_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_adm_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- bunge (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_bunge_cash > 0 }
+			check_variable = { global.CWIC_CORP_bunge_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_bunge_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_bunge_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_bunge_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_bunge_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- unilever (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_unilever_cash > 0 }
+			check_variable = { global.CWIC_CORP_unilever_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_unilever_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_unilever_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_unilever_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_unilever_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- nestle (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_nestle_cash > 0 }
+			check_variable = { global.CWIC_CORP_nestle_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_nestle_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_nestle_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_nestle_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_nestle_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- cadbury (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_cadbury_cash > 0 }
+			check_variable = { global.CWIC_CORP_cadbury_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_cadbury_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_cadbury_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_cadbury_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_cadbury_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- mitsui_bussan_agri (agri) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_mitsui_bussan_agri_cash > 0 }
+			check_variable = { global.CWIC_CORP_mitsui_bussan_agri_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_agri
+				has_variable = corp_mitsui_bussan_agri_presence_agri
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_mitsui_bussan_agri_invest_presence_agri = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_agri
+					NOT = { has_variable = corp_mitsui_bussan_agri_presence_agri }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_agriculture_output_index > 1.25 }
+				}
+				cwic_corp_mitsui_bussan_agri_invest_presence_agri = yes
+			}
+		}
+	}
+
+	# --- gm (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_gm_cash > 0 }
+			check_variable = { global.CWIC_CORP_gm_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_gm_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_gm_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_gm_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_gm_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- ford (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_ford_cash > 0 }
+			check_variable = { global.CWIC_CORP_ford_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_ford_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_ford_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_ford_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_ford_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- chrysler (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_chrysler_cash > 0 }
+			check_variable = { global.CWIC_CORP_chrysler_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_chrysler_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_chrysler_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_chrysler_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_chrysler_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- vw (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_vw_cash > 0 }
+			check_variable = { global.CWIC_CORP_vw_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_vw_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_vw_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_vw_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_vw_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- fiat (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_fiat_cash > 0 }
+			check_variable = { global.CWIC_CORP_fiat_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_fiat_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_fiat_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_fiat_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_fiat_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- renault (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_renault_cash > 0 }
+			check_variable = { global.CWIC_CORP_renault_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_renault_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_renault_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_renault_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_renault_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- peugeot (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_peugeot_cash > 0 }
+			check_variable = { global.CWIC_CORP_peugeot_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_peugeot_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_peugeot_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_peugeot_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_peugeot_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- daimler_benz (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_daimler_benz_cash > 0 }
+			check_variable = { global.CWIC_CORP_daimler_benz_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_daimler_benz_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_daimler_benz_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_daimler_benz_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_daimler_benz_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- toyota (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_toyota_cash > 0 }
+			check_variable = { global.CWIC_CORP_toyota_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_toyota_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_toyota_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_toyota_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_toyota_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- nissan (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_nissan_cash > 0 }
+			check_variable = { global.CWIC_CORP_nissan_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_nissan_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_nissan_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_nissan_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_nissan_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- ge (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_ge_cash > 0 }
+			check_variable = { global.CWIC_CORP_ge_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_ge_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_ge_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_ge_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_ge_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- dupont (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_dupont_cash > 0 }
+			check_variable = { global.CWIC_CORP_dupont_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_dupont_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_dupont_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_dupont_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_dupont_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- dow (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_dow_cash > 0 }
+			check_variable = { global.CWIC_CORP_dow_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_dow_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_dow_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_dow_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_dow_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- basf (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_basf_cash > 0 }
+			check_variable = { global.CWIC_CORP_basf_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_basf_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_basf_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_basf_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_basf_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- bayer (manufacturing) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_bayer_cash > 0 }
+			check_variable = { global.CWIC_CORP_bayer_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_manufacturing
+				has_variable = corp_bayer_presence_manufacturing
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_bayer_invest_presence_manufacturing = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_manufacturing
+					NOT = { has_variable = corp_bayer_presence_manufacturing }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_manufacturing_index > 1.25 }
+				}
+				cwic_corp_bayer_invest_presence_manufacturing = yes
+			}
+		}
+	}
+
+	# --- ibm (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_ibm_cash > 0 }
+			check_variable = { global.CWIC_CORP_ibm_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_ibm_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_ibm_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_ibm_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_ibm_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- rca (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_rca_cash > 0 }
+			check_variable = { global.CWIC_CORP_rca_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_rca_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_rca_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_rca_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_rca_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- att (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_att_cash > 0 }
+			check_variable = { global.CWIC_CORP_att_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_att_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_att_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_att_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_att_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- itt (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_itt_cash > 0 }
+			check_variable = { global.CWIC_CORP_itt_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_itt_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_itt_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_itt_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_itt_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- siemens (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_siemens_cash > 0 }
+			check_variable = { global.CWIC_CORP_siemens_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_siemens_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_siemens_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_siemens_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_siemens_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- philips (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_philips_cash > 0 }
+			check_variable = { global.CWIC_CORP_philips_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_philips_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_philips_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_philips_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_philips_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- olivetti (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_olivetti_cash > 0 }
+			check_variable = { global.CWIC_CORP_olivetti_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_olivetti_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_olivetti_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_olivetti_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_olivetti_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- sony (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_sony_cash > 0 }
+			check_variable = { global.CWIC_CORP_sony_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_sony_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_sony_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_sony_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_sony_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- panasonic (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_panasonic_cash > 0 }
+			check_variable = { global.CWIC_CORP_panasonic_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_panasonic_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_panasonic_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_panasonic_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_panasonic_invest_presence_electronics = yes
+			}
+		}
+	}
+
+	# --- toshiba (electronics) ---
+	if = {
+		limit = {
+			check_variable = { global.CWIC_CORP_toshiba_cash > 0 }
+			check_variable = { global.CWIC_CORP_toshiba_budget_remaining > 0 }
+		}
+
+		# 1) Try to upgrade existing presence
+		random_country = {
+			limit = {
+				has_country_flag = cwic_mnc_pool_electronics
+				has_variable = corp_toshiba_presence_electronics
+				OR = {
+					cwic_mnc_country_open_for_investment = yes
+					cwic_mnc_country_allows_foreign_concessions = yes
+				}
+			}
+			cwic_corp_toshiba_invest_presence_electronics = yes
+		}
+
+		# 2) If no existing host matched, try a new entry (low chance, stricter threshold)
+		random = {
+			chance = 15
+			random_country = {
+				limit = {
+					has_country_flag = cwic_mnc_pool_electronics
+					NOT = { has_variable = corp_toshiba_presence_electronics }
+					OR = {
+						cwic_mnc_country_open_for_investment = yes
+						cwic_mnc_country_allows_foreign_concessions = yes
+					}
+					check_variable = { CWIC_electronics_index > 1.25 }
+				}
+				cwic_corp_toshiba_invest_presence_electronics = yes
+			}
+		}
+	}
+
+}
+
+cwic_mnc_apply_sector_presence_effects_country = {
+	# Rolls up sector presence totals -> assigns sector tiers -> applies dynamic modifiers.
+	# Thresholds (tune): tier1>0 tier2>5 tier3>12 tier4>20 tier5>30
+
+	# --- HYDROCARBONS ---
+	set_variable = { CWIC_mnc_presence_total_hydrocarbons = 0 }
+	if = {
+		limit = { has_variable = corp_exxon_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_exxon_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_mobil_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_mobil_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_chevron_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_chevron_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_texaco_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_texaco_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_gulf_oil_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_gulf_oil_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_amoco_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_amoco_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_conoco_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_conoco_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_sinclair_oil_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_sinclair_oil_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_shell_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_shell_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_bp_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_bp_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_total_cfp_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_total_cfp_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_eni_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_eni_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_iberia_cepsa_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_iberia_cepsa_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_statoil_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_statoil_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_aramco_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_aramco_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_pdvsa_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_pdvsa_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_nnpc_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_nnpc_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_sonatrach_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_sonatrach_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_pertamina_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_pertamina_presence_hydrocarbons }
+	}
+	if = {
+		limit = { has_variable = corp_pemex_presence_hydrocarbons }
+		add_to_variable = { CWIC_mnc_presence_total_hydrocarbons = corp_pemex_presence_hydrocarbons }
+	}
+	set_variable = {
+		CWIC_mnc_presence_tier_hydrocarbons = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_hydrocarbons greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_hydrocarbons_presence_idea_country = yes
+
+	# --- MINING ---
+	set_variable = { CWIC_mnc_presence_total_mining = 0 }
+	if = {
+		limit = { has_variable = corp_rio_tinto_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_rio_tinto_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_anglo_american_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_anglo_american_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_de_beers_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_de_beers_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_lonrho_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_lonrho_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_inmetco_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_inmetco_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_inco_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_inco_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_alcoa_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_alcoa_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_kennecott_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_kennecott_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_anaconda_copper_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_anaconda_copper_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_noranda_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_noranda_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_sumitomo_mining_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_sumitomo_mining_presence_mining }
+	}
+	if = {
+		limit = { has_variable = corp_gecamines_presence_mining }
+		add_to_variable = { CWIC_mnc_presence_total_mining = corp_gecamines_presence_mining }
+	}
+	set_variable = {
+		CWIC_mnc_presence_tier_mining = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_mining greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_mining_presence_idea_country = yes
+
+	# --- AGRI ---
+	set_variable = { CWIC_mnc_presence_total_agri = 0 }
+	if = {
+		limit = { has_variable = corp_united_fruit_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_united_fruit_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_del_monte_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_del_monte_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_dole_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_dole_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_cargill_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_cargill_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_adm_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_adm_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_bunge_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_bunge_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_unilever_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_unilever_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_nestle_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_nestle_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_cadbury_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_cadbury_presence_agri }
+	}
+	if = {
+		limit = { has_variable = corp_mitsui_bussan_agri_presence_agri }
+		add_to_variable = { CWIC_mnc_presence_total_agri = corp_mitsui_bussan_agri_presence_agri }
+	}
+	set_variable = {
+		CWIC_mnc_presence_tier_agri = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_agri greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_agri_presence_idea_country = yes
+
+	# --- MANUFACTURING ---
+	set_variable = { CWIC_mnc_presence_total_manufacturing = 0 }
+	if = {
+		limit = { has_variable = corp_gm_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_gm_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_ford_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_ford_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_chrysler_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_chrysler_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_vw_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_vw_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_fiat_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_fiat_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_renault_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_renault_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_peugeot_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_peugeot_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_daimler_benz_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_daimler_benz_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_toyota_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_toyota_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_nissan_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_nissan_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_ge_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_ge_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_dupont_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_dupont_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_dow_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_dow_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_basf_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_basf_presence_manufacturing }
+	}
+	if = {
+		limit = { has_variable = corp_bayer_presence_manufacturing }
+		add_to_variable = { CWIC_mnc_presence_total_manufacturing = corp_bayer_presence_manufacturing }
+	}
+	set_variable = {
+		CWIC_mnc_presence_tier_manufacturing = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_manufacturing greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_manufacturing_presence_idea_country = yes
+
+	# --- ELECTRONICS ---
+	set_variable = { CWIC_mnc_presence_total_electronics = 0 }
+	if = {
+		limit = { has_variable = corp_ibm_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_ibm_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_rca_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_rca_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_att_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_att_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_itt_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_itt_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_siemens_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_siemens_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_philips_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_philips_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_olivetti_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_olivetti_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_sony_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_sony_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_panasonic_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_panasonic_presence_electronics }
+	}
+	if = {
+		limit = { has_variable = corp_toshiba_presence_electronics }
+		add_to_variable = { CWIC_mnc_presence_total_electronics = corp_toshiba_presence_electronics }
+	}
+	set_variable = {
+		CWIC_mnc_presence_tier_electronics = {
+			value = 0
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 0 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 5 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 12 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 20 }
+			add = { value = CWIC_mnc_presence_total_electronics greater_than = 30 }
+		}
+	}
+	cwic_mnc_apply_electronics_presence_idea_country = yes
+	cwic_mnc_apply_signature_bonuses_country = yes
+
+}
+
+cwic_mnc_process_invites_global = {
+	# Scans ONLY countries flagged as having pending MNC invites.
+	# Fires at most one invite event per eligible country per month (per-country cooldown).
+	# Call this from a GLOBAL monthly pulse (after budgets are set).
+
+	every_country = {
+		limit = {
+			has_country_flag = cwic_has_pending_mnc_invite
+			NOT = { has_country_flag = cwic_mnc_invite_evt_global_cd }
+		}
+		set_country_flag = { flag = cwic_mnc_invite_evt_global_cd days = 30 }
+
+		if = {
+			limit = {
+				has_variable = cwic_invite_exxon_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_exxon_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1000 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_exxon_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_mobil_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_mobil_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1001 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_mobil_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_chevron_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_chevron_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1002 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_chevron_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_texaco_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_texaco_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1003 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_texaco_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_gulf_oil_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_gulf_oil_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1004 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_gulf_oil_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_amoco_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_amoco_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1005 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_amoco_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_conoco_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_conoco_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1006 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_conoco_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_sinclair_oil_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_sinclair_oil_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1007 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_sinclair_oil_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_shell_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_shell_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1008 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_shell_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_bp_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_bp_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1009 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_bp_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_total_cfp_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_total_cfp_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1010 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_total_cfp_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_eni_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_eni_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1011 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_eni_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_iberia_cepsa_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_iberia_cepsa_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1012 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_iberia_cepsa_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_statoil_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_statoil_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1013 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_statoil_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_aramco_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_aramco_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1014 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_aramco_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_pdvsa_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_pdvsa_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1015 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_pdvsa_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_nnpc_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_nnpc_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1016 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_nnpc_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_sonatrach_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_sonatrach_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1017 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_sonatrach_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_pertamina_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_pertamina_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1018 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_pertamina_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_pemex_hydrocarbons
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_pemex_hydrocarbons }
+			}
+			country_event = { id = CWIC_MNC.1019 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_pemex_hydrocarbons days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_rio_tinto_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_rio_tinto_mining }
+			}
+			country_event = { id = CWIC_MNC.1020 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_rio_tinto_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_anglo_american_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_anglo_american_mining }
+			}
+			country_event = { id = CWIC_MNC.1021 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_anglo_american_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_de_beers_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_de_beers_mining }
+			}
+			country_event = { id = CWIC_MNC.1022 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_de_beers_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_lonrho_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_lonrho_mining }
+			}
+			country_event = { id = CWIC_MNC.1023 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_lonrho_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_inmetco_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_inmetco_mining }
+			}
+			country_event = { id = CWIC_MNC.1024 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_inmetco_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_inco_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_inco_mining }
+			}
+			country_event = { id = CWIC_MNC.1025 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_inco_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_alcoa_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_alcoa_mining }
+			}
+			country_event = { id = CWIC_MNC.1026 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_alcoa_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_kennecott_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_kennecott_mining }
+			}
+			country_event = { id = CWIC_MNC.1027 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_kennecott_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_anaconda_copper_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_anaconda_copper_mining }
+			}
+			country_event = { id = CWIC_MNC.1028 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_anaconda_copper_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_noranda_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_noranda_mining }
+			}
+			country_event = { id = CWIC_MNC.1029 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_noranda_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_sumitomo_mining_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_sumitomo_mining_mining }
+			}
+			country_event = { id = CWIC_MNC.1030 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_sumitomo_mining_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_gecamines_mining
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_gecamines_mining }
+			}
+			country_event = { id = CWIC_MNC.1031 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_gecamines_mining days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_united_fruit_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_united_fruit_agri }
+			}
+			country_event = { id = CWIC_MNC.1032 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_united_fruit_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_del_monte_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_del_monte_agri }
+			}
+			country_event = { id = CWIC_MNC.1033 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_del_monte_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_dole_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_dole_agri }
+			}
+			country_event = { id = CWIC_MNC.1034 }	set_country_flag = { flag = cwic_mnc_invite_evt_cd_dole_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_cargill_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_cargill_agri }
+			}
+			country_event = { id = CWIC_MNC.1035 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_cargill_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_adm_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_adm_agri }
+			}
+			country_event = { id = CWIC_MNC.1036 }set_country_flag = { flag = cwic_mnc_invite_evt_cd_adm_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_bunge_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_bunge_agri }
+			}
+			country_event = { id = CWIC_MNC.1037 }		set_country_flag = { flag = cwic_mnc_invite_evt_cd_bunge_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_unilever_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_unilever_agri }
+			}
+			country_event = { id = CWIC_MNC.1038 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_unilever_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_nestle_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_nestle_agri }
+			}
+			country_event = { id = CWIC_MNC.1039 }			
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_nestle_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_cadbury_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_cadbury_agri }
+			}
+			country_event = { id = CWIC_MNC.1040 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_cadbury_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_mitsui_bussan_agri_agri
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_mitsui_bussan_agri_agri }
+			}
+			country_event = { id = CWIC_MNC.1041 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_mitsui_bussan_agri_agri days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_gm_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_gm_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1042 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_gm_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_ford_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_ford_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1043 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_ford_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_chrysler_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_chrysler_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1044 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_chrysler_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_vw_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_vw_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1045 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_vw_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_fiat_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_fiat_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1046 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_fiat_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_renault_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_renault_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1047 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_renault_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_peugeot_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_peugeot_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1048 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_peugeot_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_daimler_benz_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_daimler_benz_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1049 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_daimler_benz_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_toyota_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_toyota_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1050 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_toyota_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_nissan_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_nissan_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1051 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_nissan_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_ge_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_ge_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1052 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_ge_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_dupont_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_dupont_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1053 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_dupont_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_dow_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_dow_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1054 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_dow_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_basf_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_basf_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1055 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_basf_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_bayer_manufacturing
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_bayer_manufacturing }
+			}
+			country_event = { id = CWIC_MNC.1056 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_bayer_manufacturing days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_ibm_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_ibm_electronics }
+			}
+			country_event = { id = CWIC_MNC.1057 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_ibm_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_rca_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_rca_electronics }
+			}
+			country_event = { id = CWIC_MNC.1058 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_rca_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_att_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_att_electronics }
+			}
+			country_event = { id = CWIC_MNC.1059 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_att_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_itt_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_itt_electronics }
+			}
+			country_event = { id = CWIC_MNC.1060 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_itt_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_siemens_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_siemens_electronics }
+			}
+			country_event = { id = CWIC_MNC.1061 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_siemens_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_philips_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_philips_electronics }
+			}
+			country_event = { id = CWIC_MNC.1062 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_philips_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_olivetti_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_olivetti_electronics }
+			}
+			country_event = { id = CWIC_MNC.1063 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_olivetti_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_sony_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_sony_electronics }
+			}
+			country_event = { id = CWIC_MNC.1064 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_sony_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_panasonic_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_panasonic_electronics }
+			}
+			country_event = { id = CWIC_MNC.1065 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_panasonic_electronics days = 30 }
+		}
+
+		else_if = {
+			limit = {
+				has_variable = cwic_invite_toshiba_electronics
+				NOT = { has_country_flag = cwic_mnc_invite_evt_cd_toshiba_electronics }
+			}
+			country_event = { id = CWIC_MNC.1066 }
+			set_country_flag = { flag = cwic_mnc_invite_evt_cd_toshiba_electronics days = 30 }
+		}
+
+		else = { }
+
+		# Cleanup: keep the pending flag while any invite is still open, so
+		# invites queued behind this month's event fire in later months.
+		if = {
+			limit = { NOT = { cwic_mnc_has_any_invite = yes } }
+			clr_country_flag = cwic_has_pending_mnc_invite
+		}
+	}
+}
