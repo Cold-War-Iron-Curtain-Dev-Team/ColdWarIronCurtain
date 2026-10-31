@@ -1,0 +1,206 @@
+# All entry points below run in SOV country scope. Outcome flags are global;
+# campaign phase and required-theatre flags are country flags on SOV.
+cwic_ww3_begin_campaign = {
+    set_global_flag = WW3_Started
+    cwic_ww3_reset_objectives = yes
+    clr_global_flag = WW3_Ended
+    clr_global_flag = European_is_Soviet
+    clr_global_flag = Full_Soviet_Domination
+    clr_global_flag = SOV_Operation_Red_Dusk_Activated
+    clr_country_flag = cwic_ww3_closed
+    clr_country_flag = cwic_ww3_conference_pending
+    clr_country_flag = cwic_ww3_us_defeated
+    clr_country_flag = SOV_Operation_Red_Dusk_Activated
+    set_country_flag = cwic_ww3_campaign_initialized
+    cwic_ww3_refresh_objectives = yes
+    activate_mission = SOV_WW3_Time_Limit
+}
+
+cwic_ww3_open_european_conference = {
+    if = {
+        limit = {
+            NOT = { has_country_flag = cwic_ww3_conference_pending }
+            NOT = { has_country_flag = cwic_ww3_closed }
+            NOT = { has_country_flag = SOV_Operation_Red_Dusk_Activated }
+            cwic_ww3_europe_secured = yes
+        }
+        set_global_flag = European_is_Soviet
+        set_country_flag = cwic_ww3_conference_pending
+        if = {
+            limit = { has_active_mission = SOV_WW3_Time_Limit }
+            remove_mission = SOV_WW3_Time_Limit
+        }
+        country_event = SOVw_Third_World_War.17
+    }
+}
+
+cwic_ww3_start_red_dusk = {
+    if = {
+        limit = { NOT = { has_country_flag = cwic_ww3_closed } }
+        clr_country_flag = cwic_ww3_conference_pending
+        set_country_flag = SOV_Operation_Red_Dusk_Activated
+        if = {
+            limit = { has_active_mission = SOV_WW3_Time_Limit }
+            remove_mission = SOV_WW3_Time_Limit
+        }
+        activate_mission = SOV_Operation_Red_Dusk
+    }
+}
+
+# Set terminal flags BEFORE peace effects, so capitulation/on-action callbacks
+# cannot restart WW3 or award additional deadline extensions during settlement.
+cwic_ww3_close_campaign = {
+    set_country_flag = cwic_ww3_closed
+    set_global_flag = WW3_Ended
+    clr_global_flag = WW3_Started
+    clr_country_flag = WW3_Started
+    clr_country_flag = SOV_red_dawn_active
+    clr_country_flag = SOV_red_dawn_proposed
+    remove_ideas = SOV_operation_red_dawn # Repair the old country/global flag mismatch.
+    clr_country_flag = cwic_ww3_conference_pending
+    clr_country_flag = SOV_Operation_Red_Dusk_Activated
+    clr_global_flag = SOV_Operation_Red_Dusk_Activated
+    if = {
+        limit = { has_active_mission = SOV_WW3_Time_Limit }
+        remove_mission = SOV_WW3_Time_Limit
+    }
+    if = {
+        limit = { has_active_mission = SOV_Operation_Red_Dusk }
+        remove_mission = SOV_Operation_Red_Dusk
+    }
+}
+
+# End only wars against recorded WW3 opponents, across the Soviet side rather
+# than only SOV vs USA. The nested PREV scopes select the bloc country and enemy.
+# White peace restores unfinished occupations; existing scripted successor states
+# and already completed territorial transfers are not reversed.
+cwic_ww3_settle_bloc_wars = {
+    every_country = {
+        limit = { cwic_ww3_soviet_aligned = yes }
+        every_enemy_country = {
+            limit = {
+                has_country_flag = cwic_ww3_opponent
+                NOT = { cwic_ww3_soviet_aligned = yes }
+            }
+            PREV = { white_peace = PREV }
+        }
+    }
+}
+
+cwic_ww3_accept_european_settlement = {
+    if = {
+        limit = { NOT = { has_country_flag = cwic_ww3_closed } }
+        cwic_ww3_refresh_objectives = yes
+        if = {
+            limit = { cwic_ww3_europe_secured = yes }
+            set_global_flag = European_is_Soviet
+            set_global_flag = CWIC_Achievement_SOV_Won_WW3
+            Super_Event_Partial_SOV_Victory_Play = yes
+        }
+        cwic_ww3_close_campaign = yes
+        cwic_ww3_settle_bloc_wars = yes
+    }
+}
+
+cwic_ww3_force_ceasefire = {
+    if = {
+        limit = { NOT = { has_country_flag = cwic_ww3_closed } }
+        cwic_ww3_refresh_objectives = yes
+        cwic_ww3_close_campaign = yes
+        cwic_ww3_settle_bloc_wars = yes
+        country_event = SOVw_Third_World_War.1010
+    }
+}
+
+cwic_ww3_red_dusk_failure = {
+    if = {
+        limit = { NOT = { has_country_flag = cwic_ww3_closed } }
+        add_stability = -0.50
+        add_war_support = -0.50
+        cwic_ww3_refresh_objectives = yes
+        cwic_ww3_close_campaign = yes
+        cwic_ww3_settle_bloc_wars = yes
+        country_event = SOVw_Third_World_War.1011
+    }
+}
+
+cwic_ww3_red_dusk_victory = {
+    if = {
+        limit = {
+            NOT = { has_country_flag = cwic_ww3_closed }
+            cwic_ww3_north_america_secured = yes
+        }
+        set_global_flag = Full_Soviet_Domination
+        set_global_flag = CWIC_Achievement_SOV_Won_WW3
+        cwic_ww3_close_campaign = yes
+        cwic_ww3_settle_bloc_wars = yes
+        country_event = SOVw_Third_World_War.1000
+    }
+}
+
+# Daily fallback repairs already-running saves and catches legacy missions that
+# expired into the former empty effect. Never grant another free year to a save
+# whose original timer has already expired, and never reset an active countdown.
+cwic_ww3_campaign_tick = {
+    if = {
+        limit = {
+            has_global_flag = WW3_Ended
+            NOT = { has_country_flag = cwic_ww3_closed }
+        }
+        # Legacy conference settlements only made SOV itself leave three wars.
+        # Recover their opposing bloc before repairing peace for Soviet allies.
+        cwic_ww3_refresh_objectives = yes
+        every_country = {
+            limit = {
+                OR = { original_tag = USA is_in_faction_with = USA }
+                NOT = { cwic_ww3_soviet_aligned = yes }
+            }
+            set_country_flag = cwic_ww3_opponent
+        }
+        cwic_ww3_close_campaign = yes
+        cwic_ww3_settle_bloc_wars = yes
+    }
+    else_if = {
+        limit = { has_global_flag = WW3_Started }
+        cwic_ww3_refresh_objectives = yes
+        if = {
+            limit = { NOT = { has_country_flag = cwic_ww3_campaign_initialized } }
+            set_country_flag = cwic_ww3_campaign_initialized
+            if = {
+                limit = { has_global_flag = SOV_Operation_Red_Dusk_Activated }
+                set_country_flag = SOV_Operation_Red_Dusk_Activated
+                clr_global_flag = SOV_Operation_Red_Dusk_Activated
+            }
+        }
+        if = {
+            limit = { has_country_flag = SOV_Operation_Red_Dusk_Activated }
+            if = {
+                limit = { cwic_ww3_north_america_secured = yes }
+                cwic_ww3_red_dusk_victory = yes
+            }
+            else_if = {
+                limit = { NOT = { cwic_ww3_bloc_at_war = yes } }
+                cwic_ww3_close_campaign = yes
+            }
+            else_if = {
+                limit = { NOT = { has_active_mission = SOV_Operation_Red_Dusk } }
+                cwic_ww3_red_dusk_failure = yes
+            }
+        }
+        else_if = {
+            limit = { NOT = { has_country_flag = cwic_ww3_conference_pending } }
+            if = {
+                limit = { cwic_ww3_europe_secured = yes }
+                cwic_ww3_open_european_conference = yes
+            }
+            else_if = {
+                limit = { NOT = { cwic_ww3_bloc_at_war = yes } }
+                cwic_ww3_close_campaign = yes
+            }
+            else_if = {
+                limit = { NOT = { has_active_mission = SOV_WW3_Time_Limit } }
+                cwic_ww3_force_ceasefire = yes
+            }
+        }
+    }
+}
