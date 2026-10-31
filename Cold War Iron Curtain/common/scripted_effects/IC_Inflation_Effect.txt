@@ -427,38 +427,49 @@ cwic_inflation_tier_monthly_assign = {
 		}
 	}
 
-	# ------------------------------------------------------------
-	# 3) Apply tier idea (remove all, then add the one for CWIC_infl_tier_id)
-	# ------------------------------------------------------------
-	remove_ideas = CWIC_infl_env_deflation_1
-	remove_ideas = CWIC_infl_env_deflation_2
-	remove_ideas = CWIC_infl_env_deflation_3
-	remove_ideas = CWIC_infl_env_very_stable_1
-	remove_ideas = CWIC_infl_env_stable_2
-	remove_ideas = CWIC_infl_env_mild_4
-	remove_ideas = CWIC_infl_env_noticeable_8
-	remove_ideas = CWIC_infl_env_moderate_10
-	remove_ideas = CWIC_infl_env_high_15
-	remove_ideas = CWIC_infl_env_serious_25
-	remove_ideas = CWIC_infl_env_crisis_50
-	remove_ideas = CWIC_infl_env_hyper_light_100
-	remove_ideas = CWIC_infl_env_hyper_hard_200
+	# Only touch the ideas when the tier actually changed (each idea change forces a modifier recalculation).
+	if = {
+		limit = {
+			OR = {
+				NOT = { has_variable = CWIC_infl_tier_applied }
+				NOT = { check_variable = { CWIC_infl_tier_applied = CWIC_infl_tier_id } }
+			}
+		}
+		
+		set_variable = { CWIC_infl_tier_applied = CWIC_infl_tier_id }
+		# ------------------------------------------------------------
+		# 3) Apply tier idea (remove all, then add the one for CWIC_infl_tier_id)
+		# ------------------------------------------------------------
+		# Idea updates are skipped entirely while the tier stays unchanged.
+		# Clear incompatible tiers on a cache miss, including the first tick of an existing save.
+		remove_ideas = CWIC_infl_env_deflation_1
+		remove_ideas = CWIC_infl_env_deflation_2
+		remove_ideas = CWIC_infl_env_deflation_3
+		remove_ideas = CWIC_infl_env_very_stable_1
+		remove_ideas = CWIC_infl_env_stable_2
+		remove_ideas = CWIC_infl_env_mild_4
+		remove_ideas = CWIC_infl_env_noticeable_8
+		remove_ideas = CWIC_infl_env_moderate_10
+		remove_ideas = CWIC_infl_env_high_15
+		remove_ideas = CWIC_infl_env_serious_25
+		remove_ideas = CWIC_infl_env_crisis_50
+		remove_ideas = CWIC_infl_env_hyper_light_100
+		remove_ideas = CWIC_infl_env_hyper_hard_200
+		if = { limit = { check_variable = { CWIC_infl_tier_id = 3 } } add_ideas = CWIC_infl_env_deflation_3 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 2 } } add_ideas = CWIC_infl_env_deflation_2 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 1 } } add_ideas = CWIC_infl_env_deflation_1 }
 
-	# Add the active one
-	if = { limit = { check_variable = { CWIC_infl_tier_id = 3 } } add_ideas = CWIC_infl_env_deflation_3 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 2 } } add_ideas = CWIC_infl_env_deflation_2 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 1 } } add_ideas = CWIC_infl_env_deflation_1 }
-
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 20 } } add_ideas = CWIC_infl_env_hyper_hard_200 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 19 } } add_ideas = CWIC_infl_env_hyper_light_100 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 18 } } add_ideas = CWIC_infl_env_crisis_50 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 17 } } add_ideas = CWIC_infl_env_serious_25 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 16 } } add_ideas = CWIC_infl_env_high_15 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 15 } } add_ideas = CWIC_infl_env_moderate_10 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 14 } } add_ideas = CWIC_infl_env_noticeable_8 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 13 } } add_ideas = CWIC_infl_env_mild_4 }
-	else_if = { limit = { check_variable = { CWIC_infl_tier_id = 12 } } add_ideas = CWIC_infl_env_stable_2 }
-	else = { add_ideas = CWIC_infl_env_very_stable_1 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 20 } } add_ideas = CWIC_infl_env_hyper_hard_200 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 19 } } add_ideas = CWIC_infl_env_hyper_light_100 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 18 } } add_ideas = CWIC_infl_env_crisis_50 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 17 } } add_ideas = CWIC_infl_env_serious_25 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 16 } } add_ideas = CWIC_infl_env_high_15 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 15 } } add_ideas = CWIC_infl_env_moderate_10 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 14 } } add_ideas = CWIC_infl_env_noticeable_8 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 13 } } add_ideas = CWIC_infl_env_mild_4 }
+		else_if = { limit = { check_variable = { CWIC_infl_tier_id = 12 } } add_ideas = CWIC_infl_env_stable_2 }
+		else = { add_ideas = CWIC_infl_env_very_stable_1 }
+	}
 }
 cwic_capital_controls_monthly_effects = {
 
@@ -875,3 +886,107 @@ cwic_calc_inflation_pressure_index = {
 	clamp_variable = { var = CWIC_inflation_pressure_index min = 0 max = 6 }
 }
 
+
+cwic_action_capital_controls_light = {
+	set_country_flag = CWIC_capital_controls_light
+	subtract_from_variable = { CWIC_inflation_mom = 0.002 }
+	add_to_variable = { CWIC_inflation_bias_mom = -0.0005 }
+	add_to_variable = { CWIC_black_market_pressure = 0.05 }
+}
+cwic_action_capital_controls_heavy = {
+	set_country_flag = CWIC_capital_controls_heavy
+	subtract_from_variable = { CWIC_inflation_mom = 0.006 }
+	add_to_variable = { CWIC_inflation_bias_mom = -0.001 }
+	add_to_variable = { CWIC_black_market_pressure = 0.15 }
+}
+cwic_action_price_controls_basic = {
+	set_country_flag = CWIC_price_controls_basic
+	subtract_from_variable = { CWIC_inflation_mom = 0.0015 }
+	add_to_variable = { CWIC_black_market_pressure = 0.08 }
+}
+cwic_action_fx_controls_dual = {
+	set_country_flag = CWIC_fx_controls_dual
+	subtract_from_variable = { CWIC_inflation_mom = 0.003 }
+	add_to_variable = { CWIC_black_market_pressure = 0.12 }
+	add_to_variable = { CWIC_productivity_mult = -0.03 }
+}
+cwic_action_capital_controls_lift = {
+	add_to_variable = { CWIC_inflation_mom = 0.0015 }
+	if = {
+		limit = { has_country_flag = CWIC_capital_controls_heavy }
+		add_to_variable = { CWIC_inflation_mom = 0.0025 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.40 } }
+		add_to_variable = { CWIC_inflation_mom = 0.0010 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_black_market_pressure > 0.70 } }
+		add_to_variable = { CWIC_inflation_mom = 0.0015 }
+	}
+	clr_country_flag = CWIC_capital_controls_light
+	clr_country_flag = CWIC_capital_controls_heavy
+	clr_country_flag = CWIC_fx_controls_dual
+	clr_country_flag = CWIC_price_controls_basic
+	add_to_variable = { CWIC_inflation_bias_mom = 0.0005 }
+}
+cwic_action_black_market_raids = {
+	subtract_from_variable = { CWIC_black_market_pressure = 0.10 }
+	add_to_variable = { CWIC_productivity_mult = -0.002 }
+	set_country_flag = {
+		flag = Black_Market_Raids
+		days = 30
+	}
+}
+cwic_action_black_market_enforcement_campaign = {
+	subtract_from_variable = { CWIC_black_market_pressure = 0.25 }
+	add_to_variable = { CWIC_productivity_mult = -0.008 }
+	set_country_flag = {
+		flag = Black_Market_Raids
+		days = 30
+	}
+}
+cwic_action_black_market_amnesty = {
+	subtract_from_variable = { CWIC_black_market_pressure = 0.20 }
+	add_to_variable = { CWIC_inflation_mom = 0.0010 }
+	set_country_flag = {
+		flag = Black_Market_Amnesty
+		days = 365
+	}
+}
+cwic_action_enable_money_printing = {
+	set_country_flag = CWIC_money_printing_active
+}
+cwic_action_disable_money_printing = {
+	clr_country_flag = CWIC_money_printing_active
+}
+cwic_action_enable_monetary_tightening = {
+	set_country_flag = CWIC_monetary_tightening_active
+	subtract_from_variable = { CWIC_inflation_mom = 0.003 }
+	add_to_variable = { CWIC_productivity_mult = -0.010 }
+	add_to_variable = { CWIC_black_market_pressure = 0.02 }
+}
+cwic_action_disable_monetary_tightening = {
+	clr_country_flag = CWIC_monetary_tightening_active
+}
+cwic_action_currency_reform = {
+	multiply_variable = { CWIC_cpi_index = 0.50 }
+	subtract_from_variable = { CWIC_inflation_mom = 0.010 }
+	subtract_from_variable = { CWIC_inflation_bias_mom = 0.001 }
+	subtract_from_variable = { CWIC_black_market_pressure = 0.20 }
+	add_to_variable = { CWIC_productivity_mult = -0.020 }
+	set_country_flag = CWIC_currency_reform_recent
+	set_variable = { CWIC_reform_cooldown = 24 }
+}
+cwic_action_internationalize_currency = {
+	set_variable = { CWIC_reserve_currency = 1 }
+	set_variable = { CWIC_reserve_trust = 0.50 }
+}
+cwic_action_adopt_currency_peg = {
+	set_variable = { CWIC_fx_regime = 1 }
+	subtract_from_variable = { CWIC_fx_reserves = 2 }
+	if = { limit = { check_variable = { CWIC_fx_reserves < 0 } } set_variable = { CWIC_fx_reserves = 0 } }
+}
+cwic_action_float_currency = {
+	set_variable = { CWIC_fx_regime = 0 }
+}

@@ -1,0 +1,38 @@
+scripted_gui = {
+	# Topbar alert for active economic crises (CWIC_active_crises, rebuilt
+	# monthly by CWIC_update_active_crisis_arrays). Left-click opens the
+	# Finance window on the Crisis view. Right-click dismisses it until a
+	# crisis starts or worsens (CWIC_crisis_alert_score rises).
+	CWIC_crisis_alert_gui = {
+		context_type = player_context
+		parent_window_token = top_bar
+		window_name = "CWIC_crisis_alert_window"
+
+		visible = {
+			check_variable = { CWIC_active_crisis_count > 0 }
+			NOT = { has_country_flag = CWIC_crisis_alert_dismissed }
+		}
+
+		effects = {
+			CWIC_crisis_alert_button_click = {
+				close_all_windows = yes
+				set_variable = { show_finance = 1 }
+				var:sphere_leader = {
+					save_global_event_target_as = local_sphere_leader
+				}
+				set_variable = { show_current_borrowing = 0 }
+				set_variable = { show_current_loans = 0 }
+				set_variable = { show_current_overview = 0 }
+				set_variable = { show_current_fiscal = 1 }
+				set_variable = { show_current_employment = 0 }
+				set_variable = { show_current_policy = 0 }
+				set_variable = { show_current_fiscal_crisis = 1 }
+				set_variable = { show_current_fiscal_crisis_button = 0 }
+				Laffer_Graph_Financial_Tab_Update = yes
+			}
+			CWIC_crisis_alert_button_right_click = {
+				set_country_flag = CWIC_crisis_alert_dismissed
+			}
+		}
+	}
+}
