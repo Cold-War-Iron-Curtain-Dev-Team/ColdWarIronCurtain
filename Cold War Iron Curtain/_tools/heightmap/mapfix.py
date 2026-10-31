@@ -3,6 +3,7 @@
 Run from the mod root:  python _tools/heightmap/mapfix.py
 - provinces.bmp: one-pixel specks, 'X crossings' (2x2 diagonal checkerboards) and pieces under 3 px fold into a neighbour
   (a province is never removed: its last piece grows instead)
+- provinces.bmp: no four provinces meeting at one corner; no land province touching sea only at a corner
 - definition.csv: coastal flag recomputed from the bitmap (land touching sea / sea touching land)
 - strategicregions: a state's provinces all go to its main region; land never sits in a sea region; a sea region's
   pieces cut off from its main body join the sea region they touch most
@@ -54,27 +55,39 @@ def clean(k):
         for y, x in zip(*np.nonzero(~same)):
             if total.get(k[y, x], 0) > 1:
                 v = majority_neighbour(k, y, x); total[k[y, x]] -= 1; k[y, x] = v; n += 1
+        # four provinces meeting at one corner (the engine's "invalid X crossing"), across the seam too: the pixel of
+        # the biggest of the four takes its vertical neighbour's colour
+        kw = np.concatenate([k, k[:, :1]], 1)
+        A, B, C, D = kw[:-1, :-1], kw[:-1, 1:], kw[1:, :-1], kw[1:, 1:]
+        ys, xs = np.nonzero((A != B) & (A != C) & (A != D) & (B != C) & (B != D) & (C != D))
+        for y, x in zip(ys, xs):
+            x1 = (x + 1) % W  # vertical partner: never copies a colour across the seam
+            cells = [(y, x, (y + 1, x)), (y, x1, (y + 1, x1)), (y + 1, x, (y, x)), (y + 1, x1, (y, x1))]
+            if len({k[a, b] for a, b, _ in cells}) < 4:
+                continue
+            a, b, (c, d) = max(cells, key=lambda t: total.get(k[t[0], t[1]], 0))
+            total[k[a, b]] -= 1; k[a, b] = k[c, d]; n += 1
+        # pieces under 3 px: fold extra pieces, grow a province whose only piece is that small
+        from skimage.measure import label
+        lab = label(k + 1, connectivity=1, background=0)
+        sizes = np.bincount(lab.ravel())
+        small = 0
+        for l in np.flatnonzero(sizes[1:] < 3) + 1:
+            ys, xs = np.nonzero(lab == l) if sizes[l] else ((), ())
+            if not len(ys):
+                continue
+            key = k[ys[0], xs[0]]
+            if (k == key).sum() > sizes[l]:  # another piece exists: fold this one
+                for y, x in zip(ys, xs):
+                    k[y, x] = majority_neighbour(k, y, x); small += 1
+            else:  # its only piece: grow into the 3x3, never taking from a small province
+                for y, x in [(ys[0] + dy, xs[0] + dx) for dy in (0, 1, -1) for dx in (0, 1, -1)]:
+                    if 0 <= y < H and k[y, x % W] != key and (k == k[y, x % W]).sum() > 8:
+                        k[y, x % W] = key; small += 1
+        n += small
         print(f"  pass {it}: {n} pixels changed")
         if not n:
             break
-    # pieces under 3 px: fold extra pieces, grow a province whose only piece is that small
-    from skimage.measure import label
-    lab = label(k + 1, connectivity=1, background=0)
-    sizes = np.bincount(lab.ravel())
-    small = 0
-    for l in np.flatnonzero(sizes[1:] < 3) + 1:
-        ys, xs = np.nonzero(lab == l) if sizes[l] else ((), ())
-        if not len(ys):
-            continue
-        key = k[ys[0], xs[0]]
-        if (k == key).sum() > sizes[l]:  # another piece exists: fold this one
-            for y, x in zip(ys, xs):
-                k[y, x] = majority_neighbour(k, y, x); small += 1
-        else:  # its only piece: grow into the 3x3, never taking from a small province
-            for y, x in [(ys[0] + dy, xs[0] + dx) for dy in (0, 1, -1) for dx in (0, 1, -1)]:
-                if 0 <= y < H and k[y, x % W] != key and (k == k[y, x % W]).sum() > 8:
-                    k[y, x % W] = key; small += 1
-    print(f"  small pieces fixed: {small} px")
     return k
 
 
@@ -104,6 +117,26 @@ def main():
             lut[(int(p[1]) << 16) | (int(p[2]) << 8) | int(p[3])] = int(p[0]); kind[int(p[0])] = p[4]; row[int(p[0])] = i
     uk, inv = np.unique(k, return_inverse=True)
     ids = np.array([lut[int(v)] for v in uk])[inv].reshape(k.shape)
+    H, W = ids.shape
+    # the engine calls a land province coastal when it touches sea even at a corner; a corner-only contact gives it
+    # no shore for a port, so that corner sea pixel joins the land beside it
+    fixed = 0
+    for _ in range(10):
+        sea = np.isin(ids, [q for q, v in kind.items() if v == "sea"])
+        land = np.isin(ids, [q for q, v in kind.items() if v == "land"])
+        sh = lambda a, dy, dx: np.roll(np.roll(a, -dy, 0), -dx, 1)
+        c4 = set(np.unique(ids[land & (sh(sea, 1, 0) | sh(sea, -1, 0) | sh(sea, 0, 1) | sh(sea, 0, -1))]))
+        bad = []
+        for dy, dx in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+            m = land & sh(sea, dy, dx) & ~np.isin(ids, list(c4))
+            m[[0, -1]] = False
+            bad += [(y + dy, (x + dx) % W, y, (x + dx) % W) for y, x in zip(*np.nonzero(m))]
+        if not bad:
+            break
+        for sy, sx, ly, lx in bad:
+            ids[sy, sx] = ids[ly, lx]; k[sy, sx] = k[ly, lx]; fixed += 1
+    print("corner-only sea contacts filled:", fixed)
+    Image.fromarray(to_rgb(k), "RGB").save(P)
     nb = adjacency(ids)
 
     # a sea pocket with no sea neighbour cuts its naval region in two: make it a lake
@@ -156,6 +189,29 @@ def main():
             if region_of.get(p) != main_r:
                 region_of[p] = main_r; moved += 1
     print("provinces moved to their state's region:", moved)
+    # a land region holding a few sea provinces counts as naval for the engine, which then wants it in one piece
+    # (adjacencies.csv crossings count): if it is not, its sea provinces go to the sea region they touch most
+    links = {}
+    for l in open("map/adjacencies.csv", encoding="utf-8", errors="ignore"):
+        q = l.split(";")
+        if len(q) > 2 and q[0].isdigit() and q[1].isdigit() and q[2] != "impassable":
+            links.setdefault(int(q[0]), set()).add(int(q[1])); links.setdefault(int(q[1]), set()).add(int(q[0]))
+    for r in files:
+        ms = set(members(r))
+        seas = [p for p in ms if kind.get(p) == "sea"]
+        if not seas or is_sea_region[r]:
+            continue
+        part, todo = set(), [next(iter(ms))]
+        while todo:
+            x = todo.pop()
+            if x not in part:
+                part.add(x); todo += [q for q in set(nb.get(x, {})) | links.get(x, set()) if q in ms and q not in part]
+        if len(part) == len(ms):
+            continue
+        for p in seas:
+            w = {region_of[q]: n for q, n in nb.get(p, {}).items() if kind.get(q) == "sea" and region_of.get(q, r) != r and is_sea_region[region_of[q]]}
+            if w:
+                region_of[p] = max(w, key=w.get); print("  sea", p, "out of split land region", r, "->", region_of[p])
     cut = 0
     for r in [r for r in files if is_sea_region[r]]:
         ms = set(members(r))

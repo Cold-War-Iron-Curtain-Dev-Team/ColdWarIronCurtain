@@ -179,7 +179,8 @@ def main(warp_npz, write=False):
             out.append(";".join(p))
         print(f"{path}: {len(lines)} entries, height changed {dy}, moved back inside {moved}, victory points placed {vp}")
         if write:
-            open(path, "w", encoding="utf-8", newline="\r\n").write("\n".join(out) + "\n")
+            # no newline after the last entry (as vanilla): the engine reads a trailing one as an empty, invalid line
+            open(path, "w", encoding="utf-8", newline="\r\n").write("\n".join(out))
 
 
 if __name__ == "__main__":
