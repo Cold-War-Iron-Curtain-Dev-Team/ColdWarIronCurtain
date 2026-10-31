@@ -63,13 +63,13 @@ static const float MUD_NORMAL_CUTOFF 			= 10.982;
 static const float MUD_STRENGHTEN 				= 1.0;
 
 static const float 	SNOW_OPACITY_MIN			= 0.95f;
-static const float 	SNOW_OPACITY_MAX			= 0.2f;
+static const float 	SNOW_OPACITY_MAX			= 0.65f; // CWIC: was 0.2, winter vanished when zoomed out
 static const float 	SNOW_CAM_MIN 				= 50.0f;
 static const float 	SNOW_CAM_MAX 				= 300.0f;
 static const float 	MUD_CAM_MIN 				= 50.0f;
 static const float 	MUD_CAM_MAX 				= 300.0f;
-static const float 	ICE_CAM_MIN 				= 100.0f;
-static const float 	ICE_CAM_MAX 				= 350.0f;
+static const float 	ICE_CAM_MIN 				= 3000.0f; // CWIC: was 100, sea ice stays visible zoomed out
+static const float 	ICE_CAM_MAX 				= 6000.0f; // CWIC: was 350
 
 
 static const float 	SNOW_START_HEIGHT 			= 3.0f;
@@ -82,7 +82,7 @@ static const float 	SNOW_SPEC_GLOSS_MULT 		= 0.2f;
 static const float 	SNOW_TILING  				= 0.05f;
 static const float 	SNOW_NOISE_TILING  			= 0.06f;
 static const float 	SNOW_ICE_NOISE_TILING  		= 0.0625f;
-static const float 	SNOW_FROST_MIN_EFFECT  		= 0.4f;
+static const float 	SNOW_FROST_MIN_EFFECT  		= 0.5f; // CWIC: was 0.4, light snow reads as frost
 
 static const float3 ICE_COLOR 					= float3( 0.5f, 0.6f, 0.9f );
 static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
@@ -110,8 +110,8 @@ static const float 	BORDER_TILE					= 0.4f;
 // Snow fade									standardfuncsgfx.fxh   
 // 	float vSnow = saturate( saturate( vNoise - ( 1.0f - vIsSnow ) ) * 5.0f );
 
-static const float 	TREE_SEASON_MIN 			= 0.5f;
-static const float 	TREE_SEASON_FADE_TWEAK 		= 2.5f;
+static const float 	TREE_SEASON_MIN 			= 0.58f; // CWIC: was 0.5; seasons fade in from ~30N
+static const float 	TREE_SEASON_FADE_TWEAK 		= 6.0f; // CWIC: was 2.5; full by ~50N instead of ~63N
 
 // --------------------------------------------------------------
 // ------------------    HDR          	-------------------------
@@ -194,13 +194,13 @@ static const float  SHADOW_WEIGHT_TREE   		= 0.7f;
 
 static const float GB_CAM_MIN = 100.0f;
 static const float GB_CAM_MAX = 350.0f;
-static const float GB_CAM_MAX_FILLING_CLAMP = 1.0f; // 0 to 1 value for clamping the fill when camera is at max distance
+static const float GB_CAM_MAX_FILLING_CLAMP = 0.8f; // CWIC: was 1.0 // 0 to 1 value for clamping the fill when camera is at max distance
 static const float GB_THRESHOLD = 0.05f; // interpolation time
 static const float GB_THRESHOLD2 = 0.25f; // interpolation time
 //static const float3 GB_OUTLINE_COLOR = float3( 0.0f, 0.0f, 0.0f );
 static const float GB_OUTLINE_CUTOFF_SEA = 0.990f; // Magic number to balance cutoff on edges without neighbor (over Sea)
-static const float GB_OPACITY_NEAR = 1.0f; // Transparency when camera is near
-static const float GB_OPACITY_FAR = 0.95f;  // Transparency when camera is far
+static const float GB_OPACITY_NEAR = 0.7f; // CWIC: was 1.0, terrain shows through country colours // Transparency when camera is near
+static const float GB_OPACITY_FAR = 0.7f; // CWIC: was 0.95  // Transparency when camera is far
 static const float BORDER_NIGHT_DESATURATION_MAX = 0.4f; // how much border colors can get desaturated at night. 1.0f is full grey
 static const float BORDER_FOW_REMOVAL_FACTOR = .845f; // How much of the FOW that is removed from the borders. 1.0f is no FOW
 static const float BORDER_LIGHT_REMOVAL_FACTOR = 0.2f; // How much of the light calculations that are removed from the borders. 1.0f is no light
