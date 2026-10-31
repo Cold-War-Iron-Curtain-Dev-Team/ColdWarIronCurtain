@@ -1,0 +1,268 @@
+"""Generate bill metadata and instrument existing vote start/resolution effects.
+
+The countdown reads days_decision_timeout directly. No countdown tick, mission,
+country flag or periodic decision scan is introduced. Metadata recovery is used
+once for a vote that was already in progress when this UI was installed.
+"""
+
+import argparse
+import json
+from pathlib import Path
+import re
+
+from generate_us_congress_lobbying import text_function
+
+ROOT = Path(__file__).resolve().parents[1]
+DECISIONS = ROOT / "common/decisions/US_HOUSE.txt"
+EFFECTS = ROOT / "common/scripted_effects/USA_congress_vote_effects.txt"
+SCRIPTED_LOC = ROOT / "common/scripted_localisation/USA_congress_vote_localisation.txt"
+LOCALISATION = ROOT / "localisation/english/US_Congress_Votes_l_english.yml"
+TOKENS = re.compile(r'"(?:\\.|[^"\\])*"|#[^\n]*|[{}]')
+
+
+def blocks(source, depth_wanted):
+    """Yield named blocks at a specified depth, preserving source offsets."""
+    masked = re.sub(r'"(?:\\.|[^"\\])*"|#[^\n]*', lambda m: " " * len(m[0]), source)
+    depth = 0
+    stack = []
+    for match in TOKENS.finditer(masked):
+        if match[0] == "{":
+            name = re.search(r'(\w+)\s*=\s*$', masked[max(0, match.start() - 512):match.start()])
+            stack.append((name[1] if name else None, match.start(), depth))
+            depth += 1
+        elif match[0] == "}":
+            depth -= 1
+            name, opening, level = stack.pop()
+            if level == depth_wanted and name:
+                yield name, opening, match.end()
+    assert not stack
+
+
+def localisation_index():
+    index = {}
+    for path in sorted((ROOT / "localisation/english").glob("*.yml")):
+        if path == LOCALISATION:
+            continue
+        for m in re.finditer(r'^\s*([^\s:#]+):\d*\s*"(.*)"\s*$', path.read_text(encoding="utf-8-sig"), re.M):
+            index[m[1]] = m[2]
+    return index
+
+
+def bill_metadata(source):
+    loc = localisation_index()
+    result = []
+    for key, opening, end in blocks(source, 1):
+        body = source[opening:end]
+        if "usa_current_legislation = token:" not in body:
+            continue
+        children = {name: (a + opening, b + opening) for name, a, b in blocks(body, 1)}
+        complete = children["complete_effect"]
+        remove = children["remove_effect"]
+        success = re.search(
+            r'check_variable\s*=\s*\{\s*supseat\s*>\s*(\d+)\s*\}'
+            r'\s*check_variable\s*=\s*\{\s*supseat_sen\s*>\s*(\w+)\s*\}',
+            source[remove[0]:remove[1]],
+        )
+        assert success, f"Unrecognised vote threshold: {key}"
+        title = loc.get(key, key)
+        for _ in range(10):
+            expanded = re.sub(r'\$([^$]+)\$', lambda m: loc.get(m[1], m[1]), title)
+            if expanded == title:
+                break
+            title = expanded
+        title = re.sub("\u00a7.", "", title).replace("\\n", " ")
+        assert "$" not in title and title != key, (key, title)
+        short = title.removeprefix("The ")
+        if len(short) > 44:
+            short = short[:41].rsplit(" ", 1)[0] + "..."
+        result.append(dict(key=key, complete=complete, remove=remove,
+                           house=int(success[1]) + 1, senate=success[2],
+                           dynamic=int(not success[2].isdigit()), title=title,
+                           short=short, short_key="USA_CONGRESS_SHORT_" + key))
+    assert len(result) == 517, len(result)
+    return result
+
+
+def arguments(bill):
+    return (f'BILL = token:{bill["key"]} HOUSE = {bill["house"]} SENATE = {bill["senate"]} '
+            f'DYNAMIC = {bill["dynamic"]} SHORT = token:{bill["short_key"]}')
+
+
+def instrument(source, bills):
+    edits = []
+    for bill in bills:
+        for field, effect in [("complete", "USA_begin_congress_vote"), ("remove", "USA_record_congress_vote")]:
+            opening, end = bill[field]
+            body = source[opening:end]
+            line = f'hidden_effect = {{ {effect} = {{ {arguments(bill)} }} }}'
+            existing = re.search(r'(?m)^[ \t]*hidden_effect[ \t]*=[ \t]*\{[ \t]*' + effect + r'[ \t]*=[ \t]*\{[^\n]*\}[ \t]*\}[ \t]*$', body)
+            if existing:
+                edits.append((opening + existing.start(), opening + existing.end(), "\t\t\t" + line))
+            else:
+                # Metadata is hidden from the decision tooltip. Capture final
+                # votes before the existing result effects clear the counters.
+                pos = end - 1 if field == "complete" else opening + 1
+                insertion = "\n\t\t\t" + line + "\n\t\t" if field == "complete" else "\n\t\t\t" + line
+                edits.append((pos, pos, insertion))
+    for start, end, replacement in sorted(edits, reverse=True):
+        source = source[:start] + replacement + source[end:]
+    source = re.sub(r'(?m)(?:^[ \t]*\n)+(?=[ \t]*hidden_effect = \{ USA_(?:begin|record)_congress_vote)', '', source)
+    return source
+
+
+COMMON_EFFECTS = '''# Generated by _tools/generate_us_congress_votes.py.
+USA_set_congress_vote_requirements = {
+    set_variable = { usa_current_legislation = $BILL$ }
+    set_variable = { usa_vote_house_required = $HOUSE$ }
+    set_variable = { usa_vote_senate_required = $SENATE$ }
+    add_to_variable = { usa_vote_senate_required = 1 }
+    set_variable = { usa_vote_senate_dynamic = $DYNAMIC$ }
+    set_variable = { usa_current_legislation_short = $SHORT$ }
+}
+
+USA_begin_congress_vote = {
+    USA_set_congress_vote_requirements = { BILL = $BILL$ HOUSE = $HOUSE$ SENATE = $SENATE$ DYNAMIC = $DYNAMIC$ SHORT = $SHORT$ }
+    USA_refresh_congress_vote_totals = yes
+}
+
+USA_refresh_congress_vote_totals = {
+    if = {
+        limit = { has_country_flag = law_passing has_variable = usa_vote_house_required }
+        if = {
+            limit = { check_variable = { usa_vote_senate_dynamic = 1 } }
+            set_variable = { usa_vote_senate_required = senate_passing_value }
+            add_to_variable = { usa_vote_senate_required = 1 }
+        }
+        set_variable = { usa_vote_house_needed = usa_vote_house_required }
+        subtract_from_variable = { usa_vote_house_needed = supseat }
+        clamp_variable = { var = usa_vote_house_needed min = 0 max = 10000 }
+        set_variable = { usa_vote_senate_needed = usa_vote_senate_required }
+        subtract_from_variable = { usa_vote_senate_needed = supseat_sen }
+        clamp_variable = { var = usa_vote_senate_needed min = 0 max = 10000 }
+    }
+}
+
+USA_record_congress_vote = {
+    USA_set_congress_vote_requirements = { BILL = $BILL$ HOUSE = $HOUSE$ SENATE = $SENATE$ DYNAMIC = $DYNAMIC$ SHORT = $SHORT$ }
+    set_variable = { usa_last_bill = usa_current_legislation }
+    set_variable = { usa_last_bill_short = usa_current_legislation_short }
+    set_variable = { usa_last_house_support = supseat }
+    set_variable = { usa_last_senate_support = supseat_sen }
+    set_variable = { usa_last_house_required = usa_vote_house_required }
+    set_variable = { usa_last_senate_required = usa_vote_senate_required }
+    set_variable = { usa_last_house_total = US_HOUSE_SIZE }
+    set_variable = { usa_last_senate_total = US_SENATE }
+    set_variable = { usa_last_bill_result = 2 }
+    if = {
+        limit = {
+            NOT = { check_variable = { supseat < usa_last_house_required } }
+            NOT = { check_variable = { supseat_sen < usa_last_senate_required } }
+        }
+        set_variable = { usa_last_bill_result = 1 }
+    }
+}
+
+# Used only for an existing saved vote without the new display metadata.
+USA_recover_congress_vote_metadata = {
+RECOVERY
+}
+'''
+
+
+def generate(bills):
+    recovery = []
+    loc = {bill["short_key"]: bill["short"] for bill in bills}
+    for index, bill in enumerate(bills):
+        branch = "if" if index == 0 else "else_if"
+        recovery.extend([
+            f'    {branch} = {{',
+            f'        limit = {{ check_variable = {{ usa_current_legislation = token:{bill["key"]} }} }}',
+            f'        USA_set_congress_vote_requirements = {{ {arguments(bill)} }}',
+            '    }',
+        ])
+    effects = COMMON_EFFECTS.replace("RECOVERY", "\n".join(recovery))
+    loc.update({
+        "USA_CONGRESS_CURRENT_COMPACT": "Current bill:\n[?USA.usa_current_legislation_short.GetTokenLocalizedKey]",
+        "USA_CONGRESS_VOTE_COUNTDOWN": "Vote in §Y[?USA.days_decision_timeout@var:usa_current_legislation|0] days§!",
+        "USA_CONGRESS_VOTE_TIMER_UNKNOWN": "Vote deadline unavailable",
+        "USA_CONGRESS_VOTE_TIMER_TT": "§YVote deadline§!\nThe remaining time is read from the active bill's decision timer. The vote resolves when that timer ends.",
+        "USA_CONGRESS_HOUSE_NEEDED": "House: [?USA.supseat|0]/[?USA.usa_vote_house_required|0] · §R[?USA.usa_vote_house_needed|0] needed§!",
+        "USA_CONGRESS_SENATE_NEEDED": "Senate: [?USA.supseat_sen|0]/[?USA.usa_vote_senate_required|0] · §R[?USA.usa_vote_senate_needed|0] needed§!",
+        "USA_CONGRESS_HOUSE_READY": "House: [?USA.supseat|0]/[?USA.usa_vote_house_required|0] · §GReady§!",
+        "USA_CONGRESS_SENATE_READY": "Senate: [?USA.supseat_sen|0]/[?USA.usa_vote_senate_required|0] · §GReady§!",
+        "USA_CONGRESS_HOUSE_REQUIREMENT_TT": "§YHouse vote§!\nSupporting: [?USA.supseat|0] / [?USA.US_HOUSE_SIZE|0] representatives\nRequired for this bill: §Y[?USA.usa_vote_house_required|0]§!\nAdditional votes needed: §R[?USA.usa_vote_house_needed|0]§!",
+        "USA_CONGRESS_SENATE_REQUIREMENT_TT": "§YSenate vote§!\nSupporting: [?USA.supseat_sen|0] / [?USA.US_SENATE|0] senators\nRequired for this bill: §Y[?USA.usa_vote_senate_required|0]§!\nAdditional votes needed: §R[?USA.usa_vote_senate_needed|0]§!",
+        "USA_CONGRESS_LAST_PASSED": "Last vote: §GPassed§!",
+        "USA_CONGRESS_LAST_FAILED": "Last vote: §RFailed§!",
+        "USA_CONGRESS_LAST_NONE": "Last vote",
+        "USA_CONGRESS_LAST_EMPTY": "No completed vote recorded.",
+        "USA_CONGRESS_LAST_SHORT": "[?USA.usa_last_bill_short.GetTokenLocalizedKey]",
+        "USA_CONGRESS_LAST_TOTALS": "House: [?USA.usa_last_house_support|0]/[?USA.usa_last_house_total|0] · Senate: [?USA.usa_last_senate_support|0]/[?USA.usa_last_senate_total|0]",
+        "USA_CONGRESS_LAST_VOTE_TT": "§Y[?USA.usa_last_bill.GetTokenLocalizedKey]§!\n[GetUSACongressLastVoteStatus]\n-------------------------------------\nHouse: §Y[?USA.usa_last_house_support|0] / [?USA.usa_last_house_total|0]§! · required [?USA.usa_last_house_required|0]\nSenate: §Y[?USA.usa_last_senate_support|0] / [?USA.usa_last_senate_total|0]§! · required [?USA.usa_last_senate_required|0]",
+        "USA_CONGRESS_LAST_CARD_TT": "[GetUSACongressLastVoteTooltip]",
+        "USA_CONGRESS_LEGEND_DEM": "Dem.",
+        "USA_CONGRESS_LEGEND_GOP": "Rep.",
+        "USA_CONGRESS_LEGEND_SPLIT": "Split",
+        "USA_CONGRESS_LEGEND_NEUTRAL": "No seats",
+        "USA_CONGRESS_LEGEND_TITLE": "Legend",
+    })
+    scripted = "# Generated by _tools/generate_us_congress_votes.py.\n"
+    scripted += text_function("GetUSACongressCurrentBillCompact", [
+        ("has_country_flag = law_passing has_variable = usa_current_legislation_short", "USA_CONGRESS_CURRENT_COMPACT"),
+        ("has_country_flag = law_passing", "USA_CONGRESS_BILL_IN_PROGRESS"),
+        (None, "USA_CONGRESS_NO_BILL"),
+    ])
+    scripted += text_function("GetUSACongressVoteCountdown", [
+        ("has_country_flag = law_passing has_variable = usa_current_legislation", "USA_CONGRESS_VOTE_COUNTDOWN"),
+        (None, "USA_CONGRESS_VOTE_TIMER_UNKNOWN"),
+    ])
+    for chamber, variable in [("House", "house"), ("Senate", "senate")]:
+        scripted += text_function(f"GetUSACongress{chamber}VoteStatus", [
+            (f"has_variable = usa_vote_{variable}_required check_variable = {{ usa_vote_{variable}_needed > 0 }}", f"USA_CONGRESS_{variable.upper()}_NEEDED"),
+            (f"has_variable = usa_vote_{variable}_required", f"USA_CONGRESS_{variable.upper()}_READY"),
+            (None, f"USA_CONGRESS_{variable.upper()}_SUPPORT"),
+        ])
+    scripted += text_function("GetUSACongressLastVoteStatus", [
+        ("check_variable = { usa_last_bill_result = 1 }", "USA_CONGRESS_LAST_PASSED"),
+        ("check_variable = { usa_last_bill_result = 2 }", "USA_CONGRESS_LAST_FAILED"),
+        (None, "USA_CONGRESS_LAST_NONE"),
+    ])
+    scripted += text_function("GetUSACongressLastBillShort", [
+        ("has_variable = usa_last_bill_short", "USA_CONGRESS_LAST_SHORT"),
+        (None, "USA_CONGRESS_LAST_EMPTY"),
+    ])
+    scripted += text_function("GetUSACongressLastVoteTooltip", [
+        ("has_variable = usa_last_bill", "USA_CONGRESS_LAST_VOTE_TT"),
+        (None, "USA_CONGRESS_LAST_EMPTY"),
+    ])
+    localisation = "l_english:\n" + "\n".join(
+        f" {key}:0 {json.dumps(value, ensure_ascii=False)}" for key, value in loc.items()
+    ) + "\n"
+    return effects, scripted, localisation
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    original = DECISIONS.read_bytes()
+    source = original.decode("utf-8-sig").replace("\r\n", "\n")
+    bills = bill_metadata(source)
+    instrumented = instrument(source, bills)
+    if args.check:
+        assert source == instrumented, "Instrument Congress vote callbacks."
+    else:
+        newline = "\r\n" if b"\r\n" in original else "\n"
+        encoding = "utf-8-sig" if original.startswith(b"\xef\xbb\xbf") else "utf-8"
+        DECISIONS.write_bytes(instrumented.replace("\n", newline).encode(encoding))
+    for path, content in zip((EFFECTS, SCRIPTED_LOC, LOCALISATION), generate(bills)):
+        encoding = "utf-8-sig" if path == LOCALISATION else "utf-8"
+        if args.check:
+            assert path.read_text(encoding=encoding) == content, f"Regenerate {path.name}"
+        else:
+            path.write_text(content, encoding=encoding, newline="\n")
+    print("PASS: 517 bills expose their real vote requirements, native timer and final result.")
+
+
+if __name__ == "__main__":
+    main()

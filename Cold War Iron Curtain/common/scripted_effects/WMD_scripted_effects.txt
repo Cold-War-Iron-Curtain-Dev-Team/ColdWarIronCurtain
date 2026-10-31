@@ -46,6 +46,7 @@ wmd_reset = {
 	set_variable = { left_key_turned = 0 }
 	set_variable = { wmd_ready_status = 0 }
 	set_variable = { wmd_authorize = 0 }
+	set_variable = { wmd_discard_confirmation = 0 }
 	set_variable = { activation_code = 0 }
 	set_variable = { missile_selected = 0 }
 	wmd_deselect_all_enemies = yes
@@ -75,6 +76,19 @@ wmd_deselect_all_enemies = {
 }
 
 wmd_nuke_launch = {
+	# Pay before strike events or wmd_reset can clear missile_cost.
+	set_temp_variable = { icbm_cost = missile_cost }
+	multiply_temp_variable = { icbm_cost = -1 }
+	if = { limit = { has_tech = icbm1 }
+		add_equipment_to_stockpile = { type = icbm_equipment amount = icbm_cost }
+	}
+	else_if = { limit = { has_tech = irbm1 }
+		add_equipment_to_stockpile = { type = irbm_equipment amount = icbm_cost }
+	}
+	else = {
+		add_equipment_to_stockpile = { type = srbm_equipment amount = icbm_cost }
+	}
+
 	# set News Events target country
 	clr_country_flag = found
 	for_each_scope_loop = {
@@ -126,17 +140,6 @@ wmd_nuke_launch = {
 	}
 	wmd_reset = yes
 	clear_variable = wmd_nuke_target_state 
-	set_temp_variable = { icbm_cost = missile_cost }
-	multiply_temp_variable = { icbm_cost = -1 }
-	if = { limit =  { has_tech = icbm1 }
-		add_equipment_to_stockpile = { type = icbm_equipment amount = icbm_cost }
-	}
-	else_if = { limit =  { has_tech = irbm1 }
-		add_equipment_to_stockpile = { type = irbm_equipment amount = icbm_cost }
-	}
-	else = {
-		add_equipment_to_stockpile = { type = srbm_equipment amount = icbm_cost }
-	}
 }
 
 wmd_damage_loop_effect = {
