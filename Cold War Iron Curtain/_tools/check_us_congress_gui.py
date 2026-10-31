@@ -311,7 +311,7 @@ def paint_text(canvas,n,text):
  return len(lines)*lineheight
 audit_dir=args.preview_dir
 if audit_dir:audit_dir.mkdir(parents=True,exist_ok=True)
-from generate_us_congress_votes import bill_metadata, arguments, instrument, generate as generate_votes
+from generate_us_congress_votes import bill_metadata, instrument, generate as generate_votes
 bill_source=read('common/decisions/US_HOUSE.txt');vote_bills=bill_metadata(bill_source)
 properties={k:v for kind,o,body in overview if kind=='properties' for k,o,v in body}
 for mode,selected,label in [(0,0,'overview'),(0,378,'state'),(1,378,'general'),(2,378,'primary'),(0,0,'democratic_states'),(0,0,'republican_states'),(0,0,'lobby_result'),(0,378,'lobby_result_state'),(0,0,'votes_needed'),(0,0,'last_vote_failed'),(0,0,'unavailable'),(0,0,'no_bill'),(0,0,'veto_vote')]:
@@ -710,7 +710,8 @@ print('PASS: lobbying tooltips match affordability, eligibility and existing sup
 assert instrument(bill_source,vote_bills)==bill_source
 generated_effects,generated_script,generated_loc=generate_votes(vote_bills)
 assert read(vote_effect_file)==generated_effects
-assert 'USA_set_congress_vote_requirements = { BILL = $BILL$' not in generated_effects, 'Avoid nested parameter forwarding rejected by the game parser'
+assert '$BILL$' not in generated_effects and 'USA_set_congress_vote_requirements' not in generated_effects
+assert 'BILL = token:' not in bill_source, 'HOI4 rejects parameter blocks on scripted-effect calls'
 assert read(vote_loc_file)==generated_script
 assert read('localisation/english/US_Congress_Votes_l_english.yml')==generated_loc
 assert '### days_decision_timeout' in (G/'documentation/dynamic_variables_documentation.md').read_text()
@@ -724,12 +725,14 @@ for bill in vote_bills:
  complete=get(node,'complete_effect');remove=get(node,'remove_effect')
  start=get(complete[-1][2],'USA_begin_congress_vote')
  record=get(remove[0][2],'USA_record_congress_vote')
- assert start and record and start==record,('Vote hook placement',bill['key'])
- assert int(get(start,'HOUSE'))==bill['house'] and get(start,'SENATE')==bill['senate']
+ assert start==record=='yes',('Native vote hook placement',bill['key'])
+ metadata='USA_congress_metadata_'+bill['key']
+ assert get(complete[-1][2],metadata)==get(remove[0][2],metadata)=='yes'
+ assert metadata in effects
  senate=48 if bill['dynamic'] else int(bill['senate'])+1
  for house_votes,senate_votes,passed in [(bill['house'],senate,True),(bill['house']-1,senate,False),(bill['house'],senate-1,False)]:
   e=env(vars={'usa_current_legislation':bill['key'],'senate_passing_value':47,'supseat':house_votes,'supseat_sen':senate_votes,'US_HOUSE_SIZE':435,'US_SENATE':96},flags={'law_passing'})
-  run([('USA_begin_congress_vote','=',start)],e)
+  run([(metadata,'=','yes'),('USA_begin_congress_vote','=','yes')],e)
   assert e['vars']['usa_vote_house_required']==bill['house'] and e['vars']['usa_vote_senate_required']==senate
   assert e['vars']['usa_vote_house_needed']==max(0,bill['house']-house_votes)
   assert e['vars']['usa_vote_senate_needed']==max(0,senate-senate_votes)
@@ -737,7 +740,7 @@ for bill in vote_bills:
   assert expand('[GetUSACongressVoteCountdown]',e)=='Vote in 23 days'
   e['decision_timers'][bill['key']]=7
   assert expand('[GetUSACongressVoteCountdown]',e)=='Vote in 7 days'
-  run([('USA_record_congress_vote','=',record)],e)
+  run([(metadata,'=','yes'),('USA_record_congress_vote','=','yes')],e)
   assert e['vars']['usa_last_bill_result']==(1 if passed else 2)
   assert e['vars']['usa_last_house_support']==house_votes and e['vars']['usa_last_senate_support']==senate_votes
   assert e['vars']['usa_last_bill']==bill['key'] and e['vars']['usa_last_bill_short']==bill['short_key']
