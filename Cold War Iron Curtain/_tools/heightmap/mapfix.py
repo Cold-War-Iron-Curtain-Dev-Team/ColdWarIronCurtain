@@ -172,6 +172,8 @@ def main():
     members = lambda r: [p for p, q in region_of.items() if q == r]
     is_sea_region = {r: sum(kind.get(p) == "sea" for p in members(r)) * 2 > len(members(r)) for r in files}
     moved = 0
+    # only the reprojection's new provinces: climsplit.py splits regions across states on purpose
+    from border_owner import new_provinces; fresh = new_provinces()
     for f in glob.glob("history/states/*.txt"):
         t = re.sub(r"#[^\n]*", "", open(f, encoding="utf-8", errors="ignore").read())
         pr = re.search(r"provinces\s*=\s*\{([^}]*)\}", t)
@@ -186,7 +188,7 @@ def main():
             continue
         main_r = max(w, key=w.get)
         for p in ps:
-            if region_of.get(p) != main_r:
+            if p in fresh and region_of.get(p) != main_r:
                 region_of[p] = main_r; moved += 1
     print("provinces moved to their state's region:", moved)
     # a land region holding a few sea provinces counts as naval for the engine, which then wants it in one piece
