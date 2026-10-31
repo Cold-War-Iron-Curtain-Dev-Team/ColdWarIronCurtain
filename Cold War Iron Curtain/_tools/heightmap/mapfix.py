@@ -193,25 +193,38 @@ def main():
     size = dict(zip(*np.unique(ids, return_counts=True)))
     members = lambda r: [p for p, q in region_of.items() if q == r]
     is_sea_region = {r: sum(kind.get(p) == "sea" for p in members(r)) * 2 > len(members(r)) for r in files}
+    # the engine wants every state inside one strategic region (MAP_ERROR otherwise): a state goes whole to the land
+    # region holding most of its area; a region that would end up empty takes back the state with most area in it
     moved = 0
-    # only the reprojection's new provinces: climsplit.py splits regions across states on purpose
-    from border_owner import new_provinces; fresh = new_provinces()
+    states = []
     for f in glob.glob("history/states/*.txt"):
         t = re.sub(r"#[^\n]*", "", open(f, encoding="utf-8", errors="ignore").read())
         pr = re.search(r"provinces\s*=\s*\{([^}]*)\}", t)
-        if not pr:
-            continue
-        ps = [int(v) for v in pr.group(1).split() if v.isdigit()]
+        if pr:
+            states.append([int(v) for v in pr.group(1).split() if v.isdigit() and int(v) in region_of])
+    state_of = {p: i for i, ps in enumerate(states) for p in ps}
+    land_r = lambda r: not is_sea_region[r]
+    share = []  # per state: land region -> area
+    for ps in states:
         w = {}
         for p in ps:
-            if p in region_of and not is_sea_region[region_of[p]]:
+            if land_r(region_of[p]):
                 w[region_of[p]] = w.get(region_of[p], 0) + size.get(p, 0)
-        if not w:
-            continue
-        main_r = max(w, key=w.get)
-        for p in ps:
-            if p in fresh and region_of.get(p) != main_r:
-                region_of[p] = main_r; moved += 1
+        share.append(w)
+    home = {i: max(w, key=w.get) for i, w in enumerate(share) if w}
+    for _ in range(50):
+        used = set(home.values())
+        empty = [r for r in files if land_r(r) and r not in used and any(r in w for w in share)]
+        if not empty:
+            break
+        for r in empty:
+            cand = sorted((w[r], i) for i, w in enumerate(share) if r in w and sum(home[j] == home[i] for j in home) > 1)
+            if cand:
+                home[cand[-1][1]] = r
+    for i, r in home.items():
+        for p in states[i]:
+            if region_of[p] != r and land_r(region_of[p]):
+                region_of[p] = r; moved += 1
     print("provinces moved to their state's region:", moved)
     # a land region holding a few sea provinces counts as naval for the engine, which then wants it in one piece
     # (adjacencies.csv crossings count): if it is not, its sea provinces go to the sea region they touch most
@@ -267,7 +280,7 @@ def main():
         land = {q: n for q, n in nb.get(p, {}).items() if kind.get(q) == "land" and q in region_of}
         if land:
             region_of[p] = region_of[max(land, key=land.get)]; print("  lake", p, "-> region", region_of[p])
-    # a region that would crash the game at load gets one border province swapped with its neighbouring land region
+    # a region that would crash the game at load hands one whole border state to its neighbouring land region
     S = nd.find_objects(ids)
     for r in files:
         ms = members(r)
@@ -275,17 +288,22 @@ def main():
             continue
         done = False
         for p in sorted(ms, key=lambda p: size.get(p, 0)):
+            grp = states[state_of[p]] if p in state_of else [p]
+            if kind.get(p) != "land" or len(grp) >= len(ms):
+                continue
             for q in sorted(nb.get(p, {}), key=lambda q: -nb[p][q]):
                 r2 = region_of.get(q)
-                if r2 in (None, r) or is_sea_region[r2] or kind.get(p) != "land" or len(ms) < 2:
+                if r2 in (None, r) or is_sea_region[r2]:
                     continue
-                region_of[p] = r2
+                for g in grp:
+                    region_of[g] = r2
                 if not centre_crashes(members(r), S, H, W) and not centre_crashes(members(r2), S, H, W):
-                    print(f"  region {r} would crash the centre calculation: province {p} -> region {r2}"); done = True; break
-                region_of[p] = r
+                    print(f"  region {r} would crash the centre calculation: state of province {p} -> region {r2}"); done = True; break
+                for g in grp:
+                    region_of[g] = r
             if done:
                 break
-        assert done, f"region {r} crashes the centre calculation and no province swap fixes it"
+        assert done, f"region {r} crashes the centre calculation and no state swap fixes it"
     for r, f in files.items():
         t = open(f, "rb").read().decode("utf-8", "surrogateescape")
         ps = " ".join(str(p) for p in sorted(p for p, q in region_of.items() if q == r))
