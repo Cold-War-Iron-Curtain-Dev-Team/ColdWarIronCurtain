@@ -16,6 +16,7 @@ STOPS = [(0, (80, 200, 195)), (30, (55, 170, 180)), (200, (34, 115, 155)), (1000
          (3000, (15, 44, 92)), (6000, (9, 28, 66))]
 POLAR = np.array((48, 84, 100), np.float32)  # cold-water grey-teal
 LAKE = np.array((24, 62, 74), np.float32)
+RIVER = np.array((34, 58, 60), np.float32)  # inland water base; rivers sample this map, not the sea
 
 
 def main(dem_path, out):
@@ -43,6 +44,13 @@ def main(dem_path, out):
     rgb *= np.clip(1 + 6.0 * (gx + gy), 0.8, 1.2)[..., None]
     lk = nd.gaussian_filter(lake.astype(np.float32), 1.0, mode=WRAP)[..., None]
     rgb = rgb + lk * (LAKE - rgb)
+    # inland (rivers): a dark river base mixed with the local land colour (muddy in deserts, dark green in forests)
+    # instead of the shallow-reef turquoise; a 1.5 px blend keeps the coast and river mouths smooth
+    landc = np.asarray(Image.open("map/terrain/colormap_rgb_cityemissivemask_a.dds").convert("RGB")).astype(np.float32)
+    assert landc.shape[:2] == rgb.shape[:2], (landc.shape, rgb.shape)
+    river = 0.6 * RIVER + 0.4 * 0.55 * landc
+    lw = np.clip(nd.gaussian_filter((~sea & ~lake).astype(np.float32), 1.5, mode=WRAP) * 1.6 - 0.3, 0, 1)[..., None]
+    rgb = rgb + lw * (river - rgb)
 
     img = Image.fromarray(np.clip(np.rint(rgb), 0, 255).astype(np.uint8), "RGB")
     img.save(f"{out}/water_preview.png")

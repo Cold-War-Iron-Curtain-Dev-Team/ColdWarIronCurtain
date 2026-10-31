@@ -8,11 +8,34 @@ each other move; a province never drops below 40% of its pixels. Run mapfix.py a
 import io, sys, numpy as np
 from collections import Counter, defaultdict
 from PIL import Image
+from scipy import ndimage as nd
 import proj
 from gcps import land_mask_and_ids
 from border_owner import real_raster, load_states, RES
 
 KEEP = 0.4
+
+
+def heal(I, own, provs):
+    """A province the redraw cut in pieces keeps its biggest piece; the others go to the same-owner neighbour they touch
+    most (any neighbour if none). I is changed in place; returns pixels moved."""
+    moved = 0
+    for p in provs:
+        lab, n = nd.label(I == p)
+        if n < 2:
+            continue
+        keep = np.argmax(np.bincount(lab.ravel())[1:]) + 1
+        for k in range(1, n + 1):
+            if k == keep:
+                continue
+            m = lab == k
+            ring = nd.binary_dilation(m) & ~m
+            c = Counter(I[ring].tolist())
+            c.pop(p, None)
+            same = Counter({q: v for q, v in c.items() if own[q] == own[p]})
+            to = (same or c).most_common(1)[0][0]
+            I[m] = to; moved += int(m.sum())
+    return moved
 
 
 def main(S, tag, write=False):
@@ -58,6 +81,8 @@ def main(S, tag, write=False):
                 moved[(own[p], own[q])] += 1; step += 1
         if not step:
             break
+    healed = heal(I, own, {int(q) for q in np.unique(I[I != ids[y0:y1, x0:x1]])} | {int(q) for q in np.unique(ids[y0:y1, x0:x1][I != ids[y0:y1, x0:x1]])})
+    print(f"pieces healed: {healed} px")
     left = (land & (want != "") & (own[I] != want) & ((own[I] == tag) | (want == tag))).sum()
     print(f"{tag}: moved {sum(moved.values())} px {dict(moved)}; {left} px still off the line (no neighbour of the right owner, or size floor)")
     if not write:
