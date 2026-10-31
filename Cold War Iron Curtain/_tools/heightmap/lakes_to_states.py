@@ -48,6 +48,7 @@ def main(write=False):
     ids, kind = land_mask_and_ids()
     H, W = ids.shape
     files, st, owner = load_states()
+    impassable = {s for s, f in files.items() if re.search(r"impassable\s*=\s*yes", open(f, encoding="utf-8", errors="ignore").read())}
     own_of = np.zeros(ids.max() + 1, "U3")
     for q, s in st.items():
         if kind.get(q) == "land":
@@ -74,6 +75,8 @@ def main(write=False):
         shore = nd.binary_dilation(m) & ~m & land
         if not shore.any():
             print(f"  lake {p}: no owned shore, left out"); continue
+        if all(st[int(q)] in impassable for q in I[shore]):
+            continue  # an ice-sheet lake would show the country colour through the impassable shading
         owners = Counter(own[shore].tolist())
         if len(owners) > 1 and m.sum() >= SPLIT_MIN:
             pieces = split(I, p, land, own)
