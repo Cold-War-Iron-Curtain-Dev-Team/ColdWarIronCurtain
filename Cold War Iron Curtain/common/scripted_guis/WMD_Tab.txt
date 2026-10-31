@@ -393,6 +393,7 @@ scripted_gui = {
 
 			exitbutton_wmd_click = {
 				ROOT = {
+					set_variable = { wmd_discard_confirmation = 0 }
 					set_temp_variable = { show = 1 }
 					subtract_from_temp_variable = { show = show_wmd }
 					set_variable = { show_wmd = show }
@@ -400,65 +401,82 @@ scripted_gui = {
 			}
 
 			denuclearize_click = {
-				set_temp_variable = { NukesRemoval = NukeTotal }
-				multiply_temp_variable = { NukesRemoval = -1 }
-
-				add_nuclear_bombs = var:NukesRemoval
+				if = { limit = { check_variable = { wmd_discard_confirmation = 1 } }
+					set_temp_variable = { NukesRemoval = num_of_nukes }
+					multiply_temp_variable = { NukesRemoval = -1 }
+					add_nuclear_bombs = var:NukesRemoval
+					set_variable = { wmd_discard_confirmation = 0 }
+					wmd_stockpile_loc = yes
+					wmd_check_strike_missiles = yes
+				}
+				else = {
+					set_variable = { wmd_discard_confirmation = 1 }
+				}
+				add_to_variable = { refresh_wmd_menu = 1 }
 			}
 
 			denuclearize1_click = {
-				set_temp_variable = { MustardGasRemoval = MustardGasTotal }
-				multiply_temp_variable = { MustardGasRemoval = -1 }
+				if = { limit = { check_variable = { wmd_discard_confirmation = 2 } }
+					wmd_stockpile_loc = yes
+					set_temp_variable = { MustardGasRemoval = MustardGasTotal }
+					multiply_temp_variable = { MustardGasRemoval = -1 }
 
-				meta_effect = {
-					text = {
-						add_equipment_to_stockpile = {
-							type = chemical_weapons_1
-							amount = [REMOVE_MUSTARD]
+					meta_effect = {
+						text = {
+							add_equipment_to_stockpile = {
+								type = chemical_weapons_1
+								amount = [REMOVE_MUSTARD]
+							}
 						}
+						REMOVE_MUSTARD = "[?MustardGasRemoval|0]"
 					}
-					REMOVE_MUSTARD = "[?MustardGasRemoval|0]"
-				}
 
-				#2
-				set_temp_variable = { NapalmRemoval = NapalmTotal }
-				multiply_temp_variable = { NapalmRemoval = -1 }
-				meta_effect = {
-					text = {
-						add_equipment_to_stockpile = {
-							type = napalm_1
-							amount = [REMOVE_NAPALM]
+					#2
+					set_temp_variable = { NapalmRemoval = NapalmTotal }
+					multiply_temp_variable = { NapalmRemoval = -1 }
+					meta_effect = {
+						text = {
+							add_equipment_to_stockpile = {
+								type = napalm_1
+								amount = [REMOVE_NAPALM]
+							}
 						}
+						REMOVE_NAPALM = "[?NapalmRemoval|0]"
 					}
-					REMOVE_NAPALM = "[?NapalmRemoval|0]"
-				}
 
-				#3
-				set_temp_variable = { SarinRemoval = SarinTotal }
-				multiply_temp_variable = { SarinRemoval = -1 }
-				meta_effect = {
-					text = {
-						add_equipment_to_stockpile = {
-							type = sarin_1
-							amount = [REMOVE_SARIN]
+					#3
+					set_temp_variable = { SarinRemoval = SarinTotal }
+					multiply_temp_variable = { SarinRemoval = -1 }
+					meta_effect = {
+						text = {
+							add_equipment_to_stockpile = {
+								type = sarin_1
+								amount = [REMOVE_SARIN]
+							}
+
 						}
-
+						REMOVE_SARIN = "[?SarinRemoval|0]"
 					}
-					REMOVE_SARIN = "[?SarinRemoval|0]"
-				}
 
-				#4
-				set_temp_variable = { VXRemoval = VXTotal }
-				multiply_temp_variable = { VXRemoval = -1 }
-				meta_effect = {
-					text = {
-						add_equipment_to_stockpile = {
-							type = vx_1
-							amount = [REMOVE_VX]
+					#4
+					set_temp_variable = { VXRemoval = VXTotal }
+					multiply_temp_variable = { VXRemoval = -1 }
+					meta_effect = {
+						text = {
+							add_equipment_to_stockpile = {
+								type = vx_1
+								amount = [REMOVE_VX]
+							}
 						}
+						REMOVE_VX = "[?VXRemoval|0]"
 					}
-					REMOVE_VX = "[?VXRemoval|0]"
+					set_variable = { wmd_discard_confirmation = 0 }
+					wmd_stockpile_loc = yes
 				}
+				else = {
+					set_variable = { wmd_discard_confirmation = 2 }
+				}
+				add_to_variable = { refresh_wmd_menu = 1 }
 			}
 
 			denuclearize2_click = {
@@ -475,6 +493,7 @@ scripted_gui = {
 		effects = {
 			nuke_count_click = {
 				ROOT = {
+					set_variable = { wmd_discard_confirmation = 0 }
 					set_temp_variable = { show = 1 }
 					subtract_from_temp_variable = { show = show_wmd }
 					close_all_windows = yes
@@ -640,7 +659,7 @@ scripted_gui = {
 					tooltip = wmd_has_enough_missiles_TT
 					check_variable = { var = wmd_missiles_total value = var:missile_cost compare = greater_than_or_equals }
 				}
-				num_of_nukes > var:warhead_cost
+				NOT = { num_of_nukes < var:warhead_cost }
 				custom_trigger_tooltip = {
 					tooltip = wmd_all_keys_turned_TT
 					check_variable = { wmd_ready_status = 1 }
@@ -648,8 +667,9 @@ scripted_gui = {
 			}
 			wmd_button_launch_visible = {
 				check_variable = { wmd_ready_status = 1 }
+				check_variable = { missile_selected = 1 }
 				check_variable = { var = wmd_missiles_total value = var:missile_cost compare = greater_than_or_equals }
-				num_of_nukes > var:warhead_cost
+				NOT = { num_of_nukes < var:warhead_cost }
 			}
 			wmd_button_launch_click_enabled = {
 				custom_trigger_tooltip = {
@@ -672,7 +692,7 @@ scripted_gui = {
 					tooltip = wmd_key_not_on_lvl1_TT
 					NOT = { check_variable = { strike_level_tier1_selected = 1 } }
 				}
-				num_of_nukes > var:warhead_cost
+				NOT = { num_of_nukes < var:warhead_cost }
 				custom_trigger_tooltip = {
 					tooltip = wmd_all_keys_turned_TT
 					check_variable = { wmd_ready_status = 1 }
