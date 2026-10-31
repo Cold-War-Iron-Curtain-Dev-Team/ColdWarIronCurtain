@@ -187,10 +187,22 @@ and adds the matching one. Invitation cooldowns are timed flags.
 4. Add `<button>_tt` and `cwic_pol_<button>_lbl` (ASCII only).
 5. If AI should use it, add a decision in an AI-only category calling the same effect.
 
-## Known gaps
+## Player help
 
-- Crisis View has no "recommended levers" line.
-- Borrowing does not show the domestic bond pool's office-park source.
+- **Recommended levers**: the active-crisis tooltip (`CWIC_ACTIVE_CRISIS_TOOLTIP`) ends with
+  `[CWIC_ACTIVE_CRISIS_LEVERS]` (`Crisis_GUI_scripted_loc.txt`), one
+  `CWIC_ACTIVE_CRISIS_<crisis>_LEVERS` key per crisis id. Levers name the Low threshold;
+  "Prerequisites for Next Severity" (`CWIC_POTENTIAL_CRISIS_<crisis>_<SEVERITY>_TRIGGERS`)
+  name the next one. Both restate `CWIC_macro_crisis_scripted_triggers_v2.txt`; change all
+  three together. Credit ratings are shown as letters (`Credit_Rating < 6` = B or worse).
+- Fiscal and contraction crises are buffered (`cwic_crisis_buffer_step`): 3 months over a
+  line to start or worsen, one level down per 3 months under it. Their tooltips say so.
+- **Domestic bond pool**: the `Open_Domestic_Bank` row tooltip (`cwic_domestic_pool_tt`)
+  shows Office Parks, the office-tech multiplier, the pool limit (`outcrowding_limit`) and
+  current `available_liquidity`, from `domestic_bond_calc`.
+- **Economy Guide**: the `?` button left of the close button (`Finance_Guide_Button`) fires
+  `cwic_econ_guide.1`, a contents page with six topic pages (`events/CWIC_Economy_Guide.txt`,
+  text in `CWIC_econ_guide_l_english.yml`). Update the guide when a mechanic it names changes.
 
 ## In-game verification (outstanding)
 
