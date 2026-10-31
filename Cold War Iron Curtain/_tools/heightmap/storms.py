@@ -4,20 +4,22 @@ Run from the mod root:  python _tools/heightmap/storms.py <warp.npz> <ibtracs.cs
 2048x1024 atlas:
 - left half: a tropical cyclone seen from above (eye, eyewall, two main rain bands), northern-hemisphere spin; the
   shader mirrors it south of the equator
-- right half, top 1024x372 rows: red = chance that a heavy-storm province shows a cyclone, from IBTrACS days per year
+- right half, top 1024xMH rows: red = chance that a heavy-storm province shows a cyclone, from IBTrACS days per year
   with a tropical storm, 0 on land. The shader samples it at the particle centre.
 Also prints CWIC_EQUATOR_Z for the shader (world z of the equator, median over the map).
 """
 import sys, numpy as np
 from PIL import Image
 from scipy import ndimage as nd
-from colormap import dxt5_with_mips
+from colormap import dds_header, dxt5_with_mips
 from gcps import land_mask_and_ids
 from weather import cyclone_days
+import proj
 
-S, MW, MH = 1024, 1024, 372   # sprite size, mask size (5632x2048 map at ~5.5 px per texel)
-FULL_DAYS = 6.0               # storm days per year that give the top chance (Philippine Sea peaks ~7 after smoothing)
-TOP = 0.6                     # top chance: even typhoon alley keeps some plain thunderstorms
+S, MW = 1024, 1024             # sprite size, mask width
+MH = round(MW * proj.H / proj.W)  # mask rows (539 for 4864x2560); must match the shader
+FULL_DAYS = 4.0               # storm days per year that give the top chance (Philippine Sea peaks ~7 after smoothing)
+TOP = 1.0                     # top chance: every heavy storm in typhoon alley is a cyclone (heavy storms are rare enough)
 
 
 def sprite(seed=1):
@@ -73,16 +75,7 @@ def main(warp_npz, ibtracs, out):
     atlas[:MH, 1024:1024 + MW, 3] = 255
     img = Image.fromarray(atlas, "RGBA")
     img.save(f"{out}/cwic_cyclone_preview.png")
-    # header: Pillow's own for this size, plus the mip count and mipmap flags
-    import io
-    buf = io.BytesIO()
-    img.save(buf, "DDS", pixel_format="DXT5")
-    hdr = bytearray(buf.getvalue()[:128])
-    mips = int(np.log2(max(img.size))) + 1
-    hdr[8:12] = (int.from_bytes(hdr[8:12], "little") | 0x20000).to_bytes(4, "little")      # DDSD_MIPMAPCOUNT
-    hdr[28:32] = mips.to_bytes(4, "little")
-    hdr[108:112] = (int.from_bytes(hdr[108:112], "little") | 0x400008).to_bytes(4, "little")  # COMPLEX | MIPMAP
-    open(f"{out}/cwic_cyclone.dds", "wb").write(dxt5_with_mips(img, bytes(hdr)))
+    open(f"{out}/cwic_cyclone.dds", "wb").write(dxt5_with_mips(img, dds_header(img)))
     print(f"mask texels with a chance: {(m > 0.02).sum()}, max {m.max():.2f} | CWIC_EQUATOR_Z = {eq_z:.0f}")
 
 

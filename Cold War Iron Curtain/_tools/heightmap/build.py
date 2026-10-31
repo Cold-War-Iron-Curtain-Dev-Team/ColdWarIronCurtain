@@ -10,8 +10,9 @@ from scipy import ndimage as nd
 from scipy.io import netcdf_file
 from scipy.interpolate import RBFInterpolator
 from gcps import land_mask_and_ids
+import proj
 
-W, H, Q = 5632, 2048, 4          # Q = registration downscale
+W, H, Q = proj.W, proj.H, 4      # Q = registration downscale
 SEA_COAST, LAND_MIN = 90, 96     # vanilla: flat sea at 88, land starts ~96; >91 triggers shore foam
 LAKE_RES = 60                    # lake raster cells per degree
 OLD_COMMIT = "99834bcd35"
@@ -59,9 +60,9 @@ def polygon_raster(d):
 
 
 def old_map(name):
-    # map/<name>.bmp from before the DEM rebuild (hand-made lake pits, unmarked terrain.bmp)
-    raw = subprocess.run(["git", "show", f"{OLD_COMMIT}:./map/{name}.bmp"], capture_output=True, check=True).stdout
-    return Image.open(io.BytesIO(raw))
+    # map/<name>.bmp from before the DEM rebuild (hand-made lake pits, unmarked terrain.bmp), resampled into the
+    # current projection by oldlayers.py
+    return Image.open(os.path.join(os.environ["CWIC_OLD_LAYERS"], f"{name}.bmp"))
 
 
 WRAP = ("nearest", "wrap")  # filter modes per axis: rows clamp, columns wrap (the map is a cylinder)
@@ -140,83 +141,12 @@ def label_edges(L):
 
 
 def warp(dem_path, sea):
-    """lon/lat of every map pixel: city-point spline, then coast snapped onto provinces.bmp. Returns lo, la, dem, dem sampler."""
+    """lon/lat of every map pixel (exact: the map is Patterson since the reprojection, see proj.py). Returns lo, la, dem, dem sampler.
+    The old map's spline + coast-snapping warp lives in git history (before reproject.py); its result is the cached
+    old-layout npz that reproject.py and oldlayers.py read."""
     lat, lon, z, ocean = load_dem(dem_path)
-    rc = sampler(lat, lon)
-    cache = dem_path + ".warp.npz"  # shortcut: not keyed on gcps.json/DROP, delete it after changing control points
-    if os.path.exists(cache):
-        c = np.load(cache)
-        return c["lo"], c["la"], z, rc
-
-    g = [o for o in json.load(open("_tools/heightmap/gcps.json")) if o["name"] not in DROP]
-    if os.path.exists("_tools/heightmap/gcps_vp.json"):  # ~2900 victory points matched to GeoNames (vp_gcps.py)
-        g += json.load(open("_tools/heightmap/gcps_vp.json"))
-    # the map wraps east-west: copy points near each edge across the seam so both edges get the same fit
-    pts = [(o["x"], o["y"], o["lon"], o["lat"]) for o in g]
-    pts += [(x + W, y, lo + 360, la) for x, y, lo, la in pts if x < W / 4] + [(x - W, y, lo - 360, la) for x, y, lo, la in pts if x > W * 3 / 4]
-    pts = np.array(pts)
-    tps = RBFInterpolator(pts[:, :2], pts[:, 2:],
-                          kernel="thin_plate_spline", smoothing=1e4)  # mod cities scatter ~35 km: fit the trend, not each one
-
-    # coarse grid lon/lat
-    h, w = H // Q, W // Q
-    yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
-    ll = tps(np.c_[(xx.ravel() + .5) * Q, (yy.ravel() + .5) * Q]).reshape(h, w, 2)
-    ll[..., 1] = np.clip(ll[..., 1], -89.9, 89.9)
-
-    # demons: displacement d (coarse px) so that DEM land at (x+d) matches province land at x
-    F = sdf(~sea.reshape(h, Q, w, Q).mean((1, 3)).__ge__(.5))
-    oc = ocean.astype(np.float32)
-    d = np.zeros((2, h, w))
-    # borders: once the coast is in, also pull the real 1949 borders onto the mod's country borders where they are
-    # within BORDER_REACH coarse px of each other (farther apart = a deliberate mod divergence, left alone)
-    cs = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(dem_path))), "cshapes", "CShapes-2.0.geojson")
-    real_ll = riv_ll = None
-    if os.path.exists(cs):
-        real_ll, owner, state = border_maps(cs, sea)
-        mod_b = label_edges(owner[Q // 2::Q, Q // 2::Q])
-        # river borders: state borders the old hand-drawn rivers ran along (only says WHICH borders are rivers; the
-        # river lines themselves are real data, pulled onto those borders)
-        rv = os.path.join(os.path.dirname(cs), "..", "rivers", "ne_10m_rivers_lake_centerlines.geojson")
-        if os.path.exists(rv):
-            riv_ll = river_raster(rv)
-            rb = label_edges(state) & nd.binary_dilation(np.asarray(old_map("rivers")) <= 11, iterations=2)
-            mod_rb = rb.reshape(h, Q, w, Q).any((1, 3))
-            del rb
-        del owner, state
-    n_it = 250 if real_ll is not None else 150
-    for it in range(n_it):
-        lo = nd.map_coordinates(ll[..., 0], [yy + d[0], xx + d[1]], order=1, mode="nearest")
-        la = nd.map_coordinates(ll[..., 1], [yy + d[0], xx + d[1]], order=1, mode="nearest")
-        M = sdf(nd.map_coordinates(oc, rc(lo, la), order=1, mode="wrap") < .5)
-        gy, gx = grad(M)
-        diff = M - F
-        den = gx * gx + gy * gy + diff * diff + 1e-6
-        d[0] -= diff * gy / den
-        d[1] -= diff * gx / den
-        if real_ll is not None and it >= 150:
-            rr, cc = np.clip(((90 - la) * BORDER_RES).astype(int), 0, 180 * BORDER_RES - 1), ((lo + 180) % 360 * BORDER_RES).astype(int)
-            off_b = pull(d, label_edges(real_ll[rr, cc]) & (F > 0), mod_b, BORDER_REACH)
-            if riv_ll is not None:
-                off_r = pull(d, riv_ll[rr, cc] & (F > 0), mod_rb, RIVER_REACH)
-        sig = 8 if it < 100 else 4  # coarse-to-fine regularisation
-        d = np.stack([nd.gaussian_filter(c, sig, mode=WRAP) for c in d])
-        if it % 25 == 0 or it == n_it - 1:
-            if real_ll is not None and it >= 150:
-                print(f"  offset at mod borders: median {off_b:.1f} px" + (f", rivers at river borders {off_r:.1f} px" if riv_ll is not None else ""), flush=True)
-            print(f"iter {it}: coast mismatch {np.mean((M > 0) != (F > 0)) * 100:.2f}% of pixels", flush=True)
-
-    # full-res lon/lat through the refined warp
-    Y, X = np.mgrid[0:H, 0:W].astype(np.float32)
-    cy, cx = (Y + .5) / Q - .5, (X + .5) / Q - .5
-    dy = nd.map_coordinates(d[0], [cy, cx], order=1, mode="nearest")
-    dx = nd.map_coordinates(d[1], [cy, cx], order=1, mode="nearest")
-    del Y, X
-    lo = nd.map_coordinates(ll[..., 0], [cy + dy, cx + dx], order=1, mode="nearest")
-    la = nd.map_coordinates(ll[..., 1], [cy + dy, cx + dx], order=1, mode="nearest")
-    del cy, cx, dy, dx
-    np.savez(cache, lo=lo.astype(np.float32), la=la.astype(np.float32))
-    return lo, la, z, rc
+    lo, la = proj.grid()
+    return lo, la, z, sampler(lat, lon)
 
 
 def main(dem_path, out, lakes_dir=None, glaciers_dir=None):

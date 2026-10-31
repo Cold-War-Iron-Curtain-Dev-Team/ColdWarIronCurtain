@@ -295,8 +295,12 @@ def main(dem_path, geojson, out, max_rank=10):
     # vanilla header + palette bytes as-is: Pillow's BMP (colours used/important = 256) gives
     # "MAP_ERROR: Palette in rivers.bmp is probably not correct"
     raw = open(VANILLA, "rb").read()
-    off, n = int.from_bytes(raw[10:14], "little"), W * H  # width 5632 is a multiple of 4: no row padding
-    open(f"{out}/rivers.bmp", "wb").write(raw[:off] + np.ascontiguousarray(img[::-1]).tobytes() + raw[off + n:])
+    off, n = int.from_bytes(raw[10:14], "little"), W * H  # width is a multiple of 4: no row padding
+    assert W % 4 == 0
+    hdr = bytearray(raw[:off])  # vanilla's palette, this map's size
+    hdr[2:6], hdr[18:22], hdr[22:26], hdr[34:38] = ((off + n).to_bytes(4, "little"), W.to_bytes(4, "little"),
+                                                    H.to_bytes(4, "little"), n.to_bytes(4, "little"))
+    open(f"{out}/rivers.bmp", "wb").write(bytes(hdr) + np.ascontiguousarray(img[::-1]).tobytes())
     print(f"rivers drawn: {drawn} ({joined} join another), river px: {int((img <= 11).sum())} (old {int((np.asarray(old) <= 11).sum())})")
 
 

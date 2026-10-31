@@ -8,10 +8,11 @@ import sys, numpy as np
 from PIL import Image
 from scipy import ndimage as nd
 from build import warp
+import proj
 from gcps import land_mask_and_ids
 from terrainmap import FOREST, DARK_FOREST, JUNGLE, GRASS, SCRUB
 
-TW, TH = 1650, 600
+TW, TH = proj.W * 75 // 256, proj.H * 75 // 256  # vanilla ratio (1650x600 for 5632x2048)
 PALM, PALM_EDGE, NORTH_EDGE, NORTH, BEECH_EDGE, BEECH = 2, 3, 5, 6, 28, 29  # trees.gfx mapobject_N
 SAVANNA = (7, 8, 9)
 

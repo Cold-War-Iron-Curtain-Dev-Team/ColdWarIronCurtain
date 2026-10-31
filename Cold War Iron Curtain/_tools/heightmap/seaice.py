@@ -7,11 +7,11 @@ nsidc_dir holds N_1979MM_concentration_v4.0 GeoTIFFs (renamed N_1979MM.tif), NSI
 Potential = share of 1979 months with >=15% ice; blue = 255 - 72 * potential. Red/green stay 255, alpha (wave
 strength) is taken from the vanilla file because the mod's copy had it at 0, which switched waves off.
 """
-import glob, sys, numpy as np, tifffile
+import glob, os, sys, numpy as np, tifffile
 from PIL import Image
 from scipy import ndimage as nd
 from build import WRAP, warp
-from colormap import dxt5_with_mips
+from colormap import dds_header, dxt5_with_mips
 from gcps import land_mask_and_ids
 
 DDS = "map/terrain/fow_rgb_waterspec_a.dds"
@@ -50,6 +50,9 @@ def main(dem_path, nsidc_dir, out, wc_dir=None):
     pot = nd.map_coordinates(potential(nsidc_dir), [(5850000 - y) / 25000 - .5, (x + 3850000) / 25000 - .5],
                              order=1, mode="constant", cval=0.0)
     pot = np.where(sea & (la > 30), pot, 0.0)
+    # shortcut: no southern NSIDC data here, so Antarctic sea ice is a latitude ramp (pack edge ~57S in winter, all
+    # year at the coast ~69S); swap in NSIDC south (S_1979MM) files if they are ever downloaded
+    pot = np.where(sea & (la < -50), np.clip((-la - 57.0) / 12.0, 0, 1), pot)
     if wc_dir:  # months below -2 C (WorldClim tmin/tmax means), e.g. Ladoga ~5/12, Great Lakes ~3/12
         from weather import worldclim
         rows, cols = (90 - la) * 6 - .5, (lo + 180) % 360 * 6 - .5
@@ -59,13 +62,13 @@ def main(dem_path, nsidc_dir, out, wc_dir=None):
         sea = sea | lake
     pot = nd.gaussian_filter(pot, 1.5, mode=WRAP) * sea  # soft ice edge, nothing on land
 
-    van = np.asarray(Image.open(VANILLA).convert("RGBA"))
-    rgba = np.full(van.shape, 255, np.uint8)
+    alpha = np.asarray(Image.open(os.path.join(os.environ["CWIC_OLD_LAYERS"], "waterspec_alpha.png")))  # oldlayers.py
+    rgba = np.full(alpha.shape + (4,), 255, np.uint8)
     rgba[..., 2] = np.clip(np.rint(255 - SCALE * pot), 0, 255)
-    rgba[..., 3] = van[..., 3]
+    rgba[..., 3] = alpha
     img = Image.fromarray(rgba, "RGBA")
     img.save(f"{out}/seaice_preview.png")
-    open(f"{out}/fow_rgb_waterspec_a.dds", "wb").write(dxt5_with_mips(img, open(DDS, "rb").read(128)))
+    open(f"{out}/fow_rgb_waterspec_a.dds", "wb").write(dxt5_with_mips(img, dds_header(img)))
     print("sea px with any ice:", int((pot > .05).sum()), "| always frozen:", int((pot > .95).sum()))
 
 

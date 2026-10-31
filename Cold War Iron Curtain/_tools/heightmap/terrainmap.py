@@ -9,7 +9,7 @@ comes from definition.csv. Marsh keeps the old painting (no wetland data) and la
 import io, subprocess, sys, numpy as np, tifffile
 from PIL import Image
 from scipy import ndimage as nd
-from build import OLD_COMMIT, WRAP, LAKE_TERRAIN, ICE_TERRAIN, warp
+from build import OLD_COMMIT, WRAP, old_map, LAKE_TERRAIN, ICE_TERRAIN, warp
 from gcps import land_mask_and_ids
 
 # terrain.bmp indices (00_terrain.txt) -> atlas texture
@@ -95,7 +95,7 @@ def main(dem_path, pop_path, out):
         better = c > score
         score[better], smooth[better] = c[better], v
 
-    old_t = Image.open(io.BytesIO(subprocess.run(["git", "show", f"{OLD_COMMIT}:./map/terrain.bmp"], capture_output=True, check=True).stdout))
+    old_t = old_map("terrain")  # pre-rebuild terrain.bmp in the current projection
     old = np.asarray(old_t)
     t = np.array(Image.open("map/terrain.bmp"))  # carries the lake/ice marks from build.py
     paint = land & ~np.isin(t, (LAKE_TERRAIN, ICE_TERRAIN)) & (old != MARSH)
