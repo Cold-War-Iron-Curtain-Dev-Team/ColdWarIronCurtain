@@ -90,6 +90,11 @@ static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
 static const float WATER_COLOR_LIGHTNESS = 0.7;
 static const float WATER_RIPPLE_EFFECT = 0.0035;
 
+static const float TERRAIN_ATLAS_GAIN		= 1.4f; // CWIC: the Revolution Realized atlas averages 95/255 against vanilla's 140; the colormap overlay
+											// multiplies by it, so the whole map came out ~30% darker
+static const float TERRAIN_SPEC_SCALE		= 0.55f; // CWIC: its spec alpha is ~30% above vanilla and gets squared: glossy 'plastic' hills
+static const float TERRAIN_EDGE_JITTER		= 1.6f; // CWIC: terrain.bmp lookups jittered by up to this many map px, so terrain types meet
+											// along ragged natural edges instead of pixel staircases
 static const float COLORMAP_OVERLAY_STRENGTH 	= 0.65f; // CWIC: was 0.75; RR textures carry their own colour
 static const float COLORMAP_MUD_OVERLAY_STRENGTH = 0.5f;
 

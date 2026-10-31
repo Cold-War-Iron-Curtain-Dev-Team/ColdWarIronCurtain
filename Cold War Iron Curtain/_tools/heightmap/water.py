@@ -12,8 +12,8 @@ from build import WRAP, warp
 from gcps import land_mask_and_ids
 
 # depth (m) -> sRGB
-STOPS = [(0, (80, 200, 195)), (30, (55, 170, 180)), (200, (34, 115, 155)), (1000, (24, 72, 122)),
-         (3000, (15, 44, 92)), (6000, (9, 28, 66))]
+STOPS = [(0, (80, 200, 195)), (30, (58, 172, 182)), (200, (40, 125, 165)), (1000, (34, 92, 140)),
+         (3000, (26, 64, 116)), (6000, (18, 46, 94))]  # deep ocean ~vanilla brightness (was half of it)
 POLAR = np.array((48, 84, 100), np.float32)  # cold-water grey-teal
 LAKE = np.array((24, 62, 74), np.float32)
 RIVER = np.array((34, 58, 60), np.float32)  # inland water base; rivers sample this map, not the sea

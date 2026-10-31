@@ -236,7 +236,11 @@ PixelShader =
 			float vAllSame;
 			float4 IndexU;
 			float4 IndexV;
-			calculate_map_tex_index( tex2D( TerrainIDMap, Input.uv + vOffsets.xy ), IndexU, IndexV, vAllSame );
+			// CWIC: jittered terrain lookup (TERRAIN_EDGE_JITTER), two noise scales; lakes and ice below keep the exact map
+			float2 vJit = float2( tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.13f ).a + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.031f + 0.23f ).a,
+			                      tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.13f + 0.5f ).a + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.031f + 0.71f ).a ) - 1.0f;
+			float2 vTerrUV = Input.uv + vJit * TERRAIN_EDGE_JITTER / float2( MAP_SIZE_X, MAP_SIZE_Y );
+			calculate_map_tex_index( tex2D( TerrainIDMap, vTerrUV + vOffsets.xy ), IndexU, IndexV, vAllSame );
 						
 			float2 vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ;
 			vTileRepeat.x *= MAP_SIZE_X/MAP_SIZE_Y;
@@ -279,7 +283,7 @@ PixelShader =
 				float4 terrain_normalRU = AT_SAMPLE( TerrainNormal, IndexU.z, IndexV.z );
 		#endif //NO_SHADER_TEXTURE_LOD
 		
-				float2 vFrac = frac( float2( Input.uv.x * MAP_SIZE_X - 0.5f, Input.uv.y * MAP_SIZE_Y - 0.5f ) );
+				float2 vFrac = frac( float2( vTerrUV.x * MAP_SIZE_X - 0.5f, vTerrUV.y * MAP_SIZE_Y - 0.5f ) );
 		
 				diffuse = lerp( 
 					lerp( ColorRU, ColorLU, vFrac.x ),
@@ -300,7 +304,7 @@ PixelShader =
 			#ifdef LOW_END_GFX
 				float vSpec = 0.0f;
 			#else
-				float vSpec = terrain_normalRaw.a;
+				float vSpec = terrain_normalRaw.a * TERRAIN_SPEC_SCALE;
 				vGlossiness = diffuse.a;
 			#endif
 		#else
@@ -325,7 +329,7 @@ PixelShader =
 			// CWIC: anti-tiling. Large-scale brightness variation (two noise scales, ~90 and ~400 map px) so one terrain type
 			// over a wide area doesn't look like a uniform repeated tile
 			float vMacro = tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.011f ).a * 0.6f + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0025f + 0.41f ).a * 0.4f;
-			diffuse.rgb *= lerp( 0.86f, 1.14f, vMacro );
+			diffuse.rgb *= lerp( 0.86f, 1.14f, vMacro ) * TERRAIN_ATLAS_GAIN;
 			diffuse.rgb = GetOverlay( diffuse.rgb, TerrainColor.rgb, COLORMAP_OVERLAY_STRENGTH );
 
 			// CWIC: lakes above the sea water plane. terrain.bmp index 14 (texture = 255) is drawn as flat water

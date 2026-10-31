@@ -886,8 +886,8 @@ PixelShader =
 		// own brightness (relief, texture, forests) and take a little saturation off, so the land reads through the colour;
 		// the outline keeps the plain colour
 		float vTerrLum = dot( vInit, float3( 0.299f, 0.587f, 0.114f ) );
-		float3 vFill = vGBDist.rgb * clamp( lerp( 1.0f, vTerrLum / 0.3f, 0.5f ), 0.65f, 1.35f );
-		vFill = lerp( dot( vFill, float3( 0.299f, 0.587f, 0.114f ) ).xxx, vFill, 0.85f );
+		float3 vFill = vGBDist.rgb * clamp( lerp( 1.0f, vTerrLum / 0.35f, 0.3f ), 0.82f, 1.2f );
+		vFill = lerp( dot( vFill, float3( 0.299f, 0.587f, 0.114f ) ).xxx, vFill, 0.92f );
 		vCh = lerp( vCh, lerp( vFill, vGBDist.rgb, saturate( vOutline + vThick ) ), max( vMaxGradient, vThick )* vStrength);
 
 		// Make the outline edge darker
