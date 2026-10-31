@@ -10683,8 +10683,12 @@ cwic_mnc_process_invites_global = {
 
 		else = { }
 
-		# Cleanup: clear pending flag each run; it will be re-added when a new invite/concession is created.
-		clr_country_flag = cwic_has_pending_mnc_invite
+		# Cleanup: keep the pending flag while any invite is still open, so
+		# invites queued behind this month's event fire in later months.
+		if = {
+			limit = { NOT = { cwic_mnc_has_any_invite = yes } }
+			clr_country_flag = cwic_has_pending_mnc_invite
+		}
 	}
 }
 # ============================================================
