@@ -35,12 +35,6 @@ NATO_initialize_voting = {
 			set_variable = { NATO_vote_intention = 0 }
 		}
 
-		if = {
-			limit = {
-				is_ai = no 
-			}
-			set_variable = { NATO_vote_intention = 0 }
-		}
 
 	}
 	
@@ -56,6 +50,7 @@ NATO_cleanup_voting = {
 		clear_variable = NATO_vote_value
 		clear_variable = NATO_vote_intention
 		clr_country_flag = NATO_voted_on_issue
+		clr_country_flag = NATO_issue_proposer_flag
 
 		remove_mission = NATO_vote_mission
 		remove_targeted_decision = { target = THIS decision = NATO_vote_yes }
@@ -136,17 +131,113 @@ NATO_sort_membership = {
 }
 
 NATO_join = {
-	add_to_array = { NAT.NATO_member_countries = THIS }
+	if = {
+		limit = {
+			NOT = { is_in_array = { array = NAT.NATO_member_countries value = THIS } }
+		}
+		add_to_array = { NAT.NATO_member_countries = THIS }
+	}
+	if = {
+		limit = { NOT = { has_idea = nato_member } }
+		add_ideas = nato_member
+	}
+	if = {
+		limit = {
+			NOT = { is_in_array = { array = country_politics_list value = 200 } }
+		}
+		add_to_array = { country_politics_list = 200 }
+	}
+	if = {
+		limit = {
+			is_in_faction = no
+		}
+		random_country = {
+			limit = {
+				has_faction_template = faction_template_nato
+				is_faction_leader = yes
+			}
+			add_to_faction = PREV
+		}
+	}
+	NATO_apply_military_effects = yes
+	NATO_apply_political_effects = yes
+	NATO_apply_espionage_effects = yes
 
-	custom_effect_tooltip = NATO_join_effect
 	add_to_variable = { NAT.NATO_gui_dirty = 0.1 }
 }
 
-NATO_leave = {
-	remove_from_array = { NAT.NATO_member_countries = THIS }
+NATO_found_faction = {
+	if = {
+		limit = {
+			is_in_faction = no
+			NOT = {
+				any_country = {
+					has_faction_template = faction_template_nato
+					is_faction_leader = yes
+				}
+			}
+		}
+		create_faction_from_template = faction_template_nato
+	}
+}
 
-	custom_effect_tooltip = NATO_leave_effect
+NATO_leave = {
+	if = {
+		limit = {
+			is_in_array = { array = NAT.NATO_member_countries value = THIS }
+		}
+		remove_from_array = { array = NAT.NATO_member_countries value = THIS }
+	}
+	if = {
+		limit = { has_idea = nato_member }
+		remove_ideas = nato_member
+	}
+	if = {
+		limit = { has_country_flag = NATO_major_member }
+		NATO_stop_major = yes
+	}
+	remove_from_array = { array = country_politics_list value = 200 }
+	set_variable = { show_nato_panel = 0 }
+	NATO_remove_all_effects = yes
+	if = {
+		limit = {
+			has_faction_template = faction_template_nato
+			is_faction_leader = no
+		}
+		leave_faction = yes
+	}
+
 	add_to_variable = { NAT.NATO_gui_dirty = 0.1 }
+}
+
+NATO_sync_membership = {
+	if = {
+		limit = {
+			has_faction_template = faction_template_nato
+			is_faction_leader = yes
+		}
+		every_country = {
+			limit = {
+				has_idea = nato_member
+				is_in_faction = no
+			}
+			NAT = { add_to_faction = PREV }
+		}
+		every_country = {
+			limit = {
+				has_faction_template = faction_template_nato
+				NOT = { is_in_array = { array = NAT.NATO_member_countries value = THIS } }
+			}
+			NATO_join = yes
+		}
+		every_country = {
+			limit = {
+				is_in_array = { array = NAT.NATO_member_countries value = THIS }
+				NOT = { has_faction_template = faction_template_nato }
+			}
+			NATO_leave = yes
+		}
+	}
 }
 
 NATO_become_major = {
@@ -190,11 +281,52 @@ NATO_recalculate_member_effects = {
 		}
 		add_to_variable = { NAT.NATO_gui_dirty = 0.1 }
 	}
+	if = {
+		limit = {
+			NOT = { check_variable = { NAT.NATO_prev_espionage_integration = NAT.NATO_espionage_integration } }
+		}
+		for_each_scope_loop = {
+			array = NAT.NATO_member_countries
+
+			NATO_apply_espionage_effects = yes 
+		}
+		add_to_variable = { NAT.NATO_gui_dirty = 0.1 }
+	}
 	set_variable = { NAT.NATO_prev_military_cooperation =  NAT.NATO_military_cooperation }
 	set_variable = { NAT.NATO_prev_political_integration = NAT.NATO_political_integration } 
+	set_variable = { NAT.NATO_prev_espionage_integration = NAT.NATO_espionage_integration }
+}
+
+NATO_clamp_bars = {
+	if = {
+		limit = { check_variable = { NAT.NATO_military_cooperation > 100 } }
+		set_variable = { NAT.NATO_military_cooperation = 100 }
+	}
+	if = {
+		limit = { check_variable = { NAT.NATO_military_cooperation < 0 } }
+		set_variable = { NAT.NATO_military_cooperation = 0 }
+	}
+	if = {
+		limit = { check_variable = { NAT.NATO_political_integration > 100 } }
+		set_variable = { NAT.NATO_political_integration = 100 }
+	}
+	if = {
+		limit = { check_variable = { NAT.NATO_political_integration < 0 } }
+		set_variable = { NAT.NATO_political_integration = 0 }
+	}
+	if = {
+		limit = { check_variable = { NAT.NATO_espionage_integration > 100 } }
+		set_variable = { NAT.NATO_espionage_integration = 100 }
+	}
+	if = {
+		limit = { check_variable = { NAT.NATO_espionage_integration < 0 } }
+		set_variable = { NAT.NATO_espionage_integration = 0 }
+	}
 }
 
 NATO_apply_military_effects = {
+	if = {
+		limit = { NOT = { has_country_flag = NATO_outside_integrated_command } }
 
 	if = {
 		limit = { 
@@ -216,7 +348,15 @@ NATO_apply_military_effects = {
 		add_ideas = NATO_military_2_idea 
 	}
 
-	#3 is controlled by a cycling event 
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_military_cooperation < 50 } 
+		}
+		remove_ideas = NATO_military_3_idea 
+	}
+	else = {
+		add_ideas = NATO_military_3_idea 
+	}
 
 	if = {
 		limit = { 
@@ -237,10 +377,26 @@ NATO_apply_military_effects = {
 	else = {
 		add_ideas = NATO_military_5_idea 
 	}
+	}
+	else = {
+		remove_ideas = NATO_military_1_idea
+		remove_ideas = NATO_military_2_idea
+		remove_ideas = NATO_military_3_idea
+		remove_ideas = NATO_military_4_idea
+		remove_ideas = NATO_military_5_idea
+	}
 }
 
 NATO_apply_political_effects = {
-	#1 is handled in on_actions
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_political_integration < 15 } 
+		}
+		remove_ideas = NATO_political_1_idea 
+	}
+	else = {
+		add_ideas = NATO_political_1_idea 
+	}
 
 	if = {
 		limit = { 
@@ -283,120 +439,75 @@ NATO_apply_political_effects = {
 	}
 }
 
+NATO_apply_espionage_effects = {
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_espionage_integration < 15 } 
+		}
+		remove_ideas = NATO_espionage_1_idea 
+	}
+	else = {
+		add_ideas = NATO_espionage_1_idea 
+	}
+
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_espionage_integration < 35 } 
+		}
+		remove_ideas = NATO_espionage_2_idea 
+	}
+	else = {
+		add_ideas = NATO_espionage_2_idea 
+	}
+
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_espionage_integration < 50 } 
+		}
+		remove_ideas = NATO_espionage_3_idea 
+	}
+	else = {
+		add_ideas = NATO_espionage_3_idea 
+	}
+
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_espionage_integration < 75 } 
+		}
+		remove_ideas = NATO_espionage_4_idea 
+	}
+	else = {
+		add_ideas = NATO_espionage_4_idea 
+	}
+
+	if = {
+		limit = { 
+			check_variable = { NAT.NATO_espionage_integration < 90 } 
+		}
+		remove_ideas = NATO_espionage_5_idea 
+	}
+	else = {
+		add_ideas = NATO_espionage_5_idea 
+	}
+}
+
 NATO_remove_all_effects = {
 	remove_ideas = {
 		NATO_military_1_idea
 		NATO_military_2_idea
+		NATO_military_3_idea
 		NATO_military_4_idea
 		NATO_military_5_idea
+		NATO_political_1_idea
 		NATO_political_2_idea
 		NATO_political_3_idea
 		NATO_political_4_idea
 		NATO_political_5_idea
-	}
-}
-
-NATO_issue_1_effect = {
-	#put the effects you want to do here!
-	custom_effect_tooltip = "NOR_INTERVENTION_BILL"
-	set_global_flag = TA_INTERVENING_IN_NOR
-	NOR = {
-	country_event = twrTAnew.1
-	}
-	every_country = {
-	limit = { is_ally_with = NATO }
-	reverse_add_opinion_modifier = {
-    target = NOR
-    modifier = medium_increase
-		}
-	add_opinion_modifier = {
-    target = NOR
-    modifier = medium_increase
-		}
-	}
-	if = {
-		limit = { tag = ENG }
-		add_equipment_to_stockpile = {
-			type = direct_fire_gun_equipment
-			amount = -100
-		}
-	}
-	NAT = {
-	add_equipment_to_stockpile = {
-	    type = infantry_equipment
-	    amount = -500
-		}
-	}
-}
-
-NATO_issue_2_effect = {
-
-	hidden_effect = {
-		if = {
-			limit = { tag = HSS }
-			country_event = { 
-				id = twrta.2000
-			}
-		}
-		if = {
-			limit = { tag = GER }
-			country_event = { 
-				id = twrta.2000
-			}
-		}
-		if = {
-			limit = { tag = HGR }
-			country_event = { 
-				id = twrta.2000
-			}
-		}
-	}
-
-	custom_effect_tooltip = NATO_foretop_effect_tt
-
-	effect_tooltip = {
-		ROOT = {
-			add_timed_idea = {
-				idea = NATO_exercise_foretop
-				days = 180
-			}
-			set_variable = { THIS.idea_len_@token:NATO_exercise_foretop = 180 }
-			set_variable = { THIS.idea_date_@token:NATO_exercise_foretop = global.num_days }
-	
-	
-			navy_experience = 10
-			air_experience = 10 
-			army_experience = 2.5 
-		}
-	}
-
-	
-
-	add_to_variable = {
-		NATO_military_cooperation = 4
-		tooltip = NATO_military_cooperation_change_tt
-	}
-
-	for_each_scope_loop = {
-		array = NAT.NATO_member_countries 
-
-		add_timed_idea = {
-			idea = NATO_exercise_foretop
-			days = 180
-		}
-		set_variable = { THIS.idea_len_@token:NATO_exercise_foretop = 180 }
-		set_variable = { THIS.idea_date_@token:NATO_exercise_foretop = global.num_days }
-
-
-		navy_experience = 10
-		air_experience = 10 
-		army_experience = 2.5 
-
-		country_event = {
-			id = twrta.2001 
-			days = 5 
-		}
-
+		NATO_espionage_1_idea
+		NATO_espionage_2_idea
+		NATO_espionage_3_idea
+		NATO_espionage_4_idea
+		NATO_espionage_5_idea
 	}
 }
 
@@ -405,9 +516,7 @@ NATO_issue_3_effect = {
 	custom_effect_tooltip = "NATO_APPLICATION_BILL"
 
 	event_target:NATO_toronto_accord_applicant = {
-		add_ideas = nato_member
-		NATO_apply_military_effects = yes 
-		NATO_apply_political_effects = yes 
+		NATO_join = yes
 		country_event = twrta.3001
 	}
 	clear_global_event_target = NATO_toronto_accord_applicant
@@ -491,4 +600,377 @@ NATO_issue_11_effect = {
 		NATO_military_cooperation = 2
 		tooltip = NATO_military_cooperation_change_tt
 	}
+}
+
+NATO_seed_member_intention = {
+	set_variable = { NATO_vote_intention = 0 }
+	if = {
+		limit = { tag = USA }
+		add_to_variable = { NATO_vote_intention = 10 }
+	}
+	if = {
+		limit = { NATO_same_ideology_as_leader = yes }
+		add_to_variable = { NATO_vote_intention = 4 }
+	}
+	if = {
+		limit = { NATO_same_government_group_as_leader = yes }
+		add_to_variable = { NATO_vote_intention = 2 }
+	}
+	if = {
+		limit = {
+			NOT = { tag = USA }
+			check_variable = { NAT.NATO_aid_goodwill > 9 }
+		}
+		add_to_variable = { NATO_vote_intention = 1 }
+	}
+	if = {
+		limit = { has_country_flag = NATO_burden_grievance }
+		add_to_variable = { NATO_vote_intention = -2 }
+	}
+	if = {
+		limit = { has_opinion = { target = USA value > 25 } }
+		add_to_variable = { NATO_vote_intention = 2 }
+	}
+	if = {
+		limit = { has_opinion = { target = USA value > 75 } }
+		add_to_variable = { NATO_vote_intention = 2 }
+	}
+	if = {
+		limit = {
+			NATO_government_hard_left = yes
+			NATO_active_issue_is_military = yes
+		}
+		add_to_variable = { NATO_vote_intention = -4 }
+	}
+	if = {
+		limit = {
+			NATO_government_left = yes
+			check_variable = { NAT.NATO_issue_id = 9 }
+		}
+		add_to_variable = { NATO_vote_intention = 2 }
+	}
+	if = {
+		limit = { NATO_issue_opposes_current = yes }
+		add_to_variable = { NATO_vote_intention = -8 }
+	}
+	if = {
+		limit = { NATO_issue_12_neither_proposed = yes }
+		add_to_variable = { NATO_vote_intention = -4 }
+	}
+	if = {
+		limit = { has_country_flag = NATO_issue_proposer_flag }
+		add_to_variable = { NATO_vote_intention = 5 }
+	}
+	randomize_variable = { var = NATO_jitter distribution = uniform min = -2 max = 2 }
+	add_to_variable = { NATO_vote_intention = NATO_jitter }
+	clear_variable = NATO_jitter
+}
+
+NATO_raise_issue = {
+	set_country_flag = NATO_issue_proposer_flag
+	if = {
+		limit = { NATO_issue_4_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 4 }
+	}
+	else_if = {
+		limit = { NATO_issue_5_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 5 }
+	}
+	else_if = {
+		limit = { NATO_issue_6_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 6 }
+	}
+	else_if = {
+		limit = { NATO_issue_7_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 7 }
+	}
+	else_if = {
+		limit = { NATO_issue_9_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 9 }
+	}
+	else_if = {
+		limit = { NATO_issue_12_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 12 }
+	}
+	else_if = {
+		limit = { NATO_issue_13_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 13 }
+	}
+	else_if = {
+		limit = { NATO_issue_14_can_raise = yes }
+		set_temp_variable = { NATO_new_issue_id = 14 }
+	}
+	NAT = { NATO_start_issue = yes }
+}
+
+NATO_start_issue = {
+	if = {
+		limit = {
+			NOT = { has_variable = NATO_issue_id }
+			NOT = { has_global_flag = NATO_issue_cooldown }
+		}
+		set_variable = { NATO_issue_id = NATO_new_issue_id }
+		for_each_scope_loop = {
+			array = NAT.NATO_member_countries
+			NATO_seed_member_intention = yes
+		}
+		NATO_initialize_voting = yes
+	}
+}
+
+NATO_try_start_issues = {
+	if = {
+		limit = { NATO_issue_4_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 4 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_5_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 5 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_6_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 6 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_7_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 7 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_9_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 9 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_12_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 12 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_13_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 13 }
+		NAT = { NATO_start_issue = yes }
+	}
+	if = {
+		limit = { NATO_issue_14_can_start = yes NATO_any_issue_can_start = yes }
+		set_temp_variable = { NATO_new_issue_id = 14 }
+		NAT = { NATO_start_issue = yes }
+	}
+}
+
+NATO_issue_4_effect = {
+	set_global_flag = NATO_issue_4_resolved
+	add_to_variable = { NATO_military_cooperation = 5 }
+	add_to_variable = { NATO_political_integration = 2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_4_fail = {
+	set_global_flag = NATO_issue_4_resolved
+	add_to_variable = { NATO_military_cooperation = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_5_effect = {
+	set_global_flag = NATO_issue_5_resolved
+	WGR = {
+		NATO_join = yes
+		NATO_become_major = yes
+	}
+	add_to_variable = { NATO_military_cooperation = 3 }
+	NATO_clamp_bars = yes
+	news_event = { id = twrta.5001 days = 0 }
+}
+
+NATO_issue_5_fail = {
+	set_global_flag = NATO_issue_5_failed
+	add_to_variable = { NATO_military_cooperation = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_6_effect = {
+	set_global_flag = NATO_issue_6_resolved
+	add_to_variable = { NATO_political_integration = -3 }
+	ENG = { add_political_power = 25 }
+	FRA = { add_political_power = 25 }
+	USA = { add_stability = -0.02 }
+	NATO_clamp_bars = yes
+	news_event = { id = twrta.6001 }
+}
+
+NATO_issue_6_fail = {
+	set_global_flag = NATO_issue_6_resolved
+	add_to_variable = { NATO_political_integration = -5 }
+	ENG = { add_stability = -0.05 }
+	FRA = { add_stability = -0.05 }
+	NATO_clamp_bars = yes
+	news_event = { id = twrta.6002 }
+}
+
+NATO_issue_7_effect = {
+	set_global_flag = NATO_issue_7_resolved
+	add_to_variable = { NATO_military_cooperation = 4 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_7_fail = {
+	set_global_flag = NATO_issue_7_resolved
+	add_to_variable = { NATO_military_cooperation = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_9_effect = {
+	set_global_flag = NATO_issue_9_resolved
+	add_to_variable = { NATO_political_integration = 8 }
+	NATO_clamp_bars = yes
+	news_event = { id = twrta.9001 days = 0 }
+}
+
+NATO_issue_9_fail = {
+	set_global_flag = NATO_issue_9_resolved
+	add_to_variable = { NATO_military_cooperation = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_12_effect = {
+	set_global_flag = NATO_issue_12_resolved
+	add_to_variable = { NATO_military_cooperation = 2 }
+	add_to_variable = { NATO_political_integration = 2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_12_fail = {
+	set_global_flag = NATO_issue_12_resolved
+	add_to_variable = { NATO_military_cooperation = -3 }
+	NATO_clamp_bars = yes
+	every_country = {
+		limit = {
+			tag = GRE
+			has_idea = nato_member
+		}
+		set_country_flag = NATO_outside_integrated_command
+	}
+}
+
+NATO_issue_13_effect = {
+	set_global_flag = NATO_issue_13_resolved
+	add_to_variable = { NATO_military_cooperation = 6 }
+	NATO_clamp_bars = yes
+	every_country = {
+		limit = {
+			has_idea = nato_member
+			OR = {
+				tag = HOL
+				tag = WGR
+				tag = ITA
+				tag = BEL
+			}
+		}
+		add_stability = -0.03
+	}
+	news_event = { id = twrta.13001 days = 0 }
+}
+
+NATO_issue_13_fail = {
+	set_global_flag = NATO_issue_13_resolved
+	add_to_variable = { NATO_military_cooperation = -6 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_14_effect = {
+	set_global_flag = NATO_issue_14_resolved
+	SPR = {
+		NATO_join = yes
+	}
+	news_event = { id = twrta.14001 days = 0 }
+}
+
+NATO_issue_14_fail = {
+	set_global_flag = NATO_issue_14_resolved
+	add_to_variable = { NATO_political_integration = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_10_fail = {
+	add_to_variable = { NATO_military_cooperation = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_11_fail = {
+	add_to_variable = { NATO_military_cooperation = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_issue_cooldown_start = {
+	set_global_flag = { flag = NATO_issue_cooldown days = 180 }
+}
+
+NATO_do_pledge_forces = {
+	add_manpower = 20
+	NAT = { add_to_variable = { NATO_military_cooperation = 2 } }
+	NATO_clamp_bars = yes
+}
+
+NATO_do_refuse_burden_sharing = {
+	add_political_power = 15
+	set_country_flag = { flag = NATO_burden_grievance days = 180 }
+	NAT = { add_to_variable = { NATO_military_cooperation = -2 } }
+	NATO_clamp_bars = yes
+}
+
+NATO_do_demand_consultation = {
+	set_country_flag = { flag = NATO_consultation_demanded days = 180 }
+	NAT = { add_to_variable = { NATO_political_integration = 1 } }
+	NAT = { country_event = { id = twrta.15001 } }
+	NATO_clamp_bars = yes
+}
+
+NATO_consultation_accepted = {
+	FROM = { clr_country_flag = NATO_burden_grievance }
+	FROM = { clr_country_flag = NATO_consultation_demanded }
+	add_to_variable = { NATO_political_integration = 2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_consultation_dismissed = {
+	FROM = { clr_country_flag = NATO_consultation_demanded }
+	add_to_variable = { NATO_political_integration = -2 }
+	NATO_clamp_bars = yes
+}
+
+NATO_do_marshall_aid = {
+	add_to_variable = { NAT.NATO_aid_goodwill = 10 }
+	if = {
+		limit = { check_variable = { NAT.NATO_aid_goodwill > 30 } }
+		set_variable = { NAT.NATO_aid_goodwill = 30 }
+	}
+	add_to_variable = { NAT.NATO_political_integration = 1 }
+	every_country = {
+		limit = {
+			has_idea = nato_member
+			NOT = { tag = USA }
+		}
+		clr_country_flag = NATO_burden_grievance
+		add_stability = 0.01
+	}
+	set_country_flag = { flag = NATO_marshall_aid_cooldown days = 365 }
+	NATO_clamp_bars = yes
+}
+
+NATO_decay_aid_goodwill = {
+	if = {
+		limit = { check_variable = { NAT.NATO_aid_goodwill > 0 } }
+		add_to_variable = { NAT.NATO_aid_goodwill = -1 }
+	}
+}
+
+NATO_gre_return_command = {
+	clr_country_flag = NATO_outside_integrated_command
+	add_to_variable = { NAT.NATO_military_cooperation = 3 }
+	add_to_variable = { NAT.NATO_political_integration = 2 }
+	NATO_clamp_bars = yes
+	NATO_apply_military_effects = yes
 }
