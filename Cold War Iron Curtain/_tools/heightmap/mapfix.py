@@ -208,7 +208,7 @@ def main():
     for ps in states:
         w = {}
         for p in ps:
-            if land_r(region_of[p]):
+            if land_r(region_of[p]) and kind.get(p) == "land":  # a lake in the state never decides its region
                 w[region_of[p]] = w.get(region_of[p], 0) + size.get(p, 0)
         share.append(w)
     home = {i: max(w, key=w.get) for i, w in enumerate(share) if w}
@@ -223,7 +223,7 @@ def main():
                 home[cand[-1][1]] = r
     for i, r in home.items():
         for p in states[i]:
-            if region_of[p] != r and land_r(region_of[p]):
+            if region_of[p] != r and (land_r(region_of[p]) or kind.get(p) == "lake"):
                 region_of[p] = r; moved += 1
     print("provinces moved to their state's region:", moved)
     # a land region holding a few sea provinces counts as naval for the engine, which then wants it in one piece
