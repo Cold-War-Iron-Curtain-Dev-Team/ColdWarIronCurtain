@@ -161,11 +161,17 @@ news_event = {
 		}
 		KPA = { add_ideas = korean_war }
 		CHI = {
-			create_faction_from_template = { template = faction_template_generic name = "Anti-Communist Bloc" }
+			if = {
+				limit = { is_in_faction = no }
+				create_faction_from_template = { template = faction_template_wartime_coalition name = "Anti-Communist Bloc" }
+				set_temp_variable = { coalition_new_objective = 4 }
+				set_temp_variable = { coalition_new_target = PRC.id }
+				set_temp_variable = { coalition_new_protected = 0 }
+				coalition_init = yes
+				set_temp_variable = { coalition_new_member = KOR.id }
+				coalition_add_member = yes
+			}
 		}
-		CHI = { add_to_faction = KOR }
-		#CHI = { add_to_faction = VIE }
-		#CHI = { add_to_faction = PHI }
 		custom_effect_tooltip = PRC_communist_reinforcements_Korean_War_initial_TT
 		hidden_effect = {
 			KPA = { load_oob = PRC_communist_reinforcements_Korean_War_initial }
@@ -208,18 +214,31 @@ news_event = {
 		}
 		set_global_flag = asian_liberation_war
 		PRC = {
-			create_faction_from_template = { template = faction_template_generic name = "Peoples Liberation Front of Asia" }
-			add_to_faction = MON 
+			if = {
+				limit = { is_in_faction = no }
+				create_faction_from_template = { template = faction_template_wartime_coalition name = "Peoples Liberation Front of Asia" }
+				set_temp_variable = { coalition_new_objective = 4 }
+				set_temp_variable = { coalition_new_target = CHI.id }
+				set_temp_variable = { coalition_new_protected = 0 }
+				coalition_init = yes
+				set_temp_variable = { coalition_new_member = MON.id }
+				coalition_add_member = yes
+			}
 			add_to_war = { 
 				targeted_alliance = MON
 				enemy = KOR 
 				hostility_reason = asked_to_join
 			}
-			add_to_faction = KPA
-			add_to_faction = SIK
-			add_to_faction = LAO
+			if = {
+				limit = { has_country_flag = coalition_leader }
+				set_temp_variable = { coalition_new_member = KPA.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = SIK.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = LAO.id }
+				coalition_add_member = yes
+			}
 		}
-		#PRC = { add_to_faction = VIN }
 	}
 }country_event = {
 	id = aplwun.10
@@ -302,16 +321,34 @@ news_event = {
 			leave_faction = yes
 		}
 		VIE = {
-			set_country_flag = VIE_generic_faction_created
-			create_faction_from_template = { template = faction_template_generic name = "Southeast Asian Anti-Communist Alliance" }
+			if = {
+				limit = { is_in_faction = no }
+				set_country_flag = VIE_generic_faction_created
+				create_faction_from_template = { template = faction_template_wartime_coalition name = "Southeast Asian Anti-Communist Alliance" }
+				set_temp_variable = { coalition_new_objective = 4 }
+				set_temp_variable = { coalition_new_target = PRC.id }
+				set_temp_variable = { coalition_new_protected = 0 }
+				coalition_init = yes
+				set_temp_variable = { coalition_new_member = PHI.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = LOS.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = CAM.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = SIA.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = BRM.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = MAL.id }
+				coalition_add_member = yes
+			}
 		}
-		VIE = { add_to_faction = PHI }
-		VIE = { add_to_faction = LOS }
-		VIE = { add_to_faction = CAM }
-		VIE = { add_to_faction = SIA }
-		VIE = { add_to_faction = BRM }
-		VIE = { add_to_faction = MAL }
-		PRC = { add_to_faction = MLA }
+		PRC = {
+			if = {
+				limit = { MLA = { is_in_faction = no } }
+				add_to_faction = MLA
+			}
+		}
 		PRC = {
 			declare_war_on = {
 			target = VIE
@@ -499,14 +536,30 @@ news_event = {
 			}
 		}
 		PRC = {
-			dismantle_faction = yes
+			if = {
+				limit = {
+					is_faction_leader = yes
+					has_country_flag = coalition_leader
+				}
+				coalition_dissolve = yes
+			}
+			if = {
+				limit = { is_in_faction = no }
+				create_faction_from_template = { template = faction_template_generic name = "Beijing Pact" }
+				set_temp_variable = { coalition_new_objective = 0 }
+				set_temp_variable = { coalition_new_target = 0 }
+				set_temp_variable = { coalition_new_protected = 0 }
+				coalition_init = yes
+				set_temp_variable = { coalition_new_member = VIN.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = KPA.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = LAO.id }
+				coalition_add_member = yes
+				set_temp_variable = { coalition_new_member = CAM.id }
+				coalition_add_member = yes
+			}
 		}
-		PRC = { create_faction_from_template = { template = faction_template_generic name = "Beijing Pact" } }
-		PRC = { add_to_faction = VIN }
-		PRC = { add_to_faction = KPA }
-		PRC = { add_to_faction = LAO }
-		PRC = { add_to_faction = CAM }
-		PRC = { set_faction_leader = yes }
 		VIN = {
 			set_politics = {
 				ruling_party = communism
@@ -594,16 +647,58 @@ news_event = {
 			}
 		}
 		PRC = {
-			dismantle_faction = yes
+			if = {
+				limit = {
+					is_faction_leader = yes
+					has_country_flag = coalition_leader
+				}
+				coalition_dissolve = yes
+			}
+			if = {
+				limit = { is_in_faction = no }
+				create_faction_from_template = { template = faction_template_generic name = "Beijing Pact" }
+				set_temp_variable = { coalition_new_objective = 0 }
+				set_temp_variable = { coalition_new_target = 0 }
+				set_temp_variable = { coalition_new_protected = 0 }
+				coalition_init = yes
+			}
 		}
-		PRC = { create_faction_from_template = { template = faction_template_generic name = "Beijing Pact" } }
-		PRC = { add_to_faction = VIN }
-		PRC = { add_to_faction = KPA }
-		PRC = { add_to_faction = LAO }
-		PRC = { add_to_faction = CAM }
-		PRC = { add_to_faction = MON }
-		PRC = { add_to_faction = SIK }
-		PRC = { set_faction_leader = yes }
+		VIN = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
+		KPA = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
+		LAO = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
+		CAM = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
+		MON = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
+		SIK = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
 		VIN = {
 			set_politics = {
 				ruling_party = communism
@@ -665,7 +760,12 @@ news_event = {
 				type = annex_everything
 			}
 		}
-		PRC = { add_to_faction = MLA }
+		PRC = {
+			if = {
+				limit = { MLA = { is_in_faction = no } }
+				add_to_faction = MLA
+			}
+		}
 		USA = {
 			launch_nuke = {
 				province = 7042
@@ -785,8 +885,12 @@ country_event = {
 				}
 				load_oob = "UN_army_aplw"
 			}
-			VIE = { add_to_faction = SGP }
-			SGP = {set_faction_leader = yes}
+			SGP = {
+				if = {
+					limit = { is_in_faction = no }
+					VIE = { add_to_faction = PREV }
+				}
+			}
 			news_event = {
 				id = aplwun.3
 				days = 1
@@ -816,7 +920,12 @@ country_event = {
 		SIA = {
 			white_peace = PRC
 		}
-		PRC = { add_to_faction = TTM }
+		TTM = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
 		PRC = { set_autonomy = { target = TTM autonomy_state = autonomy_easternbloc } }
 		KMP = {
 			annex_country = {
@@ -831,8 +940,18 @@ country_event = {
 			}
 		}
 
-		PRC = { add_to_faction = LAO }
-		PRC = { add_to_faction = KMP }
+		LAO = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
+		KMP = {
+			if = {
+				limit = { is_in_faction = no }
+				PRC = { add_to_faction = PREV }
+			}
+		}
 		ai_chance = {
 			factor = 0
 		}

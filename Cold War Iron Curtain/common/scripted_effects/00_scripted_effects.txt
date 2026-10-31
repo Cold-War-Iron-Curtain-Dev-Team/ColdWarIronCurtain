@@ -769,4 +769,109 @@ close_all_windows = {
 	set_variable = { show_arab_league_main = 0 }
 	set_variable = { show_usa_congress = 0 }
 	set_variable = { show_cuba_government = 0 }
+	set_variable = { show_nato_panel = 0 }
+	set_variable = { comecon_main_show = 0 }
+}
+
+coalition_init = {
+	set_country_flag = coalition_leader
+	set_country_flag = coalition_founder
+	set_variable = { coalition_objective = coalition_new_objective }
+	set_variable = { coalition_target = coalition_new_target }
+	if = {
+		limit = { check_variable = { coalition_new_protected > 0 } }
+		set_variable = { coalition_protected = coalition_new_protected }
+	}
+	set_variable = { coalition_founders_total = 1 }
+	set_variable = { coalition_founders_present = 1 }
+	if = {
+		limit = { check_variable = { coalition_objective = 1 } }
+		add_faction_goal = faction_goal_coalition_repel_invasion
+	}
+	else_if = {
+		limit = { check_variable = { coalition_objective = 2 } }
+		add_faction_goal = faction_goal_coalition_preserve_government
+	}
+	else_if = {
+		limit = { check_variable = { coalition_objective = 3 } }
+		add_faction_goal = faction_goal_coalition_secure_withdrawal
+	}
+	else_if = {
+		limit = { check_variable = { coalition_objective = 4 } }
+		add_faction_goal = faction_goal_coalition_defeat_target
+	}
+	if = {
+		limit = {
+			check_variable = { coalition_target > 0 }
+			has_war_with = var:coalition_target
+		}
+		set_country_flag = coalition_war_seen
+	}
+}
+
+coalition_add_member = {
+	if = {
+		limit = {
+			has_country_flag = coalition_leader
+			var:coalition_new_member = { is_in_faction = no }
+		}
+		var:coalition_new_member = {
+			PREV = { add_to_faction = PREV }
+			set_country_flag = coalition_founder
+		}
+		add_to_variable = { coalition_founders_total = 1 }
+		add_to_variable = { coalition_founders_present = 1 }
+	}
+}
+
+coalition_recount_founders = {
+	set_variable = { coalition_founders_present = 0 }
+	every_faction_member = {
+		limit = {
+			has_country_flag = coalition_founder
+			has_capitulated = no
+		}
+		PREV = { add_to_variable = { coalition_founders_present = 1 } }
+	}
+	if = {
+		limit = {
+			NOT = { has_country_flag = coalition_war_seen }
+			check_variable = { coalition_target > 0 }
+			var:coalition_target = { exists = yes }
+			has_war_with = var:coalition_target
+		}
+		set_country_flag = coalition_war_seen
+	}
+}
+
+coalition_campaign_reward = {
+	hidden_effect = {
+		faction_leader = {
+			set_country_flag = coalition_campaign_done
+		}
+	}
+	add_faction_initiative = 2
+	every_faction_member = {
+		add_political_power = 25
+	}
+}
+
+coalition_dissolve = {
+	if = {
+		limit = { has_country_flag = coalition_leader }
+		every_faction_member = {
+			clr_country_flag = coalition_founder
+			clr_country_flag = coalition_liaison_funded
+		}
+		clr_country_flag = coalition_leader
+		clr_country_flag = coalition_war_seen
+		clr_country_flag = coalition_campaign_done
+		clr_country_flag = coalition_settlement_enabled
+		clear_variable = coalition_objective
+		clear_variable = coalition_target
+		clear_variable = coalition_protected
+		clear_variable = coalition_founders_total
+		clear_variable = coalition_founders_present
+		dismantle_faction = yes
+	}
 }
