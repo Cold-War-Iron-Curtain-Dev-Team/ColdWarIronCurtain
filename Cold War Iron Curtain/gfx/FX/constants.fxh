@@ -50,7 +50,7 @@ static const float CITY_LIGHTS_TILING 			= 0.09103;
 static const float CITY_LIGHTS_INTENSITY 		= 5;
 static const float CITY_LIGHTS_BLOOM_FACTOR 	= 0.4;
 
-static const float TERRAIN_TILE_FREQ 			= 253.0f; // CWIC: Revolution Realized atlas (5x5): their 228 scaled from 2304 to 2560 map rows
+static const float TERRAIN_TILE_FREQ 			= 128.0f; // CWIC: one repeat per 20 map rows, as before the Revolution Realized atlas (253 tiled twice as often)
 static const float MAP_NUM_TILES 				= 5.0f; // CWIC: Revolution Realized atlas
 static const float TEXELS_PER_TILE 				= 312.0f; // CWIC: Revolution Realized value
 static const float ATLAS_TEXEL_POW2_EXPONENT	= 11.0f;

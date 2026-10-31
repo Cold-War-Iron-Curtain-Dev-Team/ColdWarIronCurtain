@@ -245,32 +245,38 @@ PixelShader =
 			// push the atlas mip up so each tile fades to its average colour (the colormap carries the large-scale look)
 			float lod = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 4.0f, 0.0f, 6.0f );
 			float vMipTexels = pow( 2.0f, ATLAS_TEXEL_POW2_EXPONENT - lod );
+
+			// CWIC: anti-tiling. Every atlas tile is also sampled at 0.61x scale with an offset, and a low-frequency noise blends
+			// the two, so one tile never repeats on an exact grid. Scale only, no rotation: the tangent-space normals stay valid
+			float2 vTileRepeat2 = vTileRepeat * 0.61f + float2( 0.37f, 0.71f );
+			float vAT = smoothstep( 0.3f, 0.7f, tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0035f + 0.17f ).a );
+			#define AT_SAMPLE( TEX, U, V ) lerp( tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat, vMipTexels, lod ) ), tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat2, vMipTexels, lod ) ), vAT )
 					
 		#ifdef LOW_END_GFX
 			float3 normal = float3( 0, 1, 0 );
 		#else
 			float3 normal = normalize( tex2D( HeightNormal, Input.uv2 ).rbg - 0.5f );
 		#endif
-			float4 diffuse = tex2Dlod( TerrainDiffuse, sample_terrain( IndexU.w, IndexV.w, vTileRepeat, vMipTexels, lod ) ).rgba;
+			float4 diffuse = AT_SAMPLE( TerrainDiffuse, IndexU.w, IndexV.w ).rgba;
 			float vGlossiness = diffuse.a;
 									
 		#ifdef NO_SHADER_TEXTURE_LOD
 			float3 terrain_normal = float3( 0,1,0 );
 		#else	
 			float3 terrain_normal;
-			float4 terrain_normalRaw = tex2Dlod( TerrainNormal, sample_terrain( IndexU.w, IndexV.w, vTileRepeat, vMipTexels, lod ) );
+			float4 terrain_normalRaw = AT_SAMPLE( TerrainNormal, IndexU.w, IndexV.w );
 		#endif //NO_SHADER_TEXTURE_LOD
 			
 			if ( vAllSame < 1.0f )
 			{
-				float4 ColorRD = tex2Dlod( TerrainDiffuse, sample_terrain( IndexU.x, IndexV.x, vTileRepeat, vMipTexels, lod ) ).rgba;
-				float4 ColorLU = tex2Dlod( TerrainDiffuse, sample_terrain( IndexU.y, IndexV.y, vTileRepeat, vMipTexels, lod ) ).rgba;
-				float4 ColorRU = tex2Dlod( TerrainDiffuse, sample_terrain( IndexU.z, IndexV.z, vTileRepeat, vMipTexels, lod ) ).rgba;
+				float4 ColorRD = AT_SAMPLE( TerrainDiffuse, IndexU.x, IndexV.x ).rgba;
+				float4 ColorLU = AT_SAMPLE( TerrainDiffuse, IndexU.y, IndexV.y ).rgba;
+				float4 ColorRU = AT_SAMPLE( TerrainDiffuse, IndexU.z, IndexV.z ).rgba;
 		
 		#ifndef NO_SHADER_TEXTURE_LOD	
-				float4 terrain_normalRD = tex2Dlod( TerrainNormal, sample_terrain( IndexU.x, IndexV.x, vTileRepeat, vMipTexels, lod ) );
-				float4 terrain_normalLU = tex2Dlod( TerrainNormal, sample_terrain( IndexU.y, IndexV.y, vTileRepeat, vMipTexels, lod ) );
-				float4 terrain_normalRU = tex2Dlod( TerrainNormal, sample_terrain( IndexU.z, IndexV.z, vTileRepeat, vMipTexels, lod ) );
+				float4 terrain_normalRD = AT_SAMPLE( TerrainNormal, IndexU.x, IndexV.x );
+				float4 terrain_normalLU = AT_SAMPLE( TerrainNormal, IndexU.y, IndexV.y );
+				float4 terrain_normalRU = AT_SAMPLE( TerrainNormal, IndexU.z, IndexV.z );
 		#endif //NO_SHADER_TEXTURE_LOD
 		
 				float2 vFrac = frac( float2( Input.uv.x * MAP_SIZE_X - 0.5f, Input.uv.y * MAP_SIZE_Y - 0.5f ) );
