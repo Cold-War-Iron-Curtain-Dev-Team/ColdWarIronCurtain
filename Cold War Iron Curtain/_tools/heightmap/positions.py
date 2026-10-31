@@ -41,18 +41,92 @@ def nearest_inside(sets, label, x, y):
     return xs[k] + 0.5, ys[k] + 0.5
 
 
+PER_COAST = ("naval_base_spawn", "coastal_bunker", "naval_headquarters", "naval_supply_hub")  # one per coastal province
+
+
+def naval_rebuild(lines, ids, kinds, st, height):
+    """One entry of each PER_COAST type per coastal land province (the engine's nudger wants a port in every one),
+    standing on a shore pixel of that province facing its sea. Existing entries are reused (nearest shore of their
+    state); missing ones are added. Returns the new line list."""
+    H, W = ids.shape
+    sea = np.isin(ids, [k for k, v in kinds.items() if v == "sea"])
+    land = np.isin(ids, [k for k, v in kinds.items() if v == "land"])
+    cy, cx, cs = [], [], []
+    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        sh = np.roll(np.roll(ids, -dy, 0), -dx, 1)
+        ssh = np.roll(np.roll(sea, -dy, 0), -dx, 1)
+        m = land & ssh
+        if dy == -1: m[0] = False
+        if dy == 1: m[-1] = False
+        y, x = np.nonzero(m)
+        cy.append(y); cx.append(x); cs.append(sh[y, x])
+    cy, cx, cs = np.concatenate(cy), np.concatenate(cx), np.concatenate(cs)
+    cp = ids[cy, cx]
+    cst = st[cp]
+    tree = {}
+    for s in np.unique(cst):
+        i = np.flatnonzero(cst == s)
+        tree[int(s)] = (cKDTree(np.c_[cx[i], cy[i]]), i)
+    by_prov = {}
+    for i, q in enumerate(cp):
+        by_prov.setdefault(int(q), []).append(i)
+
+    def place(i, owner, typ, rot=None):
+        x, y, s = cx[i], cy[i], int(cs[i])
+        if rot is None:  # face the sea (vanilla convention: atan2(dz, dx) + pi/2)
+            sy, sx = np.nonzero(sea[max(0, y - 3):y + 4, max(0, x - 3):x + 4] & (ids[max(0, y - 3):y + 4, max(0, x - 3):x + 4] == s))
+            dx, dz = sx.mean() - min(3, x), -(sy.mean() - min(3, y))
+            rot = np.arctan2(dz, dx) + np.pi / 2
+        X, Z = x + .5, H - y - .5
+        return f"{owner};{typ};{X:.2f};{height(X, Z):.2f};{Z:.2f};{rot:.2f};{s if typ == 'naval_base_spawn' else 0}"
+
+    keep, rest = {}, []
+    for n, line in enumerate(lines):
+        p = line.split(";")
+        if len(p) < 7 or p[1] not in PER_COAST:
+            rest.append(line); continue
+        owner = int(p[0])
+        if owner not in tree:
+            continue  # state has no coast now: drop
+        t, idx = tree[owner]
+        x, y = float(p[2]), H - float(p[4])
+        d, j = t.query([x - .5, y - .5])
+        i = idx[j]
+        key = (int(cp[i]), p[1])
+        if key not in keep or d < keep[key][0]:
+            want = int(p[6]) if p[1] == "naval_base_spawn" and p[6].isdigit() else None
+            if want is not None:  # keep the port's sea if this shore touches it
+                alt = [k for k in by_prov[int(cp[i])] if int(cs[k]) == want]
+                if alt:
+                    i = min(alt, key=lambda k: (cx[k] - x) ** 2 + (cy[k] - y) ** 2)
+            keep[key] = (d, place(i, owner, p[1], float(p[5])))
+    added = 0
+    for q, ii in by_prov.items():
+        if st[q] == 0:
+            continue
+        seas = np.bincount(cs[ii])
+        best_sea = np.argmax(seas)
+        on = [i for i in ii if cs[i] == best_sea]
+        mid = on[len(on) // 2]
+        for typ in PER_COAST:
+            if (q, typ) not in keep:
+                keep[(q, typ)] = (0, place(mid, int(st[q]), typ)); added += 1
+    print(f"  coastal provinces {len(by_prov)}, per-province naval entries {len(keep)} ({added} added)")
+    return rest + [v for _, v in sorted(keep.values(), key=lambda t: int(t[1].split(';')[0]))]
+
+
 def main(warp_npz, write=False):
     ids, kinds = land_mask_and_ids()
     H, W = ids.shape
     hm = np.asarray(Image.open("map/heightmap.bmp")).astype(np.float32)
     st = np.zeros(ids.max() + 1, np.int32)
     for f in glob.glob("history/states/*.txt"):
-        t = open(f, encoding="utf-8", errors="ignore").read()
+        t = re.sub(r"#[^\n]*", "", open(f, encoding="utf-8", errors="ignore").read())
         m, pr = re.search(r"\bid\s*=\s*(\d+)", t), re.search(r"provinces\s*=\s*\{([^}]*)\}", t)
         if m and pr:
             st[[int(q) for q in pr.group(1).split() if q.isdigit() and int(q) < len(st)]] = int(m.group(1))
     states = st[ids]
-    water = np.isin(ids, [k for k, v in kinds.items() if v in ("sea", "lake")])
+    dry = np.where(hm >= WATER_Y * 10 + 1, states, 0)  # the engine wants buildings over land: province and heightmap
     prov_sets, state_sets = pixel_sets(ids), None
 
     # real city spot per VP province: lon/lat -> nearest map pixel through the warp
@@ -68,13 +142,17 @@ def main(warp_npz, write=False):
         vp_target[pid] = (i % W + 0.5, i // W + 0.5)
     del tree
 
+    row = lambda z: min(H - 1, max(0, H - 1 - int(np.floor(z))))  # game z counts pixel rows from the bottom
+
     def height(x, z):
-        return max(hm[min(H - 1, max(0, int(H - z))), int(x) % W] / 10.0, WATER_Y)
+        return max(hm[row(z), int(x) % W] / 10.0, WATER_Y)
 
     for path, by_state in (("map/unitstacks.txt", False), ("map/buildings.txt", True)):
         if by_state and state_sets is None:
-            state_sets = pixel_sets(states)
+            state_sets = pixel_sets(dry)
         lines = open(path, encoding="utf-8").read().splitlines()
+        if by_state:
+            lines = naval_rebuild(lines, ids, kinds, st, height)
         moved = vp = dy = 0
         out = []
         for line in lines:
@@ -90,10 +168,8 @@ def main(warp_npz, write=False):
                 x, z = tx, H - ty
                 vp += 1
             else:
-                py, px = min(H - 1, max(0, int(H - z))), int(x) % W
-                # positions often sit exactly on a pixel edge: inside if any pixel touching that corner is the state's
-                near = states[max(0, py - 1):py + 1, [px, (px - 1) % W]] if by_state else owner
-                if by_state and owner not in near and owner in state_sets and not water[py, px]:
+                py, px = row(z), int(x) % W
+                if by_state and p[1] not in PER_COAST + ("floating_harbor",) and dry[py, px] != owner and owner in state_sets:
                     nx, ny = nearest_inside(state_sets, owner, px, py)
                     x, z = nx, H - ny
                     moved += 1

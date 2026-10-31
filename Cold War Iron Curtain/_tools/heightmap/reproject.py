@@ -157,6 +157,18 @@ def move_lines(text, cols, mover, sep=";"):
     return "\n".join(lines), n
 
 
+def place_frame(amb):
+    """The map-edge frame models hang off the map edges, not on geography: vanilla's offsets from the edges
+    (5632x2048: top z 2190, bottom z -140, logo at x 3000 z 2130), kept for the new size."""
+    import re
+    spots = {"frame_border_entity_top": (0, 0, proj.H + 142), "frame_border_bottom_entity_bottom": (0, 0, -140),
+             "frame_border_logo_entity_top": (round(3000 * proj.W / 5632), -1, proj.H + 82)}
+    for name, (x, y, z) in spots.items():
+        amb, n = re.subn(rf'(name="{name}"\s*position=\{{)[^}}]*\}}', rf"\g<1>\n\t\t\t{x} {y} {z} \n\t\t}}", amb)
+        assert n == 1, name
+    return amb
+
+
 def main(warp_npz, out_dir):
     w = np.load(warp_npz)
     lo, la = w["lo"], w["la"]
@@ -207,6 +219,7 @@ def main(warp_npz, out_dir):
         nx, nz = mover(x, z)
         return f"{m.group(1)}{float(nx):.2f} {y:g} {float(nz):.2f} "
     amb, n = re.subn(r"(position=\{\s*)([-\d.]+\s+[-\d.]+\s+[-\d.]+)\s*", rep, amb)
+    amb = place_frame(amb)
     open("map/ambient_object.txt", "w", encoding="utf-8", newline="").write(amb)
     print(f"map/ambient_object.txt: {n} positions")
 

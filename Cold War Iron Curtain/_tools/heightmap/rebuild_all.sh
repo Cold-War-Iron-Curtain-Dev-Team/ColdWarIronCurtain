@@ -9,6 +9,7 @@ mkdir -p "$O" "$S/old_patterson"
 export CWIC_OLD_LAYERS="$S/old_patterson"
 py _tools/heightmap/oldlayers.py "$S/warp_old_5632.npz" "$CWIC_OLD_LAYERS"
 py -c "import numpy as np, proj; lo, la = proj.grid(); np.savez(r'$S/warp_patterson.npz', lo=lo, la=la)"
+echo mapfix; py _tools/heightmap/mapfix.py | tail -4
 echo build; py _tools/heightmap/build.py "$D" "$O" "$S/lakes" "$S/glaciers" | tail -1; cp "$O"/{heightmap,world_normal,terrain}.bmp map/
 echo colormap; py _tools/heightmap/colormap.py "$D" "$S/bm/world.200407.jpg" "$O" "$GHS" | tail -1; cp "$O/colormap_rgb_cityemissivemask_a.dds" map/terrain/
 echo terrainmap; py _tools/heightmap/terrainmap.py "$D" "$GHS" "$O" >/dev/null; cp "$O/terrain.bmp" map/

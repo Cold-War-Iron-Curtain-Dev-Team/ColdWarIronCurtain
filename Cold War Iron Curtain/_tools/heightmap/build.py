@@ -195,7 +195,7 @@ def main(dem_path, out, lakes_dir=None, glaciers_dir=None):
     hm = np.where(pits & ~high, np.where(decor, old, 88), hm)
     hm = np.where(high, np.maximum(bank[wl] - 1, HIGH_LAKE - 1), hm)
     hm = np.where(sea, np.clip(hm, 20, SEA_COAST),
-                  np.where(high, hm, np.where(pits, np.minimum(hm, SEA_COAST), np.maximum(hm, LAND_MIN - 1))))
+                  np.where(high, hm, np.where(pits, np.minimum(hm, SEA_COAST), np.maximum(hm, LAND_MIN))))  # 95 = water plane: drowned
     hm = np.where(lake & ~high, old, hm)  # low lake provinces keep hand-made water depth
     ter = old_map("terrain")
     t = np.array(ter)
@@ -217,7 +217,7 @@ def main(dem_path, out, lakes_dir=None, glaciers_dir=None):
     print("lake pits:", decor.sum(), "old decorative px +", ((lab > 0) & ~np.isin(lab, dup)).sum(), "new real-lake px;",
           high.sum(), "px drawn as high lakes;", (ice & ~sea & ~water).sum(), "px ice sheet")
 
-    assert hm.shape == (H, W) and hm[sea].max() <= SEA_COAST and hm[~sea & ~lake & ~pits].min() >= LAND_MIN - 1
+    assert hm.shape == (H, W) and hm[sea].max() <= SEA_COAST and hm[~sea & ~lake & ~pits].min() >= LAND_MIN
     print("wrote", out, "| land grey pct", np.percentile(hm[~sea & ~lake & ~pits], [1, 50, 95, 99, 100]))
 
 
