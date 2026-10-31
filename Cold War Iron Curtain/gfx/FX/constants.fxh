@@ -50,9 +50,9 @@ static const float CITY_LIGHTS_TILING 			= 0.09103;
 static const float CITY_LIGHTS_INTENSITY 		= 5;
 static const float CITY_LIGHTS_BLOOM_FACTOR 	= 0.4;
 
-static const float TERRAIN_TILE_FREQ 			= 128.0f;
-static const float MAP_NUM_TILES 				= 4.0f;
-static const float TEXELS_PER_TILE 				= 512.0f;
+static const float TERRAIN_TILE_FREQ 			= 253.0f; // CWIC: Revolution Realized atlas (5x5): their 228 scaled from 2304 to 2560 map rows
+static const float MAP_NUM_TILES 				= 5.0f; // CWIC: Revolution Realized atlas
+static const float TEXELS_PER_TILE 				= 312.0f; // CWIC: Revolution Realized value
 static const float ATLAS_TEXEL_POW2_EXPONENT	= 11.0f;
 static const float TERRAIN_WATER_CLIP_HEIGHT    = 3.0f;
 static const float TERRAIN_WATER_CLIP_CAM_HI	= 700.0f;
@@ -82,7 +82,7 @@ static const float 	SNOW_SPEC_GLOSS_MULT 		= 0.2f;
 static const float 	SNOW_TILING  				= 0.05f;
 static const float 	SNOW_NOISE_TILING  			= 0.06f;
 static const float 	SNOW_ICE_NOISE_TILING  		= 0.0625f;
-static const float 	SNOW_FROST_MIN_EFFECT  		= 0.5f; // CWIC: was 0.4, light snow reads as frost
+static const float 	SNOW_FROST_MIN_EFFECT  		= 0.08f; // CWIC: was 0.4; snow is patches now (standardfuncsgfx.fxh ApplySnow), not a tinted layer
 
 static const float3 ICE_COLOR 					= float3( 0.5f, 0.6f, 0.9f );
 static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
@@ -90,7 +90,7 @@ static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
 static const float WATER_COLOR_LIGHTNESS = 0.7;
 static const float WATER_RIPPLE_EFFECT = 0.0035;
 
-static const float COLORMAP_OVERLAY_STRENGTH 	= 0.75f; //0.7f;
+static const float COLORMAP_OVERLAY_STRENGTH 	= 0.65f; // CWIC: was 0.75; RR textures carry their own colour
 static const float COLORMAP_MUD_OVERLAY_STRENGTH = 0.5f;
 
 static const float3 FAKE_CUBEMAP_COLOR 			= float3(0.0f, 0.0f, 0.1f);

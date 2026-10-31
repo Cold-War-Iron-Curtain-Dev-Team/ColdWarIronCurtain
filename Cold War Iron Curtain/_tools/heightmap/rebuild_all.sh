@@ -1,5 +1,6 @@
 # Rebuild every map layer from real data in the current projection (proj.py). Run from anywhere:
 #   bash _tools/heightmap/rebuild_all.sh <data_dir>
+# (climsplit.py, the climate split of strategic regions, is one-shot and not rerun here.)
 # data_dir holds dem/etopo2.nc, lakes, glaciers, bm, ghs, seaice, wc, rivers, ibtracs and warp_old_5632.npz (old-layout warp).
 set -e -o pipefail
 cd "$(dirname "$0")/../.."
@@ -16,7 +17,7 @@ echo terrainmap; py _tools/heightmap/terrainmap.py "$D" "$GHS" "$O" >/dev/null; 
 echo trees; py _tools/heightmap/trees.py "$D" "$O" >/dev/null; cp "$O/trees.bmp" map/; cp "$O/Tree_season.bmp" map/terrain/
 echo water; py _tools/heightmap/water.py "$D" "$O" >/dev/null; cp "$O"/colormap_water_{0,1,2}.dds map/terrain/
 echo seaice; py _tools/heightmap/seaice.py "$D" "$S/seaice" "$O" >/dev/null; cp "$O/fow_rgb_waterspec_a.dds" map/terrain/
-echo weather; py _tools/heightmap/weather.py "$D" "$S/wc" --write | tail -1
+echo weather; py _tools/heightmap/weather.py "$D" "$S/wc" wind="$S/wcwind" ncep="$S/ncep/wspd.mon.ltm.nc" ibtracs="$S/ibtracs/ibtracs.since1980.list.v04r01.csv" --write | tail -1
 echo rivers; py _tools/heightmap/rivers.py "$D" "$S/rivers/ne_10m_rivers_lake_centerlines.geojson" "$O" | tail -3; cp "$O/rivers.bmp" map/rivers.bmp
 echo storms; py _tools/heightmap/storms.py "$S/warp_patterson.npz" "$S/ibtracs/ibtracs.since1980.list.v04r01.csv" "$O" | tail -1; cp "$O/cwic_cyclone.dds" gfx/particles/
 echo positions; py _tools/heightmap/positions.py "$S/warp_patterson.npz" --write

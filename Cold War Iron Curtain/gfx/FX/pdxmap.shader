@@ -241,7 +241,9 @@ PixelShader =
 			float2 vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ;
 			vTileRepeat.x *= MAP_SIZE_X/MAP_SIZE_Y;
 			
-			float lod = clamp( mipmapLevel( vTileRepeat ) - 0.5f, 0.0f, 6.0f );
+			// CWIC: anti-tiling. A tile repeats every ~20 map px, which reads as a grid when zoomed out: past camera height ~250
+			// push the atlas mip up so each tile fades to its average colour (the colormap carries the large-scale look)
+			float lod = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 4.0f, 0.0f, 6.0f );
 			float vMipTexels = pow( 2.0f, ATLAS_TEXEL_POW2_EXPONENT - lod );
 					
 		#ifdef LOW_END_GFX
@@ -314,6 +316,10 @@ PixelShader =
 		#endif
 	
 			float vSnowAlpha = 1-vSpec;
+			// CWIC: anti-tiling. Large-scale brightness variation (two noise scales, ~90 and ~400 map px) so one terrain type
+			// over a wide area doesn't look like a uniform repeated tile
+			float vMacro = tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.011f ).a * 0.6f + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0025f + 0.41f ).a * 0.4f;
+			diffuse.rgb *= lerp( 0.86f, 1.14f, vMacro );
 			diffuse.rgb = GetOverlay( diffuse.rgb, TerrainColor.rgb, COLORMAP_OVERLAY_STRENGTH );
 
 			// CWIC: lakes above the sea water plane. terrain.bmp index 14 (texture = 255) is drawn as flat water
