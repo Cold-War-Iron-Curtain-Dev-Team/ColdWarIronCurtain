@@ -89,6 +89,7 @@ class World:
             elif k == 'is_in_faction_with': result = c['faction'] == self.countries[v]['faction']
             elif k == 'is_subject_of': result = c['subject'] == v
             elif k == 'has_idea': result = v in c['ideas']
+            elif k == 'has_war_with': result = frozenset((this,v)) in self.wars
             elif k == 'has_country_flag': result = v in c['flags']
             elif k == 'has_global_flag': result = v in self.global_flags
             elif k == 'country_exists': result = self.countries[v]['exists']
@@ -127,6 +128,7 @@ class World:
             elif k == 'clr_country_flag': c['flags'].discard(v)
             elif k == 'set_global_flag': self.global_flags.add(v)
             elif k == 'clr_global_flag': self.global_flags.discard(v)
+            elif k == 'remove_ideas': c['ideas'].discard(v)
             elif k in ('set_variable','add_to_variable'):
                 key, _, value = pairs(v)[0]
                 c['variables'][key] = (c['variables'].get(key,0) if k == 'add_to_variable' else 0) + float(value)
@@ -149,6 +151,25 @@ class World:
 
 
 class CampaignTests(unittest.TestCase):
+    def test_campaign_close_removes_legacy_red_dawn_state(self):
+        w = World()
+        w.flags().update(('SOV_red_dawn_active','SOV_red_dawn_proposed'))
+        w.countries['SOV']['ideas'].add('SOV_operation_red_dawn')
+        w.effect('cwic_ww3_close_campaign')
+        self.assertNotIn('SOV_red_dawn_active',w.flags())
+        self.assertNotIn('SOV_red_dawn_proposed',w.flags())
+        self.assertNotIn('SOV_operation_red_dawn',w.countries['SOV']['ideas'])
+
+    def test_ceasefire_requires_an_active_campaign_and_us_war(self):
+        w = World()
+        trigger = TRIGGERS['cwic_ww3_can_negotiate_ceasefire']
+        self.assertTrue(w.trigger(trigger))
+        w.wars.discard(frozenset(('SOV','USA')))
+        self.assertFalse(w.trigger(trigger))
+        w.wars.add(frozenset(('SOV','USA')))
+        w.flags().add('cwic_ww3_closed')
+        self.assertFalse(w.trigger(trigger))
+
     def test_neutrals_and_participant_latching(self):
         w = World(); w.effect('cwic_ww3_refresh_objectives')
         self.assertIn('cwic_ww3_required_FRA',w.flags())
@@ -343,7 +364,9 @@ class StaticTests(unittest.TestCase):
         for kind in ('scripted_effects','scripted_triggers','on_actions','scripted_localisation'):
             paths += list((ROOT/'common'/kind).glob('CWIC_WW3_*.txt'))
         definitions = set(TRIGGERS)|set(EFFECTS)
-        events = parse((ROOT/'events/_SOV_WW3.txt').read_text(encoding='utf-8-sig'))
+        events = []
+        for filename in ('_SOV_WW3.txt','_WW3.txt'):
+            events += parse((ROOT/'events'/filename).read_text(encoding='utf-8-sig'))
         ids = [one(v,'id') for k,_,v in pairs(events) if isinstance(v,list)]
         self.assertEqual(len(ids),len(set(ids)))
         loc_keys = set()

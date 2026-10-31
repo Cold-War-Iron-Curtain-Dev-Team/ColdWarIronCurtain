@@ -24,8 +24,10 @@ The conference offers a European settlement or Operation Red Dusk. Red Dusk
 requires Washington plus American defeat within 765 days. Settlements close both
 missions and end Soviet bloc wars against recorded WW3 opponents. White peace
 returns unfinished occupations; scripted successor governments and completed
-state transfers remain. The early negotiated-ceasefire decision now has effects;
-the empty paid Red Dawn placeholder is hidden. Existing deadline bonuses and
+state transfers remain. The early ceasefire decision sends an armistice offer to
+Washington; acceptance closes the campaign and rejection lets the war continue.
+The existing Red Dawn operation remains available, and campaign closure clears
+its flags and national spirit. Existing deadline bonuses and
 penalties retain their values and only apply once per loser during the European
 mission.
 
