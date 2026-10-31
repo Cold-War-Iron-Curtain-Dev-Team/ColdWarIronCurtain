@@ -103,6 +103,28 @@ def adjacency(ids):
     return nb
 
 
+def centre_crashes(ps, S, H, W):
+    """True when HoI4's strategic-region centre code divides by zero (hoi4.exe, see rva 0x1640fa0/0x1641450): the mean
+    of the province box centres lies in no province box and exactly on the x centre line of the region box. Checked for
+    both y orientations and both box-width conventions, since the engine's exact ones are not known."""
+    for flip in (False, True):
+        for incl in (0, 1):
+            bx = []
+            for p in ps:
+                s = S[p - 1]
+                y0, y1 = (H - s[0].stop, H - s[0].start) if flip else (s[0].start, s[0].stop)
+                bx.append((s[1].start, y0, s[1].stop - incl - s[1].start, y1 - incl - y0))
+            if max(b[0] for b in bx) - min(b[0] for b in bx) > W // 2:
+                continue  # seam region: the engine uses two boxes
+            px = sum(b[0] + b[2] // 2 for b in bx) // len(bx); py = sum(b[1] + b[3] // 2 for b in bx) // len(bx)
+            if any(b[0] <= px <= b[0] + b[2] and b[1] <= py <= b[1] + b[3] for b in bx):
+                continue
+            x0 = min(b[0] for b in bx)
+            if px == x0 + (max(b[0] + b[2] for b in bx) - x0) // 2:
+                return True
+    return False
+
+
 def main():
     print("provinces.bmp")
     im = Image.open(P)
@@ -245,6 +267,25 @@ def main():
         land = {q: n for q, n in nb.get(p, {}).items() if kind.get(q) == "land" and q in region_of}
         if land:
             region_of[p] = region_of[max(land, key=land.get)]; print("  lake", p, "-> region", region_of[p])
+    # a region that would crash the game at load gets one border province swapped with its neighbouring land region
+    S = nd.find_objects(ids)
+    for r in files:
+        ms = members(r)
+        if not ms or not centre_crashes(ms, S, H, W):
+            continue
+        done = False
+        for p in sorted(ms, key=lambda p: size.get(p, 0)):
+            for q in sorted(nb.get(p, {}), key=lambda q: -nb[p][q]):
+                r2 = region_of.get(q)
+                if r2 in (None, r) or is_sea_region[r2] or kind.get(p) != "land" or len(ms) < 2:
+                    continue
+                region_of[p] = r2
+                if not centre_crashes(members(r), S, H, W) and not centre_crashes(members(r2), S, H, W):
+                    print(f"  region {r} would crash the centre calculation: province {p} -> region {r2}"); done = True; break
+                region_of[p] = r
+            if done:
+                break
+        assert done, f"region {r} crashes the centre calculation and no province swap fixes it"
     for r, f in files.items():
         t = open(f, "rb").read().decode("utf-8", "surrogateescape")
         ps = " ".join(str(p) for p in sorted(p for p, q in region_of.items() if q == r))
