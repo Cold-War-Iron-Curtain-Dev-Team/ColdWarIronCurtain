@@ -4,15 +4,27 @@ Run from the mod root:  python _tools/heightmap/colormap.py <etopo.nc> <bluemarb
 Uses the same warp as build.py. Sea and lake-province colours are kept; the alpha channel (city lights) is rebuilt from 1975 population if given; Blue Marble land is
 colour-matched to the old colormap's land so the overlay strength in the shaders still fits.
 """
-import io, subprocess, sys, numpy as np, tifffile
+import io, os, subprocess, sys, numpy as np, tifffile
 from PIL import Image
 from scipy import ndimage as nd
 from build import WRAP, OLD_COMMIT, warp
 from gcps import land_mask_and_ids
-from terrainmap import sprawl
+from terrainmap import sprawl, blue_marble
 
 DDS = "map/terrain/colormap_rgb_cityemissivemask_a.dds"
 MATCH = 0.0  # how far land colours are pulled toward the old colormap's mean/contrast (0 = raw NASA)
+
+
+def dds_header(img):
+    """DXT5 DDS header for img's size with a full mip chain: Pillow's own header plus the mip count and mipmap flags."""
+    buf = io.BytesIO()
+    img.save(buf, "DDS", pixel_format="DXT5")
+    hdr = bytearray(buf.getvalue()[:128])
+    mips = int(np.log2(max(img.size))) + 1
+    hdr[8:12] = (int.from_bytes(hdr[8:12], "little") | 0x20000).to_bytes(4, "little")      # DDSD_MIPMAPCOUNT
+    hdr[28:32] = mips.to_bytes(4, "little")
+    hdr[108:112] = (int.from_bytes(hdr[108:112], "little") | 0x400008).to_bytes(4, "little")  # COMPLEX | MIPMAP
+    return bytes(hdr)
 
 
 def dxt5_with_mips(img, header):
@@ -40,11 +52,8 @@ def main(dem_path, bm_path, out, pop_path=None):
     lake = np.isin(ids, [k for k, v in kinds.items() if v == "lake"])  # 2004 imagery: Aral/Chad already shrunk, keep old
     lo, la, _, _ = warp(dem_path, sea)
 
-    Image.MAX_IMAGE_PIXELS = None
-    bm = np.asarray(Image.open(bm_path).convert("RGB")).astype(np.float32)
-    rows, cols = (90 - la) * bm.shape[0] / 180 - .5, (lo + 180) % 360 * bm.shape[1] / 360 - .5
-    rgb = np.stack([nd.map_coordinates(bm[..., c], [rows, cols], order=1, mode="wrap") for c in range(3)], -1)
-    del bm, rows, cols
+    # June-August averaged without snow (bm_path "a,b,c"): less of the one-month July green: neither the July green of the steppe and the north nor late-summer brown everywhere
+    rgb = blue_marble(bm_path, lo, la)
     if pop_path:  # GHS-POP 1975 .tif.ovr, level 0 = 1 arc-minute (people per cell), top-left at (-180.0079, 89.0996)
         pop = nd.gaussian_filter(tifffile.imread(pop_path, key=0).astype(np.float32), 2.0)  # overview is point-sampled
         dens = nd.map_coordinates(pop, [(89.0996 - la) * 60 - .5, (lo + 180.0079) % 360 * 60 - .5], order=1, mode="constant")
@@ -53,8 +62,8 @@ def main(dem_path, bm_path, out, pop_path=None):
     del lo, la
     rgb = rgb.reshape(rgb.shape[0] // 2, 2, rgb.shape[1] // 2, 2, 3).mean((1, 3))  # half res, box-filtered
 
-    raw = subprocess.run(["git", "show", f"{OLD_COMMIT}:./{DDS}"], capture_output=True, check=True).stdout  # pre-rebuild file
-    old = np.asarray(Image.open(io.BytesIO(raw)).convert("RGBA")).astype(np.float32)
+    # pre-rebuild file, resampled into the current projection by oldlayers.py
+    old = np.asarray(Image.open(os.path.join(os.environ["CWIC_OLD_LAYERS"], "colormap_rgb_cityemissivemask_a.png")).convert("RGBA")).astype(np.float32)
     land = ~(sea | lake).reshape(old.shape[0], 2, old.shape[1], 2).any((1, 3))
     m0, s0 = rgb[land].mean(0), rgb[land].std(0)
     m1, s1 = old[land][:, :3].mean(0), old[land][:, :3].std(0)
@@ -76,7 +85,7 @@ def main(dem_path, bm_path, out, pop_path=None):
         new[..., 3] = 255 * np.maximum(np.maximum(core, glow), sprawl(dens, 1.0)) * land  # suburbs: twice the urban-terrain reach
     img = Image.fromarray(np.clip(np.rint(new), 0, 255).astype(np.uint8), "RGBA")
     img.save(f"{out}/colormap_preview.png")
-    open(f"{out}/colormap_rgb_cityemissivemask_a.dds", "wb").write(dxt5_with_mips(img, raw[:128]))
+    open(f"{out}/colormap_rgb_cityemissivemask_a.dds", "wb").write(dxt5_with_mips(img, dds_header(img)))
     print("land mean old", m1.round(1), "nasa", m0.round(1))
 
 

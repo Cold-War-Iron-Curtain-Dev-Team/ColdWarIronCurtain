@@ -288,7 +288,7 @@ Effect ParticleAdditiveNoBillboard
 }
 
 # CWIC: tropical cyclones (gfx/particles/environment/cwic_cyclone*.asset), drawn through Effect ParticlePreAlphaBlend. The texture is an atlas made by
-# _tools/heightmap/storms.py: left half the cyclone sprite, right half (top 372 rows) the chance that a storm at that map
+# _tools/heightmap/storms.py: left half the cyclone sprite, right half (top 539 rows) the chance that a storm at that map
 # spot is a cyclone. Each particle reads the chance at its own centre and a random number rolled per spawn decides, so
 # only some heavy storms over tropical seas become cyclones and none appear over land. South of the equator the
 # sprite is mirrored and spun the other way.
@@ -307,7 +307,7 @@ VertexShader =
 {
 	MainCode VertexCwicCyclone
 	[[
-		static const float CWIC_EQUATOR_Z = 654.0f; // printed by storms.py
+		static const float CWIC_EQUATOR_Z = 1244.0f; // Patterson map (proj.py): world z of the equator
 
 		VS_OUTPUT_CWIC_CYCLONE main( const VS_INPUT_SIMPLEPARTICLE v )
 		{
@@ -344,7 +344,7 @@ PixelShader =
 	[[
 		float4 main( VS_OUTPUT_CWIC_CYCLONE In ) : PDX_COLOR
 		{
-			float2 vMaskUV = float2( 0.5f + 0.5f * frac( In.vCenter.x / 5632.0f ), ( 1.0f - saturate( In.vCenter.z / 2048.0f ) ) * ( 372.0f / 1024.0f ) );
+			float2 vMaskUV = float2( 0.5f + 0.5f * frac( In.vCenter.x / 4864.0f ), ( 1.0f - saturate( In.vCenter.z / 2560.0f ) ) * ( 539.0f / 1024.0f ) ); // map 4864x2560, mask MH = 539 rows (storms.py)
 			float fChance = tex2Dlod( DiffuseMap, float4( vMaskUV, 0.0f, 0.0f ) ).r;
 
 			float4 vColor = tex2D( DiffuseMap, In.vUV0 ) * In.vColor;

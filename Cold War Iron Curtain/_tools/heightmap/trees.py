@@ -1,26 +1,25 @@
 """Rebuild map/trees.bmp and map/terrain/Tree_season.bmp (1650x600 tree-mesh indices, gfx/entities/trees.gfx) from the rebuilt map/terrain.bmp.
 
-Run from the mod root, after terrainmap.py is installed:  python _tools/heightmap/trees.py <etopo.nc> <out_dir>
+Run from the mod root, after terrainmap.py is installed:  python _tools/heightmap/trees.py <out_dir>
 Each tree pixel covers ~3.4x3.4 terrain pixels; its forest share picks dense vs edge ("blend") meshes, latitude picks
 the kind. Visual only: province terrain comes from definition.csv.
 """
 import sys, numpy as np
 from PIL import Image
 from scipy import ndimage as nd
-from build import warp
+import proj
 from gcps import land_mask_and_ids
 from terrainmap import FOREST, DARK_FOREST, JUNGLE, GRASS, SCRUB
 
-TW, TH = 1650, 600
+TW, TH = proj.W * 75 // 256, proj.H * 75 // 256  # vanilla ratio (1650x600 for 5632x2048)
 PALM, PALM_EDGE, NORTH_EDGE, NORTH, BEECH_EDGE, BEECH = 2, 3, 5, 6, 28, 29  # trees.gfx mapobject_N
 SAVANNA = (7, 8, 9)
 
 
-def main(dem_path, out):
+def main(out):
     ids, kinds = land_mask_and_ids()
-    lo, la, _, _ = warp(dem_path, np.isin(ids, [k for k, v in kinds.items() if v == "sea"]))
-    del lo
-    t = np.asarray(Image.open("map/terrain.bmp"))
+    _, la = proj.grid()
+    t = np.array(Image.open("map/terrain.bmp"))
     zoom = (TH / t.shape[0], TW / t.shape[1])
     share = lambda m: np.clip(nd.zoom(nd.uniform_filter(m.astype(np.float32), 3, mode=("nearest", "wrap")), zoom, order=1), 0, 1)
     tropic, temperate = share(t == JUNGLE), share(np.isin(t, (FOREST, DARK_FOREST)))
