@@ -1,0 +1,413 @@
+RIO_treaty_decisions = {
+
+	RIO_Fund_Consultation_Arrangements = {
+		icon = generic_political_discourse
+		cost = 20
+
+		visible = {
+			has_idea = RIO_member
+			NOT = { has_country_flag = RIO_liaison_done }
+			NOT = { has_global_flag = RIO_goal_liaison_done }
+		}
+
+		complete_effect = {
+			set_country_flag = RIO_liaison_done
+			add_to_variable = { global.RIO_liaison_count = 1 }
+			RIO_recount = yes
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	RIO_Establish_Consultation_Procedure = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_idea = RIO_member
+			NOT = { has_global_flag = RIO_goal_liaison_done }
+		}
+
+		available = {
+			has_country_flag = RIO_liaison_done
+			check_variable = { global.RIO_liaison_scaled > global.RIO_liaison_need }
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_goal_liaison_done
+			every_country = {
+				limit = {
+					has_idea = RIO_member
+					has_country_flag = RIO_liaison_done
+				}
+				add_political_power = 25
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	RIO_Fund_Maritime_Liaison = {
+		icon = generic_naval
+		cost = 30
+
+		visible = {
+			has_idea = RIO_member
+			NOT = { has_country_flag = RIO_maritime_done }
+			NOT = { has_global_flag = RIO_goal_maritime_done }
+		}
+
+		available = {
+			any_owned_state = { is_coastal = yes }
+		}
+
+		complete_effect = {
+			set_country_flag = RIO_maritime_done
+			add_to_variable = { global.RIO_maritime_count = 1 }
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	RIO_Prepare_Maritime_Liaison = {
+		icon = generic_naval
+
+		visible = {
+			has_idea = RIO_member
+			NOT = { has_global_flag = RIO_goal_maritime_done }
+		}
+
+		available = {
+			has_country_flag = RIO_maritime_done
+			check_variable = { global.RIO_maritime_count > 2 }
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_goal_maritime_done
+			every_country = {
+				limit = {
+					has_idea = RIO_member
+					has_country_flag = RIO_maritime_done
+				}
+				navy_experience = 10
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	RIO_Offer_Mediation = {
+		icon = generic_political_discourse
+		cost = 25
+		days_re_enable = 90
+
+		visible = {
+			has_idea = RIO_member
+			NOT = { has_global_flag = RIO_goal_mediation_done }
+		}
+
+		available = {
+			NOT = {
+				any_country = {
+					has_idea = RIO_member
+					has_war_with = ROOT
+				}
+			}
+			any_country = {
+				has_idea = RIO_member
+				any_country = {
+					has_idea = RIO_member
+					has_war_with = PREV
+				}
+			}
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_mediation_active
+			set_country_flag = RIO_mediator
+			every_country = {
+				limit = {
+					has_idea = RIO_member
+					any_country = {
+						has_idea = RIO_member
+						has_war_with = PREV
+					}
+				}
+				country_event = { id = RIO_treaty.1 }
+			}
+		}
+
+		ai_will_do = {
+			base = 10
+		}
+	}
+
+	RIO_Submit_Dispute_to_Mediation = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_idea = RIO_member
+			has_country_flag = RIO_mediator
+			NOT = { has_global_flag = RIO_goal_mediation_done }
+		}
+
+		available = {
+			has_global_flag = RIO_mediation_active
+			NOT = {
+				any_country = {
+					has_idea = RIO_member
+					any_country = {
+						has_idea = RIO_member
+						has_war_with = PREV
+					}
+				}
+			}
+			any_country = {
+				has_country_flag = RIO_mediation_accepted
+			}
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_goal_mediation_done
+			clr_global_flag = RIO_mediation_active
+			set_variable = { global.RIO_peace_start = global.num_days }
+			add_political_power = 35
+			every_country = {
+				limit = {
+					has_country_flag = RIO_mediation_accepted
+				}
+				add_political_power = 35
+				clr_country_flag = RIO_mediation_accepted
+			}
+			every_country = {
+				limit = { has_country_flag = RIO_mediator }
+				clr_country_flag = RIO_mediator
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	RIO_Request_Consultation = {
+		icon = generic_political_discourse
+		cost = 10
+
+		visible = {
+			has_idea = RIO_member
+			NOT = { has_global_flag = RIO_docket_open }
+		}
+
+		available = {
+			any_country = {
+				has_war_with = ROOT
+				NOT = { has_idea = RIO_member }
+				RIO_threatens_americas_of_root = yes
+			}
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_docket_open
+			set_variable = { global.RIO_docket_protected = ROOT }
+			set_variable = { global.RIO_measure_count = 0 }
+			set_country_flag = RIO_protected
+			every_country = {
+				limit = {
+					has_war_with = ROOT
+					NOT = { has_idea = RIO_member }
+					RIO_threatens_americas_of_root = yes
+				}
+				set_country_flag = RIO_target
+				set_variable = { global.RIO_docket_target = THIS }
+			}
+			every_country = {
+				limit = { has_idea = RIO_member }
+				clr_country_flag = RIO_measure_done
+				clr_country_flag = RIO_armed_consent
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	RIO_Implement_Measures = {
+		icon = generic_political_discourse
+		cost = 20
+
+		visible = {
+			has_idea = RIO_member
+			has_global_flag = RIO_docket_open
+			NOT = { has_country_flag = RIO_measure_done }
+			NOT = { has_country_flag = RIO_protected }
+		}
+
+		complete_effect = {
+			set_country_flag = RIO_measure_done
+			add_to_variable = { global.RIO_measure_count = 1 }
+			var:global.RIO_docket_target = {
+				add_opinion_modifier = { target = ROOT modifier = minor_sanctions_relations }
+			}
+			if = {
+				limit = { has_equipment = { support_equipment > 99 } }
+				send_equipment = {
+					equipment = support_equipment
+					amount = 100
+					target = var:global.RIO_docket_protected
+				}
+			}
+		}
+
+		ai_will_do = {
+			base = 10
+		}
+	}
+
+	RIO_Agree_Measures = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_idea = RIO_member
+			has_global_flag = RIO_docket_open
+			NOT = { has_global_flag = RIO_goal_measures_done }
+		}
+
+		available = {
+			has_country_flag = RIO_measure_done
+			check_variable = { global.RIO_measure_count > 2 }
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_goal_measures_done
+			every_country = {
+				limit = {
+					has_idea = RIO_member
+					has_country_flag = RIO_measure_done
+				}
+				add_political_power = 35
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	RIO_Consent_Armed_Measure = {
+		icon = generic_military
+
+		visible = {
+			has_idea = RIO_member
+			has_global_flag = RIO_docket_open
+			NOT = { has_country_flag = RIO_protected }
+			NOT = { has_country_flag = RIO_armed_consent }
+		}
+
+		available = {
+			NOT = {
+				any_country = {
+					has_country_flag = RIO_target
+					OR = {
+						has_war_with = ROOT
+						is_in_faction_with = ROOT
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			set_country_flag = RIO_armed_consent
+			declare_war_on = { target = var:global.RIO_docket_target type = topple_government }
+		}
+
+		ai_will_do = {
+			base = 1
+			modifier = {
+				add = 4
+				has_government = democratic
+				any_country = {
+					has_country_flag = RIO_target
+					has_government = communism
+				}
+			}
+			modifier = {
+				add = 4
+				has_government = nationalist
+				any_country = {
+					has_country_flag = RIO_target
+					has_government = communism
+				}
+			}
+		}
+	}
+
+	RIO_Fund_Followup_Programme = {
+		icon = generic_political_discourse
+		cost = 25
+
+		visible = {
+			has_idea = RIO_member
+			has_global_flag = RIO_goal_mediation_done
+			NOT = { has_country_flag = RIO_followup_done }
+			NOT = { has_global_flag = RIO_goal_peace_done }
+		}
+
+		complete_effect = {
+			set_country_flag = RIO_followup_done
+			add_to_variable = { global.RIO_followup_count = 1 }
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	RIO_Maintain_Inter_American_Peace = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_idea = RIO_member
+			has_global_flag = RIO_goal_mediation_done
+			NOT = { has_global_flag = RIO_goal_peace_done }
+		}
+
+		available = {
+			has_country_flag = RIO_followup_done
+			check_variable = { global.RIO_followup_count > 2 }
+			check_variable = { global.RIO_peace_elapsed > 1094 }
+			NOT = {
+				any_country = {
+					has_idea = RIO_member
+					any_country = {
+						has_idea = RIO_member
+						has_war_with = PREV
+					}
+				}
+			}
+		}
+
+		complete_effect = {
+			set_global_flag = RIO_goal_peace_done
+			every_country = {
+				limit = {
+					has_idea = RIO_member
+					NOT = { has_country_flag = RIO_suspended }
+				}
+				add_political_power = 50
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+}

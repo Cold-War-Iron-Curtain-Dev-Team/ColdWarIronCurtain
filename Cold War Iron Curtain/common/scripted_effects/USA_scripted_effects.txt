@@ -142,4 +142,69 @@ treaty_lifecycle_monthly = {
 			remove_ideas = CENTO_member
 		}
 	}
+	UNCOM_lifecycle_monthly = yes
+	RIO_lifecycle_monthly = yes
+	GCC_lifecycle_monthly = yes
+}
+
+UNCOM_lifecycle_monthly = {
+	if = {
+		limit = {
+			NOT = { has_global_flag = UNCOM_activated }
+			date > 1950.7.6
+			has_global_flag = korean_war
+			has_global_flag = korean_war_usa_enters
+			NOT = { has_global_flag = KOREA_CEASEFIRE_UN }
+			country_exists = KOR
+			country_exists = USA
+		}
+		set_global_flag = UNCOM_activated
+		set_global_flag = UNCOM_active
+		every_country = {
+			limit = {
+				OR = {
+					UNCOM_contributor = yes
+					tag = KOR
+				}
+				NOT = { has_war_with = KOR }
+			}
+			set_country_flag = UNCOM_participant
+		}
+		USA = {
+			set_country_flag = UNCOM_ground_done
+		}
+		set_variable = { global.UNCOM_ground_count = 1 }
+		news_event = { id = korea.50 days = 1 }
+	}
+	if = {
+		limit = {
+			has_global_flag = UNCOM_active
+			OR = {
+				has_global_flag = KOREA_CEASEFIRE_UN
+				NOT = { country_exists = KOR }
+				NOT = { has_global_flag = korean_war }
+			}
+		}
+		clr_global_flag = UNCOM_active
+		set_global_flag = UNCOM_closed
+		if = {
+			limit = {
+				has_global_flag = KOREA_CEASEFIRE_UN
+				country_exists = KOR
+			}
+			set_global_flag = UNCOM_armistice_recorded
+		}
+	}
+	if = {
+		limit = { has_global_flag = UNCOM_active }
+		set_variable = { global.UNCOM_nato_contributor_count = 0 }
+		every_country = {
+			limit = {
+				has_idea = nato_member
+				has_country_flag = UNCOM_participant
+				UNCOM_has_service_contribution = yes
+			}
+			add_to_variable = { global.UNCOM_nato_contributor_count = 1 }
+		}
+	}
 }
