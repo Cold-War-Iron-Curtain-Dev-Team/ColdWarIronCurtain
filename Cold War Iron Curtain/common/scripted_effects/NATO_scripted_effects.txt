@@ -568,9 +568,89 @@ NATO_issue_10_effect = {
 			}
 		}
 	}
+	set_global_flag = NATO_Aegean_Shield_Active
 	add_to_variable = {
 		NATO_military_cooperation = 2
 		tooltip = NATO_military_cooperation_change_tt
+	}
+}
+
+NATO_aegean_shield_success = {
+	if = {
+		limit = {
+			country_exists = PDG
+			GRE = { has_war_with = PDG }
+		}
+		GRE = {
+			every_enemy_country = {
+				limit = { NOT = { original_tag = PDG } }
+				GRE = { white_peace = PREV }
+				set_truce = { target = GRE days = 1825 }
+			}
+			clr_country_flag = Flag_Greek_Civil_War
+			annex_country = {
+				target = PDG
+				transfer_troops = no
+			}
+		}
+		clr_global_flag = NATO_Aegean_Shield_Active
+		set_global_flag = NATO_Aegean_Shield_Succeeded
+		news_event = { id = NATO_INTERVENTION.14 days = 0 }
+		if = {
+			limit = { country_exists = SOV }
+			SOV = { country_event = { id = NATO_INTERVENTION.36 days = 1 } }
+		}
+	}
+}
+
+NATO_aegean_shield_failed = {
+	clr_global_flag = NATO_Aegean_Shield_Active
+	set_global_flag = NATO_Aegean_Shield_Failed
+	NAT = {
+		add_to_variable = { NATO_military_cooperation = -4 }
+		add_to_variable = { NATO_political_integration = -4 }
+	}
+	NATO_clamp_bars = yes
+	if = {
+		limit = {
+			country_exists = PDG
+			GRE = { has_war_with = PDG }
+		}
+		GRE = { clr_country_flag = Flag_Greek_Civil_War }
+		PDG = {
+			annex_country = {
+				target = GRE
+				transfer_troops = no
+			}
+		}
+		if = {
+			limit = { country_exists = SOV }
+			SOV = {
+				set_autonomy = {
+					target = PDG
+					autonomous_state = autonomy_easternbloc
+					freedom_level = 0.4
+				}
+			}
+		}
+	}
+	news_event = { id = NATO_INTERVENTION.15 days = 0 }
+	if = {
+		limit = { country_exists = PDG }
+		PDG = { country_event = { id = NATO_INTERVENTION.37 days = 1 } }
+	}
+	if = {
+		limit = { country_exists = SOV }
+		SOV = { country_event = { id = NATO_INTERVENTION.39 days = 1 } }
+	}
+	every_country = {
+		limit = {
+			OR = {
+				tag = USA
+				tag = ENG
+			}
+		}
+		country_event = { id = NATO_INTERVENTION.38 days = 1 }
 	}
 }
 
