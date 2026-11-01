@@ -3,7 +3,10 @@ the current projection, so the build tools can keep using them. Pixels the old m
 pixel (heightmap: neutral land, so no fake lake pits).
 
 Run from the mod root:  python _tools/heightmap/oldlayers.py <old_warp.npz> <out_dir>
+                   or:  python _tools/heightmap/oldlayers.py --snapshot <out_dir>
 Set CWIC_OLD_LAYERS=<out_dir> when running the build tools.
+--snapshot: the old warp (warp_old_5632.npz) is lost, so the committed map files (already in this projection, with the
+hand-made pits, lake depths and marsh carried forward) stand in for the old layers. Marsh is un-dithered first.
 """
 import io, subprocess, sys, numpy as np
 from PIL import Image
@@ -51,5 +54,21 @@ def main(warp_npz, out):
     print("old layers written to", out, "| new-area px", int(newarea.sum()))
 
 
+def snapshot(out):
+    def git_img(path):
+        return Image.open(io.BytesIO(subprocess.run(["git", "show", f"HEAD:./{path}"], capture_output=True, check=True).stdout))
+    Image.fromarray(np.array(git_img("map/heightmap.bmp")), "L").save(f"{out}/heightmap.bmp")
+    ter = git_img("map/terrain.bmp")
+    t = np.array(ter)
+    marsh = nd.uniform_filter((t == 9).astype(np.float32), 5, mode="wrap") > 0.5  # dither dots -> solid marsh again
+    t[(t == 9) & ~marsh] = 0
+    t[marsh & (t != 15) & (t != 14)] = 9
+    o = Image.fromarray(t, "P"); o.putpalette(ter.getpalette()); o.save(f"{out}/terrain.bmp")
+    ri = git_img("map/rivers.bmp"); o = Image.fromarray(np.array(ri), "P"); o.putpalette(ri.getpalette()); o.save(f"{out}/rivers.bmp")
+    git_img(DDS).convert("RGBA").save(f"{out}/colormap_rgb_cityemissivemask_a.png")
+    git_img("map/terrain/fow_rgb_waterspec_a.dds").convert("RGBA").getchannel("A").save(f"{out}/waterspec_alpha.png")
+    print("old layers (snapshot of HEAD) written to", out)
+
+
 if __name__ == "__main__":
-    main(*sys.argv[1:3])
+    snapshot(sys.argv[2]) if sys.argv[1] == "--snapshot" else main(*sys.argv[1:3])

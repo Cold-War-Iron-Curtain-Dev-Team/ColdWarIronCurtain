@@ -417,7 +417,9 @@ def normalize(img, land, elev, nbrs, reach=20):
         mouth = min(ends, key=lambda q: (dw[q] > reach, int(elev[q]) // 5, -int(img[q]), dw[q]))
         if 1 < dw[mouth] <= reach:  # bridge to the coast without touching other rivers
             prev, frontier, hit = {mouth: None}, [mouth], None
-            while frontier and not hit:
+            for _ in range(int(1.5 * dw[mouth]) + 2):  # near-direct only: a detour around rivers draws long straight runs
+                if not frontier or hit:
+                    break
                 nxt = []
                 for q in frontier:
                     for p in nbrs(q):

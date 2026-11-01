@@ -239,7 +239,8 @@ PixelShader =
 			// CWIC: jittered terrain lookup (TERRAIN_EDGE_JITTER), two noise scales; lakes and ice below keep the exact map
 			float2 vJit = float2( tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.13f ).a + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.031f + 0.23f ).a,
 			                      tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.13f + 0.5f ).a + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.031f + 0.71f ).a ) - 1.0f;
-			float2 vTerrUV = Input.uv + vJit * TERRAIN_EDGE_JITTER / float2( MAP_SIZE_X, MAP_SIZE_Y );
+			// CWIC: anti-aliasing. The jitter noise is finer than a screen pixel when zoomed out and sparkles: fade it out
+			float2 vTerrUV = Input.uv + vJit * TERRAIN_EDGE_JITTER * ( 1.0f - cam_distance( 300.0f, 700.0f ) ) / float2( MAP_SIZE_X, MAP_SIZE_Y );
 			calculate_map_tex_index( tex2D( TerrainIDMap, vTerrUV + vOffsets.xy ), IndexU, IndexV, vAllSame );
 						
 			float2 vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ;
@@ -255,11 +256,17 @@ PixelShader =
 			float2 vTileRepeat2 = vTileRepeat * 0.61f + float2( 0.37f, 0.71f );
 			float vAT = smoothstep( 0.3f, 0.7f, tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0035f + 0.17f ).a );
 			#define AT_SAMPLE( TEX, U, V ) lerp( tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat, vMipTexels, lod ) ), tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat2, vMipTexels, lod ) ), vAT )
+			// CWIC: the atlas normals get only a third of the colour's mip push, so small relief still catches the light when
+			// zoomed out (a full push left only the smooth world normal: 'plastic' lighting); hardware mips still filter it
+			float lodN = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 1.3f, 0.0f, 6.0f );
+			float vMipTexelsN = pow( 2.0f, ATLAS_TEXEL_POW2_EXPONENT - lodN );
+			#define AT_SAMPLE_N( TEX, U, V ) lerp( tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat, vMipTexelsN, lodN ) ), tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat2, vMipTexelsN, lodN ) ), vAT )
 					
 		#ifdef LOW_END_GFX
 			float3 normal = float3( 0, 1, 0 );
 		#else
-			float3 normal = normalize( tex2D( HeightNormal, Input.uv2 ).rbg - 0.5f );
+			// CWIC: a softer world-normal mip when zoomed out (no effect if the engine builds no mips for it)
+			float3 normal = normalize( tex2Dlod( HeightNormal, float4( Input.uv2, 0.0f, cam_distance( 300.0f, 900.0f ) * 1.5f ) ).rbg - 0.5f );
 		#endif
 			float4 diffuse = AT_SAMPLE( TerrainDiffuse, IndexU.w, IndexV.w ).rgba;
 			float vGlossiness = diffuse.a;
@@ -268,7 +275,7 @@ PixelShader =
 			float3 terrain_normal = float3( 0,1,0 );
 		#else	
 			float3 terrain_normal;
-			float4 terrain_normalRaw = AT_SAMPLE( TerrainNormal, IndexU.w, IndexV.w );
+			float4 terrain_normalRaw = AT_SAMPLE_N( TerrainNormal, IndexU.w, IndexV.w );
 		#endif //NO_SHADER_TEXTURE_LOD
 			
 			if ( vAllSame < 1.0f )
@@ -278,9 +285,9 @@ PixelShader =
 				float4 ColorRU = AT_SAMPLE( TerrainDiffuse, IndexU.z, IndexV.z ).rgba;
 		
 		#ifndef NO_SHADER_TEXTURE_LOD	
-				float4 terrain_normalRD = AT_SAMPLE( TerrainNormal, IndexU.x, IndexV.x );
-				float4 terrain_normalLU = AT_SAMPLE( TerrainNormal, IndexU.y, IndexV.y );
-				float4 terrain_normalRU = AT_SAMPLE( TerrainNormal, IndexU.z, IndexV.z );
+				float4 terrain_normalRD = AT_SAMPLE_N( TerrainNormal, IndexU.x, IndexV.x );
+				float4 terrain_normalLU = AT_SAMPLE_N( TerrainNormal, IndexU.y, IndexV.y );
+				float4 terrain_normalRU = AT_SAMPLE_N( TerrainNormal, IndexU.z, IndexV.z );
 		#endif //NO_SHADER_TEXTURE_LOD
 		
 				float2 vFrac = frac( float2( vTerrUV.x * MAP_SIZE_X - 0.5f, vTerrUV.y * MAP_SIZE_Y - 0.5f ) );
@@ -329,8 +336,15 @@ PixelShader =
 			// CWIC: anti-tiling. Large-scale brightness variation (two noise scales, ~90 and ~400 map px) so one terrain type
 			// over a wide area doesn't look like a uniform repeated tile
 			float vMacro = tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.011f ).a * 0.6f + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0025f + 0.41f ).a * 0.4f;
+			// CWIC: anti-aliasing. Zoomed out, one screen pixel spans several terrain.bmp pixels, so the checkered terrain
+			// transitions and single-pixel patches alias into noise. Ease the per-pixel tile colour toward the average land
+			// tile; the colormap (mipmapped, smooth) carries the large-scale look from there
+			// neutral grey at the mean atlas tile's brightness (its colour, 0.47/0.52/0.29, tinted the map yellow); starts at camera height 350, full (30%) at 1100. Zoomed out the
+			// colormap overlay also strengthens (0.65 -> 0.85) so the far view keeps its colour instead of washing to beige
+			float vFar = cam_distance( 350.0f, 1100.0f );
+			diffuse.rgb = lerp( diffuse.rgb, vec3( 0.48f ), vFar * 0.3f );
 			diffuse.rgb *= lerp( 0.86f, 1.14f, vMacro ) * TERRAIN_ATLAS_GAIN;
-			diffuse.rgb = GetOverlay( diffuse.rgb, TerrainColor.rgb, COLORMAP_OVERLAY_STRENGTH );
+			diffuse.rgb = GetOverlay( diffuse.rgb, TerrainColor.rgb, lerp( COLORMAP_OVERLAY_STRENGTH, 0.85f, vFar ) );
 
 			// CWIC: lakes above the sea water plane. terrain.bmp index 14 (texture = 255) is drawn as flat water
 			float4 vLakeIDs = tex2D( TerrainIDMap, Input.uv + vOffsets.xy ) * 255.0f;

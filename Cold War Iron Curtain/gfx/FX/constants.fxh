@@ -90,7 +90,8 @@ static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
 static const float WATER_COLOR_LIGHTNESS = 0.7;
 static const float WATER_RIPPLE_EFFECT = 0.0035;
 
-static const float TERRAIN_ATLAS_GAIN		= 1.4f; // CWIC: the Revolution Realized atlas averages 95/255 against vanilla's 140; the colormap overlay
+static const float TERRAIN_ATLAS_GAIN		= 1.0f; // CWIC: was 1.4 for the dark Revolution Realized atlas; its tiles are now levelled in the files
+											// (_tools/heightmap/atlas_levels.py). Before: the colormap overlay
 											// multiplies by it, so the whole map came out ~30% darker
 static const float TERRAIN_SPEC_SCALE		= 0.55f; // CWIC: its spec alpha is ~30% above vanilla and gets squared: glossy 'plastic' hills
 static const float TERRAIN_EDGE_JITTER		= 1.6f; // CWIC: terrain.bmp lookups jittered by up to this many map px, so terrain types meet

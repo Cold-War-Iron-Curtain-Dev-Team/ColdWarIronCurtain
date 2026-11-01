@@ -16,6 +16,10 @@ W, H, Q = proj.W, proj.H, 4      # Q = registration downscale
 SEA_COAST, LAND_MIN = 90, 96     # vanilla: flat sea at 88, land starts ~96; >91 triggers shore foam
 LAKE_RES = 60                    # lake raster cells per degree
 OLD_COMMIT = "99834bcd35"
+HEIGHT_BLUR = 1.0                # px, geometry only: slopes a bit softer (players), lighting stays crisp
+HEIGHT_SCALE = 0.75               # land relief above LAND_MIN in heightmap.bmp; world_normal keeps the full relief so
+                                 # shading stays sharp (players: 1.0 was far too tall, smoothing lost the sharpness)
+NORMAL_BLUR = 0.9                # world_normal: full-res blur (px) before the slopes; lower = crisper lighting
 HIGH_LAKE = 105                  # bank grey (~230 m) above which a lake is drawn by the terrain shader, not as a pit
 ICE_TERRAIN = 23                 # terrain.bmp ice_sheet (00_terrain.txt, texture = 254), drawn as ice by pdxmap.shader
 LAKE_TERRAIN = 14                # terrain.bmp index; 00_terrain.txt gives it texture = 255, which the shader keys on
@@ -149,6 +153,23 @@ def warp(dem_path, sea):
     return lo, la, z, sampler(lat, lon)
 
 
+def soften_land(hm, flat):
+    """blur land (>= LAND_MIN) by HEIGHT_BLUR among land only; flat = high lakes, which stay level."""
+    m = (hm >= LAND_MIN) & ~flat
+    return np.where(m, np.maximum(masked_blur(hm, m, HEIGHT_BLUR), LAND_MIN), hm)
+
+
+def write_normals(hmf, sea, out):
+    """world_normal: half res from the unrounded heights (rounded ones band into contour lines). R/G = -/+ k*slope, B = 255"""
+    # slopes at full res with a light blur, then averaged to half res: keeps relief the old half-res blur (0.7 half px)
+    # smoothed away. x2: slope per half-res pixel, what k was tuned for
+    fy, fx = grad(nd.gaussian_filter(hmf, NORMAL_BLUR, mode=WRAP))
+    gy, gx = (2 * g.reshape(H // 2, 2, W // 2, 2).mean((1, 3)) for g in (fy, fx))
+    k = np.where(sea[::2, ::2], 18, 12)  # sea floor lit harder so ridges/trenches read through the water
+    nm = np.stack([128 - k * gx, 128 + k * gy, np.full_like(gx, 255)], -1)
+    Image.fromarray(np.clip(np.rint(nm), 0, 255).astype(np.uint8), "RGB").save(f"{out}/world_normal.bmp")
+
+
 def main(dem_path, out, lakes_dir=None, glaciers_dir=None):
     ids, kinds = land_mask_and_ids()
     sea_ids = [k for k, v in kinds.items() if v == "sea"]
@@ -180,9 +201,13 @@ def main(dem_path, out, lakes_dir=None, glaciers_dir=None):
     # add real lakes that don't duplicate one of them
     old = np.asarray(old_map("heightmap")).astype(np.float32)
     decor = (old < LAND_MIN - 1) & ~sea & ~lake
+    decor &= np.asarray(old_map("terrain")) != 15  # old sea that is land now (arctic_coast.py: Jameson Land) is not a lake
     decor &= ~nd.binary_dilation(sea, iterations=2)  # low coastal strips are not lakes
+    # dry depressions below sea level (Qattara, Siwa) are not lakes; dilated for their rims the 2' DEM puts just above 0
+    decor &= ~(nd.binary_dilation(elev < 0, iterations=4) & ~sea & ~nd.binary_dilation(wet, iterations=6))
     lab, n = nd.label(wet & ~sea & ~lake)
-    dup = np.unique(lab[nd.binary_dilation(decor, iterations=6) & (lab > 0)])
+    # a real lake touching a lake province is that province's lake, misregistered (Baikal): the province draws it
+    dup = np.unique(lab[nd.binary_dilation(decor, iterations=6) & (lab > 0) | nd.binary_dilation(lake, iterations=2) & (lab > 0)])
     pits = decor | ((lab > 0) & ~np.isin(lab, dup))
     # the water plane sits at one height, so a lake with high banks becomes a crater. those become a flat surface at
     # bank height marked terrain.bmp index 14, which gfx/FX/pdxmap.shader draws as water. low lakes stay real-water pits
@@ -199,21 +224,18 @@ def main(dem_path, out, lakes_dir=None, glaciers_dir=None):
     hm = np.where(lake & ~high, old, hm)  # low lake provinces keep hand-made water depth
     ter = old_map("terrain")
     t = np.array(ter)
+    t[(t == LAKE_TERRAIN) & ~high & ~lake & ~sea] = 0  # stale lake marks on land; terrainmap.py repaints land anyway
     t[high] = LAKE_TERRAIN
     t[ice & ~sea & ~water] = ICE_TERRAIN
     t_img = Image.fromarray(t, "P")
     t_img.putpalette(ter.getpalette())
     t_img.save(f"{out}/terrain.bmp")
     hmf = hm.astype(np.float32)
+    write_normals(hmf, sea, out)
+    hm = soften_land(np.where(hmf >= LAND_MIN, LAND_MIN + HEIGHT_SCALE * (hmf - LAND_MIN), hmf), t == LAKE_TERRAIN)
     hm = np.clip(np.rint(hm), 0, 255).astype(np.uint8)
     Image.fromarray(hm, "L").save(f"{out}/heightmap.bmp")
 
-    # world_normal: half res from the unrounded heights (rounded ones band into contour lines). R/G = -/+ k*slope, B = 255
-    h2 = hmf.reshape(H // 2, 2, W // 2, 2).mean((1, 3))
-    gy, gx = grad(nd.gaussian_filter(h2, .7, mode=WRAP))
-    k = np.where(sea[::2, ::2], 18, 12)  # sea floor lit harder so ridges/trenches read through the water
-    nm = np.stack([128 - k * gx, 128 + k * gy, np.full_like(gx, 255)], -1)
-    Image.fromarray(np.clip(np.rint(nm), 0, 255).astype(np.uint8), "RGB").save(f"{out}/world_normal.bmp")
     print("lake pits:", decor.sum(), "old decorative px +", ((lab > 0) & ~np.isin(lab, dup)).sum(), "new real-lake px;",
           high.sum(), "px drawn as high lakes;", (ice & ~sea & ~water).sum(), "px ice sheet")
 

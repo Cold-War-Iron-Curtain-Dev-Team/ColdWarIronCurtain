@@ -45,14 +45,23 @@ def climate_to_weather(tmin, tmax, prec):
 
 
 def snowmelt(tmean, prec):
-    """Monthly snowmelt (mm water) from a degree-day snowpack run twice round the year (second pass = steady state)."""
-    pack, melt = 0.0, np.zeros(12)
+    """Monthly snowmelt and mean snowpack (mm water) from a degree-day snowpack run twice round the year (second pass =
+    steady state). The pack leans to the month's end."""
+    pack, melt, mean = 0.0, np.zeros(12), np.zeros(12)
     for _ in range(2):
         for m in range(12):
+            start = pack
             pack += prec[m] * np.clip((1.5 - tmean[m]) / 5.0, 0, 1)  # same rain/snow split as climate_to_weather
             melt[m] = min(pack, max(tmean[m], 0.0) * 3.0 * 30)       # 3 mm per degree-day above 0 C
             pack -= melt[m]
-    return melt
+            mean[m] = 0.3 * start + 0.7 * pack  # leans to month end: a pack melting out reads mostly bare
+    return melt, mean
+
+
+def cover_floor(pack):
+    """min_snow_level from the snowpack: lying snow outlasts the cold month that brought it (Moscow white into April,
+    dry Manchuria white all winter). Full 0.2 floor (see climate_to_weather) from 40 mm water, ~15 cm of snow."""
+    return 0.2 * np.clip(pack / 40.0, 0, 1)
 
 
 def land_extras(tmean, prec, wind, bare, melt):
@@ -180,8 +189,8 @@ def main(dem_path, wc_dir, *flags):
         if len(periods) != 12:
             print("skip (not 12 periods):", f)
             continue
-        if not at_sea and wind is not None:
-            melt = snowmelt((tmin[:, rid] + tmax[:, rid]) / 2, prec[:, rid])
+        if not at_sea:
+            melt, pack = snowmelt((tmin[:, rid] + tmax[:, rid]) / 2, prec[:, rid])
         if at_sea:  # the mod's own storm values before this tool, so reruns don't stack
             old = subprocess.run(["git", "show", f"{OLD_COMMIT}:./{f}".replace("\\", "/")], capture_output=True).stdout
             base = [float(x) for x in re.findall(rb"\brain_heavy\s*=\s*([-\d.]+)", old)]
@@ -195,6 +204,7 @@ def main(dem_path, wc_dir, *flags):
                 w = {"rain_heavy": heavy, "no_phenomenon": max(0.1, 1 - light - heavy)}
             else:
                 w = climate_to_weather(tmin[month, rid], tmax[month, rid], prec[month, rid])
+                w["min_snow_level"] = max(w["min_snow_level"], cover_floor(pack[month]))
                 if wind is not None:
                     w.update(land_extras((tmin[month, rid] + tmax[month, rid]) / 2, prec[month, rid], wind[month, rid], bare[rid], melt[month]))
             out += [raw[pos:per.start()], set_period(per.group(0), w)]

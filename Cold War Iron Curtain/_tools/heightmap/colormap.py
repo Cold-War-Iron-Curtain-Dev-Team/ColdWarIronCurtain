@@ -9,7 +9,7 @@ from PIL import Image
 from scipy import ndimage as nd
 from build import WRAP, OLD_COMMIT, warp
 from gcps import land_mask_and_ids
-from terrainmap import sprawl
+from terrainmap import sprawl, blue_marble
 
 DDS = "map/terrain/colormap_rgb_cityemissivemask_a.dds"
 MATCH = 0.0  # how far land colours are pulled toward the old colormap's mean/contrast (0 = raw NASA)
@@ -52,11 +52,8 @@ def main(dem_path, bm_path, out, pop_path=None):
     lake = np.isin(ids, [k for k, v in kinds.items() if v == "lake"])  # 2004 imagery: Aral/Chad already shrunk, keep old
     lo, la, _, _ = warp(dem_path, sea)
 
-    Image.MAX_IMAGE_PIXELS = None
-    bm = np.asarray(Image.open(bm_path).convert("RGB")).astype(np.float32)
-    rows, cols = (90 - la) * bm.shape[0] / 180 - .5, (lo + 180) % 360 * bm.shape[1] / 360 - .5
-    rgb = np.stack([nd.map_coordinates(bm[..., c], [rows, cols], order=1, mode="wrap") for c in range(3)], -1)
-    del bm, rows, cols
+    # June-August averaged without snow (bm_path "a,b,c"): less of the one-month July green: neither the July green of the steppe and the north nor late-summer brown everywhere
+    rgb = blue_marble(bm_path, lo, la)
     if pop_path:  # GHS-POP 1975 .tif.ovr, level 0 = 1 arc-minute (people per cell), top-left at (-180.0079, 89.0996)
         pop = nd.gaussian_filter(tifffile.imread(pop_path, key=0).astype(np.float32), 2.0)  # overview is point-sampled
         dens = nd.map_coordinates(pop, [(89.0996 - la) * 60 - .5, (lo + 180.0079) % 360 * 60 - .5], order=1, mode="constant")
