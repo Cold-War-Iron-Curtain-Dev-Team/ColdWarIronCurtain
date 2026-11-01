@@ -16,30 +16,1191 @@ Soviet_Leadership_Init = {
 }
 
 
-increase_comecon_value_effect = {
-
-}
-decrease_comecon_value_effect = {
-    
-}
-comecon_influence_invest_effect = {
-
-}
-comecon_influence_steal_effect = {
-
-}
         #TRADE_COMECON_RATE
 
 #5 10 20 40 80 160
 #2.5 5 10 20 40 80
 
+SOV_open_comecon_window = {
+	set_variable = { comecon_main_show = 2 }
+	set_variable = { comecon_sov_selected = 0 }
+	if = {
+		limit = { tag = SOV }
+		set_variable = { COMECON1 = COMECON_MEMBERSHIP^0 }
+	}
+	else = {
+		set_variable = { COMECON1 = THIS.id }
+	}
+	comecon_refresh_target = yes
+}
 
+comecon_refresh_target = {
+	var:COMECON1 = {
+		save_global_event_target_as = COMECON_TARGET
+		set_variable = { totalexp = 0 }
+		add_to_variable = { totalexp = land_army_expenditure }
+		add_to_variable = { totalexp = welfare_cost }
+		add_to_variable = { totalexp = edu_cost }
+		add_to_variable = { totalexp = health_cost }
+		add_to_variable = { totalexp = pub_cost }
+		set_variable = { consumer_goods_factories = num_of_owned_factories }
+		multiply_variable = { consumer_goods_factories = modifier@consumer_goods_factor }
+		set_variable = { research_speed = 1 }
+		add_to_variable = { research_speed = modifier@research_speed_factor }
+		set_variable = { construction_speed = modifier@production_speed_buildings_factor }
+		add_to_variable = { construction_speed = 1 }
+		round_variable = consumer_goods_factories
+		set_variable = { product_eff_cap = 0.50 }
+		add_to_variable = { product_eff_cap = modifier@production_factory_max_efficiency_factor }
+		set_variable = { weekly_pp_gain = political_power_daily }
+		multiply_variable = { weekly_pp_gain = 7 }
+	}
+}
 
+COMECON_apply_member_modifiers = {
+	if = {
+		limit = { NOT = { has_dynamic_modifier = { modifier = comecon_member } } }
+		add_dynamic_modifier = { modifier = comecon_member }
+	}
+	set_temp_variable = { cb_new = ECO_COMECON_RATE }
+	multiply_temp_variable = { cb_new = -0.01 }
+	subtract_from_variable = { COMECON_NEEDS_DISCOUNT = COMECON_NEEDS_SL }
+	add_to_variable = { COMECON_NEEDS_DISCOUNT = cb_new }
+	set_variable = { COMECON_NEEDS_SL = cb_new }
+	set_temp_variable = { cb_new = ECO_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.015 }
+	subtract_from_variable = { COMECON_AGRI_BONUS = COMECON_AGRI_SL }
+	add_to_variable = { COMECON_AGRI_BONUS = cb_new }
+	set_variable = { COMECON_AGRI_SL = cb_new }
+	set_temp_variable = { cb_new = ECO_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.01 }
+	subtract_from_variable = { COMECON_OFFICE_BONUS = COMECON_OFFICE_SL }
+	add_to_variable = { COMECON_OFFICE_BONUS = cb_new }
+	set_variable = { COMECON_OFFICE_SL = cb_new }
+	set_temp_variable = { cb_new = CON_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.02 }
+	subtract_from_variable = { COMECON_CONSTRUCTION_BONUS = COMECON_CONSTRUCTION_SL }
+	add_to_variable = { COMECON_CONSTRUCTION_BONUS = cb_new }
+	set_variable = { COMECON_CONSTRUCTION_SL = cb_new }
+	set_temp_variable = { cb_new = PRO_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.01 }
+	subtract_from_variable = { COMECON_PROD_GAIN_BONUS = COMECON_PROD_GAIN_SL }
+	add_to_variable = { COMECON_PROD_GAIN_BONUS = cb_new }
+	set_variable = { COMECON_PROD_GAIN_SL = cb_new }
+	set_temp_variable = { cb_new = PRO_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.005 }
+	subtract_from_variable = { COMECON_PROD_MAX_BONUS = COMECON_PROD_MAX_SL }
+	add_to_variable = { COMECON_PROD_MAX_BONUS = cb_new }
+	set_variable = { COMECON_PROD_MAX_SL = cb_new }
+	set_temp_variable = { cb_new = RES_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.01 }
+	subtract_from_variable = { COMECON_RESEARCH_BONUS = COMECON_RESEARCH_SL }
+	add_to_variable = { COMECON_RESEARCH_BONUS = cb_new }
+	set_variable = { COMECON_RESEARCH_SL = cb_new }
+	set_temp_variable = { cb_new = MIL_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.01 }
+	subtract_from_variable = { COMECON_COMMAND_POWER_BONUS = COMECON_COMMAND_SL }
+	add_to_variable = { COMECON_COMMAND_POWER_BONUS = cb_new }
+	set_variable = { COMECON_COMMAND_SL = cb_new }
+	set_temp_variable = { cb_new = MIL_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.005 }
+	subtract_from_variable = { COMECON_WAR_SUPPORT_BONUS = COMECON_WAR_SL }
+	add_to_variable = { COMECON_WAR_SUPPORT_BONUS = cb_new }
+	set_variable = { COMECON_WAR_SL = cb_new }
+	set_temp_variable = { cb_new = MIL_COMECON_RATE }
+	multiply_temp_variable = { cb_new = 0.02 }
+	subtract_from_variable = { COMECON_LICENSE_SPEED_BONUS = COMECON_LICENSE_SL }
+	add_to_variable = { COMECON_LICENSE_SPEED_BONUS = cb_new }
+	set_variable = { COMECON_LICENSE_SL = cb_new }
+	force_update_dynamic_modifier = yes
+}
 
+COMECON_remove_member_modifiers = {
+	subtract_from_variable = { COMECON_NEEDS_DISCOUNT = COMECON_NEEDS_SL }
+	set_variable = { COMECON_NEEDS_SL = 0 }
+	subtract_from_variable = { COMECON_AGRI_BONUS = COMECON_AGRI_SL }
+	set_variable = { COMECON_AGRI_SL = 0 }
+	subtract_from_variable = { COMECON_OFFICE_BONUS = COMECON_OFFICE_SL }
+	set_variable = { COMECON_OFFICE_SL = 0 }
+	subtract_from_variable = { COMECON_CONSTRUCTION_BONUS = COMECON_CONSTRUCTION_SL }
+	set_variable = { COMECON_CONSTRUCTION_SL = 0 }
+	subtract_from_variable = { COMECON_PROD_GAIN_BONUS = COMECON_PROD_GAIN_SL }
+	set_variable = { COMECON_PROD_GAIN_SL = 0 }
+	subtract_from_variable = { COMECON_PROD_MAX_BONUS = COMECON_PROD_MAX_SL }
+	set_variable = { COMECON_PROD_MAX_SL = 0 }
+	subtract_from_variable = { COMECON_RESEARCH_BONUS = COMECON_RESEARCH_SL }
+	set_variable = { COMECON_RESEARCH_SL = 0 }
+	subtract_from_variable = { COMECON_COMMAND_POWER_BONUS = COMECON_COMMAND_SL }
+	set_variable = { COMECON_COMMAND_SL = 0 }
+	subtract_from_variable = { COMECON_WAR_SUPPORT_BONUS = COMECON_WAR_SL }
+	set_variable = { COMECON_WAR_SL = 0 }
+	subtract_from_variable = { COMECON_LICENSE_SPEED_BONUS = COMECON_LICENSE_SL }
+	set_variable = { COMECON_LICENSE_SL = 0 }
+	if = {
+		limit = { has_dynamic_modifier = { modifier = comecon_member } }
+		remove_dynamic_modifier = { modifier = comecon_member }
+	}
+}
 
+COMECON_init_member_state = {
+	if = {
+		limit = { NOT = { has_variable = COMECON_satisfaction } }
+		set_variable = { COMECON_satisfaction = 55 }
+		set_variable = { COMECON_dependency = 80 }
+		if = {
+			limit = { date > 1970.1.1 }
+			if = { limit = { tag = POL } set_variable = { COMECON_satisfaction = 28 } }
+			else_if = { limit = { tag = HUN } set_variable = { COMECON_satisfaction = 60 } }
+			else_if = { limit = { tag = ROM } set_variable = { COMECON_satisfaction = 40 } }
+			else_if = { limit = { tag = CZE } set_variable = { COMECON_satisfaction = 45 } }
+			else_if = { limit = { tag = DDR } set_variable = { COMECON_satisfaction = 55 } }
+			else_if = { limit = { tag = BUL } set_variable = { COMECON_satisfaction = 65 } }
+			else_if = { limit = { tag = MON } set_variable = { COMECON_satisfaction = 65 } }
+			else_if = { limit = { tag = CUB } set_variable = { COMECON_satisfaction = 60 } }
+			else_if = { limit = { tag = VIN } set_variable = { COMECON_satisfaction = 50 } }
+		}
+	}
+}
 
+COMECON_init_members = {
+	for_each_scope_loop = {
+		array = COMECON_MEMBERSHIP
+		if = {
+			limit = { NOT = { has_idea = comecon_member } }
+			add_ideas = comecon_member
+		}
+		if = {
+			limit = { NOT = { is_in_array = { array = country_politics_list value = 201 } } }
+			add_to_array = { country_politics_list = 201 }
+		}
+		COMECON_init_member_state = yes
+	}
+}
 
+COMECON_member_drift = {
+	COMECON_init_member_state = yes
+	set_temp_variable = { cd_sat = ECO_COMECON_RATE }
+	add_to_temp_variable = { cd_sat = TRADE_COMECON_RATE }
+	add_to_temp_variable = { cd_sat = RES_COMECON_RATE }
+	multiply_temp_variable = { cd_sat = 0.1 }
+	set_temp_variable = { cd_mil = MIL_COMECON_RATE }
+	multiply_temp_variable = { cd_mil = 0.4 }
+	subtract_from_temp_variable = { cd_sat = cd_mil }
+	if = {
+		limit = {
+			OR = {
+				tag = HUN
+				tag = POL
+				tag = ROM
+				tag = ALB
+			}
+		}
+		subtract_from_temp_variable = { cd_sat = 0.2 }
+	}
+	if = {
+		limit = { tag = HUN }
+		subtract_from_temp_variable = { cd_sat = 0.3 }
+	}
+	if = {
+		limit = { tag = CZE }
+		subtract_from_temp_variable = { cd_sat = 0.4 }
+	}
+	if = {
+		limit = { tag = DDR }
+		subtract_from_temp_variable = { cd_sat = 0.5 }
+	}
+	if = {
+		limit = {
+			tag = DDR
+			date > 1951.1.1
+			date < 1953.7.1
+		}
+		subtract_from_temp_variable = { cd_sat = 0.6 }
+	}
+	set_temp_variable = { cd_dep = ECO_COMECON_RATE }
+	add_to_temp_variable = { cd_dep = CON_COMECON_RATE }
+	add_to_temp_variable = { cd_dep = PRO_COMECON_RATE }
+	multiply_temp_variable = { cd_dep = 0.0833333 }
+	subtract_from_temp_variable = { cd_dep = 0.3 }
+	add_to_variable = { COMECON_satisfaction = cd_sat }
+	add_to_variable = { COMECON_dependency = cd_dep }
+	if = {
+		limit = {
+			has_country_flag = COMECON_MIL_CAPPED
+			check_variable = { MIL_COMECON_RATE > 1 }
+		}
+		set_variable = { MIL_COMECON_RATE = 1 }
+	}
+	clamp_variable = { var = COMECON_satisfaction min = 0 max = 100 }
+	clamp_variable = { var = COMECON_dependency min = 0 max = 100 }
+}
 
+COMECON_member_upkeep = {
+	set_temp_variable = { cu_m = ECO_COMECON_RATE }
+	multiply_temp_variable = { cu_m = 0.05 }
+	set_temp_variable = { cu_t = CON_COMECON_RATE }
+	multiply_temp_variable = { cu_t = 0.04 }
+	add_to_temp_variable = { cu_m = cu_t }
+	set_temp_variable = { cu_t = PRO_COMECON_RATE }
+	multiply_temp_variable = { cu_t = 0.04 }
+	add_to_temp_variable = { cu_m = cu_t }
+	set_temp_variable = { cu_t = MIL_COMECON_RATE }
+	multiply_temp_variable = { cu_t = 0.03 }
+	add_to_temp_variable = { cu_m = cu_t }
+	add_to_variable = { SOV.COMECON_cost = cu_m }
+	add_to_variable = { SOV.COMECON_res_total = RES_COMECON_RATE }
+}
 
+COMECON_reduce_highest_slider = {
+	set_temp_variable = { cr_max = ECO_COMECON_RATE }
+	if = { limit = { check_variable = { CON_COMECON_RATE > cr_max } } set_temp_variable = { cr_max = CON_COMECON_RATE } }
+	if = { limit = { check_variable = { PRO_COMECON_RATE > cr_max } } set_temp_variable = { cr_max = PRO_COMECON_RATE } }
+	if = { limit = { check_variable = { MIL_COMECON_RATE > cr_max } } set_temp_variable = { cr_max = MIL_COMECON_RATE } }
+	if = {
+		limit = { check_variable = { ECO_COMECON_RATE = cr_max } }
+		add_to_variable = { ECO_COMECON_RATE = -1 }
+	}
+	else_if = {
+		limit = { check_variable = { CON_COMECON_RATE = cr_max } }
+		add_to_variable = { CON_COMECON_RATE = -1 }
+	}
+	else_if = {
+		limit = { check_variable = { PRO_COMECON_RATE = cr_max } }
+		add_to_variable = { PRO_COMECON_RATE = -1 }
+	}
+	else = {
+		add_to_variable = { MIL_COMECON_RATE = -1 }
+	}
+}
 
+COMECON_monthly_upkeep = {
+	set_variable = { COMECON_cost = 0 }
+	set_variable = { COMECON_res_total = 0 }
+	for_each_scope_loop = {
+		array = COMECON_MEMBERSHIP
+		COMECON_member_upkeep = yes
+	}
+	subtract_from_variable = { currentMoney = COMECON_cost }
+	set_variable = { COMECON_RES_MALUS = COMECON_res_total }
+	multiply_variable = { COMECON_RES_MALUS = -0.0015 }
+	if = {
+		limit = { NOT = { has_dynamic_modifier = { modifier = comecon_sov_burden } } }
+		add_dynamic_modifier = { modifier = comecon_sov_burden }
+	}
+	force_update_dynamic_modifier = yes
+	if = {
+		limit = { check_variable = { currentMoney < 0 } }
+		random_scope_in_array = {
+			array = COMECON_MEMBERSHIP
+			limit = {
+				OR = {
+					check_variable = { ECO_COMECON_RATE > 0 }
+					check_variable = { CON_COMECON_RATE > 0 }
+					check_variable = { PRO_COMECON_RATE > 0 }
+					check_variable = { MIL_COMECON_RATE > 0 }
+				}
+			}
+			COMECON_reduce_highest_slider = yes
+			SOV = {
+				if = {
+					limit = { is_ai = no }
+					country_event = { id = COMECON.400 }
+				}
+			}
+		}
+	}
+}
 
+COMECON_member_join = {
+	if = {
+		limit = { NOT = { is_in_array = { array = SOV.COMECON_MEMBERSHIP value = THIS.id } } }
+		add_to_array = { SOV.COMECON_MEMBERSHIP = THIS.id }
+	}
+	if = {
+		limit = { NOT = { is_in_array = { array = country_politics_list value = 201 } } }
+		add_to_array = { country_politics_list = 201 }
+	}
+	set_variable = { COMECON_MEMBERSHIP_STATUS = 1 }
+	if = {
+		limit = { NOT = { has_idea = comecon_member } }
+		add_ideas = comecon_member
+	}
+	COMECON_init_member_state = yes
+}
+
+COMECON_member_leave = {
+	remove_from_array = { SOV.COMECON_MEMBERSHIP = THIS.id }
+	remove_from_array = { country_politics_list = 201 }
+	set_variable = { COMECON_MEMBERSHIP_STATUS = 0 }
+	if = {
+		limit = { has_idea = comecon_member }
+		remove_ideas = comecon_member
+	}
+	COMECON_remove_member_modifiers = yes
+	set_variable = { COMECON_crisis_id = 0 }
+	set_variable = { COMECON_crisis_days = 0 }
+	clr_country_flag = COMECON_MIL_CAPPED
+}
+
+COMECON_queue_leave = {
+	add_to_array = { SOV.COMECON_leave_queue = THIS.id }
+}
+
+COMECON_process_leave_queue = {
+	for_each_scope_loop = {
+		array = COMECON_leave_queue
+		COMECON_member_leave = yes
+	}
+	clear_array = COMECON_leave_queue
+}
+
+COMECON_dated_joins = {
+	if = {
+		limit = {
+			date > 1961.12.31
+			is_in_array = { array = COMECON_MEMBERSHIP value = ALB.id }
+		}
+		ALB = { COMECON_queue_leave = yes }
+	}
+	if = {
+		limit = {
+			date > 1961.12.31
+			country_exists = MON
+			NOT = { has_global_flag = COMECON_joined_MON }
+			MON = { has_government = communism }
+		}
+		set_global_flag = COMECON_joined_MON
+		MON = { COMECON_member_join = yes }
+	}
+	if = {
+		limit = {
+			date > 1971.12.31
+			country_exists = CUB
+			NOT = { has_global_flag = COMECON_joined_CUB }
+			CUB = { has_government = communism }
+		}
+		set_global_flag = COMECON_joined_CUB
+		CUB = { COMECON_member_join = yes }
+	}
+	if = {
+		limit = {
+			date > 1977.12.31
+			country_exists = VIN
+			NOT = { has_global_flag = COMECON_joined_VIN }
+			VIN = { has_government = communism }
+		}
+		set_global_flag = COMECON_joined_VIN
+		VIN = { COMECON_member_join = yes }
+	}
+}
+
+COMECON_crisis_resolve = {
+	if = { limit = { check_variable = { COMECON_crisis_id = 1 } } set_global_flag = COMECON_crisis_1_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 2 } } set_global_flag = COMECON_crisis_2_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 3 } } set_global_flag = COMECON_crisis_3_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 4 } } set_global_flag = COMECON_crisis_4_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 5 } } set_global_flag = COMECON_crisis_5_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 6 } } set_global_flag = COMECON_crisis_6_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 7 } } set_global_flag = COMECON_crisis_7_resolved }
+	if = { limit = { check_variable = { COMECON_crisis_id = 8 } } set_global_flag = COMECON_crisis_8_resolved }
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 9 } }
+		set_country_flag = { flag = COMECON_unrest_cooldown days = 365 }
+	}
+	set_variable = { COMECON_crisis_id = 0 }
+	set_variable = { COMECON_crisis_days = 0 }
+}
+
+COMECON_refresh_crisis_view = {
+	set_variable = { COMECON_crisis_view = 0 }
+	var:COMECON1 = {
+		if = { limit = { check_variable = { COMECON_crisis_id = 1 } } SOV = { set_variable = { COMECON_crisis_view = 1 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 2 } } SOV = { set_variable = { COMECON_crisis_view = 2 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 3 } } SOV = { set_variable = { COMECON_crisis_view = 3 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 4 } } SOV = { set_variable = { COMECON_crisis_view = 4 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 5 } } SOV = { set_variable = { COMECON_crisis_view = 5 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 6 } } SOV = { set_variable = { COMECON_crisis_view = 6 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 7 } } SOV = { set_variable = { COMECON_crisis_view = 7 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 8 } } SOV = { set_variable = { COMECON_crisis_view = 8 } } }
+		if = { limit = { check_variable = { COMECON_crisis_id = 9 } } SOV = { set_variable = { COMECON_crisis_view = 9 } } }
+	}
+}
+
+COMECON_crisis_rom_cap = {
+	set_country_flag = COMECON_MIL_CAPPED
+	if = {
+		limit = { check_variable = { MIL_COMECON_RATE > 1 } }
+		set_variable = { MIL_COMECON_RATE = 1 }
+	}
+	diplomatic_relation = {
+		country = SOV
+		relation = military_access
+		active = no
+	}
+	COMECON_apply_member_modifiers = yes
+}
+
+COMECON_crisis_start_chain = {
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 1 } }
+		set_country_flag = Ulbricht_Victory_53
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 3 } }
+		country_event = HUNGARIAN_REV.1
+	}
+	else_if = {
+		limit = {
+			check_variable = { COMECON_crisis_id = 6 }
+			NOT = { has_country_flag = prague_spring_begun }
+		}
+		country_event = prague_spring.1
+	}
+}
+
+COMECON_crisis_act_crush = {
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 1 } }
+		add_to_variable = { COMECON_satisfaction = -10 }
+		add_to_variable = { COMECON_dependency = 8 }
+		add_stability = 0.03
+		SOV = { add_political_power = -10 add_stability = -0.01 add_named_threat = { threat = 1 name = COMECON_crisis_threat } }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 3 } }
+		add_to_variable = { COMECON_satisfaction = -15 }
+		add_to_variable = { COMECON_dependency = 10 }
+		add_stability = -0.05
+		SOV = { add_political_power = -15 add_stability = -0.02 add_named_threat = { threat = 3 name = COMECON_crisis_threat } }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 4 } }
+		SOV = { add_political_power = -5 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 5 } }
+		add_to_variable = { COMECON_satisfaction = -8 }
+		add_to_variable = { COMECON_dependency = 8 }
+		add_stability = -0.02
+		SOV = { add_political_power = -10 add_stability = -0.01 add_named_threat = { threat = 1 name = COMECON_crisis_threat } }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 6 } }
+		add_to_variable = { COMECON_satisfaction = -20 }
+		add_to_variable = { COMECON_dependency = 15 }
+		add_stability = -0.05
+		SOV = { add_political_power = -20 add_stability = -0.03 add_named_threat = { threat = 4 name = COMECON_crisis_threat } }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 8 } }
+		add_to_variable = { COMECON_satisfaction = -15 }
+		add_stability = -0.05
+		SOV = { add_political_power = -15 add_stability = -0.02 add_named_threat = { threat = 3 name = COMECON_crisis_threat } }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 9 } }
+		add_to_variable = { COMECON_satisfaction = -5 }
+		SOV = { add_political_power = -5 }
+	}
+	else_if = {
+		limit = { OR = { check_variable = { COMECON_crisis_id = 2 } check_variable = { COMECON_crisis_id = 7 } } }
+		add_to_variable = { COMECON_satisfaction = -8 }
+		add_to_variable = { COMECON_dependency = 5 }
+		add_stability = 0.02
+		SOV = { add_political_power = -10 add_stability = -0.01 add_named_threat = { threat = 1 name = COMECON_crisis_threat } }
+	}
+	COMECON_crisis_start_chain = yes
+	COMECON_crisis_resolve = yes
+}
+
+COMECON_crisis_act_concede = {
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 1 } }
+		add_to_variable = { COMECON_satisfaction = 10 }
+		add_to_variable = { COMECON_dependency = -5 }
+		add_stability = -0.03
+		SOV = { add_political_power = -10 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 2 } }
+		add_to_variable = { COMECON_satisfaction = 12 }
+		add_to_variable = { COMECON_dependency = -8 }
+		add_stability = 0.03
+		SOV = { add_political_power = -10 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 3 } }
+		add_to_variable = { COMECON_satisfaction = 15 }
+		add_to_variable = { COMECON_dependency = -15 }
+		add_stability = -0.03
+		SOV = { add_political_power = -20 add_stability = -0.02 }
+		set_country_flag = Hungary_let_go
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 4 } }
+		add_to_variable = { COMECON_dependency = -10 }
+		add_stability = 0.03
+		SOV = { add_political_power = -20 }
+		COMECON_queue_leave = yes
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 5 } }
+		add_to_variable = { COMECON_satisfaction = 8 }
+		add_to_variable = { COMECON_dependency = -10 }
+		add_stability = 0.03
+		SOV = { add_political_power = -5 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 6 } }
+		add_to_variable = { COMECON_satisfaction = 10 }
+		add_to_variable = { COMECON_dependency = -5 }
+		add_stability = 0.03
+		SOV = { add_political_power = -15 add_stability = -0.01 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 7 } }
+		add_to_variable = { COMECON_satisfaction = 10 }
+		add_to_variable = { COMECON_dependency = -5 }
+		add_stability = 0.04
+		SOV = { add_political_power = -10 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 8 } }
+		add_to_variable = { COMECON_satisfaction = 12 }
+		add_to_variable = { COMECON_dependency = -10 }
+		add_stability = -0.03
+		SOV = { add_political_power = -10 add_stability = -0.01 add_named_threat = { threat = 1 name = COMECON_crisis_threat } }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 9 } }
+		add_to_variable = { COMECON_satisfaction = 8 }
+		add_stability = 0.02
+		SOV = { add_political_power = -5 }
+	}
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 3 } }
+		country_event = HUNGARIAN_REV.1
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 5 } }
+		COMECON_crisis_rom_cap = yes
+	}
+	COMECON_crisis_resolve = yes
+}
+
+COMECON_crisis_act_third = {
+	if = {
+		limit = { OR = { check_variable = { COMECON_crisis_id = 1 } check_variable = { COMECON_crisis_id = 3 } check_variable = { COMECON_crisis_id = 6 } } }
+		add_to_variable = { COMECON_satisfaction = -20 }
+		add_to_variable = { COMECON_dependency = 12 }
+		add_stability = -0.03
+		SOV = { add_political_power = 5 add_stability = -0.02 add_named_threat = { threat = 2 name = COMECON_crisis_threat } }
+		COMECON_crisis_start_chain = yes
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 2 } }
+		add_to_variable = { COMECON_satisfaction = 8 }
+		add_to_variable = { COMECON_dependency = 10 }
+		add_stability = 0.03
+		SOV = { add_political_power = -15 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 4 } }
+		add_to_variable = { COMECON_satisfaction = 12 }
+		SOV = { add_political_power = -15 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 5 } }
+		add_to_variable = { COMECON_satisfaction = 10 }
+		add_to_variable = { COMECON_dependency = 8 }
+		add_stability = 0.03
+		SOV = { add_political_power = -15 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 7 } }
+		add_to_variable = { COMECON_satisfaction = 8 }
+		add_to_variable = { COMECON_dependency = 8 }
+		add_stability = 0.03
+		SOV = { add_political_power = -20 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 8 } }
+		add_to_variable = { COMECON_dependency = 12 }
+		SOV = { add_political_power = -25 }
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 9 } }
+		add_to_variable = { COMECON_satisfaction = 10 }
+		add_stability = 0.03
+		SOV = { add_political_power = -15 }
+	}
+	COMECON_crisis_resolve = yes
+}
+
+COMECON_crisis_expire = {
+	add_to_variable = { COMECON_satisfaction = -15 }
+	add_to_variable = { COMECON_dependency = -10 }
+	add_stability = -0.10
+	SOV = { add_political_power = -10 add_stability = -0.02 add_named_threat = { threat = 2 name = COMECON_crisis_threat } }
+	SOV = {
+		if = {
+			limit = { is_ai = no }
+			country_event = { id = COMECON.501 }
+		}
+	}
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 3 } }
+		country_event = HUNGARIAN_REV.1
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 4 } }
+		COMECON_queue_leave = yes
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 5 } }
+		COMECON_crisis_rom_cap = yes
+	}
+	COMECON_crisis_resolve = yes
+}
+
+COMECON_crisis_ai_resolve = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { COMECON_crisis_id = 1 }
+				check_variable = { COMECON_crisis_id = 3 }
+				check_variable = { COMECON_crisis_id = 6 }
+			}
+		}
+		random_list = {
+			80 = { COMECON_crisis_act_crush = yes }
+			12 = { COMECON_crisis_act_concede = yes }
+			8 = { COMECON_crisis_act_third = yes }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 2 } }
+		random_list = {
+			12 = { COMECON_crisis_act_crush = yes }
+			63 = { COMECON_crisis_act_concede = yes }
+			25 = { COMECON_crisis_act_third = yes }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 4 } }
+		random_list = {
+			10 = { COMECON_crisis_act_crush = yes }
+			75 = { COMECON_crisis_act_concede = yes }
+			15 = { COMECON_crisis_act_third = yes }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 5 } }
+		random_list = {
+			10 = { COMECON_crisis_act_crush = yes }
+			75 = { COMECON_crisis_act_concede = yes }
+			15 = { COMECON_crisis_act_third = yes }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 7 } }
+		random_list = {
+			25 = { COMECON_crisis_act_crush = yes }
+			60 = { COMECON_crisis_act_concede = yes }
+			15 = { COMECON_crisis_act_third = yes }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { COMECON_crisis_id = 8 } }
+		random_list = {
+			40 = { COMECON_crisis_act_crush = yes }
+			45 = { COMECON_crisis_act_concede = yes }
+			15 = { COMECON_crisis_act_third = yes }
+		}
+	}
+	else = {
+		random_list = {
+			20 = { COMECON_crisis_act_crush = yes }
+			45 = { COMECON_crisis_act_concede = yes }
+			35 = { COMECON_crisis_act_third = yes }
+		}
+	}
+}
+
+COMECON_crisis_begin = {
+	set_variable = { COMECON_crisis_days = 60 }
+	if = {
+		limit = { SOV = { is_ai = no } }
+		SOV = { country_event = { id = COMECON.500 } }
+	}
+	else = {
+		COMECON_crisis_ai_resolve = yes
+	}
+}
+
+COMECON_crisis_check_windows = {
+	if = {
+		limit = {
+			tag = DDR
+			check_variable = { COMECON_satisfaction < 40 }
+			date > 1953.5.31
+			date < 1953.7.1
+			NOT = { has_global_flag = COMECON_crisis_1_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 1 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = POL
+			check_variable = { COMECON_satisfaction < 35 }
+			date > 1956.5.31
+			date < 1956.12.1
+			NOT = { has_global_flag = COMECON_crisis_2_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 2 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = HUN
+			check_variable = { COMECON_satisfaction < 35 }
+			date > 1956.5.31
+			date < 1956.12.1
+			NOT = { has_global_flag = COMECON_crisis_3_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 3 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = ALB
+			check_variable = { COMECON_satisfaction < 30 }
+			date > 1960.6.30
+			date < 1962.1.1
+			NOT = { has_global_flag = COMECON_crisis_4_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 4 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = ROM
+			check_variable = { COMECON_satisfaction < 45 }
+			date > 1963.12.31
+			NOT = { has_global_flag = COMECON_crisis_5_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 5 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = CZE
+			check_variable = { COMECON_satisfaction < 35 }
+			date > 1967.12.31
+			date < 1968.9.1
+			NOT = { has_global_flag = COMECON_crisis_6_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 6 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = POL
+			check_variable = { COMECON_satisfaction < 40 }
+			date > 1970.11.30
+			date < 1971.1.1
+			NOT = { has_global_flag = COMECON_crisis_7_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 7 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			tag = POL
+			check_variable = { COMECON_satisfaction < 35 }
+			date > 1980.7.31
+			date < 1980.9.1
+			NOT = { has_global_flag = COMECON_crisis_8_resolved }
+		}
+		set_variable = { COMECON_crisis_id = 8 }
+		COMECON_crisis_begin = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { COMECON_satisfaction < 20 }
+			NOT = { has_country_flag = COMECON_unrest_cooldown }
+		}
+		set_variable = { COMECON_crisis_id = 9 }
+		COMECON_crisis_begin = yes
+	}
+}
+
+COMECON_crisis_monthly = {
+	if = {
+		limit = { check_variable = { COMECON_crisis_id = 0 } }
+		COMECON_crisis_check_windows = yes
+	}
+	else = {
+		subtract_from_variable = { COMECON_crisis_days = 30 }
+		if = {
+			limit = { check_variable = { COMECON_crisis_days < 1 } }
+			COMECON_crisis_expire = yes
+		}
+	}
+}
+
+COMECON_seize_penalty = {
+	add_to_variable = { COMECON_satisfaction = -10 }
+	add_to_variable = { COMECON_dependency = 5 }
+	clamp_variable = { var = COMECON_satisfaction min = 0 max = 100 }
+	clamp_variable = { var = COMECON_dependency min = 0 max = 100 }
+}
+
+COMECON_ai_adjusted = {
+	set_country_flag = { flag = COMECON_ai_adj_cd days = 90 }
+	COMECON_apply_member_modifiers = yes
+}
+
+COMECON_ai_manage_member = {
+	if = {
+		limit = { NOT = { has_country_flag = COMECON_ai_adj_cd } }
+		set_temp_variable = { ai_healthy = SOV.COMECON_cost }
+		multiply_temp_variable = { ai_healthy = 24 }
+		add_to_temp_variable = { ai_healthy = 10 }
+		if = {
+			limit = {
+				check_variable = { SOV.currentMoney < 0 }
+				check_variable = { ECO_COMECON_RATE > 0 }
+			}
+			add_to_variable = { ECO_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = {
+				check_variable = { SOV.currentMoney < 0 }
+				check_variable = { CON_COMECON_RATE > 0 }
+			}
+			add_to_variable = { CON_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = {
+				check_variable = { SOV.currentMoney < 0 }
+				check_variable = { PRO_COMECON_RATE > 0 }
+			}
+			add_to_variable = { PRO_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = {
+				tag = ROM
+				has_country_flag = COMECON_MIL_CAPPED
+				check_variable = { MIL_COMECON_RATE > 0 }
+			}
+			add_to_variable = { MIL_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = {
+				NOT = { has_country_flag = COMECON_MIL_CAPPED }
+				check_variable = { MIL_COMECON_RATE < 1 }
+			}
+			add_to_variable = { MIL_COMECON_RATE = 1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = { check_variable = { MIL_COMECON_RATE > 2 } }
+			add_to_variable = { MIL_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = { check_variable = { TRADE_COMECON_RATE < 2 } }
+			add_to_variable = { TRADE_COMECON_RATE = 1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = { check_variable = { TRADE_COMECON_RATE > 3 } }
+			add_to_variable = { TRADE_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = {
+				OR = {
+					tag = DDR
+					tag = CZE
+				}
+				check_variable = { RES_COMECON_RATE < 1 }
+				check_variable = { SOV.currentMoney > ai_healthy }
+			}
+			add_to_variable = { RES_COMECON_RATE = 1 }
+			COMECON_ai_adjusted = yes
+		}
+		else_if = {
+			limit = {
+				check_variable = { COMECON_satisfaction < 45 }
+				check_variable = { SOV.currentMoney > ai_healthy }
+				OR = {
+					check_variable = { ECO_COMECON_RATE < 1 }
+					AND = {
+						check_variable = { ECO_COMECON_RATE < 2 }
+						check_variable = { COMECON_satisfaction < 25 }
+					}
+				}
+			}
+			random_list = {
+				60 = {
+					add_to_variable = { ECO_COMECON_RATE = 1 }
+					COMECON_ai_adjusted = yes
+				}
+				40 = { }
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { check_variable = { COMECON_satisfaction < 66 } }
+				check_variable = { ECO_COMECON_RATE > 0 }
+			}
+			add_to_variable = { ECO_COMECON_RATE = -1 }
+			COMECON_ai_adjusted = yes
+		}
+	}
+	if = {
+		limit = { check_variable = { COMECON_satisfaction < SOV.COMECON_ai_low } }
+		SOV = { set_variable = { COMECON_ai_low = PREV.COMECON_satisfaction } }
+		save_global_event_target_as = COMECON_AI_LOWEST
+	}
+}
+
+COMECON_ai_promote = {
+	if = {
+		limit = {
+			is_ai = yes
+			NOT = { has_country_flag = COMECON_ai_promote_cd }
+			has_political_power > 150
+			check_variable = { COMECON_ai_low < 35 }
+			check_variable = { currentMoney > 20 }
+			event_target:COMECON_AI_LOWEST = {
+				has_idea = comecon_member
+				NOT = { has_idea = COMECON_Political_Support }
+			}
+		}
+		random = {
+			chance = 35
+			set_country_flag = { flag = COMECON_ai_promote_cd days = 180 }
+			add_political_power = -100
+			add_to_variable = { currentMoney = -2 }
+			event_target:COMECON_AI_LOWEST = {
+				add_to_variable = { COMECON_satisfaction = 5 }
+				clamp_variable = { var = COMECON_satisfaction min = 0 max = 100 }
+				add_timed_idea = {
+					idea = COMECON_Political_Support
+					days = 365
+				}
+				set_variable = { THIS.idea_len_@token:COMECON_Political_Support = 365 }
+				set_variable = { THIS.idea_date_@token:COMECON_Political_Support = global.num_days }
+			}
+		}
+	}
+}
+
+COMECON_monthly_tick = {
+	COMECON_dated_joins = yes
+	if = {
+		limit = { check_variable = { COMECON_MEMBERSHIP^num > 0 } }
+		COMECON_init_members = yes
+		COMECON_monthly_upkeep = yes
+		set_variable = { COMECON_ai_low = 101 }
+		for_each_scope_loop = {
+			array = COMECON_MEMBERSHIP
+			if = {
+				limit = { NOT = { has_idea = comecon_member } }
+				COMECON_queue_leave = yes
+			}
+			else = {
+				COMECON_member_drift = yes
+				COMECON_apply_member_modifiers = yes
+				COMECON_crisis_monthly = yes
+				if = {
+					limit = { SOV = { is_ai = yes } }
+					COMECON_ai_manage_member = yes
+				}
+				if = {
+					limit = {
+						is_ai = yes
+						check_variable = { COMECON_satisfaction < 50 }
+						NOT = { has_country_flag = COMECON_req_year }
+					}
+					random_list = {
+						60 = { }
+						20 = {
+							modifier = { factor = 2 check_variable = { COMECON_satisfaction < 25 } }
+							set_country_flag = { flag = COMECON_req_year days = 365 }
+							COMECON_request_subsidy = yes
+						}
+						15 = {
+							modifier = { factor = 2 check_variable = { COMECON_dependency > 50 } }
+							set_country_flag = { flag = COMECON_req_year days = 365 }
+							COMECON_request_trade = yes
+						}
+						10 = {
+							modifier = { factor = 2 check_variable = { COMECON_satisfaction < 25 } }
+							set_country_flag = { flag = COMECON_req_year days = 365 }
+							COMECON_request_troops = yes
+						}
+						10 = {
+							modifier = { factor = 3 check_variable = { COMECON_satisfaction < 25 } }
+							set_country_flag = { flag = COMECON_req_year days = 365 }
+							COMECON_request_exit = yes
+						}
+					}
+				}
+			}
+		}
+		COMECON_ai_promote = yes
+	}
+	COMECON_process_leave_queue = yes
+	COMECON_refresh_crisis_view = yes
+}
+
+COMECON_request_subsidy = {
+	if = {
+		limit = { NOT = { has_country_flag = COMECON_req_subsidy_cd } }
+		set_country_flag = { flag = COMECON_req_subsidy_cd days = 180 }
+		set_variable = { COMECON_req_kind = 1 }
+		COMECON_submit_request = yes
+	}
+}
+
+COMECON_request_trade = {
+	if = {
+		limit = { NOT = { has_country_flag = COMECON_req_trade_cd } }
+		set_country_flag = { flag = COMECON_req_trade_cd days = 180 }
+		set_variable = { COMECON_req_kind = 2 }
+		COMECON_submit_request = yes
+	}
+}
+
+COMECON_request_troops = {
+	if = {
+		limit = { NOT = { has_country_flag = COMECON_req_troops_cd } }
+		set_country_flag = { flag = COMECON_req_troops_cd days = 180 }
+		set_variable = { COMECON_req_kind = 3 }
+		COMECON_submit_request = yes
+	}
+}
+
+COMECON_request_exit = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = COMECON_req_exit_cd }
+			check_variable = { COMECON_satisfaction < 25 }
+		}
+		set_country_flag = { flag = COMECON_req_exit_cd days = 180 }
+		set_variable = { COMECON_req_kind = 4 }
+		COMECON_submit_request = yes
+	}
+}
+
+COMECON_submit_request = {
+	save_global_event_target_as = COMECON_REQ_MEMBER
+	if = {
+		limit = { SOV = { is_ai = no } }
+		SOV = { country_event = { id = COMECON.510 } }
+	}
+	if = {
+		limit = { SOV = { is_ai = yes } }
+		SOV = { COMECON_ai_resolve_request = yes }
+	}
+}
+
+COMECON_ai_resolve_request = {
+	if = {
+		limit = { event_target:COMECON_REQ_MEMBER = { check_variable = { COMECON_req_kind = 1 } } }
+		if = {
+			limit = { check_variable = { currentMoney > 50 } event_target:COMECON_REQ_MEMBER = { check_variable = { COMECON_satisfaction < 40 } } }
+			COMECON_grant_request = yes
+		}
+		else = { COMECON_refuse_request = yes }
+	}
+	else_if = {
+		limit = { event_target:COMECON_REQ_MEMBER = { check_variable = { COMECON_req_kind = 2 } } }
+		if = {
+			limit = { check_variable = { currentMoney > 0 } }
+			COMECON_grant_request = yes
+		}
+		else = { COMECON_refuse_request = yes }
+	}
+	else_if = {
+		limit = { event_target:COMECON_REQ_MEMBER = { check_variable = { COMECON_req_kind = 3 } } }
+		if = {
+			limit = { event_target:COMECON_REQ_MEMBER = { check_variable = { COMECON_satisfaction < 40 } } }
+			COMECON_grant_request = yes
+		}
+		else = { COMECON_refuse_request = yes }
+	}
+	else = {
+		if = {
+			limit = {
+				event_target:COMECON_REQ_MEMBER = {
+					check_variable = { COMECON_satisfaction < 10 }
+					check_variable = { COMECON_dependency < 30 }
+				}
+			}
+			COMECON_grant_request = yes
+		}
+		else = { COMECON_refuse_request = yes }
+	}
+}
+
+COMECON_grant_request = {
+	event_target:COMECON_REQ_MEMBER = {
+		if = {
+			limit = { check_variable = { COMECON_req_kind = 1 } }
+			add_to_variable = { ECO_COMECON_RATE = 1 }
+			clamp_variable = { var = ECO_COMECON_RATE min = 0 max = 6 }
+		}
+		if = {
+			limit = { check_variable = { COMECON_req_kind = 2 } }
+			add_to_variable = { TRADE_COMECON_RATE = 1 }
+			clamp_variable = { var = TRADE_COMECON_RATE min = 0 max = 6 }
+		}
+		if = {
+			limit = { check_variable = { COMECON_req_kind = 3 } }
+			add_to_variable = { MIL_COMECON_RATE = -1 }
+			clamp_variable = { var = MIL_COMECON_RATE min = 0 max = 6 }
+		}
+		if = {
+			limit = { check_variable = { COMECON_req_kind = 4 } }
+			COMECON_member_leave = yes
+		}
+		if = {
+			limit = { check_variable = { COMECON_req_kind < 4 } }
+			COMECON_apply_member_modifiers = yes
+		}
+	}
+}
+
+COMECON_refuse_request = {
+	event_target:COMECON_REQ_MEMBER = {
+		if = {
+			limit = { check_variable = { COMECON_req_kind < 3 } }
+			add_to_variable = { COMECON_satisfaction = -5 }
+		}
+		if = {
+			limit = { check_variable = { COMECON_req_kind = 3 } }
+			add_to_variable = { COMECON_satisfaction = -8 }
+		}
+		if = {
+			limit = { check_variable = { COMECON_req_kind = 4 } }
+			add_to_variable = { COMECON_satisfaction = -10 }
+			add_stability = -0.05
+			if = {
+				limit = { check_variable = { COMECON_crisis_id = 0 } }
+				set_variable = { COMECON_crisis_id = 9 }
+				set_variable = { COMECON_crisis_days = 60 }
+			}
+		}
+		clamp_variable = { var = COMECON_satisfaction min = 0 max = 100 }
+	}
+}

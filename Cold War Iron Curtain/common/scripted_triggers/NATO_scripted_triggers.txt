@@ -12,46 +12,54 @@ in_war_with_ta = {
 }
 
 NATO_total_votes = {
-
-	clear_temp_array = temp_voting_for_array
-	clear_temp_array = temp_voting_against_array
-	clear_temp_array = temp_voting_neutral_array
+	set_temp_variable = { NATO_votes_neutral = 0 }
+	set_temp_variable = { NATO_votes_negative = 0 }
+	set_temp_variable = { NATO_votes_positive = 0 }
+	set_temp_variable = { NATO_votes_pending = 0 }
+	set_temp_variable = { NATO_votes_total_weight = 0 }
 
 	all_of_scopes = {
 		array = NAT.NATO_member_countries
 
+		set_temp_variable = { NATO_member_weight = 1 }
+		if = {
+			limit = { has_country_flag = NATO_major_member }
+			set_temp_variable = { NATO_member_weight = 2 }
+		}
+		if = {
+			limit = { is_faction_leader = yes }
+			set_temp_variable = { NATO_member_weight = 3 }
+		}
 		if = {
 			limit = {
-				check_variable = { NATO_vote_value = 1 }
+				has_country_flag = NATO_outside_integrated_command
+				NATO_active_issue_is_military = yes
 			}
-			add_to_temp_array = { temp_voting_for_array = THIS } 
+			multiply_temp_variable = { NATO_member_weight = 0.5 }
 		}
-		else_if = {
-			limit = {
-				check_variable = { NATO_vote_value = -1 }
+		add_to_temp_variable = { NATO_votes_total_weight = NATO_member_weight }
+
+		if = {
+			limit = { has_variable = NATO_vote_value }
+			if = {
+				limit = { check_variable = { NATO_vote_value = 1 } }
+				add_to_temp_variable = { NATO_votes_positive = NATO_member_weight }
 			}
-			add_to_temp_array = { temp_voting_against_array = THIS }
-		}
-		else_if  = {
-			limit = {
-				AND = {
-					has_variable = NATO_vote_value
-					check_variable = { NATO_vote_value = 0 }
-				}
+			else_if = {
+				limit = { check_variable = { NATO_vote_value = -1 } }
+				add_to_temp_variable = { NATO_votes_negative = NATO_member_weight }
 			}
-			add_to_temp_array = { temp_voting_neutral_array = THIS }
+			else = {
+				add_to_temp_variable = { NATO_votes_neutral = NATO_member_weight }
+			}
 		}
-		
+		else = {
+			add_to_temp_variable = { NATO_votes_pending = NATO_member_weight }
+		}
 	}
 
-	set_temp_variable = { NATO_votes_neutral = temp_voting_neutral_array^num }
-	set_temp_variable = { NATO_votes_negative = temp_voting_against_array^num }
-	set_temp_variable = { NATO_votes_positive = temp_voting_for_array^num }
-
-	set_temp_variable = { NATO_votes_majority_needed = NAT.NATO_member_countries^num }
+	set_temp_variable = { NATO_votes_majority_needed = NATO_votes_total_weight }
 	divide_temp_variable = { NATO_votes_majority_needed = 2 }
-	round_temp_variable = NATO_votes_majority_needed
-	#add_to_temp_variable = { NATO_votes_majority_needed = 1 }
 }
 
 NATO_whip_positive_allowed = {
@@ -270,4 +278,318 @@ NATO_calculate_whip_cost = {
 		min = 5
 		max = 100
 	}
+}
+
+NATO_government_hard_left = {
+	OR = {
+		has_government = communism
+		has_government = maoism
+		has_government = trotskyism
+		has_government = socialist
+	}
+}
+
+NATO_government_social_democratic = {
+	has_government = Social_Democratic
+}
+
+NATO_government_left = {
+	OR = {
+		NATO_government_hard_left = yes
+		NATO_government_social_democratic = yes
+	}
+}
+
+NATO_government_centre_right = {
+	OR = {
+		has_government = democratic
+		has_government = liberal
+		has_government = centrist
+		has_government = conservative
+	}
+}
+
+NATO_same_ideology_as_leader = {
+	OR = {
+		AND = { NATO_government_centre_right = yes NAT = { NATO_government_centre_right = yes } }
+		AND = { NATO_government_left = yes NAT = { NATO_government_left = yes } }
+		AND = { has_government = neutrality NAT = { has_government = neutrality } }
+		AND = { has_government = fascism NAT = { has_government = fascism } }
+		AND = { has_government = nationalist NAT = { has_government = nationalist } }
+		AND = { has_government = monarchism NAT = { has_government = monarchism } }
+	}
+}
+
+NATO_same_government_group_as_leader = {
+	OR = {
+		AND = { has_government = democratic NAT = { has_government = democratic } }
+		AND = { has_government = liberal NAT = { has_government = liberal } }
+		AND = { has_government = centrist NAT = { has_government = centrist } }
+		AND = { has_government = conservative NAT = { has_government = conservative } }
+		AND = { has_government = Social_Democratic NAT = { has_government = Social_Democratic } }
+		AND = { has_government = socialist NAT = { has_government = socialist } }
+		AND = { has_government = communism NAT = { has_government = communism } }
+		AND = { has_government = neutrality NAT = { has_government = neutrality } }
+		AND = { has_government = nationalist NAT = { has_government = nationalist } }
+		AND = { has_government = monarchism NAT = { has_government = monarchism } }
+		AND = { has_government = fascism NAT = { has_government = fascism } }
+	}
+}
+
+NATO_active_issue_is_military = {
+	OR = {
+		check_variable = { NAT.NATO_issue_id = 4 }
+		check_variable = { NAT.NATO_issue_id = 7 }
+		check_variable = { NAT.NATO_issue_id = 13 }
+	}
+}
+
+NATO_active_issue_is_accession = {
+	OR = {
+		check_variable = { NAT.NATO_issue_id = 3 }
+		check_variable = { NAT.NATO_issue_id = 5 }
+		check_variable = { NAT.NATO_issue_id = 14 }
+	}
+}
+
+NATO_issue_4_opposes = { always = no }
+NATO_issue_5_opposes = { tag = FRA }
+NATO_issue_6_opposes = { tag = USA }
+NATO_issue_7_opposes = { tag = FRA }
+NATO_issue_9_opposes = { always = no }
+NATO_issue_10_opposes = { always = no }
+NATO_issue_11_opposes = { always = no }
+NATO_issue_12_opposes = {
+	OR = {
+		AND = {
+			tag = GRE
+			TUR = { has_country_flag = NATO_issue_proposer_flag }
+		}
+		AND = {
+			tag = TUR
+			GRE = { has_country_flag = NATO_issue_proposer_flag }
+		}
+	}
+}
+NATO_issue_12_neither_proposed = {
+	check_variable = { NAT.NATO_issue_id = 12 }
+	OR = {
+		tag = GRE
+		tag = TUR
+	}
+	NOT = { GRE = { has_country_flag = NATO_issue_proposer_flag } }
+	NOT = { TUR = { has_country_flag = NATO_issue_proposer_flag } }
+}
+NATO_issue_13_opposes = {
+	OR = {
+		communism > 0.2
+		socialist > 0.2
+	}
+}
+NATO_issue_14_opposes = { always = no }
+
+NATO_issue_opposes_current = {
+	OR = {
+		AND = { check_variable = { NATO_new_issue_id = 4 } NATO_issue_4_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 5 } NATO_issue_5_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 6 } NATO_issue_6_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 7 } NATO_issue_7_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 9 } NATO_issue_9_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 10 } NATO_issue_10_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 11 } NATO_issue_11_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 12 } NATO_issue_12_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 13 } NATO_issue_13_opposes = yes }
+		AND = { check_variable = { NATO_new_issue_id = 14 } NATO_issue_14_opposes = yes }
+	}
+}
+
+NATO_issue_4_can_start = {
+	date > 1950.6.25
+	date < 1953.8.1
+	has_global_flag = UNCOM_active
+	check_variable = { global.UNCOM_nato_contributor_count > 2 }
+	NOT = { has_global_flag = NATO_issue_4_resolved }
+}
+
+NATO_issue_5_can_start = {
+	date > 1950.9.1
+	date < 1955.6.1
+	country_exists = WGR
+	WGR = {
+		NOT = { has_idea = nato_member }
+		NOT = { has_government = communism }
+		NOT = { has_government = fascism }
+	}
+	NOT = { has_global_flag = NATO_issue_5_resolved }
+	OR = {
+		NOT = { has_global_flag = NATO_issue_5_failed }
+		AND = {
+			date > 1954.9.1
+			NOT = { has_global_flag = NATO_issue_5_retried }
+		}
+	}
+}
+
+NATO_issue_6_can_start = {
+	date > 1956.10.1
+	date < 1957.3.1
+	has_global_flag = Suez_Crisis
+	NOT = { has_global_flag = NATO_issue_6_resolved }
+}
+
+NATO_issue_7_can_start = {
+	date > 1960.1.1
+	date < 1964.12.1
+	NOT = { has_global_flag = NATO_issue_7_resolved }
+}
+
+NATO_issue_8_can_start = {
+	date > 1966.3.1
+	date < 1967.1.1
+	country_exists = FRA
+	FRA = { has_idea = nato_member }
+	NOT = { has_global_flag = NATO_issue_8_resolved }
+}
+
+NATO_issue_9_can_start = {
+	date > 1967.1.1
+	date < 1968.9.1
+	NOT = { has_global_flag = NATO_issue_9_resolved }
+}
+
+NATO_issue_12_can_start = {
+	date > 1974.7.1
+	date < 1977.1.1
+	has_global_flag = cyprus_emergency
+	country_exists = GRE
+	country_exists = TUR
+	GRE = { has_idea = nato_member }
+	TUR = { has_idea = nato_member }
+	NOT = { has_global_flag = NATO_issue_12_resolved }
+}
+
+NATO_issue_13_can_start = {
+	date > 1979.12.1
+	date < 1983.1.1
+	NOT = { has_global_flag = NATO_issue_13_resolved }
+}
+
+NATO_issue_14_can_start = {
+	date > 1982.5.1
+	date < 1985.1.1
+	country_exists = SPR
+	SPR = {
+		NOT = { has_idea = nato_member }
+		has_government = democratic
+	}
+	NOT = { has_global_flag = NATO_issue_14_resolved }
+}
+
+NATO_any_issue_can_start = {
+	NOT = { NAT = { has_variable = NATO_issue_id } }
+	NOT = { has_global_flag = NATO_issue_cooldown }
+	OR = {
+		NATO_issue_4_can_start = yes
+		NATO_issue_5_can_start = yes
+		NATO_issue_6_can_start = yes
+		NATO_issue_7_can_start = yes
+		NATO_issue_8_can_start = yes
+		NATO_issue_9_can_start = yes
+		NATO_issue_12_can_start = yes
+		NATO_issue_13_can_start = yes
+		NATO_issue_14_can_start = yes
+	}
+}
+
+NATO_issue_4_stake = { tag = USA }
+NATO_issue_5_stake = {
+	OR = {
+		tag = USA
+		tag = ENG
+	}
+}
+NATO_issue_6_stake = {
+	OR = {
+		tag = ENG
+		tag = FRA
+	}
+}
+NATO_issue_7_stake = {
+	OR = {
+		tag = USA
+		tag = WGR
+	}
+}
+NATO_issue_9_stake = { tag = BEL }
+NATO_issue_12_stake = {
+	OR = {
+		tag = GRE
+		tag = TUR
+	}
+}
+NATO_issue_13_stake = {
+	OR = {
+		tag = WGR
+		tag = ENG
+		tag = USA
+	}
+}
+NATO_issue_14_stake = { tag = USA }
+
+NATO_issue_4_can_raise = {
+	has_idea = nato_member
+	NATO_issue_4_can_start = yes
+	NATO_issue_4_stake = yes
+}
+NATO_issue_5_can_raise = {
+	has_idea = nato_member
+	NATO_issue_5_can_start = yes
+	NATO_issue_5_stake = yes
+}
+NATO_issue_6_can_raise = {
+	has_idea = nato_member
+	NATO_issue_6_can_start = yes
+	NATO_issue_6_stake = yes
+}
+NATO_issue_7_can_raise = {
+	has_idea = nato_member
+	NATO_issue_7_can_start = yes
+	NATO_issue_7_stake = yes
+}
+NATO_issue_9_can_raise = {
+	has_idea = nato_member
+	NATO_issue_9_can_start = yes
+}
+NATO_issue_12_can_raise = {
+	has_idea = nato_member
+	NATO_issue_12_can_start = yes
+	NATO_issue_12_stake = yes
+}
+NATO_issue_13_can_raise = {
+	has_idea = nato_member
+	NATO_issue_13_can_start = yes
+	NATO_issue_13_stake = yes
+}
+NATO_issue_14_can_raise = {
+	has_idea = nato_member
+	NATO_issue_14_can_start = yes
+}
+
+NATO_any_issue_can_raise = {
+	NATO_any_issue_can_start = yes
+	OR = {
+		NATO_issue_4_can_raise = yes
+		NATO_issue_5_can_raise = yes
+		NATO_issue_6_can_raise = yes
+		NATO_issue_7_can_raise = yes
+		NATO_issue_9_can_raise = yes
+		NATO_issue_12_can_raise = yes
+		NATO_issue_13_can_raise = yes
+		NATO_issue_14_can_raise = yes
+	}
+}
+
+NATO_greek_civil_war_ongoing = {
+	country_exists = PDG
+	GRE = { has_war_with = PDG }
 }

@@ -1,0 +1,433 @@
+UNCOM_treaty_decisions = {
+
+	UNCOM_Fund_Command_Liaison = {
+		icon = generic_political_discourse
+		cost = 20
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			NOT = { has_country_flag = UNCOM_liaison_done }
+			NOT = { has_global_flag = UNCOM_goal_liaison_done }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_liaison_done
+			if = {
+				limit = { NOT = { tag = KOR } }
+				add_to_variable = { global.UNCOM_liaison_count = 1 }
+			}
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	UNCOM_Open_Command_Liaison = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			NOT = { has_global_flag = UNCOM_goal_liaison_done }
+		}
+
+		available = {
+			has_country_flag = UNCOM_liaison_done
+			check_variable = { global.UNCOM_liaison_count > 3 }
+			USA = { has_country_flag = UNCOM_liaison_done }
+			KOR = { has_country_flag = UNCOM_liaison_done }
+		}
+
+		complete_effect = {
+			set_global_flag = UNCOM_goal_liaison_done
+			every_country = {
+				limit = {
+					has_country_flag = UNCOM_participant
+					has_country_flag = UNCOM_liaison_done
+				}
+				add_political_power = 25
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	UNCOM_Deliver_Ground_Contingent = {
+		icon = generic_military
+		cost = 30
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			UNCOM_contributor = yes
+			NOT = { tag = USA }
+			NOT = { tag = SAF }
+			NOT = { has_country_flag = UNCOM_ground_done }
+		}
+
+		available = {
+			has_manpower > 499
+			has_equipment = { infantry_equipment > 499 }
+			NOT = { has_war_with = KOR }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_ground_done
+			add_to_variable = { global.UNCOM_ground_count = 1 }
+			add_manpower = -500
+			KOR = { add_manpower = 500 }
+			send_equipment = {
+				equipment = infantry_equipment
+				amount = 500
+				target = KOR
+			}
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	UNCOM_Deliver_Large_Contingent = {
+		icon = generic_military
+		cost = 40
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			OR = {
+				tag = ENG
+				tag = CAN
+				tag = AST
+				tag = NZL
+				tag = TUR
+			}
+			NOT = { has_country_flag = UNCOM_ground_done }
+		}
+
+		available = {
+			has_manpower > 1999
+			has_equipment = { infantry_equipment > 1999 }
+			NOT = { has_war_with = KOR }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_ground_done
+			add_to_variable = { global.UNCOM_ground_count = 1 }
+			add_manpower = -2000
+			KOR = { add_manpower = 2000 }
+			send_equipment = {
+				equipment = infantry_equipment
+				amount = 2000
+				target = KOR
+			}
+		}
+
+		ai_will_do = {
+			base = 8
+		}
+	}
+
+	UNCOM_Deliver_First_Contingents = {
+		icon = generic_military
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			NOT = { has_global_flag = UNCOM_goal_contingents_done }
+		}
+
+		available = {
+			USA = { has_country_flag = UNCOM_ground_done }
+			check_variable = { global.UNCOM_ground_count > 3 }
+		}
+
+		complete_effect = {
+			set_global_flag = UNCOM_goal_contingents_done
+			set_global_flag = { flag = UNCOM_sustain_wait days = 180 }
+			every_country = {
+				limit = {
+					has_country_flag = UNCOM_participant
+					has_country_flag = UNCOM_ground_done
+				}
+				army_experience = 10
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	UNCOM_Deliver_Naval_Support = {
+		icon = generic_naval
+		cost = 30
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			OR = {
+				tag = USA
+				tag = ENG
+				tag = AST
+				tag = CAN
+				tag = COL
+				tag = HOL
+				tag = NZL
+				tag = SIA
+			}
+			NOT = { has_country_flag = UNCOM_naval_done }
+		}
+
+		available = {
+			has_equipment = { convoy > 4 }
+			NOT = { has_war_with = KOR }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_naval_done
+			add_to_variable = { global.UNCOM_naval_count = 1 }
+			send_equipment = {
+				equipment = convoy
+				amount = 5
+				target = KOR
+			}
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	UNCOM_Deliver_Air_Support = {
+		icon = generic_air
+		cost = 30
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			OR = {
+				tag = USA
+				tag = ENG
+				tag = AST
+				tag = SAF
+			}
+			NOT = { has_country_flag = UNCOM_air_done }
+		}
+
+		available = {
+			has_equipment = { fighter_equipment > 9 }
+			NOT = { has_war_with = KOR }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_air_done
+			add_to_variable = { global.UNCOM_air_count = 1 }
+			send_equipment = {
+				equipment = fighter_equipment
+				amount = 10
+				target = KOR
+			}
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	UNCOM_Deliver_Transport_Flight = {
+		icon = generic_air
+		cost = 20
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			tag = GRE
+			NOT = { has_country_flag = UNCOM_air_done }
+		}
+
+		available = {
+			has_equipment = { transport_plane_equipment > 1 }
+			NOT = { has_war_with = KOR }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_air_done
+			add_to_variable = { global.UNCOM_air_count = 1 }
+			send_equipment = {
+				equipment = transport_plane_equipment
+				amount = 2
+				target = KOR
+			}
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	UNCOM_Coordinate_Service_Support = {
+		icon = generic_naval
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			NOT = { has_global_flag = UNCOM_goal_services_done }
+		}
+
+		available = {
+			check_variable = { global.UNCOM_naval_count > 1 }
+			check_variable = { global.UNCOM_air_count > 1 }
+		}
+
+		complete_effect = {
+			set_global_flag = UNCOM_goal_services_done
+			every_country = {
+				limit = {
+					has_country_flag = UNCOM_participant
+					has_country_flag = UNCOM_naval_done
+				}
+				navy_experience = 10
+			}
+			every_country = {
+				limit = {
+					has_country_flag = UNCOM_participant
+					has_country_flag = UNCOM_air_done
+				}
+				air_experience = 10
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	UNCOM_Deliver_Resupply = {
+		icon = generic_military
+		cost = 25
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			has_global_flag = UNCOM_goal_contingents_done
+			NOT = { tag = KOR }
+			NOT = { has_country_flag = UNCOM_resupply_done }
+			NOT = { has_global_flag = UNCOM_goal_supply_done }
+		}
+
+		available = {
+			UNCOM_has_service_contribution = yes
+			has_equipment = { support_equipment > 99 }
+			NOT = { has_war_with = KOR }
+		}
+
+		complete_effect = {
+			set_country_flag = UNCOM_resupply_done
+			add_to_variable = { global.UNCOM_resupply_count = 1 }
+			send_equipment = {
+				equipment = support_equipment
+				amount = 100
+				target = KOR
+			}
+		}
+
+		ai_will_do = {
+			base = 5
+		}
+	}
+
+	UNCOM_Sustain_Contingents = {
+		icon = generic_military
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			has_global_flag = UNCOM_goal_contingents_done
+			NOT = { has_global_flag = UNCOM_goal_supply_done }
+		}
+
+		available = {
+			NOT = { has_global_flag = UNCOM_sustain_wait }
+			check_variable = { global.UNCOM_resupply_count > 3 }
+		}
+
+		complete_effect = {
+			set_global_flag = UNCOM_goal_supply_done
+			every_country = {
+				limit = {
+					has_country_flag = UNCOM_participant
+					has_country_flag = UNCOM_resupply_done
+				}
+				add_political_power = 25
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	UNCOM_Conclude_Armistice = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_country_flag = UNCOM_participant
+			has_global_flag = UNCOM_armistice_recorded
+			NOT = { has_global_flag = UNCOM_goal_armistice_done }
+		}
+
+		available = {
+			has_global_flag = UNCOM_goal_supply_done
+			country_exists = KOR
+			KOR = { has_capitulated = no }
+		}
+
+		complete_effect = {
+			set_global_flag = UNCOM_goal_armistice_done
+			KOR = { add_political_power = 35 }
+			every_country = {
+				limit = {
+					has_country_flag = UNCOM_participant
+					NOT = { tag = KOR }
+					OR = {
+						UNCOM_has_service_contribution = yes
+						has_country_flag = UNCOM_resupply_done
+					}
+				}
+				add_political_power = 35
+			}
+		}
+
+		ai_will_do = {
+			base = 20
+		}
+	}
+
+	UNCOM_Withdraw_Commitment = {
+		icon = generic_political_discourse
+
+		visible = {
+			has_global_flag = UNCOM_active
+			has_country_flag = UNCOM_participant
+			NOT = { tag = USA }
+			NOT = { tag = KOR }
+		}
+
+		complete_effect = {
+			clr_country_flag = UNCOM_participant
+			if = {
+				limit = { has_idea = korean_war_un }
+				remove_ideas = korean_war_un
+			}
+		}
+
+		ai_will_do = {
+			base = 0
+		}
+	}
+}

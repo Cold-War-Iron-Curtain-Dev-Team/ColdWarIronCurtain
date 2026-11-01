@@ -84,7 +84,8 @@ NATO_decisions_category = {
 			modifier = {
 				add = 10 
 
-				check_variable = { NATO_vote_intention = 0 }
+				check_variable = { NATO_vote_intention > -1 }
+				check_variable = { NATO_vote_intention < 1 }
 			}
 		}
 	}
@@ -103,7 +104,7 @@ NATO_decisions_category = {
 				set_temp_variable = { total_votes = NATO_votes_positive }
 				add_to_temp_variable = { total_votes = NATO_votes_negative }
 				add_to_temp_variable = { total_votes = NATO_votes_neutral }
-				check_variable = { total_votes = NAT.NATO_member_countries^num }
+				check_variable = { total_votes = NATO_votes_total_weight }
 				tooltip = NATO_countries_have_voted
 			}
 		
@@ -116,7 +117,10 @@ NATO_decisions_category = {
 			custom_trigger_tooltip = {
 				tooltip = NATO_voting_no_vetoes
 
-				NOT = { check_variable = { NATO_votes_negative > 0 } }
+				OR = {
+					NOT = { NAT = { NATO_active_issue_is_accession = yes } }
+					NOT = { check_variable = { NATO_votes_negative > 0 } }
+				}
 			}
 
 			hidden_trigger = { tag = NAT }
@@ -164,8 +168,20 @@ NATO_decisions_category = {
 						tag = NAT
 					}
 
-					add_to_variable = { NAT.NATO_political_cooperation = -5 }
+					add_to_variable = { NAT.NATO_political_integration = -5 }
+					if = {
+						limit = { check_variable = { NAT.NATO_political_integration < 0 } }
+						set_variable = { NAT.NATO_political_integration = 0 }
+					}
+					meta_effect = {
+						text = {
+							NATO_issue_[NATO_ACTIVE_ISSUE_TOKEN]_fail = yes
+							NATO_issue_cooldown_start = yes
+						}
+						NATO_ACTIVE_ISSUE_TOKEN = "[?NAT.NATO_issue_id]"
+					}
 				}
+				NATO_clamp_bars = yes
 			}
 		}
 		else = {
@@ -205,17 +221,21 @@ NATO_decisions_category = {
 
 		ai_will_do = {
 			base = 0 #usually don't bother
-			modifier = { #prioritize vetoers
+			modifier = { #prioritize vetoers on accession issues
 				add = 200
+				NAT = { NATO_active_issue_is_accession = yes }
 				FROM = {
 					check_variable = { NATO_vote_value < 0 }
 				}
 			}
-			modifier = { #continue doing until a majority is secured, but don't do this if there is a vetoer still 
+			modifier = { #continue doing until a majority is secured, but don't do this if there is a vetoer still on accession issues
 				add = 20
 				NATO_total_votes = yes
 				check_variable = { NATO_votes_positive < NATO_votes_majority_needed }
-				NOT = { check_variable = { NATO_votes_negative > 0 } }
+				OR = {
+					NOT = { NAT = { NATO_active_issue_is_accession = yes } }
+					NOT = { check_variable = { NATO_votes_negative > 0 } }
+				}
 			}
 			modifier = {
 				add = -1000
@@ -226,114 +246,125 @@ NATO_decisions_category = {
 		}
 	}
 
-	# NATO_ai_whip_negative = { # THIS DECISION IS UNNECESSARY AS ALL TAGS HAVE A VETO POWER
-	# 	allowed = {
-	# 		always = no
-	# 	}
+	NATO_raise_at_council = {
+		visible = {
+			has_idea = nato_member
+			NATO_any_issue_can_raise = yes
+		}
+		available = {
+			NATO_any_issue_can_raise = yes
+			NOT = { has_global_flag = NATO_issue_cooldown }
+			NAT = { NOT = { has_variable = NATO_issue_id } }
+		}
+		cost = 50
+		fire_only_once = no
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				tag = USA
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+		}
+		complete_effect = {
+			NATO_raise_issue = yes
+		}
+	}
 
-	# 	fire_only_once = no
+	NATO_pledge_forces = {
+		visible = {
+			has_idea = nato_member
+			NOT = { tag = USA }
+		}
+		available = {
+			NOT = { has_country_flag = NATO_burden_grievance }
+		}
+		cost = 25
+		days_re_enable = 180
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				check_variable = { NAT.NATO_military_cooperation > 75 }
+			}
+			modifier = {
+				factor = 0
+				has_political_power < 100
+			}
+		}
+		complete_effect = {
+			NATO_do_pledge_forces = yes
+		}
+	}
 
-	# 	#target_array = NAT.NATO_member_countries not needed really
-	# 	visible = { 
-	# 		is_ai = yes 
-	# 		check_variable = { NATO_vote_intention < -9.999 }
-	# 	}
+	NATO_refuse_burden_sharing = {
+		visible = {
+			has_idea = nato_member
+			NOT = { tag = USA }
+		}
+		available = {
+			NOT = { has_country_flag = NATO_burden_grievance }
+		}
+		cost = 0
+		days_re_enable = 180
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 1
+				has_political_power < 0
+			}
+		}
+		complete_effect = {
+			NATO_do_refuse_burden_sharing = yes
+		}
+	}
 
-	# 	available = {
-	# 		set_temp_variable = { NATO_whipper = ROOT }
-	# 		set_temp_variable = { NATO_whippee = FROM }
-	# 		NATO_whip_negative_allowed = yes 
-	# 	}
+	NATO_demand_consultation = {
+		visible = {
+			has_idea = nato_member
+			NOT = { tag = USA }
+		}
+		available = {
+			NOT = { has_country_flag = NATO_consultation_demanded }
+		}
+		cost = 25
+		days_re_enable = 180
+		ai_will_do = {
+			factor = 0
+			modifier = {
+				add = 1
+				has_country_flag = NATO_burden_grievance
+			}
+		}
+		complete_effect = {
+			NATO_do_demand_consultation = yes
+		}
+	}
 
-	# 	complete_effect = {
-	# 		set_temp_variable = { NATO_whipper = ROOT }
-	# 		set_temp_variable = { NATO_whippee = FROM }
-	# 		NATO_whip_negative = yes 
-	# 	}
-
-	# 	ai_will_do = { #AI will never 
-	# 		base = 0 #usually don't bother 
-	# 		modifier = { #prioritize voters for
-	# 			add = 200
-	# 			FROM = {
-	# 				check_variable = { NATO_vote_value > 0 }
-	# 			}
-	# 		}
-	# 	}
-	#}
-
-	#NATO_mission_example_debug = {
-	#	allowed = {
-	#		always = yes
-	#	}
-	#
-	#	complete_effect = {
-	#		set_variable = { NAT.NATO_issue_id = 1 }
-	#
-	#		AST = { 
-	#			set_variable = { NATO_vote_intention = 5 }
-	#		}
-	#		ENG = { 
-	#			set_variable = { NATO_vote_intention = 10 } #countries with voting intentions 10 < or -10> will automatically whip
-	#			#add_political_power = 2000 #temporary to test AI prioritization
-	#		}
-	#		CAN = { 
-	#			set_variable = { NATO_vote_intention = 5 } 
-	#		}
-	#		USA = { 
-	#			set_variable = { NATO_vote_intention = 5 }
-	#		}
-	#		ICE = {
-	#			set_variable = { NATO_vote_intention = 2 }
-	#		}
-	#		#custom_effect_tooltip = "tooltip here"
-	#		NATO_initialize_voting = yes
-	#	}
-	#} 
-	
-	#NATO_norwegian_mission = {
-	#	icon = generic_ignite_civil_war
-	#	allowed = {
-	#		tag = ENG
-	#	}
-	#	visible = {
-	#	NOT = {
-	#	NAT = {
-	#	has_variable = NATO_issue_id
-	#		}
-	#	}
-	#	NOR = {
-	#	has_war_with = GER
-	#	OR = {
-	#	has_government = paternal_autocrat
-	#	is_democratic = yes
-	#			}
-	#		}
-	#	}
-	#	cost = 10
-	#	ai_will_do = {
-	#		factor = 500
-	#	}
-	#	fire_only_once = yes
-	#	complete_effect = {
-	#		set_variable = { NAT.NATO_issue_id = 1 }
-	#
-	#		AST = { 
-	#			set_variable = { NATO_vote_intention = -5 }
-	#		}
-	#		ENG = { 
-	#			set_variable = { NATO_vote_intention = 10 } #countries with voting intentions 10 < or -10> will automatically whip
-	#		}
-	#		CAN = { 
-	#			set_variable = { NATO_vote_intention = 5 } 
-	#		}
-	#		USA = { 
-	#			set_variable = { NATO_vote_intention = 5 }
-	#		}
-	#		custom_effect_tooltip = "TA_NORWAY_MOTION_START"
-	#		NATO_initialize_voting = yes 
-	#	}
-	#}
+	NATO_marshall_aid = {
+		visible = {
+			has_idea = nato_member
+			tag = USA
+		}
+		available = {
+			NOT = { has_country_flag = NATO_marshall_aid_cooldown }
+		}
+		cost = 50
+		days_re_enable = 180
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				factor = 0
+				has_political_power < 150
+			}
+		}
+		complete_effect = {
+			NATO_do_marshall_aid = yes
+		}
+	}
 
 	NATO_Greek_Civil_War_Intervention = {
 		allowed = {
@@ -343,19 +374,30 @@ NATO_decisions_category = {
 			NOT = {
 				has_global_flag = NATO_Greek_Intervention_Proposed
 			}
-			is_in_faction_with = NAT
-			GRE = {
-				has_war_with = PDG
-			}
+			has_idea = nato_member
+			NATO_greek_civil_war_ongoing = yes
 		}
 		available = {
+			NATO_greek_civil_war_ongoing = yes
 			GRE = {
-				has_war_with = PDG
-				surrender_progress > 0.75
+				surrender_progress > 0.6
+				NOT = { has_idea = nato_member }
+			}
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				add = 100
+				has_game_rule = { rule = NATO_greek_intervention option = NATO_GRE_ALWAYS }
+			}
+			modifier = {
+				factor = 0
+				has_game_rule = { rule = NATO_greek_intervention option = NATO_GRE_NEVER }
 			}
 		}
 		complete_effect = {
 			set_global_flag = NATO_Greek_Intervention_Proposed
+			set_temp_variable = { NATO_new_issue_id = 10 }
 			set_variable = { NAT.NATO_issue_id = 10 }
 			every_country = {
 				limit = {
@@ -380,15 +422,18 @@ NATO_decisions_category = {
 					set_variable = { NATO_vote_intention = 10 }
 				}
 				else = {
-					randomize_variable = {
-						var = NATO_vote_intention
-						distribution = uniform
-						min = -10
-						max = 10
+					NATO_seed_member_intention = yes
+					if = {
+						limit = { SOV = { has_war_with = GRE } }
+						add_to_variable = { NATO_vote_intention = -5 }
 					}
 				}
 			}
 			custom_effect_tooltip = "NATO_GREECE_MOTION_START"
+			if = {
+				limit = { SOV = { has_war_with = GRE } }
+				custom_effect_tooltip = NATO_GREECE_MOTION_UNDER_FIRE
+			}
 			NATO_initialize_voting = yes
 		}
 	}
@@ -413,6 +458,7 @@ NATO_decisions_category = {
 		}
 		complete_effect = {
 			set_global_flag = NATO_Albanian_Intervention_Proposed
+			set_temp_variable = { NATO_new_issue_id = 11 }
 			set_variable = { NAT.NATO_issue_id = 11}
 			every_country = {
 				limit = {
@@ -437,16 +483,31 @@ NATO_decisions_category = {
 					set_variable = { NATO_vote_intention = 10 }
 				}
 				else = {
-					randomize_variable = {
-						var = NATO_vote_intention
-						distribution = uniform
-						min = -10
-						max = 10
-					}
+					NATO_seed_member_intention = yes
 				}
 			}
 			custom_effect_tooltip = "NATO_ALBANIA_MOTION_START"
 			NATO_initialize_voting = yes
+		}
+	}
+	NATO_Aegean_Shield_Watch = {
+		allowed = {
+			original_tag = USA
+		}
+		activation = {
+			always = no
+		}
+		available = {
+			always = no
+		}
+		days_mission_timeout = 60
+		is_good = yes
+		selectable_mission = no
+		cancel_trigger = {
+			NOT = { has_global_flag = NATO_Aegean_Shield_Active }
+		}
+		timeout_effect = {
+			custom_effect_tooltip = NATO_Aegean_Shield_Watch_tt
 		}
 	}
 }
