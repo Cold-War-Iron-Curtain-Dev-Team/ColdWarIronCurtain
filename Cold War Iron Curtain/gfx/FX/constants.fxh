@@ -50,9 +50,9 @@ static const float CITY_LIGHTS_TILING 			= 0.09103;
 static const float CITY_LIGHTS_INTENSITY 		= 5;
 static const float CITY_LIGHTS_BLOOM_FACTOR 	= 0.4;
 
-static const float TERRAIN_TILE_FREQ 			= 128.0f;
-static const float MAP_NUM_TILES 				= 4.0f;
-static const float TEXELS_PER_TILE 				= 512.0f;
+static const float TERRAIN_TILE_FREQ 			= 128.0f; // CWIC: one repeat per 20 map rows, as before the Revolution Realized atlas (253 tiled twice as often)
+static const float MAP_NUM_TILES 				= 5.0f; // CWIC: Revolution Realized atlas
+static const float TEXELS_PER_TILE 				= 312.0f; // CWIC: Revolution Realized value
 static const float ATLAS_TEXEL_POW2_EXPONENT	= 11.0f;
 static const float TERRAIN_WATER_CLIP_HEIGHT    = 3.0f;
 static const float TERRAIN_WATER_CLIP_CAM_HI	= 700.0f;
@@ -82,7 +82,7 @@ static const float 	SNOW_SPEC_GLOSS_MULT 		= 0.2f;
 static const float 	SNOW_TILING  				= 0.05f;
 static const float 	SNOW_NOISE_TILING  			= 0.06f;
 static const float 	SNOW_ICE_NOISE_TILING  		= 0.0625f;
-static const float 	SNOW_FROST_MIN_EFFECT  		= 0.5f; // CWIC: was 0.4, light snow reads as frost
+static const float 	SNOW_FROST_MIN_EFFECT  		= 0.08f; // CWIC: was 0.4; snow is patches now (standardfuncsgfx.fxh ApplySnow), not a tinted layer
 
 static const float3 ICE_COLOR 					= float3( 0.5f, 0.6f, 0.9f );
 static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
@@ -90,7 +90,13 @@ static const float 	ICE_NOISE_TILING  			= 0.1f; //0.068f;
 static const float WATER_COLOR_LIGHTNESS = 0.7;
 static const float WATER_RIPPLE_EFFECT = 0.0035;
 
-static const float COLORMAP_OVERLAY_STRENGTH 	= 0.75f; //0.7f;
+static const float TERRAIN_ATLAS_GAIN		= 1.0f; // CWIC: was 1.4 for the dark Revolution Realized atlas; its tiles are now levelled in the files
+											// (_tools/heightmap/atlas_levels.py). Before: the colormap overlay
+											// multiplies by it, so the whole map came out ~30% darker
+static const float TERRAIN_SPEC_SCALE		= 0.55f; // CWIC: its spec alpha is ~30% above vanilla and gets squared: glossy 'plastic' hills
+static const float TERRAIN_EDGE_JITTER		= 1.6f; // CWIC: terrain.bmp lookups jittered by up to this many map px, so terrain types meet
+											// along ragged natural edges instead of pixel staircases
+static const float COLORMAP_OVERLAY_STRENGTH 	= 0.65f; // CWIC: was 0.75; RR textures carry their own colour
 static const float COLORMAP_MUD_OVERLAY_STRENGTH = 0.5f;
 
 static const float3 FAKE_CUBEMAP_COLOR 			= float3(0.0f, 0.0f, 0.1f);
@@ -203,7 +209,7 @@ static const float GB_OPACITY_NEAR = 0.7f; // CWIC: was 1.0, terrain shows throu
 static const float GB_OPACITY_FAR = 0.7f; // CWIC: was 0.95  // Transparency when camera is far
 static const float BORDER_NIGHT_DESATURATION_MAX = 0.4f; // how much border colors can get desaturated at night. 1.0f is full grey
 static const float BORDER_FOW_REMOVAL_FACTOR = .845f; // How much of the FOW that is removed from the borders. 1.0f is no FOW
-static const float BORDER_LIGHT_REMOVAL_FACTOR = 0.2f; // How much of the light calculations that are removed from the borders. 1.0f is no light
+static const float BORDER_LIGHT_REMOVAL_FACTOR = 0.5f; // CWIC: was 0.2 (vanilla 0.8); the real-data relief shades far more than the 2019 map, so 0.2 left it too dark // How much of the light calculations that are removed from the borders. 1.0f is no light
 static const float GB_STRENGTH_CH1 = 1.0; // Opacity of bottom layer
 static const float GB_STRENGTH_CH2 = 0.8; // Opacity of top layer
 static const float GB_FIRST_LAYER_PRIORITY = 0.1; // Priority for first/second layer when both are active at the same pixel

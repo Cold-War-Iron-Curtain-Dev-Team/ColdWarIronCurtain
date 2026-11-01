@@ -3,15 +3,16 @@
 Run from the mod root:  python _tools/heightmap/seaice.py <etopo.nc> <nsidc_dir> <out_dir> [worldclim_dir]
 With worldclim_dir, inland water also gets a freeze potential: the share of months with a mean below -2 C (lakes, and
 seas the sea-ice data doesn't reach, like Ladoga and Onega, which the mod defines as sea provinces).
-nsidc_dir holds N_1979MM_concentration_v4.0 GeoTIFFs (renamed N_1979MM.tif), NSIDC G02135 polar stereographic north.
+nsidc_dir holds N_1979MM / S_1979MM _concentration_v4.0 GeoTIFFs (renamed N_1979MM.tif, S_1979MM.tif), NSIDC G02135
+polar stereographic north and south.
 Potential = share of 1979 months with >=15% ice; blue = 255 - 72 * potential. Red/green stay 255, alpha (wave
 strength) is taken from the vanilla file because the mod's copy had it at 0, which switched waves off.
 """
-import glob, sys, numpy as np, tifffile
+import glob, os, sys, numpy as np, tifffile
 from PIL import Image
 from scipy import ndimage as nd
 from build import WRAP, warp
-from colormap import dxt5_with_mips
+from colormap import dds_header, dxt5_with_mips
 from gcps import land_mask_and_ids
 
 DDS = "map/terrain/fow_rgb_waterspec_a.dds"
@@ -19,8 +20,8 @@ VANILLA = "F:/SteamLibrary/steamapps/common/Hearts of Iron IV/map/terrain/fow_rg
 SCALE = 72  # blue drop at potential 1; shader decodes (1 - b) * 255 / 72
 
 
-def potential(d):
-    months = sorted(glob.glob(f"{d}/N_1979??.tif"))
+def potential(d, pole="N"):
+    months = sorted(glob.glob(f"{d}/{pole}_1979??.tif"))
     assert len(months) == 12, months
     ice = sum(((a >= 150) & (a <= 1000)) | (a == 2510) for a in (tifffile.imread(f) for f in months)) / 12.0
     valid = tifffile.imread(months[0]) <= 2510  # 2530 coast / 2540 land / 2550 missing
@@ -39,6 +40,17 @@ def polar_stereo_north(lon, lat):
     return rho * np.sin(dl), -rho * np.cos(dl)
 
 
+def polar_stereo_south(lon, lat):
+    """EPSG:3412 (Hughes 1980 ellipsoid, true scale 70S, lon0 0) -> metres."""
+    a, e = 6378273.0, 0.081816153
+    t = lambda p: np.tan(np.pi / 4 - p / 2) / ((1 - e * np.sin(p)) / (1 + e * np.sin(p))) ** (e / 2)
+    pc = np.radians(70.0)
+    mc = np.cos(pc) / np.sqrt(1 - e * e * np.sin(pc) ** 2)
+    rho = a * mc * t(np.radians(-lat)) / t(pc)
+    dl = np.radians(lon)
+    return rho * np.sin(dl), rho * np.cos(dl)
+
+
 def main(dem_path, nsidc_dir, out, wc_dir=None):
     ids, kinds = land_mask_and_ids()
     sea = np.isin(ids, [k for k, v in kinds.items() if v == "sea"])
@@ -50,6 +62,11 @@ def main(dem_path, nsidc_dir, out, wc_dir=None):
     pot = nd.map_coordinates(potential(nsidc_dir), [(5850000 - y) / 25000 - .5, (x + 3850000) / 25000 - .5],
                              order=1, mode="constant", cval=0.0)
     pot = np.where(sea & (la > 30), pot, 0.0)
+    # south: NSIDC G02135 south (S_1979MM.tif, 316x332 cells of 25 km, upper-left corner -3950 km, 4350 km)
+    x, y = polar_stereo_south(lo, np.minimum(la, 0.0))
+    south = nd.map_coordinates(potential(nsidc_dir, "S"), [(4350000 - y) / 25000 - .5, (x + 3950000) / 25000 - .5],
+                               order=1, mode="constant", cval=0.0)
+    pot = np.where(sea & (la < -30), south, pot)
     if wc_dir:  # months below -2 C (WorldClim tmin/tmax means), e.g. Ladoga ~5/12, Great Lakes ~3/12
         from weather import worldclim
         rows, cols = (90 - la) * 6 - .5, (lo + 180) % 360 * 6 - .5
@@ -59,13 +76,13 @@ def main(dem_path, nsidc_dir, out, wc_dir=None):
         sea = sea | lake
     pot = nd.gaussian_filter(pot, 1.5, mode=WRAP) * sea  # soft ice edge, nothing on land
 
-    van = np.asarray(Image.open(VANILLA).convert("RGBA"))
-    rgba = np.full(van.shape, 255, np.uint8)
+    alpha = np.asarray(Image.open(os.path.join(os.environ["CWIC_OLD_LAYERS"], "waterspec_alpha.png")))  # oldlayers.py
+    rgba = np.full(alpha.shape + (4,), 255, np.uint8)
     rgba[..., 2] = np.clip(np.rint(255 - SCALE * pot), 0, 255)
-    rgba[..., 3] = van[..., 3]
+    rgba[..., 3] = alpha
     img = Image.fromarray(rgba, "RGBA")
     img.save(f"{out}/seaice_preview.png")
-    open(f"{out}/fow_rgb_waterspec_a.dds", "wb").write(dxt5_with_mips(img, open(DDS, "rb").read(128)))
+    open(f"{out}/fow_rgb_waterspec_a.dds", "wb").write(dxt5_with_mips(img, dds_header(img)))
     print("sea px with any ice:", int((pot > .05).sum()), "| always frozen:", int((pot > .95).sum()))
 
 
