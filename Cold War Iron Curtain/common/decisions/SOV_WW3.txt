@@ -10,16 +10,10 @@ SOV_WW3_decisions = {
 			has_war_with = FROM
 		}
 		available = {
-			FROM = {
-				capital_scope = { 
-					is_controlled_by_ROOT_or_ally = yes
-				}
-			}
+            FROM = { cwic_ww3_target_capital_secured = yes }
 		}
 		visible = {
-			FROM = {
-			    is_neighbor_of = SOV
-			}
+			has_global_flag = WW3_Started
 		}
 		icon = WW3_USSR
 		cost = 20
@@ -52,16 +46,15 @@ SOV_WW3_decisions = {
 		target_trigger = {
 			owner = { has_war_with = FROM }
 			check_variable = {
-				FROM.THIS.state_strategic_value > 50
+				state_strategic_value > 50
+				tooltip = CWIC_WW3_STRATEGIC_VALUE_TT
 			}
 		}
 		available = {
-			FROM = { is_controlled_by_ROOT_or_ally = yes }
+			FROM = { controller = { cwic_ww3_soviet_aligned = yes } }
 		} 
 		visible = {
-			FROM = {
-			    is_controlled_by = SOV
-			}
+            FROM = { controller = { cwic_ww3_soviet_aligned = yes } }
 		}
 		on_map_mode = decision_view_only 
 		icon = WW3_USSR
@@ -71,10 +64,7 @@ SOV_WW3_decisions = {
 			WW3_1950_war_exhaustion_change = yes
 			if = {
 				limit = {
-					war_length_with = {
-						tag = FROM
-						months  < 2
-					}
+					FROM = { owner = { war_length_with = { tag = ROOT months < 2 } } }
 				}
 				custom_effect_tooltip = WAR_LENGTH_WW3_States
 				set_temp_variable = { army_strength_change = 0.1 }
@@ -239,38 +229,39 @@ SOV_WW3_decisions = {
 			WW3_1950_war_exhaustion_change = yes
 		}
 	}
-	SOV_Force_Peace = {
-		icon = WW3_USSR
-		visible = {
-			has_global_flag = WW3_Started
-		}
-		available = {
-			tag = SOV
-			longest_war_length > 7
-		}
-		fire_only_once = yes
-		cost = 50
-		days_remove = 0
-		complete_effect = {
-			country_event = SOVw_Peace_Negotiation.1
-		}
-	}
-	SOV_Red_Dawn = {
-		icon = WW3_USSR
-		visible = {
-			has_global_flag = WW3_Started
-		}
-		available = {
-			tag = SOV
-			longest_war_length > 2
-		}
-		fire_only_once = yes
-		cost = 50
-		days_remove = 0
-		complete_effect = {
-			country_event = WW3.5
-		}
-	}
+    SOV_Force_Peace = {
+        icon = WW3_USSR
+        visible = {
+            has_global_flag = WW3_Started
+            NOT = { has_global_flag = WW3_Ended }
+            NOT = { has_country_flag = cwic_ww3_conference_pending }
+        }
+        available = {
+            original_tag = SOV
+            longest_war_length > 7
+            cwic_ww3_can_negotiate_ceasefire = yes
+        }
+        fire_only_once = yes
+        cost = 50
+        complete_effect = { country_event = SOVw_Peace_Negotiation.1 }
+    }
+    SOV_Red_Dawn = {
+        icon = WW3_USSR
+        visible = {
+            has_global_flag = WW3_Started
+            NOT = { has_global_flag = WW3_Ended }
+        }
+        available = {
+            original_tag = SOV
+            longest_war_length > 2
+            has_war_with = USA
+            NOT = { has_country_flag = cwic_ww3_closed }
+            NOT = { has_country_flag = SOV_red_dawn_active }
+        }
+        fire_only_once = yes
+        cost = 50
+        complete_effect = { country_event = WW3.5 }
+    }
 	SOV_Form_Iberia = {
 		icon = WW3_USSR
 		visible = {
@@ -297,97 +288,54 @@ SOV_WW3_decisions = {
 			}
 		}
 	}
-	SOV_WW3_Time_Limit = {
+    SOV_WW3_Time_Limit = {
         icon = WW3_USSR
-
         activation = {
             has_global_flag = WW3_Started
+            NOT = { has_global_flag = WW3_Ended }
+            NOT = { has_country_flag = SOV_Operation_Red_Dusk_Activated }
+            NOT = { has_country_flag = cwic_ww3_conference_pending }
         }
-
-        available = {
-            has_global_flag = European_is_Soviet
-        }
-
-        cancel_trigger = { 
-			
-        }
-
-        allowed = {
-            original_tag = SOV
-        }
-
-        visible = {
-            has_global_flag = WW3_Started
-        }
-
-        days_mission_timeout = 365
-
-        days_remove = 1
-
-        is_good = yes
-
-		fire_only_once = yes
-
-        days_re_enable = 0
-		
-		complete_effect = {
-			country_event = {
-				id = SOVw_Third_World_War.17
-			}
-		}
-
-		timeout_effect = {
-			custom_effect_tooltip = SOV_WW3_CONSEQUENCES_TT
-			hidden_effect = {
-				european_catastrophe = yes
-			}
-		}
-	}
-	SOV_Operation_Red_Dusk = {
-        icon = WW3_USSR
-
-        activation = {
-            has_global_flag = SOV_Operation_Red_Dusk_Activated
-        }
-
-        available = {
-            always = no
-        }
-
+        allowed = { original_tag = SOV }
+        visible = { has_global_flag = WW3_Started NOT = { has_global_flag = WW3_Ended } }
+        available = { cwic_ww3_europe_secured = yes }
         cancel_trigger = {
-			has_global_flag = Full_Soviet_Domination
+            OR = {
+                has_global_flag = WW3_Ended
+                has_country_flag = cwic_ww3_closed
+                has_country_flag = SOV_Operation_Red_Dusk_Activated
+            }
         }
-
-        allowed = {
-            original_tag = SOV
-        }
-
-        visible = {
-            has_global_flag = SOV_Operation_Red_Dusk_Activated
-        }
-
-        days_mission_timeout = 765
-
-        days_remove = 1
-
+        days_mission_timeout = 365
         is_good = yes
-
-		fire_only_once = yes
-
-        days_re_enable = 0
-		
-		complete_effect = {
-			country_event = {
-				id = SOVw_Third_World_War.1000
-			}
-			set_global_flag = Full_Soviet_Domination
-		}
-
-		timeout_effect = {
-			white_peace = USA
-			add_stability = -0.50
-			add_war_support = -0.50
-			custom_effect_tooltip = SOV_Operation_Red_Dusk_Fail_TT
-		}
-	}
+        fire_only_once = yes
+        complete_effect = { cwic_ww3_open_european_conference = yes }
+        timeout_effect = {
+            custom_effect_tooltip = SOV_WW3_CONSEQUENCES_TT
+            hidden_effect = { cwic_ww3_force_ceasefire = yes }
+        }
+    }
+    SOV_Operation_Red_Dusk = {
+        icon = WW3_USSR
+        activation = {
+            has_global_flag = WW3_Started
+            has_country_flag = SOV_Operation_Red_Dusk_Activated
+            NOT = { has_global_flag = WW3_Ended }
+        }
+        allowed = { original_tag = SOV }
+        visible = {
+            has_country_flag = SOV_Operation_Red_Dusk_Activated
+            NOT = { has_global_flag = WW3_Ended }
+        }
+        available = { cwic_ww3_north_america_secured = yes }
+        cancel_trigger = { OR = { has_global_flag = WW3_Ended has_country_flag = cwic_ww3_closed } }
+        days_mission_timeout = 765
+        is_good = yes
+        fire_only_once = yes
+        complete_effect = { cwic_ww3_red_dusk_victory = yes }
+        timeout_effect = {
+            custom_effect_tooltip = SOV_Operation_Red_Dusk_Fail_TT
+            hidden_effect = { cwic_ww3_red_dusk_failure = yes }
+        }
+    }
 }
