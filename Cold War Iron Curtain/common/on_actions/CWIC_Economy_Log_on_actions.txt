@@ -1,11 +1,28 @@
-# Yearly economy log for the historical check (_tools/economy_check/check_economy.py).
+# Yearly per-country tick. HOI4 has no on_yearly on_action (the engine only fires
+# on_daily, on_weekly and on_monthly), so this runs on each country's first monthly
+# tick of every game year, including the start year.
+#
+# Economy log for the historical check (_tools/economy_check/check_economy.py).
 # One line per country per year in game.log:  CWIC_ECON;year;tag;gdp;gdp_per_capita;national_hdi;debt;inflation_mom;money
 on_actions = {
-	on_yearly = {
+	on_monthly = {
 		effect = {
 			if = {
-				limit = { has_variable = grossdomesticproduct }
-				log = "CWIC_ECON;[GetYear];[ROOT.GetTag];[?grossdomesticproduct|3];[?grossdomesticproductcapita|3];[?National_HDI|3];[?currentDebt|3];[?CWIC_inflation_mom|3];[?currentMoney|3]"
+				limit = { NOT = { check_variable = { cwic_last_yearly_tick = global.year } } }
+				set_variable = { cwic_last_yearly_tick = global.year }
+				cwic_update_yearly_gdp_growth = yes
+				if = {
+					limit = {
+						tag = USA
+						has_completed_focus = USA80MIL_Begin_Star_Wars_Development
+					}
+					## progress maluses for each year they have low spending, gains for high spending
+					SDI_check_spending = yes
+				}
+				if = {
+					limit = { has_variable = grossdomesticproduct }
+					log = "CWIC_ECON;[GetYear];[ROOT.GetTag];[?grossdomesticproduct|3];[?grossdomesticproductcapita|3];[?National_HDI|3];[?currentDebt|3];[?CWIC_inflation_mom|3];[?currentMoney|3]"
+				}
 			}
 		}
 	}
