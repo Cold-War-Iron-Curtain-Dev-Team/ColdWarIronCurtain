@@ -84,15 +84,12 @@ PixelShader =
             float2 p  = float2(uv.x, uv.y) * 0.97; // 5% shrink to keep dots inside the box
 
             // input params
-            int totalSeats = max(1, int(round(vFirstColor.a)));
-            // accept either absolute seats or a 0..1 fraction in CurrentState
-            float cs = CurrentState;
-            int filled = (cs <= 1.001) ? int(round(cs * float(totalSeats))) : int(round(cs));
-            filled = clamp(filled, 0, totalSeats);
+            // integer max/clamp are ambiguous on OpenGL; do the math in float and cast once
+            int totalSeats = int(max(1.0, round(vFirstColor.a)));
 
-            int rowsParam = int(round(vSecondColor.a));
+            float rowsParam = round(vSecondColor.a);
             // auto rows heuristic ~ sqrt(N); clamp to [3..8]
-            int rows = (rowsParam > 0) ? rowsParam : clamp( int(round( sqrt( float(totalSeats) / 9.0 ) )), 3, 8 );
+            int rows = int((rowsParam > 0.0) ? rowsParam : clamp( round( sqrt( float(totalSeats) / 9.0 ) ), 3.0, 8.0 ));
 
             // look constants (tweak here if you want a different shape)
 			// Dynamic band: fewer total seats means tighter rows (larger innerR),
@@ -135,8 +132,8 @@ PixelShader =
                 float rj = row_radius(j, rows, innerR, outerR, curvature);
 
                 // seats on this row (continuous weight to integer)
-                int n = max(1, int(round( (3.14159265 * rj / sumW) * float(totalSeats) )));
-				float dTh = 3.14159265 / float(max(n,1));
+                int n = int(max(1.0, round( (3.14159265 * rj / sumW) * float(totalSeats) )));
+				float dTh = 3.14159265 / float(n);
 
 				// snap to sector, then place the center at the midpoint of that sector
 				float kf = floor(theta / dTh);
