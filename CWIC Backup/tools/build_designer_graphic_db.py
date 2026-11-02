@@ -78,22 +78,16 @@ LEGACY_ART = {
     **{f"mechanized_heavy_equipment_{n}": tech for n, (tech, _) in enumerate(IFV, 1)},
 }
 
-# Carrier designs take national APC/IFV models by era, not by hull tier. The national entities
-# are numbered after the legacy row they depict (<TAG>_mechanized_<k>_entity is
-# mechanized_equipment_k), and each hull generation's ladder position is that row, so a carrier
-# shows the model of the legacy vehicle its generation stands for.
+# Carrier designs take national APC/IFV models at the hull generation's level. National carrier
+# art is numbered by the pre-designer visual level of the legacy row it depicts
+# (<TAG>_mechanized_<n>_entity is the APC at level n), which keeps each generation within one
+# row of its era.
 CARRIER_ART = {
     "light_tank_apc_chassis": ("mechanized",),
     "medium_tank_apc_chassis": ("mechanized",),
     "light_tank_ifv_chassis": ("armored_infantry", "mechanized"),
     "medium_tank_ifv_chassis": ("armored_infantry", "mechanized"),
 }
-
-
-def carrier_art_index(role: str, generation: int) -> int:
-    """Legacy row number (= national entity index) a carrier hull generation depicts."""
-    ladder = next(ladder for name, _, ladder in ROLES if name == role)
-    return ladder[min(generation, len(ladder) - 1)]
 
 
 def national_entities() -> set[str]:
@@ -108,7 +102,7 @@ def national_entities() -> set[str]:
 
 def carrier_model(tag: str, role: str, generation: int, entities: set[str]) -> str | None:
     """The tag's nearest authored model at or below the generation's era, else its untiered one."""
-    index = carrier_art_index(role, generation)
+    index = generation
     for token in CARRIER_ART[role]:
         levels = [n for n in range(16) if f"{tag}_{token}_{n}_entity" in entities]
         lower = [n for n in levels if n <= index]
@@ -203,6 +197,7 @@ def build() -> str:
     sprites = registered_sprites()
     models = existing_models()
     entities = national_entities()
+    declared = entities | set(re.findall(r'\bname\s*=\s*"(\w+_entity)"', read(MOD / "gfx/entities/zz_CWIC_armor_entity_aliases.asset")))
     tags = sorted(
         {
             m.group(1)
@@ -224,7 +219,7 @@ def build() -> str:
                 match = art(tag, tiers, tiers[position - 1], sprites)
                 if match:
                     icons = [match] + [icon for icon in owned if icon != match]
-                pool_models = models.get((tag or "default", key), [])
+                pool_models = [m for m in models.get((tag or "default", key), []) if m in declared]
                 if tag and role in CARRIER_ART:
                     era_model = carrier_model(tag, role, generation, entities)
                     if era_model:
