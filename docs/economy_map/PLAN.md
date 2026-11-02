@@ -142,6 +142,11 @@ in `Indochina_Test_Effects`-style test effects (an economy test section; no new 
 | F12 | done | The yearly tick (Phase 0). |
 | F14 | done | `cwic_transfer_state_debt` (`IC_Loans_and_Interest_Rate_Effects.txt`), called from `cwic_track_state_gdp_for_growth` when a state's remembered owner changes. The state's GDP share of each of the old owner's loans moves to the new owner (same lender, status and interest). The share is written off if the new owner is at war with the old one or the old one has capitulated (D10). |
 | F15 | done | `cwic_ai_fiscal_rule` (`IC_Economic_Scripted_Effects.txt`), called yearly for AI countries. In deficit: raise tax to a cap by system (planned 16, state-directed 14, market 12, rentier 8); at the cap or above 60% debt/GDP, cut services, welfare and healthcare (floor 3) and army (floor 2, not at war). In surplus above 0.2% of GDP per month and below 40% debt/GDP: raise education to 12, then welfare to 10, then healthcare to 10. |
+| F14 fix | done (after Run C) | `save_temporary_event_target_as` does not exist in HOI4 (877 errors in Run C, so transfers wrote the debt off). Replaced with `save_event_target_as`. |
+| F16 | done (after Run C) | Inflation: shortage weight `k_sp` 0.020 → 0.006 (a full shortage now adds ~7%/yr, not ~24%). With F9, every AI country runs the consumer-goods tick, and shortage was the only term large enough to explain the 7.2%/yr median. The components are stored as `cwic_infl_sp/fp/dp/td/expect`. |
+| F17 | done (after Run C) | Land-army upkeep × (0.3 + 0.7 × wage factor): personnel at local wages, 30% equipment at world prices. Targets the PRC/CHI spiral (absolute battalion costs against GDP per head ~1% of the USA's). Air and navy unchanged. |
+| F18 | done (after Run C) | F15's surplus branch is stricter: surplus > 0.5% of GDP per month, debt < 30%, caps education 10, welfare and healthcare 8. Targets the Nordic drift into deficit after 1955. |
+| Diagnostics | done | Yearly `CWIC_BUDGET` line per country: income, balance, debt service, land/welfare/education/healthcare cost, the four policy levels, wage factor, and the inflation components. |
 
 Pre-existing issues seen while editing, not fixed:
 - `lower_tax_rate` subtracts 0.05 from `upper_class_tax_rate`, but `increase_tax_rate` never adds it back (`policy_focus_effects.txt:3685-3700` vs `3829-3841`).
