@@ -125,6 +125,28 @@ in `Indochina_Test_Effects`-style test effects (an economy test section; no new 
 | F11 | Delete `cwic_inflation_tier_monthly_assign` and its `on_actions/CWIC_economic_cache_compatibility.txt:7` and `_tools/check_economic_idea_cache.py:96` references. | `IC_Inflation_Effect.txt:314+` | Nothing references it. |
 | F12 ✅ | HOI4 has no `on_yearly`, so the economy log, `cwic_update_yearly_gdp_growth` (macro-crisis GDP growth inputs) and the SDI yearly check never ran. Replaced with a per-country yearly tick in `on_monthly`, guarded by `cwic_last_yearly_tick = global.year`. **Done 2026-11-02** (found in Run A). | `on_actions/CWIC_Economy_Log_on_actions.txt`, `SDI_on_actions.txt` | `CWIC_ECON` lines appear for every country every year; `CWIC_gdp_growth_yoy` is non-zero after 1950. |
 
+### Pass 1 implementation status (2026-11-02, not yet tested in game)
+
+| # | Status | What was done |
+|---|---|---|
+| F1 | done | `IC_Inflation_Effect.txt`: tightening = (Interest_Rate − 1 point) × 0.000833 per month, cap 10 points. A 1-point-above-neutral rate now lowers inflation by about 1%/yr instead of 15%/yr. |
+| F2 | done | `on_startup_defines.txt`: the dev-1 to dev-4 blocks multiply `UPC_popNdevK`. |
+| F3 | done | `IC_Econ_2024.txt`: the middle band is x 7–12, so bands no longer stack. **Balance change:** x 13–18 economies (USA, CAN, WGR, BRA…) go from ×2.625 to ×1.75 on civilian factories, and ×3.135 to ×1.9 on office parks. Watch the rich countries' growth in Run C. |
+| F4 + F5 | done | `events/Economic_Penalties.txt` .2: no demolition. Every loan, `currentDebt`, `currentDebtPayments` and `domesticTotalDebt` are halved. Welfare, healthcare and services −2, education −1 and union −2 go through the setters, so levels and ideas stay in sync; women +1 also goes through a setter. Tax is untouched. Recent_Default, IMF influence, SAP flag, devaluation, `gen_materialist_2` and `free_trade` are kept. New tooltip `CWIC_ECON_DEFAULT_RESTRUCTURE_TT`. |
+| F6 | done | `IC_Econ_2024.txt`: `cwic_calc_wage_price_factor` = clamp(GDP per head / 42.04, 0.05, 1), with 42.04 = USA 1949. It multiplies the welfare, healthcare, policing (excluding black ops) and education costs. |
+| F7 | done | Startup education is at least level 6 (`policy_focus_effects.txt`). The penalty is `−0.12 × max(0, 0.06 − education_gain_rate)`, computed once per country in `monthly_education_pulse` (`cwic_edu_penalty`) and applied in all four tiers. |
+| F8 | done | Upkeep added: the five land types in their weight buckets, and `strat_bomber` in air tier 4. |
+| F9 | done | `00_on_actions.txt`: `ic_financial_monthly_pulse` for every country. The Run B switch, `cwic_ai_money_stipend` and `cwic_ai_refresh_gdp_on_territory_change` are deleted. |
+| F10 | **dropped** | Not reproducible: every negative month calls `automatic_loan_setting` (`IncomeGenerator.txt:1198`), with the IMF as the last-resort lender, so money cannot stay negative and there is no "refuse loan" path. |
+| F11 | done | Deleted the tier function, the `cwic_inflation_env_*` set/remove/clear effects, the 13 `CWIC_infl_env_*` ideas (`IC_Laws_Country.txt`) and their English loc. Also removed the startup cache clear, the tool fixture and the two debug-tooltip lines. `_tools/check_economic_idea_cache.py` passes. |
+| F12 | done | The yearly tick (Phase 0). |
+| F14 | done | `cwic_transfer_state_debt` (`IC_Loans_and_Interest_Rate_Effects.txt`), called from `cwic_track_state_gdp_for_growth` when a state's remembered owner changes. The state's GDP share of each of the old owner's loans moves to the new owner (same lender, status and interest). The share is written off if the new owner is at war with the old one or the old one has capitulated (D10). |
+| F15 | done | `cwic_ai_fiscal_rule` (`IC_Economic_Scripted_Effects.txt`), called yearly for AI countries. In deficit: raise tax to a cap by system (planned 16, state-directed 14, market 12, rentier 8); at the cap or above 60% debt/GDP, cut services, welfare and healthcare (floor 3) and army (floor 2, not at war). In surplus above 0.2% of GDP per month and below 40% debt/GDP: raise education to 12, then welfare to 10, then healthcare to 10. |
+
+Pre-existing issues seen while editing, not fixed:
+- `lower_tax_rate` subtracts 0.05 from `upper_class_tax_rate`, but `increase_tax_rate` never adds it back (`policy_focus_effects.txt:3685-3700` vs `3829-3841`).
+- Content that hand-builds loans (GDR, SWE, YUG, FRA, influence) appends to only some of the five debt arrays, so array indices can misalign. Pass 2's `cwic_take_loan` replaces this.
+
 Not in Pass 1, because Pass 2 replaces it: consumer-goods AI buyers, `export_script_for_pool`
 using a stale `oil_consumption`, the Laffer clamp order, class wages mixing gross and net in GDP.
 

@@ -93,16 +93,9 @@ def main():
         ('governance', 'CWIC_MNC_Effects.txt', 'cwic_apply_governance_stress_modifiers_country',
          'CWIC_governance_stress_tier', 'CWIC_governance_stress_tier_applied',
          {0: None, **{i: 'cwic_governance_stress_t' + str(i) for i in range(1,6)}}),
-        ('inflation', 'IC_Inflation_Effect.txt', 'cwic_inflation_tier_monthly_assign',
-         'CWIC_infl_tier_id', 'CWIC_infl_tier_applied',
-         dict(zip([1,2,3,11,12,13,14,15,16,17,18,19,20],
-             ['CWIC_infl_env_' + suffix for suffix in ['deflation_1','deflation_2','deflation_3',
-              'very_stable_1','stable_2','mild_4','noticeable_8','moderate_10','high_15',
-              'serious_25','crisis_50','hyper_light_100','hyper_hard_200']]))),
     ]:
         text = (MOD / 'common/scripted_effects' / filename).read_text(encoding='utf-8-sig')
         body = next(v for k,o,v in parse(text) if k == function)
-        if kind == 'inflation': body = [body[-1]]
         for target, idea in mapping.items():
             for previous, old_idea in mapping.items():
                 for first_run in [True, False]:

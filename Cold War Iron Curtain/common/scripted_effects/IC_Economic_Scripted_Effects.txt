@@ -2181,3 +2181,79 @@ cwic_seed_starting_fx_balance = {
 
 	set_variable = { CWIC_fx_reserves = cwic_start_fx }
 }
+
+cwic_ai_fiscal_rule = {
+	set_temp_variable = { cwic_fr_gdp = grossdomesticproduct }
+	clamp_temp_variable = { var = cwic_fr_gdp min = 0.1 }
+	set_temp_variable = { cwic_fr_debt_ratio = currentDebt }
+	divide_temp_variable = { cwic_fr_debt_ratio = cwic_fr_gdp }
+	set_temp_variable = { cwic_fr_surplus_floor = cwic_fr_gdp }
+	multiply_temp_variable = { cwic_fr_surplus_floor = 0.002 }
+
+	set_temp_variable = { cwic_fr_tax_cap = 12 }
+	if = {
+		limit = { check_variable = { economic_x_axis < 7 } }
+		set_temp_variable = { cwic_fr_tax_cap = 16 }
+	}
+	else_if = {
+		limit = { check_variable = { economic_x_axis < 13 } }
+		set_temp_variable = { cwic_fr_tax_cap = 14 }
+	}
+	else_if = {
+		limit = { check_variable = { economic_x_axis > 19 } }
+		set_temp_variable = { cwic_fr_tax_cap = 8 }
+	}
+
+	if = {
+		limit = { check_variable = { display_balance < 0 } }
+		if = {
+			limit = { check_variable = { upper_tax_level_value < cwic_fr_tax_cap } }
+			increase_tax_rate = yes
+		}
+		if = {
+			limit = {
+				OR = {
+					NOT = { check_variable = { upper_tax_level_value < cwic_fr_tax_cap } }
+					check_variable = { cwic_fr_debt_ratio > 0.6 }
+				}
+			}
+			if = {
+				limit = { check_variable = { public_services_level_value > 3 } }
+				decrease_service_policy = yes
+			}
+			if = {
+				limit = { check_variable = { welfare_level_value > 3 } }
+				reduce_welfare_rate = yes
+			}
+			if = {
+				limit = { check_variable = { healthcare_level_value > 3 } }
+				lower_healthcare_rate = yes
+			}
+			if = {
+				limit = {
+					check_variable = { army_level_value > 2 }
+					has_war = no
+				}
+				decrease_military_policy = yes
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { display_balance > cwic_fr_surplus_floor }
+			check_variable = { cwic_fr_debt_ratio < 0.4 }
+		}
+		if = {
+			limit = { check_variable = { education_level_value < 12 } }
+			increase_education_rate = yes
+		}
+		else_if = {
+			limit = { check_variable = { welfare_level_value < 10 } }
+			increase_welfare_rate = yes
+		}
+		else_if = {
+			limit = { check_variable = { healthcare_level_value < 10 } }
+			increase_healthcare_rate = yes
+		}
+	}
+}

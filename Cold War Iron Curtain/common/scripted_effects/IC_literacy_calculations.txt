@@ -31,10 +31,7 @@ literacy_calculation = {
 
 		#extra calculations
 
-		if = {
-			limit = { check_variable = { PREV.modifier@education_gain_rate < 0.1 }}
-			add_to_variable = { THIS.func_value = -0.007 }		
-		}
+		add_to_variable = { THIS.func_value = PREV.cwic_edu_penalty }
 
 		#should modifier fall too high, make the decrease larger, particularily so that people dont just decrease education spending
 
@@ -83,10 +80,7 @@ primary_calculation = {
 		multiply_variable = {
 			THIS.func_value = prior_edu_adjustment
 		}
-		if = {
-			limit = { check_variable = { PREV.modifier@education_gain_rate < 0.1 }}
-			add_to_variable = { THIS.func_value = -0.007 }		
-		}
+		add_to_variable = { THIS.func_value = PREV.cwic_edu_penalty }
 
 		#should modifier fall too high, make the decrease larger, particularily so that people dont just decrease education spending
 
@@ -137,10 +131,7 @@ secondary_calculation = {
 		multiply_variable = {
 			THIS.func_value = prior_edu_adjustment
 		}
-		if = {
-			limit = { check_variable = { PREV.modifier@education_gain_rate < 0.1 }}
-			add_to_variable = { THIS.func_value = -0.007 }		
-		}
+		add_to_variable = { THIS.func_value = PREV.cwic_edu_penalty }
 
 		#should modifier fall too high, make the decrease larger, particularily so that people dont just decrease education spending
 
@@ -189,10 +180,7 @@ college_calculation = {
 		multiply_variable = {
 			THIS.func_value = prior_edu_adjustment
 		}
-		if = {
-			limit = { check_variable = { PREV.modifier@education_gain_rate < 0.1 }}
-			add_to_variable = { THIS.func_value = -0.007 }		
-		}
+		add_to_variable = { THIS.func_value = PREV.cwic_edu_penalty }
 
 		#should modifier fall too high, make the decrease larger, particularily so that people dont just decrease education spending
 
@@ -246,6 +234,14 @@ monthly_education_pulse = {
 	# let modifier be 0.01, then d is 0.001, lowest possible
 
 	#log = "d: [?d]"
+
+	set_variable = { cwic_edu_penalty = 0.06 }
+	subtract_from_variable = { cwic_edu_penalty = THIS.modifier@education_gain_rate }
+	clamp_variable = {
+		var = cwic_edu_penalty
+		min = 0
+	}
+	multiply_variable = { cwic_edu_penalty = -0.12 }
 
 	religious_drift_national = yes
 	every_owned_state = {

@@ -2192,3 +2192,65 @@ cwic_oil_pricing_monthly = {
 	# Clamp trust
 	if = { limit = { check_variable = { CWIC_reserve_trust > 1 } } set_variable = { CWIC_reserve_trust = 1 } }
 }
+
+cwic_transfer_state_debt = {
+	set_temp_variable = { cwic_dt_state_gdp = cwic_gdp_state_last_month }
+	divide_temp_variable = { cwic_dt_state_gdp = 10 }
+	owner = { save_temporary_event_target_as = cwic_dt_receiver }
+	var:cwic_gdp_owner_month = {
+		if = {
+			limit = {
+				check_variable = { currentDebt > 0 }
+				check_variable = { CWIC_gdp_current > 0.1 }
+			}
+			set_temp_variable = { cwic_dt_share = cwic_dt_state_gdp }
+			divide_temp_variable = { cwic_dt_share = CWIC_gdp_current }
+			clamp_temp_variable = { var = cwic_dt_share min = 0 max = 0.95 }
+			set_temp_variable = { cwic_dt_repudiate = 0 }
+			if = {
+				limit = {
+					OR = {
+						has_war_with = event_target:cwic_dt_receiver
+						has_capitulated = yes
+					}
+				}
+				set_temp_variable = { cwic_dt_repudiate = 1 }
+			}
+			for_each_loop = {
+				array = debtTotalsArray
+				index = i
+				set_temp_variable = { cwic_dt_total = debtTotalsArray^i }
+				multiply_temp_variable = { cwic_dt_total = cwic_dt_share }
+				set_temp_variable = { cwic_dt_payment = debtPaymentArray^i }
+				multiply_temp_variable = { cwic_dt_payment = cwic_dt_share }
+				subtract_from_variable = { debtTotalsArray^i = cwic_dt_total }
+				subtract_from_variable = { debtPaymentArray^i = cwic_dt_payment }
+				subtract_from_variable = { currentDebt = cwic_dt_total }
+				subtract_from_variable = { currentDebtPayments = cwic_dt_payment }
+				if = {
+					limit = {
+						check_variable = { cwic_dt_repudiate = 0 }
+						check_variable = { cwic_dt_total > 0 }
+					}
+					set_temp_variable = { cwic_dt_owner = debtOwnerArray^i }
+					set_temp_variable = { cwic_dt_status = debtOwnerDomesticStatusArray^i }
+					set_temp_variable = { cwic_dt_interest = debtInterestArray^i }
+					event_target:cwic_dt_receiver = {
+						add_to_array = { debtTotalsArray = cwic_dt_total }
+						add_to_array = { debtPaymentArray = cwic_dt_payment }
+						add_to_array = { debtOwnerArray = cwic_dt_owner }
+						add_to_array = { debtOwnerDomesticStatusArray = cwic_dt_status }
+						add_to_array = { debtInterestArray = cwic_dt_interest }
+						add_to_variable = { currentDebt = cwic_dt_total }
+						add_to_variable = { currentDebtPayments = cwic_dt_payment }
+					}
+				}
+			}
+			set_temp_variable = { cwic_dt_domestic = domesticTotalDebt }
+			multiply_temp_variable = { cwic_dt_domestic = cwic_dt_share }
+			subtract_from_variable = { domesticTotalDebt = cwic_dt_domestic }
+			clamp_variable = { var = currentDebt min = 0 }
+			clamp_variable = { var = currentDebtPayments min = 0 }
+		}
+	}
+}

@@ -983,7 +983,7 @@ cwic_cache_market_income_multipliers = {
 				limit = {
 					value = economic_x_axis
 					greater_than = 6
-					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_x_axis less_than = 13 }
 					and = { value = economic_y_axis less_than = 19 }
 				}
 				multiply = 1.5
@@ -1014,7 +1014,7 @@ cwic_cache_market_income_multipliers = {
 				limit = {
 					value = economic_x_axis
 					greater_than = 6
-					and = { value = economic_x_axis less_than = 19 }
+					and = { value = economic_x_axis less_than = 13 }
 					and = { value = economic_y_axis less_than = 19 }
 				}
 				multiply = 1.65
@@ -1529,6 +1529,15 @@ get_total_infrastructure = {
 	add_to_variable = { PREV.total_infrastructure = building_level@water_infrastructure }		
 	
 }
+cwic_calc_wage_price_factor = {
+	set_variable = { cwic_wage_price_factor = grossdomesticproductcapita }
+	divide_variable = { cwic_wage_price_factor = 42.04 }
+	clamp_variable = {
+		var = cwic_wage_price_factor
+		min = 0.05
+		max = 1
+	}
+}
 calc_welfare_expenditure = {
 	set_variable = {
 		welfare_expenditure = 0
@@ -1570,6 +1579,8 @@ calc_welfare_expenditure = {
 		set_temp_variable = { welfare_policy_mult = 1 }
 	}
 	multiply_variable = { welfare_expenditure = welfare_policy_mult }
+	cwic_calc_wage_price_factor = yes
+	multiply_variable = { welfare_expenditure = cwic_wage_price_factor }
 
 	set_variable = {
 		welfare_cost_adjustment_policy = welfare_expenditure
@@ -1590,13 +1601,15 @@ calc_healthcare_expenditure = {
 
 	#now apply multiplier of idea
 	multiply_variable = { healthcare_expenditure = modifier@healthcare_spending_modifier }
+	cwic_calc_wage_price_factor = yes
+	multiply_variable = { healthcare_expenditure = cwic_wage_price_factor }
 	clamp_variable = {
 		var = healthcare_expenditure
 		min = 0
 	}
 }
 calc_policing_expenditure = {
-	#gives out expenditure at 50%
+	cwic_calc_wage_price_factor = yes
 	set_variable = { 
 		policing_expenditure = {
 			value = max_manpower
@@ -1604,6 +1617,7 @@ calc_policing_expenditure = {
 			divide = 25000
 			multiply = average_development
 			multiply = modifier@policing_spending_modifier
+			multiply = cwic_wage_price_factor
 			add = black_ops_expedntiture
 		}
 	}
@@ -1629,6 +1643,8 @@ calc_education_expenditure = {
 		education_expenditure = modifier@education_spending_modifier 
 	}
 	multiply_variable = { education_expenditure = 0.05 }
+	cwic_calc_wage_price_factor = yes
+	multiply_variable = { education_expenditure = cwic_wage_price_factor }
 	clamp_variable = {
 		var = education_expenditure
 		min = 0
@@ -1664,6 +1680,7 @@ calc_land_army_expenditure = {
 			add = {
 				value = num_battalions_with_type@direct_fire_gun
 				add = num_battalions_with_type@militia
+				add = num_battalions_with_type@direct_fire_gun_support
 				multiply = 0.005
 			}
 			add = {
@@ -1678,6 +1695,7 @@ calc_land_army_expenditure = {
 				add = num_battalions_with_type@recon_motorized
 				add = num_battalions_with_type@logistics_company
 				add = num_battalions_with_type@light_artillery_support
+				add = num_battalions_with_type@auto_cannon_support
 				multiply = 0.01
 			}
 			add = {
@@ -1692,6 +1710,7 @@ calc_land_army_expenditure = {
 				add = num_battalions_with_type@ffl
 				add = num_battalions_with_type@mechanized_infantry
 				add = num_battalions_with_type@recon_mechanized
+				add = num_battalions_with_type@recon_armored
 				add = num_battalions_with_type@artillery_support
 				add = num_battalions_with_type@heavy_artillery_support
 				add = num_battalions_with_type@military_police
@@ -1717,6 +1736,7 @@ calc_land_army_expenditure = {
 				add = num_battalions_with_type@airforce_special_force
 				add = num_battalions_with_type@logistics_helicopter
 				add = num_battalions_with_type@signal_company
+				add = num_battalions_with_type@tank_destroyer
 				multiply = 0.025
 			}
 			add = {
@@ -1726,6 +1746,7 @@ calc_land_army_expenditure = {
 				add = num_battalions_with_type@super_heavy_armor
 				add = num_battalions_with_type@engineer_armored
 				add = num_battalions_with_type@field_hospital_helicopter
+				add = num_battalions_with_type@heavy_tank_destroyer_brigade
 				multiply = 0.03
 			}
 			multiply = 0.5
@@ -1825,6 +1846,9 @@ calc_air_army_expenditure = {
 	##airforce tier 4
 	set_variable = {
 		af_tier_4 = num_deployed_planes_with_type@nuclearstratbomber
+	}
+	add_to_variable = {
+		af_tier_4 = num_deployed_planes_with_type@strat_bomber
 	}
 	add_to_variable = {
 		af_tier_4 = num_deployed_planes_with_type@mach2stratbomber
