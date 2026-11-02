@@ -5723,6 +5723,13 @@ for role, rows in legacy_carrier_rows.items():
         levels = top_level_values(carrier_rows.get(equipment, ""), "visual_level")
         if levels != [str(expected)]:
             fail(f"{equipment} visual_level {levels} must be {expected} to show its own era's model")
+# Light APC hull generation of each legacy marine row (mechanized_marine_equipment_1..5, 1944 to
+# 2005). National marine art is <TAG>_marine_carrier_<k>_entity for row k + 1.
+MARINE_ROW_GENERATIONS = (2, 3, 4, 6, 8)
+for row, generation in enumerate(MARINE_ROW_GENERATIONS, 1):
+    levels = top_level_values(carrier_rows.get(f"mechanized_marine_equipment_{row}", ""), "visual_level")
+    if levels != [str(generation)]:
+        fail(f"mechanized_marine_equipment_{row} visual_level {levels} must be {generation} to show its own era's model")
 
 validate_doctrine_rework()
 if "--doctrine-self-test" in sys.argv:
@@ -6618,7 +6625,7 @@ def validate_entity_alias_contract() -> None:
         "light_sp_artillery": 20,
         "mechanized_airborne": 57,
         "mechanized_infantry": 44,
-        "mechanized_marine": 57,
+        "mechanized_marine": 61,
         "medium_sp_anti_air_brigade": 39,
         "spaag": 32,
         "tank_destroyer": 39,
@@ -6676,6 +6683,13 @@ def validate_entity_alias_contract() -> None:
         candidates = [(sub_unit, level)] + [
             (token, level) for token in national_model_fallbacks.get(sub_unit, ())
         ]
+        if sub_unit == "mechanized_marine":
+            era = max((k for k, row in enumerate(MARINE_ROW_GENERATIONS) if row <= level), default=0)
+            authored = [value for value in native_levels.get((tag, "marine_carrier"), set()) if value <= era]
+            if authored:
+                return f"{tag}_marine_carrier_{max(authored)}_entity"
+            if (tag, sub_unit) not in native_untiered and native_levels.get((tag, "marine_carrier")):
+                return f"{tag}_marine_carrier_{min(native_levels[(tag, 'marine_carrier')])}_entity"
         if sub_unit in carrier_sprite_sub_units:
             role = carrier_sprite_sub_units[sub_unit]
             era = graphic_db_builder.carrier_art_index(role, level)
@@ -6719,7 +6733,8 @@ def validate_entity_alias_contract() -> None:
             )
             continue
         tag = match["tag"]
-        alias_tags.add(tag)
+        if token not in legacy_tag_counts:
+            alias_tags.add(tag)
         alias_levels.setdefault((tag, token), []).append(
             int(match["visual_level"])
         )

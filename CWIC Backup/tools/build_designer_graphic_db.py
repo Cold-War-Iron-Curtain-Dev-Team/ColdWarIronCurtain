@@ -122,6 +122,8 @@ def carrier_model(tag: str, role: str, generation: int, entities: set[str]) -> s
 
 COUNTRY_TOLERANCE = 10
 ALTERNATE_WEIGHT = 0.5
+# Mozambique's sprites carry the prefix MBZ, but its country tag is MZB.
+SPRITE_TAG_ALIASES = {"MBZ": "MZB"}
 
 HEADER = """\
 # Cold War Iron Curtain tank designer graphic database.
@@ -243,7 +245,7 @@ def build() -> str:
                     lines.append("\t\t}")
                 lines.append("\t}")
         if lines:
-            out.append(f"{tag or 'default'} = {{")
+            out.append(f"{SPRITE_TAG_ALIASES.get(tag, tag) or 'default'} = {{")
             out += lines
             out.append("}")
             out.append("")
