@@ -67,6 +67,7 @@ their idea ladders and setters.
 | Effect | Inputs |
 |---|---|
 | `step_towards_market` / `_planned` / `_public` / `_private`, `convert_to_*` | none (grid-bounded) |
+| `cwic_set_economic_axes` | `economic_x_target_temp`, `economic_y_target_temp`. Clears the system modifiers, sets both axes and re-runs `startup_economics`, the same shape as `convert_to_*`. |
 | `cwic_change_corruption` | `corruption_change_temp` (CorruptionLevel is 0–1) |
 | `nep_ed_increase/decrease_literate`, `_primary`, `_secondary`, `_college` (state scope) | `literate_change`, `primary_change`, `secondary_change`, `college_change` |
 
