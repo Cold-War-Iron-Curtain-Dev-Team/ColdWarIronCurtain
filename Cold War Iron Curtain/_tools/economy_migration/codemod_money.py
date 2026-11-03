@@ -37,6 +37,7 @@ CORE = {os.path.normpath(p) for p in [
 LATER_ERA = re.compile(r'(?i)(?:19)?[6-9]0s|19[6-9]\d|_[6-9]\d(?:s|_|\.)|[6-9]0sgeneric|Five_Year_Plan_(?:Eight|Nine|Ten|Eleven|Twelve)')
 MAX_SHARE = 0.5
 
+UNSTABLE_OWNERS = {'VIE', 'PRC', 'HUK'}
 # Minigames with their own fixed-price economies keep absolute prices.
 ABSOLUTE_FILES = {os.path.normpath(p) for p in [
     'events/CWIC_Space.txt', 'common/scripted_effects/CWIC_GDR_Card_Game_Effects.txt',
@@ -123,6 +124,8 @@ def main(apply):
                         reason = 'trigger checks the same amount'
                     elif not target or target not in gdp or gdp[target] <= 0.5:
                         reason = 'owner unknown' if not target else 'no 1949 GDP for ' + target
+                    elif target in UNSTABLE_OWNERS:
+                        reason = 'owner territory changes sharply 1949-52; 1949 GDP is not its reference'
                     elif LATER_ERA.search(rel):
                         reason = 'later-era content (1949 GDP is not its reference)'
                     elif abs(n / gdp[target]) > MAX_SHARE:
