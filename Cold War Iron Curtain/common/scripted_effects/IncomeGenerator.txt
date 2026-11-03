@@ -290,6 +290,7 @@ income_effect = {
 		ROOT.trade_infrastructure_total = 0
 	}
 	gdp_calculation_effect = yes
+	cwic_budget_tax_revenue = yes
 	cwic_cg_monthly_master_tick = yes
 
 	# Flags -> display variables (0/1)
@@ -458,20 +459,6 @@ income_effect = {
 	#if = { limit = { is_ai = no } #log = "TOTAL INCOME: [?IncomeTotal]" }
 	#### EXPENSES ####
 	#if = { limit = { is_ai = no } #log = "------ EXPENSES ------" }
-	set_variable = {
-		CorruptIncomeLoss = CorruptionLevel
-	}
-	multiply_variable = {
-		CorruptIncomeLoss = 0.5
-	}
-	set_variable = {
-		CorruptLoss = IncomeTotal
-	}
-	multiply_variable = {
-		CorruptLoss = CorruptIncomeLoss
-	}
-	add_to_variable = { totalexp = CorruptLoss }
-	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / CorruptLoss = [?CorruptLoss]" }
 	ic_calc_trade_imports = yes
 	add_to_variable = { totalexp = resource_cost }
 	subtract_from_variable = {
@@ -511,7 +498,6 @@ income_effect = {
 	}
 	#Policy Costs
 	set_variable = { total_expenses = 0 }
-	add_to_variable = { total_expenses = CorruptLoss }
 	add_to_variable = { total_expenses = military_total_exp }
 	add_to_variable = { total_expenses = welfare_expenditure }
 	add_to_variable = { total_expenses = policing_expenditure }
@@ -521,9 +507,7 @@ income_effect = {
 
 	subtract_from_variable = { IncomeTotal = total_expenses }
 	#Domestic Cost (already accounted in total, just for display)
-	set_variable = {
-		domestic_cost = CorruptLoss
-	}
+	set_variable = { domestic_cost = 0 }
 	add_to_variable = {
 		domestic_cost = total_insurgency_funding
 	}
@@ -701,6 +685,11 @@ income_effect = {
 	}
 	set_variable = {
 		display_balance = {
+			value = IncomeCheck subtract = currentDebtPayments
+		}
+	}
+	set_variable = {
+		cwic_monthly_balance = {
 			value = IncomeCheck subtract = currentDebtPayments
 		}
 	}
@@ -1351,6 +1340,24 @@ military_expenditure = {
 	multiply_variable = {
 		af_expend_display = global.GlobalDebit
 	}	#COST DIVIDER
+	set_temp_variable = { cwic_mil_share = modifier@army_spending_modifier }
+	multiply_temp_variable = { cwic_mil_share = 0.02 }
+	set_temp_variable = { cwic_mil_strat = modifier@strategic_forces_spending_modifier }
+	multiply_temp_variable = { cwic_mil_strat = 0.01 }
+	add_to_temp_variable = { cwic_mil_share = cwic_mil_strat }
+	multiply_temp_variable = { cwic_mil_share = cwic_gdp_monthly }
+	add_to_variable = { land_army_expenditure = cwic_mil_share }
+	add_to_variable = { mil_expend_display = cwic_mil_share }
+	set_temp_variable = { cwic_mil_share = modifier@navy_spending_modifier }
+	multiply_temp_variable = { cwic_mil_share = 0.01 }
+	multiply_temp_variable = { cwic_mil_share = cwic_gdp_monthly }
+	add_to_variable = { navy_army_expenditure = cwic_mil_share }
+	add_to_variable = { navy_expend_display = cwic_mil_share }
+	set_temp_variable = { cwic_mil_share = modifier@air_spending_modifier }
+	multiply_temp_variable = { cwic_mil_share = 0.01 }
+	multiply_temp_variable = { cwic_mil_share = cwic_gdp_monthly }
+	add_to_variable = { air_army_expenditure = cwic_mil_share }
+	add_to_variable = { af_expend_display = cwic_mil_share }
 	##
 	set_variable = {
 		mil_expend_subsidy = land_army_expenditure
@@ -2869,5 +2876,63 @@ ic_calc_trade_imports = {
 			add = chromium_imports
 			add = oil_imports
 		}
+	}
+}
+
+cwic_budget_tax_revenue = {
+	set_variable = { cwic_tax_cap = National_HDI }
+	subtract_from_variable = { cwic_tax_cap = 0.30 }
+	divide_variable = { cwic_tax_cap = 0.40 }
+	multiply_variable = { cwic_tax_cap = 0.55 }
+	add_to_variable = { cwic_tax_cap = 0.45 }
+	clamp_variable = { var = cwic_tax_cap min = 0.45 max = 1 }
+	set_variable = { cwic_tax_sysrev = 7 }
+	subtract_from_variable = { cwic_tax_sysrev = economic_x_axis }
+	clamp_variable = { var = cwic_tax_sysrev min = 0 }
+	divide_variable = { cwic_tax_sysrev = 7 }
+	multiply_variable = { cwic_tax_sysrev = 0.8 }
+	add_to_variable = { cwic_tax_sysrev = 1 }
+	set_variable = { cwic_tax_corr = CorruptionLevel }
+	multiply_variable = { cwic_tax_corr = 0.5 }
+	set_variable = { cwic_tax_eta = 1 }
+	subtract_from_variable = { cwic_tax_eta = cwic_tax_corr }
+	set_temp_variable = { cwic_tax_leak = 1 }
+	subtract_from_temp_variable = { cwic_tax_leak = CWIC_bm_tax_leak_mult }
+	multiply_variable = { cwic_tax_eta = cwic_tax_leak }
+	set_variable = { cwic_tax_eff = modifier@modifier_tax_efficiacy }
+	add_to_variable = { cwic_tax_eff = 1 }
+	multiply_variable = { cwic_tax_eta = cwic_tax_eff }
+	multiply_variable = { cwic_tax_eta = cwic_tax_cap }
+	multiply_variable = { cwic_tax_eta = cwic_tax_sysrev }
+	set_variable = { cwic_tax_base = grossdomesticproduct }
+	divide_variable = { cwic_tax_base = 12 }
+	multiply_variable = { cwic_tax_base = 0.05 }
+	multiply_variable = { cwic_tax_base = cwic_tax_eta }
+	set_variable = { cwic_tax_corp = corporate_tax_level_value }
+	multiply_variable = { cwic_tax_corp = 0.20 }
+	multiply_variable = { cwic_tax_corp = cwic_tax_base }
+	set_variable = { cwic_tax_pers = lower_tax_level_value }
+	multiply_variable = { cwic_tax_pers = 0.2625 }
+	set_variable = { cwic_tax_tmp = lower_middle_tax_level_value }
+	multiply_variable = { cwic_tax_tmp = 0.15 }
+	add_to_variable = { cwic_tax_pers = cwic_tax_tmp }
+	set_variable = { cwic_tax_tmp = upper_tax_level_value }
+	multiply_variable = { cwic_tax_tmp = 0.15 }
+	add_to_variable = { cwic_tax_pers = cwic_tax_tmp }
+	multiply_variable = { cwic_tax_pers = cwic_tax_base }
+	set_variable = { ui_income_tax = cwic_tax_pers }
+	set_variable = { ui_corporate_tax = cwic_tax_corp }
+	set_variable = { total_corporate_tax = cwic_tax_corp }
+	set_variable = { total_personal_income_tax = cwic_tax_pers }
+	add_to_variable = { IncomeTotal = cwic_tax_corp }
+	add_to_variable = { IncomeTotal = cwic_tax_pers }
+	set_variable = { effective_tax_rate = cwic_tax_eta }
+	set_variable = { actual_tax_rate_adjusted = 0 }
+	if = {
+		limit = { check_variable = { grossdomesticproduct > 0.01 } }
+		set_variable = { actual_tax_rate_adjusted = cwic_tax_corp }
+		add_to_variable = { actual_tax_rate_adjusted = cwic_tax_pers }
+		multiply_variable = { actual_tax_rate_adjusted = 12 }
+		divide_variable = { actual_tax_rate_adjusted = grossdomesticproduct }
 	}
 }
