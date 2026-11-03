@@ -299,8 +299,10 @@ swapped without touching content again.
 - **1949 snapshot:** rank correlation ≥ 0.85 (today 0.86), and the countries within 1.5× of Maddison
   rise from 18/53 to ≥ 35/53.
 - **AI:** every AI country's GDP and HDI move monthly, and the AI fiscal rule (F15) keeps the ledger solvent.
-- **Performance:** monthly-tick time measured in a 10-year AFK run (`game.log` timestamps) is within 10%
-  of the Pass 1 baseline after Pass 2.
+- **Performance:** measured 2026-11-02 with a temporary console flag that skipped the AI pulse.
+  The monthly tick is ~3,700 ms with the AI economy and ~2,700 ms without, so the AI economy costs about 1 s per month,
+  roughly 6 ms per country and ~3% of play time. The Pass 2 core must stay at or under that, re-measured the same way.
+  The other ~2.7 s of the monthly tick is non-economy script; `ic_pulse` alone is ~520 ms per run.
 - **Integrity:** `error.log` has no new economy errors; nothing writes economy state raw
   (re-run the dependency-map scan).
 
