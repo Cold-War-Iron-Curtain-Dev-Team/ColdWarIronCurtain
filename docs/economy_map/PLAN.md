@@ -280,8 +280,8 @@ flowchart LR
 |---|---|---|
 | 0 | Branch agreement with afushin; units pinned; baseline 1949–1959 AFK log through `check_economy.py`; ask the artifact author for their simulator port | baseline report committed under `docs/economy_map/` |
 | 1 | F1–F11 | §3 exit criteria met; merged |
-| 2a | Input API (§2.2) built on the **current** core, so codemods can land before the new core | content compiles; error.log clean |
-| 2b | Codemods C1–C5 | raw-write counts in §2.2 reach 0 (except absolute prices) |
+| 2a ✅ | Input API (§2.2) built on the **current** core, so codemods can land before the new core. **Done** (`docs/economy_map/API.md`): `cwic_change_money_gdp_share`, `cwic_take_loan` (banks + country lenders; the IMF stand-in GER is not drained), `cwic_forgive_debt`, `cwic_set_<policy>_level` ×11, `cwic_set_economic_axes`, `cwic_change_corruption`; education uses the existing `nep_ed_*`. Not yet run in game. | content compiles; error.log clean |
+| 2b ✅ | Codemods C1–C5. **Done:** C1 money, 2,509 writes (318 GDP shares, the rest absolute, see `codemod_money_report.csv`); C2 debt, 14 files; C3 policy ideas, 226 set groups and 1,927 checks (`codemod_policy_report.csv`); C4 axes, 13 sites; C5 corruption, 84 writes, and education, 3 sites. Remaining raw writes are documented setup exceptions: the insurgent economy reset (`CWIC_Insurgency_Economy_Effects.txt`), VIE new-state integration (`VIE_Effects.txt` ~1137), the Finance tab loan UI internals (`Finance_Tab.txt`), and the startup `clear_all_policies` (`StartingPoliciesBogosort.txt`). Not yet run in game. | raw-write counts in §2.2 reach 0 (except absolute prices) |
 | 2c | Simulator in `_tools/economy_check/sim/`, ported from the new formulas; calibration targets in §6 | targets met in the simulator |
 | 2d | New core bodies; delete the §4.2 list | published outputs in §2.1 all populated for players and AI |
 | 2e | UI and localisation rewrites (§4.3) | panels show only live values |
