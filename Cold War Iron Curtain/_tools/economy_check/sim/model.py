@@ -62,6 +62,63 @@ def generic_ratio(hdi):
     return 0.55 if hdi > .8 else 0.40 if hdi > .65 else 0.12 if hdi < .35 else 0.22 if hdi < .5 else 0.30
 
 
+TAX_EXPLICIT = {"USA": (4, 5, 10, 8), "SOV": (12, 12, 15, 15), "ENG": (7, 9, 15, 15), "FRA": (3, 6, 8, 12), "FRE": (3, 5, 7, 10)}
+
+
+def rnd(v):
+    return math.floor(v + 0.5)
+
+
+def startup_tax_levels(tag, x):
+    """on_startup_defines.txt: (lower, middle, corporate, upper) start tax levels, then startup_tax_loops clamps each to >= 1.
+    Colony discounts for x > 18 (is_subject) are not read, so subjects of that band are slightly high."""
+    if tag in TAX_EXPLICIT:
+        lv = TAX_EXPLICIT[tag]
+    elif x > 18:
+        lv = (2, 3, 6, 4)
+    else:
+        a = rnd((18 - x) / 2.0)
+        b = rnd(a / 2.0)
+        lv = (2 + b, 4 + b, 8 + a, 6 + a)
+    return tuple(max(1, v) for v in lv)
+
+
+def startup_base(pc):
+    """gdp_per_capita_categorization: Startup_Policy_Base from start GDP per head."""
+    for i, cut in enumerate((0.05, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75)):
+        if pc < cut:
+            return i + 1
+    return 18
+
+
+def startup_mil_levels(tag, pc):
+    """Policy_Startup_Script_2025: army/navy/air = Startup_Policy_Base (read before its +1); strategic = 5 ENG/SOV, Base USA, else 0."""
+    base = startup_base(pc)
+    strat = 5 if tag in ("ENG", "SOV") else base if tag == "USA" else 0
+    return base, base, base, strat
+
+
+def tax_gdp(P, lv):
+    """MODEL 3.1 tax revenue / GDP from the four ladders (lower, middle, corporate, upper), before pass-through."""
+    eta = (1 - 0.5 * P["corruption"]) * (1 + P["tax_eff"])
+    return sum(sh * 0.05 * l for sh, l in zip(P["tax_shares"], lv)) * eta
+
+
+def tax_band(hdi, x):
+    """MODEL 3.1 revenue band (fractions of GDP): planned x<7 35-50%; else HDI<0.4 10-15%, HDI>0.6 20-30%, linear between."""
+    if x < 7:
+        return 0.35, 0.50
+    t = clamp((hdi - 0.4) / 0.2, 0.0, 1.0)
+    return 0.10 + 0.10 * t, 0.15 + 0.15 * t
+
+
+def band_violation(P, lv, hdi, x):
+    """Distance outside the band in GDP fraction (0 when inside)."""
+    r = tax_gdp(P, lv)
+    lo, hi = tax_band(hdi, x)
+    return max(0.0, lo - r, r - hi)
+
+
 # ---------------------------------------------------------------- country
 class Country:
     def __init__(s, tag, states, cdata, today, budget, ratios, P):
@@ -90,8 +147,9 @@ class Country:
         s.hdi0 = t.get("hdi", 0.4)
         bl = budget.get(tag)
         lv = round(4 + 8 * s.hdi0)
-        s.lv = dict(tax=bl["tax_lvl"] if bl else lv, edu=bl["edu_lvl"] if bl else lv, welfare=bl["welfare_lvl"] if bl else lv,
-                    health=bl["health_lvl"] if bl else lv)
+        s.lv = dict(edu=bl["edu_lvl"] if bl else lv, welfare=bl["welfare_lvl"] if bl else lv, health=bl["health_lvl"] if bl else lv)
+        s.tax_lv = startup_tax_levels(tag, s.x)
+        s.mil_lv = (0, 0, 0, 0)
         s.land0 = bl["land"] if bl else None
         s.ratio = ratios.get(tag, generic_ratio(s.hdi0))
         s.reserve = 0.7 if tag == "USA" else 1.0
@@ -104,7 +162,7 @@ class Country:
         s.money, s.balance_prev, s.rating = 0.0, 0.0, 6
         s.gdp0 = None
         s.target = None   # start GDP target (billions) for the start-productivity calibration
-        s.tech0 = 1.0
+        s.cwic_start_productivity = 1.0
 
     # -- quarterly: education pulse + per-state output aggregates (MODEL 1, 7)
     def refresh(s, year, edu_pulse, hdi_pulse):
@@ -139,16 +197,20 @@ class Country:
         return -0.68 + 5.1 * math.log(max(g * 228, 1.0)) + 0.21 * L + 0.18 * (year - 1950) + 0.3 * (s.lv["health"] - 10)
 
     def edu_step(s):
+        # IC_literacy_calculations.txt: gain per class = education_gain_rate (0.01 per education level) x class factor;
+        # one quarterly pulse = 3 monthly steps; each share's change per pulse is capped at edu_cap / 4 (2.5 pt/yr).
         P = s.P
-        u = clamp((math.log(max(s.g, 1e-3) * 228) - math.log(150)) / (math.log(12000) - math.log(150)), 0, 1)
-        T = (12 + 87 * u ** .5, 4 + 91 * u ** .8, 1 + 70 * u ** 1.2, .2 + 28 * u ** 1.5)
-        k = P["edu_rate"] * s.lv["edu"] / 10.0
+        G = 0.01 * s.lv["edu"]
+        a, b, c, d = 0.1 * G, 0.075 * G, 0.05 * G, 0.05 * G
+        pen = -0.12 * max(0.0, 0.06 - G)
+        cap = P["edu_cap"] / 4.0
         for q in s.st:
-            e = q["edu"]
-            for i in range(4):
-                e[i] = clamp(e[i] + clamp(k * (T[i] - e[i]), -0.5, P["edu_cap"]) / 4.0, 0, 100)
-                if i and e[i] > e[i - 1]:
-                    e[i] = e[i - 1]
+            L, Pr, H, C = q["edu"]
+            L = clamp(L + clamp(3 * (5 * a * (5 - 0.05 * L) - 0.003 + pen), -cap, cap), 0, 100)
+            Pr = clamp(Pr + clamp(3 * ((5 * b * (5 - 0.05 * Pr) - 0.003) * L / 100 + pen), -cap, cap), 0, 100)
+            H = clamp(H + clamp(3 * ((5 * c * (5 - 0.05 * H) - 0.003) * Pr / 100 + pen), -cap, cap), 0, 100)
+            C = clamp(C + clamp(3 * ((5 * d * (5 - 0.05 * C) - 0.003) * H / 100 + pen), -cap, cap), 0, 100)
+            q["edu"] = [L, Pr, H, C]
 
     # -- rate / rating (MODEL 4)
     def rate_now(s, year, debt_ratio):
@@ -223,10 +285,11 @@ class Country:
         s.g = 1000.0 * s.gdp / s.pop_total
         if first:
             if s.target is not None:
-                s.tech = s.tech0 = max(P["tech0_min"], (10 * s.target - s.Idle) / max(s.A + s.Ares, 1e-9))
+                s.tech = s.cwic_start_productivity = max(P["start_prod_min"], (10 * s.target - s.Idle) / max(s.A + s.Ares, 1e-9))
                 s.refresh(year, False, True)
                 s.gdp = (s.tech * (s.A + s.Ares) + s.Idle) / 10.0
                 s.g = 1000.0 * s.gdp / s.pop_total
+            s.mil_lv = startup_mil_levels(s.tag, s.g)
             s.seed(); s.rec_stock(year)
             s.infl_hist = [0.0] * 12
             return
@@ -239,14 +302,14 @@ class Country:
         supply = k * s.A / 10.0 / 12.0 * P["chi"]   # civilian output = all non-resource, non-subsistence output
         short = clamp(1 - supply / demand, 0, 1) if demand > 0 else 0.0
         cg_exp = max(0.0, supply - demand) * P["export_rate"]
-        # 3 budget
-        eta = (1 - 0.5 * P["corruption"]) * (1 + P["tax_eff"])
-        rev = gm * P["tax_scale"] * sum(P["tax_shares"]) * 0.05 * s.lv["tax"] * eta + cg_exp
+        # 3.1 budget: four tax ladders at the country's start levels
+        rev = gm * tax_gdp(P, s.tax_lv) + cg_exp
         m = lambda lv: 0.001 if lv <= 0 else 0.05 * lv
         K = P["kappa"]
         social = gm * (K["welfare"] * m(s.lv["welfare"]) + K["health"] * m(s.lv["health"]) + K["edu"] * m(s.lv["edu"])
                        + K["police"] * m(P["police_level"]) + K["public"] * m(P["public_level"]))
-        mil = (s.land0 * P["mil_mult"] * s.gdp / s.gdp0) if s.land0 is not None else P["mil_default_share"] * gm
+        mil = gm * 0.05 * sum(k * l for k, l in zip(P["mil_kappa"], s.mil_lv))
+        mil += (s.land0 * P["mil_mult"] * s.gdp / s.gdp0) if s.land0 is not None else P["mil_default_share"] * gm
         interest = inst = 0.0
         for b in s.loans:
             interest += b[0] * b[2] / 1200.0
@@ -282,21 +345,31 @@ class Country:
 
 
 def start_targets(today, ref, data):
-    """Start GDP targets: today's runA2 1949 GDP; for tags in the Maddison reference and not in the 15 stress-test
-    countries, the Maddison 1950 GDP per head relative to the USA (anchored at 42.04) times start population."""
-    stress = set("USA SOV ENG FRA WGR JAP ITA CAN RAJ PRC BRA POL SPR EGY IRQ".split())
-    tg = {t: v["gdp"] for t, v in today.items()}
+    """Hybrid start-GDP anchor (MODEL 1). Per tag: relative GDP per head (USA = 42.04) from today's runA2 1949 GDP and from
+    Maddison 1950. If today's value is within a factor 2 of Maddison, target today's GDP; otherwise target Maddison's.
+    Tags without Maddison data target today's GDP. Returns {tag: {target, anchor, today, maddison}} in billions."""
     pop = defaultdict(float)
     for r in data["states"].values():
         pop[r["owner"]] += r["manpower"] / 1000.0
     us = ref.get("USA", {})
     us_r = us[min(us, key=lambda y: abs(y - 1950))]
-    for t, series in ref.items():
-        if t in stress or t == "tag" or t not in pop:
+    us_pc = today["USA"]["gdp"] / pop["USA"] if "USA" in today and pop["USA"] > 0 else None
+    out = {}
+    for t in pop:
+        gt = today[t]["gdp"] if t in today else None
+        series = ref.get(t)
+        if series is None:
+            out[t] = {"target": gt, "anchor": "today", "today": gt, "maddison": None}
             continue
         r = series[min(series, key=lambda y: abs(y - 1950))]
-        tg[t] = 42.04 * r / us_r * pop[t] / 1000.0
-    return tg
+        mad_pc = 42.04 * r / us_r            # relative GDP per head, USA = 42.04
+        mad_gdp = mad_pc * pop[t] / 1000.0
+        today_rel = (gt / pop[t]) / (us_pc) * 42.04 if gt is not None and us_pc and pop[t] > 0 else None
+        if today_rel is not None and 0.5 <= today_rel / mad_pc <= 2.0:
+            out[t] = {"target": gt, "anchor": "today", "today": gt, "maddison": mad_gdp}
+        else:
+            out[t] = {"target": mad_gdp, "anchor": "maddison", "today": gt, "maddison": mad_gdp}
+    return out
 
 
 def build(tags, P, data=None, today=None, budget=None, ratios=None, targets=None):
@@ -311,8 +384,8 @@ def build(tags, P, data=None, today=None, budget=None, ratios=None, targets=None
     for t in tags:
         if t in by:
             cs[t] = Country(t, [json.loads(json.dumps(r)) for r in by[t]], data["countries"].get(t), today, budget, ratios, P)
-            if targets and P.get("calibrate_start"):
-                cs[t].target = targets.get(t)
+            if targets and P.get("calibrate_start") and targets.get(t):
+                cs[t].target = targets[t]["target"]
     return cs
 
 

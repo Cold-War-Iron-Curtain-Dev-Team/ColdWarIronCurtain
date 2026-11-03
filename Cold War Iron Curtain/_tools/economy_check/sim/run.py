@@ -31,8 +31,9 @@ def evaluate(cs, today, ref, P):
     for t in STRESS:
         c = cs.get(t)
         if c and t in today:
+            base = c.target if c.target else today[t]["gdp"]
             m["gdp"][t] = c.rows[1949]["gdp"]
-            m["gdp_ratio"][t] = c.rows[1949]["gdp"] / today[t]["gdp"]
+            m["gdp_ratio"][t] = c.rows[1949]["gdp"] / base
     m["gdp_err"] = max((abs(r - 1) for r in m["gdp_ratio"].values()), default=9.0)
     m["gdp_out"] = sum(1 for r in m["gdp_ratio"].values() if abs(r - 1) > 0.10)
     m["defaults15"] = sum(cs[t].defaults for t in STRESS if t in cs)
@@ -76,6 +77,17 @@ def evaluate(cs, today, ref, P):
     m["social_rich"] = statistics.median(soc) if soc else float("nan")
     K = P["kappa"]
     m["social10"] = 100 * (sum(K.values()) * 0.5)
+    # MODEL 3.3 military share of GDP in 1950, and MODEL 3.1 tax-to-GDP bands from the start levels
+    m["mil"] = {t: cs[t].acc[1950]["mil"] / cs[t].acc[1950]["gdpm"] for t in STRESS if t in cs and cs[t].acc[1950]["gdpm"]}
+    m["mil_usa"] = m["mil"].get("USA", float("nan"))
+    bands = [(t, model.tax_gdp(P, c.tax_lv), model.tax_band(c.hdi0, c.x)) for t, c in cs.items()]
+    m["band_total"] = len(bands)
+    m["band_in"] = sum(1 for _, r, (lo, hi) in bands if lo <= r <= hi)
+    m["band_out"] = sorted(((t, r, lo, hi) for t, r, (lo, hi) in bands if not lo <= r <= hi), key=lambda x: -max(x[2] - x[1], x[1] - x[3]))
+    # top defaulters with the debt-service share of revenue and debt/GDP at the last simulated year as cause indicators
+    m["defaults_top"] = [(c.tag, c.defaults, sum(a["svc"] for a in c.acc.values()) / max(sum(a["rev"] for a in c.acc.values()), 1e-9),
+                          c.rows[max(c.rows)]["debt_gdp"], c.oil_exporter)
+                         for c in sorted(cs.values(), key=lambda c: -c.defaults)[:10] if c.defaults]
     return m
 
 
@@ -94,22 +106,43 @@ def write_csv(cs, path):
                             "%.2f" % (100 * a["rev"] / gm), "%.2f" % (100 * a["mil"] / gm), "%.1f" % (100 * a["svc"] / a["rev"] if a["rev"] else 0)])
 
 
+def write_start_csv(cs, tg, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["tag", "cwic_start_productivity", "anchor", "today_gdp", "target_gdp"])
+        for t, c in sorted(cs.items()):
+            a = tg.get(t, {})
+            w.writerow([t, "%.6f" % c.cwic_start_productivity, a.get("anchor", ""),
+                        "%.3f" % a["today"] if a.get("today") is not None else "",
+                        "%.3f" % a["target"] if a.get("target") is not None else ""])
+
+
 def report(m, today):
     L = ["MODEL.md section 10 targets (today = runA2/PLAN; sim = this run)", ""]
-    L.append("1949 GDP vs today's (goal each within +-10%)")
+    L.append("1949 GDP vs hybrid start anchor (goal each within +-10% of anchor)")
     L.append("  %-5s %9s %9s %7s" % ("tag", "today", "sim", "ratio"))
     for t in STRESS:
         if t in m["gdp"]:
             L.append("  %-5s %9.1f %9.1f %7.2f %s" % (t, today[t]["gdp"], m["gdp"][t], m["gdp_ratio"][t], "" if abs(m["gdp_ratio"][t] - 1) <= .1 else "  OUT"))
+    L += ["", "tax-to-GDP bands (MODEL 3.1): %d/%d countries in band" % (m["band_in"], m["band_total"])]
+    for t, r, lo, hi in m["band_out"][:10]:
+        L.append("  OUT %-5s %5.1f%% band %4.1f-%4.1f%%" % (t, 100 * r, 100 * lo, 100 * hi))
+    L.append("military % GDP 1950 (MODEL 3.3, goal USA 4-6%): " + ", ".join("%s %.1f" % (t, 100 * v) for t, v in m["mil"].items()))
+    L.append("top defaulters: tag, defaults, service % revenue, debt/GDP, oil_exporter")
+    for t, d, svc, dg, oil in m["defaults_top"]:
+        L.append("  %-5s %3d %6.1f %6.2f %s" % (t, d, 100 * svc, dg, oil))
     L += ["", "%-46s %-10s %-12s %s" % ("target", "today", "sim", "goal"),
           "%-46s %-10s %-12s %s" % ("1949 GDP within +-10% (of 15)", "-", "%d/15" % (len(m["gdp_ratio"]) - m["gdp_out"]), "15/15"),
           "%-46s %-10s %-12d %s" % ("defaults among the 15, 40 years", TODAY["defaults"], m["defaults15"], "0"),
           "%-46s %-10s %-12d %s" % ("defaults, all simulated countries", "-", m["defaults_all"], "-"),
-          "%-46s %-10s %-12.2f %s" % ("GDP/head growth error vs Maddison (geo mean x)", TODAY["growth"], m["growth"], "<= 1.3"),
-          "%-46s %-10s %-12s %s" % ("1950 GDP/head within 1.5x of Maddison", TODAY["levels"], "%d/%d" % (m["levels"], m["levels_total"]), ">= 35/53"),
+          "%-46s %-10s %-12.2f %s" % ("GDP/head growth error vs Maddison (geo mean x; stand-in, judged in game)", TODAY["growth"], m["growth"], "<= 1.3"),
+          "%-46s %-10s %-12s %s" % ("1950 GDP/head within 1.5x of Maddison", TODAY["levels"], "%d/%d" % (m["levels"], m["levels_total"]),
+                                    ">= %d/%d (2/3)" % (math.ceil(2 * m["levels_total"] / 3), m["levels_total"])),
           "%-46s %-10s %-12.1f %s" % ("social % GDP at level 10 (kappa formula)", "-", m["social10"], "10-18"),
           "%-46s %-10s %-12.1f %s" % ("social % GDP 1950, median of HDI>0.6 (own levels)", "-", m["social_rich"], "10-18"),
-          "%-46s %-10s %-12.2f %s" % ("median inflation 1950s, %/yr", TODAY["infl"], m["infl50"], "2-4")]
+          "%-46s %-10s %-12.2f %s" % ("median inflation 1950s, %/yr", TODAY["infl"], m["infl50"], "2-4"),
+          "%-46s %-10s %-12.1f %s" % ("USA military % GDP 1950", "-", 100 * m["mil_usa"], "4-6")]
     return "\n".join(L)
 
 
@@ -126,6 +159,7 @@ def main():
     cs = model.simulate(model.build(tags or sorted({r["owner"] for r in data["states"].values()}), P, data, today, targets=tg))
     m = evaluate(cs, today, load_ref(), P)
     write_csv(cs, os.path.join(HERE, "out", "yearly.csv"))
+    write_start_csv(cs, tg, os.path.join(HERE, "out", "start_productivity.csv"))
     txt = report(m, today) + "\n\n%d countries, %.0fs" % (len(cs), time.time() - t0)
     open(os.path.join(HERE, "out", "report.txt"), "w").write(txt)
     print(txt)

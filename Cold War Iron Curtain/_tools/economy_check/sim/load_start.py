@@ -132,8 +132,6 @@ def load_countries():
             setvars(blk, vv)
             for ai in pairs_of(blk, "add_ideas"):
                 ideas += [ai] if isinstance(ai, str) else [k for k, _ in ai] + [v for _, v in ai if isinstance(v, str)]
-            for ai in pairs_of(blk, "set_politics"):
-                pass
         out[tag] = {"x": vv.get("economic_x_axis"), "y": vv.get("economic_y_axis"), "vars": vv, "ideas": ideas}
     return out
 

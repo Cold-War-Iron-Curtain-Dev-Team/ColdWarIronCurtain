@@ -112,8 +112,14 @@ Kept from today, per building per month before productivity:
 - **Revenue bands** (decision 2026-11-02, §12.6). At start policy levels, total tax revenue must fall in a plausible
   tax-to-GDP band: 20–30% for countries with HDI > 0.6 that are not planned economies, 10–15% for HDI < 0.4,
   35–50% for planned economies (x < 7, state revenue), linear in between. The tuner may not leave these bands.
-- `η_c = (1 − 0.5·CorruptionLevel) × (1 − CWIC_bm_tax_leak_mult) × (1 + modifier@modifier_tax_efficiacy)`.
+- `η_c = (1 − 0.5·CorruptionLevel) × (1 − CWIC_bm_tax_leak_mult) × (1 + modifier@modifier_tax_efficiacy) × cap_c × sysrev_c`.
   It replaces the Laffer/tax-avoidance curve (D5) and today's separate corruption loss line.
+- **Fiscal capacity** `cap_c = clamp(cap_lo + (1 − cap_lo) × (National_HDI − h_lo) / (h_hi − h_lo), cap_lo, 1)`
+  **[tune: cap_lo, h_lo, h_hi]**. Poor states collect less of what they levy (start: cap_lo 0.45, h_lo 0.30, h_hi 0.70).
+  It rises as HDI rises, so fiscal capacity grows with development.
+- **State revenue** `sysrev_c = 1 + ρ × max(0, 7 − economic_x_axis) / 7` **[tune ρ, start 0.8]**. In planned
+  economies, state-enterprise profits flow into the budget; this separates them from market economies at the same
+  ladder levels. It moves with the axis, so reforms change it.
 - Pass-through, unchanged: tourism, resource exports, consumer-goods exports (§6), custom income, reparations,
   the Soviet subsidy and military subsidies.
 

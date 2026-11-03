@@ -4,19 +4,21 @@ import json, os
 PARAMS = {
     # 1.2 base(d): capital/technology level per development tier d=1..6
     "base": [0.6, 1.2, 2.0, 3.0, 4.2, 5.5],
-    "calibrate_start": True, "tech0_min": 0.02,   # per-country start productivity (tech_c) fitted to the start targets
+    "calibrate_start": True, "start_prod_min": 0.02,   # cwic_start_productivity per country, fitted to the hybrid start targets
     "sigma": 4.0,              # 1.4 services term
     "farm_output_norm": 1.0,   # 1.1 food multiplier (crop assumed 1)
     "conscription": 0.03,      # 1.3 average conscription share
     "workforce_ratio": 1.0,
     # tech growth stands in for investment/construction, which the sim does not model
     "tg_base": 0.015, "tg_catch": 0.012, "tg_max": 0.10,
-    # 3.1 tax shares (lower, middle, corporate, upper) and global scale; corruption
-    "tax_shares": [0.35, 0.30, 0.20, 0.15], "tax_scale": 0.35, "corruption": 0.2, "tax_eff": 0.0,
+    # 3.1 tax ladder shares (lower, middle, corporate, upper) [tune]; corruption; tax_eff
+    "tax_shares": [0.35, 0.30, 0.20, 0.15], "corruption": 0.2, "tax_eff": 0.0,
     # 3.2 kappa at level 20
     "kappa": {"welfare": 0.10, "health": 0.06, "edu": 0.06, "police": 0.02, "public": 0.04},
     "police_level": 10, "public_level": 10,
     "mil_mult": 1.0, "mil_default_share": 0.003,
+    # 3.3 military GDP-share coefficients per level (army, navy, air, strategic) [tune]
+    "mil_kappa": [0.04, 0.02, 0.02, 0.01],
     # 4 debt
     "safe_ratio": {"2": 0.2, "4": 0.4, "6": 0.7, "8": 1.0, "10": 1.5},
     "debt_premium": 2.0, "rate_a": 11.0, "rate_b": 0.9, "infl_premium": 0.5,
@@ -28,7 +30,7 @@ PARAMS = {
     # 6 consumer goods
     "delta0": 0.15, "delta_hdi": 0.10, "chi": 0.6, "export_rate": 0.2,
     # 7 education and population
-    "edu_cap": 2.5, "edu_rate": 0.08, "pop_growth": 0.008,
+    "edu_cap": 2.5, "pop_growth": 0.008,
     # 9 history layer
     "recession": 0.03, "oil1_imp": 0.05, "oil1_exp": 0.25, "oil1_infl": 4.0, "stagnation": 0.01,
     "rate_shock_cap": 0.25, "rate_shock_spread": 4.0,
@@ -38,8 +40,12 @@ TUNABLE = {  # key -> (index or None, lo, hi)
     "base0": ("base", 0, 0.01, 8), "base1": ("base", 1, 0.01, 8), "base2": ("base", 2, 0.01, 8),
     "base3": ("base", 3, 0.01, 8), "base4": ("base", 4, 0.01, 8), "base5": ("base", 5, 0.01, 8),
     "sigma": ("sigma", None, 0.0, 40), "tg_base": ("tg_base", None, 0.0, 0.05), "k_sp": ("k_sp", None, 0.0, 0.05),
-    "tg_catch": ("tg_catch", None, 0.0, 0.04), "tax_scale": ("tax_scale", None, 0.05, 1.0),
-    "edu_rate": ("edu_rate", None, 0.01, 0.3), "chi": ("chi", None, 0.05, 3.0),
+    "tg_catch": ("tg_catch", None, 0.0, 0.05),
+    "tax_shares0": ("tax_shares", 0, 0.01, 1.0), "tax_shares1": ("tax_shares", 1, 0.01, 1.0),
+    "tax_shares2": ("tax_shares", 2, 0.01, 1.0), "tax_shares3": ("tax_shares", 3, 0.01, 1.0),
+    "k_army": ("mil_kappa", 0, 0.0, 0.2), "k_navy": ("mil_kappa", 1, 0.0, 0.2),
+    "k_air": ("mil_kappa", 2, 0.0, 0.2), "k_strat": ("mil_kappa", 3, 0.0, 0.2),
+    "chi": ("chi", None, 0.05, 3.0),
 }
 
 HERE = os.path.dirname(os.path.abspath(__file__))

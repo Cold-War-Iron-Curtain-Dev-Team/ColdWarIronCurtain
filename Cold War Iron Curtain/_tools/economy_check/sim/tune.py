@@ -12,7 +12,8 @@ sys.path.insert(0, HERE)
 import model, params, run
 
 PHASE1 = ["base0", "base1", "base2", "base3", "base4", "base5", "sigma"]
-PHASE2 = ["tax_scale", "tg_base", "tg_catch", "chi", "k_sp", "edu_rate"]
+PHASE2 = ["tax_shares0", "tax_shares1", "tax_shares2", "tax_shares3", "tg_base", "tg_catch", "chi", "k_sp",
+          "k_army", "k_navy", "k_air", "k_strat"]
 
 
 def mono(ov):
@@ -66,7 +67,7 @@ def main():
     def score1(o):
         cs, P = month0(o)
         m = run.evaluate(cs, today, ref, P)
-        l = [math.log(cs[t].tech0) for t in run.STRESS if t in cs]
+        l = [math.log(cs[t].cwic_start_productivity) for t in run.STRESS if t in cs]
         return sum(x * x for x in l) / len(l) + 10 * m["gdp_err"] ** 2 - 0.0005 * m["levels"]
 
     ov, s1 = search(ov, PHASE1, score1, t0 + 0.3 * budget, (3, 2, 1.5, 1.25, 1.1, 1.05, 1.02, 1.01))
@@ -77,12 +78,10 @@ def main():
         cs = model.simulate(model.build(tags1, P, data, today, budg, ratios, tg))
         m = run.evaluate(cs, today, ref, P)
         g = m["growth"] if m["growth"] == m["growth"] else 9.0
-        pen = 0.0
-        for c in cs.values():
-            a = c.acc[1955]
-            if a["gdpm"]:
-                r = 100 * a["rev"] / a["gdpm"]
-                pen += max(0, 12 - r, r - 40)
+        # MODEL 3.1 revenue bands are hard: every country's start tax-to-GDP must sit inside its band
+        pen = 1e6 * sum(model.band_violation(P, c.tax_lv, c.hdi0, c.x) for c in cs.values())
+        mu = m["mil_usa"]
+        pen += 100 * max(0.0, 0.04 - mu, mu - 0.06)     # MODEL 3.3 USA military 4-6% GDP
         return (pen + 1000 * m["defaults15"] + 5 * m["defaults_all"] + 100 * max(0.0, math.log(g)) - m["levels"]
                 + 20 * abs(m["infl50"] - 3.0) + 0.05 * abs(m["social_rich"] - 14.0) + (0 if m["gdp_out"] == 0 else 1e5))
 
@@ -93,6 +92,7 @@ def main():
     cs = model.simulate(model.build(sorted({r["owner"] for r in data["states"].values()}), P, data, today, budg, ratios, tg))
     m = run.evaluate(cs, today, ref, P)
     run.write_csv(cs, os.path.join(HERE, "out", "yearly.csv"))
+    run.write_start_csv(cs, tg, os.path.join(HERE, "out", "start_productivity.csv"))
     txt = run.report(m, today) + "\n\ntuned overrides:\n" + json.dumps(ov, indent=1)
     open(os.path.join(HERE, "out", "report.txt"), "w").write(txt)
     print(txt)
