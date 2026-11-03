@@ -510,6 +510,13 @@ cwic_calc_state_output = {
 	set_variable = { cwic_state_output = { value = cwic_pi multiply = cwic_E multiply = cwic_bld multiply = ROOT.cwic_start_productivity add = { value = cwic_idle multiply = 0.002 } } }
 	set_variable = { cwic_state_gdp_pc = { value = cwic_state_output multiply = 100 divide = { value = state_population_k max = 0.000001 } } }
 	add_to_variable = { PREV.grossdomesticproduct = cwic_state_output }
+	set_temp_variable = { cwic_pe = { value = cwic_pi multiply = cwic_E multiply = ROOT.cwic_start_productivity } }
+	add_to_variable = { PREV.civilian_sector = { value = building_level@industrial_complex multiply = 2 multiply = ROOT.cwic_mciv multiply = cwic_pe } }
+	add_to_variable = { PREV.service_sector = { value = building_level@office_park multiply = 7 multiply = ROOT.cwic_mofp multiply = cwic_pe } }
+	add_to_variable = { PREV.mic_sector = { value = building_level@arms_factory multiply = 1.25 add = { value = building_level@dockyard multiply = 2.5 } multiply = cwic_pe } }
+	add_to_variable = { PREV.mill_sector = { value = building_level@steel_factory multiply = 1.75 add = { value = building_level@tungsten_factory multiply = 1.75 } multiply = cwic_pe } }
+	add_to_variable = { PREV.rgo_sector = { value = cwic_ru multiply = 0.5 multiply = cwic_pe } }
+	add_to_variable = { PREV.food_sector = { value = building_level@agri_industrial_complex multiply = 0.5 add = { value = resource@rubber multiply = 0.5 } multiply = cwic_pe } }
 }
 
 gdp_calculation_effect = {
@@ -529,6 +536,12 @@ gdp_calculation_effect = {
 		set_variable = { cwic_mofp = 1.35 }
 	}
 	set_variable = { grossdomesticproduct = 0 }
+	set_variable = { civilian_sector = 0 }
+	set_variable = { service_sector = 0 }
+	set_variable = { mic_sector = 0 }
+	set_variable = { mill_sector = 0 }
+	set_variable = { rgo_sector = 0 }
+	set_variable = { food_sector = 0 }
 	set_variable = { IncomeTotal = 0 }
 	set_variable = { IncomeCheck = 0 }
 	cwic_begin_separatism_rollup = yes
@@ -554,6 +567,46 @@ gdp_calculation_effect = {
 	cwic_store_gdp_and_monthly_growth = yes
 	set_variable = { cwic_gdp_monthly = grossdomesticproduct }
 	divide_variable = { cwic_gdp_monthly = 12 }
+	set_variable = { cwic_sector_total = civilian_sector }
+	add_to_variable = { cwic_sector_total = service_sector }
+	add_to_variable = { cwic_sector_total = mic_sector }
+	add_to_variable = { cwic_sector_total = mill_sector }
+	add_to_variable = { cwic_sector_total = rgo_sector }
+	add_to_variable = { cwic_sector_total = food_sector }
+	clamp_variable = { var = cwic_sector_total min = 0.000001 }
+	set_variable = { civilian_sector_calc = civilian_sector }
+	divide_variable = { civilian_sector_calc = cwic_sector_total }
+	set_variable = { service_sector_calc = service_sector }
+	divide_variable = { service_sector_calc = cwic_sector_total }
+	set_variable = { mic_sector_calc = mic_sector }
+	divide_variable = { mic_sector_calc = cwic_sector_total }
+	set_variable = { mill_sector_calc = mill_sector }
+	divide_variable = { mill_sector_calc = cwic_sector_total }
+	set_variable = { rgo_sector_calc = rgo_sector }
+	divide_variable = { rgo_sector_calc = cwic_sector_total }
+	set_variable = { food_sector_calc = food_sector }
+	divide_variable = { food_sector_calc = cwic_sector_total }
+	set_variable = { pie_chart_sector_civ = civilian_sector_calc }
+	set_variable = { pie_chart_sector_srv = service_sector_calc }
+	set_variable = { pie_chart_sector_mic = mic_sector_calc }
+	set_variable = { pie_chart_sector_mil = mill_sector_calc }
+	set_variable = { pie_chart_sector_rgo = rgo_sector_calc }
+	set_variable = { pie_chart_sector_agr = food_sector_calc }
+	multiply_variable = { pie_chart_sector_civ = 100 }
+	multiply_variable = { pie_chart_sector_srv = 100 }
+	multiply_variable = { pie_chart_sector_mic = 100 }
+	multiply_variable = { pie_chart_sector_mil = 100 }
+	multiply_variable = { pie_chart_sector_rgo = 100 }
+	multiply_variable = { pie_chart_sector_agr = 100 }
+	round_variable = pie_chart_sector_civ
+	round_variable = pie_chart_sector_srv
+	round_variable = pie_chart_sector_mic
+	round_variable = pie_chart_sector_mil
+	round_variable = pie_chart_sector_rgo
+	round_variable = pie_chart_sector_agr
+	set_variable = { cwic_corruption_tax_loss = 1 }
+	subtract_variable = { cwic_corruption_tax_loss = effective_tax_rate }
+	clamp_variable = { var = cwic_corruption_tax_loss min = 0 max = 1 }
 }
 get_average_development = {
 	check_buildings = yes
@@ -991,7 +1044,6 @@ calculate_gdp_per_capita = {
 	if = {
 		limit = {
 			NOT = { has_country_flag = Expense_Policy_Setup_Check }
-			NOT = { has_country_flag = active_insurgency }
 		}
 		set_country_flag = Expense_Policy_Setup_Check
 		Policy_Startup_Script_2025 = yes
