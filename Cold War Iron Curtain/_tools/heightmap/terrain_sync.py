@@ -11,7 +11,7 @@ from gcps import land_mask_and_ids
 
 SHARE = 0.75
 DES = [3, 7, 24, 8]
-GREEN = [0, 5, 12, 29, 30, 32, 33, 1, 4, 21, 13]
+GREEN = [0, 5, 12, 29, 30, 32, 33, 36, 1, 4, 21, 13]
 
 
 def changes(ids, t, defs):

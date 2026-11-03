@@ -20,6 +20,7 @@ URBAN, HILLS, MOUNTAIN, JUNGLE, ROCKY_HILLS = 13, 17, 18, 21, 31                
 # Revolution Realized atlas tiles 16-24 (00_terrain.txt entries added with them)
 RED_DESERT, MTN_VALLEY, MTN_VALLEY_DRY, RICE, SUBURB, VILLAGES, PARKLAND = 24, 25, 26, 29, 30, 32, 33  # tex 17, 18, 19, 16, 23, 24, 22
 TUNDRA, POLAR_DESERT = 34, 35  # tex 3 (sparse low growth), 21 (snowy rock)
+SAVANNA, STEPPE = 36, 37  # tex 17, 5 (atlas_tiles.py); DARK_FOREST now draws tex 14 (taiga), JUNGLE tex 20 (rainforest)
 
 
 def treeline(t, la):
@@ -50,7 +51,7 @@ def tundra(t, la, land, lo):
     t[sea_on_land] = t[tuple(idx)][sea_on_land]
     t[land & streaky(t == MARSH)] = GRASS
     t[land & north & (t == MARSH) & (((lo + 180) % 360 - 180) < -50)] = GRASS
-    open_ = land & np.isin(t, (GRASS, SCRUB, PARKLAND, FARMLAND, ARID_FARM))
+    open_ = land & np.isin(t, (GRASS, SCRUB, STEPPE, PARKLAND, FARMLAND, ARID_FARM))
     t[open_ & north] = TUNDRA
     t[land & (la >= 75) & ~np.isin(t, (ICE_TERRAIN, LAKE_TERRAIN))] = POLAR_DESERT
     return t
@@ -76,11 +77,12 @@ def classify(V, veg, red, dens, rough, hm, alat, lon):
     t[(V >= 55) & (V < 125) & (veg < 0.75) & (red > 2.0) & ~mtn] = RED_DESERT
     t[(t == MOUNTAIN) & (rough <= 8.5)] = MTN_VALLEY             # gentler ranges: green valleys between ridges
     t[(t == DESERT_MTN) & (rough <= 8.5)] = MTN_VALLEY_DRY
-    t[np.isin(t, (GRASS, SCRUB, HILLS)) & (alat < 24) & (veg > 0.7) & (veg < 0.98) & (V >= 45) & (V < 110)] = PARKLAND  # savanna
+    t[np.isin(t, (GRASS, SCRUB, HILLS)) & (alat < 24) & (veg > 0.7) & (veg < 0.98) & (V >= 45) & (V < 110)] = SAVANNA
     t[(t == GRASS) & (alat >= 24) & (alat < 58) & (veg >= 0.98) & (veg < 1.1) & (V >= 40) & (V < 75)] = PARKLAND  # forest steppe, prairie edge
     lon = lon % 360
     t[(t == FARMLAND) & (alat < 35) & (lon > 68) & (lon < 125) & (veg > 0.95)] = RICE
     t[(t == FARMLAND) & (dens > 80)] = VILLAGES                  # densely settled farmland reads as villages and fields
+    t[(t == SCRUB) & (alat >= 35)] = STEPPE  # dry grassland; warmer scrub (outback, Karoo, Mexico) keeps the scrub tile
     return t
 
 

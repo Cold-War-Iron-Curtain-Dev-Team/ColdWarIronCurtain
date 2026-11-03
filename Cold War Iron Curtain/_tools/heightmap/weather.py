@@ -162,7 +162,7 @@ def main(dem_path, wc_dir, *flags):
         wind = region_mean("wind")
         # bare desert share per region (terrain.bmp: desert mountains, sand, desert, desert hills, high plateau; scrub half)
         t = np.asarray(Image.open("map/terrain.bmp"))[s]
-        b = np.isin(t, (2, 3, 7, 8, 31)) + 0.5 * (t == 10)
+        b = np.isin(t, (2, 3, 7, 8, 31)) + 0.5 * np.isin(t, (10, 37))  # scrub and steppe (split from it) half
         bare = np.bincount(reg.ravel(), weights=(b * land).ravel(), minlength=len(counts)) / np.maximum(
             np.bincount(reg.ravel(), weights=land.ravel().astype(float), minlength=len(counts)), 1)
 
