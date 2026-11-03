@@ -1,6 +1,6 @@
-# CWIC economy model, Pass 2 (draft for approval)
+# CWIC economy model, Pass 2 (approved 2026-11-02)
 
-Status: draft, 2026-11-02. This file defines the formulas the new core implements. The simulator
+Status: approved 2026-11-02 (decisions in §12). This file defines the formulas the new core implements. The simulator
 (`_tools/economy_check/sim/`) ports exactly these formulas and is used to tune the coefficients marked
 **[tune]**. Everything is monthly, and runs for every country (D2).
 
@@ -39,13 +39,14 @@ Kept from today, per building per month before productivity:
 | Naval | dockyard | 2.5 | 9.45d |
 | Services | office_park | 7 × `M_ofp` | 56.7d |
 | Metals | steel_factory, tungsten_factory | 1.75 each | 5.67d, 4.05d |
-| Resources | resource count `R` (oil, aluminium, rubber, tungsten, steel, chromium, coal) | 0.5 per unit | 4.05d |
-| Food | agri_industrial_complex | `0.5 × crop × farm_output_norm` | 14.175 |
+| Resources | resource units `R` (oil, aluminium, tungsten, steel, chromium, coal) | 0.5 per unit | 4.05d |
+| Food | agri_industrial_complex, plus rubber deposits (**rubber is food in this mod**) | `0.5 × crop × farm_output_norm` per farm; 0.5 per rubber unit | 14.175 |
 
 - `M_civ` and `M_ofp` are the market multipliers by x band (F3): 1.25/1.5/1.75 and 1.35/1.65/1.9.
-- Today resources pay only for **rubber** (`R2`), and food multiplies by the **total resource count** (`R7`)
-  instead of farms. Both look like bugs. The new model pays every resource unit and ties food to farms.
-  This changes resource-rich and farm-heavy states; the simulator checks the size of the shift.
+- Today the "resources" line pays only for rubber (`R2`), which is food in this mod, and the food line multiplies
+  by the **total resource count** (`R7`) instead of farms. Fixed (decision 2026-11-02): real resources pay per unit,
+  and food output comes from farms plus rubber deposits. This shifts income towards resource and farm states;
+  the simulator measures the shift.
 - Building income bonuses (`*_income_bonus_drift`) multiply their sector as today.
 
 ### 1.2 Productivity
@@ -234,10 +235,8 @@ and runs 1949–1989 monthly. Targets, from PLAN §6:
 - `CWIC_cpi_index`, `state_gni_ln_lookup_table`, `PolicyCostCalculator`.
 - `pulse_deficit` as a published output (kept as an internal name only if a reader is left).
 
-## 12. Open questions
+## 12. Decisions (2026-11-02)
 
-1. **Four tax ladders or one?** The model keeps all four (lower, middle, corporate, upper) as shares of GDP.
-   Collapsing to one level would simplify the Finance tab but changes content that uses the class tax effects.
-2. **Food and resource income bugs (§1.1).** Fixing them shifts income towards resource and farm states.
-   Fix now, or keep today's behaviour and only flag it?
-3. **Quarterly education pulse (§7).** Acceptable, or must literacy move every month for display reasons?
+1. **Four tax ladders stay** (lower, middle, corporate, upper), applied to GDP shares (§3.1).
+2. **Food and resource income bugs are fixed** (§1.1). Rubber is food.
+3. **Quarterly education pulse accepted** (§7).
