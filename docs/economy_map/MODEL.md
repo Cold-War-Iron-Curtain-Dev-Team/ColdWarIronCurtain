@@ -41,8 +41,8 @@ Kept from today, per building per month before productivity:
 | Naval | dockyard | 2.5 | 9.45d |
 | Services | office_park | 7 × `M_ofp` | 56.7d |
 | Metals | steel_factory, tungsten_factory | 1.75 each | 5.67d, 4.05d |
-| Resources | resource units `R` (oil, aluminium, tungsten, steel, chromium, coal) | 0.5 per unit | 4.05d |
-| Food | agri_industrial_complex, plus rubber deposits (**rubber is food in this mod**) | `0.5 × crop × farm_output_norm` per farm; 0.5 per rubber unit | 14.175 |
+| Resources | resource units `R` (oil, aluminium, tungsten, steel, chromium, coal) | 0.03 per unit (was 0.5: extraction was 40-70% of output) | 4.05d |
+| Food | agri_industrial_complex, plus rubber deposits (**rubber is food in this mod**) | `3 × crop × farm_output_norm` per farm; 3 per rubber unit | 14.175 |
 
 - `M_civ` and `M_ofp` are the market multipliers by x band (F3): 1.25/1.5/1.75 and 1.35/1.65/1.9.
 - Today the "resources" line pays only for rubber (`R2`), which is food in this mod, and the food line multiplies

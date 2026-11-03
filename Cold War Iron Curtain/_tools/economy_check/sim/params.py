@@ -7,6 +7,7 @@ PARAMS = {
     "calibrate_start": True, "start_prod_min": 0.02,   # cwic_start_productivity per country, fitted to the hybrid start targets
     "sigma": 4.0,              # 1.4 services term
     "farm_output_norm": 1.0,   # 1.1 food multiplier (crop assumed 1)
+    "w_food": 3.0, "w_res": 0.03,   # output per farm/rubber and per resource unit (USA 1949: extraction ~10%, agriculture ~8%)
     "conscription": 0.03,      # 1.3 average conscription share
     "workforce_ratio": 1.0,
     # tech growth stands in for investment/construction, which the sim does not model
@@ -15,7 +16,7 @@ PARAMS = {
     "tax_shares": [0.35, 0.30, 0.20, 0.15], "corruption": 0.2, "tax_eff": 0.0,
     "cap_lo": 0.45, "h_lo": 0.30, "h_hi": 0.70, "rho": 0.8,
     # 3.2 kappa at level 20
-    "kappa": {"welfare": 0.09, "health": 0.06, "edu": 0.06, "police": 0.02, "public": 0.04},
+    "kappa": {"welfare": 0.0495, "health": 0.033, "edu": 0.033, "police": 0.011, "public": 0.022},
     "police_level": 10, "public_level": 10,
     "mil_mult": 1.0, "mil_default_share": 0.003,
     # 3.3 military GDP-share coefficients per level (army, navy, air, strategic) [tune]

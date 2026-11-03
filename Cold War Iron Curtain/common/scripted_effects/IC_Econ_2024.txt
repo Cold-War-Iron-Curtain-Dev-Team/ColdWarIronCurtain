@@ -506,7 +506,7 @@ cwic_calc_state_output = {
 	}
 	set_variable = { cwic_Y = { value = literate_educated multiply = 3 add = { value = primary_educated multiply = 3 } add = { value = high_school_educated multiply = 6 } add = { value = college_educated multiply = 4 } divide = 100 } }
 	set_variable = { cwic_pi = { value = 1.1 pow = cwic_Y multiply = cwic_base multiply = { value = building_level@state_infrastructure add = building_level@infrastructure add = building_level@water_infrastructure multiply = 0.05 add = 1 } } }
-	set_variable = { cwic_bld = { value = building_level@industrial_complex multiply = 2 multiply = ROOT.cwic_mciv add = { value = building_level@office_park multiply = 7 multiply = ROOT.cwic_mofp } add = { value = building_level@arms_factory multiply = 1.25 } add = { value = building_level@dockyard multiply = 2.5 } add = { value = building_level@steel_factory multiply = 1.75 } add = { value = building_level@tungsten_factory multiply = 1.75 } add = { value = building_level@agri_industrial_complex multiply = 0.5 } add = { value = resource@rubber multiply = 0.5 } add = { value = cwic_wf multiply = 0.02005722 } add = { value = cwic_ru multiply = 0.5 } } }
+	set_variable = { cwic_bld = { value = building_level@industrial_complex multiply = 2 multiply = ROOT.cwic_mciv add = { value = building_level@office_park multiply = 7 multiply = ROOT.cwic_mofp } add = { value = building_level@arms_factory multiply = 1.25 } add = { value = building_level@dockyard multiply = 2.5 } add = { value = building_level@steel_factory multiply = 1.75 } add = { value = building_level@tungsten_factory multiply = 1.75 } add = { value = building_level@agri_industrial_complex multiply = 3 } add = { value = resource@rubber multiply = 3 } add = { value = cwic_wf multiply = 0.02005722 } add = { value = cwic_ru multiply = 0.03 } } }
 	set_variable = { cwic_state_output = { value = cwic_pi multiply = cwic_E multiply = cwic_bld multiply = ROOT.cwic_start_productivity add = { value = cwic_idle multiply = 0.002 } } }
 	set_variable = { cwic_state_gdp_pc = { value = cwic_state_output multiply = 100 divide = { value = state_population_k max = 0.000001 } } }
 	add_to_variable = { PREV.grossdomesticproduct = cwic_state_output }
@@ -515,8 +515,8 @@ cwic_calc_state_output = {
 	add_to_variable = { PREV.service_sector = { value = building_level@office_park multiply = 7 multiply = ROOT.cwic_mofp multiply = cwic_pe } }
 	add_to_variable = { PREV.mic_sector = { value = building_level@arms_factory multiply = 1.25 add = { value = building_level@dockyard multiply = 2.5 } multiply = cwic_pe } }
 	add_to_variable = { PREV.mill_sector = { value = building_level@steel_factory multiply = 1.75 add = { value = building_level@tungsten_factory multiply = 1.75 } multiply = cwic_pe } }
-	add_to_variable = { PREV.rgo_sector = { value = cwic_ru multiply = 0.5 multiply = cwic_pe } }
-	add_to_variable = { PREV.food_sector = { value = building_level@agri_industrial_complex multiply = 0.5 add = { value = resource@rubber multiply = 0.5 } multiply = cwic_pe } }
+	add_to_variable = { PREV.rgo_sector = { value = cwic_ru multiply = 0.03 multiply = cwic_pe } }
+	add_to_variable = { PREV.food_sector = { value = building_level@agri_industrial_complex multiply = 3 add = { value = resource@rubber multiply = 3 } multiply = cwic_pe } }
 }
 
 gdp_calculation_effect = {
@@ -604,6 +604,12 @@ gdp_calculation_effect = {
 	round_variable = pie_chart_sector_mil
 	round_variable = pie_chart_sector_rgo
 	round_variable = pie_chart_sector_agr
+	set_variable = { pie_frame_sector_civ = { value = civilian_sector_calc multiply = 1000 } }
+	set_variable = { pie_frame_sector_mil = { value = mill_sector_calc multiply = 1000 add = pie_frame_sector_civ } }
+	set_variable = { pie_frame_sector_rgo = { value = rgo_sector_calc multiply = 1000 add = pie_frame_sector_mil } }
+	set_variable = { pie_frame_sector_agr = { value = food_sector_calc multiply = 1000 add = pie_frame_sector_rgo } }
+	set_variable = { pie_frame_sector_mic = { value = mic_sector_calc multiply = 1000 add = pie_frame_sector_agr } }
+	set_variable = { pie_frame_sector_srv = 1000 }
 	set_variable = { cwic_corruption_tax_loss = 1 }
 	subtract_from_variable = { cwic_corruption_tax_loss = effective_tax_rate }
 	clamp_variable = { var = cwic_corruption_tax_loss min = 0 max = 1 }
@@ -642,7 +648,7 @@ calc_welfare_expenditure = {
 	clamp_temp_variable = { var = cwic_soc_m min = 0.001 }
 	set_variable = { welfare_expenditure = cwic_gdp_monthly }
 	multiply_variable = { welfare_expenditure = cwic_soc_m }
-	multiply_variable = { welfare_expenditure = 0.09 }
+	multiply_variable = { welfare_expenditure = 0.0495 }
 	set_variable = { welfare_cost_adjustment_policy = welfare_expenditure }
 }
 calc_healthcare_expenditure = {
@@ -650,14 +656,14 @@ calc_healthcare_expenditure = {
 	clamp_temp_variable = { var = cwic_soc_m min = 0.001 }
 	set_variable = { healthcare_expenditure = cwic_gdp_monthly }
 	multiply_variable = { healthcare_expenditure = cwic_soc_m }
-	multiply_variable = { healthcare_expenditure = 0.06 }
+	multiply_variable = { healthcare_expenditure = 0.033 }
 }
 calc_policing_expenditure = {
 	set_temp_variable = { cwic_soc_m = modifier@policing_spending_modifier }
 	clamp_temp_variable = { var = cwic_soc_m min = 0.001 }
 	set_variable = { policing_expenditure = cwic_gdp_monthly }
 	multiply_variable = { policing_expenditure = cwic_soc_m }
-	multiply_variable = { policing_expenditure = 0.02 }
+	multiply_variable = { policing_expenditure = 0.011 }
 	add_to_variable = { policing_expenditure = black_ops_expedntiture }
 	clamp_variable = { var = policing_expenditure min = 0 }
 }
@@ -666,7 +672,7 @@ calc_education_expenditure = {
 	clamp_temp_variable = { var = cwic_soc_m min = 0.001 }
 	set_variable = { education_expenditure = cwic_gdp_monthly }
 	multiply_variable = { education_expenditure = cwic_soc_m }
-	multiply_variable = { education_expenditure = 0.06 }
+	multiply_variable = { education_expenditure = 0.033 }
 }
 
 calc_public_services_expenditure = {
@@ -674,7 +680,7 @@ calc_public_services_expenditure = {
 	clamp_temp_variable = { var = cwic_soc_m min = 0.001 }
 	set_variable = { public_services_expenditure = cwic_gdp_monthly }
 	multiply_variable = { public_services_expenditure = cwic_soc_m }
-	multiply_variable = { public_services_expenditure = 0.04 }
+	multiply_variable = { public_services_expenditure = 0.022 }
 }
 
 calc_land_army_expenditure = {

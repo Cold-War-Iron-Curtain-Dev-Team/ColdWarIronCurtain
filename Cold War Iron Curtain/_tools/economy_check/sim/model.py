@@ -181,9 +181,9 @@ class Country:
             jobs = q["jobs"]
             E = 1.0 if jobs <= 0 else min(1.0, wf / jobs)
             idle = max(0.0, wf - jobs)
-            food = 0.5 * P["farm_output_norm"] * q["farms"] + 0.5 * q["rub"]
+            food = P["w_food"] * (P["farm_output_norm"] * q["farms"] + q["rub"])
             non = pi0 * E * (2 * s.mciv * q["ic"] + q["oth"] + 7 * s.mofp * q["op"] + food + P["sigma"] * wf / 100.0)
-            res = pi0 * E * 0.5 * q["res"]
+            res = pi0 * E * P["w_res"] * q["res"]
             A += non; Ares += res; Idle += 0.2 * idle / 100.0
             if hdi_pulse:
                 gs = 1000.0 * ((s.tech * (non + res) + 0.2 * idle / 100.0) / 10.0) / max(q["pop"], 1e-6)
