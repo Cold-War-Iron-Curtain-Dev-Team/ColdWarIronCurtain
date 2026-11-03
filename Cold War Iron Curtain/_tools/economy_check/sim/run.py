@@ -80,7 +80,7 @@ def evaluate(cs, today, ref, P):
     # MODEL 3.3 military share of GDP in 1950, and MODEL 3.1 tax-to-GDP bands from the start levels
     m["mil"] = {t: cs[t].acc[1950]["mil"] / cs[t].acc[1950]["gdpm"] for t in STRESS if t in cs and cs[t].acc[1950]["gdpm"]}
     m["mil_usa"] = m["mil"].get("USA", float("nan"))
-    bands = [(t, model.tax_gdp(P, c.tax_lv), model.tax_band(c.hdi0, c.x)) for t, c in cs.items()]
+    bands = [(t, model.tax_gdp(P, c.tax_lv, c.hdi0, c.x), model.tax_band(c.hdi0, c.x)) for t, c in cs.items()]
     m["band_total"] = len(bands)
     m["band_in"] = sum(1 for _, r, (lo, hi) in bands if lo <= r <= hi)
     m["band_out"] = sorted(((t, r, lo, hi) for t, r, (lo, hi) in bands if not lo <= r <= hi), key=lambda x: -max(x[2] - x[1], x[1] - x[3]))

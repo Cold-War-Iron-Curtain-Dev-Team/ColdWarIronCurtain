@@ -13,7 +13,7 @@ import model, params, run
 
 PHASE1 = ["base0", "base1", "base2", "base3", "base4", "base5", "sigma"]
 PHASE2 = ["tax_shares0", "tax_shares1", "tax_shares2", "tax_shares3", "tg_base", "tg_catch", "chi", "k_sp",
-          "k_army", "k_navy", "k_air", "k_strat"]
+          "k_army", "k_navy", "k_air", "k_strat", "cap_lo", "h_lo", "h_hi", "rho"]
 
 
 def mono(ov):

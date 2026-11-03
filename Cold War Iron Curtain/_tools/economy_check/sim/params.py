@@ -13,6 +13,7 @@ PARAMS = {
     "tg_base": 0.015, "tg_catch": 0.012, "tg_max": 0.10,
     # 3.1 tax ladder shares (lower, middle, corporate, upper) [tune]; corruption; tax_eff
     "tax_shares": [0.35, 0.30, 0.20, 0.15], "corruption": 0.2, "tax_eff": 0.0,
+    "cap_lo": 0.45, "h_lo": 0.30, "h_hi": 0.70, "rho": 0.8,
     # 3.2 kappa at level 20
     "kappa": {"welfare": 0.10, "health": 0.06, "edu": 0.06, "police": 0.02, "public": 0.04},
     "police_level": 10, "public_level": 10,
@@ -46,6 +47,8 @@ TUNABLE = {  # key -> (index or None, lo, hi)
     "k_army": ("mil_kappa", 0, 0.0, 0.2), "k_navy": ("mil_kappa", 1, 0.0, 0.2),
     "k_air": ("mil_kappa", 2, 0.0, 0.2), "k_strat": ("mil_kappa", 3, 0.0, 0.2),
     "chi": ("chi", None, 0.05, 3.0),
+    "cap_lo": ("cap_lo", None, 0.1, 1.0), "h_lo": ("h_lo", None, 0.1, 0.5), "h_hi": ("h_hi", None, 0.5, 0.9),
+    "rho": ("rho", None, 0.0, 2.0),
 }
 
 HERE = os.path.dirname(os.path.abspath(__file__))

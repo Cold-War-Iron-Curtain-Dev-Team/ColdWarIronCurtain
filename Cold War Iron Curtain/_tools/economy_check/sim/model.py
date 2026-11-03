@@ -98,9 +98,11 @@ def startup_mil_levels(tag, pc):
     return base, base, base, strat
 
 
-def tax_gdp(P, lv):
-    """MODEL 3.1 tax revenue / GDP from the four ladders (lower, middle, corporate, upper), before pass-through."""
-    eta = (1 - 0.5 * P["corruption"]) * (1 + P["tax_eff"])
+def tax_gdp(P, lv, hdi, x):
+    """MODEL 3.1 tax revenue / GDP from the four ladders, with fiscal capacity (HDI) and planned-economy state revenue (x)."""
+    cap = clamp(P["cap_lo"] + (1 - P["cap_lo"]) * (hdi - P["h_lo"]) / max(P["h_hi"] - P["h_lo"], 1e-6), P["cap_lo"], 1.0)
+    sysrev = 1 + P["rho"] * max(0.0, 7 - x) / 7
+    eta = (1 - 0.5 * P["corruption"]) * (1 + P["tax_eff"]) * cap * sysrev
     return sum(sh * 0.05 * l for sh, l in zip(P["tax_shares"], lv)) * eta
 
 
@@ -114,7 +116,7 @@ def tax_band(hdi, x):
 
 def band_violation(P, lv, hdi, x):
     """Distance outside the band in GDP fraction (0 when inside)."""
-    r = tax_gdp(P, lv)
+    r = tax_gdp(P, lv, hdi, x)
     lo, hi = tax_band(hdi, x)
     return max(0.0, lo - r, r - hi)
 
@@ -303,7 +305,7 @@ class Country:
         short = clamp(1 - supply / demand, 0, 1) if demand > 0 else 0.0
         cg_exp = max(0.0, supply - demand) * P["export_rate"]
         # 3.1 budget: four tax ladders at the country's start levels
-        rev = gm * tax_gdp(P, s.tax_lv) + cg_exp
+        rev = gm * tax_gdp(P, s.tax_lv, s.hdi, s.x) + cg_exp
         m = lambda lv: 0.001 if lv <= 0 else 0.05 * lv
         K = P["kappa"]
         social = gm * (K["welfare"] * m(s.lv["welfare"]) + K["health"] * m(s.lv["health"]) + K["edu"] * m(s.lv["edu"])
