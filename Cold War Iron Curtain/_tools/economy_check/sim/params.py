@@ -15,7 +15,7 @@ PARAMS = {
     "tax_shares": [0.35, 0.30, 0.20, 0.15], "corruption": 0.2, "tax_eff": 0.0,
     "cap_lo": 0.45, "h_lo": 0.30, "h_hi": 0.70, "rho": 0.8,
     # 3.2 kappa at level 20
-    "kappa": {"welfare": 0.10, "health": 0.06, "edu": 0.06, "police": 0.02, "public": 0.04},
+    "kappa": {"welfare": 0.09, "health": 0.06, "edu": 0.06, "police": 0.02, "public": 0.04},
     "police_level": 10, "public_level": 10,
     "mil_mult": 1.0, "mil_default_share": 0.003,
     # 3.3 military GDP-share coefficients per level (army, navy, air, strategic) [tune]

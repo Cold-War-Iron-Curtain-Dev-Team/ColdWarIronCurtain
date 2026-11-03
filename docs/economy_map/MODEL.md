@@ -110,8 +110,8 @@ Kept from today, per building per month before productivity:
 - The four tax ladders stay: lower, middle, corporate and upper, each with `rate = 0.05 × level`.
 - `share_k` is each class's slice of GDP as a tax base **[tune]**. Start: lower 0.35, middle 0.30, corporate 0.20, upper 0.15.
 - **Revenue bands** (decision 2026-11-02, §12.6). At start policy levels, total tax revenue must fall in a plausible
-  tax-to-GDP band: 20–30% for countries with HDI > 0.6 that are not planned economies, 10–15% for HDI < 0.4,
-  35–50% for planned economies (x < 7, state revenue), linear in between. The tuner may not leave these bands.
+  tax-to-GDP band: 20–30% for countries with HDI > 0.6 that are not planned economies, 6–15% for HDI < 0.4,
+  28–60% for planned economies (x < 7, state revenue), linear in between (widened 2026-11-02). The tuner may not leave these bands.
 - `η_c = (1 − 0.5·CorruptionLevel) × (1 − CWIC_bm_tax_leak_mult) × (1 + modifier@modifier_tax_efficiacy) × cap_c × sysrev_c`.
   It replaces the Laffer/tax-avoidance curve (D5) and today's separate corruption loss line.
 - **Fiscal capacity** `cap_c = clamp(cap_lo + (1 − cap_lo) × (National_HDI − h_lo) / (h_hi − h_lo), cap_lo, 1)`

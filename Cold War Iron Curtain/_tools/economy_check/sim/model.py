@@ -107,11 +107,11 @@ def tax_gdp(P, lv, hdi, x):
 
 
 def tax_band(hdi, x):
-    """MODEL 3.1 revenue band (fractions of GDP): planned x<7 35-50%; else HDI<0.4 10-15%, HDI>0.6 20-30%, linear between."""
+    """MODEL 3.1 revenue band (fractions of GDP): planned x<7 28-60%; else HDI<0.4 6-15%, HDI>0.6 20-30%, linear between."""
     if x < 7:
-        return 0.35, 0.50
+        return 0.28, 0.60
     t = clamp((hdi - 0.4) / 0.2, 0.0, 1.0)
-    return 0.10 + 0.10 * t, 0.15 + 0.15 * t
+    return 0.06 + 0.14 * t, 0.15 + 0.15 * t
 
 
 def band_violation(P, lv, hdi, x):
