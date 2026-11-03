@@ -12,24 +12,17 @@ block, so **set every input on every call**. Leftovers from an earlier call in t
 
 | Effect | Inputs | Behaviour |
 |---|---|---|
-| `cwic_change_money` | `money_change_temp` (billions; negative = spend) | Adds money. Spending more than the treasury holds borrows the rest through the normal lender cascade, with tooltips. Use it for **absolute** prices (weapon purchases, fixed contracts). |
-| `cwic_change_money_gdp_share` | `money_change_gdp_share` (fraction of yearly GDP; negative = spend) | `money_change_temp = share × grossdomesticproduct`, then `cwic_change_money`. Use it for grants, costs and windfalls that should mean the same to every country (D3, D7). |
-
-```
-set_temp_variable = { money_change_gdp_share = -0.02 }   # 2% of yearly GDP
-cwic_change_money_gdp_share = yes
-```
+| `cwic_change_money` | `money_change_temp` (billions; negative = spend) | Adds money. Spending more than the treasury holds borrows the rest through the normal lender cascade, with tooltips. All content amounts are fixed (decision of 2026-11-02; GDP scaling was dropped). |
 
 ## Debt
 
 | Effect | Inputs | Behaviour |
 |---|---|---|
-| `cwic_take_loan` | `purchase_amount_temp` (billions) **or** `loan_gdp_share_temp`; `lender_temp` (1 Domestic Reserve, 2 Domestic Commercial, 3 BNP, 4 Barclays, 5 Chiyoda-Mitsubishi, 6 Credit Suisse, 7 Deutsche, 8 JPM, 9 IMF, 10 World Bank, **11 a country**); `current_index_temp` (term index for banks); for 11: `loan_interest_temp` (percent per year), `loan_years_temp`, and the global event target `cwic_loan_lender`; optional `loan_no_payout_temp = 1` | Records the loan in all five debt arrays and `currentDebt`/`currentDebtPayments`, then pays the principal into the treasury (unless no-payout). A country lender pays the principal from its own money and receives the repayments. Lenders 1–10 go through `add_loans_effect`. |
+| `cwic_take_loan` | `purchase_amount_temp` (billions); `lender_temp` (1 Domestic Reserve, 2 Domestic Commercial, 3 BNP, 4 Barclays, 5 Chiyoda-Mitsubishi, 6 Credit Suisse, 7 Deutsche, 8 JPM, 9 IMF, 10 World Bank, **11 a country**); `current_index_temp` (term index for banks); for 11: `loan_interest_temp` (percent per year), `loan_years_temp`, and the global event target `cwic_loan_lender`; optional `loan_no_payout_temp = 1` | Records the loan in all five debt arrays and `currentDebt`/`currentDebtPayments`, then pays the principal into the treasury (unless no-payout). A country lender pays the principal from its own money and receives the repayments (except GER, the IMF stand-in). Lenders 1–10 go through `add_loans_effect`. |
 | `cwic_forgive_debt` | `debt_forgive_share_temp` (0–1); optional `debt_forgive_lender_temp` (country id: only that lender's loans); optional `debt_forgive_payer_temp = 1` with the global event target `cwic_debt_payer` | Scales the matching loans down by the share. With a payer, the payer's money pays for the forgiven amount (the "pay off a country's debt" diplomatic action). |
 
 ```
-set_temp_variable = { loan_gdp_share_temp = 0.05 }
-set_temp_variable = { purchase_amount_temp = 0 }
+set_temp_variable = { purchase_amount_temp = 20 }
 set_temp_variable = { lender_temp = 11 }
 set_temp_variable = { loan_interest_temp = 2 }
 set_temp_variable = { loan_years_temp = 10 }
