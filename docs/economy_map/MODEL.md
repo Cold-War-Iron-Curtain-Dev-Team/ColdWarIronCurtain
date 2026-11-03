@@ -16,10 +16,12 @@ Line references are in the extraction reports (agent transcripts `GdpChainFormul
 
 ## 0. Hard constraints
 
-1. **Same GDP scale at the 1949 start.** Content money amounts are fixed (D3) and were written against
-   today's numbers. So 1949 GDP for each of the 15 stress-test countries must be within ±10% of today's
-   (USA 6,547, SOV 1,086, ENG 960, FRA 1,089, JAP 1,032, WGR 636, PRC 104, RAJ 51; full list in
-   `baseline/runA2_2026-11-02/game.log`). GDP keeps the `Σ state output / 10` scale.
+1. **Hybrid GDP anchor at the 1949 start** (decision 2026-11-02, §12.4). Countries whose 1949 GDP per head is
+   already within 2× of Maddison 1950 keep today's GDP within ±10%, so fixed content amounts (D3) keep their
+   meaning (USA 6,547, SOV 1,086, ENG 960, FRA 1,089, JAP 1,032, WGR 636, ...; full list in
+   `baseline/runA2_2026-11-02/game.log`). Countries further off move to Maddison levels (within 1.5×).
+   The gap between the formulas and the target is closed by one start factor per country,
+   `cwic_start_productivity`, generated from the simulator into a startup table. GDP keeps the `Σ state output / 10` scale.
 2. **Same published outputs** as PLAN §2.1, with the same names and units.
 3. **Same content API** (`API.md`). Policy levels, ladders and setters are unchanged.
 4. **Performance:** at most ~6 ms per country per month, i.e. today's AI-economy cost. One `every_owned_state`
@@ -107,7 +109,9 @@ Kept from today, per building per month before productivity:
 
 - The four tax ladders stay: lower, middle, corporate and upper, each with `rate = 0.05 × level`.
 - `share_k` is each class's slice of GDP as a tax base **[tune]**. Start: lower 0.35, middle 0.30, corporate 0.20, upper 0.15.
-  These are set so that 1949 revenue matches today's.
+- **Revenue bands** (decision 2026-11-02, §12.6). At start policy levels, total tax revenue must fall in a plausible
+  tax-to-GDP band: 20–30% for countries with HDI > 0.6 that are not planned economies, 10–15% for HDI < 0.4,
+  35–50% for planned economies (x < 7, state revenue), linear in between. The tuner may not leave these bands.
 - `η_c = (1 − 0.5·CorruptionLevel) × (1 − CWIC_bm_tax_leak_mult) × (1 + modifier@modifier_tax_efficiacy)`.
   It replaces the Laffer/tax-avoidance curve (D5) and today's separate corruption loss line.
 - Pass-through, unchanged: tourism, resource exports, consumer-goods exports (§6), custom income, reparations,
@@ -127,8 +131,16 @@ Kept from today, per building per month before productivity:
 
 ### 3.3 Military
 
-As today: unit weights per battalion, plane and ship × `GlobalDebit` 0.28, with the F8 additions and F17's
-`(0.3 + 0.7·P)` personnel price factor for land. `P = clamp(g/42.04, 0.05, 1)` stays for military only.
+Decision 2026-11-02 (§12.5): GDP share by policy level, plus units.
+
+    military = GDP/12 × (m_army·κ_army + m_navy·κ_navy + m_air·κ_air + m_strat·κ_strat) + unit_upkeep
+
+- `m_*` are the army/navy/air/strategic-forces spending modifiers from their ladders (0.05 × level).
+- `κ` **[tune]**, start: army 0.04, navy 0.02, air 0.02, strategic 0.01. A level-10 peacetime country spends
+  about 4–5% of GDP; mobilised countries far more. Historical anchor: USA about 5% of GDP in 1950, 14% in 1953.
+- `unit_upkeep` = today's per-battalion, per-plane and per-ship pricing × `GlobalDebit` 0.28, with the F8 additions
+  and F17's `(0.3 + 0.7·P)` land personnel factor (`P = clamp(g/42.04, 0.05, 1)`). It stays on top, so a large
+  standing army still costs more than a small one at the same level.
 
 ### 3.4 Balance
 
@@ -219,11 +231,13 @@ and runs 1949–1989 monthly. Targets, from PLAN §6:
 
 | Target | Today | Goal |
 |---|---|---|
-| 1949 GDP vs today's, 15 countries | — | each within ±10% (constraint 0.1) |
+| 1949 GDP, hybrid anchor (§0.1) | — | near-history majors within ±10% of today; far-off countries within 1.5× of Maddison |
 | Defaults among the 15, 40 years | 38 (stress test) | 0 |
 | GDP-per-head growth error vs Maddison | 1.57× | ≤ 1.3× |
 | 1949 GDP per head within 1.5× of Maddison | 18/53 | ≥ 35/53 |
 | Rich-country social spending at level 10 | — | 10–18% of GDP |
+| Tax revenue at start levels | — | inside the §3.1 bands |
+| Military % of GDP, USA 1950 at start levels | ~0.25% (Run D) | 4–6% |
 | Median inflation 1950s | 3.6%/yr (Run D) | 2–4%/yr |
 
 ## 11. What is removed
@@ -240,3 +254,8 @@ and runs 1949–1989 monthly. Targets, from PLAN §6:
 1. **Four tax ladders stay** (lower, middle, corporate, upper), applied to GDP shares (§3.1).
 2. **Food and resource income bugs are fixed** (§1.1). Rubber is food.
 3. **Quarterly education pulse accepted** (§7).
+4. **Hybrid GDP anchor** (§0.1): today's GDP for countries already near history, Maddison for the rest, via a per-country start factor.
+5. **Military: GDP share by policy level, plus units** (§3.3).
+6. **Tax revenue anchored to plausible tax-to-GDP bands** (§3.1).
+7. **Growth is validated in game, not in the simulator.** Construction, research and AI building are engine-side; the
+   simulator's growth term is a stand-in, and the growth target is judged in AFK runs.
