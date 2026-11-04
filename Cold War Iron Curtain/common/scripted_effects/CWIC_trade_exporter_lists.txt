@@ -76,7 +76,23 @@ cwic_debug_log_trade_list_sizes = {
 	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t3^num }
 	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t4^num }
 	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t5^num }
-	log = "CWIC_TRADE_LISTS;[GetDateText];[ROOT.GetTag];total=[?cwic_dbg_total|0];oil=[?global.cwic_ex_oil^num|0];food=[?global.cwic_ex_food^num|0];steel=[?global.cwic_ex_steel^num|0];cgb1=[?global.cwic_ex_cg_basic_t1^num|0]"
+	set_temp_variable = { cwic_dbg_live_oil = 0 }
+	for_each_scope_loop = {
+		array = global.cwic_ex_oil
+		if = {
+			limit = { OR = { check_variable = { currentAvailableoilExport > 0.99 } check_variable = { currentExportedoil > 0.99 } } }
+			add_to_temp_variable = { cwic_dbg_live_oil = 1 }
+		}
+	}
+	set_temp_variable = { cwic_dbg_live_cgb1 = 0 }
+	for_each_scope_loop = {
+		array = global.cwic_ex_cg_basic_t1
+		if = {
+			limit = { OR = { check_variable = { cg_basic_export_stock_t1 > 0.99 } check_variable = { currentExportedCgBasicT1 > 0.99 } } }
+			add_to_temp_variable = { cwic_dbg_live_cgb1 = 1 }
+		}
+	}
+	log = "CWIC_TRADE_LISTS;[GetDateText];[ROOT.GetTag];total=[?cwic_dbg_total|0];oil=[?global.cwic_ex_oil^num|0];live_oil=[?cwic_dbg_live_oil|0];food=[?global.cwic_ex_food^num|0];steel=[?global.cwic_ex_steel^num|0];cgb1=[?global.cwic_ex_cg_basic_t1^num|0];live_cgb1=[?cwic_dbg_live_cgb1|0];first_oil=[?global.cwic_ex_oil^0|0];last_oil=[?global.cwic_ex_oil^36|0]"
 }
 
 cwic_update_shipping_cost_effect = {
