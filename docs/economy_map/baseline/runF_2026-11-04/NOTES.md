@@ -13,7 +13,9 @@ Build: Econ-fix at 20d43f78fd (runE fixes, catch-up growth, AI surplus tax cut).
 - Monthly 3.51 s per tick (139 ticks), ic_pulse 514 ms, daily 206 ms, hourly 42 ms. Stable over time.
 - The profiler does not break down on_monthly script, so the economy share of the monthly tick is not measurable without an in-game toggle.
 
-## Next (agreed, not started)
+## Next (steps 1-4 done in 220d7c57c5, untested; step 5 open)
+
+Measure monthly cost from the console: `set_global_flag cwic_debug_skip_econ` (and/or `cwic_debug_skip_education`), compare profiler monthly ms with and without, then `clr_global_flag`.
 1. Cap inherited debt so the receiver's debt/GDP does not exceed the previous owner's (cwic_transfer_state_debt, IC_Loans_and_Interest_Rate_Effects.txt).
 2. Find the 1963 SAU loan source.
 3. Slow the debt payoff: faster AI tax response, or inflation eroding real debt.
