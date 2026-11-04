@@ -3,6 +3,20 @@
 # Prices, embargoes, and subject discounts stay in the importer loop.
 
 cwic_rebuild_trade_exporter_lists = {
+	if = {
+		limit = { has_global_flag = cwic_debug_rebuild_no_clear }
+		every_country = {
+			cwic_update_shipping_cost_effect = yes
+			cwic_trade_manual_default = yes
+			cwic_register_own_trade_offers = yes
+		}
+	}
+	else = {
+		cwic_rebuild_trade_exporter_lists_full = yes
+	}
+}
+
+cwic_rebuild_trade_exporter_lists_full = {
 	clear_array = global.cwic_ex_chromium
 	clear_array = global.cwic_ex_food
 	clear_array = global.cwic_ex_oil
@@ -92,22 +106,7 @@ cwic_debug_log_trade_list_sizes = {
 			add_to_temp_variable = { cwic_dbg_live_cgb1 = 1 }
 		}
 	}
-	set_temp_variable = { cwic_dbg_max_oil_targets = 0 }
-	set_temp_variable = { cwic_dbg_sum_oil_targets = 0 }
-	for_each_scope_loop = {
-		array = global.cwic_ex_oil
-		add_to_temp_variable = { cwic_dbg_sum_oil_targets = oilExportTarget^num }
-		if = {
-			limit = { check_variable = { oilExportTarget^num > cwic_dbg_max_oil_targets } }
-			set_temp_variable = { cwic_dbg_max_oil_targets = oilExportTarget^num }
-		}
-	}
-	set_temp_variable = { cwic_dbg_sum_cgb1_targets = 0 }
-	for_each_scope_loop = {
-		array = global.cwic_ex_cg_basic_t1
-		add_to_temp_variable = { cwic_dbg_sum_cgb1_targets = CgBasicT1ExportTarget^num }
-	}
-	log = "CWIC_TRADE_LISTS;[GetDateText];[ROOT.GetTag];total=[?cwic_dbg_total|0];oil=[?global.cwic_ex_oil^num|0];live_oil=[?cwic_dbg_live_oil|0];cgb1=[?global.cwic_ex_cg_basic_t1^num|0];live_cgb1=[?cwic_dbg_live_cgb1|0];first_oil=[?global.cwic_ex_oil^0|0];oil_targets_sum=[?cwic_dbg_sum_oil_targets|0];oil_targets_max=[?cwic_dbg_max_oil_targets|0];cgb1_targets_sum=[?cwic_dbg_sum_cgb1_targets|0]"
+	log = "CWIC_TRADE_LISTS;[GetDateText];[ROOT.GetTag];total=[?cwic_dbg_total|0];oil=[?global.cwic_ex_oil^num|0];live_oil=[?cwic_dbg_live_oil|0];cgb1=[?global.cwic_ex_cg_basic_t1^num|0];live_cgb1=[?cwic_dbg_live_cgb1|0];first_oil=[?global.cwic_ex_oil^0|0]"
 }
 
 cwic_update_shipping_cost_effect = {
