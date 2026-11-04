@@ -1519,3 +1519,28 @@ CWIC_econ_drift_vars = {
 	add_to_array =  { productivity_array = other_resources_income_bonus_drift }
 	add_to_array =  { productivity_array = dockyard_income_bonus_drift }
 }
+cwic_apply_catch_up_growth = {
+	if = {
+		limit = { original_tag = USA }
+		set_variable = { global.cwic_ref_gdp_pc = grossdomesticproductcapita }
+	}
+	if = {
+		limit = {
+			check_variable = { global.cwic_ref_gdp_pc > 0 }
+			check_variable = { grossdomesticproductcapita > 0.001 }
+			check_variable = { National_HDI > 0.45 }
+			check_variable = { grossdomesticproductcapita < global.cwic_ref_gdp_pc }
+		}
+		set_temp_variable = { cwic_absorb = { value = National_HDI subtract = 0.45 divide = 0.15 min = 1 } }
+		if = {
+			limit = { check_variable = { economic_x_axis < 7 } }
+			multiply_temp_variable = { cwic_absorb = 0.5 }
+		}
+		set_temp_variable = { cwic_catch = { value = global.cwic_ref_gdp_pc divide = grossdomesticproductcapita log = 2.718281828 min = 4 } }
+		multiply_temp_variable = { cwic_catch = cwic_absorb }
+		multiply_temp_variable = { cwic_catch = 0.04 }
+		clamp_temp_variable = { var = cwic_catch min = 0 max = 0.10 }
+		add_to_temp_variable = { cwic_catch = 1 }
+		multiply_variable = { cwic_start_productivity = cwic_catch }
+	}
+}

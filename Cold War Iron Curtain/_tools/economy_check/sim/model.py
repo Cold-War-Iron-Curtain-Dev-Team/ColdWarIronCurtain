@@ -280,7 +280,8 @@ class Country:
             s.rate_flag = s.debt() / max(s.gdp, 1e-9) > 0.6
         stag = P["stagnation"] if year >= 1965 and s.x < 7 and year < P.get("stag_end", {}).get(s.tag, 1990) else 0.0
         if not first:
-            rate = clamp(P["tg_base"] + P["tg_catch"] * clamp(math.log(max(ref_g, 1e-6) / max(s.g, 1e-6)), 0, 4) - stag, 0, P["tg_max"])
+            absorb = clamp((s.hdi - P["catch_hdi_lo"]) / (P["catch_hdi_hi"] - P["catch_hdi_lo"]), 0, 1) * (P["catch_planned"] if s.x < 7 else 1.0)
+            rate = clamp(P["tg_base"] + absorb * P["tg_catch"] * clamp(math.log(max(ref_g, 1e-6) / max(s.g, 1e-6)), 0, 4) - stag, 0, P["tg_max"])
             s.tech *= math.exp(rate / 12)
         k = s.tech * clamp(sh, 0.1, 1.1)
         s.gdp = (k * (s.A + kres * s.Ares) + s.Idle) / 10.0

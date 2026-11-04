@@ -9,6 +9,7 @@ PARAMS = {
     "farm_output_norm": 1.0,   # 1.1 food multiplier (crop assumed 1)
     "w_food": 3.0, "w_res": 0.03,   # output per farm/rubber and per resource unit (USA 1949: extraction ~10%, agriculture ~8%)
     "conscription": 0.03,      # 1.3 average conscription share
+    "catch_hdi_lo": 0.45, "catch_hdi_hi": 0.60, "catch_planned": 0.5,   # catch-up needs HDI (absorptive capacity); planned economies absorb half
     "workforce_ratio": 1.0,
     # tech growth stands in for investment/construction, which the sim does not model
     "tg_base": 0.015, "tg_catch": 0.012, "tg_max": 0.10,
