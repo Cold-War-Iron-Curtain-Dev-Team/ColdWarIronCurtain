@@ -189,17 +189,27 @@ cwic_set_target_gdp_1949 = {
 	if = { limit = { original_tag = ZIM } set_variable = { cwic_target_gdp_1949 = 19.209 } }
 }
 cwic_set_start_productivity = {
-	cwic_set_target_gdp_1949 = yes
+	set_variable = { cwic_target_gdp_1949 = 0 }
+	if = { limit = { date < 1949.7.1 } cwic_set_target_gdp_1949 = yes }
 	set_variable = { cwic_start_productivity = 1 }
+	if = { limit = { check_variable = { global.cwic_start_prod_raw > 0 } } set_variable = { cwic_start_productivity = global.cwic_start_prod_target } divide_variable = { cwic_start_productivity = global.cwic_start_prod_raw } }
 	if = {
 		limit = { check_variable = { cwic_target_gdp_1949 > 0 } }
+		set_variable = { cwic_start_productivity = 1 }
 		gdp_calculation_effect = yes
 		if = {
 			limit = { check_variable = { grossdomesticproduct > 0.001 } }
+			add_to_variable = { global.cwic_start_prod_raw = grossdomesticproduct }
+			add_to_variable = { global.cwic_start_prod_target = cwic_target_gdp_1949 }
 			set_variable = { cwic_start_productivity = cwic_target_gdp_1949 }
 			divide_variable = { cwic_start_productivity = grossdomesticproduct }
 			clamp_variable = { var = cwic_start_productivity min = 0.001 max = 1000 }
-			gdp_calculation_effect = yes
 		}
 	}
+	else_if = {
+		limit = { capital_scope = { has_variable = cwic_gdp_owner_month } }
+		capital_scope = { var:cwic_gdp_owner_month = { set_temp_variable = { cwic_inherited_prod = cwic_start_productivity } } }
+		if = { limit = { check_variable = { cwic_inherited_prod > 0 } } set_variable = { cwic_start_productivity = cwic_inherited_prod } }
+	}
+	gdp_calculation_effect = yes
 }
