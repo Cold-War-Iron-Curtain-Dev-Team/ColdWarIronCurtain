@@ -3,20 +3,6 @@
 # Prices, embargoes, and subject discounts stay in the importer loop.
 
 cwic_rebuild_trade_exporter_lists = {
-	if = {
-		limit = { has_global_flag = cwic_debug_rebuild_no_clear }
-		every_country = {
-			cwic_update_shipping_cost_effect = yes
-			cwic_trade_manual_default = yes
-			cwic_register_own_trade_offers = yes
-		}
-	}
-	else = {
-		cwic_rebuild_trade_exporter_lists_full = yes
-	}
-}
-
-cwic_rebuild_trade_exporter_lists_full = {
 	clear_array = global.cwic_ex_chromium
 	clear_array = global.cwic_ex_food
 	clear_array = global.cwic_ex_oil
@@ -47,66 +33,10 @@ cwic_rebuild_trade_exporter_lists_full = {
 	clear_array = global.cwic_ex_cg_consumer_electronics_t4
 	clear_array = global.cwic_ex_cg_consumer_electronics_t5
 	every_country = {
-		if = {
-			limit = { NOT = { has_global_flag = cwic_debug_skip_shipping_cost } }
-			cwic_update_shipping_cost_effect = yes
-		}
+		cwic_update_shipping_cost_effect = yes
 		cwic_trade_manual_default = yes
-		if = {
-			limit = { NOT = { has_global_flag = cwic_debug_skip_register_offers } }
-			cwic_add_own_trade_offers = yes
-		}
+		cwic_add_own_trade_offers = yes
 	}
-}
-
-cwic_debug_log_trade_list_sizes = {
-	set_temp_variable = { cwic_dbg_total = 0 }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_chromium^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_food^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_oil^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_steel^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_aluminium^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_rareEarth^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_basic_t0^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_basic_t1^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_basic_t2^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_basic_t3^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_basic_t4^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_basic_t5^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_durable_t0^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_durable_t1^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_durable_t2^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_durable_t3^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_durable_t4^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_durable_t5^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_vehicles_t0^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_vehicles_t1^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_vehicles_t2^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_vehicles_t3^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_vehicles_t4^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_vehicles_t5^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t1^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t2^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t3^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t4^num }
-	add_to_temp_variable = { cwic_dbg_total = global.cwic_ex_cg_consumer_electronics_t5^num }
-	set_temp_variable = { cwic_dbg_live_oil = 0 }
-	for_each_scope_loop = {
-		array = global.cwic_ex_oil
-		if = {
-			limit = { OR = { check_variable = { currentAvailableoilExport > 0.99 } check_variable = { currentExportedoil > 0.99 } } }
-			add_to_temp_variable = { cwic_dbg_live_oil = 1 }
-		}
-	}
-	set_temp_variable = { cwic_dbg_live_cgb1 = 0 }
-	for_each_scope_loop = {
-		array = global.cwic_ex_cg_basic_t1
-		if = {
-			limit = { OR = { check_variable = { cg_basic_export_stock_t1 > 0.99 } check_variable = { currentExportedCgBasicT1 > 0.99 } } }
-			add_to_temp_variable = { cwic_dbg_live_cgb1 = 1 }
-		}
-	}
-	log = "CWIC_TRADE_LISTS;[GetDateText];[ROOT.GetTag];total=[?cwic_dbg_total|0];oil=[?global.cwic_ex_oil^num|0];live_oil=[?cwic_dbg_live_oil|0];cgb1=[?global.cwic_ex_cg_basic_t1^num|0];live_cgb1=[?cwic_dbg_live_cgb1|0];first_oil=[?global.cwic_ex_oil^0|0]"
 }
 
 cwic_update_shipping_cost_effect = {
@@ -550,68 +480,5 @@ cwic_add_own_trade_offers = {
 			}
 		}
 		add_to_array = { global.cwic_ex_cg_consumer_electronics_t5 = THIS.id }
-	}
-}
-
-cwic_debug_dummy_array_churn = {
-	clear_array = global.cwic_dbg_dummy_0
-	clear_array = global.cwic_dbg_dummy_1
-	clear_array = global.cwic_dbg_dummy_2
-	clear_array = global.cwic_dbg_dummy_3
-	clear_array = global.cwic_dbg_dummy_4
-	clear_array = global.cwic_dbg_dummy_5
-	clear_array = global.cwic_dbg_dummy_6
-	clear_array = global.cwic_dbg_dummy_7
-	clear_array = global.cwic_dbg_dummy_8
-	clear_array = global.cwic_dbg_dummy_9
-	clear_array = global.cwic_dbg_dummy_10
-	clear_array = global.cwic_dbg_dummy_11
-	clear_array = global.cwic_dbg_dummy_12
-	clear_array = global.cwic_dbg_dummy_13
-	clear_array = global.cwic_dbg_dummy_14
-	clear_array = global.cwic_dbg_dummy_15
-	clear_array = global.cwic_dbg_dummy_16
-	clear_array = global.cwic_dbg_dummy_17
-	clear_array = global.cwic_dbg_dummy_18
-	clear_array = global.cwic_dbg_dummy_19
-	clear_array = global.cwic_dbg_dummy_20
-	clear_array = global.cwic_dbg_dummy_21
-	clear_array = global.cwic_dbg_dummy_22
-	clear_array = global.cwic_dbg_dummy_23
-	clear_array = global.cwic_dbg_dummy_24
-	clear_array = global.cwic_dbg_dummy_25
-	clear_array = global.cwic_dbg_dummy_26
-	clear_array = global.cwic_dbg_dummy_27
-	clear_array = global.cwic_dbg_dummy_28
-	every_country = {
-		add_to_array = { global.cwic_dbg_dummy_0 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_1 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_2 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_3 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_4 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_5 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_6 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_7 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_8 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_9 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_10 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_11 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_12 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_13 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_14 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_15 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_16 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_17 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_18 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_19 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_20 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_21 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_22 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_23 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_24 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_25 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_26 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_27 = THIS.id }
-		add_to_array = { global.cwic_dbg_dummy_28 = THIS.id }
 	}
 }
