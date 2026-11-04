@@ -511,12 +511,21 @@ cwic_calc_state_output = {
 	set_variable = { cwic_state_gdp_pc = { value = cwic_state_output multiply = 100 divide = { value = state_population_k max = 0.000001 } } }
 	add_to_variable = { PREV.grossdomesticproduct = cwic_state_output }
 	set_temp_variable = { cwic_pe = { value = cwic_pi multiply = cwic_E multiply = ROOT.cwic_start_productivity } }
-	add_to_variable = { PREV.civilian_sector = { value = building_level@industrial_complex multiply = 2 multiply = ROOT.cwic_mciv multiply = cwic_pe } }
-	add_to_variable = { PREV.service_sector = { value = building_level@office_park multiply = 7 multiply = ROOT.cwic_mofp multiply = cwic_pe } }
-	add_to_variable = { PREV.mic_sector = { value = building_level@arms_factory multiply = 1.25 add = { value = building_level@dockyard multiply = 2.5 } multiply = cwic_pe } }
-	add_to_variable = { PREV.mill_sector = { value = building_level@steel_factory multiply = 1.75 add = { value = building_level@tungsten_factory multiply = 1.75 } multiply = cwic_pe } }
-	add_to_variable = { PREV.rgo_sector = { value = cwic_ru multiply = 0.03 multiply = cwic_pe } }
-	add_to_variable = { PREV.food_sector = { value = building_level@agri_industrial_complex multiply = 3 add = { value = resource@rubber multiply = 3 } multiply = cwic_pe } }
+	set_variable = { cwic_s_civ = { value = building_level@industrial_complex multiply = 2 multiply = ROOT.cwic_mciv multiply = cwic_pe } }
+	set_variable = { cwic_s_srv = { value = building_level@office_park multiply = 7 multiply = ROOT.cwic_mofp multiply = cwic_pe } }
+	set_variable = { cwic_s_mic = { value = building_level@arms_factory multiply = 1.25 add = { value = building_level@dockyard multiply = 2.5 } multiply = cwic_pe } }
+	set_variable = { cwic_s_mill = { value = building_level@steel_factory multiply = 1.75 add = { value = building_level@tungsten_factory multiply = 1.75 } multiply = cwic_pe } }
+	set_variable = { cwic_s_rgo = { value = cwic_ru multiply = 0.03 multiply = cwic_pe } }
+	set_variable = { cwic_s_food = { value = building_level@agri_industrial_complex multiply = 3 add = { value = resource@rubber multiply = 3 } multiply = cwic_pe } }
+	cwic_add_state_sectors = yes
+}
+cwic_add_state_sectors = {
+	add_to_variable = { PREV.civilian_sector = cwic_s_civ }
+	add_to_variable = { PREV.service_sector = cwic_s_srv }
+	add_to_variable = { PREV.mic_sector = cwic_s_mic }
+	add_to_variable = { PREV.mill_sector = cwic_s_mill }
+	add_to_variable = { PREV.rgo_sector = cwic_s_rgo }
+	add_to_variable = { PREV.food_sector = cwic_s_food }
 }
 
 gdp_calculation_effect = {
@@ -544,7 +553,32 @@ gdp_calculation_effect = {
 	set_variable = { food_sector = 0 }
 	set_variable = { IncomeTotal = 0 }
 	set_variable = { IncomeCheck = 0 }
-	cwic_begin_separatism_rollup = yes
+	set_temp_variable = { cwic_econ_skip = 0 }
+	set_temp_variable = { cwic_econ_steps = 1 }
+	if = {
+		limit = {
+			is_ai = yes
+			date > 1949.7.1
+		}
+		if = {
+			limit = { NOT = { has_variable = cwic_econ_tick } }
+			set_variable = { cwic_econ_tick = THIS.id }
+			modulo_variable = { cwic_econ_tick = 3 }
+		}
+		add_to_variable = { cwic_econ_tick = 1 }
+		if = {
+			limit = { check_variable = { cwic_econ_tick < 3 } }
+			set_temp_variable = { cwic_econ_skip = 1 }
+		}
+		else = {
+			set_variable = { cwic_econ_tick = 0 }
+			set_temp_variable = { cwic_econ_steps = 3 }
+		}
+	}
+	if = {
+		limit = { check_variable = { cwic_econ_skip = 0 } }
+		cwic_begin_separatism_rollup = yes
+	}
 	CWIC_econ_drift_vars = yes
 	cwic_begin_gdp_growth_pass = yes
 	every_owned_state = {
@@ -554,8 +588,21 @@ gdp_calculation_effect = {
 			limit = { NOT = { has_variable = state_development } }
 			cwic_cache_state_category = yes
 		}
-		cwic_calc_state_output = yes
-		calculate_state_hdi = yes
+		if = {
+			limit = {
+				check_variable = { cwic_econ_skip = 1 }
+				has_variable = cwic_state_output
+				has_variable = State_HDI_1000
+				check_variable = { cwic_gdp_owner_month = PREV.id }
+			}
+			add_to_variable = { PREV.grossdomesticproduct = cwic_state_output }
+			cwic_add_state_sectors = yes
+			add_to_variable = { ROOT.National_HDI = State_HDI_1000 }
+		}
+		else = {
+			cwic_calc_state_output = yes
+			calculate_state_hdi = yes
+		}
 		cwic_track_state_gdp_for_growth = yes
 	}
 	divide_variable = { grossdomesticproduct = 10 }

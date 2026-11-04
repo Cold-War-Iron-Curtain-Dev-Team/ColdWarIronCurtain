@@ -2201,13 +2201,18 @@ cwic_transfer_state_debt = {
 	divide_temp_variable = { cwic_dt_state_gdp = 10 }
 	owner = { save_event_target_as = cwic_dt_receiver }
 	var:cwic_gdp_owner_month = {
+		set_temp_variable = { cwic_dt_base = CWIC_gdp_current }
+		if = {
+			limit = { check_variable = { CWIC_gdp_previous > cwic_dt_base } }
+			set_temp_variable = { cwic_dt_base = CWIC_gdp_previous }
+		}
 		if = {
 			limit = {
 				check_variable = { currentDebt > 0 }
-				check_variable = { CWIC_gdp_current > 0.1 }
+				check_variable = { cwic_dt_base > 0.001 }
 			}
 			set_temp_variable = { cwic_dt_share = cwic_dt_state_gdp }
-			divide_temp_variable = { cwic_dt_share = CWIC_gdp_current }
+			divide_temp_variable = { cwic_dt_share = cwic_dt_base }
 			clamp_temp_variable = { var = cwic_dt_share min = 0 max = 0.95 }
 			set_temp_variable = { cwic_dt_repudiate = 0 }
 			if = {
