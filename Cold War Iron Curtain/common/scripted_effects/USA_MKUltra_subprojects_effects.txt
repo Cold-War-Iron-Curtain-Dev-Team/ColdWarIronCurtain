@@ -1,0 +1,216 @@
+# Pre-charter subprojects.
+#
+# Card 12, Bluebird/Artichoke (USA_mkultra_bluebird_stage): 0 locked,
+# 1 available, 2 interrogation study (60 days), 3 archived, 4 foreclosed or
+# cancelled. Report event cwic_mkultra.650.
+#
+# Card 13, MKDELTA (USA_mkultra_mkdelta_stage): 0 locked, 1 available,
+# 2 overseas field program (90 days), 3 review (30 days), 4 archived,
+# 5 foreclosed or cancelled. Needs an archived Bluebird/Artichoke file.
+# Review event cwic_mkultra.655.
+
+###########################################################################
+# Card 12: Bluebird/Artichoke
+###########################################################################
+
+USA_mkultra_start_bluebird = {
+	if = {
+		limit = { USA_mkultra_can_start_bluebird_trigger = yes }
+		set_country_flag = USA_mkultra_bluebird_paid
+		set_variable = { USA_mkultra_bluebird_stage = 2 }
+		add_to_variable = { USA_mkultra_exposure = 1 }
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_bluebird_research
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_bluebird = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_bluebird_stage = 2 }
+			NOT = { has_country_flag = USA_mkultra_bluebird_archived }
+		}
+		set_country_flag = USA_mkultra_bluebird_archived
+		set_variable = { USA_mkultra_bluebird_stage = 3 }
+		add_to_variable = { USA_mkultra_progress = 5 }
+		add_to_variable = { USA_mkultra_harm = 2 }
+		USA_mkultra_clamp_variables = yes
+		country_event = { id = cwic_mkultra.650 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# No refund; committed exposure stays.
+USA_mkultra_cancel_bluebird = {
+	if = {
+		limit = { check_variable = { USA_mkultra_bluebird_stage = 2 } }
+		set_country_flag = USA_mkultra_bluebird_cancelled
+		set_variable = { USA_mkultra_bluebird_stage = 4 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_bluebird_research }
+			remove_mission = USA_mkultra_bluebird_research
+		}
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_bluebird_forward = {
+	set_country_flag = USA_mkultra_bluebird_files_forwarded
+	add_to_variable = { USA_mkultra_progress = 2 }
+	add_to_variable = { USA_mkultra_exposure = 1 }
+	USA_mkultra_clamp_variables = yes
+}
+
+USA_mkultra_resolve_bluebird_restrict = {
+	set_country_flag = USA_mkultra_bluebird_files_restricted
+	add_to_variable = { USA_mkultra_exposure = -1 }
+	USA_mkultra_clamp_variables = yes
+}
+
+###########################################################################
+# Card 13: MKDELTA
+###########################################################################
+
+USA_mkultra_start_mkdelta = {
+	if = {
+		limit = { USA_mkultra_can_start_mkdelta_trigger = yes }
+		set_country_flag = USA_mkultra_mkdelta_paid
+		set_variable = { USA_mkultra_mkdelta_stage = 2 }
+		add_to_variable = { USA_mkultra_exposure = 1 }
+		add_to_variable = { USA_mkultra_harm = 4 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_mkdelta_research
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_mkdelta = {
+	if = {
+		limit = {
+			check_variable = { USA_mkultra_mkdelta_stage = 2 }
+			NOT = { has_country_flag = USA_mkultra_mkdelta_record_awarded }
+		}
+		set_country_flag = USA_mkultra_mkdelta_record_awarded
+		set_variable = { USA_mkultra_mkdelta_stage = 3 }
+		add_to_variable = { USA_mkultra_progress = 6 }
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_mkdelta_review
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_archive_mkdelta = {
+	if = {
+		limit = { check_variable = { USA_mkultra_mkdelta_stage = 3 } }
+		set_country_flag = USA_mkultra_mkdelta_archived
+		set_variable = { USA_mkultra_mkdelta_stage = 4 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkdelta_review }
+			remove_mission = USA_mkultra_mkdelta_review
+		}
+		country_event = { id = cwic_mkultra.655 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# No refund; committed exposure and harm stay.
+USA_mkultra_cancel_mkdelta = {
+	if = {
+		limit = { check_variable = { USA_mkultra_mkdelta_stage = 2 } }
+		set_country_flag = USA_mkultra_mkdelta_cancelled
+		set_variable = { USA_mkultra_mkdelta_stage = 5 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkdelta_research }
+			remove_mission = USA_mkultra_mkdelta_research
+		}
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_mkdelta_absorb = {
+	set_country_flag = USA_mkultra_mkdelta_absorbed
+	add_to_variable = { USA_mkultra_progress = 2 }
+	add_to_variable = { USA_mkultra_harm = 2 }
+	USA_mkultra_clamp_variables = yes
+}
+
+USA_mkultra_resolve_mkdelta_close = {
+	set_country_flag = USA_mkultra_mkdelta_closed
+}
+
+###########################################################################
+# Lifecycle
+###########################################################################
+
+# Unlocks inside the windows, forecloses untouched files once they close.
+USA_mkultra_subprojects_reconcile = {
+	if = {
+		limit = { has_country_flag = USA_mkultra_bluebird_archived }
+		set_variable = { USA_mkultra_bluebird_stage = 3 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { USA_mkultra_bluebird_stage = 0 }
+			USA_mkultra_bluebird_window_trigger = yes
+		}
+		set_variable = { USA_mkultra_bluebird_stage = 1 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { USA_mkultra_bluebird_stage = 1 }
+			date > 1953.12.31
+		}
+		set_variable = { USA_mkultra_bluebird_stage = 4 }
+	}
+
+	if = {
+		limit = { has_country_flag = USA_mkultra_mkdelta_archived }
+		set_variable = { USA_mkultra_mkdelta_stage = 4 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { USA_mkultra_mkdelta_stage = 0 }
+			has_country_flag = USA_mkultra_bluebird_archived
+			USA_mkultra_mkdelta_window_trigger = yes
+		}
+		set_variable = { USA_mkultra_mkdelta_stage = 1 }
+		USA_mkultra_mark_gui_dirty = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { USA_mkultra_mkdelta_stage = 1 }
+			date > 1954.12.31
+		}
+		set_variable = { USA_mkultra_mkdelta_stage = 5 }
+	}
+}
+
+# CIA charter closure (rare before 1955): running work stops, reports archive.
+USA_mkultra_subprojects_settle = {
+	USA_mkultra_cancel_bluebird = yes
+	USA_mkultra_cancel_mkdelta = yes
+	USA_mkultra_archive_mkdelta = yes
+	if = {
+		limit = { check_variable = { USA_mkultra_bluebird_stage = 1 } }
+		set_variable = { USA_mkultra_bluebird_stage = 4 }
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_mkdelta_stage = 1 } }
+		set_variable = { USA_mkultra_mkdelta_stage = 5 }
+	}
+}
+
+USA_mkultra_subprojects_seed_late_start = {
+	set_country_flag = USA_mkultra_bluebird_paid
+	set_country_flag = USA_mkultra_bluebird_archived
+	set_country_flag = USA_mkultra_bluebird_files_forwarded
+	set_variable = { USA_mkultra_bluebird_stage = 3 }
+	set_country_flag = USA_mkultra_mkdelta_paid
+	set_country_flag = USA_mkultra_mkdelta_record_awarded
+	set_country_flag = USA_mkultra_mkdelta_archived
+	set_country_flag = USA_mkultra_mkdelta_absorbed
+	set_variable = { USA_mkultra_mkdelta_stage = 4 }
+}

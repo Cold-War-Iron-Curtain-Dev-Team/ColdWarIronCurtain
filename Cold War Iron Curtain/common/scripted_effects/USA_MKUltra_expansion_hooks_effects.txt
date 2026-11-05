@@ -1,0 +1,50 @@
+# Expansion lifecycle hooks (cards 12-20 and the expansion subsystems).
+# Each base lifecycle effect calls one of these with a single line:
+#   settle           USA_mkultra_phase_2_settle_charter_closure, after settle_extra_dossiers
+#   reconcile        USA_mkultra_phase_2_reconcile, after the per-dossier reconciles
+#   slot_states      USA_mkultra_recompute_slot_states, after the per-dossier slot states
+#   seed_late_start  end of USA_mkultra_seed_1980_archive, before clamp
+#   church_score     USA_mkultra_compute_church_severity, before the tier mapping
+#   senate_adjust    end of USA_mkultra_compute_senate_severity
+#   final_ledger     USA_mkultra_resolve_y2k_epilogue, after the ending records
+# Each subsystem adds one sub-call per hook. Cards 10/11 (MKNAOMI/MKOFTEN) are
+# wired by their own author and are not called from here.
+
+USA_mkultra_expansion_settle = {
+	USA_mkultra_people_settle = yes
+	USA_mkultra_subprojects_settle = yes
+}
+
+USA_mkultra_expansion_reconcile = {
+	if = {
+		limit = { NOT = { has_variable = USA_mkultra_expansion_schema } }
+		set_variable = { USA_mkultra_expansion_schema = 1 }
+	}
+	USA_mkultra_people_maintain = yes
+	USA_mkultra_subprojects_reconcile = yes
+}
+
+# Expansion subprojects so far run without a charter slot; kept for later cards.
+USA_mkultra_expansion_slot_states = {
+}
+
+USA_mkultra_expansion_seed_late_start = {
+	set_variable = { USA_mkultra_expansion_schema = 1 }
+	USA_mkultra_people_seed_late_start = yes
+	USA_mkultra_subprojects_seed_late_start = yes
+}
+
+# Adds to the temp USA_mkultra_severity_score before it is mapped to a tier.
+USA_mkultra_expansion_church_score_adjust = {
+	USA_mkultra_people_church_score_adjust = yes
+}
+
+# compute_senate_severity maps flags straight to a tier, so adjustments move
+# the tier itself (1-3).
+USA_mkultra_expansion_senate_adjust = {
+	USA_mkultra_people_senate_adjust = yes
+}
+
+# Queued, not fired in place: event 500 renders its description after this runs.
+USA_mkultra_expansion_final_ledger = {
+}

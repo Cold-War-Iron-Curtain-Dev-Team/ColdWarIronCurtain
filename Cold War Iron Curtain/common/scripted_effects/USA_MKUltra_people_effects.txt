@@ -1,0 +1,172 @@
+# MKUltra personnel (national spirits) and the Frank Olson incidents
+# (cwic_mkultra.600 / .605).
+#
+# Olson flags:
+#   USA_mkultra_olson_incident_recorded  event 600 resolved
+#   USA_mkultra_olson_concealed          recorded as an accident; exposure +6 in 1975
+#   USA_mkultra_olson_reprimanded        internal letters of criticism; Church score -1
+#   USA_mkultra_rockefeller_olson_fired  event 605 resolved
+#   USA_mkultra_olson_compensated        apology and the 1976 relief bill
+#   USA_mkultra_olson_contested          family's account contested; Senate tier +1
+
+###########################################################################
+# Appointments
+###########################################################################
+
+USA_mkultra_appoint_dulles = {
+	if = {
+		limit = { USA_mkultra_can_appoint_dulles_trigger = yes }
+		add_ideas = USA_mkultra_dci_dulles
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_appoint_helms = {
+	if = {
+		limit = { USA_mkultra_can_appoint_helms_trigger = yes }
+		add_ideas = USA_mkultra_dci_helms
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_appoint_gottlieb = {
+	if = {
+		limit = { USA_mkultra_can_appoint_gottlieb_trigger = yes }
+		add_ideas = USA_mkultra_tss_gottlieb
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+# Ends each tenure on its historical date; Gottlieb also leaves with the charter.
+USA_mkultra_people_maintain = {
+	if = {
+		limit = {
+			has_idea = USA_mkultra_dci_dulles
+			NOT = { USA_mkultra_dulles_window_trigger = yes }
+		}
+		remove_ideas = USA_mkultra_dci_dulles
+		set_country_flag = USA_mkultra_dulles_served
+	}
+	if = {
+		limit = {
+			has_idea = USA_mkultra_dci_helms
+			NOT = { USA_mkultra_helms_window_trigger = yes }
+		}
+		remove_ideas = USA_mkultra_dci_helms
+		set_country_flag = USA_mkultra_helms_served
+	}
+	if = {
+		limit = {
+			has_idea = USA_mkultra_tss_gottlieb
+			OR = {
+				NOT = { USA_mkultra_gottlieb_window_trigger = yes }
+				NOT = { USA_mkultra_charter_active_trigger = yes }
+			}
+		}
+		remove_ideas = USA_mkultra_tss_gottlieb
+		set_country_flag = USA_mkultra_gottlieb_served
+	}
+}
+
+# CIA charter closure: the TSS program chief goes with it.
+USA_mkultra_people_settle = {
+	if = {
+		limit = { has_idea = USA_mkultra_tss_gottlieb }
+		remove_ideas = USA_mkultra_tss_gottlieb
+		set_country_flag = USA_mkultra_gottlieb_served
+	}
+}
+
+###########################################################################
+# Frank Olson
+###########################################################################
+
+USA_mkultra_people_incidents = {
+	if = {
+		limit = { USA_mkultra_olson_incident_due_trigger = yes }
+		set_country_flag = USA_mkultra_olson_incident_recorded
+		country_event = { id = cwic_mkultra.600 }
+	}
+	if = {
+		limit = { USA_mkultra_rockefeller_olson_due_trigger = yes }
+		set_country_flag = USA_mkultra_rockefeller_olson_fired
+		country_event = { id = cwic_mkultra.605 }
+	}
+}
+
+USA_mkultra_resolve_olson_accident = {
+	set_country_flag = USA_mkultra_olson_concealed
+	add_to_variable = { USA_mkultra_harm = 4 }
+	USA_mkultra_clamp_variables = yes
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+USA_mkultra_resolve_olson_reprimand = {
+	set_country_flag = USA_mkultra_olson_reprimanded
+	add_political_power = -10
+	add_to_variable = { USA_mkultra_harm = 4 }
+	USA_mkultra_clamp_variables = yes
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+# The 1975 Rockefeller Commission report names an Army scientist who died
+# after being given LSD without his knowledge. A concealed death costs more.
+USA_mkultra_rockefeller_olson_disclosure = {
+	if = {
+		limit = { has_country_flag = USA_mkultra_olson_concealed }
+		add_to_variable = { USA_mkultra_exposure = 6 }
+	}
+	else = {
+		add_to_variable = { USA_mkultra_exposure = 2 }
+	}
+	USA_mkultra_clamp_variables = yes
+	USA_mkultra_evaluate_basic_inquiry = yes
+}
+
+USA_mkultra_resolve_rockefeller_olson_compensate = {
+	USA_mkultra_rockefeller_olson_disclosure = yes
+	set_country_flag = USA_mkultra_olson_compensated
+	add_political_power = -25
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+USA_mkultra_resolve_rockefeller_olson_contest = {
+	USA_mkultra_rockefeller_olson_disclosure = yes
+	set_country_flag = USA_mkultra_olson_contested
+	USA_mkultra_mark_gui_dirty = yes
+}
+
+###########################################################################
+# Inquiry adjustments (called from the expansion hooks)
+###########################################################################
+
+USA_mkultra_people_church_score_adjust = {
+	if = {
+		limit = { has_country_flag = USA_mkultra_olson_reprimanded }
+		subtract_from_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+}
+
+USA_mkultra_people_senate_adjust = {
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_olson_contested
+			check_variable = { USA_mkultra_senate_severity < 3 }
+		}
+		add_to_variable = { USA_mkultra_senate_severity = 1 }
+	}
+}
+
+###########################################################################
+# 1980 start: historical end states, so nothing replays
+###########################################################################
+
+USA_mkultra_people_seed_late_start = {
+	set_country_flag = USA_mkultra_dulles_served
+	set_country_flag = USA_mkultra_helms_served
+	set_country_flag = USA_mkultra_gottlieb_served
+	set_country_flag = USA_mkultra_olson_incident_recorded
+	set_country_flag = USA_mkultra_olson_concealed
+	set_country_flag = USA_mkultra_rockefeller_olson_fired
+	set_country_flag = USA_mkultra_olson_compensated
+}
