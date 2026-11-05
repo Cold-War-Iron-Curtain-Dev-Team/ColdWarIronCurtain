@@ -159,9 +159,9 @@ class ScriptState:
                 if isinstance(value, list):
                     data = dict((k, v) for k, _, v in value)
                     low, high = float(data.get('min', 0)), float(data.get('max', 1))
-                    result = low + result * (high-low + (data.get('integer') == 'yes'))
+                    result = low + result * (high-low)
                     if data.get('integer') == 'yes':
-                        result = min(high, math.floor(result))
+                        result = min(high-1, math.floor(result))
                 self.variables[self.key(target)] = result
             elif key == 'set_country_flag':
                 self.flags.add(value)
@@ -394,6 +394,17 @@ class MergeContracts(unittest.TestCase):
                     self.assertTrue(data.startswith(b'\xef\xbb\xbf'), name)
                 else:
                     walk(parse(data.decode('utf-8-sig')))
+
+    def test_engine_comparison_and_building_damage_syntax(self):
+        # Engine-generated documentation allows only =, < and > in shorthand
+        # check_variable blocks. damage_building's damage takes a literal.
+        for name in ('common/scripted_effects/CWIC_Espionage_lifecycle_effects.txt',
+                     'common/scripted_triggers/CWIC_Espionage_lifecycle_triggers.txt'):
+            text = (MOD / name).read_text(encoding='utf-8-sig')
+            self.assertNotRegex(text, r'check_variable\s*=\s*\{[^{}]*(?:<=|>=)')
+        text = (MOD / 'common/scripted_effects/IC_Espionage_effects.txt').read_text(encoding='utf-8-sig')
+        self.assertFalse('damage = ROOT.slot_one_damage' in text,
+                         'damage_building requires a literal damage amount')
 
 
 if __name__ == '__main__':
