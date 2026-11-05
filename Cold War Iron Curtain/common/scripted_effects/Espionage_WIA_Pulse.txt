@@ -4,11 +4,12 @@
 # Called from ic_pulse (roughly monthly). Each pulse heals one WIA level.
 # operative_N_wia is written per squad as operative_N_wia^<page> without ever
 # being built as an array, so its ^num stays 0 and looping over it did nothing.
-# Loop over the squad list instead and use the page index directly.
+# Loop over the squad ID list and recover its one-based member page.
 wia_recovery_effect = {
 	for_each_loop = {
-		array = paramilitary_operative_squad_leader
-		index = wia_page
+		array = paramilitary_squad_id
+		index = wia_index
+		set_temp_variable = { wia_page = paramilitary_squad_id^wia_index }
 		if = {
 			limit = { check_variable = { operative_1_wia^wia_page > 0 } }
 			add_to_variable = { operative_1_wia^wia_page = -1 }
@@ -30,4 +31,5 @@ wia_recovery_effect = {
 			add_to_variable = { operative_5_wia^wia_page = -1 }
 		}
 	}
+	if = { limit = { check_variable = { paramilitary_squad_id^num > 0 } } CWIC_espionage_mark_gui_dirty = yes }
 }
