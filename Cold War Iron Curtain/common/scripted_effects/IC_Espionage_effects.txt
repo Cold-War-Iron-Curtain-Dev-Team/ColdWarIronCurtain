@@ -1424,7 +1424,10 @@ CWIC_espionage_dispatch_operation_outcome = {
 			}
 			#Actual Effects add to script GLADIO_MEMBER_POSITION_CURRENT GLADIO_MEMBER_POSITION_HISTORY
 			var:history_target = {
-				retire_character = history_personnel_target
+				meta_effect = {
+                    text = { remove_unit_leader = [LEADER_ID] }
+                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
+                }
 			}
 		}
 		else = {	#Failure
@@ -1615,7 +1618,10 @@ CWIC_espionage_dispatch_operation_outcome = {
 			}
 			#Actual Effects add to script GLADIO_MEMBER_POSITION_CURRENT GLADIO_MEMBER_POSITION_HISTORY
 			var:history_target = {
-				retire_character = history_personnel_target
+				meta_effect = {
+                    text = { remove_unit_leader = [LEADER_ID] }
+                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
+                }
 			}
 		}
 		else = {	#Failure
@@ -4349,7 +4355,10 @@ CWIC_espionage_dispatch_operation_outcome = {
 
             #Specific Effects
 			var:history_target = {
-				retire_character = history_personnel_target
+				meta_effect = {
+                    text = { remove_unit_leader = [LEADER_ID] }
+                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
+                }
 			}
             #End
             refresh_possible_mission_types = yes
@@ -4373,7 +4382,10 @@ CWIC_espionage_dispatch_operation_outcome = {
 
             #Specific Effects
 			var:history_target = {
-				retire_character = history_personnel_target
+				meta_effect = {
+                    text = { remove_unit_leader = [LEADER_ID] }
+                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
+                }
 			}
             #End
             refresh_possible_mission_types = yes
@@ -4902,32 +4914,19 @@ CWIC_espionage_dispatch_operation_outcome = {
 			}
             slot_1_operation_success_shared_effect = yes
 			#Specific Effects
-			if = {
-				limit = {
-					check_variable = {
-						slot_one_quality_roll > 0.95
-					}
-				}
-				set_technology = {
-					var:slot_one_personnel_target = 1
-				}
-			}
-			else = {
-				var:history_target = {
-					randomize_variable = {
-						var = tech_bonus
-						distribution = uniform
-						min = 0.25
-						max = 0.75
-					}
-					# Not familiar with espionage system, double-check this is correct
-					add_tech_bonus = {
-						bonus = 0.5
-						uses = 1
-						technology = var:slot_one_personnel_target
-					}
-				}
-			}
+            if = {
+                limit = { check_variable = { slot_one_quality_roll > 0.95 } }
+                meta_effect = {
+                    text = { set_technology = { [TECH] = 1 popup = no } }
+                    TECH = "[?ROOT.slot_one_personnel_target.GetTokenKey]"
+                }
+            }
+            else = {
+                meta_effect = {
+                    text = { add_tech_bonus = { bonus = 0.5 uses = 1 technology = [TECH] } }
+                    TECH = "[?ROOT.slot_one_personnel_target.GetTokenKey]"
+                }
+            }
             #End
             refresh_possible_mission_types = yes
 		}
@@ -5148,7 +5147,7 @@ add_sabotage_nuclear_programme_operations = {
 
 		add_to_array = { ROOT.local_possible_operations_id_token = 5 }
 		add_to_array = { ROOT.local_possible_operations_personnel_target = THIS }
-		add_to_array = { ROOT.local_possible_operations_target = PREV.id }
+		add_to_array = { ROOT.local_possible_operations_target = THIS.id }
 	}
 }
 add_nuclear_site_sabotage_operations = {
@@ -5234,13 +5233,13 @@ add_infrastructure_sabotage_operations = {
 			limit = {
 				infrastructure > 0
 			}
-			add_to_array = { ROOT.local_possible_operations = 11 }
+			add_to_array = { ROOT.local_possible_operations = 12 }
 			add_to_array = { ROOT.local_possible_operations_risk_level = 4 }
 			add_to_array = { ROOT.local_possible_operations_operation_type = 11 }
 			add_to_array = { ROOT.local_possible_operations_money_cost = 50 }
 			add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
 
-			add_to_array = { ROOT.local_possible_operations_id_token = 11 }
+			add_to_array = { ROOT.local_possible_operations_id_token = 12 }
 			add_to_array = { ROOT.local_possible_operations_personnel_target = THIS }
 			add_to_array = { ROOT.local_possible_operations_target = PREV.id }
 		}
@@ -5786,7 +5785,7 @@ add_tech_stealing_operations = {
 
 			add_to_array = { ROOT.local_possible_operations_id_token = 20 }
 			add_to_array = { ROOT.local_possible_operations_personnel_target = v }
-			add_to_array = { ROOT.local_possible_operations_target = PREV.id }
+			add_to_array = { ROOT.local_possible_operations_target = THIS.id }
 		}
 	}
 }		#GetTokenKeyLocalized
