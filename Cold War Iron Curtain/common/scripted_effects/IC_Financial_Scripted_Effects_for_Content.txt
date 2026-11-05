@@ -106,3 +106,172 @@ nep_ed_decrease_college = {
 	clamp_variable = { var = college_educated min = 0 max = 100 }
 	custom_effect_tooltip = NEP_Ed_College_Dec_TT
 }
+
+cwic_take_loan = {
+	if = {
+		limit = { check_variable = { purchase_amount_temp > 0 } }
+		if = {
+			limit = { check_variable = { lender_temp = 11 } }
+			set_temp_variable = { cwic_loan_total = loan_interest_temp }
+			divide_temp_variable = { cwic_loan_total = 100 }
+			multiply_temp_variable = { cwic_loan_total = loan_years_temp }
+			add_to_temp_variable = { cwic_loan_total = 1 }
+			multiply_temp_variable = { cwic_loan_total = purchase_amount_temp }
+			set_temp_variable = { cwic_loan_payment = loan_years_temp }
+			multiply_temp_variable = { cwic_loan_payment = 12 }
+			clamp_temp_variable = { var = cwic_loan_payment min = 1 }
+			set_temp_variable = { cwic_loan_payment_monthly = cwic_loan_total }
+			divide_temp_variable = { cwic_loan_payment_monthly = cwic_loan_payment }
+			set_temp_variable = { cwic_loan_interest_frac = loan_interest_temp }
+			divide_temp_variable = { cwic_loan_interest_frac = 100 }
+			add_to_array = { debtTotalsArray = cwic_loan_total }
+			add_to_array = { debtOwnerArray = global_event_target:cwic_loan_lender }
+			add_to_array = { debtOwnerDomesticStatusArray = 11 }
+			add_to_array = { debtInterestArray = cwic_loan_interest_frac }
+			add_to_array = { debtPaymentArray = cwic_loan_payment_monthly }
+			add_to_variable = { currentDebtPayments = cwic_loan_payment_monthly }
+			add_to_variable = { currentDebt = cwic_loan_total }
+			global_event_target:cwic_loan_lender = {
+				if = {
+					limit = { NOT = { tag = GER } }
+					subtract_from_variable = { currentMoney = purchase_amount_temp }
+				}
+			}
+		}
+		else = {
+			add_loans_effect = yes
+		}
+		if = {
+			limit = { NOT = { check_variable = { loan_no_payout_temp = 1 } } }
+			add_to_variable = { currentMoney = purchase_amount_temp }
+		}
+	}
+}
+
+cwic_forgive_debt = {
+	clamp_temp_variable = { var = debt_forgive_share_temp min = 0 max = 1 }
+	set_temp_variable = { cwic_forgive_cost = 0 }
+	for_each_loop = {
+		array = debtTotalsArray
+		index = i
+		if = {
+			limit = {
+				OR = {
+					NOT = { check_variable = { debt_forgive_lender_temp > 0 } }
+					check_variable = { debtOwnerArray^i = debt_forgive_lender_temp }
+				}
+			}
+			set_temp_variable = { cwic_forgive_total = debtTotalsArray^i }
+			multiply_temp_variable = { cwic_forgive_total = debt_forgive_share_temp }
+			set_temp_variable = { cwic_forgive_payment = debtPaymentArray^i }
+			multiply_temp_variable = { cwic_forgive_payment = debt_forgive_share_temp }
+			subtract_from_variable = { debtTotalsArray^i = cwic_forgive_total }
+			subtract_from_variable = { debtPaymentArray^i = cwic_forgive_payment }
+			subtract_from_variable = { currentDebt = cwic_forgive_total }
+			subtract_from_variable = { currentDebtPayments = cwic_forgive_payment }
+			add_to_temp_variable = { cwic_forgive_cost = cwic_forgive_total }
+		}
+	}
+	clamp_variable = { var = currentDebt min = 0 }
+	clamp_variable = { var = currentDebtPayments min = 0 }
+	if = {
+		limit = { check_variable = { debt_forgive_payer_temp = 1 } }
+		global_event_target:cwic_debt_payer = {
+			subtract_from_variable = { currentMoney = cwic_forgive_cost }
+		}
+	}
+}
+
+cwic_set_economic_axes = {
+	clear_current_economic_modifiers = yes
+	set_variable = { economic_x_axis = economic_x_target_temp }
+	set_variable = { economic_y_axis = economic_y_target_temp }
+	startup_economics = yes
+}
+
+cwic_change_corruption = {
+	custom_effect_tooltip = cwic_change_corruption_tt
+	add_to_variable = { CorruptionLevel = corruption_change_temp }
+	clamp_variable = { var = CorruptionLevel min = 0 max = 1 }
+	corruption_idea_calc = yes
+}
+
+cwic_set_army_level = {
+	set_variable = { army_level_value = policy_level_target_temp }
+	clamp_variable = { var = army_level_value min = 0 max = 20 }
+	refresh_army_policy_rate = yes
+}
+cwic_set_navy_level = {
+	set_variable = { navy_level_value = policy_level_target_temp }
+	clamp_variable = { var = navy_level_value min = 0 max = 20 }
+	refresh_navy_policy_rate = yes
+}
+cwic_set_air_level = {
+	set_variable = { air_level_value = policy_level_target_temp }
+	clamp_variable = { var = air_level_value min = 0 max = 20 }
+	refresh_air_policy_rate = yes
+}
+cwic_set_strategic_forces_level = {
+	set_variable = { strategic_forces_level_value = policy_level_target_temp }
+	clamp_variable = { var = strategic_forces_level_value min = 0 max = 20 }
+	refresh_strategic_forces_policy_rate = yes
+}
+cwic_set_space_level = {
+	set_variable = { space_level_value = policy_level_target_temp }
+	clamp_variable = { var = space_level_value min = 0 max = 20 }
+	refresh_space_policy_rate = yes
+}
+cwic_set_healthcare_level = {
+	set_variable = { healthcare_level_value = policy_level_target_temp }
+	clamp_variable = { var = healthcare_level_value min = 0 max = 20 }
+	refresh_healthcare_policy_rate = yes
+}
+cwic_set_welfare_level = {
+	set_variable = { welfare_level_value = policy_level_target_temp }
+	clamp_variable = { var = welfare_level_value min = 0 max = 20 }
+	refresh_welfare_policy_rate = yes
+}
+cwic_set_education_level = {
+	set_variable = { education_level_value = policy_level_target_temp }
+	clamp_variable = { var = education_level_value min = 0 max = 20 }
+	refresh_education_policy_rate = yes
+}
+cwic_set_services_level = {
+	set_variable = { public_services_level_value = policy_level_target_temp }
+	clamp_variable = { var = public_services_level_value min = 0 max = 20 }
+	refresh_services_policy_rate = yes
+}
+cwic_set_policing_level = {
+	set_variable = { policing_level_value = policy_level_target_temp }
+	clamp_variable = { var = policing_level_value min = 0 max = 20 }
+	refresh_policing_policy_rate = yes
+}
+cwic_set_tax_level = {
+	hidden_effect = {
+		remove_ideas = policy_taxrate_temp_1
+		remove_ideas = policy_taxrate_temp_2
+		remove_ideas = policy_taxrate_temp_3
+		remove_ideas = policy_taxrate_temp_4
+		remove_ideas = policy_taxrate_temp_5
+		remove_ideas = policy_taxrate_temp_6
+		remove_ideas = policy_taxrate_temp_7
+		remove_ideas = policy_taxrate_temp_8
+		remove_ideas = policy_taxrate_temp_9
+		remove_ideas = policy_taxrate_temp_10
+		remove_ideas = policy_taxrate_temp_11
+		remove_ideas = policy_taxrate_temp_12
+		remove_ideas = policy_taxrate_temp_13
+		remove_ideas = policy_taxrate_temp_14
+		remove_ideas = policy_taxrate_temp_15
+		remove_ideas = policy_taxrate_temp_16
+		remove_ideas = policy_taxrate_temp_17
+		remove_ideas = policy_taxrate_temp_18
+		remove_ideas = policy_taxrate_temp_19
+	}
+	set_variable = { upper_tax_level_value = policy_level_target_temp }
+	clamp_variable = { var = upper_tax_level_value min = 1 max = 19 }
+	set_variable = { upper_tax_slider_gui = upper_tax_level_value }
+	multiply_variable = { upper_tax_slider_gui = 8 }
+	add_to_variable = { upper_tax_slider_gui = 387 }
+	meta_effect = { text = { add_ideas = policy_taxrate_temp_[IDEA_TOKEN] } IDEA_TOKEN = "[?upper_tax_level_value]" }
+}

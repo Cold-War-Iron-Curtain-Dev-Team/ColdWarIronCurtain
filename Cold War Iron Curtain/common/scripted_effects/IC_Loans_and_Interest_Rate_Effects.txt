@@ -1555,11 +1555,8 @@ calculate_loan_details = {
 	multiply_variable = {
 		potential_loan_total_adj = potential_loan_interest
 	}
-	multiply_variable = {
-		potential_loan_total_adj = purchase_length^current_index
-	}
-	add_to_variable = {
-		potential_loan_total = potential_loan_total_adj
+	divide_variable = {
+		potential_loan_total_adj = 12
 	}
 	set_variable = {
 		potential_loan_monthly_length = purchase_length^current_index
@@ -1573,6 +1570,8 @@ calculate_loan_details = {
 	divide_variable = {
 		potential_loan_monthly_cost = potential_loan_monthly_length
 	}
+	set_variable = { potential_loan_installment = potential_loan_monthly_cost }
+	add_to_variable = { potential_loan_monthly_cost = potential_loan_total_adj }
 }
 
 automatic_loan_setting = {
@@ -1596,15 +1595,13 @@ automatic_loan_setting = {
 	multiply_variable = {
 		potential_loan_total_adj = potential_loan_interest
 	}
-	multiply_variable = {
-		potential_loan_total_adj = purchase_length^current_index
-	}
-	add_to_variable = {
-		potential_loan_total = potential_loan_total_adj
+	divide_variable = {
+		potential_loan_total_adj = 12
 	}
 	set_variable = {
 		potential_loan_monthly_length = purchase_length^current_index
 	}
+	clamp_variable = { var = potential_loan_monthly_length min = 10 }
 	multiply_variable = {
 		potential_loan_monthly_length = 12
 	}
@@ -1614,6 +1611,8 @@ automatic_loan_setting = {
 	divide_variable = {
 		potential_loan_monthly_cost = potential_loan_monthly_length
 	}
+	set_variable = { potential_loan_installment = potential_loan_monthly_cost }
+	add_to_variable = { potential_loan_monthly_cost = potential_loan_total_adj }
 	#Actual Setting
 	set_variable = {
 		loan_amount = potential_loan_total
@@ -1644,7 +1643,7 @@ automatic_loan_setting = {
 		debtInterestArray = potential_loan_interest
 	}
 	set_variable = {
-		debtPayment = potential_loan_monthly_cost
+		debtPayment = potential_loan_installment
 	}
 	add_to_array = {
 		debtPaymentArray = debtPayment
@@ -2195,17 +2194,26 @@ cwic_oil_pricing_monthly = {
 
 cwic_transfer_state_debt = {
 	set_temp_variable = { cwic_dt_state_gdp = cwic_gdp_state_last_month }
+	if = {
+		limit = { check_variable = { cwic_state_output < cwic_dt_state_gdp } }
+		set_temp_variable = { cwic_dt_state_gdp = cwic_state_output }
+	}
 	divide_temp_variable = { cwic_dt_state_gdp = 10 }
 	owner = { save_event_target_as = cwic_dt_receiver }
 	var:cwic_gdp_owner_month = {
+		set_temp_variable = { cwic_dt_base = CWIC_gdp_current }
+		if = {
+			limit = { check_variable = { CWIC_gdp_previous > cwic_dt_base } }
+			set_temp_variable = { cwic_dt_base = CWIC_gdp_previous }
+		}
 		if = {
 			limit = {
 				check_variable = { currentDebt > 0 }
-				check_variable = { CWIC_gdp_current > 0.1 }
+				check_variable = { cwic_dt_base > 0.001 }
 			}
 			set_temp_variable = { cwic_dt_share = cwic_dt_state_gdp }
-			divide_temp_variable = { cwic_dt_share = CWIC_gdp_current }
-			clamp_temp_variable = { var = cwic_dt_share min = 0 max = 0.95 }
+			divide_temp_variable = { cwic_dt_share = cwic_dt_base }
+			clamp_temp_variable = { var = cwic_dt_share min = 0 max = 1 }
 			set_temp_variable = { cwic_dt_repudiate = 0 }
 			if = {
 				limit = {
@@ -2251,6 +2259,10 @@ cwic_transfer_state_debt = {
 			subtract_from_variable = { domesticTotalDebt = cwic_dt_domestic }
 			clamp_variable = { var = currentDebt min = 0 }
 			clamp_variable = { var = currentDebtPayments min = 0 }
+			set_variable = { CWIC_gdp_current = cwic_dt_base }
+			subtract_from_variable = { CWIC_gdp_current = cwic_dt_state_gdp }
+			clamp_variable = { var = CWIC_gdp_current min = 0 }
+			set_variable = { CWIC_gdp_previous = CWIC_gdp_current }
 		}
 	}
 }

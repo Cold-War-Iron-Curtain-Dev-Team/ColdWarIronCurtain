@@ -14,11 +14,11 @@ Inputs:
 |---|---|---|
 | D1 | Depth | **Fixes first, then a new core.** Pass 1 fixes in place and merges to development early. Pass 2 replaces the core on Econ-fix. |
 | D2 | AI | **One model for every country, monthly, the same as the player.** Changed on 2026-11-02 after Run B showed that the player pulse on every country costs about 3% of tick time at full speed (`baseline/runB_2026-11-02/NOTES.md`). The stipend, the territory-change GDP refresh and the yearly AI scheduler are dropped. |
-| D3 | Money scale | **Grants and costs scale with GDP through one effect.** About 1,400 literal amounts get a codemod. |
+| D3 | Money scale | **Fixed amounts** (revised 2026-11-02 after the smoke test). Content keeps its billion-denominated amounts and goes through `cwic_change_money`. GDP scaling was tried and dropped: 1949 GDP is not a valid reference for countries whose territory changes early (VIE ×33, PRC ×2.7), and it added complexity for little gain. |
 | D4 | Debt | **One debt stock plus a lender list.** Content creates loans only through one take-loan effect. |
 | D5 | Cut | Per-class pops, wages and conversions; the consumer-goods market; the CPI price index and inflation tiers; the Laffer/tax-avoidance curve; the 144 unreferenced definitions. |
 | D6 | Branches | **Econ-fix is the rewrite branch.** Economy core changes go there; development only receives merges. |
-| D7 | GDP-scaled amounts | **Current GDP at the moment the effect fires.** The codemod derives each share from the tag's 1949 GDP once; at runtime the share multiplies current GDP. |
+| D7 | GDP-scaled amounts | Withdrawn with D3. |
 | D8 | Lenders | **Keep every lender distinct:** Domestic Reserve, Domestic Commercial, BNP, Barclays, Chiyoda-Mitsubishi, Credit Suisse, Deutsche, JPM, IMF, World Bank, plus country lenders. |
 | D9 | History layer | **Part of this rework (Pass 2, §4.1 item 9).** It is not deferred to a later content pass. |
 | D10 | Debt on territory change (F14) | **Debt follows the GDP.** A country losing states hands the share of its debt equal to the share of GDP lost to the new owner. This follows state-succession practice: Austria-Hungary's and the Ottoman debt were apportioned to successors, as were the Raj's at partition. **Exception:** a hostile or revolutionary taker repudiates the inherited share, as the PRC did with ROC debt in 1949 and the Soviets with Tsarist debt. Then the debt is written off and the creditors lose it. |
@@ -74,8 +74,8 @@ Gone, with consumers rewritten:
 
 | Effect | Replaces | Contract |
 |---|---|---|
-| `cwic_change_money` (existing; new body) | 129 files of raw `currentMoney` writes | Input `money_change_gdp_share` (fraction of yearly GDP) **or** `money_change_temp` (absolute, for prices that are absolute, e.g. weapons). Writes money, the ledger line and the tooltip. A negative amount with no money becomes debt, never a silent negative. |
-| `cwic_take_loan` (**new**) | about 10 files hand-building debt arrays and `pulse_deficit × Interest_Rate` maths | Inputs: amount (GDP share or absolute), lender id (1–10, plus a country lender via `cwic_loan_lender` scope), term in years, optional rate override. Adds to debt and the lender list, and pays the creditor. |
+| `cwic_change_money` (existing) | 129 files of raw `currentMoney` writes | Input `money_change_temp` (fixed amount, billions; D3). Writes money and the tooltip. A spend beyond the treasury borrows through the lender cascade, never a silent negative. |
+| `cwic_take_loan` (**new**) | about 10 files hand-building debt arrays and `pulse_deficit × Interest_Rate` maths | Inputs: fixed amount, lender id (1–10, plus a country lender via `cwic_loan_lender` scope), term, optional rate. Adds to debt and the lender list, and pays the creditor. |
 | `cwic_forgive_debt` / `cwic_restructure_debt` (**new**) | debt edits in GDR/SWE/YUG/FRA/VIE content | Reduce debt, optionally for one lender. |
 | `increase_/decrease_<policy>` setters (existing names; new bodies) | about 55 files that add or remove `policy_*_temp_N` ideas directly | Policy level becomes the source of truth (`*_level_value`). Ideas are derived from it. Raw idea edits get a codemod onto the setters. |
 | `cwic_set_policy_level` (**new**) | jumps of several levels in content | Sets level N directly. Needed for the codemod. |
@@ -247,7 +247,7 @@ Cadence:
 
 | Codemod | Files | Rule |
 |---|---|---|
-| C1 money | 129 | `add_to/subtract_from currentMoney = N` → `cwic_change_money` with a GDP share. The tool proposes `share = N / GDP_1949(tag)`; at runtime the share multiplies current GDP (D7). A human reviews the outliers (Space, the GDR card game, Malaya, VIE, SOV). Weapon prices stay absolute. |
+| C1 money | 129 | `add_to/subtract_from currentMoney = N` → `cwic_change_money` with the same fixed amount (D3). |
 | C2 debt | ~10 | hand-rolled debt → `cwic_take_loan` / `cwic_restructure_debt` (manual) |
 | C3 policy ideas | ~55 | `add_ideas`/`remove_ideas` on `policy_*_temp_N` → `cwic_set_policy_level` / setters. `has_idea` checks → level triggers. |
 | C4 axes | 11 | raw axis writes → `step_towards_*` / `convert_to_*` |
@@ -280,8 +280,8 @@ flowchart LR
 |---|---|---|
 | 0 | Branch agreement with afushin; units pinned; baseline 1949–1959 AFK log through `check_economy.py`; ask the artifact author for their simulator port | baseline report committed under `docs/economy_map/` |
 | 1 | F1–F11 | §3 exit criteria met; merged |
-| 2a | Input API (§2.2) built on the **current** core, so codemods can land before the new core | content compiles; error.log clean |
-| 2b | Codemods C1–C5 | raw-write counts in §2.2 reach 0 (except absolute prices) |
+| 2a ✅ | Input API (§2.2) built on the **current** core, so codemods can land before the new core. **Done** (`docs/economy_map/API.md`): `cwic_take_loan` (banks + country lenders; the IMF stand-in GER is not drained), `cwic_forgive_debt`, `cwic_set_<policy>_level` ×11, `cwic_set_economic_axes`, `cwic_change_corruption`; money uses the existing `cwic_change_money`, education the existing `nep_ed_*`. | content compiles; error.log clean |
+| 2b ✅ | Codemods C1–C5. **Done:** C1 money, 2,509 writes, all fixed amounts (`codemod_money_report.csv`); C2 debt, 14 files; C3 policy ideas, 226 set groups and 1,927 checks (`codemod_policy_report.csv`); C4 axes, 13 sites; C5 corruption, 84 writes, and education, 3 sites. Remaining raw writes are documented setup exceptions: the insurgent economy reset (`CWIC_Insurgency_Economy_Effects.txt`), VIE new-state integration (`VIE_Effects.txt` ~1137), the Finance tab loan UI internals (`Finance_Tab.txt`), and the startup `clear_all_policies` (`StartingPoliciesBogosort.txt`). Smoke-tested in game 2026-11-02 (tooltips); fixes in `eddccfd4db`. | raw-write counts in §2.2 reach 0 (except absolute prices) |
 | 2c | Simulator in `_tools/economy_check/sim/`, ported from the new formulas; calibration targets in §6 | targets met in the simulator |
 | 2d | New core bodies; delete the §4.2 list | published outputs in §2.1 all populated for players and AI |
 | 2e | UI and localisation rewrites (§4.3) | panels show only live values |
@@ -299,8 +299,10 @@ swapped without touching content again.
 - **1949 snapshot:** rank correlation ≥ 0.85 (today 0.86), and the countries within 1.5× of Maddison
   rise from 18/53 to ≥ 35/53.
 - **AI:** every AI country's GDP and HDI move monthly, and the AI fiscal rule (F15) keeps the ledger solvent.
-- **Performance:** monthly-tick time measured in a 10-year AFK run (`game.log` timestamps) is within 10%
-  of the Pass 1 baseline after Pass 2.
+- **Performance:** measured 2026-11-02 with a temporary console flag that skipped the AI pulse.
+  The monthly tick is ~3,700 ms with the AI economy and ~2,700 ms without, so the AI economy costs about 1 s per month,
+  roughly 6 ms per country and ~3% of play time. The Pass 2 core must stay at or under that, re-measured the same way.
+  The other ~2.7 s of the monthly tick is non-economy script; `ic_pulse` alone is ~520 ms per run.
 - **Integrity:** `error.log` has no new economy errors; nothing writes economy state raw
   (re-run the dependency-map scan).
 
