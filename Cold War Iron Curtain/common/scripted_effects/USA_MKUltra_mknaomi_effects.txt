@@ -1,160 +1,84 @@
-# Project MKNAOMI (Card 10: TSS / Fort Detrick Special Operations Division liaison)
-# and Project MKOFTEN (Card 11: ORD / Edgewood toxicology and anomaly canvass).
-#
-# MKNAOMI states (USA_mkultra_mknaomi_state):
-#   0 = locked
-#   1 = available
-#   2 = active 60-day Fort Detrick SOD liaison review (USA_mkultra_mknaomi_mission)
-#   3 = reviewed / settled under CIA charter
-#   4 = decommissioned under the February 1970 biological & toxin directive
-#   5 = cancelled / foreclosed
-#
-# MKOFTEN states (USA_mkultra_mkoften_state):
-#   0 = locked
-#   1 = available
-#   2 = active 45-day ORD / Edgewood canvass (USA_mkultra_mkoften_mission)
-#   3 = archived / settled
-#   4 = cancelled / foreclosed
+# Project MKNAOMI (Card 10), Project MKOFTEN (Card 11), Subproject 68 (Card 14),
+# Project ARTICHOKE Overseas I&S (Card 15), and Project GRILL FLAME (Card 17) scripted effects.
+
+USA_mkultra_assign_free_slot = {
+	if = {
+		limit = { check_variable = { USA_mkultra_slot_1_state = 0 } }
+		set_variable = { USA_mkultra_assigned_slot = 1 }
+	}
+	else = {
+		set_variable = { USA_mkultra_assigned_slot = 2 }
+	}
+}
 
 USA_mkultra_complete_60s_focus = {
 	if = {
 		limit = { USA_mkultra_enabled_trigger = yes }
-		if = {
-			limit = {
-				has_country_flag = USA_mkultra_initialized
-				NOT = { has_country_flag = USA_mkultra_60s_focus_credit_awarded }
-			}
-			set_country_flag = USA_mkultra_60s_focus_credit_awarded
-			add_to_variable = { USA_mkultra_progress = 4 }
-			add_to_variable = { USA_mkultra_exposure = 2 }
-			USA_mkultra_clamp_variables = yes
-		}
+		set_country_flag = USA_mkultra_preparatory_authority
 		USA_mkultra_initialize = yes
-	}
-}
-
-USA_mkultra_unlock_mknaomi = {
-	if = {
-		limit = { USA_mkultra_enabled_trigger = yes }
-		if = {
-			limit = { NOT = { has_country_flag = USA_mkultra_initialized } }
-			USA_mkultra_initialize = yes
-		}
-		if = {
-			limit = { NOT = { has_country_flag = USA_mkultra_mknaomi_unlocked } }
-			set_country_flag = USA_mkultra_mknaomi_unlocked
-			if = {
-				limit = {
-					OR = {
-						NOT = { has_variable = USA_mkultra_mknaomi_state }
-						check_variable = { USA_mkultra_mknaomi_state = 0 }
-					}
-				}
-				if = {
-					limit = {
-						OR = {
-							date > 1970.2.14
-							has_country_flag = USA_mkultra_charter_terminated
-						}
-					}
-					set_variable = { USA_mkultra_mknaomi_state = 5 }
-				}
-				else = {
-					set_variable = { USA_mkultra_mknaomi_state = 1 }
-				}
-			}
-			USA_mkultra_gui_reconcile = yes
-			USA_mkultra_mark_gui_dirty = yes
-		}
+		USA_mkultra_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
 	}
 }
 
 USA_mkultra_unlock_mksearch_focus = {
 	if = {
-		limit = { USA_mkultra_enabled_trigger = yes }
-		if = {
-			limit = { NOT = { has_country_flag = USA_mkultra_initialized } }
-			USA_mkultra_initialize = yes
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_mksearch_funding_ended }
 		}
+		set_country_flag = USA_mkultra_mksearch_remit
+		set_country_flag = USA_mkultra_mksearch_remit_offered
 		if = {
-			limit = { NOT = { has_country_flag = USA_mkultra_mksearch_focus_bonus_awarded } }
-			set_country_flag = USA_mkultra_mksearch_focus_bonus_awarded
-			add_to_variable = { USA_mkultra_progress = 4 }
-			add_to_variable = { USA_mkultra_exposure = 2 }
-			USA_mkultra_clamp_variables = yes
+			limit = { check_variable = { USA_mkultra_mksearch_stage = 0 } }
+			set_variable = { USA_mkultra_mksearch_stage = 1 }
 		}
-		if = {
-			limit = {
-				USA_mkultra_charter_active_trigger = yes
-				NOT = { has_country_flag = USA_mkultra_mksearch_funding_ended }
-			}
-			set_country_flag = USA_mkultra_mksearch_reorganization
-			USA_mkultra_open_mksearch_remit = yes
-		}
+		add_to_variable = { USA_mkultra_progress = 4 }
+		add_to_variable = { USA_mkultra_exposure = 2 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
 	}
 }
 
-USA_mkultra_unlock_mkoften = {
+###########################################################################
+# Card 10: Project MKNAOMI (1955-1970, CIA / Fort Detrick SOD)
+###########################################################################
+
+USA_mkultra_unlock_mknaomi = {
 	if = {
-		limit = { USA_mkultra_enabled_trigger = yes }
-		if = {
-			limit = { NOT = { has_country_flag = USA_mkultra_initialized } }
-			USA_mkultra_initialize = yes
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_mknaomi_unlocked }
+			NOT = { has_country_flag = USA_mkultra_mknaomi_1970_order_fired }
 		}
-		if = {
-			limit = { NOT = { has_country_flag = USA_mkultra_mkoften_unlocked } }
-			set_country_flag = USA_mkultra_mkoften_unlocked
-			if = {
-				limit = {
-					OR = {
-						NOT = { has_variable = USA_mkultra_mkoften_state }
-						check_variable = { USA_mkultra_mkoften_state = 0 }
-					}
-				}
-				if = {
-					limit = { has_country_flag = USA_mkultra_charter_terminated }
-					set_variable = { USA_mkultra_mkoften_state = 4 }
-				}
-				else = {
-					set_variable = { USA_mkultra_mkoften_state = 1 }
-				}
-			}
-			USA_mkultra_gui_reconcile = yes
-			USA_mkultra_mark_gui_dirty = yes
-		}
+		set_country_flag = USA_mkultra_mknaomi_unlocked
+		set_variable = { USA_mkultra_mknaomi_state = 1 }
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
 	}
 }
-
-###########################################################################
-# Card 10: Project MKNAOMI (Fort Detrick Special Operations Division)
-###########################################################################
 
 USA_mkultra_start_mknaomi = {
 	if = {
 		limit = { USA_mkultra_can_start_mknaomi_trigger = yes }
 		set_country_flag = USA_mkultra_mknaomi_paid
 		set_variable = { USA_mkultra_mknaomi_state = 2 }
-		if = {
-			limit = { check_variable = { USA_mkultra_slot_1_state = 0 } }
-			set_variable = { USA_mkultra_mknaomi_slot = 1 }
-		}
-		else = {
-			set_variable = { USA_mkultra_mknaomi_slot = 2 }
-		}
-		add_to_variable = { USA_mkultra_exposure = 3 }
-		add_to_variable = { USA_mkultra_harm = 2 }
+		USA_mkultra_assign_free_slot = yes
+		set_variable = { USA_mkultra_mknaomi_slot = USA_mkultra_assigned_slot }
+		USA_mkultra_charge_front_grant_stage = yes
+		add_to_variable = { USA_mkultra_harm = 5 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_evaluate_basic_inquiry = yes
-		activate_mission = USA_mkultra_mknaomi_mission
+		activate_mission = USA_mkultra_mknaomi_research
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
 	}
 }
 
-USA_mkultra_complete_mknaomi_mission = {
+USA_mkultra_complete_mknaomi = {
 	if = {
 		limit = {
 			USA_mkultra_charter_active_trigger = yes
@@ -163,53 +87,138 @@ USA_mkultra_complete_mknaomi_mission = {
 			NOT = { has_country_flag = USA_mkultra_mknaomi_record_awarded }
 		}
 		set_country_flag = USA_mkultra_mknaomi_record_awarded
-		add_to_variable = { USA_mkultra_progress = 6 }
+		add_to_variable = { USA_mkultra_progress = 8 }
 		set_variable = { USA_mkultra_mknaomi_state = 3 }
 		if = {
-			limit = { has_active_mission = USA_mkultra_mknaomi_mission }
-			remove_mission = USA_mkultra_mknaomi_mission
+			limit = { has_active_mission = USA_mkultra_mknaomi_research }
+			remove_mission = USA_mkultra_mknaomi_research
 		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_mknaomi_review
+		country_event = { id = cwic_mkultra.360 }
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_mknaomi_assay_only = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 3 }
+				check_variable = { USA_mkultra_mknaomi_state = 7 }
+			}
+		}
+		set_country_flag = USA_mkultra_mknaomi_assay_only
+		set_country_flag = USA_mkultra_mknaomi_archived
+		set_variable = { USA_mkultra_mknaomi_state = 4 }
+		set_variable = { USA_mkultra_mknaomi_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_review }
+			remove_mission = USA_mkultra_mknaomi_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_final_review }
+			remove_mission = USA_mkultra_mknaomi_final_review
+		}
+		add_to_variable = { USA_mkultra_progress = 4 }
+		add_to_variable = { USA_mkultra_exposure = -2 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
-		country_event = { id = cwic_mkultra.360 }
 	}
 }
 
-USA_mkultra_resolve_mknaomi_assay = {
-	set_country_flag = USA_mkultra_mknaomi_assay_only
-	set_country_flag = USA_mkultra_mknaomi_archived
-	add_to_variable = { USA_mkultra_progress = 3 }
-	add_to_variable = { USA_mkultra_harm = 2 }
-	add_to_variable = { USA_mkultra_exposure = 2 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_evaluate_basic_inquiry = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_mknaomi_stockpile = {
-	set_country_flag = USA_mkultra_mknaomi_stockpiled
-	set_country_flag = USA_mkultra_mknaomi_archived
-	add_to_variable = { USA_mkultra_progress = 6 }
-	add_to_variable = { USA_mkultra_harm = 6 }
-	add_to_variable = { USA_mkultra_exposure = 5 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_evaluate_basic_inquiry = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_mknaomi_reference = {
+USA_mkultra_resolve_mknaomi_retain_cache = {
 	if = {
-		limit = { has_political_power > 14 }
-		add_political_power = -15
-		set_country_flag = USA_mkultra_mknaomi_reference_only
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_mknaomi_state = 3 }
+		}
+		set_country_flag = USA_mkultra_mknaomi_cache_retained
+		set_country_flag = USA_mkultra_mknaomi_stockpiled
 		set_country_flag = USA_mkultra_mknaomi_archived
-		add_to_variable = { USA_mkultra_progress = 2 }
-		add_to_variable = { USA_mkultra_exposure = -2 }
+		set_variable = { USA_mkultra_mknaomi_state = 5 }
+		set_variable = { USA_mkultra_mknaomi_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_review }
+			remove_mission = USA_mkultra_mknaomi_review
+		}
+		add_to_variable = { USA_mkultra_progress = 8 }
+		add_to_variable = { USA_mkultra_exposure = 8 }
+		add_to_variable = { USA_mkultra_harm = 6 }
 		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_mknaomi_replication = {
+	if = {
+		limit = { USA_mkultra_can_replicate_mknaomi_trigger = yes }
+		set_country_flag = USA_mkultra_mknaomi_replication_paid
+		set_variable = { USA_mkultra_mknaomi_state = 6 }
+		USA_mkultra_charge_replication_stage = yes
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_review }
+			remove_mission = USA_mkultra_mknaomi_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_mknaomi_replication_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_mknaomi_replication = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_mknaomi_state = 6 }
+			has_country_flag = USA_mkultra_mknaomi_replication_paid
+			NOT = { has_country_flag = USA_mkultra_mknaomi_replication_record_awarded }
+		}
+		set_country_flag = USA_mkultra_mknaomi_replication_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_mknaomi_state = 7 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_replication_research }
+			remove_mission = USA_mkultra_mknaomi_replication_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_mknaomi_final_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_apply_mknaomi_finding = {
+	if = {
+		limit = { USA_mkultra_can_apply_mknaomi_finding_trigger = yes }
+		set_country_flag = USA_mkultra_mknaomi_finding_applied
+		set_country_flag = USA_mkultra_mknaomi_assay_only
+		set_country_flag = USA_mkultra_mknaomi_archived
+		set_variable = { USA_mkultra_mknaomi_state = 8 }
+		set_variable = { USA_mkultra_mknaomi_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_final_review }
+			remove_mission = USA_mkultra_mknaomi_final_review
+		}
+		add_timed_idea = {
+			idea = USA_mkultra_defensive_bio_assay
+			days = 365
+		}
+		add_to_variable = { USA_mkultra_exposure = -3 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
 	}
@@ -217,12 +226,21 @@ USA_mkultra_resolve_mknaomi_reference = {
 
 USA_mkultra_cancel_mknaomi = {
 	if = {
-		limit = { check_variable = { USA_mkultra_mknaomi_state = 2 } }
-		set_country_flag = USA_mkultra_mknaomi_cancelled
-		set_variable = { USA_mkultra_mknaomi_state = 5 }
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 2 }
+				check_variable = { USA_mkultra_mknaomi_state = 6 }
+			}
+		}
+		set_variable = { USA_mkultra_mknaomi_state = 9 }
+		set_variable = { USA_mkultra_mknaomi_slot = 0 }
 		if = {
-			limit = { has_active_mission = USA_mkultra_mknaomi_mission }
-			remove_mission = USA_mkultra_mknaomi_mission
+			limit = { has_active_mission = USA_mkultra_mknaomi_research }
+			remove_mission = USA_mkultra_mknaomi_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_mknaomi_replication_research }
+			remove_mission = USA_mkultra_mknaomi_replication_research
 		}
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
@@ -230,66 +248,100 @@ USA_mkultra_cancel_mknaomi = {
 	}
 }
 
-USA_mkultra_resolve_mknaomi_1970_destroy = {
-	if = {
-		limit = { check_variable = { USA_mkultra_mknaomi_state = 2 } }
-		USA_mkultra_cancel_mknaomi = yes
-	}
+USA_mkultra_resolve_1970_cbrn_comply = {
+	set_country_flag = USA_mkultra_mknaomi_1970_order_fired
+	set_country_flag = USA_mkultra_mknaomi_1970_complied
 	set_country_flag = USA_mkultra_mknaomi_destroyed_certified
-	set_country_flag = USA_mkultra_mknaomi_archived
-	set_variable = { USA_mkultra_mknaomi_state = 4 }
-	add_to_variable = { USA_mkultra_progress = 2 }
-	add_to_variable = { USA_mkultra_exposure = 2 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_recompute_slot_states = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
-}
-
-USA_mkultra_resolve_mknaomi_1970_retain = {
+	clr_country_flag = USA_mkultra_mknaomi_cache_retained
 	if = {
-		limit = { check_variable = { USA_mkultra_mknaomi_state = 2 } }
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 2 }
+				check_variable = { USA_mkultra_mknaomi_state = 6 }
+			}
+		}
 		USA_mkultra_cancel_mknaomi = yes
 	}
-	set_country_flag = USA_mkultra_mknaomi_cache_retained
-	set_country_flag = USA_mkultra_mknaomi_archived
-	set_variable = { USA_mkultra_mknaomi_state = 4 }
-	add_to_variable = { USA_mkultra_progress = 5 }
-	add_to_variable = { USA_mkultra_harm = 4 }
+	else_if = {
+		limit = { check_variable = { USA_mkultra_mknaomi_state = 1 } }
+		set_variable = { USA_mkultra_mknaomi_state = 10 }
+	}
+	else = {
+		set_country_flag = USA_mkultra_mknaomi_archived
+		set_variable = { USA_mkultra_mknaomi_state = 4 }
+	}
+	add_to_variable = { USA_mkultra_exposure = -5 }
 	USA_mkultra_clamp_variables = yes
 	USA_mkultra_recompute_slot_states = yes
 	USA_mkultra_gui_reconcile = yes
 	USA_mkultra_mark_gui_dirty = yes
 }
 
+USA_mkultra_resolve_1970_cbrn_conceal = {
+	set_country_flag = USA_mkultra_mknaomi_1970_order_fired
+	set_country_flag = USA_mkultra_mknaomi_cache_retained
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 2 }
+				check_variable = { USA_mkultra_mknaomi_state = 6 }
+			}
+		}
+		USA_mkultra_cancel_mknaomi = yes
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_mknaomi_state = 1 } }
+		set_variable = { USA_mkultra_mknaomi_state = 10 }
+	}
+	else = {
+		set_country_flag = USA_mkultra_mknaomi_archived
+		set_variable = { USA_mkultra_mknaomi_state = 5 }
+	}
+	add_to_variable = { USA_mkultra_exposure = 6 }
+	add_to_variable = { USA_mkultra_harm = 3 }
+	USA_mkultra_clamp_variables = yes
+	USA_mkultra_evaluate_basic_inquiry = yes
+	USA_mkultra_recompute_slot_states = yes
+	USA_mkultra_gui_reconcile = yes
+	USA_mkultra_mark_gui_dirty = yes
+}
+
 ###########################################################################
-# Card 11: Project MKOFTEN (ORD / Edgewood Pharmacology & Anomaly Canvass)
+# Card 11: Project MKOFTEN (1971-1973, CIA ORD / Edgewood Arsenal)
 ###########################################################################
+
+USA_mkultra_unlock_mkoften = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_mkoften_unlocked }
+		}
+		set_country_flag = USA_mkultra_mkoften_unlocked
+		set_variable = { USA_mkultra_mkoften_state = 1 }
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
 
 USA_mkultra_start_mkoften = {
 	if = {
 		limit = { USA_mkultra_can_start_mkoften_trigger = yes }
 		set_country_flag = USA_mkultra_mkoften_paid
 		set_variable = { USA_mkultra_mkoften_state = 2 }
-		if = {
-			limit = { check_variable = { USA_mkultra_slot_1_state = 0 } }
-			set_variable = { USA_mkultra_mkoften_slot = 1 }
-		}
-		else = {
-			set_variable = { USA_mkultra_mkoften_slot = 2 }
-		}
-		add_to_variable = { USA_mkultra_exposure = 2 }
-		add_to_variable = { USA_mkultra_harm = 1 }
+		USA_mkultra_assign_free_slot = yes
+		set_variable = { USA_mkultra_mkoften_slot = USA_mkultra_assigned_slot }
+		USA_mkultra_charge_front_grant_stage = yes
+		add_to_variable = { USA_mkultra_harm = 5 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_evaluate_basic_inquiry = yes
-		activate_mission = USA_mkultra_mkoften_mission
+		activate_mission = USA_mkultra_mkoften_research
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
 	}
 }
 
-USA_mkultra_complete_mkoften_mission = {
+USA_mkultra_complete_mkoften = {
 	if = {
 		limit = {
 			USA_mkultra_charter_active_trigger = yes
@@ -298,51 +350,162 @@ USA_mkultra_complete_mkoften_mission = {
 			NOT = { has_country_flag = USA_mkultra_mkoften_record_awarded }
 		}
 		set_country_flag = USA_mkultra_mkoften_record_awarded
-		add_to_variable = { USA_mkultra_progress = 6 }
+		add_to_variable = { USA_mkultra_progress = 8 }
 		set_variable = { USA_mkultra_mkoften_state = 3 }
 		if = {
-			limit = { has_active_mission = USA_mkultra_mkoften_mission }
-			remove_mission = USA_mkultra_mkoften_mission
+			limit = { has_active_mission = USA_mkultra_mkoften_research }
+			remove_mission = USA_mkultra_mkoften_research
 		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_mkoften_review
+		country_event = { id = cwic_mkultra.370 }
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_mkoften_toxicology_only = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			OR = {
+				check_variable = { USA_mkultra_mkoften_state = 3 }
+				check_variable = { USA_mkultra_mkoften_state = 7 }
+			}
+		}
+		set_country_flag = USA_mkultra_mkoften_toxicology_only
+		set_country_flag = USA_mkultra_mkoften_archived
+		set_variable = { USA_mkultra_mkoften_state = 4 }
+		set_variable = { USA_mkultra_mkoften_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_review }
+			remove_mission = USA_mkultra_mkoften_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_final_review }
+			remove_mission = USA_mkultra_mkoften_final_review
+		}
+		add_to_variable = { USA_mkultra_progress = 4 }
+		add_to_variable = { USA_mkultra_exposure = -2 }
 		USA_mkultra_clamp_variables = yes
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
 		USA_mkultra_mark_gui_dirty = yes
-		country_event = { id = cwic_mkultra.370 }
 	}
 }
 
-USA_mkultra_resolve_mkoften_toxicology = {
-	set_country_flag = USA_mkultra_mkoften_toxicology_only
-	set_country_flag = USA_mkultra_mkoften_archived
-	add_to_variable = { USA_mkultra_progress = 3 }
-	add_to_variable = { USA_mkultra_exposure = 1 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_evaluate_basic_inquiry = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
+USA_mkultra_resolve_mkoften_anomalous_branch = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_mkoften_state = 3 }
+		}
+		set_country_flag = USA_mkultra_mkoften_anomalous_branch
+		set_country_flag = USA_mkultra_mkoften_anomaly_canvass
+		set_country_flag = USA_mkultra_mkoften_archived
+		set_variable = { USA_mkultra_mkoften_state = 5 }
+		set_variable = { USA_mkultra_mkoften_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_review }
+			remove_mission = USA_mkultra_mkoften_review
+		}
+		add_to_variable = { USA_mkultra_progress = 4 }
+		add_to_variable = { USA_mkultra_exposure = 9 }
+		add_to_variable = { USA_mkultra_harm = 8 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
 }
 
-USA_mkultra_resolve_mkoften_canvass = {
-	set_country_flag = USA_mkultra_mkoften_anomaly_canvass
-	set_country_flag = USA_mkultra_mkoften_archived
-	add_to_variable = { USA_mkultra_progress = 5 }
-	add_to_variable = { USA_mkultra_harm = 3 }
-	add_to_variable = { USA_mkultra_exposure = 4 }
-	USA_mkultra_clamp_variables = yes
-	USA_mkultra_evaluate_basic_inquiry = yes
-	USA_mkultra_gui_reconcile = yes
-	USA_mkultra_mark_gui_dirty = yes
+USA_mkultra_start_mkoften_replication = {
+	if = {
+		limit = { USA_mkultra_can_replicate_mkoften_trigger = yes }
+		set_country_flag = USA_mkultra_mkoften_replication_paid
+		set_variable = { USA_mkultra_mkoften_state = 6 }
+		USA_mkultra_charge_replication_stage = yes
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_review }
+			remove_mission = USA_mkultra_mkoften_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_mkoften_replication_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_mkoften_replication = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_mkoften_state = 6 }
+			has_country_flag = USA_mkultra_mkoften_replication_paid
+			NOT = { has_country_flag = USA_mkultra_mkoften_replication_record_awarded }
+		}
+		set_country_flag = USA_mkultra_mkoften_replication_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_mkoften_state = 7 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_replication_research }
+			remove_mission = USA_mkultra_mkoften_replication_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_mkoften_final_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_apply_mkoften_finding = {
+	if = {
+		limit = { USA_mkultra_can_apply_mkoften_finding_trigger = yes }
+		set_country_flag = USA_mkultra_mkoften_finding_applied
+		set_country_flag = USA_mkultra_mkoften_toxicology_only
+		set_country_flag = USA_mkultra_mkoften_archived
+		set_variable = { USA_mkultra_mkoften_state = 8 }
+		set_variable = { USA_mkultra_mkoften_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_final_review }
+			remove_mission = USA_mkultra_mkoften_final_review
+		}
+		add_tech_bonus = {
+			name = USA_mkultra_mkoften_toxicology_index_bonus
+			uses = 1
+			bonus = 0.20
+			category = computing_tech
+		}
+		add_to_variable = { USA_mkultra_exposure = -3 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
 }
 
 USA_mkultra_cancel_mkoften = {
 	if = {
-		limit = { check_variable = { USA_mkultra_mkoften_state = 2 } }
-		set_country_flag = USA_mkultra_mkoften_cancelled
-		set_variable = { USA_mkultra_mkoften_state = 4 }
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mkoften_state = 2 }
+				check_variable = { USA_mkultra_mkoften_state = 6 }
+			}
+		}
+		set_variable = { USA_mkultra_mkoften_state = 9 }
+		set_variable = { USA_mkultra_mkoften_slot = 0 }
 		if = {
-			limit = { has_active_mission = USA_mkultra_mkoften_mission }
-			remove_mission = USA_mkultra_mkoften_mission
+			limit = { has_active_mission = USA_mkultra_mkoften_research }
+			remove_mission = USA_mkultra_mkoften_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_mkoften_replication_research }
+			remove_mission = USA_mkultra_mkoften_replication_research
 		}
 		USA_mkultra_recompute_slot_states = yes
 		USA_mkultra_gui_reconcile = yes
@@ -351,21 +514,496 @@ USA_mkultra_cancel_mkoften = {
 }
 
 ###########################################################################
-# Shared settlement, reconciliation, and slot-state helpers
+# Card 12: Subproject 68 — Depatterning & Psychic Driving (1957-1963)
 ###########################################################################
 
-USA_mkultra_settle_mknaomi_and_mkoften = {
-	USA_mkultra_cancel_mknaomi = yes
-	USA_mkultra_cancel_mkoften = yes
+USA_mkultra_unlock_subproject68 = {
 	if = {
-		limit = { check_variable = { USA_mkultra_mknaomi_state = 1 } }
-		set_variable = { USA_mkultra_mknaomi_state = 5 }
-	}
-	if = {
-		limit = { check_variable = { USA_mkultra_mkoften_state = 1 } }
-		set_variable = { USA_mkultra_mkoften_state = 4 }
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_subproject68_unlocked }
+		}
+		set_country_flag = USA_mkultra_subproject68_unlocked
+		set_variable = { USA_mkultra_subproject68_stage = 1 }
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
 	}
 }
+
+USA_mkultra_start_subproject68 = {
+	if = {
+		limit = { USA_mkultra_can_start_subproject68_trigger = yes }
+		set_country_flag = USA_mkultra_subproject68_paid
+		set_variable = { USA_mkultra_subproject68_stage = 2 }
+		USA_mkultra_assign_free_slot = yes
+		set_variable = { USA_mkultra_subproject68_slot = USA_mkultra_assigned_slot }
+		USA_mkultra_charge_front_grant_stage = yes
+		add_to_variable = { USA_mkultra_harm = 12 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_subproject68_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_subproject68 = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_subproject68_stage = 2 }
+			has_country_flag = USA_mkultra_subproject68_paid
+			NOT = { has_country_flag = USA_mkultra_subproject68_record_awarded }
+		}
+		set_country_flag = USA_mkultra_subproject68_record_awarded
+		add_to_variable = { USA_mkultra_progress = 8 }
+		set_variable = { USA_mkultra_subproject68_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_research }
+			remove_mission = USA_mkultra_subproject68_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_subproject68_review
+		country_event = { id = cwic_mkultra.380 }
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_archive_subproject68 = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			OR = {
+				check_variable = { USA_mkultra_subproject68_stage = 3 }
+				check_variable = { USA_mkultra_subproject68_stage = 7 }
+			}
+		}
+		set_country_flag = USA_mkultra_subproject68_archived
+		set_variable = { USA_mkultra_subproject68_stage = 4 }
+		set_variable = { USA_mkultra_subproject68_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_review }
+			remove_mission = USA_mkultra_subproject68_review
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_final_review }
+			remove_mission = USA_mkultra_subproject68_final_review
+		}
+		add_to_variable = { USA_mkultra_exposure = -3 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_subproject68_renew = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_subproject68_stage = 3 }
+		}
+		set_country_flag = USA_mkultra_subproject68_renewed
+		set_country_flag = USA_mkultra_subproject68_archived
+		set_variable = { USA_mkultra_subproject68_stage = 5 }
+		set_variable = { USA_mkultra_subproject68_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_review }
+			remove_mission = USA_mkultra_subproject68_review
+		}
+		add_to_variable = { USA_mkultra_progress = 8 }
+		add_to_variable = { USA_mkultra_exposure = 8 }
+		add_to_variable = { USA_mkultra_harm = 10 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_subproject68_replication = {
+	if = {
+		limit = { USA_mkultra_can_replicate_subproject68_trigger = yes }
+		set_country_flag = USA_mkultra_subproject68_replication_paid
+		set_variable = { USA_mkultra_subproject68_stage = 6 }
+		USA_mkultra_charge_replication_stage = yes
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_review }
+			remove_mission = USA_mkultra_subproject68_review
+		}
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_subproject68_replication_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_subproject68_replication = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_subproject68_stage = 6 }
+			has_country_flag = USA_mkultra_subproject68_replication_paid
+			NOT = { has_country_flag = USA_mkultra_subproject68_replication_record_awarded }
+		}
+		set_country_flag = USA_mkultra_subproject68_replication_record_awarded
+		add_to_variable = { USA_mkultra_progress = 6 }
+		set_variable = { USA_mkultra_subproject68_stage = 7 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_replication_research }
+			remove_mission = USA_mkultra_subproject68_replication_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_subproject68_final_review
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_apply_subproject68_audit = {
+	if = {
+		limit = { USA_mkultra_can_apply_subproject68_audit_trigger = yes }
+		set_country_flag = USA_mkultra_subproject68_audited
+		set_country_flag = USA_mkultra_subproject68_archived
+		set_variable = { USA_mkultra_subproject68_stage = 8 }
+		set_variable = { USA_mkultra_subproject68_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_final_review }
+			remove_mission = USA_mkultra_subproject68_final_review
+		}
+		add_to_variable = { USA_mkultra_exposure = -4 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_cancel_subproject68 = {
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_subproject68_stage = 2 }
+				check_variable = { USA_mkultra_subproject68_stage = 6 }
+			}
+		}
+		set_variable = { USA_mkultra_subproject68_stage = 9 }
+		set_variable = { USA_mkultra_subproject68_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_research }
+			remove_mission = USA_mkultra_subproject68_research
+		}
+		if = {
+			limit = { has_active_mission = USA_mkultra_subproject68_replication_research }
+			remove_mission = USA_mkultra_subproject68_replication_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+###########################################################################
+# Card 13: Project ARTICHOKE — Overseas I&S Interrogation Teams (1953-1958)
+###########################################################################
+
+USA_mkultra_unlock_artichoke = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_artichoke_unlocked }
+		}
+		set_country_flag = USA_mkultra_artichoke_unlocked
+		set_variable = { USA_mkultra_artichoke_stage = 1 }
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_artichoke = {
+	if = {
+		limit = { USA_mkultra_can_start_artichoke_trigger = yes }
+		set_country_flag = USA_mkultra_artichoke_paid
+		set_variable = { USA_mkultra_artichoke_stage = 2 }
+		USA_mkultra_assign_free_slot = yes
+		set_variable = { USA_mkultra_artichoke_slot = USA_mkultra_assigned_slot }
+		USA_mkultra_charge_low_exposure_front_grant_stage = yes
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = USA_mkultra_precursor_reviewed
+					has_country_flag = USA_mkultra_bluebird_files_forwarded
+				}
+			}
+			add_to_variable = { USA_mkultra_exposure = -2 }
+		}
+		add_to_variable = { USA_mkultra_harm = 5 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		activate_mission = USA_mkultra_artichoke_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_artichoke = {
+	if = {
+		limit = {
+			USA_mkultra_charter_active_trigger = yes
+			check_variable = { USA_mkultra_artichoke_stage = 2 }
+			has_country_flag = USA_mkultra_artichoke_paid
+			NOT = { has_country_flag = USA_mkultra_artichoke_record_awarded }
+		}
+		set_country_flag = USA_mkultra_artichoke_record_awarded
+		add_to_variable = { USA_mkultra_progress = 8 }
+		set_variable = { USA_mkultra_artichoke_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_artichoke_research }
+			remove_mission = USA_mkultra_artichoke_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_artichoke_review
+		country_event = { id = cwic_mkultra.390 }
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_artichoke_defensive = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_artichoke_stage = 3 }
+		}
+		set_country_flag = USA_mkultra_artichoke_defensive_only
+		set_country_flag = USA_mkultra_artichoke_archived
+		set_variable = { USA_mkultra_artichoke_stage = 4 }
+		set_variable = { USA_mkultra_artichoke_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_artichoke_review }
+			remove_mission = USA_mkultra_artichoke_review
+		}
+		add_to_variable = { USA_mkultra_progress = 4 }
+		add_to_variable = { USA_mkultra_exposure = -2 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_artichoke_coercive = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_artichoke_stage = 3 }
+		}
+		set_country_flag = USA_mkultra_artichoke_coercive_branch
+		set_country_flag = USA_mkultra_artichoke_archived
+		set_variable = { USA_mkultra_artichoke_stage = 5 }
+		set_variable = { USA_mkultra_artichoke_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_artichoke_review }
+			remove_mission = USA_mkultra_artichoke_review
+		}
+		add_to_variable = { USA_mkultra_progress = 8 }
+		add_to_variable = { USA_mkultra_exposure = 8 }
+		add_to_variable = { USA_mkultra_harm = 8 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_evaluate_basic_inquiry = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_apply_artichoke_finding = {
+	if = {
+		limit = { USA_mkultra_can_apply_artichoke_finding_trigger = yes }
+		set_country_flag = USA_mkultra_artichoke_finding_applied
+		set_country_flag = USA_mkultra_artichoke_defensive_only
+		set_country_flag = USA_mkultra_artichoke_archived
+		set_variable = { USA_mkultra_artichoke_stage = 6 }
+		set_variable = { USA_mkultra_artichoke_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_artichoke_review }
+			remove_mission = USA_mkultra_artichoke_review
+		}
+		add_timed_idea = {
+			idea = USA_mkultra_artichoke_debriefing_standard
+			days = 180
+		}
+		add_to_variable = { USA_mkultra_exposure = -2 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_cancel_artichoke = {
+	if = {
+		limit = { check_variable = { USA_mkultra_artichoke_stage = 2 } }
+		set_variable = { USA_mkultra_artichoke_stage = 7 }
+		set_variable = { USA_mkultra_artichoke_slot = 0 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_artichoke_research }
+			remove_mission = USA_mkultra_artichoke_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+###########################################################################
+# Card 14: Project GRILL FLAME — Foreign Psychotronics Appraisal (1983-1986)
+###########################################################################
+
+USA_mkultra_unlock_grill_flame = {
+	if = {
+		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
+			NOT = { has_country_flag = USA_mkultra_grill_flame_unlocked }
+		}
+		set_country_flag = USA_mkultra_grill_flame_unlocked
+		set_variable = { USA_mkultra_grill_flame_stage = 1 }
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_start_grill_flame = {
+	if = {
+		limit = { USA_mkultra_can_start_grill_flame_trigger = yes }
+		set_country_flag = USA_mkultra_grill_flame_paid
+		set_variable = { USA_mkultra_grill_flame_stage = 2 }
+		if = {
+			limit = {
+				has_global_flag = cwic_psychotronic_claims_circulating
+				country_exists = SOV
+				SOV = { SOV_psych_enabled_trigger = yes }
+			}
+			add_political_power = 5
+			add_to_variable = { USA_mkultra_exposure = 1 }
+			set_country_flag = USA_mkultra_grill_flame_soviet_urgency
+		}
+		add_to_variable = { USA_mkultra_exposure = 2 }
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_grill_flame_research
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_complete_grill_flame = {
+	if = {
+		limit = {
+			USA_mkultra_gateway_charter_active_trigger = yes
+			check_variable = { USA_mkultra_grill_flame_stage = 2 }
+			has_country_flag = USA_mkultra_grill_flame_paid
+			NOT = { has_country_flag = USA_mkultra_grill_flame_record_awarded }
+		}
+		set_country_flag = USA_mkultra_grill_flame_record_awarded
+		add_to_variable = { USA_mkultra_progress = 10 }
+		set_variable = { USA_mkultra_grill_flame_stage = 3 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_grill_flame_research }
+			remove_mission = USA_mkultra_grill_flame_research
+		}
+		USA_mkultra_clamp_variables = yes
+		activate_mission = USA_mkultra_grill_flame_review
+		country_event = { id = cwic_mkultra.395 }
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_grill_flame_skeptical = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_grill_flame_stage = 3 }
+		}
+		set_country_flag = USA_mkultra_grill_flame_skeptical_estimate
+		set_country_flag = USA_mkultra_grill_flame_archived
+		set_variable = { USA_mkultra_grill_flame_stage = 4 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_grill_flame_review }
+			remove_mission = USA_mkultra_grill_flame_review
+		}
+		add_to_variable = { USA_mkultra_progress = 4 }
+		add_to_variable = { USA_mkultra_exposure = -4 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_resolve_grill_flame_gap = {
+	if = {
+		limit = {
+			USA_mkultra_enabled_trigger = yes
+			check_variable = { USA_mkultra_grill_flame_stage = 3 }
+		}
+		set_country_flag = USA_mkultra_grill_flame_gap_cited
+		set_country_flag = USA_mkultra_grill_flame_archived
+		set_global_flag = cwic_us_remote_viewing_claims_circulating
+		set_variable = { USA_mkultra_grill_flame_stage = 5 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_grill_flame_review }
+			remove_mission = USA_mkultra_grill_flame_review
+		}
+		add_to_variable = { USA_mkultra_progress = 8 }
+		add_to_variable = { USA_mkultra_exposure = 6 }
+		USA_mkultra_clamp_variables = yes
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_cancel_grill_flame = {
+	if = {
+		limit = { check_variable = { USA_mkultra_grill_flame_stage = 2 } }
+		set_variable = { USA_mkultra_grill_flame_stage = 6 }
+		if = {
+			limit = { has_active_mission = USA_mkultra_grill_flame_research }
+			remove_mission = USA_mkultra_grill_flame_research
+		}
+		USA_mkultra_recompute_slot_states = yes
+		USA_mkultra_gui_reconcile = yes
+		USA_mkultra_mark_gui_dirty = yes
+	}
+}
+
+USA_mkultra_settle_grill_flame = {
+	USA_mkultra_cancel_grill_flame = yes
+	if = {
+		limit = { check_variable = { USA_mkultra_grill_flame_stage = 3 } }
+		USA_mkultra_resolve_grill_flame_skeptical = yes
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_grill_flame_stage = 1 } }
+		set_variable = { USA_mkultra_grill_flame_stage = 7 }
+	}
+}
+
+###########################################################################
+# Shared Reconciliation, Slot Occupancy & Charter Settlement
+###########################################################################
 
 USA_mkultra_mknaomi_reconcile = {
 	if = {
@@ -377,46 +1015,183 @@ USA_mkultra_mknaomi_reconcile = {
 		set_variable = { USA_mkultra_mkoften_state = 0 }
 	}
 	if = {
-		limit = {
-			USA_mkultra_charter_active_trigger = yes
-			date > 1955.1.1
-			date < 1970.2.15
-			NOT = { has_country_flag = USA_mkultra_mknaomi_unlocked }
+		limit = { NOT = { has_variable = USA_mkultra_subproject68_stage } }
+		set_variable = { USA_mkultra_subproject68_stage = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = USA_mkultra_artichoke_stage } }
+		set_variable = { USA_mkultra_artichoke_stage = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = USA_mkultra_grill_flame_stage } }
+		set_variable = { USA_mkultra_grill_flame_stage = 0 }
+	}
+	if = {
+		limit = { USA_mkultra_charter_active_trigger = yes }
+		USA_mkultra_unlock_artichoke = yes
+		if = {
+			limit = {
+				OR = {
+					date > 1954.12.31
+					has_completed_focus = USA_60s_Project_MKNAOMI
+				}
+				NOT = { has_country_flag = USA_mkultra_mknaomi_1970_order_fired }
+			}
+			USA_mkultra_unlock_mknaomi = yes
 		}
-		set_country_flag = USA_mkultra_mknaomi_unlocked
-		set_variable = { USA_mkultra_mknaomi_state = 1 }
+		if = {
+			limit = { date > 1956.12.31 }
+			USA_mkultra_unlock_subproject68 = yes
+		}
+		if = {
+			limit = {
+				OR = {
+					date > 1970.12.31
+					has_completed_focus = USA_60s_Project_MKOFTEN
+				}
+			}
+			USA_mkultra_unlock_mkoften = yes
+		}
+		# Restore active CIA timers if missing
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mknaomi_state = 2 }
+				NOT = { has_active_mission = USA_mkultra_mknaomi_research }
+			}
+			activate_mission = USA_mkultra_mknaomi_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mknaomi_state = 3 }
+				NOT = { has_active_mission = USA_mkultra_mknaomi_review }
+			}
+			activate_mission = USA_mkultra_mknaomi_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mknaomi_state = 6 }
+				NOT = { has_active_mission = USA_mkultra_mknaomi_replication_research }
+			}
+			activate_mission = USA_mkultra_mknaomi_replication_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mknaomi_state = 7 }
+				NOT = { has_active_mission = USA_mkultra_mknaomi_final_review }
+			}
+			activate_mission = USA_mkultra_mknaomi_final_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mkoften_state = 2 }
+				NOT = { has_active_mission = USA_mkultra_mkoften_research }
+			}
+			activate_mission = USA_mkultra_mkoften_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mkoften_state = 3 }
+				NOT = { has_active_mission = USA_mkultra_mkoften_review }
+			}
+			activate_mission = USA_mkultra_mkoften_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mkoften_state = 6 }
+				NOT = { has_active_mission = USA_mkultra_mkoften_replication_research }
+			}
+			activate_mission = USA_mkultra_mkoften_replication_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_mkoften_state = 7 }
+				NOT = { has_active_mission = USA_mkultra_mkoften_final_review }
+			}
+			activate_mission = USA_mkultra_mkoften_final_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_subproject68_stage = 2 }
+				NOT = { has_active_mission = USA_mkultra_subproject68_research }
+			}
+			activate_mission = USA_mkultra_subproject68_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_subproject68_stage = 3 }
+				NOT = { has_active_mission = USA_mkultra_subproject68_review }
+			}
+			activate_mission = USA_mkultra_subproject68_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_subproject68_stage = 6 }
+				NOT = { has_active_mission = USA_mkultra_subproject68_replication_research }
+			}
+			activate_mission = USA_mkultra_subproject68_replication_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_subproject68_stage = 7 }
+				NOT = { has_active_mission = USA_mkultra_subproject68_final_review }
+			}
+			activate_mission = USA_mkultra_subproject68_final_review
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_artichoke_stage = 2 }
+				NOT = { has_active_mission = USA_mkultra_artichoke_research }
+			}
+			activate_mission = USA_mkultra_artichoke_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_artichoke_stage = 3 }
+				NOT = { has_active_mission = USA_mkultra_artichoke_review }
+			}
+			activate_mission = USA_mkultra_artichoke_review
+		}
+	}
+	if = {
+		limit = { USA_mkultra_gateway_charter_active_trigger = yes }
+		USA_mkultra_unlock_grill_flame = yes
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_grill_flame_stage = 2 }
+				NOT = { has_active_mission = USA_mkultra_grill_flame_research }
+			}
+			activate_mission = USA_mkultra_grill_flame_research
+		}
+		if = {
+			limit = {
+				check_variable = { USA_mkultra_grill_flame_stage = 3 }
+				NOT = { has_active_mission = USA_mkultra_grill_flame_review }
+			}
+			activate_mission = USA_mkultra_grill_flame_review
+		}
 	}
 	if = {
 		limit = {
-			USA_mkultra_charter_active_trigger = yes
-			date > 1971.1.1
-			date < 1973.6.1
-			NOT = { has_country_flag = USA_mkultra_mkoften_unlocked }
+			check_variable = { USA_mkultra_gateway_charter_state = 2 }
+			OR = {
+				check_variable = { USA_mkultra_grill_flame_stage = 1 }
+				check_variable = { USA_mkultra_grill_flame_stage = 2 }
+				check_variable = { USA_mkultra_grill_flame_stage = 3 }
+			}
 		}
-		set_country_flag = USA_mkultra_mkoften_unlocked
-		set_variable = { USA_mkultra_mkoften_state = 1 }
-	}
-	if = {
-		limit = {
-			USA_mkultra_charter_active_trigger = yes
-			check_variable = { USA_mkultra_mknaomi_state = 2 }
-			NOT = { has_active_mission = USA_mkultra_mknaomi_mission }
-		}
-		activate_mission = USA_mkultra_mknaomi_mission
-	}
-	if = {
-		limit = {
-			USA_mkultra_charter_active_trigger = yes
-			check_variable = { USA_mkultra_mkoften_state = 2 }
-			NOT = { has_active_mission = USA_mkultra_mkoften_mission }
-		}
-		activate_mission = USA_mkultra_mkoften_mission
+		USA_mkultra_settle_grill_flame = yes
 	}
 }
 
 USA_mkultra_mknaomi_slot_states = {
+	# Card 10: MKNAOMI (2/6 research, 3/7 report)
 	if = {
-		limit = { check_variable = { USA_mkultra_mknaomi_state = 2 } }
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 2 }
+				check_variable = { USA_mkultra_mknaomi_state = 6 }
+			}
+		}
 		if = {
 			limit = { check_variable = { USA_mkultra_mknaomi_slot = 2 } }
 			set_variable = { USA_mkultra_slot_2_state = 1 }
@@ -425,8 +1200,30 @@ USA_mkultra_mknaomi_slot_states = {
 			set_variable = { USA_mkultra_slot_1_state = 1 }
 		}
 	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 3 }
+				check_variable = { USA_mkultra_mknaomi_state = 7 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_mknaomi_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+
+	# Card 11: MKOFTEN (2/6 research, 3/7 report)
 	if = {
-		limit = { check_variable = { USA_mkultra_mkoften_state = 2 } }
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mkoften_state = 2 }
+				check_variable = { USA_mkultra_mkoften_state = 6 }
+			}
+		}
 		if = {
 			limit = { check_variable = { USA_mkultra_mkoften_slot = 2 } }
 			set_variable = { USA_mkultra_slot_2_state = 1 }
@@ -434,5 +1231,172 @@ USA_mkultra_mknaomi_slot_states = {
 		else = {
 			set_variable = { USA_mkultra_slot_1_state = 1 }
 		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mkoften_state = 3 }
+				check_variable = { USA_mkultra_mkoften_state = 7 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_mkoften_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+
+	# Card 12: Subproject 68 (2/6 research, 3/7 report)
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_subproject68_stage = 2 }
+				check_variable = { USA_mkultra_subproject68_stage = 6 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_subproject68_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_subproject68_stage = 3 }
+				check_variable = { USA_mkultra_subproject68_stage = 7 }
+			}
+		}
+		if = {
+			limit = { check_variable = { USA_mkultra_subproject68_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+
+	# Card 13: Project ARTICHOKE (2 research, 3 report)
+	if = {
+		limit = { check_variable = { USA_mkultra_artichoke_stage = 2 } }
+		if = {
+			limit = { check_variable = { USA_mkultra_artichoke_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 1 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 1 }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_artichoke_stage = 3 } }
+		if = {
+			limit = { check_variable = { USA_mkultra_artichoke_slot = 2 } }
+			set_variable = { USA_mkultra_slot_2_state = 2 }
+		}
+		else = {
+			set_variable = { USA_mkultra_slot_1_state = 2 }
+		}
+	}
+
+	# Card 14: Project GRILL FLAME (Army single slot: 2 research, 3 report)
+	if = {
+		limit = { check_variable = { USA_mkultra_grill_flame_stage = 2 } }
+		set_variable = { USA_mkultra_slot_1_state = 1 }
+	}
+	else_if = {
+		limit = { check_variable = { USA_mkultra_grill_flame_stage = 3 } }
+		set_variable = { USA_mkultra_slot_1_state = 2 }
+	}
+}
+
+USA_mkultra_settle_mknaomi_and_mkoften = {
+	# Settle MKNAOMI
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 2 }
+				check_variable = { USA_mkultra_mknaomi_state = 6 }
+			}
+		}
+		USA_mkultra_cancel_mknaomi = yes
+	}
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mknaomi_state = 3 }
+				check_variable = { USA_mkultra_mknaomi_state = 7 }
+			}
+		}
+		USA_mkultra_resolve_mknaomi_assay_only = yes
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_mknaomi_state = 1 } }
+		set_variable = { USA_mkultra_mknaomi_state = 10 }
+	}
+
+	# Settle MKOFTEN
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mkoften_state = 2 }
+				check_variable = { USA_mkultra_mkoften_state = 6 }
+			}
+		}
+		USA_mkultra_cancel_mkoften = yes
+	}
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_mkoften_state = 3 }
+				check_variable = { USA_mkultra_mkoften_state = 7 }
+			}
+		}
+		USA_mkultra_resolve_mkoften_toxicology_only = yes
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_mkoften_state = 1 } }
+		set_variable = { USA_mkultra_mkoften_state = 10 }
+	}
+
+	# Settle Subproject 68
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_subproject68_stage = 2 }
+				check_variable = { USA_mkultra_subproject68_stage = 6 }
+			}
+		}
+		USA_mkultra_cancel_subproject68 = yes
+	}
+	if = {
+		limit = {
+			OR = {
+				check_variable = { USA_mkultra_subproject68_stage = 3 }
+				check_variable = { USA_mkultra_subproject68_stage = 7 }
+			}
+		}
+		USA_mkultra_archive_subproject68 = yes
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_subproject68_stage = 1 } }
+		set_variable = { USA_mkultra_subproject68_stage = 10 }
+	}
+
+	# Settle Project ARTICHOKE
+	if = {
+		limit = { check_variable = { USA_mkultra_artichoke_stage = 2 } }
+		USA_mkultra_cancel_artichoke = yes
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_artichoke_stage = 3 } }
+		USA_mkultra_resolve_artichoke_defensive = yes
+	}
+	if = {
+		limit = { check_variable = { USA_mkultra_artichoke_stage = 1 } }
+		set_variable = { USA_mkultra_artichoke_stage = 8 }
 	}
 }
