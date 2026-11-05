@@ -514,7 +514,7 @@ USA_mkultra_cancel_mkoften = {
 }
 
 ###########################################################################
-# Card 12: Subproject 68 — Depatterning & Psychic Driving (1957-1963)
+# Card 14: Subproject 68 — Depatterning & Psychic Driving (1957-1963)
 ###########################################################################
 
 USA_mkultra_unlock_subproject68 = {
@@ -711,7 +711,7 @@ USA_mkultra_cancel_subproject68 = {
 }
 
 ###########################################################################
-# Card 13: Project ARTICHOKE — Overseas I&S Interrogation Teams (1953-1958)
+# Card 15: Project ARTICHOKE — Overseas I&S Interrogation Teams (1953-1958)
 ###########################################################################
 
 USA_mkultra_unlock_artichoke = {
@@ -840,7 +840,7 @@ USA_mkultra_apply_artichoke_finding = {
 		}
 		add_timed_idea = {
 			idea = USA_mkultra_artichoke_debriefing_standard
-			days = 180
+			days = 365
 		}
 		add_to_variable = { USA_mkultra_exposure = -2 }
 		USA_mkultra_clamp_variables = yes
@@ -866,7 +866,7 @@ USA_mkultra_cancel_artichoke = {
 }
 
 ###########################################################################
-# Card 14: Project GRILL FLAME — Foreign Psychotronics Appraisal (1983-1986)
+# Card 17: Project GRILL FLAME — Foreign Psychotronics Appraisal (1983-1986)
 ###########################################################################
 
 USA_mkultra_unlock_grill_flame = {
@@ -1005,7 +1005,111 @@ USA_mkultra_settle_grill_flame = {
 # Shared Reconciliation, Slot Occupancy & Charter Settlement
 ###########################################################################
 
+# Earlier versions left archived reports at state 3 and used 4/5 for cancelled
+# or foreclosed files. Translate dispositions before restoring any timers. This
+# migration repairs saved state only: no costs, findings or rewards are replayed.
+USA_mkultra_migrate_mknaomi_archives = {
+	if = {
+		limit = { NOT = { check_variable = { USA_mkultra_mknaomi_schema > 1 } } }
+		if = {
+			limit = { has_country_flag = USA_mkultra_mknaomi_archived }
+			if = {
+				limit = { has_country_flag = USA_mkultra_mknaomi_finding_applied }
+				set_variable = { USA_mkultra_mknaomi_state = 8 }
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_country_flag = USA_mkultra_mknaomi_cache_retained
+						has_country_flag = USA_mkultra_mknaomi_stockpiled
+					}
+					NOT = { has_country_flag = USA_mkultra_mknaomi_destroyed_certified }
+				}
+				set_variable = { USA_mkultra_mknaomi_state = 5 }
+			}
+			else = { set_variable = { USA_mkultra_mknaomi_state = 4 } }
+		}
+		else_if = {
+			limit = { has_country_flag = USA_mkultra_mknaomi_cancelled }
+			set_variable = { USA_mkultra_mknaomi_state = 9 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { USA_mkultra_mknaomi_state = 5 }
+				NOT = { has_country_flag = USA_mkultra_mknaomi_paid }
+			}
+			set_variable = { USA_mkultra_mknaomi_state = 10 }
+		}
+		if = {
+			limit = { has_country_flag = USA_mkultra_mkoften_archived }
+			if = {
+				limit = { has_country_flag = USA_mkultra_mkoften_finding_applied }
+				set_variable = { USA_mkultra_mkoften_state = 8 }
+			}
+			else_if = {
+				limit = {
+					OR = {
+						has_country_flag = USA_mkultra_mkoften_anomalous_branch
+						has_country_flag = USA_mkultra_mkoften_anomaly_canvass
+					}
+				}
+				set_variable = { USA_mkultra_mkoften_state = 5 }
+			}
+			else = { set_variable = { USA_mkultra_mkoften_state = 4 } }
+		}
+		else_if = {
+			limit = { has_country_flag = USA_mkultra_mkoften_cancelled }
+			set_variable = { USA_mkultra_mkoften_state = 9 }
+		}
+		else_if = {
+			limit = {
+				check_variable = { USA_mkultra_mkoften_state = 4 }
+				NOT = { has_country_flag = USA_mkultra_mkoften_paid }
+			}
+			set_variable = { USA_mkultra_mkoften_state = 10 }
+		}
+		set_variable = { USA_mkultra_mknaomi_schema = 2 }
+	}
+	# Removing stale missions is safe after terminal states have been restored:
+	# their cancel effects can no longer enter a research/report reward branch.
+	if = {
+		limit = {
+			NOT = {
+				OR = {
+					check_variable = { USA_mkultra_mknaomi_state = 2 }
+					check_variable = { USA_mkultra_mknaomi_state = 3 }
+					check_variable = { USA_mkultra_mknaomi_state = 6 }
+					check_variable = { USA_mkultra_mknaomi_state = 7 }
+				}
+			}
+		}
+		set_variable = { USA_mkultra_mknaomi_slot = 0 }
+		if = { limit = { has_active_mission = USA_mkultra_mknaomi_research } remove_mission = USA_mkultra_mknaomi_research }
+		if = { limit = { has_active_mission = USA_mkultra_mknaomi_review } remove_mission = USA_mkultra_mknaomi_review }
+		if = { limit = { has_active_mission = USA_mkultra_mknaomi_replication_research } remove_mission = USA_mkultra_mknaomi_replication_research }
+		if = { limit = { has_active_mission = USA_mkultra_mknaomi_final_review } remove_mission = USA_mkultra_mknaomi_final_review }
+	}
+	if = {
+		limit = {
+			NOT = {
+				OR = {
+					check_variable = { USA_mkultra_mkoften_state = 2 }
+					check_variable = { USA_mkultra_mkoften_state = 3 }
+					check_variable = { USA_mkultra_mkoften_state = 6 }
+					check_variable = { USA_mkultra_mkoften_state = 7 }
+				}
+			}
+		}
+		set_variable = { USA_mkultra_mkoften_slot = 0 }
+		if = { limit = { has_active_mission = USA_mkultra_mkoften_research } remove_mission = USA_mkultra_mkoften_research }
+		if = { limit = { has_active_mission = USA_mkultra_mkoften_review } remove_mission = USA_mkultra_mkoften_review }
+		if = { limit = { has_active_mission = USA_mkultra_mkoften_replication_research } remove_mission = USA_mkultra_mkoften_replication_research }
+		if = { limit = { has_active_mission = USA_mkultra_mkoften_final_review } remove_mission = USA_mkultra_mkoften_final_review }
+	}
+}
+
 USA_mkultra_mknaomi_reconcile = {
+	USA_mkultra_migrate_mknaomi_archives = yes
 	if = {
 		limit = { NOT = { has_variable = USA_mkultra_mknaomi_state } }
 		set_variable = { USA_mkultra_mknaomi_state = 0 }
@@ -1248,7 +1352,7 @@ USA_mkultra_mknaomi_slot_states = {
 		}
 	}
 
-	# Card 12: Subproject 68 (2/6 research, 3/7 report)
+	# Card 14: Subproject 68 (2/6 research, 3/7 report)
 	if = {
 		limit = {
 			OR = {
@@ -1280,7 +1384,7 @@ USA_mkultra_mknaomi_slot_states = {
 		}
 	}
 
-	# Card 13: Project ARTICHOKE (2 research, 3 report)
+	# Card 15: Project ARTICHOKE (2 research, 3 report)
 	if = {
 		limit = { check_variable = { USA_mkultra_artichoke_stage = 2 } }
 		if = {
@@ -1302,7 +1406,7 @@ USA_mkultra_mknaomi_slot_states = {
 		}
 	}
 
-	# Card 14: Project GRILL FLAME (Army single slot: 2 research, 3 report)
+	# Card 17: Project GRILL FLAME (Army single slot: 2 research, 3 report)
 	if = {
 		limit = { check_variable = { USA_mkultra_grill_flame_stage = 2 } }
 		set_variable = { USA_mkultra_slot_1_state = 1 }
