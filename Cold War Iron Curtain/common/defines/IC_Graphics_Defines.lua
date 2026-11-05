@@ -34,3 +34,9 @@ NDefines_Graphics.NAirGfx.MAX_BOMBING_SCENARIOS = 3.0
 NDefines_Graphics.NAirGfx.MAX_DOGFIGHTS_SCENARIOS = 3.0
 NDefines_Graphics.NAirGfx.MAX_TRANSPORT_SCENARIOS = 3.0
 NDefines_Graphics.NAirGfx.MAX_TRAINING_SCENARIOS = 2.0
+-- CWIC map lighting (vanilla values in comments): lower sun and less flat top light so the relief reads
+NDefines_Graphics.NGraphics.LIGHT_DIRECTION_Y = -0.8 -- -1.0, sun about 34 deg up instead of 42
+NDefines_Graphics.NGraphics.AMBIENT_LIGHT_POS_Z = { 0.6, 0.2, 0.85 } -- { 0.6, 0.2, 0.924 }
+NDefines_Graphics.NGraphics.SUN_DIFFUSE_COLOR = { 0.1, 0.08, 1.0 } -- { 0.14, 0.0, 1.0 }, slightly warm sunlight (hsv)
+NDefines_Graphics.NGraphics.BRIGHT_THRESHOLD = 0.55 -- 0.4, snow/ice/deserts no longer glare
+NDefines_Graphics.NGraphics.BLOOM_SCALE = 0.7 -- 0.9

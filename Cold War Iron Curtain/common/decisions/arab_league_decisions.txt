@@ -878,7 +878,17 @@ variables_calculation_category = {
 						}
 					}
 					var:UNS.arab_league_nation_target = {
-						create_faction = ADL
+						if = {
+							limit = { is_in_faction = no }
+							create_faction_from_template = { template = faction_template_wartime_coalition name = "Arab League" }
+							set_temp_variable = { coalition_new_objective = 1 }
+							set_temp_variable = { coalition_new_protected = THIS.id }
+							set_temp_variable = { coalition_new_target = 0 }
+							random_enemy_country = {
+								set_temp_variable = { coalition_new_target = THIS.id }
+							}
+							coalition_init = yes
+						}
 						set_global_flag = arab_league_called_to_arms
 						set_country_flag = intervention_target
 						#add_country_flag = intervention_ongoing
@@ -928,8 +938,15 @@ variables_calculation_category = {
 					}
 					news_event = ARAB_LEAGUE_RESOLUTION.21
 					UNS = {
-						create_faction_from_template = { template = faction_template_generic name = "The United Nations" }
-						add_to_faction = var:UNS.arab_league_nation_target
+						if = {
+							limit = { is_in_faction = no }
+							create_faction_from_template = { template = faction_template_generic name = "The United Nations" }
+							set_temp_variable = { coalition_new_objective = 0 }
+							set_temp_variable = { coalition_new_target = 0 }
+							coalition_init = yes
+							set_temp_variable = { coalition_new_member = var:UNS.arab_league_nation_target }
+							coalition_add_member = yes
+						}
 					}
 					every_country = {
 						limit = {
@@ -984,9 +1001,7 @@ variables_calculation_category = {
 								tag = UNS.arab_league_nation_target
 							}
 						}
-						subtract_from_variable = {
-							currentMoney = UNS.each_member_amount
-						}
+						set_temp_variable = { money_change_temp = UNS.each_member_amount } multiply_temp_variable = { money_change_temp = -1 } cwic_change_money = yes
 					}
 					every_country = {
 						limit = {
@@ -996,9 +1011,7 @@ variables_calculation_category = {
 						news_event = ARAB_LEAGUE_RESOLUTION.231
 					}
 					var:UNS.arab_league_nation_target = {
-						add_to_variable = {
-							currentMoney = UNS.aid_amount
-						}
+						set_temp_variable = { money_change_temp = UNS.aid_amount } cwic_change_money = yes
 						meta_effect = {
 							text = {
 								add_opinion_modifier = {
@@ -1508,7 +1521,7 @@ variables_calculation_category = {
 		fixed_random_seed = no
 		cost = 0
 		complete_effect = {
-			dismantle_faction = yes
+			coalition_dissolve = yes
 			#clr_country_flag = intervention_ongoing
 		}
 	}

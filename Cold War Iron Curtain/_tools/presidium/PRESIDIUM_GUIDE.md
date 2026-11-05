@@ -27,7 +27,7 @@ Everything except the data file and the generator is **generated**. Don't edit t
 | `common/on_actions/SOV_Stalin_presidium_on_actions.txt` | Runs init at game start. A monthly check also refreshes the ids if the data file changed. |
 | `localisation/english/SOV_Stalin_presidium_l_english.yml` | Names, bios, titles and tooltip text. |
 
-The panel is added to the tree in `SOV_Stalin.txt` with:
+The panel is added to the tree in `SOV_Stalin_tree.txt` with:
 
 ```
 inlay_window = {
@@ -191,7 +191,7 @@ Add a line at the end of `FACTIONS`. Faction display text can use colour codes (
 
 ### 3.6 Change the layout or position
 
-- `INLAY_POSITION`: the generator also rewrites the position in `SOV_Stalin.txt`.
+- `INLAY_POSITION`: the generator also rewrites the position in `SOV_Stalin_tree.txt`.
 - `MAX_SEATS` and `LAYOUT_BREAKS`: control how many slots exist and when portraits shrink. The last break must equal `MAX_SEATS`.
 
 ---

@@ -1,0 +1,567 @@
+Includes = {
+	"constants.fxh"
+	"standardfuncsgfx.fxh"
+	"tiled_pointlights.fxh"
+	"pdxmap.fxh"
+	"shadow.fxh"
+	"fow.fxh"
+}
+
+PixelShader =
+{
+	Samplers =
+	{
+		TerrainDiffuse =
+		{
+			Index = 0
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		HeightNormal =
+		{
+			Index = 1
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		TerrainColorTint =
+		{
+			Index = 2
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		SnowTexture =
+		{
+			Index = 3
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		TerrainNormal =
+		{
+			Index = 4
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		TerrainIDMap =
+		{
+			Index = 5
+			MagFilter = "Point"
+			MinFilter = "Point"
+			MipFilter = "None"
+			AddressU = "Clamp"
+			AddressV = "Clamp"
+		}
+		ProvinceSecondaryColorMap =
+		{
+			Index = 6
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		SnowMudData =
+		{
+			Index = 7
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		CityLightsAndSnowNoise =
+		{
+			Index = 8
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		MudNormalSpec =
+		{
+			Index = 9
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		LightIndexMap =
+		{
+			Index = 10
+			MagFilter = "Point"
+			MinFilter = "Point"
+			MipFilter = "Point"
+			AddressU = "Clamp"
+			AddressV = "Clamp"
+		}
+		LightDataMap =
+		{
+			Index = 11
+			MagFilter = "Point"
+			MinFilter = "Point"
+			MipFilter = "Point"
+			AddressU = "Clamp"
+			AddressV = "Clamp"
+		}
+		ShadowMap =
+		{
+			Index = 12
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+			Type = "Shadow"
+		}
+		MudDiffuseGloss =
+		{
+			Index = 13
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Wrap"
+			AddressV = "Wrap"
+		}
+		GradientBorderChannel1 =
+		{
+			Index = 14
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Clamp"
+			AddressV = "Clamp"
+		}
+		GradientBorderChannel2 =
+		{
+			Index = 15
+			MagFilter = "Linear"
+			MinFilter = "Linear"
+			MipFilter = "Linear"
+			AddressU = "Clamp"
+			AddressV = "Clamp"
+		}
+	}
+}
+
+
+VertexStruct VS_INPUT_TERRAIN_NOTEXTURE
+{
+    int4 position			: POSITION;
+	int2 height				: TEXCOORD0;
+};
+
+VertexStruct VS_OUTPUT_TERRAIN
+{
+    float4 position			: PDX_POSITION;
+	float2 uv				: TEXCOORD0;
+	float2 uv2				: TEXCOORD1;
+	float3 prepos 			: TEXCOORD2;
+	float4 vShadowProj		: TEXCOORD3;
+	float4 vScreenCoord		: TEXCOORD4;
+};
+
+
+
+VertexShader =
+{
+	MainCode VertexShader
+	[[
+		VS_OUTPUT_TERRAIN main( const VS_INPUT_TERRAIN_NOTEXTURE VertexIn )
+		{
+			VS_OUTPUT_TERRAIN VertexOut;
+			
+			float2 pos = VertexIn.position.xy * QuadOffset_Scale_IsDetail.z + QuadOffset_Scale_IsDetail.xy;
+		
+			float vSatPosZ = saturate( VertexIn.position.z ); // VertexIn.position.z can have a value [0-4], if != 0 then we shall displace vertex
+			float vUseAltHeight = vSatPosZ * vSnap[ int( VertexIn.position.z - 1.0f ) ]; // the snap values are set to either 0 or 1 before each draw call to enable/disable snapping due to LOD
+		
+			pos += vUseAltHeight 
+				* float2( 1.0f - VertexIn.position.w, VertexIn.position.w ) // VertexIn.position.w determines offset direction
+				* QuadOffset_Scale_IsDetail.z; // and of course we need to scale it to the same LOD
+		
+			VertexOut.uv = float2( ( pos.x + 0.5f ) / MAP_SIZE_X,  ( pos.y + 0.5f ) / MAP_SIZE_Y );
+			VertexOut.uv2.x = ( pos.x + 0.5f ) / MAP_SIZE_X;
+			VertexOut.uv2.y = ( pos.y + 0.5f - MAP_SIZE_Y ) / -MAP_SIZE_Y;	
+			VertexOut.uv2.xy *= float2( MAP_POW2_X, MAP_POW2_Y ); //POW2
+		
+			float vHeight = VertexIn.height.x * ( 1.0f - vUseAltHeight ) + VertexIn.height.y * vUseAltHeight;
+			vHeight *= 0.01f;
+		
+			VertexOut.prepos = float3( pos.x, vHeight, pos.y );
+			VertexOut.position = mul( ViewProjectionMatrix, float4( VertexOut.prepos, 1.0f ) );
+			
+			VertexOut.vShadowProj = mul( ShadowMapTextureMatrix, float4( VertexOut.prepos, 1.0f ) );
+			
+			// Output the screen-space texture coordinates
+			VertexOut.vScreenCoord.x = ( VertexOut.position.x * 0.5 + VertexOut.position.w * 0.5 );
+			VertexOut.vScreenCoord.y = ( VertexOut.position.w * 0.5 - VertexOut.position.y * 0.5 );
+		#ifdef PDX_OPENGL
+			VertexOut.vScreenCoord.y = -VertexOut.vScreenCoord.y;
+		#endif	
+			VertexOut.vScreenCoord.z = VertexOut.position.w;
+			VertexOut.vScreenCoord.w = VertexOut.position.w;	
+		
+			return VertexOut;
+		}
+	]]
+}
+
+PixelShader =
+{	
+	MainCode PixelShaderTerrain
+	[[		
+		float4 main( VS_OUTPUT_TERRAIN Input ) : PDX_COLOR
+		{
+			//return float4( 0, 1.0f, 0, 1.0f );
+			//clip( Input.prepos.y + TERRAIN_WATER_CLIP_HEIGHT - WATER_HEIGHT );
+		
+			float2 vOffsets = float2( -0.5f / MAP_SIZE_X, -0.5f / MAP_SIZE_Y );
+			
+			float vAllSame;
+			float4 IndexU;
+			float4 IndexV;
+			// CWIC: jittered terrain lookup (TERRAIN_EDGE_JITTER), two noise scales; lakes and ice below keep the exact map
+			float2 vJit = float2( tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.13f ).a + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.031f + 0.23f ).a,
+			                      tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.13f + 0.5f ).a + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.031f + 0.71f ).a ) - 1.0f;
+			// CWIC: anti-aliasing. The jitter noise is finer than a screen pixel when zoomed out and sparkles: fade it out
+			float2 vTerrUV = Input.uv + vJit * TERRAIN_EDGE_JITTER * ( 1.0f - cam_distance( 300.0f, 700.0f ) ) / float2( MAP_SIZE_X, MAP_SIZE_Y );
+			calculate_map_tex_index( tex2D( TerrainIDMap, vTerrUV + vOffsets.xy ), IndexU, IndexV, vAllSame );
+						
+			float2 vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ;
+			vTileRepeat.x *= MAP_SIZE_X/MAP_SIZE_Y;
+			
+			// CWIC: anti-tiling. A tile repeats every ~20 map px, which reads as a grid when zoomed out: past camera height ~250
+			// push the atlas mip up so each tile fades to its average colour (the colormap carries the large-scale look)
+			float lod = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 4.0f, 0.0f, 6.0f );
+			float vMipTexels = pow( 2.0f, ATLAS_TEXEL_POW2_EXPONENT - lod );
+
+			// CWIC: anti-tiling. Every atlas tile is also sampled at 0.61x scale with an offset, and a low-frequency noise blends
+			// the two, so one tile never repeats on an exact grid. Scale only, no rotation: the tangent-space normals stay valid
+			float2 vTileRepeat2 = vTileRepeat * 0.61f + float2( 0.37f, 0.71f );
+			float vAT = smoothstep( 0.3f, 0.7f, tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0035f + 0.17f ).a );
+			#define AT_SAMPLE( TEX, U, V ) lerp( tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat, vMipTexels, lod ) ), tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat2, vMipTexels, lod ) ), vAT )
+			// CWIC: the atlas normals get only a third of the colour's mip push, so small relief still catches the light when
+			// zoomed out (a full push left only the smooth world normal: 'plastic' lighting); hardware mips still filter it
+			float lodN = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 1.3f, 0.0f, 6.0f );
+			float vMipTexelsN = pow( 2.0f, ATLAS_TEXEL_POW2_EXPONENT - lodN );
+			#define AT_SAMPLE_N( TEX, U, V ) lerp( tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat, vMipTexelsN, lodN ) ), tex2Dlod( TEX, sample_terrain( U, V, vTileRepeat2, vMipTexelsN, lodN ) ), vAT )
+					
+		#ifdef LOW_END_GFX
+			float3 normal = float3( 0, 1, 0 );
+		#else
+			// CWIC: a softer world-normal mip when zoomed out (no effect if the engine builds no mips for it)
+			float3 normal = normalize( tex2Dlod( HeightNormal, float4( Input.uv2, 0.0f, cam_distance( 300.0f, 900.0f ) * 1.5f ) ).rbg - 0.5f );
+		#endif
+			float4 diffuse = AT_SAMPLE( TerrainDiffuse, IndexU.w, IndexV.w ).rgba;
+			float vGlossiness = diffuse.a;
+									
+		#ifdef NO_SHADER_TEXTURE_LOD
+			float3 terrain_normal = float3( 0,1,0 );
+		#else	
+			float3 terrain_normal;
+			float4 terrain_normalRaw = AT_SAMPLE_N( TerrainNormal, IndexU.w, IndexV.w );
+		#endif //NO_SHADER_TEXTURE_LOD
+			
+			if ( vAllSame < 1.0f )
+			{
+				float4 ColorRD = AT_SAMPLE( TerrainDiffuse, IndexU.x, IndexV.x ).rgba;
+				float4 ColorLU = AT_SAMPLE( TerrainDiffuse, IndexU.y, IndexV.y ).rgba;
+				float4 ColorRU = AT_SAMPLE( TerrainDiffuse, IndexU.z, IndexV.z ).rgba;
+		
+		#ifndef NO_SHADER_TEXTURE_LOD	
+				float4 terrain_normalRD = AT_SAMPLE_N( TerrainNormal, IndexU.x, IndexV.x );
+				float4 terrain_normalLU = AT_SAMPLE_N( TerrainNormal, IndexU.y, IndexV.y );
+				float4 terrain_normalRU = AT_SAMPLE_N( TerrainNormal, IndexU.z, IndexV.z );
+		#endif //NO_SHADER_TEXTURE_LOD
+		
+				float2 vFrac = frac( float2( vTerrUV.x * MAP_SIZE_X - 0.5f, vTerrUV.y * MAP_SIZE_Y - 0.5f ) );
+		
+				diffuse = lerp( 
+					lerp( ColorRU, ColorLU, vFrac.x ),
+					lerp( ColorRD, diffuse, vFrac.x ), 
+						vFrac.y );
+		
+		#ifndef NO_SHADER_TEXTURE_LOD
+				terrain_normalRaw = lerp( 
+					lerp( terrain_normalRU, terrain_normalLU, vFrac.x ),
+					lerp( terrain_normalRD, terrain_normalRaw, vFrac.x ), 
+						vFrac.y );
+		#endif //NO_SHADER_TEXTURE_LOD
+			}
+			
+		#ifndef NO_SHADER_TEXTURE_LOD
+			terrain_normal =  terrain_normalRaw.rbg - 0.5f; //UnpackRRxGNormal(terrain_normalRaw).rgb;
+			//return float4(terrain_normal.rgb, 1.0f);
+			#ifdef LOW_END_GFX
+				float vSpec = 0.0f;
+			#else
+				float vSpec = terrain_normalRaw.a * TERRAIN_SPEC_SCALE;
+				vGlossiness = diffuse.a;
+			#endif
+		#else
+			float vSpec = 0.0f;
+		#endif
+
+		#ifndef NO_SHADER_TEXTURE_LOD
+		 	terrain_normal = normalize( terrain_normal );
+			
+			//Calculate terrain normal
+			normal = RotateVectorByVector( normal, terrain_normal );
+			normal = normalize(normal);
+		#endif
+			
+			float4 TerrainColor = tex2D( TerrainColorTint, Input.uv2 );
+
+		#ifndef LOW_END_GFX
+			float CityLightsMask = TerrainColor.a;
+		#endif
+	
+			float vSnowAlpha = 1-vSpec;
+			// CWIC: anti-tiling. Large-scale brightness variation (two noise scales, ~90 and ~400 map px) so one terrain type
+			// over a wide area doesn't look like a uniform repeated tile
+			float vMacro = tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.011f ).a * 0.6f + tex2D( CityLightsAndSnowNoise, Input.prepos.xz * 0.0025f + 0.41f ).a * 0.4f;
+			// CWIC: anti-aliasing. Zoomed out, one screen pixel spans several terrain.bmp pixels, so the checkered terrain
+			// transitions and single-pixel patches alias into noise. Ease the per-pixel tile colour toward the average land
+			// tile; the colormap (mipmapped, smooth) carries the large-scale look from there
+			// neutral grey at the mean atlas tile's brightness (its colour, 0.47/0.52/0.29, tinted the map yellow); starts at camera height 350, full (30%) at 1100. Zoomed out the
+			// colormap overlay also strengthens (0.65 -> 0.85) so the far view keeps its colour instead of washing to beige
+			float vFar = cam_distance( 350.0f, 1100.0f );
+			diffuse.rgb = lerp( diffuse.rgb, vec3( 0.48f ), vFar * 0.3f );
+			diffuse.rgb *= lerp( 0.86f, 1.14f, vMacro ) * TERRAIN_ATLAS_GAIN;
+			diffuse.rgb = GetOverlay( diffuse.rgb, TerrainColor.rgb, lerp( COLORMAP_OVERLAY_STRENGTH, 0.85f, vFar ) );
+
+			// CWIC: lakes above the sea water plane. terrain.bmp index 14 (texture = 255) is drawn as flat water
+			float4 vLakeIDs = tex2D( TerrainIDMap, Input.uv + vOffsets.xy ) * 255.0f;
+			float4 vIsLake = step( 254.5f, vLakeIDs );
+			vIsLake.z = lerp( vIsLake.z, vIsLake.w, vAllSame ); // z carries the +100 'all same' flag
+			float2 vLakeFrac = frac( float2( Input.uv.x * MAP_SIZE_X - 0.5f, Input.uv.y * MAP_SIZE_Y - 0.5f ) );
+			float vLake = lerp( lerp( vIsLake.z, vIsLake.y, vLakeFrac.x ), lerp( vIsLake.x, vIsLake.w, vLakeFrac.x ), vLakeFrac.y );
+			vLake = smoothstep( 0.3f, 0.7f, vLake );
+			diffuse.rgb = lerp( diffuse.rgb, float3( 0.07f, 0.15f, 0.22f ), vLake );
+			normal = normalize( lerp( normal, float3( 0.0f, 1.0f, 0.0f ), vLake ) );
+			vGlossiness = lerp( vGlossiness, 0.9f, vLake );
+			vSpec = lerp( vSpec, 1.0f, vLake );
+
+			// CWIC: ice sheets. terrain.bmp index 23 (texture = 254) is always ice, independent of weather snow
+			float4 vIsIce = 1.0f - saturate( abs( vLakeIDs - 254.0f ) * 2.0f );
+			// all-same flag: 254 + 100 wraps to 98 in the 8-bit channel without setting vAllSame (the old dot grid)
+			vIsIce.z = lerp( max( vIsIce.z, 1.0f - saturate( abs( vLakeIDs.z + 156.0f - 254.0f ) * 2.0f ) ), vIsIce.w, vAllSame );
+			float vIce = lerp( lerp( vIsIce.z, vIsIce.y, vLakeFrac.x ), lerp( vIsIce.x, vIsIce.w, vLakeFrac.x ), vLakeFrac.y );
+			vIce = smoothstep( 0.2f, 0.8f, vIce );
+			// texture 254 has no atlas tile, so its diffuse/normal samples are junk (dot grid): use only the heightmap normal
+			diffuse.rgb = lerp( diffuse.rgb, float3( 0.8f, 0.86f, 0.92f ), vIce );
+			normal = normalize( lerp( normal, normalize( tex2D( HeightNormal, Input.uv2 ).rbg - 0.5f ), vIce ) );
+			vGlossiness = lerp( vGlossiness, 0.6f, vIce );
+			vSpec = lerp( vSpec, 0.5f, vIce );
+
+			float4 vMudSnow = GetMudSnowColor( Input.prepos, SnowMudData );	
+			diffuse.rgb = ApplySnow( diffuse.rgb, Input.prepos, normal, vMudSnow, SnowTexture, CityLightsAndSnowNoise, vGlossiness, vSnowAlpha );
+			diffuse.rgb = GetMudColor( diffuse.rgb, vMudSnow, Input.prepos, normal, vGlossiness, vSpec, MudDiffuseGloss, MudNormalSpec, TerrainColor.rgb, CityLightsAndSnowNoise );
+							
+			// Gradient Borders
+			float vBloomAlpha = 0.0f;
+			gradient_border_apply( diffuse.rgb, normal, Input.uv2, GradientBorderChannel1, GradientBorderChannel2, 1.0f, vGBCamDistOverride_GBOutlineCutoff.zw, vGBCamDistOverride_GBOutlineCutoff.xy, vBloomAlpha );
+					
+			// Secondary color mask
+			secondary_color_mask( diffuse.rgb, normal, Input.uv2, ProvinceSecondaryColorMap, vBloomAlpha );
+
+			LightingProperties lightingProperties;
+			lightingProperties._WorldSpacePos = Input.prepos;
+			lightingProperties._ToCameraDir = normalize(vCamPos - Input.prepos);
+			lightingProperties._Normal = normal;
+			
+		#ifdef PDX_IMPROVED_BLINN_PHONG
+
+			#ifdef NO_SHADER_TEXTURE_LOD
+				float SpecRemapped = 0.1;
+			#else
+				float SpecRemapped = vSpec * vSpec * 0.4;
+			#endif // NO_SHADER_TEXTURE_LOD			
+
+			float MetalnessRemapped = 0.0;// - (1.0 - vProperties.b) * (1.0 - vProperties.b);
+			lightingProperties._Diffuse = MetalnessToDiffuse(MetalnessRemapped, diffuse.rgb);
+			lightingProperties._Glossiness = vGlossiness;
+			lightingProperties._SpecularColor = MetalnessToSpec(MetalnessRemapped, diffuse.rgb, SpecRemapped);
+			lightingProperties._NonLinearGlossiness = GetNonLinearGlossiness(vGlossiness);
+		#else
+			lightingProperties._Diffuse = diffuse.rgb;
+			lightingProperties._Glossiness = vGlossiness;
+			lightingProperties._SpecularColor = vec3(vSpec);
+			lightingProperties._NonLinearGlossiness = GetNonLinearGlossiness(vGlossiness);
+
+		#endif //PDX_IMPROVED_BLINN_PHONG
+
+			float3 diffuseLight = vec3(0.0);
+			float3 specularLight = vec3(0.0);
+
+			float fShadowTerm = max(GetShadowScaled( SHADOW_WEIGHT_TERRAIN, Input.vScreenCoord, ShadowMap ), 0.1f );
+		
+			CalculateSunLight( lightingProperties, fShadowTerm, diffuseLight, specularLight );
+
+		#ifndef LOW_END_GFX
+			CalculatePointLights( lightingProperties, LightDataMap, LightIndexMap, diffuseLight, specularLight);
+		#endif
+			
+		#ifdef PDX_IMPROVED_BLINN_PHONG
+			float3 vEyeDir = normalize( Input.prepos - vCamPos.xyz );
+			//float3 reflection = reflect( vEyeDir, lightingProperties._Normal );
+			//float MipmapIndex = GetEnvmapMipLevel(lightingProperties._Glossiness); 
+			
+			float3 reflectiveColor = FAKE_CUBEMAP_COLOR; //texCUBElod( EnvironmentMap, float4(reflection, MipmapIndex) ).rgb * CubemapIntensity;
+			specularLight += reflectiveColor * FresnelGlossy(lightingProperties._SpecularColor, -vEyeDir, lightingProperties._Normal, lightingProperties._Glossiness);
+		#endif
+			
+			float3 vOut = ComposeLightSnow(lightingProperties, diffuseLight, specularLight, vSnowAlpha);
+		
+			vOut = lerp( vOut, diffuse.rgb, BORDER_LIGHT_REMOVAL_FACTOR * ( 1 - vBloomAlpha ) );
+				
+			float3 vGlobeNormal = CalcGlobeNormal( Input.prepos.xz );
+			float vNightFactor = DayNightFactor( vGlobeNormal );
+
+		#ifndef LOW_END_GFX
+			// CWIC: anti-tiling. The 512px light tile repeats every ~11 map px; blend it with a rotated, rescaled copy, picked by
+			// the tile's own noise alpha stretched over ~250 px, and vary brightness at a third scale
+			float2 vCityUV = Input.prepos.xz * CITY_LIGHTS_TILING;
+			float2 vCityRotUV = float2( vCityUV.x * 0.8f - vCityUV.y * 0.6f, vCityUV.x * 0.6f + vCityUV.y * 0.8f ) * 0.71f + 0.37f;
+			float vCityMix = smoothstep( 0.55f, 0.8f, tex2D( CityLightsAndSnowNoise, vCityUV * 0.043f ).a );
+			float vCityGain = lerp( 0.55f, 1.35f, tex2D( CityLightsAndSnowNoise, vCityUV * 0.37f + 0.21f ).a );
+			float3 CityLights = lerp( tex2D( CityLightsAndSnowNoise, vCityUV ).rgb, tex2D( CityLightsAndSnowNoise, vCityRotUV ).rgb, vCityMix ) * vCityGain;
+			vOut += CityLights * CITY_LIGHTS_INTENSITY * CityLightsMask * vNightFactor;
+		#endif
+
+			float3 vFOW = ApplyFOW( vOut, ShadowMap, Input.vScreenCoord );
+			vOut = lerp( vFOW, vOut, BORDER_FOW_REMOVAL_FACTOR * ( 1 - vBloomAlpha ) );
+		
+		#ifndef LOW_END_GFX
+			vOut = ApplyDistanceFog( vOut, Input.prepos );
+		#endif
+			
+			vOut = DayNightWithBlend( vOut, vGlobeNormal, lerp(BORDER_NIGHT_DESATURATION_MAX, 1.0f, vBloomAlpha) );
+			
+
+			DebugReturn(vOut, lightingProperties, fShadowTerm);
+
+		#ifdef LOW_END_GFX
+			return float4( vOut, vNightFactor * CITY_LIGHTS_BLOOM_FACTOR );
+		#else
+			return float4( vOut, saturate(CityLightsMask * vNightFactor * CITY_LIGHTS_BLOOM_FACTOR) );
+		#endif
+		}		
+	]]
+
+	MainCode PixelShaderUnderwater
+	[[
+		float4 main( VS_OUTPUT_TERRAIN Input ) : PDX_COLOR
+		{
+			clip( WATER_HEIGHT - Input.prepos.y + TERRAIN_WATER_CLIP_HEIGHT );
+		
+			float3 normal = normalize( tex2D( HeightNormal,Input.uv2 ).rbg - 0.5f );
+			float3 diffuse = tex2D( TerrainDiffuse, Input.uv2 * float2(( MAP_SIZE_X / 32.0f ), ( MAP_SIZE_Y / 32.0f ) ) ).rgb;
+
+			// TOMASZ: SnowTexture texture slot here was some kind of normalmap that is obsolete 
+			//         and makes no visual effect, so I've removed it.
+			//float3 offset = tex2D( SnowTexture, Input.uv2 * float2(( MAP_SIZE_X / 32.0f ), ( MAP_SIZE_Y / 32.0f ) ) ).rgb;
+			//offset -= vec3(0.5);
+			
+			float3 waterColorTint = tex2D( TerrainColorTint, Input.uv2 /*+ offset.xy * WATER_RIPPLE_EFFECT*/ ).rgb;		
+			waterColorTint *= WATER_COLOR_LIGHTNESS;
+			
+			float vMin = 3.0f; // CWIC: was 5.3, full-depth fog at heightmap grey ~30
+			float vMax = 12.0f; // CWIC: was 13.0
+
+			//float vWaterAlpha = saturate( Input.prepos.y * Input.prepos.y * Input.prepos.y * WATER_HEIGHT_RECP_SQUARED * WATER_HEIGHT_RECP  );
+			float vWaterAlpha = saturate(( Input.prepos.y - vMin ) / ( vMax - vMin ) );
+		
+			float vGlossiness = MAP_SPECULAR_WIDTH;
+		
+			LightingProperties lightingProperties;
+			lightingProperties._WorldSpacePos = Input.prepos;
+			lightingProperties._ToCameraDir = normalize(vCamPos - Input.prepos);
+			lightingProperties._Normal = normal;
+			lightingProperties._Diffuse = diffuse;
+
+			lightingProperties._Glossiness = vGlossiness;
+			lightingProperties._SpecularColor = SunDiffuseIntensity.rgb * 0.1f;
+			lightingProperties._NonLinearGlossiness = GetNonLinearGlossiness(vGlossiness);
+			
+			float3 diffuseLight = vec3(0.0);
+			float3 specularLight = vec3(0.0);		
+			float fShadowTerm = GetShadowScaled( SHADOW_WEIGHT_TERRAIN, Input.vScreenCoord, ShadowMap );
+		
+			CalculateSunLight( lightingProperties, fShadowTerm, diffuseLight, specularLight );
+			CalculatePointLights( lightingProperties, LightDataMap, LightIndexMap, diffuseLight, specularLight);
+			
+			float3 vOut = ComposeLight(lightingProperties, diffuseLight, specularLight );
+						
+			vOut = lerp( waterColorTint, vOut, vWaterAlpha );			
+		
+			return float4( vOut, 1.0f );
+		}
+	]]
+
+	MainCode PixelShaderTerrainUnlit
+	[[
+		float4 main( VS_OUTPUT_TERRAIN Input ) : PDX_COLOR
+		{	
+			// Grab the shadow term
+			float fShadowTerm = CalculateShadow( Input.vShadowProj, ShadowMap);
+			
+			float FogColorFactor = 0.0;
+			float FogAlphaFactor = 0.0;
+			GetFogFactors( FogColorFactor, FogAlphaFactor, Input.prepos, 0.0, TerrainDiffuse, HeightNormal, TerrainColorTint);
+			return float4( fShadowTerm, FogColorFactor, FogAlphaFactor, 1.0f );
+		}
+	]]
+}
+
+
+BlendState BlendState
+{
+	BlendEnable = no
+	AlphaTest = no
+	WriteMask = "RED|GREEN|BLUE|ALPHA"
+}
+
+
+Effect terrain_low_gfx
+{
+	VertexShader = "VertexShader"
+	PixelShader = "PixelShaderTerrain"
+	Defines = { "LOW_END_GFX" }
+}
+
+Effect terrain
+{
+	VertexShader = "VertexShader"
+	PixelShader = "PixelShaderTerrain"
+	Defines = { "PDX_IMPROVED_BLINN_PHONG" }
+}
+
+Effect underwater
+{
+	VertexShader = "VertexShader"
+	PixelShader = "PixelShaderUnderwater"
+}
+
+Effect terrainunlit
+{
+	VertexShader = "VertexShader"
+	PixelShader = "PixelShaderTerrainUnlit"
+}
+

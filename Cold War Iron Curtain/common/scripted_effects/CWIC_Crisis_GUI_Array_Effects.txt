@@ -337,4 +337,44 @@ CWIC_update_active_crisis_arrays = {
 
         add_to_variable = { CWIC_active_crisis_count = 1 }
     }
+
+    CWIC_crisis_alert_refresh = yes
+}
+
+# Re-arms the topbar crisis alert (CWIC_crisis_alert_gui) after a right-click
+# dismissal when a crisis starts that was not active last month, or when the
+# summed severity of active crises rises. Severity drops and resolved crises
+# do not re-arm it.
+CWIC_crisis_alert_refresh = {
+    set_temp_variable = { cwic_ca_score = 0 }
+    set_temp_variable = { cwic_ca_new = 0 }
+    for_each_loop = {
+        array = CWIC_active_crisis_severity
+        value = cwic_ca_v
+        add_to_temp_variable = { cwic_ca_score = cwic_ca_v }
+    }
+    for_each_loop = {
+        array = CWIC_active_crises
+        value = cwic_ca_id
+        if = {
+            limit = { NOT = { is_in_array = { CWIC_crisis_alert_seen = cwic_ca_id } } }
+            set_temp_variable = { cwic_ca_new = 1 }
+        }
+    }
+    if = {
+        limit = {
+            OR = {
+                check_variable = { cwic_ca_new = 1 }
+                check_variable = { cwic_ca_score > CWIC_crisis_alert_score }
+            }
+        }
+        clr_country_flag = CWIC_crisis_alert_dismissed
+    }
+    set_variable = { CWIC_crisis_alert_score = cwic_ca_score }
+    clear_array = CWIC_crisis_alert_seen
+    for_each_loop = {
+        array = CWIC_active_crises
+        value = cwic_ca_id
+        add_to_array = { CWIC_crisis_alert_seen = cwic_ca_id }
+    }
 }

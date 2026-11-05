@@ -485,130 +485,16 @@ print_variable_log_effect = {
 get_best_alliance_match_democratic_effect = { #arguably a trigger, but it does stuff so we keep it in here. If this is your first time seeing this, welcome to my personal hell.
 	set_temp_variable = { best_leader = 0 }
 	set_temp_variable = { best_leader_score = 0 }
-	if = {
-		limit = {
-			all_other_country = {
-				is_faction_leader = yes
-				is_major = yes
-				has_government = democratic
-				not = { has_war_with = ROOT }
-				set_temp_variable = { this.leader_score = num_of_factories }
-				add_to_temp_variable = { this.leader_score = num_battalions }
-				all_of_scopes = {
-					array = allies
-					add_to_temp_variable = { PREV.leader_score = num_of_factories }
-					add_to_temp_variable = { PREV.leader_score = num_battalions }
-				}
-				if = {
-					limit = {
-						capital_scope = {
-							is_on_continent = ROOT
-						}
-					}
-					multiply_temp_variable = { leader_score = 2 }
-				}
-				if = {
-					limit = {
-						any_neighbor_country = { tag = ROOT }
-					}
-					multiply_temp_variable = { leader_score = 1.25 }
-				}
-				if = {
-					limit = {
-						check_variable = { ROOT.best_leader_score < leader_score }
-						set_temp_variable = { ROOT.best_leader = this }
-						set_temp_variable = { ROOT.best_leader_score = leader_score }
-					}
-				}
-			}
-		}
-	}		
 }
 
 get_best_alliance_match_fascism_effect = { #arguably a trigger, but it does stuff so we keep it in here. If this is your first time seeing this, welcome to my personal hell.
 	set_temp_variable = { best_leader = 0 }
 	set_temp_variable = { best_leader_score = 0 }
-	if = {
-		limit = {
-			all_other_country = {
-				is_faction_leader = yes
-				is_major = yes
-				has_government = fascism
-				not = { has_war_with = ROOT }
-				set_temp_variable = { this.leader_score = num_of_factories }
-				add_to_temp_variable = { this.leader_score = num_battalions }
-				all_of_scopes = {
-					array = allies
-					add_to_temp_variable = { PREV.leader_score = num_of_factories }
-					add_to_temp_variable = { PREV.leader_score = num_battalions }
-				}
-				if = {
-					limit = {
-						capital_scope = {
-							is_on_continent = ROOT
-						}
-					}
-					multiply_temp_variable = { leader_score = 2 }
-				}
-				if = {
-					limit = {
-						any_neighbor_country = { tag = ROOT }
-					}
-					multiply_temp_variable = { leader_score = 1.25 }
-				}
-				if = {
-					limit = {
-						check_variable = { ROOT.best_leader_score < leader_score }
-						set_temp_variable = { ROOT.best_leader = this }
-						set_temp_variable = { ROOT.best_leader_score = leader_score }
-					}
-				}
-			}
-		}
-	}		
 }
 
 get_best_alliance_match_communism_effect = { #arguably a trigger, but it does stuff so we keep it in here. If this is your first time seeing this, welcome to my personal hell.
 	set_temp_variable = { best_leader = 0 }
 	set_temp_variable = { best_leader_score = 0 }
-	if = {
-		limit = {
-			all_other_country = {
-				is_faction_leader = yes
-				is_major = yes
-				has_government = communism
-				not = { has_war_with = ROOT }
-				set_temp_variable = { this.leader_score = num_of_factories }
-				add_to_temp_variable = { this.leader_score = num_battalions }
-				all_of_scopes = {
-					array = allies
-					add_to_temp_variable = { PREV.leader_score = num_of_factories }
-					add_to_temp_variable = { PREV.leader_score = num_battalions }
-				}
-				if = {
-					limit = {
-						capital_scope = {
-							is_on_continent = ROOT
-						}
-					}
-					multiply_temp_variable = { leader_score = 2 }
-				}
-				if = {
-					limit = {
-						any_neighbor_country = { tag = ROOT }
-					}
-					multiply_temp_variable = { leader_score = 1.25 }
-				}
-				if = {
-					limit = {
-						check_variable = { ROOT.best_leader_score < leader_score }
-						set_temp_variable = { ROOT.best_leader = this }
-						set_temp_variable = { ROOT.best_leader_score = leader_score }
-					}
-				}
-			}
-		}
-	}		
 }
 
 civil_war_anti_exploiter_punitive_action = {
@@ -769,4 +655,521 @@ close_all_windows = {
 	set_variable = { show_arab_league_main = 0 }
 	set_variable = { show_usa_congress = 0 }
 	set_variable = { show_cuba_government = 0 }
+	set_variable = { show_nato_panel = 0 }
+	set_variable = { comecon_main_show = 0 }
+}
+
+coalition_init = {
+	set_country_flag = coalition_leader
+	set_country_flag = coalition_founder
+	set_variable = { coalition_objective = coalition_new_objective }
+	set_variable = { coalition_target = coalition_new_target }
+	if = {
+		limit = { check_variable = { coalition_new_protected > 0 } }
+		set_variable = { coalition_protected = coalition_new_protected }
+	}
+	set_variable = { coalition_founders_total = 1 }
+	set_variable = { coalition_founders_present = 1 }
+	if = {
+		limit = { check_variable = { coalition_objective = 1 } }
+		add_faction_goal = faction_goal_coalition_repel_invasion
+	}
+	else_if = {
+		limit = { check_variable = { coalition_objective = 2 } }
+		add_faction_goal = faction_goal_coalition_preserve_government
+	}
+	else_if = {
+		limit = { check_variable = { coalition_objective = 3 } }
+		add_faction_goal = faction_goal_coalition_secure_withdrawal
+	}
+	else_if = {
+		limit = { check_variable = { coalition_objective = 4 } }
+		add_faction_goal = faction_goal_coalition_defeat_target
+	}
+	if = {
+		limit = {
+			check_variable = { coalition_target > 0 }
+			has_war_with = var:coalition_target
+		}
+		set_country_flag = coalition_war_seen
+	}
+}
+
+coalition_add_member = {
+	if = {
+		limit = {
+			has_country_flag = coalition_leader
+			var:coalition_new_member = { is_in_faction = no }
+		}
+		var:coalition_new_member = {
+			PREV = { add_to_faction = PREV }
+			set_country_flag = coalition_founder
+		}
+		add_to_variable = { coalition_founders_total = 1 }
+		add_to_variable = { coalition_founders_present = 1 }
+	}
+}
+
+coalition_recount_founders = {
+	set_variable = { coalition_founders_present = 0 }
+	every_faction_member = {
+		limit = {
+			has_country_flag = coalition_founder
+			has_capitulated = no
+		}
+		PREV = { add_to_variable = { coalition_founders_present = 1 } }
+	}
+	if = {
+		limit = {
+			NOT = { has_country_flag = coalition_war_seen }
+			check_variable = { coalition_target > 0 }
+			var:coalition_target = { exists = yes }
+			has_war_with = var:coalition_target
+		}
+		set_country_flag = coalition_war_seen
+	}
+}
+
+coalition_campaign_reward = {
+	hidden_effect = {
+		faction_leader = {
+			set_country_flag = coalition_campaign_done
+		}
+	}
+	add_faction_initiative = 2
+	every_faction_member = {
+		add_political_power = 25
+	}
+}
+
+coalition_dissolve = {
+	if = {
+		limit = { has_country_flag = coalition_leader }
+		every_faction_member = {
+			clr_country_flag = coalition_founder
+			clr_country_flag = coalition_liaison_funded
+		}
+		clr_country_flag = coalition_leader
+		clr_country_flag = coalition_war_seen
+		clr_country_flag = coalition_campaign_done
+		clr_country_flag = coalition_settlement_enabled
+		clear_variable = coalition_objective
+		clear_variable = coalition_target
+		clear_variable = coalition_protected
+		clear_variable = coalition_founders_total
+		clear_variable = coalition_founders_present
+		dismantle_faction = yes
+	}
+}
+
+GCC_lifecycle_monthly = {
+	if = {
+		limit = {
+			has_global_flag = cwic_bookmark_1980_start
+			NOT = { has_global_flag = GCC_1980_campaign }
+		}
+		set_global_flag = GCC_1980_campaign
+	}
+	if = {
+		limit = {
+			has_global_flag = GCC_1980_campaign
+			NOT = { has_global_flag = GCC_founded }
+			date > 1981.5.24
+			country_exists = SAU
+			country_exists = KUW
+			country_exists = BHR
+			country_exists = QAT
+			country_exists = UAE
+			country_exists = OMA
+			SAU = {
+				is_subject = no
+				is_in_faction = no
+			}
+			KUW = {
+				is_subject = no
+				is_in_faction = no
+			}
+			BHR = {
+				is_subject = no
+				is_in_faction = no
+			}
+			QAT = {
+				is_subject = no
+				is_in_faction = no
+			}
+			UAE = {
+				is_subject = no
+				is_in_faction = no
+			}
+			OMA = {
+				is_subject = no
+				is_in_faction = no
+			}
+		}
+		SAU = {
+			country_event = { id = GCC_Peninsula_Shield.1 }
+		}
+	}
+	if = {
+		limit = {
+			has_global_flag = GCC_founded
+		}
+		if = {
+			limit = { country_exists = SAU }
+			SAU = { GCC_recount_members = yes }
+		}
+		every_country = {
+			limit = {
+				has_country_flag = GCC_force_contributor
+				NOT = { tag = SAU }
+				NOT = { is_in_faction_with = SAU }
+			}
+			clr_country_flag = GCC_force_contributor
+			add_to_variable = { global.GCC_force_contributor_count = -1 }
+			set_global_flag = GCC_force_break
+		}
+		if = {
+			limit = {
+				has_global_flag = GCC_force_break
+			}
+			set_variable = { global.GCC_force_months = 0 }
+			clr_global_flag = GCC_force_break
+		}
+		else_if = {
+			limit = {
+				has_global_flag = GCC_force_established
+			}
+			add_to_variable = { global.GCC_force_months = 1 }
+		}
+	}
+}
+
+GCC_recount_members = {
+	set_variable = { GCC_members_present = 1 }
+	every_country = {
+		limit = {
+			OR = {
+				tag = KUW
+				tag = BHR
+				tag = QAT
+				tag = UAE
+				tag = OMA
+			}
+			is_in_faction_with = PREV
+		}
+		PREV = { add_to_variable = { GCC_members_present = 1 } }
+	}
+}
+
+RIO_recount = {
+	set_variable = { global.RIO_member_count = 0 }
+	every_country = {
+		limit = {
+			has_idea = RIO_member
+			NOT = { has_country_flag = RIO_suspended }
+		}
+		add_to_variable = { global.RIO_member_count = 1 }
+	}
+	set_temp_variable = { RIO_tmp_need = global.RIO_member_count }
+	multiply_temp_variable = { RIO_tmp_need = 2 }
+	subtract_from_temp_variable = { RIO_tmp_need = 1 }
+	set_variable = { global.RIO_liaison_need = RIO_tmp_need }
+	set_temp_variable = { RIO_tmp_scaled = global.RIO_liaison_count }
+	multiply_temp_variable = { RIO_tmp_scaled = 3 }
+	set_variable = { global.RIO_liaison_scaled = RIO_tmp_scaled }
+}
+
+RIO_lifecycle_monthly = {
+	if = {
+		limit = { date > 1949.5.22 }
+		if = {
+			limit = {
+				country_exists = BRA
+				NOT = { BRA = { has_country_flag = RIO_acceded } }
+			}
+			BRA = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = CHL
+				NOT = { CHL = { has_country_flag = RIO_acceded } }
+			}
+			CHL = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = COL
+				NOT = { COL = { has_country_flag = RIO_acceded } }
+			}
+			COL = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = COS
+				NOT = { COS = { has_country_flag = RIO_acceded } }
+			}
+			COS = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = CUB
+				NOT = { CUB = { has_country_flag = RIO_acceded } }
+			}
+			CUB = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = DOM
+				NOT = { DOM = { has_country_flag = RIO_acceded } }
+			}
+			DOM = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = ELS
+				NOT = { ELS = { has_country_flag = RIO_acceded } }
+			}
+			ELS = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = HAI
+				NOT = { HAI = { has_country_flag = RIO_acceded } }
+			}
+			HAI = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = HON
+				NOT = { HON = { has_country_flag = RIO_acceded } }
+			}
+			HON = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = MEX
+				NOT = { MEX = { has_country_flag = RIO_acceded } }
+			}
+			MEX = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = NIC
+				NOT = { NIC = { has_country_flag = RIO_acceded } }
+			}
+			NIC = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = PAN
+				NOT = { PAN = { has_country_flag = RIO_acceded } }
+			}
+			PAN = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = PAR
+				NOT = { PAR = { has_country_flag = RIO_acceded } }
+			}
+			PAR = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = USA
+				NOT = { USA = { has_country_flag = RIO_acceded } }
+			}
+			USA = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = URG
+				NOT = { URG = { has_country_flag = RIO_acceded } }
+			}
+			URG = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = VEN
+				NOT = { VEN = { has_country_flag = RIO_acceded } }
+			}
+			VEN = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = ARG
+				date > 1950.8.21
+				NOT = { ARG = { has_country_flag = RIO_acceded } }
+			}
+			ARG = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = BOL
+				date > 1950.9.26
+				NOT = { BOL = { has_country_flag = RIO_acceded } }
+			}
+			BOL = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = PRU
+				date > 1950.10.25
+				NOT = { PRU = { has_country_flag = RIO_acceded } }
+			}
+			PRU = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = ECU
+				date > 1950.11.7
+				NOT = { ECU = { has_country_flag = RIO_acceded } }
+			}
+			ECU = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = GUA
+				date > 1955.4.6
+				NOT = { GUA = { has_country_flag = RIO_acceded } }
+			}
+			GUA = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = TRI
+				date > 1967.6.12
+				NOT = { TRI = { has_country_flag = RIO_acceded } }
+			}
+			TRI = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+		if = {
+			limit = {
+				country_exists = BAH
+				date > 1982.11.24
+				NOT = { BAH = { has_country_flag = RIO_acceded } }
+			}
+			BAH = {
+				add_ideas = RIO_member
+				set_country_flag = RIO_acceded
+			}
+		}
+	}
+	if = {
+		limit = {
+			date > 1962.1.31
+			country_exists = CUB
+			NOT = { CUB = { has_country_flag = RIO_suspended } }
+		}
+		CUB = { set_country_flag = RIO_suspended }
+	}
+	RIO_recount = yes
+	if = {
+		limit = { has_global_flag = RIO_goal_mediation_done }
+		set_temp_variable = { RIO_tmp_elapsed = global.num_days }
+		subtract_from_temp_variable = { RIO_tmp_elapsed = global.RIO_peace_start }
+		set_variable = { global.RIO_peace_elapsed = RIO_tmp_elapsed }
+	}
+	if = {
+		limit = {
+			has_global_flag = RIO_docket_open
+			NOT = {
+				any_country = {
+					has_country_flag = RIO_protected
+					any_country = {
+						has_country_flag = RIO_target
+						has_war_with = PREV
+					}
+				}
+			}
+		}
+		clr_global_flag = RIO_docket_open
+		every_country = {
+			clr_country_flag = RIO_protected
+			clr_country_flag = RIO_target
+			clr_country_flag = RIO_measure_done
+			clr_country_flag = RIO_armed_consent
+		}
+	}
+	if = {
+		limit = {
+			has_global_flag = RIO_mediation_active
+			NOT = {
+				any_country = {
+					has_idea = RIO_member
+					any_country = {
+						has_idea = RIO_member
+						has_war_with = PREV
+					}
+				}
+			}
+			NOT = { any_country = { has_country_flag = RIO_mediation_accepted } }
+		}
+		clr_global_flag = RIO_mediation_active
+	}
 }

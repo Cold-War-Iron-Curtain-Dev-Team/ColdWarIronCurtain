@@ -235,3 +235,4 @@ NDefines.NPolitics.NAVY_LEADER_COST = 220					-- command power cost for recruiti
 NDefines.NPolitics.ARMY_LEADER_MAX_COST = 220				-- max cost BEFORE modifiers
 NDefines.NPolitics.NAVY_LEADER_MAX_COST = 220				-- max cost BEFORE modifiers
 NDefines.NPolitics.LEADER_TRAITS_XP_SHOW = 0.05			-- Amount of XP a trait needs to be shown in tooltips of a leader.
+NDefines.NFactions.PASSIVE_INITIATIVE_GENERATION = 0.1

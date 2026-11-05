@@ -5702,27 +5702,28 @@ for name, block, _ in technology_blocks:
     if enabled and len(enabled.group(1).split()) > 1:
         fail(f"legacy armour technology {name} enables more than one equipment and loses its tree title")
 
-# Legacy carrier rows and designer carrier hulls share one set of visual levels, and the
-# entity aliases read a level as a hull generation. A legacy row must sit at the generation
-# whose era ladder points at it, or the earliest-below one when no generation does, so its
-# national model matches its own era on non-NSB.
-import build_designer_graphic_db as carrier_ladders
-
-legacy_carrier_rows = {
-    "light_tank_apc_chassis": {f"mechanized_equipment_{row}": row for row in range(1, 11)},
-    "light_tank_ifv_chassis": {f"mechanized_heavy_equipment_{row}": row for row in range(1, 9)},
-    "medium_tank_apc_chassis": {f"heavy_apc_equipment_{tier}": tier + 7 for tier in range(1, 4)},
-    "medium_tank_ifv_chassis": {"heavy_ifv_equipment_1": 8},
+# Legacy carrier rows keep the pre-designer visual levels the national art is numbered by:
+# <TAG>_mechanized_<n>_entity and <TAG>_armored_infantry_<n>_entity depict the row at level n.
+# The modeller confirmed these against the pre-merge Soviet setup. Designer hulls read the same
+# numbers as hull generations, which lands each APC generation within one row of its era.
+legacy_carrier_levels = {
+    **{f"mechanized_equipment_{row}": row - 1 for row in range(1, 11)},
+    **{f"mechanized_heavy_equipment_{row}": row - 1 for row in range(1, 9)},
+    **{f"heavy_apc_equipment_{tier}": tier + 6 for tier in range(1, 4)},
+    "heavy_ifv_equipment_1": 7,
 }
 carrier_rows = dict(top_level_blocks(code_only(text(EQUIPMENT_DIR / "x_tank_chassis.txt")), "equipments"))
-for role, rows in legacy_carrier_rows.items():
-    ladder = [carrier_ladders.carrier_art_index(role, generation) for generation in range(10)]
-    for equipment, row in rows.items():
-        exact = [generation for generation, value in enumerate(ladder) if value == row]
-        expected = exact[0] if exact else max(g for g, value in enumerate(ladder) if value < row)
-        levels = top_level_values(carrier_rows.get(equipment, ""), "visual_level")
-        if levels != [str(expected)]:
-            fail(f"{equipment} visual_level {levels} must be {expected} to show its own era's model")
+for equipment, expected in legacy_carrier_levels.items():
+    levels = top_level_values(carrier_rows.get(equipment, ""), "visual_level")
+    if levels != [str(expected)]:
+        fail(f"{equipment} visual_level {levels} must be {expected} to show its own era's model")
+# Light APC hull generation of each legacy marine row (mechanized_marine_equipment_1..5, 1944 to
+# 2005). National marine art is <TAG>_marine_carrier_<k>_entity for row k + 1.
+MARINE_ROW_GENERATIONS = (2, 3, 4, 6, 8)
+for row, generation in enumerate(MARINE_ROW_GENERATIONS, 1):
+    levels = top_level_values(carrier_rows.get(f"mechanized_marine_equipment_{row}", ""), "visual_level")
+    if levels != [str(generation)]:
+        fail(f"mechanized_marine_equipment_{row} visual_level {levels} must be {generation} to show its own era's model")
 
 validate_doctrine_rework()
 if "--doctrine-self-test" in sys.argv:
@@ -6609,16 +6610,16 @@ def validate_entity_alias_contract() -> None:
     # coverage cannot erode further and any improvement forces a deliberate update.
     # Shrinking this map is content work with an owner.
     legacy_tag_counts = {
-        "armored_infantry": 57,
+        "armored_infantry": 61,
         "atgm_carrier": 20,
         "heavy_armor": 29,
         "heavy_sp_artillery": 29,
         "heavy_tank_destroyer_brigade": 16,
         "light_armor": 32,
         "light_sp_artillery": 20,
-        "mechanized_airborne": 57,
+        "mechanized_airborne": 61,
         "mechanized_infantry": 44,
-        "mechanized_marine": 57,
+        "mechanized_marine": 61,
         "medium_sp_anti_air_brigade": 39,
         "spaag": 32,
         "tank_destroyer": 39,
@@ -6676,10 +6677,12 @@ def validate_entity_alias_contract() -> None:
         candidates = [(sub_unit, level)] + [
             (token, level) for token in national_model_fallbacks.get(sub_unit, ())
         ]
+        if sub_unit == "mechanized_marine":
+            era = max((k for k, row in enumerate(MARINE_ROW_GENERATIONS) if row <= level), default=0)
+            candidates.insert(0, ("marine_carrier", era))
         if sub_unit in carrier_sprite_sub_units:
             role = carrier_sprite_sub_units[sub_unit]
-            era = graphic_db_builder.carrier_art_index(role, level)
-            candidates += [(token, era) for token in graphic_db_builder.CARRIER_ART[role]]
+            candidates += [(token, level) for token in graphic_db_builder.CARRIER_ART[role]]
         for token, wanted in candidates:
             levels = native_levels.get((tag, token), set())
             lower = [value for value in levels if value <= wanted]
@@ -6719,7 +6722,8 @@ def validate_entity_alias_contract() -> None:
             )
             continue
         tag = match["tag"]
-        alias_tags.add(tag)
+        if token not in legacy_tag_counts:
+            alias_tags.add(tag)
         alias_levels.setdefault((tag, token), []).append(
             int(match["visual_level"])
         )

@@ -377,90 +377,6 @@ startup_tax_loops = {
 	meta_effect = { text = { add_ideas = policy_taxrate_lower_temp_[IDEA_TOKEN] } IDEA_TOKEN = "[?lower_tax_level_value]" }
 }
 
-generate_tax_info = {
-    set_variable = {
-        laffer_weighted_average_tax_rate = modifier@tax_rate_lower_class
-    }
-    add_to_variable = {
-        laffer_weighted_average_tax_rate = modifier@tax_rate_upper_class
-    }
-    add_to_variable = {
-        laffer_weighted_average_tax_rate = modifier@tax_rate_corporate
-    }
-    add_to_variable = {
-        laffer_weighted_average_tax_rate = modifier@tax_rate_middle_class
-    }
-    divide_variable = {
-        laffer_weighted_average_tax_rate = 4
-    }
-    #Run Laffer Curve Here
-	
-    set_variable = {
-        effective_tax_rate_factor = modifier@modifier_tax_efficiacy
-    }
-    add_to_variable = {
-        effective_tax_rate_factor = 1
-    }
-	# --------------------------------------------
-	# Black market tax leakage
-	# CWIC_bm_tax_leak_mult is a 0..1 multiplier (ex: 0.08 = 8% leakage)
-	# Apply as: effective_tax_rate *= (1 - leak)
-	# --------------------------------------------
-
-	# Safe init
-	if = { limit = { NOT = { has_variable = CWIC_bm_tax_leak_mult } } set_variable = { CWIC_bm_tax_leak_mult = 0 } }
-
-	# Clamp safety: do not allow leak to exceed 95% in case of bad tuning
-	if = { limit = { check_variable = { CWIC_bm_tax_leak_mult < 0 } } set_variable = { CWIC_bm_tax_leak_mult = 0 } }
-	if = { limit = { check_variable = { CWIC_bm_tax_leak_mult > 0.95 } } set_variable = { CWIC_bm_tax_leak_mult = 0.95 } }
-
-	set_temp_variable = { bm_tax_collect_mult = 1 }
-	subtract_from_temp_variable = { bm_tax_collect_mult = CWIC_bm_tax_leak_mult }
-
-	multiply_variable = { effective_tax_rate_factor = bm_tax_collect_mult }
-	
-    subtract_from_variable = {
-        effective_tax_rate_factor = 1
-    }
-    tax_avoidance_function = yes
-
-    #Get Tax Per Rate and then Efficiency Scores
-
-    #multiply_variable = {
-    #    tax_display = effective_tax_rate
-    #}
-    #multiply_variable = {
-    #    tax_base = effective_tax_rate
-    #}
-
-    set_variable = {
-        actual_tax_rate_adjusted = laffer_weighted_average_tax_rate
-    }
-    multiply_variable = {
-        actual_tax_rate_adjusted = effective_tax_rate
-    }
-
-    set_variable = {
-        effective_tax_rate_display = laffer_weighted_average_tax_rate
-    }
-    multiply_variable = {
-        effective_tax_rate_display = 100
-    }
-    multiply_variable = {
-        effective_tax_rate_display = 2
-    }
-    round_variable = effective_tax_rate_display
-    add_to_variable = {
-        effective_tax_rate_display = 90
-    }
-    if = {
-        limit = {
-            is_ai = no
-        }
-        Laffer_Graph_Financial_Tab_Update = yes
-    }
-}
-
 debug_policy_placement = {
     set_variable = {
         army_slider_gui = 387
@@ -5907,7 +5823,7 @@ decrease_DOM_Dominican_Nationalist_Fervor = {
             has_idea = DOM_Dominican_Nationalist_Fervor6
         }   
         add_ideas = DOM_Dominican_Nationalist_Fervor5
-        remove_ideas = DOM_Dominican_Nationalist_Fervor4
+        remove_ideas = DOM_Dominican_Nationalist_Fervor6
     }			
     else_if = {
         limit = {
@@ -7778,6 +7694,10 @@ Policy_Startup_Script_2025 = {
     set_variable = { healthcare_level_value = Startup_Policy_Welfare_Base }
     set_variable = { welfare_level_value = Startup_Policy_Welfare_Base }
     set_variable = { education_level_value = Startup_Policy_Welfare_Base }
+    clamp_variable = {
+        var = education_level_value
+        min = 6
+    }
 
     add_to_variable = { Startup_Policy_Base = 1 }
 

@@ -2,33 +2,61 @@ on_actions = {
 
 	on_monthly_USA = {
 		effect = {
+			NAT = {
+				NATO_sync_membership = yes
+			}
+			add_to_variable = { NAT.NATO_military_cooperation = 0.15 }
+			add_to_variable = { NAT.NATO_political_integration = 0.55 }
+			add_to_variable = { NAT.NATO_espionage_integration = 0.25 }
+			NATO_clamp_bars = yes
+			NAT = {
+				NATO_recalculate_member_effects = yes
+			}
 			if = {
 				limit = {
-					NOT = {
-						check_variable = { NAT.NATO_political_integration < 20 }
-					}
+					is_ai = yes
 				}
-				add_to_variable = { NAT.NATO_political_integration = 0.25 }
-				add_to_variable = { NAT.NATO_military_cooperation = 0.25 }
+				NATO_try_start_issues = yes
 			}
-			NAT = {
-				NATO_recalculate_member_effects = yes 
+			if = {
+				limit = {
+					NATO_issue_8_can_start = yes
+				}
+				set_global_flag = NATO_issue_8_resolved
+				FRA = {
+					country_event = { id = twrta.8001 days = 0 }
+				}
+			}
+			NATO_decay_aid_goodwill = yes
+			if = {
+				limit = {
+					date > 1980.10.20
+					GRE = { has_country_flag = NATO_outside_integrated_command }
+				}
+				GRE = { NATO_gre_return_command = yes }
 			}
 		}
 	}
 
-	#on_join_faction = {
-	#	effect = {
-	#		if = {
-	#			limit = { 
-	#				FROM = {
-	#					TAG = NATO 
-	#				}
-	#			 }
-	#
-	#			NATO_apply_military_effects = yes 
-	#			NATO_apply_political_effects = yes 
-	#		}
-	#	}
-	#}
+	on_join_faction = {
+		effect = {
+			if = {
+				limit = {
+					FROM = { has_faction_template = faction_template_nato }
+				}
+				NATO_join = yes
+			}
+		}
+	}
+
+	on_leave_faction = {
+		effect = {
+			if = {
+				limit = {
+					is_in_array = { array = NAT.NATO_member_countries value = THIS }
+				}
+				NATO_leave = yes
+			}
+		}
+	}
 }

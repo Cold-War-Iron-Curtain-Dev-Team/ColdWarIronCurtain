@@ -1,0 +1,161 @@
+# Cold War faction goals (replace the WWII "defeat of <ideology>" and "military R&D" goals).
+# Completion checks run every hour for every active goal, so they only read numbers and flags that
+# cwic_update_cold_war_counters (IC_scripted_effects.txt) computes once a month:
+#   global.cwic_communist_countries                       number of communism / maoism / trotskyism governments
+#   cwic_controls_land/naval/air_facility (country flag)  the country controls at least one such facility
+# Scopes: visible/available ROOT = faction leader; completed/effects = faction leader.
+
+faction_goal_cwic_contain_communism = {
+	name = cwic_contain_communism_goal_name
+	description = cwic_contain_communism_goal_desc
+	category = long_term
+	group = FOCUS_FILTER_CONSOLIDATION
+	visible = {
+		NOT = { has_government = communism }
+		NOT = { has_government = maoism }
+		NOT = { has_government = trotskyism }
+	}
+	available = { }
+	select_effect = {
+		# Goal: two fewer communist governments in the world than when the goal was picked.
+		set_variable = { cwic_contain_target = global.cwic_communist_countries }
+		subtract_from_variable = { cwic_contain_target = 2 }
+	}
+	completed = {
+		has_variable = cwic_contain_target
+		NOT = { check_variable = { global.cwic_communist_countries > cwic_contain_target } }
+	}
+	complete_effect = {
+		add_faction_power_projection = 500
+		add_faction_initiative = 1
+		every_faction_member = {
+			IF = {
+				limit = { NOT = { has_completed_goal = faction_goal_cwic_contain_communism } }
+				add_popularity = { ideology = communism popularity = -0.10 }
+				add_political_power = 100
+			}
+		}
+	}
+	ai_will_do = {
+		base = 1
+	}
+}
+
+faction_goal_cwic_spread_the_revolution = {
+	name = cwic_spread_the_revolution_goal_name
+	description = cwic_spread_the_revolution_goal_desc
+	category = long_term
+	group = FOCUS_FILTER_CONSOLIDATION
+	visible = {
+		OR = {
+			has_government = communism
+			has_government = maoism
+			has_government = trotskyism
+		}
+	}
+	available = { }
+	select_effect = {
+		# Goal: three more communist governments in the world than when the goal was picked.
+		set_variable = { cwic_revolution_target = global.cwic_communist_countries }
+		add_to_variable = { cwic_revolution_target = 3 }
+	}
+	completed = {
+		has_variable = cwic_revolution_target
+		NOT = { check_variable = { global.cwic_communist_countries < cwic_revolution_target } }
+	}
+	complete_effect = {
+		add_faction_power_projection = 500
+		add_faction_initiative = 1
+		every_faction_member = {
+			IF = {
+				limit = { NOT = { has_completed_goal = faction_goal_cwic_spread_the_revolution } }
+				add_popularity = { ideology = communism popularity = 0.05 }
+				add_political_power = 100
+			}
+		}
+	}
+	ai_will_do = {
+		base = 1
+	}
+}
+
+faction_goal_cwic_arsenal_of_the_bloc = {
+	name = cwic_arsenal_of_the_bloc_goal_name
+	description = cwic_arsenal_of_the_bloc_goal_desc
+	category = short_term
+	group = FOCUS_FILTER_CONSOLIDATION
+	visible = {
+		always = yes
+	}
+	available = { }
+	completed = {
+		# Faction members control at least one land, one naval and one air facility.
+		collection_size = {
+			input = { input = game:scope operators = { faction_members limit = { has_country_flag = cwic_controls_land_facility } } name = FACTION }
+			value > 0
+		}
+		collection_size = {
+			input = { input = game:scope operators = { faction_members limit = { has_country_flag = cwic_controls_naval_facility } } name = FACTION }
+			value > 0
+		}
+		collection_size = {
+			input = { input = game:scope operators = { faction_members limit = { has_country_flag = cwic_controls_air_facility } } name = FACTION }
+			value > 0
+		}
+	}
+	complete_effect = {
+		add_faction_power_projection = 100
+		every_faction_member = {
+			IF = {
+				limit = { NOT = { has_completed_goal = faction_goal_cwic_arsenal_of_the_bloc } }
+				army_experience = 25
+				navy_experience = 25
+				air_experience = 25
+			}
+		}
+	}
+	ai_will_do = {
+		base = 1
+	}
+}
+
+faction_goal_cwic_non_aligned_unity = {
+	name = cwic_non_aligned_unity_goal_name
+	description = cwic_non_aligned_unity_goal_desc
+	category = medium_term
+	group = FOCUS_FILTER_CONSOLIDATION
+	visible = {
+		# Regional / non-aligned blocs, not the superpower blocs.
+		NOT = { tag = USA }
+		NOT = { tag = SOV }
+		NOT = { tag = PRC }
+	}
+	available = { }
+	select_effect = {
+		set_country_flag = cwic_non_aligned_unity_started
+		set_country_flag = { flag = cwic_non_aligned_unity_timer days = 1825 value = 1 }
+	}
+	completed = {
+		# The faction stayed together with 3+ members for five years.
+		has_country_flag = cwic_non_aligned_unity_started
+		NOT = { has_country_flag = cwic_non_aligned_unity_timer }
+		collection_size = {
+			input = { input = game:scope operators = { faction_members } name = FACTION }
+			value > 2
+		}
+	}
+	complete_effect = {
+		add_faction_power_projection = 300
+		add_faction_initiative = 1
+		every_faction_member = {
+			IF = {
+				limit = { NOT = { has_completed_goal = faction_goal_cwic_non_aligned_unity } }
+				add_stability = 0.05
+				add_political_power = 75
+			}
+		}
+	}
+	ai_will_do = {
+		base = 1
+	}
+}

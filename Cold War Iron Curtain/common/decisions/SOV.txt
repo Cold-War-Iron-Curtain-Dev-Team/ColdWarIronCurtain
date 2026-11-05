@@ -311,11 +311,11 @@ Kominform_decision_category = {
         }
         visible = {
             original_tag = SOV
-			PDG = { has_war = no }
+			country_exists = PDG
+			PDG = { has_war_with = GRE }
         }
         available = {
-			date > 1950.01.01
-			PDG = { has_war = no }
+			PDG = { has_war_with = GRE }
         }
         icon = GFX_sov_cpsu
         priority = 10
@@ -326,10 +326,19 @@ Kominform_decision_category = {
         fixed_random_seed = no
 		fire_only_once = yes
 		ai_will_do = {
-			modifier = { date > 1950.01.01 add = 100 }
 			base = 0
+			modifier = {
+				add = 100
+				has_game_rule = { rule = SOV_greek_civil_war option = SOV_GRE_INTERVENTION }
+			}
+			modifier = {
+				add = 20
+				has_game_rule = { rule = SOV_greek_civil_war option = DEFAULT }
+				is_historical_focus_on = no
+			}
 		}
 		complete_effect = {
+			set_country_flag = SOV_Armed_the_Greek_Army
 			send_equipment = {
 				equipment = infantry_equipment
 				amount = 6000
@@ -444,6 +453,150 @@ Kominform_decision_category = {
 			}
 		}
     }
+	SOV_Information_Bureau_Press_Campaign = {
+		icon = GFX_sov_cpsu
+		priority = 10
+		cost = 50
+		fire_only_once = yes
+		allowed = {
+			original_tag = SOV
+		}
+		visible = {
+			original_tag = SOV
+			NOT = { has_country_flag = SOV_Press_Campaign_Coordinated }
+		}
+		available = {
+			num_faction_members > 4
+		}
+		ai_will_do = {
+			base = 20
+		}
+		complete_effect = {
+			set_country_flag = SOV_Press_Campaign_Coordinated
+		}
+	}
+	SOV_Establish_Unified_Command = {
+		icon = GFX_sov_cpsu
+		priority = 10
+		cost = 75
+		fire_only_once = yes
+		allowed = {
+			original_tag = SOV
+		}
+		visible = {
+			original_tag = SOV
+			date > 1955.05.13
+			NOT = { has_country_flag = SOV_Unified_Command_Established }
+		}
+		available = {
+			num_faction_members > 2
+		}
+		ai_will_do = {
+			base = 20
+		}
+		complete_effect = {
+			set_country_flag = SOV_Unified_Command_Established
+		}
+	}
+	SOV_Secure_the_Berlin_Frontier = {
+		icon = GFX_sov_cpsu
+		priority = 10
+		cost = 100
+		fire_only_once = yes
+		allowed = {
+			original_tag = SOV
+		}
+		visible = {
+			original_tag = SOV
+			date > 1961.08.12
+			NOT = { has_country_flag = SOV_Berlin_Frontier_Secured }
+		}
+		available = {
+			DDR = {
+				owns_state = 744
+				is_in_faction_with = SOV
+			}
+		}
+		ai_will_do = {
+			base = 20
+		}
+		complete_effect = {
+			set_country_flag = SOV_Berlin_Frontier_Secured
+		}
+	}
+	SOV_Authorize_Forward_Groups = {
+		icon = GFX_sov_cpsu
+		priority = 10
+		cost = 50
+		allowed = {
+			original_tag = SOV
+		}
+		visible = {
+			original_tag = SOV
+			date > 1955.05.13
+			NOT = { has_country_flag = SOV_Forward_Groups_Sustained }
+			NOT = { has_active_mission = SOV_Sustain_Forward_Groups }
+		}
+		available = {
+			SOV_forward_groups_hosted_trigger = yes
+		}
+		ai_will_do = {
+			base = 20
+		}
+		complete_effect = {
+			activate_mission = SOV_Sustain_Forward_Groups
+		}
+	}
+	SOV_Sustain_Forward_Groups = {
+		icon = GFX_sov_cpsu
+		priority = 10
+		days_mission_timeout = 180
+		is_good = yes
+		allowed = {
+			original_tag = SOV
+		}
+		activation = {
+			always = yes
+		}
+		available = {
+			always = no
+		}
+		cancel_trigger = {
+			NOT = { SOV_forward_groups_hosted_trigger = yes }
+		}
+		timeout_effect = {
+			set_country_flag = SOV_Forward_Groups_Sustained
+		}
+	}
+	SOV_Renew_the_Warsaw_Treaty = {
+		icon = GFX_sov_cpsu
+		priority = 10
+		cost = 100
+		fire_only_once = yes
+		allowed = {
+			original_tag = SOV
+		}
+		visible = {
+			original_tag = SOV
+			date > 1985.04.25
+			NOT = { has_country_flag = SOV_Warsaw_Treaty_Renewed }
+		}
+		available = {
+			num_faction_members > 2
+			NOT = {
+				any_other_country = {
+					is_in_faction_with = SOV
+					NOT = { has_government = communism }
+				}
+			}
+		}
+		ai_will_do = {
+			base = 20
+		}
+		complete_effect = {
+			set_country_flag = SOV_Warsaw_Treaty_Renewed
+		}
+	}
 	SOV_Establish_the_Warsaw_Pact = {
         allowed = {
             original_tag = SOV
@@ -551,6 +704,83 @@ Kominform_decision_category = {
 			news_event = SOV_VIN.0
 		}
     }
+	SOV_Aegean_KKE_Offensive = {
+		icon = GFX_sov_cpsu
+		allowed = {
+			original_tag = SOV
+		}
+		activation = {
+			always = no
+		}
+		available = {
+			47 = {
+				controller = {
+					OR = {
+						original_tag = PDG
+						has_war_with = GRE
+					}
+				}
+			}
+		}
+		days_mission_timeout = 60
+		is_good = yes
+		selectable_mission = no
+		cancel_trigger = {
+			NOT = { NATO_greek_civil_war_ongoing = yes }
+		}
+		cancel_effect = {
+			clr_global_flag = NATO_Aegean_Shield_Active
+			clr_country_flag = SOV_Aegean_Contested
+		}
+		complete_effect = {
+			NATO_aegean_shield_failed = yes
+		}
+		timeout_effect = {
+			GRE = { country_event = NATO_INTERVENTION.24 }
+		}
+		ai_will_do = {
+			base = 1
+		}
+	}
+	SOV_Aegean_Black_Sea_Fleet = {
+		icon = GFX_sov_cpsu
+		allowed = {
+			original_tag = SOV
+		}
+		activation = {
+			always = no
+		}
+		available = {
+			if = {
+				limit = { has_global_flag = NATO_Aegean_Fleet_Shadowed }
+				ships_in_area = { type = capital_ship area = 69 size > 4 }
+				ships_in_area = { type = screen_ship area = 69 size > 5 }
+			}
+			else = {
+				ships_in_area = { type = capital_ship area = 69 size > 2 }
+				ships_in_area = { type = screen_ship area = 69 size > 3 }
+			}
+		}
+		days_mission_timeout = 60
+		is_good = yes
+		selectable_mission = no
+		cancel_trigger = {
+			NOT = { NATO_greek_civil_war_ongoing = yes }
+		}
+		cancel_effect = {
+			clr_global_flag = NATO_Aegean_Shield_Active
+			clr_country_flag = SOV_Aegean_Contested
+		}
+		complete_effect = {
+			NATO_aegean_shield_failed = yes
+		}
+		timeout_effect = {
+			GRE = { country_event = NATO_INTERVENTION.24 }
+		}
+		ai_will_do = {
+			base = 1
+		}
+	}
 }
 sov_generic_decisions = {
 	SOV_test_first_nuke = {
@@ -2362,13 +2592,13 @@ sov_andropov_decisions = {
 		ai_will_do = { factor = 0 }
 		available = { is_debug = yes }
 		visible = { has_completed_focus = SOV_Address_Accumulated_Problems }
-		complete_effect = { add_to_variable = { CorruptionLevel = 0.05 } }
+		complete_effect = { set_temp_variable = { corruption_change_temp = 0.05 } cwic_change_corruption = yes }
 	}
 	sov_decrease_corruption_level = {
 		ai_will_do = { factor = 0 }
 		available = { is_debug = yes }
 		visible = { has_completed_focus = SOV_Address_Accumulated_Problems }
-		complete_effect = { subtract_from_variable = { CorruptionLevel = 0.05 } }
+		complete_effect = { set_temp_variable = { corruption_change_temp = 0.05 } multiply_temp_variable = { corruption_change_temp = -1 } cwic_change_corruption = yes }
 	}
 	sov_max_alcoholism = {
 		ai_will_do = { factor = 0 }
@@ -2438,10 +2668,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		complete_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.01
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.01 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2464,10 +2691,7 @@ sov_andropov_decisions = {
 		
 		complete_effect = {
 			set_country_flag = Shchelokov_case_ongoing
-			add_to_variable = {
-				CorruptionLevel = -0.05
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.05 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 		remove_effect = {
@@ -2491,10 +2715,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.02
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.02 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2515,10 +2736,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.02
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.02 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2539,10 +2757,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.05
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.05 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2563,10 +2778,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.05
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.05 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2587,10 +2799,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.05
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.05 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2611,10 +2820,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.05
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.05 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}
@@ -2635,10 +2841,7 @@ sov_andropov_decisions = {
 		cost = 100
 		
 		remove_effect = {
-			add_to_variable = {
-				CorruptionLevel = -0.05
-				tooltip = Decrease_Corruption_TT
-			}
+			set_temp_variable = { corruption_change_temp = -0.05 } cwic_change_corruption = yes
 			corruption_idea_calc = yes
 		}
 	}

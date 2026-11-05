@@ -1,0 +1,50 @@
+# Yearly per-country tick. HOI4 has no on_yearly on_action (the engine only fires
+# on_daily, on_weekly and on_monthly), so this runs on each country's first monthly
+# tick of every game year, including the start year.
+#
+# Economy log for the historical check (_tools/economy_check/check_economy.py).
+# One line per country per year in game.log:  CWIC_ECON;year;tag;gdp;gdp_per_capita;national_hdi;debt;inflation_mom;money
+# Budget diagnostics: CWIC_BUDGET;year;tag;income;balance;debt_payments;land;welfare;education;healthcare;tax_lvl;edu_lvl;welfare_lvl;health_lvl;wage_factor;infl_sp;infl_fp;infl_dp;infl_td;infl_expect
+# Revenue diagnostics: CWIC_REV;year;tag;personal_tax;corporate_tax;eta;fiscal_capacity;sysrev;national_hdi;start_productivity;lower_lvl;middle_lvl;corporate_lvl;upper_lvl;import_bill_raw;import_bill;military_total;custom_expenses;insurgency_funding
+on_actions = {
+	on_monthly = {
+		effect = {
+			if = {
+				limit = { NOT = { check_variable = { cwic_last_yearly_tick = global.year } } }
+				set_variable = { cwic_last_yearly_tick = global.year }
+				cwic_update_yearly_gdp_growth = yes
+				if = {
+					limit = { has_variable = cwic_start_productivity }
+					cwic_apply_catch_up_growth = yes
+				}
+				if = {
+					limit = {
+						is_ai = yes
+						has_variable = display_balance
+					}
+					cwic_ai_fiscal_rule = yes
+				}
+				if = {
+					limit = {
+						tag = USA
+						has_completed_focus = USA80MIL_Begin_Star_Wars_Development
+					}
+					## progress maluses for each year they have low spending, gains for high spending
+					SDI_check_spending = yes
+				}
+				if = {
+					limit = { has_variable = grossdomesticproduct }
+					log = "CWIC_ECON;[GetYear];[ROOT.GetTag];[?grossdomesticproduct|3];[?grossdomesticproductcapita|3];[?National_HDI|3];[?currentDebt|3];[?CWIC_inflation_mom|3];[?currentMoney|3]"
+				}
+				if = {
+					limit = { has_variable = display_balance }
+					log = "CWIC_BUDGET;[GetYear];[ROOT.GetTag];[?IncomeCheck|3];[?display_balance|3];[?currentDebtPayments|3];[?land_army_expenditure|3];[?welfare_expenditure|3];[?education_expenditure|3];[?healthcare_expenditure|3];[?upper_tax_level_value|0];[?education_level_value|0];[?welfare_level_value|0];[?healthcare_level_value|0];[?cwic_wage_price_factor|3];[?cwic_infl_sp|4];[?cwic_infl_fp|4];[?cwic_infl_dp|4];[?cwic_infl_td|4];[?cwic_infl_expect|3]"
+				}
+				if = {
+					limit = { has_variable = cwic_tax_eta }
+					log = "CWIC_REV;[GetYear];[ROOT.GetTag];[?cwic_tax_pers|3];[?cwic_tax_corp|3];[?cwic_tax_eta|3];[?cwic_tax_cap|3];[?cwic_tax_sysrev|3];[?National_HDI|3];[?cwic_start_productivity|4];[?lower_tax_level_value|0];[?lower_middle_tax_level_value|0];[?corporate_tax_level_value|0];[?upper_tax_level_value|0];[?cwic_import_bill_raw|3];[?resource_cost|3];[?military_total_exp|3];[?custom_expenses|3];[?total_insurgency_funding|3]"
+				}
+			}
+		}
+	}
+}
