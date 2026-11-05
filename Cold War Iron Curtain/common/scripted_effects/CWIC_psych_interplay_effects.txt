@@ -1,0 +1,462 @@
+# East–West psychotronics interplay (Phase 5).
+#
+# Each side collects holds (documented leverage on the other side's program)
+# and spends them on a leak, which costs the other side, or on a budget
+# briefing, which pays Political Power now but raises the shared mirror race.
+# Nothing here moves research, Research Record, proof or dossier progress:
+# claims affect urgency and pressure only. Directorate globals move only for a
+# member of a running Directorate (WP_psych_extra_directorate_member_trigger).
+#
+# global.CWIC_interplay_west_holds   0-3  American leverage on the Soviet program
+# global.CWIC_interplay_east_holds   0-3  Soviet leverage on the American program
+# global.CWIC_interplay_mirror_race  0-5  mutual alarm
+# global.CWIC_interplay_west_leaks   0-2  leaks used by the United States
+# global.CWIC_interplay_east_leaks   0-2  leaks used by the Soviet Union
+
+###########################################################################
+# Helpers
+###########################################################################
+
+CWIC_interplay_clamp = {
+	if = { limit = { has_variable = global.CWIC_interplay_west_holds } clamp_variable = { var = global.CWIC_interplay_west_holds min = 0 max = 3 } }
+	if = { limit = { has_variable = global.CWIC_interplay_east_holds } clamp_variable = { var = global.CWIC_interplay_east_holds min = 0 max = 3 } }
+	if = { limit = { has_variable = global.CWIC_interplay_mirror_race } clamp_variable = { var = global.CWIC_interplay_mirror_race min = 0 max = 5 } }
+	if = { limit = { has_variable = global.CWIC_interplay_west_leaks } clamp_variable = { var = global.CWIC_interplay_west_leaks min = 0 max = 2 } }
+	if = { limit = { has_variable = global.CWIC_interplay_east_leaks } clamp_variable = { var = global.CWIC_interplay_east_leaks min = 0 max = 2 } }
+}
+
+# Both records rooms show interplay state (USA card 18, Warsaw Pact card 8).
+CWIC_interplay_mark_dirty = {
+	if = {
+		limit = { country_exists = USA }
+		USA = { USA_mkultra_mark_gui_dirty = yes }
+	}
+	every_country = {
+		limit = {
+			is_ai = no
+			WP_psych_has_archive_access_trigger = yes
+		}
+		WP_psych_mark_gui_dirty = yes
+	}
+}
+
+# Reveals card 18 the first time anything enters the file.
+CWIC_interplay_open_file = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_file_opened } }
+		set_global_flag = CWIC_interplay_file_opened
+		if = {
+			limit = { country_exists = USA }
+			USA = { USA_mkultra_gui_reconcile = yes }
+		}
+	}
+}
+
+CWIC_interplay_add_west_hold = {
+	add_to_variable = { global.CWIC_interplay_west_holds = 1 }
+	CWIC_interplay_clamp = yes
+	CWIC_interplay_open_file = yes
+	CWIC_interplay_mark_dirty = yes
+}
+
+CWIC_interplay_add_east_hold = {
+	add_to_variable = { global.CWIC_interplay_east_holds = 1 }
+	CWIC_interplay_clamp = yes
+	CWIC_interplay_open_file = yes
+	CWIC_interplay_mark_dirty = yes
+}
+
+CWIC_interplay_raise_race = {
+	add_to_variable = { global.CWIC_interplay_mirror_race = 1 }
+	CWIC_interplay_clamp = yes
+	CWIC_interplay_open_file = yes
+	CWIC_interplay_mark_dirty = yes
+}
+
+CWIC_interplay_lower_race = {
+	add_to_variable = { global.CWIC_interplay_mirror_race = -1 }
+	CWIC_interplay_clamp = yes
+	CWIC_interplay_mark_dirty = yes
+}
+
+###########################################################################
+# Monthly pulse (CWIC_psych_interplay_on_actions.txt, USA scope)
+###########################################################################
+
+CWIC_interplay_reconcile = {
+	# 1972: the DIA study reaches the program offices.
+	if = {
+		limit = {
+			date > 1972.6.30
+			NOT = { has_global_flag = CWIC_interplay_dia_report_fired }
+		}
+		set_global_flag = CWIC_interplay_dia_report_fired
+		CWIC_interplay_open_file = yes
+		country_event = { id = cwic_interplay.1 days = 1 }
+	}
+	# The Soviet appraisal reaches the Soviet Division.
+	if = {
+		limit = { has_global_flag = cwic_psychotronic_claims_circulating }
+		CWIC_interplay_open_file = yes
+	}
+	# Urgency adjustments either program already applied; each counts once.
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_soviet_claims_urgency_applied
+			NOT = { has_global_flag = CWIC_interplay_counted_rv_urgency }
+		}
+		set_global_flag = CWIC_interplay_counted_rv_urgency
+		CWIC_interplay_raise_race = yes
+	}
+	if = {
+		limit = {
+			has_global_flag = WP_psych_US_urgency_applied
+			NOT = { has_global_flag = CWIC_interplay_counted_soviet_urgency }
+		}
+		set_global_flag = CWIC_interplay_counted_soviet_urgency
+		CWIC_interplay_raise_race = yes
+	}
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_grill_flame_soviet_urgency
+			NOT = { has_global_flag = CWIC_interplay_counted_grill_flame_urgency }
+		}
+		set_global_flag = CWIC_interplay_counted_grill_flame_urgency
+		CWIC_interplay_raise_race = yes
+	}
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_grill_flame_gap_cited
+			NOT = { has_global_flag = CWIC_interplay_counted_grill_flame_gap }
+		}
+		set_global_flag = CWIC_interplay_counted_grill_flame_gap
+		CWIC_interplay_raise_race = yes
+	}
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_grill_flame_skeptical_estimate
+			NOT = { has_global_flag = CWIC_interplay_counted_grill_flame_skeptical }
+		}
+		set_global_flag = CWIC_interplay_counted_grill_flame_skeptical
+		CWIC_interplay_lower_race = yes
+	}
+	# Budget pressure, once per game.
+	if = {
+		limit = {
+			check_variable = { global.CWIC_interplay_mirror_race > 2 }
+			NOT = { has_global_flag = CWIC_interplay_budget_pressure_fired }
+		}
+		set_global_flag = CWIC_interplay_budget_pressure_fired
+		country_event = { id = cwic_interplay.20 days = 1 }
+		if = {
+			limit = { SOV = { SOV_psych_charter_active_trigger = yes } }
+			SOV = { country_event = { id = cwic_interplay.21 days = 1 } }
+		}
+	}
+}
+
+# Runs outside the enabled gate: the Soviet Union may be gone by the time it fires.
+CWIC_interplay_moscow_files_check = {
+	if = {
+		limit = {
+			NOT = { has_global_flag = CWIC_interplay_moscow_files_fired }
+			has_global_flag = CWIC_interplay_file_opened
+			CWIC_interplay_us_side_trigger = yes
+			SOV = { has_country_flag = SOV_psych_epilogue_fired }
+		}
+		set_global_flag = CWIC_interplay_moscow_files_fired
+		country_event = { id = cwic_interplay.30 days = 30 }
+	}
+}
+
+# Called from USA_mkultra_expansion_seed_late_start (1980 bookmark).
+CWIC_interplay_seed_late_start = {
+	if = {
+		limit = { CWIC_interplay_enabled_trigger = yes }
+		set_global_flag = CWIC_interplay_dia_report_fired
+		set_global_flag = CWIC_interplay_dia_circulated
+		set_variable = { global.CWIC_interplay_mirror_race = 1 }
+		CWIC_interplay_clamp = yes
+		CWIC_interplay_open_file = yes
+	}
+}
+
+###########################################################################
+# Event effects
+###########################################################################
+
+# cwic_interplay.1.a
+CWIC_interplay_circulate_dia_report = {
+	set_global_flag = CWIC_interplay_dia_circulated
+	add_political_power = 10
+	add_to_variable = { USA_mkultra_exposure = 1 }
+	USA_mkultra_clamp_variables = yes
+	CWIC_interplay_raise_race = yes
+}
+
+###########################################################################
+# Getting holds
+###########################################################################
+
+# Decision CWIC_interplay_USA_debrief_defector. Event .2 picks the method.
+CWIC_interplay_start_debrief = {
+	set_country_flag = CWIC_interplay_debrief_pending
+	country_event = { id = cwic_interplay.2 }
+}
+
+# cwic_interplay.2.a
+CWIC_interplay_debrief_by_the_book = {
+	activate_mission = CWIC_interplay_debrief_mission
+}
+
+# cwic_interplay.2.b: drugs and hypnosis under the CIA charter.
+CWIC_interplay_debrief_special_protocol = {
+	set_country_flag = CWIC_interplay_debrief_special_active
+	set_global_flag = CWIC_interplay_protocol_used
+	add_to_variable = { USA_mkultra_harm = 2 }
+	add_to_variable = { USA_mkultra_exposure = 2 }
+	USA_mkultra_clamp_variables = yes
+	activate_mission = CWIC_interplay_debrief_special_mission
+	CWIC_interplay_mark_dirty = yes
+}
+
+# Mission timeout: one roll, read by event .3.
+CWIC_interplay_resolve_debrief = {
+	clr_country_flag = CWIC_interplay_debrief_pending
+	set_temp_variable = { CWIC_interplay_debrief_chance = 60 }
+	if = {
+		limit = { has_country_flag = CWIC_interplay_debrief_special_active }
+		set_temp_variable = { CWIC_interplay_debrief_chance = 85 }
+	}
+	# The MfS annex watches the scientists most likely to leave, and what they know.
+	if = {
+		limit = { DDR = { has_country_flag = DDR_psych_annex_operational } }
+		add_to_temp_variable = { CWIC_interplay_debrief_chance = 20 }
+	}
+	set_temp_variable_to_random = { var = CWIC_interplay_debrief_roll min = 0 max = 100 }
+	if = {
+		limit = { check_variable = { CWIC_interplay_debrief_roll < CWIC_interplay_debrief_chance } }
+		set_country_flag = CWIC_interplay_debrief_succeeded
+	}
+	else = {
+		set_country_flag = CWIC_interplay_debrief_fabricated
+	}
+	clr_country_flag = CWIC_interplay_debrief_special_active
+	country_event = { id = cwic_interplay.3 }
+}
+
+CWIC_interplay_cancel_debrief = {
+	clr_country_flag = CWIC_interplay_debrief_pending
+	clr_country_flag = CWIC_interplay_debrief_special_active
+}
+
+# cwic_interplay.3.a
+CWIC_interplay_debrief_success = {
+	clr_country_flag = CWIC_interplay_debrief_succeeded
+	set_global_flag = CWIC_interplay_debrief_success_recorded
+	CWIC_interplay_add_west_hold = yes
+}
+
+# cwic_interplay.3.b
+CWIC_interplay_debrief_fabricated = {
+	clr_country_flag = CWIC_interplay_debrief_fabricated
+	set_global_flag = CWIC_interplay_fabricator_recorded
+	CWIC_interplay_raise_race = yes
+}
+
+# Decision CWIC_interplay_SOV_task_rezidentura (SOV scope).
+CWIC_interplay_start_rezidentura = {
+	set_country_flag = CWIC_interplay_rezidentura_pending
+	activate_mission = CWIC_interplay_rezidentura_mission
+}
+
+CWIC_interplay_resolve_rezidentura = {
+	clr_country_flag = CWIC_interplay_rezidentura_pending
+	random_list = {
+		70 = { set_country_flag = CWIC_interplay_rezidentura_succeeded }
+		30 = { set_country_flag = CWIC_interplay_rezidentura_failed }
+	}
+	country_event = { id = cwic_interplay.5 }
+}
+
+CWIC_interplay_cancel_rezidentura = {
+	clr_country_flag = CWIC_interplay_rezidentura_pending
+}
+
+# cwic_interplay.5.a
+CWIC_interplay_rezidentura_success = {
+	clr_country_flag = CWIC_interplay_rezidentura_succeeded
+	CWIC_interplay_add_east_hold = yes
+}
+
+# cwic_interplay.5.b
+CWIC_interplay_rezidentura_failure = {
+	clr_country_flag = CWIC_interplay_rezidentura_failed
+}
+
+# Decision CWIC_interplay_SOV_compile_disclosures: one source per use.
+CWIC_interplay_compile_disclosure = {
+	if = {
+		limit = {
+			USA = { has_country_flag = USA_mkultra_church_committee_resolved }
+			NOT = { has_global_flag = CWIC_interplay_church_compiled }
+		}
+		set_global_flag = CWIC_interplay_church_compiled
+	}
+	else = {
+		set_global_flag = CWIC_interplay_senate_compiled
+	}
+	CWIC_interplay_add_east_hold = yes
+}
+
+# Hook: operation_exfiltrate_defector (CWIC_cold_war_operations.txt), inside
+# its ROOT = { } block. ROOT is the initiator, FROM the target.
+CWIC_interplay_defector_exfiltrated = {
+	if = {
+		limit = {
+			tag = USA
+			CWIC_interplay_enabled_trigger = yes
+			FROM = { CWIC_interplay_eastern_defector_source_trigger = yes }
+			check_variable = { global.CWIC_interplay_west_holds < 3 }
+		}
+		CWIC_interplay_add_west_hold = yes
+		country_event = { id = cwic_interplay.40 }
+	}
+	else_if = {
+		limit = {
+			tag = SOV
+			CWIC_interplay_enabled_trigger = yes
+			FROM = { tag = USA }
+			check_variable = { global.CWIC_interplay_east_holds < 3 }
+		}
+		CWIC_interplay_add_east_hold = yes
+		country_event = { id = cwic_interplay.41 }
+	}
+}
+
+# cwic_interplay.30.b: the Soviet minutes go to our own reviewers.
+CWIC_interplay_publish_moscow_files = {
+	set_global_flag = CWIC_interplay_moscow_files_published
+	CWIC_interplay_lower_race = yes
+	CWIC_interplay_lower_race = yes
+}
+
+###########################################################################
+# Spending holds
+###########################################################################
+
+# Decision CWIC_interplay_SOV_release_american_file (SOV scope).
+CWIC_interplay_release_american_file = {
+	add_to_variable = { global.CWIC_interplay_east_holds = -1 }
+	add_to_variable = { global.CWIC_interplay_east_leaks = 1 }
+	set_country_flag = { flag = CWIC_interplay_leak_cooldown days = 365 value = 1 }
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_coordination = 3 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+	USA = {
+		if = {
+			limit = { has_country_flag = USA_mkultra_records_destroyed }
+			add_to_variable = { USA_mkultra_exposure = 9 }
+		}
+		else = {
+			add_to_variable = { USA_mkultra_exposure = 6 }
+		}
+		USA_mkultra_clamp_variables = yes
+		country_event = { id = cwic_interplay.10 days = 3 }
+	}
+	CWIC_interplay_clamp = yes
+	CWIC_interplay_mark_dirty = yes
+}
+
+# cwic_interplay.10.a
+CWIC_interplay_rebut_disclosure = {
+	set_global_flag = CWIC_interplay_us_rebutted
+	add_to_variable = { USA_mkultra_exposure = -3 }
+	USA_mkultra_clamp_variables = yes
+}
+
+# Decision CWIC_interplay_USA_leak_moscow_file (USA scope).
+CWIC_interplay_leak_moscow_file = {
+	add_to_variable = { global.CWIC_interplay_west_holds = -1 }
+	add_to_variable = { global.CWIC_interplay_west_leaks = 1 }
+	set_country_flag = { flag = CWIC_interplay_leak_cooldown days = 365 value = 1 }
+	SOV = {
+		if = {
+			limit = { WP_psych_extra_directorate_member_trigger = yes }
+			add_to_variable = { global.WP_psych_scrutiny = 8 }
+			WP_psych_clamp_global_variables = yes
+			WP_psych_evaluate_thresholds = yes
+		}
+		add_to_variable = { SOV_psych_scrutiny = 1 }
+		SOV_psych_clamp_variables = yes
+		country_event = { id = cwic_interplay.11 days = 3 }
+	}
+	CWIC_interplay_clamp = yes
+	CWIC_interplay_mark_dirty = yes
+}
+
+# cwic_interplay.11.a (SOV scope)
+CWIC_interplay_denounce_disclosure = {
+	set_global_flag = CWIC_interplay_sov_denounced
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_scrutiny = -4 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+# Decision CWIC_interplay_USA_brief_appropriations (USA scope).
+CWIC_interplay_brief_appropriations = {
+	add_to_variable = { global.CWIC_interplay_west_holds = -1 }
+	add_political_power = 30
+	CWIC_interplay_raise_race = yes
+}
+
+# Decision CWIC_interplay_SOV_brief_presidium (SOV scope).
+CWIC_interplay_brief_presidium = {
+	add_to_variable = { global.CWIC_interplay_east_holds = -1 }
+	add_political_power = 30
+	CWIC_interplay_raise_race = yes
+}
+
+###########################################################################
+# Budget pressure (race above 2, once)
+###########################################################################
+
+# cwic_interplay.20.a (USA)
+CWIC_interplay_us_inflate_gap = {
+	set_global_flag = CWIC_interplay_us_inflated_gap
+	add_political_power = 40
+	add_to_variable = { USA_mkultra_exposure = 3 }
+	USA_mkultra_clamp_variables = yes
+	CWIC_interplay_raise_race = yes
+}
+
+# cwic_interplay.20.b (USA)
+CWIC_interplay_us_candid = {
+	set_global_flag = CWIC_interplay_us_candid
+	CWIC_interplay_lower_race = yes
+}
+
+# cwic_interplay.21.a (SOV)
+CWIC_interplay_sov_inflate_gap = {
+	set_global_flag = CWIC_interplay_sov_inflated_gap
+	add_political_power = 40
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_scrutiny = 5 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+	CWIC_interplay_raise_race = yes
+}
+
+# cwic_interplay.21.b (SOV)
+CWIC_interplay_sov_candid = {
+	set_global_flag = CWIC_interplay_sov_candid
+	CWIC_interplay_lower_race = yes
+}

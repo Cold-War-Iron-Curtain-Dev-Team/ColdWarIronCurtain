@@ -1,0 +1,94 @@
+# East–West psychotronics interplay (Phase 5). The American and Soviet programs
+# react to each other's claims without either gaining research, Research Record,
+# proof or dossier progress from the other. Holds are leverage, leaks are
+# pressure, briefings are budget urgency. See CWIC_psych_interplay_effects.txt.
+
+# Both programs exist and the American one has not reached the 1999 cutoff.
+CWIC_interplay_enabled_trigger = {
+	country_exists = USA
+	country_exists = SOV
+	USA = { CWIC_interplay_us_side_trigger = yes }
+	SOV = { SOV_psych_enabled_trigger = yes }
+}
+
+# The American side alone: briefings stay possible after the Soviet program ends.
+CWIC_interplay_us_side_trigger = {
+	USA_mkultra_enabled_trigger = yes
+	has_country_flag = USA_mkultra_initialized
+	NOT = { has_country_flag = USA_mkultra_feature_cutoff }
+}
+
+# The Soviet Division knows there is something to ask a defector about.
+CWIC_interplay_us_aware_trigger = {
+	OR = {
+		has_global_flag = CWIC_interplay_dia_report_fired
+		has_global_flag = cwic_psychotronic_claims_circulating
+	}
+}
+
+# A Soviet program that a Western leak can still reach.
+CWIC_interplay_soviet_target_live_trigger = {
+	SOV = {
+		NOT = { has_country_flag = SOV_psych_epilogue_fired }
+		OR = {
+			SOV_psych_charter_active_trigger = yes
+			AND = {
+				check_variable = { global.WP_psych_directorate_state > 0 }
+				check_variable = { global.WP_psych_directorate_state < 4 }
+			}
+		}
+	}
+}
+
+# A running American program that leaks enough for the rezidentura to collect.
+CWIC_interplay_us_program_collectable_trigger = {
+	USA = {
+		USA_mkultra_any_charter_active_trigger = yes
+		check_variable = { USA_mkultra_exposure > 39 }
+	}
+}
+
+# An American public disclosure that Moscow has not yet compiled.
+CWIC_interplay_uncompiled_disclosure_trigger = {
+	OR = {
+		AND = {
+			USA = { has_country_flag = USA_mkultra_church_committee_resolved }
+			NOT = { has_global_flag = CWIC_interplay_church_compiled }
+		}
+		AND = {
+			USA = { has_country_flag = USA_mkultra_senate_hearing_resolved }
+			NOT = { has_global_flag = CWIC_interplay_senate_compiled }
+		}
+	}
+}
+
+# Scope: the country an exfiltrated defector came from.
+CWIC_interplay_eastern_defector_source_trigger = {
+	OR = {
+		AND = {
+			tag = SOV
+			has_country_flag = SOV_psych_initialized
+		}
+		WP_psych_extra_directorate_member_trigger = yes
+	}
+}
+
+# Scope: SOV. Spending an eastern hold on a leak.
+CWIC_interplay_can_leak_east_trigger = {
+	check_variable = { global.CWIC_interplay_east_holds > 0 }
+	check_variable = { global.CWIC_interplay_east_leaks < 2 }
+	NOT = { has_country_flag = CWIC_interplay_leak_cooldown }
+}
+
+# Scope: USA. Spending a western hold on a leak.
+CWIC_interplay_can_leak_west_trigger = {
+	check_variable = { global.CWIC_interplay_west_holds > 0 }
+	check_variable = { global.CWIC_interplay_west_leaks < 2 }
+	NOT = { has_country_flag = CWIC_interplay_leak_cooldown }
+	CWIC_interplay_soviet_target_live_trigger = yes
+}
+
+# Records-room card 18 (USA_MKUltra_expansion_triggers.txt reads this).
+CWIC_interplay_file_open_trigger = {
+	has_global_flag = CWIC_interplay_file_opened
+}
