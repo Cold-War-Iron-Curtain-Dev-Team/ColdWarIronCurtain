@@ -1,0 +1,78 @@
+# Consequences for choices that once only set a flag.
+#
+# Inquiry scoring, through the expansion hooks:
+#   MKSEARCH allowed to lapse (340.b)        Church score -1
+#   charter closed after basic inquiry (230.b) Church score -1
+#   authorization narrowed (235.b)            Church score -1
+#   no funded Church response (325.b)         1977 Senate tier +1
+# Gateway advocates (cwic_mkultra.700, 1985) follow the 1983 decline (400.c).
+# The final ledger (cwic_mkultra.880) follows the Y2K epilogue (500).
+
+USA_mkultra_consequences_church_score_adjust = {
+	if = {
+		limit = { USA_mkultra_mksearch_lapsed_trigger = yes }
+		subtract_from_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	if = {
+		limit = { has_country_flag = USA_mkultra_basic_inquiry_closed_charter }
+		subtract_from_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+	if = {
+		limit = { has_country_flag = USA_mkultra_authorization_narrowed }
+		subtract_from_temp_variable = { USA_mkultra_severity_score = 1 }
+	}
+}
+
+USA_mkultra_consequences_senate_adjust = {
+	if = {
+		limit = {
+			has_country_flag = USA_mkultra_church_unfunded_response
+			check_variable = { USA_mkultra_senate_severity < 3 }
+		}
+		add_to_variable = { USA_mkultra_senate_severity = 1 }
+	}
+}
+
+USA_mkultra_consequences_incidents = {
+	if = {
+		limit = { USA_mkultra_gateway_advocates_due_trigger = yes }
+		set_country_flag = USA_mkultra_gateway_advocates_fired
+		country_event = { id = cwic_mkultra.700 }
+	}
+}
+
+###########################################################################
+# Event 700: the Gateway advocates
+###########################################################################
+
+# The normal 1983 authorization, two years late; it charges its own 25 PP.
+USA_mkultra_resolve_gateway_advocates_reopen = {
+	USA_mkultra_resolve_gateway_authorize = yes
+	if = {
+		limit = { has_country_flag = USA_mkultra_gateway_authorized }
+		set_country_flag = USA_mkultra_gateway_reopened_1985
+	}
+}
+
+USA_mkultra_resolve_gateway_advocates_refuse = {
+	set_country_flag = USA_mkultra_gateway_advocacy_refused
+	add_political_power = -10
+}
+
+# Read when the program becomes public in 1995.
+USA_mkultra_resolve_gateway_advocates_release = {
+	set_country_flag = USA_mkultra_gateway_summary_released
+}
+
+###########################################################################
+# Event 880: the final ledger
+###########################################################################
+
+# Once only: the schema-4 save migration also runs the epilogue resolve.
+USA_mkultra_queue_final_ledger = {
+	if = {
+		limit = { NOT = { has_country_flag = USA_mkultra_final_ledger_queued } }
+		set_country_flag = USA_mkultra_final_ledger_queued
+		country_event = { id = cwic_mkultra.880 days = 1 }
+	}
+}

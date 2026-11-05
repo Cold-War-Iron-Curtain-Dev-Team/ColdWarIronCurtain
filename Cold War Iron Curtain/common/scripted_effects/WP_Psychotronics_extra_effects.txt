@@ -1,0 +1,231 @@
+# Warsaw Pact consequences for choices that once only set a flag:
+#   cwic_wp_psych.20  Moscow asks once for Hungary's withheld report
+#   cwic_wp_psych.21  Moscow's answer, six months after a refused request (HUN or ROM)
+#   cwic_wp_psych.25  the DDR's surveillance annex, a year after it was kept
+#   cwic_wp_psych.27  the Polish auditors, two years after the audit was archived
+# Directorate variables move only for a member while the Directorate runs.
+
+###########################################################################
+# Hungary: the request (mirrors the Romanian negotiation)
+###########################################################################
+
+SOV_psych_request_hungarian_file = {
+	set_country_flag = SOV_psych_hungarian_negotiation_used
+	if = {
+		limit = { country_exists = HUN }
+		HUN = {
+			if = {
+				limit = { has_country_flag = HUN_psych_report_withheld }
+				country_event = { id = cwic_wp_psych.20 }
+			}
+		}
+	}
+}
+
+# The same disposition as HUN_psych_archive_review. The withheld flag must be
+# cleared: the records-room text checks it before the archived stage.
+HUN_psych_release_after_negotiation = {
+	if = {
+		limit = { has_country_flag = HUN_psych_report_withheld }
+		clr_country_flag = HUN_psych_report_withheld
+		set_country_flag = HUN_psych_released_on_request
+		set_variable = { HUN_psych_dossier_stage = 4 }
+		set_variable = { HUN_psych_slot = 0 }
+		if = {
+			limit = {
+				WP_psych_extra_directorate_member_trigger = yes
+				NOT = { has_global_flag = WP_psych_HUN_record_imported }
+			}
+			set_global_flag = WP_psych_HUN_record_imported
+			set_global_flag = WP_psych_any_member_dossier_archived
+			WP_psych_add_shared_dossier_bonus = yes
+			add_to_variable = { global.WP_psych_record = 10 }
+			add_to_variable = { global.WP_psych_scrutiny = -3 }
+			add_to_variable = { global.WP_psych_coordination = 5 }
+			WP_psych_clamp_global_variables = yes
+			WP_psych_evaluate_thresholds = yes
+		}
+		if = {
+			limit = { NOT = { has_country_flag = HUN_psych_electronics_bonus_awarded } }
+			set_country_flag = HUN_psych_electronics_bonus_awarded
+			add_tech_bonus = { name = HUN_psych_instrumentation_bonus uses = 1 bonus = 0.25 category = electronics }
+		}
+	}
+}
+
+###########################################################################
+# Moscow takes note (Hungary or Romania)
+###########################################################################
+
+# Monthly in HUN and ROM scope: six months after a refused request, Moscow
+# answers if the country is still in the bloc and the Directorate still runs.
+WP_psych_refusal_clock = {
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = HUN_psych_negotiation_refused
+				has_country_flag = ROM_psych_negotiation_refused
+			}
+			NOT = { has_country_flag = WP_psych_moscow_note_done }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = WP_psych_moscow_note_clock_started } }
+			set_country_flag = WP_psych_moscow_note_clock_started
+			set_country_flag = { flag = WP_psych_moscow_note_clock days = 180 }
+		}
+		else_if = {
+			limit = { NOT = { has_country_flag = WP_psych_moscow_note_clock } }
+			set_country_flag = WP_psych_moscow_note_done
+			if = {
+				limit = { WP_psych_extra_in_bloc_member_trigger = yes }
+				country_event = { id = cwic_wp_psych.21 }
+			}
+		}
+	}
+}
+
+WP_psych_resolve_moscow_note_delegation = {
+	set_country_flag = WP_psych_moscow_note_smoothed
+	add_political_power = -25
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_coordination = 3 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+WP_psych_resolve_moscow_note_stand = {
+	set_country_flag = WP_psych_moscow_note_stood
+	add_timed_idea = { idea = WP_psych_soviet_exchange_cooled days = 365 }
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_coordination = -5 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+###########################################################################
+# DDR: the surveillance annex
+###########################################################################
+
+# Monthly in DDR scope: a year after cwic_wp_directorate.9.b kept the annex.
+DDR_psych_annex_clock = {
+	if = {
+		limit = {
+			has_country_flag = DDR_psych_aggressive_surveillance
+			NOT = { has_country_flag = DDR_psych_annex_done }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = DDR_psych_annex_clock_started } }
+			set_country_flag = DDR_psych_annex_clock_started
+			set_country_flag = { flag = DDR_psych_annex_clock days = 365 }
+		}
+		else_if = {
+			limit = { NOT = { has_country_flag = DDR_psych_annex_clock } }
+			set_country_flag = DDR_psych_annex_done
+			if = {
+				limit = { WP_psych_joint_eligible_trigger = yes }
+				country_event = { id = cwic_wp_psych.25 }
+			}
+		}
+	}
+}
+
+# No PP or stability: the annex buys the MfS nothing the review did not.
+DDR_psych_resolve_annex_operational = {
+	set_country_flag = DDR_psych_annex_operational
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_scrutiny = 5 }
+		add_to_variable = { global.WP_psych_coordination = 2 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+DDR_psych_resolve_annex_destroyed = {
+	set_country_flag = DDR_psych_annex_destroyed
+	add_political_power = -15
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_scrutiny = -3 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+###########################################################################
+# Poland: the auditors come back
+###########################################################################
+
+# Monthly in POL scope: two years after either audit disposition. A 1980 start
+# is seeded as rigorous, so this fires around 1982 there.
+POL_psych_audit_followup_clock = {
+	if = {
+		limit = {
+			OR = {
+				has_country_flag = POL_psych_rigorous_disposition
+				has_country_flag = POL_psych_sponsor_disposition
+			}
+			NOT = { has_country_flag = POL_psych_followup_done }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = POL_psych_followup_clock_started } }
+			set_country_flag = POL_psych_followup_clock_started
+			set_country_flag = { flag = POL_psych_followup_clock days = 730 }
+		}
+		else_if = {
+			limit = { NOT = { has_country_flag = POL_psych_followup_clock } }
+			set_country_flag = POL_psych_followup_done
+			if = {
+				limit = { WP_psych_joint_eligible_trigger = yes }
+				country_event = { id = cwic_wp_psych.27 }
+			}
+		}
+	}
+}
+
+POL_psych_resolve_publish_method = {
+	set_country_flag = POL_psych_method_published
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_record = 3 }
+		add_to_variable = { global.WP_psych_scrutiny = 2 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
+
+POL_psych_resolve_classify_method = {
+	set_country_flag = POL_psych_method_classified
+}
+
+# Recovers what the sponsor-friendly summary left out (12 vs 6 record).
+POL_psych_resolve_reopen_audit = {
+	set_country_flag = POL_psych_audit_reopened
+	add_political_power = -20
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_record = 6 }
+		add_to_variable = { global.WP_psych_scrutiny = -4 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+	if = {
+		limit = { NOT = { has_country_flag = POL_psych_computing_bonus_awarded } }
+		set_country_flag = POL_psych_computing_bonus_awarded
+		add_tech_bonus = { name = POL_psych_statistics_bonus uses = 1 bonus = 0.25 category = computing_tech }
+	}
+}
+
+POL_psych_resolve_transfer_auditor = {
+	set_country_flag = POL_psych_auditor_transferred
+	if = {
+		limit = { WP_psych_extra_directorate_member_trigger = yes }
+		add_to_variable = { global.WP_psych_scrutiny = 3 }
+		WP_psych_clamp_global_variables = yes
+		WP_psych_evaluate_thresholds = yes
+	}
+}
