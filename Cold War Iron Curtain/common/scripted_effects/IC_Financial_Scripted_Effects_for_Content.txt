@@ -275,3 +275,29 @@ cwic_set_tax_level = {
 	add_to_variable = { upper_tax_slider_gui = 387 }
 	meta_effect = { text = { add_ideas = policy_taxrate_temp_[IDEA_TOKEN] } IDEA_TOKEN = "[?upper_tax_level_value]" }
 }
+
+# Fiscal Policy tab readouts. Tax level N is the policy_taxrate_*_temp_N idea, a 5*N% rate.
+# Called after every tax slider click and monthly from the finance graph block.
+cwic_refresh_tax_rate_display = {
+	set_variable = { upper_tax_rate_display = upper_tax_level_value }
+	multiply_variable = { upper_tax_rate_display = 0.05 }
+	set_variable = { corporate_tax_rate_display = corporate_tax_level_value }
+	multiply_variable = { corporate_tax_rate_display = 0.05 }
+	set_variable = { lower_middle_tax_rate_display = lower_middle_tax_level_value }
+	multiply_variable = { lower_middle_tax_rate_display = 0.05 }
+	set_variable = { lower_tax_rate_display = lower_tax_level_value }
+	multiply_variable = { lower_tax_rate_display = 0.05 }
+}
+
+# Monthly: total tax revenue and its change since last month, for the Fiscal Policy tab
+cwic_update_tax_revenue_display = {
+	set_variable = { tax_revenue_change = tax_revenue_total }
+	set_variable = { tax_revenue_total = ui_income_tax }
+	add_to_variable = { tax_revenue_total = total_corporate_tax }
+	if = {
+		limit = { check_variable = { tax_revenue_change = 0 } }	# First month: no previous total yet
+		set_variable = { tax_revenue_change = tax_revenue_total }
+	}
+	multiply_variable = { tax_revenue_change = -1 }
+	add_to_variable = { tax_revenue_change = tax_revenue_total }
+}

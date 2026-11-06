@@ -47,5 +47,28 @@ country_event = {
 			add_to_variable = { FoodBalanceTotal = FoodExported }
 			set_variable = { FoodExported = 0 }
 		}
+
+		# Finance tab graphs: food and electricity only settle after this recalculation, so the
+		# monthly tick defers their sample to here (once per month, not on other pulse calls)
+		if = {
+			limit = { check_variable = { finance_graph_daily_pending = 1 } }
+			set_variable = { finance_graph_daily_pending = 0 }
+			Food_Graph_Financial_Tab_Update = yes
+			Electricity_Graph_Financial_Tab_Update = yes
+			if = {	# Year-over-Year, sampled each January (the monthly tick reset Current_Month yesterday)
+				limit = { check_variable = { Current_Month = 1 } }
+				if = {
+					limit = { NOT = { has_variable = last_year_food } }
+					set_variable = { last_year_food = FoodBalanceTotal }
+					set_variable = { last_year_electricty = resource@coal }
+				}
+				set_variable = { yoy_change_food = FoodBalanceTotal }
+				subtract_from_variable = { yoy_change_food = last_year_food }
+				set_variable = { last_year_food = FoodBalanceTotal }
+				set_variable = { yoy_change_electricty = resource@coal }
+				subtract_from_variable = { yoy_change_electricty = last_year_electricty }
+				set_variable = { last_year_electricty = resource@coal }
+			}
+		}
 	}
 }

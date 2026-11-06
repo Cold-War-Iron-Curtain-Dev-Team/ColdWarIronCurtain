@@ -39,566 +39,250 @@ SAMPLE_add_random_point_to_line = {
 	add_to_array = { SAMPLE_numbers = SAMPLE_count }
 }
 
-GDP_Debt_Graph_Financial_Tab_Update = {
-	set_variable = {
-		GDP_Debt_Ratio = currentDebt
-	}
-	divide_variable = {
-		GDP_Debt_Ratio = grossdomesticproduct
-	}
-	add_to_array = { GDP_ratio_numbers = GDP_Debt_Ratio }
-	# Keep only the 20 points the graph shows; the history otherwise grows every month
-	while_loop_effect = {
-		limit = { check_variable = { GDP_ratio_numbers^num > 20 } }
-		remove_from_array = { array = GDP_ratio_numbers index = 0 }
-	}
 
-	#Start
-	set_variable = {
-		Debt_count = 0
+# ---------------------------------------------------------------------------
+# Finance tab line graphs
+#
+# Each graph keeps up to 20 monthly samples in <Name>_history and is drawn from
+# <Name>_graph_offsets / <Name>_graph_slopes (see the line_graph_* scripted GUIs).
+# Scripted effects cannot take array names as parameters, so every graph has a small
+# wrapper that copies its history into finance_graph_work, calls
+# finance_graph_build_segments, and copies the result back.
+#
+# Month_Label (00_on_actions.txt) holds one month per sample and is seeded to the same
+# length, so the x-axis labels line up with the points.
+# ---------------------------------------------------------------------------
+
+# Pads a new history to 12 copies of the first sample (flat line, not an empty chart)
+# and keeps at most 20. Input: finance_graph_work. Output: finance_graph_work_offsets,
+# finance_graph_work_slopes and the temp variables graph_axis_bottom / graph_axis_top.
+finance_graph_build_segments = {
+	clear_array = finance_graph_work_offsets
+	clear_array = finance_graph_work_slopes
+
+	find_highest_in_array = { array = finance_graph_work value = graph_max index = graph_max_index }
+	find_lowest_in_array = { array = finance_graph_work value = graph_min index = graph_min_index }
+	set_temp_variable = { graph_range = graph_max }
+	subtract_from_temp_variable = { graph_range = graph_min }
+
+	# Small moves must look small: the chart spans at least 10% of the largest magnitude,
+	# otherwise a 0.1% change would be stretched from the bottom to the top of the chart
+	set_temp_variable = { graph_floor = graph_max }
+	if = {
+		limit = { check_variable = { graph_floor < 0 } }
+		multiply_temp_variable = { graph_floor = -1 }
 	}
-	clear_array = Debt_graph_offsets
-	clear_array = Debt_graph_slopes
-	clear_array = current_Debt_numbers
-	clear_array = Debt_numbers
-	clear_array = value_check_debt
-	for_each_loop = {
-		array = GDP_ratio_numbers
-		add_to_array = { current_Debt_numbers = v }
-	}
-	find_highest_in_array = {
-		array = GDP_ratio_numbers
-		value = max
-		index = max_index
-	}
-	find_lowest_in_array = {
-		array = GDP_ratio_numbers
-		value = min
-		index = min_index
-	}
-	set_variable = {
-		max_debt = max
-	}
-	set_variable = {
-		max_debt_test = max
-	}
-	set_variable = {
-		min_debt = min
-	}
-	set_variable = {
-		min_debt_neg = min
-	}
-	multiply_variable = {
-		min_debt_neg = -1
-	}
-	subtract_from_variable = {
-		max_debt = min_debt
+	set_temp_variable = { graph_abs_min = graph_min }
+	if = {
+		limit = { check_variable = { graph_abs_min < 0 } }
+		multiply_temp_variable = { graph_abs_min = -1 }
 	}
 	if = {
-		limit = { check_variable = { max_debt = 0 } }
-		set_variable = { max_debt = 1 }
+		limit = { check_variable = { graph_abs_min > graph_floor } }
+		set_temp_variable = { graph_floor = graph_abs_min }
 	}
-	clear_array = Debt_numbers
-	for_each_loop = {
-		array = current_Debt_numbers
-		set_variable = {
-			value_temp = v
-		}
-		add_to_variable = {
-			value_temp = min_debt_neg
-		}
-		divide_variable = { value_temp = max_debt }
-		multiply_variable = { value_temp = 80 }
-		add_to_variable = { value_temp = 10 }
-		round_variable = value_temp
+	multiply_temp_variable = { graph_floor = 0.1 }
+	if = {
+		limit = { check_variable = { graph_floor = 0 } }
+		set_temp_variable = { graph_floor = 1 }
+	}
 
-		Debt_add_random_point_to_line = yes		
+	# Bottom of the chart: centre the data when the range is padded up to the floor
+	set_temp_variable = { graph_base = graph_min }
+	if = {
+		limit = { check_variable = { graph_range < graph_floor } }
+		set_temp_variable = { graph_pad = graph_floor }
+		subtract_from_temp_variable = { graph_pad = graph_range }
+		divide_temp_variable = { graph_pad = 2 }
+		subtract_from_temp_variable = { graph_base = graph_pad }
+		set_temp_variable = { graph_range = graph_floor }
+	}
+	# Values at the bottom (y 10) and top (y 90) of the chart, shown as the axis labels
+	set_temp_variable = { graph_axis_bottom = graph_base }
+	set_temp_variable = { graph_axis_top = graph_base }
+	add_to_temp_variable = { graph_axis_top = graph_range }
+
+	set_temp_variable = { graph_last_y = -1 }
+	for_each_loop = {
+		array = finance_graph_work
+		value = graph_v
+		# Scale into the chart's 10-90 band
+		set_temp_variable = { graph_y = graph_v }
+		subtract_from_temp_variable = { graph_y = graph_base }
+		divide_temp_variable = { graph_y = graph_range }
+		multiply_temp_variable = { graph_y = 80 }
+		add_to_temp_variable = { graph_y = 10 }
+		round_temp_variable = graph_y
+		if = {
+			limit = { check_variable = { graph_last_y = -1 } }
+			set_temp_variable = { graph_last_y = graph_y }
+		}
+		# Segment offset is -y1; the shader slope frame is (y2 - y1) / 2 + 50
+		set_temp_variable = { graph_offset = graph_last_y }
+		multiply_temp_variable = { graph_offset = -1 }
+		add_to_array = { finance_graph_work_offsets = graph_offset }
+		set_temp_variable = { graph_slope = graph_y }
+		subtract_from_temp_variable = { graph_slope = graph_last_y }
+		divide_temp_variable = { graph_slope = 2 }
+		add_to_temp_variable = { graph_slope = 50 }
+		add_to_array = { finance_graph_work_slopes = graph_slope }
+		set_temp_variable = { graph_last_y = graph_y }
 	}
 }
-Debt_add_random_point_to_line = {
-	# Adds a random point to the line graph
 
-	# This count is displayed as an x-axis label, increment it
-	add_to_variable = { Debt_count = 1 }
-
-	# We keep track of the last y position so we can calculate the slope
-	set_variable = { Debt_last_y_position = Debt_y_position }
-	
-	# Random new y position, 10-90
-	set_variable = { Debt_y_position = value_temp }
-	if = { limit = { check_variable = { Debt_count = 1 } } set_variable = { Debt_last_y_position = Debt_y_position } }
-
-
-	# Prune arrays so they hold at most 20 elements
+# Debt-GDP ratio is derived here and also shown by GDP_Debt_Label
+GDP_Debt_Graph_Financial_Tab_Update = {
+	set_variable = { GDP_Debt_Ratio = currentDebt }
 	if = {
-		limit = {
-			check_variable = { Debt_count > 20 }
-		}
-		remove_from_array = { array = Debt_graph_offsets index = 0 }
-		remove_from_array = { array = Debt_graph_slopes index = 0 }
-		remove_from_array = { array = Debt_numbers index = 0 }
+		limit = { check_variable = { grossdomesticproduct > 0 } }
+		divide_variable = { GDP_Debt_Ratio = grossdomesticproduct }
 	}
-
-	# The y position offset is the inverse of the y position
-	set_temp_variable = { offset = Debt_last_y_position }
-	multiply_temp_variable = { offset = -1 }
-	add_to_array = { Debt_graph_offsets = offset }
-
-	# The 'slope' here is simply the difference between the current y value and the last one, divided by 2 plus 50
-	# These last two changes are needed for the shader
-	set_temp_variable = { diff = Debt_y_position }
-	subtract_from_temp_variable = { diff = Debt_last_y_position }
-	divide_temp_variable = { diff = 2 }
-	add_to_temp_variable = { diff = 50 }
-	add_to_array = { Debt_graph_slopes = diff }
-	
-	add_to_array = { Debt_numbers = Debt_count }
+	Debt_Graph_Financial_Tab_Update = yes
 }
 
 GDP_Graph_Financial_Tab_Update = {
-	set_variable = {
-		GDP_count = 0
-	}
-	add_to_array = { GDP_base_numbers = grossdomesticproduct }
-	# Keep only the 20 points the graph shows; the history otherwise grows every month
+	add_to_array = { GDP_history = grossdomesticproduct }
 	while_loop_effect = {
-		limit = { check_variable = { GDP_base_numbers^num > 20 } }
-		remove_from_array = { array = GDP_base_numbers index = 0 }
+		limit = { check_variable = { GDP_history^num < 12 } }
+		add_to_array = { GDP_history = grossdomesticproduct }
 	}
+	while_loop_effect = {
+		limit = { check_variable = { GDP_history^num > 20 } }
+		remove_from_array = { array = GDP_history index = 0 }
+	}
+	clear_array = finance_graph_work
+	for_each_loop = { array = GDP_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
 	clear_array = GDP_graph_offsets
 	clear_array = GDP_graph_slopes
-	clear_array = current_GDP_numbers
-	clear_array = GDP_numbers
-	clear_array = value_check_gdp
-	for_each_loop = {
-		array = GDP_base_numbers
-		add_to_array = { current_GDP_numbers = v }
-	}
-	find_highest_in_array = {
-		array = GDP_base_numbers
-		value = max
-		index = max_index
-	}
-	find_lowest_in_array = {
-		array = GDP_base_numbers
-		value = min
-		index = min_index
-	}
-	set_variable = {
-		max_gdp = max
-	}
-	set_variable = {
-		max_gdp_test = max
-	}
-	set_variable = {
-		min_gdp = min
-	}
-	set_variable = {
-		min_gdp_neg = min
-	}
-	multiply_variable = {
-		min_gdp_neg = -1
-	}
-	subtract_from_variable = {
-		max_gdp = min_gdp
-	}
-	if = {
-		limit = { check_variable = { max_gdp = 0 } }
-		set_variable = { max_gdp = 1 }
-	}
-	clear_array = GDP_numbers
-	for_each_loop = {
-		array = current_GDP_numbers
-		set_variable = {
-			value_temp = v
-		}
-		add_to_variable = {
-			value_temp = min_gdp_neg
-		}
-		divide_variable = { value_temp = max_gdp }
-		multiply_variable = { value_temp = 80 }
-		add_to_variable = { value_temp = 10 }
-		round_variable = value_temp
-
-		GDP_add_random_point_to_line = yes		
-	}
-
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { GDP_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { GDP_graph_slopes = graph_v } }
+	set_variable = { GDP_axis_bottom = graph_axis_bottom }
+	set_variable = { GDP_axis_top = graph_axis_top }
 }
 
-GDP_add_random_point_to_line = {
-	# Adds a random point to the line graph
-
-	# This count is displayed as an x-axis label, increment it
-	add_to_variable = { GDP_count = 1 }
-
-	# We keep track of the last y position so we can calculate the slope
-	set_variable = { GDP_last_y_position = GDP_y_position }
-	
-	# Random new y position, 10-90
-	set_variable = { GDP_y_position = value_temp }
-	if = { limit = { check_variable = { GDP_count = 1 } } set_variable = { GDP_last_y_position = GDP_y_position } }
-
-
-	# Prune arrays so they hold at most 20 elements
-	if = {
-		limit = {
-			check_variable = { GDP_count > 20 }
-		}
-		remove_from_array = { array = GDP_graph_offsets index = 0 }
-		remove_from_array = { array = GDP_graph_slopes index = 0 }
-		remove_from_array = { array = GDP_numbers index = 0 }
+Debt_Graph_Financial_Tab_Update = {
+	add_to_array = { Debt_history = GDP_Debt_Ratio }
+	while_loop_effect = {
+		limit = { check_variable = { Debt_history^num < 12 } }
+		add_to_array = { Debt_history = GDP_Debt_Ratio }
 	}
-
-	# The y position offset is the inverse of the y position
-	set_temp_variable = { offset = GDP_last_y_position }
-	multiply_temp_variable = { offset = -1 }
-	add_to_array = { GDP_graph_offsets = offset }
-
-	# The 'slope' here is simply the difference between the current y value and the last one, divided by 2 plus 50
-	# These last two changes are needed for the shader
-	set_temp_variable = { diff = GDP_y_position }
-	subtract_from_temp_variable = { diff = GDP_last_y_position }
-	divide_temp_variable = { diff = 2 }
-	add_to_temp_variable = { diff = 50 }
-	add_to_array = { GDP_graph_slopes = diff }
-	
-	add_to_array = { GDP_numbers = GDP_count }
+	while_loop_effect = {
+		limit = { check_variable = { Debt_history^num > 20 } }
+		remove_from_array = { array = Debt_history index = 0 }
+	}
+	clear_array = finance_graph_work
+	for_each_loop = { array = Debt_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
+	clear_array = Debt_graph_offsets
+	clear_array = Debt_graph_slopes
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { Debt_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { Debt_graph_slopes = graph_v } }
+	set_variable = { Debt_axis_bottom = graph_axis_bottom }
+	set_variable = { Debt_axis_top = graph_axis_top }
 }
 
 Food_Graph_Financial_Tab_Update = {
-	add_to_array = { 
-		food_base_numbers = FoodBalanceTotal 
-	}
-	# Keep only the 20 points the graph shows; the history otherwise grows every month
+	add_to_array = { Food_history = FoodBalanceTotal }
 	while_loop_effect = {
-		limit = { check_variable = { food_base_numbers^num > 20 } }
-		remove_from_array = { array = food_base_numbers index = 0 }
+		limit = { check_variable = { Food_history^num < 12 } }
+		add_to_array = { Food_history = FoodBalanceTotal }
 	}
- 
-	#Start
-	set_variable = {
-		Food_count = 0
+	while_loop_effect = {
+		limit = { check_variable = { Food_history^num > 20 } }
+		remove_from_array = { array = Food_history index = 0 }
 	}
+	clear_array = finance_graph_work
+	for_each_loop = { array = Food_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
 	clear_array = Food_graph_offsets
 	clear_array = Food_graph_slopes
-	clear_array = current_Food_numbers
-	clear_array = Food_numbers
-	clear_array = value_check_food
-	for_each_loop = {
-		array = food_base_numbers
-		add_to_array = { current_Food_numbers = v }
-	}
-	find_highest_in_array = {
-		array = food_base_numbers
-		value = max
-		index = max_index
-	}
-	find_lowest_in_array = {
-		array = food_base_numbers
-		value = min
-		index = min_index
-	}
-	set_variable = {
-		max_food = max
-	}
-	set_variable = {
-		max_food_test = max
-	}
-	set_variable = {
-		min_food = min
-	}
-	set_variable = {
-		min_food_neg = min
-	}
-	multiply_variable = {
-		min_food_neg = -1
-	}
-	subtract_from_variable = {
-		max_food = min_food
-	}
-	if = {
-		limit = { check_variable = { max_food = 0 } }
-		set_variable = { max_food = 1 }
-	}
-	clear_array = Food_numbers
-	for_each_loop = {
-		array = current_Food_numbers
-		set_variable = {
-			value_temp = v
-		}
-		add_to_variable = {
-			value_temp = min_food_neg
-		}
-		divide_variable = { value_temp = max_food }
-		multiply_variable = { value_temp = 80 }
-		add_to_variable = { value_temp = 10 }
-		round_variable = value_temp
-
-		Food_add_random_point_to_line = yes		
-	}
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { Food_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { Food_graph_slopes = graph_v } }
+	set_variable = { Food_axis_bottom = graph_axis_bottom }
+	set_variable = { Food_axis_top = graph_axis_top }
 }
-Food_add_random_point_to_line = {
-	# Adds a random point to the line graph
-
-	# This count is displayed as an x-axis label, increment it
-	add_to_variable = { Food_count = 1 }
-
-	# We keep track of the last y position so we can calculate the slope
-	set_variable = { Food_last_y_position = Food_y_position }
-	
-	# Random new y position, 10-90
-	set_variable = { Food_y_position = value_temp }
-	if = { limit = { check_variable = { Food_count = 1 } } set_variable = { Food_last_y_position = Food_y_position } }
-
-
-	# Prune arrays so they hold at most 20 elements
-	if = {
-		limit = {
-			check_variable = { Food_count > 20 }
-		}
-		remove_from_array = { array = Food_graph_offsets index = 0 }
-		remove_from_array = { array = Food_graph_slopes index = 0 }
-		remove_from_array = { array = Food_numbers index = 0 }
-	}
-
-	# The y position offset is the inverse of the y position
-	set_temp_variable = { offset = Food_last_y_position }
-	multiply_temp_variable = { offset = -1 }
-	add_to_array = { Food_graph_offsets = offset }
-
-	# The 'slope' here is simply the difference between the current y value and the last one, divided by 2 plus 50
-	# These last two changes are needed for the shader
-	set_temp_variable = { diff = Food_y_position }
-	subtract_from_temp_variable = { diff = Food_last_y_position }
-	divide_temp_variable = { diff = 2 }
-	add_to_temp_variable = { diff = 50 }
-	add_to_array = { Food_graph_slopes = diff }
-	
-	add_to_array = { Food_numbers = Food_count }
-}
-
-
 
 Electricity_Graph_Financial_Tab_Update = {
-	add_to_array = { 
-		electricity_base_numbers = resource@coal
-	}
-	# Keep only the 20 points the graph shows; the history otherwise grows every month
+	add_to_array = { Electricity_history = resource@coal }
 	while_loop_effect = {
-		limit = { check_variable = { electricity_base_numbers^num > 20 } }
-		remove_from_array = { array = electricity_base_numbers index = 0 }
+		limit = { check_variable = { Electricity_history^num < 12 } }
+		add_to_array = { Electricity_history = resource@coal }
 	}
- 
-	#Start
-	set_variable = {
-		Electricity_count = 0
+	while_loop_effect = {
+		limit = { check_variable = { Electricity_history^num > 20 } }
+		remove_from_array = { array = Electricity_history index = 0 }
 	}
+	clear_array = finance_graph_work
+	for_each_loop = { array = Electricity_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
 	clear_array = Electricity_graph_offsets
 	clear_array = Electricity_graph_slopes
-	clear_array = current_Electricity_numbers
-	clear_array = Electricity_numbers
-	clear_array = value_check_electricity
-	for_each_loop = {
-		array = electricity_base_numbers
-		add_to_array = { current_Electricity_numbers = v }
-	}
-	find_highest_in_array = {
-		array = electricity_base_numbers
-		value = max
-		index = max_index
-	}
-	find_lowest_in_array = {
-		array = electricity_base_numbers
-		value = min
-		index = min_index
-	}
-	set_variable = {
-		max_electricity = max
-	}
-	set_variable = {
-		max_electricity_test = max
-	}
-	set_variable = {
-		min_electricity = min
-	}
-	set_variable = {
-		min_electricity_neg = min
-	}
-	multiply_variable = {
-		min_electricity_neg = -1
-	}
-	subtract_from_variable = {
-		max_electricity = min_electricity
-	}
-	if = {
-		limit = { check_variable = { max_electricity = 0 } }
-		set_variable = { max_electricity = 1 }
-	}
-	clear_array = Electricity_numbers
-	for_each_loop = {
-		array = current_Electricity_numbers
-		set_variable = {
-			value_temp = v
-		}
-		add_to_variable = {
-			value_temp = min_electricity_neg
-		}
-		divide_variable = { value_temp = max_electricity }
-		multiply_variable = { value_temp = 80 }
-		add_to_variable = { value_temp = 10 }
-		round_variable = value_temp
-
-		Electricity_add_random_point_to_line = yes		
-	}
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { Electricity_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { Electricity_graph_slopes = graph_v } }
+	set_variable = { Electricity_axis_bottom = graph_axis_bottom }
+	set_variable = { Electricity_axis_top = graph_axis_top }
 }
-Electricity_add_random_point_to_line = {
-	# Adds a random point to the line graph
 
-	# This count is displayed as an x-axis label, increment it
-	add_to_variable = { Electricity_count = 1 }
-
-	# We keep track of the last y position so we can calculate the slope
-	set_variable = { Electricity_last_y_position = Electricity_y_position }
-	
-	# Random new y position, 10-90
-	set_variable = { Electricity_y_position = value_temp }
-	if = { limit = { check_variable = { Electricity_count = 1 } } set_variable = { Electricity_last_y_position = Electricity_y_position } }
-
-
-	# Prune arrays so they hold at most 20 elements
-	if = {
-		limit = {
-			check_variable = { Electricity_count > 20 }
-		}
-		remove_from_array = { array = Electricity_graph_offsets index = 0 }
-		remove_from_array = { array = Electricity_graph_slopes index = 0 }
-		remove_from_array = { array = Electricity_numbers index = 0 }
-	}
-
-	# The y position offset is the inverse of the y position
-	set_temp_variable = { offset = Electricity_last_y_position }
-	multiply_temp_variable = { offset = -1 }
-	add_to_array = { Electricity_graph_offsets = offset }
-
-	# The 'slope' here is simply the difference between the current y value and the last one, divided by 2 plus 50
-	# These last two changes are needed for the shader
-	set_temp_variable = { diff = Electricity_y_position }
-	subtract_from_temp_variable = { diff = Electricity_last_y_position }
-	divide_temp_variable = { diff = 2 }
-	add_to_temp_variable = { diff = 50 }
-	add_to_array = { Electricity_graph_slopes = diff }
-	
-	add_to_array = { Electricity_numbers = Electricity_count }
-}
-Income_Graph_Financial_Tab_Update = {
-	add_to_array = { 
-		income_base_numbers = IncomeCheck
-	}
-	# Keep only the 20 points the graph shows; the history otherwise grows every month
+Treasury_Graph_Financial_Tab_Update = {
+	add_to_array = { Treasury_history = currentMoney }
 	while_loop_effect = {
-		limit = { check_variable = { income_base_numbers^num > 20 } }
-		remove_from_array = { array = income_base_numbers index = 0 }
+		limit = { check_variable = { Treasury_history^num < 12 } }
+		add_to_array = { Treasury_history = currentMoney }
 	}
- 
-	#Start
-	set_variable = {
-		Income_count = 0
+	while_loop_effect = {
+		limit = { check_variable = { Treasury_history^num > 20 } }
+		remove_from_array = { array = Treasury_history index = 0 }
 	}
-	clear_array = Income_graph_offsets
-	clear_array = Income_graph_slopes
-	clear_array = current_Income_numbers
-	clear_array = Income_numbers
-	clear_array = value_check_income
-	for_each_loop = {
-		array = income_base_numbers
-		add_to_array = { current_Income_numbers = v }
-	}
-	find_highest_in_array = {
-		array = income_base_numbers
-		value = max
-		index = max_index
-	}
-	find_lowest_in_array = {
-		array = income_base_numbers
-		value = min
-		index = min_index
-	}
-	set_variable = {
-		max_income = max
-	}
-	set_variable = {
-		max_income_test = max
-	}
-	set_variable = {
-		min_income = min
-	}
-	set_variable = {
-		min_income_neg = min
-	}
-	multiply_variable = {
-		min_income_neg = -1
-	}
-	subtract_from_variable = {
-		max_income = min_income
-	}
-	if = {
-		limit = { check_variable = { max_income = 0 } }
-		set_variable = { max_income = 1 }
-	}
-	clear_array = Income_numbers
-	for_each_loop = {
-		array = current_Income_numbers
-		set_variable = {
-			value_temp = v
-		}
-		add_to_variable = {
-			value_temp = min_income_neg
-		}
-		divide_variable = { value_temp = max_income }
-		multiply_variable = { value_temp = 80 }
-		add_to_variable = { value_temp = 10 }
-		round_variable = value_temp
-
-		Income_add_random_point_to_line = yes		
-	}
-}
-Income_add_random_point_to_line = {
-	# Adds a random point to the line graph
-
-	# This count is displayed as an x-axis label, increment it
-	add_to_variable = { Income_count = 1 }
-
-	# We keep track of the last y position so we can calculate the slope
-	set_variable = { Income_last_y_position = Income_y_position }
-	
-	# Random new y position, 10-90
-	set_variable = { Income_y_position = value_temp }
-	if = { limit = { check_variable = { Income_count = 1 } } set_variable = { Income_last_y_position = Income_y_position } }
-
-
-	# Prune arrays so they hold at most 20 elements
-	if = {
-		limit = {
-			check_variable = { Income_count > 20 }
-		}
-		remove_from_array = { array = Income_graph_offsets index = 0 }
-		remove_from_array = { array = Income_graph_slopes index = 0 }
-		remove_from_array = { array = Income_numbers index = 0 }
-	}
-
-	# The y position offset is the inverse of the y position
-	set_temp_variable = { offset = Income_last_y_position }
-	multiply_temp_variable = { offset = -1 }
-	add_to_array = { Income_graph_offsets = offset }
-
-	# The 'slope' here is simply the difference between the current y value and the last one, divided by 2 plus 50
-	# These last two changes are needed for the shader
-	set_temp_variable = { diff = Income_y_position }
-	subtract_from_temp_variable = { diff = Income_last_y_position }
-	divide_temp_variable = { diff = 2 }
-	add_to_temp_variable = { diff = 50 }
-	add_to_array = { Income_graph_slopes = diff }
-	
-	add_to_array = { Income_numbers = Income_count }
+	clear_array = finance_graph_work
+	for_each_loop = { array = Treasury_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
+	clear_array = Treasury_graph_offsets
+	clear_array = Treasury_graph_slopes
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { Treasury_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { Treasury_graph_slopes = graph_v } }
+	set_variable = { Treasury_axis_bottom = graph_axis_bottom }
+	set_variable = { Treasury_axis_top = graph_axis_top }
 }
 
+Inflation_Graph_Financial_Tab_Update = {
+	add_to_array = { Inflation_history = CWIC_inflation_mom }
+	while_loop_effect = {
+		limit = { check_variable = { Inflation_history^num < 12 } }
+		add_to_array = { Inflation_history = CWIC_inflation_mom }
+	}
+	while_loop_effect = {
+		limit = { check_variable = { Inflation_history^num > 20 } }
+		remove_from_array = { array = Inflation_history index = 0 }
+	}
+	clear_array = finance_graph_work
+	for_each_loop = { array = Inflation_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
+	clear_array = Inflation_graph_offsets
+	clear_array = Inflation_graph_slopes
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { Inflation_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { Inflation_graph_slopes = graph_v } }
+	set_variable = { Inflation_axis_bottom = graph_axis_bottom }
+	set_variable = { Inflation_axis_top = graph_axis_top }
+}
+
+FX_Reserves_Graph_Financial_Tab_Update = {
+	add_to_array = { FX_Reserves_history = CWIC_fx_reserves }
+	while_loop_effect = {
+		limit = { check_variable = { FX_Reserves_history^num < 12 } }
+		add_to_array = { FX_Reserves_history = CWIC_fx_reserves }
+	}
+	while_loop_effect = {
+		limit = { check_variable = { FX_Reserves_history^num > 20 } }
+		remove_from_array = { array = FX_Reserves_history index = 0 }
+	}
+	clear_array = finance_graph_work
+	for_each_loop = { array = FX_Reserves_history value = graph_v add_to_array = { finance_graph_work = graph_v } }
+	finance_graph_build_segments = yes
+	clear_array = FX_Reserves_graph_offsets
+	clear_array = FX_Reserves_graph_slopes
+	for_each_loop = { array = finance_graph_work_offsets value = graph_v add_to_array = { FX_Reserves_graph_offsets = graph_v } }
+	for_each_loop = { array = finance_graph_work_slopes value = graph_v add_to_array = { FX_Reserves_graph_slopes = graph_v } }
+	set_variable = { FX_Reserves_axis_bottom = graph_axis_bottom }
+	set_variable = { FX_Reserves_axis_top = graph_axis_top }
+}
