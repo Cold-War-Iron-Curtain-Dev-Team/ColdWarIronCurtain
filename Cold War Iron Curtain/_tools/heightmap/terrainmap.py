@@ -11,7 +11,6 @@ from PIL import Image
 from scipy import ndimage as nd
 from build import OLD_COMMIT, WRAP, old_map, LAKE_TERRAIN, ICE_TERRAIN, LAND_MIN, HEIGHT_SCALE, warp
 from gcps import land_mask_and_ids
-from dither import dither
 
 # terrain.bmp indices (00_terrain.txt) -> atlas texture
 GRASS, FOREST, DESERT_MTN, SAND, DARK_FOREST, FARMLAND = 0, 1, 2, 3, 4, 5      # tex 1, 4, 3, 9, 5, 0
@@ -181,7 +180,7 @@ def main(dem_path, pop_path, out, bm_path=None):
     t[paint & (town | (sp > 0.5))] = URBAN  # after the majority filter, which would erase towns
     t[land & (old == MARSH) & ~np.isin(t, (LAKE_TERRAIN, ICE_TERRAIN))] = MARSH
     t = tundra(t, la, land, lo)
-    t = dither(t, land & ~np.isin(t, (LAKE_TERRAIN, ICE_TERRAIN)))  # checkered transitions, not 1 px lines
+    # no dither: lone pixels render as hard texture squares; pdxmap.shader's TERRAIN_EDGE_JITTER softens class edges
     img = Image.fromarray(t, "P")
     img.putpalette(old_t.getpalette())
     img.save(f"{out}/terrain.bmp")

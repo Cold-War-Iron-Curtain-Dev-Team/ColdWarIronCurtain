@@ -248,7 +248,7 @@ PixelShader =
 			
 			// CWIC: anti-tiling. A tile repeats every ~20 map px, which reads as a grid when zoomed out: past camera height ~250
 			// push the atlas mip up so each tile fades to its average colour (the colormap carries the large-scale look)
-			float lod = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 4.0f, 0.0f, 6.0f );
+			float lod = clamp( mipmapLevel( vTileRepeat ) - 0.5f + cam_distance( 250.0f, 900.0f ) * 1.5f, 0.0f, 6.0f ); // was 4.0: blurred tiles to ~32 px; the 0.61x resample + vMacro now handle tiling
 			float vMipTexels = pow( 2.0f, ATLAS_TEXEL_POW2_EXPONENT - lod );
 
 			// CWIC: anti-tiling. Every atlas tile is also sampled at 0.61x scale with an offset, and a low-frequency noise blends
