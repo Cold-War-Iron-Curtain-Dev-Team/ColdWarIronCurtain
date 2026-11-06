@@ -1,3 +1,24 @@
+# Operation `visible` blocks are re-checked ~580 times per operation per day, and
+# num_of_operatives is an expensive trigger. Cache it once per country per day (on_daily
+# in 00_on_actions.txt); the operations test these flags instead.
+cwic_cache_operative_count_flags = {
+	if = {
+		limit = { has_intelligence_agency = yes num_of_operatives > 0 }
+		set_country_flag = cwic_has_1_operative
+		if = {
+			limit = { num_of_operatives > 1 }
+			set_country_flag = cwic_has_2_operatives
+		}
+		else = {
+			clr_country_flag = cwic_has_2_operatives
+		}
+	}
+	else = {
+		clr_country_flag = cwic_has_1_operative
+		clr_country_flag = cwic_has_2_operatives
+	}
+}
+
 
 
 update_operation_ai = {
