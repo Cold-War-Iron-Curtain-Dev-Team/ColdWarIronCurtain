@@ -13,8 +13,8 @@ PixelShader =
 			MagFilter = "Linear"
 			MinFilter = "Linear"
 			MipFilter = "None"
-			AddressU = "Wrap"
-			AddressV = "Wrap"
+			AddressU = "Clamp"
+			AddressV = "Clamp"
 		}
 		MaskTexture =
 		{
