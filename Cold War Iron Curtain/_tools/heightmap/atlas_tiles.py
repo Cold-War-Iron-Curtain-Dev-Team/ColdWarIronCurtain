@@ -74,15 +74,15 @@ def make_tile(img, crop, relief, spec, look=None):
     # the painted tiles' detail contrast (lum std ~40-60 vs ~10-25 here), warmer palette and saturation
     lum = a @ LUM
     dev = lum - nd.gaussian_filter(lum, 24, mode="wrap")
-    a += (np.clip(CONTRAST / max(dev.std(), 1e-3), 1, 2.2) - 1) * dev[..., None]
+    a += (np.clip(CONTRAST / max(dev.std(), 1e-3), 1, 1.4) - 1) * dev[..., None]
     m = a.reshape(-1, 3).mean(0)
     a += WARM * (OLD_MEAN * (m @ LUM) / (OLD_MEAN @ LUM) - m)
     lum = a @ LUM
     a = np.clip(lum[..., None] + sat * (a - lum[..., None]), 0, 255)
     lum = a @ LUM
-    h = nd.gaussian_filter(lum, 1.2, mode="wrap") / 255.0
+    h = nd.gaussian_filter(lum, 2.5, mode="wrap") / 255.0
     gy, gx = np.gradient(h)
-    k = 6.0 * relief * 255 / 32  # flat painted tiles: normal x/y std ~7-12 of 255
+    k = 2.0 * relief * 255 / 32  # flat painted tiles: normal x/y std ~7-12 of 255
     nx, ny = -gx * k, -gy * k
     norm = np.sqrt(nx * nx + ny * ny + 1)
     nrm = np.stack([nx / norm, ny / norm, 1 / norm], -1) * 127.5 + 127.5
