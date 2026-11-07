@@ -3,8 +3,11 @@
 They follow the look of e.g. gfx/GUI/Minorities/3_Limited_Rights.png: a toned
 photo with 2px scanlines, a darkened lower edge and a wide white caps label.
 
-- Manufacturer slots: the politics view draws GFX_idea_slot_<slot> on each
-  industrial_org_entry, so those banners replace gfx/interface/idea_slot_<slot>.dds.
+- Manufacturer slots: the politics view draws the engine-assigned
+  GFX_<type>_mio_roster sprite on each industrial_org_entry, so the tank, ship,
+  aircraft and materiel banners replace vanilla's <type>_mio_roster.dds by path
+  (GFX_idea_slot_<slot> points at the same files). Industrial concern is a plain
+  idea slot and uses gfx/interface/idea_slot_industrial_concern.dds.
 - Laws that had no banner art (isolation, undisturbed isolation, feudal mobilization).
 
 Sources are photos already in the mod (MIO backgrounds, loading screens, event pictures).
@@ -26,13 +29,13 @@ RED = ((40, 14, 12), (238, 196, 176))
 
 # output (relative to the mod) -> (source, crop box in source pixels, label, (tint dark, tint light))
 BANNERS = {
-    "gfx/interface/idea_slot_tank_manufacturer.dds":
+    MIO + "tank_mio_roster.dds":
         (MIO + "mio_details_background_tank.dds", (0, 110, 945, 391), "TANK MANUFACTURER", SEPIA),
-    "gfx/interface/idea_slot_aircraft_manufacturer.dds":
+    MIO + "aircraft_mio_roster.dds":
         (MIO + "mio_details_background_plane.dds", (20, 280, 945, 556), "AIRCRAFT MANUFACTURER", SEPIA),
-    "gfx/interface/idea_slot_naval_manufacturer.dds":
+    MIO + "ship_mio_roster.dds":
         (MIO + "mio_details_background_ship.dds", (0, 330, 945, 611), "NAVAL MANUFACTURER", SEPIA),
-    "gfx/interface/idea_slot_materiel_manufacturer.dds":
+    MIO + "material_mio_roster.dds":
         (MIO + "mio_details_background_factory.dds", (0, 20, 945, 301), "MATERIEL MANUFACTURER", SEPIA),
     "gfx/interface/idea_slot_industrial_concern.dds":
         (MIO + "mio_details_background.dds", (0, 300, 945, 581), "INDUSTRIAL CONCERN", SEPIA),
