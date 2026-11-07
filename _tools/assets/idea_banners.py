@@ -67,11 +67,18 @@ def photo(src, box, tint):
     for y in range(H):
         t = max(0.0, (y - 40) / (H - 40))
         d.line([(0, y), (W, y)], fill=int(255 - 150 * t ** 1.4))
+    # Soft dark border on all four sides, like the policy cards: about 25% brightness
+    # at the edge, easing back to full over EDGE px, with a wider gentle fade at the sides.
+    EDGE = 13
     edge = Image.new("L", (W, H), 255)
-    d = ImageDraw.Draw(edge)
-    for x in range(W):
-        t = max(0.0, 1 - min(x, W - 1 - x) / 40)
-        d.line([(x, 0), (x, H)], fill=int(255 - 90 * t ** 2))
+    px = edge.load()
+    for y in range(H):
+        for x in range(W):
+            dist = min(x, W - 1 - x, y, H - 1 - y)
+            t = min(1.0, dist / EDGE)
+            near = 0.25 + 0.75 * (t * t * (3 - 2 * t))
+            side = 1 - 0.25 * max(0.0, 1 - min(x, W - 1 - x) / 45) ** 2
+            px[x, y] = int(255 * near * side)
     shade = ImageChops.multiply(shade, edge)
     return ImageChops.multiply(rgb, Image.merge("RGB", [shade] * 3))
 
