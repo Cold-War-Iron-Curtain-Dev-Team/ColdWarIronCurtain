@@ -16,7 +16,8 @@ encode-*       runs Microsoft texconv (-dx9 legacy header, same mip count, sRGB 
 """
 import argparse, csv, io, math, os, shutil, struct, subprocess, sys, tempfile
 from pathlib import Path
-from PIL import Image
+from concurrent.futures import ThreadPoolExecutor
+from PIL import Image, ImageChops
 
 MOD = Path(__file__).resolve().parents[2] / 'Cold War Iron Curtain'
 SRGB_DXGI = {29, 72, 78, 91, 93, 99}
@@ -61,13 +62,24 @@ def decode(data):
 def psnr(a, b, alpha=True):
     if a.size != b.size:
         return -1.0
-    bands = ('R', 'G', 'B', 'A') if alpha else ('R', 'G', 'B')
-    se = n = 0
-    for band in bands:
-        ha = a.getchannel(band).tobytes(); hb = b.getchannel(band).tobytes()
-        se += sum((x - y) ** 2 for x, y in zip(ha, hb)); n += len(ha)
-    mse = se / max(n, 1)
+    if not alpha:
+        a, b = a.convert('RGB'), b.convert('RGB')
+    hist = ImageChops.difference(a, b).histogram()  # 256 bins per band
+    se = sum(c * ((i % 256) ** 2) for i, c in enumerate(hist))
+    mse = se / max(a.size[0] * a.size[1] * len(a.getbands()), 1)
     return 99.0 if mse == 0 else 10 * math.log10(255 * 255 / mse)
+
+
+def git_dirty():
+    """Paths (relative to the mod folder) with uncommitted changes: never touch someone's work in progress."""
+    r = subprocess.run(['git', 'status', '--porcelain', '-z', '--', '.'], cwd=MOD, capture_output=True, text=True)
+    prefix = 'Cold War Iron Curtain/'
+    out = set()
+    for entry in r.stdout.split('\0'):
+        p = entry[3:]
+        if p.startswith(prefix):
+            out.add(p[len(prefix):].lower())
+    return out
 
 
 # ---------------- texconv ----------------
@@ -107,35 +119,50 @@ def main():
         rows = rows[:a.limit]
     if any(r['action'] != 'transcode-BC1' for r in rows) and not a.texconv:
         sys.exit('texconv is required for encode-* / bc7-to-BC3 rows (pass --texconv PATH)')
-    log = []; before = after = 0; MB = 1048576
+    if a.texconv:
+        a.texconv = str(Path(a.texconv).resolve())
+    dirty = git_dirty()
+    log = []; MB = 1048576
+
+    def work(job):
+        i, r = job
+        p = MOD / r['path']; status = 'ok'; q = ''; new = b''
+        data = p.read_bytes() if p.exists() else b''
+        try:
+            if not data:
+                raise RuntimeError('missing')
+            if r['path'].lower() in dirty:
+                raise RuntimeError('uncommitted changes - left alone')
+            if r['action'] == 'transcode-BC1':
+                new = transcode_to_bc1(data)
+                if decode(data).convert('RGB').tobytes() != decode(new).convert('RGB').tobytes():
+                    raise RuntimeError('transcode not pixel-identical')
+                q = 'lossless'
+            else:
+                fmt = 'BC1' if r['action'] == 'encode-BC1' else 'BC3'
+                sub = Path(tmp) / str(i); sub.mkdir()
+                new = texconv_encode(a.texconv, p, fmt, int(r['mips']), source_is_srgb(data), sub)
+                shutil.rmtree(sub, ignore_errors=True)
+                s = psnr(decode(data), decode(new), alpha=(fmt == 'BC3'))
+                q = f'{s:.1f}'
+                if s < a.min_psnr:
+                    raise RuntimeError(f'PSNR {s:.1f} dB below {a.min_psnr}')
+            if len(new) >= len(data):
+                raise RuntimeError('not smaller')
+            if a.apply:
+                p.write_bytes(new)
+        except Exception as e:
+            status = f'rejected: {e}'
+        return dict(path=r['path'], action=r['action'], tier=r['tier'], old=len(data),
+                    new=len(new) if status == 'ok' else len(data), quality=q, status=status)
+
     with tempfile.TemporaryDirectory(prefix='cwic-dds-') as tmp:
-        for i, r in enumerate(rows, 1):
-            p = MOD / r['path']; data = p.read_bytes(); status = 'ok'; q = ''
-            try:
-                if r['action'] == 'transcode-BC1':
-                    new = transcode_to_bc1(data)
-                    ref = decode(data); got = decode(new)
-                    if ref.convert('RGB').tobytes() != got.convert('RGB').tobytes():
-                        raise RuntimeError('transcode not pixel-identical')
-                    q = 'lossless'
-                else:
-                    fmt = 'BC1' if r['action'] == 'encode-BC1' else 'BC3'
-                    new = texconv_encode(a.texconv, p, fmt, int(r['mips']), source_is_srgb(data), tmp)
-                    s = psnr(decode(data), decode(new), alpha=(fmt == 'BC3'))
-                    q = f'{s:.1f}'
-                    if s < a.min_psnr:
-                        raise RuntimeError(f'PSNR {s:.1f} dB below {a.min_psnr}')
-                if len(new) >= len(data):
-                    raise RuntimeError('not smaller')
-                if a.apply:
-                    p.write_bytes(new)
-                before += len(data); after += len(new)
-            except Exception as e:
-                status = f'rejected: {e}'
-            log.append(dict(path=r['path'], action=r['action'], tier=r['tier'], old=len(data),
-                            new=len(new) if status == 'ok' else len(data), quality=q, status=status))
-            if i % 500 == 0:
-                print(f'  {i}/{len(rows)} ...', flush=True)
+        with ThreadPoolExecutor(max_workers=max(2, (os.cpu_count() or 4) - 1)) as ex:
+            for n, row in enumerate(ex.map(work, enumerate(rows)), 1):
+                log.append(row)
+                if n % 1000 == 0:
+                    print(f'  {n}/{len(rows)} ...', flush=True)
+    before = sum(l['old'] for l in log if l['status'] == 'ok'); after = sum(l['new'] for l in log if l['status'] == 'ok')
     ok = sum(l['status'] == 'ok' for l in log)
     print(f"{'APPLIED' if a.apply else 'DRY RUN'}: {ok}/{len(log)} converted, "
           f"{before / MB:.1f} MB -> {after / MB:.1f} MB (saves {(before - after) / MB:.1f} MB); "
