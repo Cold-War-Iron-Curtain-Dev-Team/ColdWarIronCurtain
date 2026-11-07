@@ -602,6 +602,10 @@ scripted_gui = {
             tag = USA
             check_variable = { show_usa_congress = 1 }
 		}
+        properties = {
+            house_vote_bar = { frame = usa_house_vote_bar_frame }
+            senate_vote_bar = { frame = usa_senate_vote_bar_frame }
+        }
         triggers = {
             SENATE_FACTION_EST_DEM_visible = { check_variable = { USA.show_usa_congress_alt = 0 } }
             senate_mod_lobbying_supported_visible = { check_variable = { USA.show_usa_congress_alt = 0 } has_country_flag = law_passing has_country_flag = moderate_dem_sup }
@@ -632,6 +636,10 @@ scripted_gui = {
             last_vote_name_visible = { check_variable = { USA.show_usa_congress_alt = 0 } check_variable = { USA_SEN_POL_DETAILS = 0 } }
             last_vote_totals_visible = { check_variable = { USA.show_usa_congress_alt = 0 } check_variable = { USA_SEN_POL_DETAILS = 0 } check_variable = { usa_last_bill_result > 0 } }
             vote_countdown_visible = { check_variable = { USA.show_usa_congress_alt = 0 } has_country_flag = law_passing }
+            house_vote_bar_visible = { check_variable = { show_usa_congress_alt = 0 } has_country_flag = law_passing }
+            senate_vote_bar_visible = { check_variable = { show_usa_congress_alt = 0 } has_country_flag = law_passing }
+            congress_open_bills_visible = { check_variable = { show_usa_congress_alt = 0 } }
+
 
 
             lobby_feedback_visible = {
@@ -3177,36 +3185,48 @@ scripted_gui = {
                 }
                 generate_campaign_map_numbers_dem = yes
             }
+            congress_open_bills_click = {
+                set_variable = { usa_congress_bills_open = 1 }
+                clear_variable = usa_congress_bill_start_failed
+                USA_collect_congress_bills = yes
+            }
             closebutton_click = {
+                clear_variable = usa_congress_bills_open
                 set_variable = { show_usa_congress = 0 }
-                set_variable = { lobby_check = 0 }
             }
 			exitbutton_click = {
+                clear_variable = usa_congress_bills_open
                 set_variable = { show_usa_congress = 0 }
-                set_variable = { lobby_check = 0 }
 			}
 
-			house_lobbying_click = {    #has_country_flag = law_passing
-				set_variable = { lobby_check = 10 }
-			}
+            house_lobbying_click = {
+                set_temp_variable = { usa_lobby_target = 10 }
+                lobbying_effect = yes
+            }
             senate_mod_lobbying_click = {
-				set_variable = { lobby_check = 1 }
-			}
+                set_temp_variable = { usa_lobby_target = 1 }
+                lobbying_effect = yes
+            }
             senate_pro_lobbying_click = {
-				set_variable = { lobby_check = 2 }
-			}
+                set_temp_variable = { usa_lobby_target = 2 }
+                lobbying_effect = yes
+            }
             senate_dixie_lobbying_click = {
-				set_variable = { lobby_check = 3 }
-			}
+                set_temp_variable = { usa_lobby_target = 3 }
+                lobbying_effect = yes
+            }
             senate_mod_gop_lobbying_click = {
-				set_variable = { lobby_check = 4 }
-			}
+                set_temp_variable = { usa_lobby_target = 4 }
+                lobbying_effect = yes
+            }
             senate_con_gop_lobbying_click = {
-				set_variable = { lobby_check = 5 }
-			}
+                set_temp_variable = { usa_lobby_target = 5 }
+                lobbying_effect = yes
+            }
             senate_lib_gop_lobbying_click = {
-				set_variable = { lobby_check = 6 }
-			}
+                set_temp_variable = { usa_lobby_target = 6 }
+                lobbying_effect = yes
+            }
 
 			washington_poli_details_click = {
 				set_variable = { USA_SEN_POL_DETAILS = 386.id }
@@ -3538,34 +3558,42 @@ scripted_gui = {
 		#}
 
     }
-	US_CONGRESS_LOBBYING = {
-
-		context_type = player_context
-		window_name = "US_CONGRESS_UI_LOBBYING"
-
-		visible = {
+    US_CONGRESS_BILLS = {
+        context_type = player_context
+        window_name = "US_CONGRESS_UI_BILLS"
+        visible = {
             tag = USA
             check_variable = { show_usa_congress = 1 }
-            has_country_flag = law_passing
-            NOT = { check_variable = { lobby_check = 0 } }
-		}
+            check_variable = { show_usa_congress_alt = 0 }
+            check_variable = { usa_congress_bills_open = 1 }
+        }
+        dynamic_lists = {
+            congress_bill_list = {
+                array = ROOT.usa_available_congress_bills
+                entry_container = congress_bill_row
+            }
+        }
         triggers = {
-            send_button_click_enabled = { USA_congress_can_lobby = yes }
+            congress_introduce_bill_click_enabled = { USA_can_start_congress_vote = yes }
         }
         effects = {
-            send_button_click = {
-                lobbying_effect = yes
-                set_variable = {
-                    lobby_check = 0
+            congress_close_bills_click = { clear_variable = usa_congress_bills_open }
+            congress_introduce_bill_click = {
+                if = {
+                    limit = { USA_can_start_congress_vote = yes }
+                    set_temp_variable = { usa_selected_congress_bill = ROOT.usa_available_congress_bills^i }
+                    USA_activate_congress_bill = yes
+                    if = {
+                        limit = { has_country_flag = law_passing }
+                        clear_variable = usa_congress_bills_open
+                        clear_variable = usa_congress_bill_start_failed
+                    }
+                    else = { set_variable = { usa_congress_bill_start_failed = 1 } }
                 }
             }
-            cancel_button_click = {
-                set_variable = {
-                    lobby_check = 0
-                }
-            }
-        } 
+        }
     }
+
     #The Negotiator
     
     #Primary Prompts

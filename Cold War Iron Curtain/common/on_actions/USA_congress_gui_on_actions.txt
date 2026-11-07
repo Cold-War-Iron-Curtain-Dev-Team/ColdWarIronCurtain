@@ -1,6 +1,38 @@
 on_actions = {
 	on_daily = {
 		effect = {
+            if = {
+                limit = {
+                    tag = USA
+                    OR = {
+                        AND = {
+                            has_country_flag = law_passing
+                            NOT = { has_variable = usa_current_legislation }
+                        }
+                        AND = {
+                            NOT = { has_country_flag = law_passing }
+                            OR = {
+                                has_decision = McCarran_Walter_Act_Override
+                                has_decision = Metric_Conversion_Act
+                            }
+                        }
+                    }
+                }
+                USA_recover_congress_vote_metadata = yes
+            }
+            if = {
+                limit = {
+                    tag = USA
+                    has_country_flag = law_passing
+                    has_variable = usa_current_legislation
+                }
+                USA_refresh_congress_vote_clock = yes
+                # Native expiry can run first. A pending vote still resolves at its deadline.
+                if = {
+                    limit = { check_variable = { usa_vote_days_remaining = 0 } }
+                    USA_resolve_congress_vote = yes
+                }
+            }
 			if = {
 				limit = {
 					tag = USA

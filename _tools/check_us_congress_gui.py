@@ -70,6 +70,10 @@ vote_loc_file='common/scripted_localisation/USA_congress_vote_localisation.txt'
 vote_effect_file='common/scripted_effects/USA_congress_vote_effects.txt'
 trees[vote_loc_file]=parse(read(vote_loc_file))
 trees[vote_effect_file]=parse(read(vote_effect_file))
+catalogue_effect_file='common/scripted_effects/USA_congress_vote_catalogue.txt'
+catalogue_trigger_file='common/scripted_triggers/USA_congress_vote_catalogue.txt'
+trees[catalogue_effect_file]=parse(read(catalogue_effect_file))
+trees[catalogue_trigger_file]=parse(read(catalogue_trigger_file))
 trees['interface/US_Congress_Controls.gfx']=parse(read('interface/US_Congress_Controls.gfx'))
 print('PASS: syntax parsed for',len(trees),'Congress files.')
 
@@ -123,9 +127,10 @@ overview=get(gui_tree,'US_CONGRESS')
 widgets=find_named(get(trees['interface/WMD.gui'],'guiTypes'),'US_CONGRESS_UI')
 triggers={k:v for block,op,body in overview if block=='triggers' for k,op,v in body}
 custom={k:v for k,o,v in trees['common/scripted_triggers/USA_congress_gui_triggers.txt']}
+custom.update({k:v for k,o,v in trees[catalogue_trigger_file]})
 custom.update({k:v for k,o,v in parse(read('common/scripted_triggers/IC_state_decision_triggers.txt'))})
 effects={k:v for k,o,v in trees['common/scripted_effects/Initialization.txt']}
-effects.update({k:v for k,o,v in trees[vote_effect_file]})
+effects.update({k:v for f in (vote_effect_file,catalogue_effect_file) for k,o,v in trees[f]})
 loc_funcs={get(v,'name'):v for f in ['common/scripted_localisation/USA_congress_gui_localisation.txt','common/scripted_localisation/IC_localisation.txt',lobby_loc_file,vote_loc_file] for k,o,v in trees[f] if k=='defined_text'}
 def resolve(value,env):
  if isinstance(value,(float,int)):return value
@@ -133,7 +138,7 @@ def resolve(value,env):
  if value.startswith('token:'):return value.removeprefix('token:')
  bank=env.get('country_vars',env['vars']) if value.startswith('USA.') else env['vars']
  if value.startswith('USA.'):value=value[4:]
- if value=='days_decision_timeout@var:usa_current_legislation':return env.get('decision_timers',{}).get(bank.get('usa_current_legislation'),0)
+ if value=='global.num_days':return env.get('game_day',0)
  try:return float(value)
  except ValueError:return bank.get(value,0)
 def compare(a,op,b):return {'=':lambda:a==b,'>':lambda:a>b,'<':lambda:a<b}[op]()
@@ -143,8 +148,15 @@ def test(node,env):
   if k=='AND':return test(v,env)
   if k=='NOT':return not test(v,env)
   if k=='check_variable':return all(compare(resolve(key,env),op,resolve(value,env)) for key,op,value in v)
+  if k=='has_country_flag' and isinstance(v,list):
+   flag=get(v,'flag')
+   return flag in env['flags'] and all(
+    compare(env.get('flag_ages',{}).get(flag,0),op,float(days))
+    for field,op,days in v if field=='days')
   if k in ('has_country_flag','has_global_flag'):return v in env['flags']
   if k=='has_variable':return v in env['vars']
+  if k=='has_decision':return v in env.get('decision_timers',{})
+  if k=='is_in_array':return resolve(get(v,'value'),env) in env.get('arrays',{}).get(get(v,'array'),[])
   if k=='always':return v=='yes'
   if k=='tag':return v==env.get('tag','USA')
   if k=='is_ai':return (v=='yes')==env.get('ai',False)
@@ -172,12 +184,24 @@ def run(node,env):
   branch=None
   if k in ('add_to_variable','subtract_from_variable'):
    for key,op,value in v:env['vars'][key]=env['vars'].get(key,0)+(1 if k=='add_to_variable' else -1)*resolve(value,env)
-  elif k=='set_variable':
+  elif k in ('multiply_variable','divide_variable'):
+   for key,op,value in v:
+    factor=resolve(value,env)
+    env['vars'][key]*=factor if k=='multiply_variable' else 1/factor
+  elif k=='round_variable':env['vars'][v]=round(env['vars'][v])
+  elif k in ('set_variable','set_temp_variable'):
    for key,op,value in v:env['vars'][key]=resolve(value,env)
   elif k=='set_country_flag':env['flags'].add(v)
   elif k=='clr_country_flag':env['flags'].discard(v)
   elif k=='clear_variable':env['vars'].pop(v,None)
   elif k=='add_political_power':env['pp']+=float(v)
+  elif k=='add_to_array':
+   for key,op,value in v:env.setdefault('arrays',{}).setdefault(key,[]).append(resolve(value,env))
+  elif k=='clear_array':env.setdefault('arrays',{}).pop(v,None)
+  elif k=='activate_decision':env.setdefault('decision_timers',{}).setdefault(v,50)
+  elif k in ('country_event','news_event'):
+   env.setdefault('events',[]).append(get(v,'id') if isinstance(v,list) else v)
+  elif k in env.get('stub_effects',set()):pass
   elif k=='clamp_variable':
    key=get(v,'var');env['vars'][key]=max(resolve(get(v,'min'),env),min(resolve(get(v,'max'),env),env['vars'].get(key,0)))
   elif k=='hidden_effect':run(v,env)
@@ -275,7 +299,7 @@ def expand(value,e,depth=0):
   raw=m[1].split('|')[0]
   if raw.endswith('.GetTokenLocalizedKey'):
    key=raw.removesuffix('.GetTokenLocalizedKey').removeprefix('USA.')
-   return loc.get(e['vars'].get(key,''),'')
+   return expand(e['vars'].get(key,''),e,depth+1)
   v=resolve(raw,e)
   return str(int(v)) if isinstance(v,(float,int)) else str(v)
  value=re.sub(r'\[\?([^\]]+)\]',variable,value)
@@ -311,22 +335,22 @@ def paint_text(canvas,n,text):
  return len(lines)*lineheight
 audit_dir=args.preview_dir
 if audit_dir:audit_dir.mkdir(parents=True,exist_ok=True)
-from generate_us_congress_votes import bill_metadata, requirements, instrument, generate as generate_votes
-bill_source=read('common/decisions/US_HOUSE.txt');vote_bills=bill_metadata(bill_source)
+from generate_us_congress_votes import bill_metadata, generate_decisions, generate_effects, generate_localisation, generate_triggers, unlocked
+vote_bills=bill_metadata()
 properties={k:v for kind,o,body in overview if kind=='properties' for k,o,v in body}
 for mode,selected,label in [(0,0,'overview'),(0,378,'state'),(1,378,'general'),(2,378,'primary'),(0,0,'democratic_states'),(0,0,'republican_states'),(0,0,'lobby_result'),(0,378,'lobby_result_state'),(0,0,'votes_needed'),(0,0,'last_vote_failed'),(0,0,'unavailable'),(0,0,'no_bill'),(0,0,'veto_vote')]:
  variables={'show_usa_congress_alt':mode,'USA_SEN_POL_DETAILS':selected,'dem_house_caucus':263,'gop_house_caucus':172,'senate_dem_caucus':55,'senate_gop_caucus':41,'supseat':218,'US_HOUSE_SIZE':435,'supseat_sen':55,'US_SENATE':96,'moderate_dem':30,'progressive_dem':7,'dixiecrat_dem':18,'moderate_gop':16,'conservative_gop':9,'liberal_gop':16,'Dem_Canidates^num':3,'usa_current_legislation':'The_Price_Anderson_Nuclear_Industries_Indemnity_Act'}
  if label.startswith('lobby_result'):variables.update(usa_lobby_result_target=1,usa_lobby_result_votes=30)
- variables.update(usa_current_legislation_short='USA_CONGRESS_SHORT_'+variables['usa_current_legislation'],usa_vote_house_required=217,usa_vote_senate_required=48,usa_vote_house_needed=0,usa_vote_senate_needed=0)
- variables.update(usa_last_bill_result=2 if label=='last_vote_failed' else 1,usa_last_bill=vote_bills[0]['key'],usa_last_bill_short=vote_bills[0]['short_key'],usa_last_house_support=280,usa_last_senate_support=72,usa_last_house_total=435,usa_last_senate_total=96,usa_last_house_required=217,usa_last_senate_required=48)
- if label=='votes_needed':variables.update(supseat=190,supseat_sen=40,usa_vote_house_needed=27,usa_vote_senate_needed=8)
+ variables.update(usa_current_legislation_short='USA_CONGRESS_SHORT_'+variables['usa_current_legislation'],usa_vote_house_required=217,usa_vote_senate_required=49,usa_vote_house_needed=0,usa_vote_senate_needed=0)
+ variables.update(usa_last_bill_result=2 if label=='last_vote_failed' else 1,usa_last_bill=vote_bills[0]['key'],usa_last_bill_short=vote_bills[0]['short_key'],usa_last_house_support=280,usa_last_senate_support=72,usa_last_house_total=435,usa_last_senate_total=96,usa_last_house_required=217,usa_last_senate_required=49)
+ if label=='votes_needed':variables.update(supseat=190,supseat_sen=40,usa_vote_house_needed=27,usa_vote_senate_needed=9)
  if label=='last_vote_failed':variables.update(usa_last_house_support=190,usa_last_senate_support=40)
  if label=='veto_vote':
   veto=next(bill for bill in vote_bills if bill['house']==292)
   variables.update(usa_current_legislation=veto['key'],usa_current_legislation_short=veto['short_key'],supseat=220,supseat_sen=50,usa_vote_house_required=292,usa_vote_senate_required=67,usa_vote_house_needed=72,usa_vote_senate_needed=17)
  senators=(1,1) if label=='democratic_states' else (2,2) if label=='republican_states' else (1,2)
  e=env(vars=variables,state_vars={'senator^0':senators[0],'senator^1':senators[1],'d_pvi':0,'r_pvi':0},flags={'law_passing','moderate_dem_sup','progressive_dem_sup'})
- e['decision_timers']={variables['usa_current_legislation']:23}
+ e['vars']['usa_vote_days_remaining']=23
  if label=='unavailable':e['pp']=49
  if label=='no_bill':
   run(effects['clear_support_types'],e);e['flags'].discard('law_passing')
@@ -389,7 +413,32 @@ for bill in vote_bills:
  height=len(wrapped(get(billnode,'font'),text,float(get(billnode,'maxWidth'))))*font_data(get(billnode,'font'))[1]
  if height>float(get(billnode,'maxHeight')):tall.append((bill['key'],height))
 assert not tall,tall
-print('PASS: all 517 bill names fit using actual font metrics.')
+bill_row=named(get(trees['interface/WMD.gui'],'guiTypes'),'congress_bill_row')
+row_title=named(bill_row,'congress_bill_name')
+title_font=get(row_title,'font')
+overflow=[bill['key'] for bill in vote_bills
+          if len(wrapped(title_font,bill['title'],float(get(row_title,'maxWidth'))))*font_data(title_font)[1]>float(get(row_title,'maxHeight'))]
+assert not overflow, ('Bills list title overflow',overflow)
+print(f'PASS: all {len(vote_bills)} bill names fit the overview and list using actual font metrics.')
+bill_dialog=named(get(trees['interface/WMD.gui'],'guiTypes'),'US_CONGRESS_UI_BILLS')
+close_bills=named(bill_dialog,'congress_close_bills')
+introduce=named(bill_row,'congress_introduce_bill')
+reset_sprite='GFX_button_123x34'
+assert get(close_bills,'quadTextureSprite')==get(introduce,'quadTextureSprite')==reset_sprite
+button=load_sprite(reset_sprite)
+close_rect=rect(close_bills,button)
+introduce_rect=rect(introduce,button)
+assert 2*close_rect[0]+close_rect[2]==float(get(get(bill_dialog,'size'),'width'))
+assert 2*introduce_rect[1]+introduce_rect[3]==float(get(get(bill_row,'size'),'height'))
+assert not overlaps(rect(row_title),introduce_rect)
+scroll=named(bill_dialog,'congress_bills_scroll')
+grid=named(scroll,'congress_bill_list')
+scroll_y=float(get(get(scroll,'position'),'y'))
+scroll_height=float(get(get(scroll,'size'),'height'))
+assert scroll_height%float(get(get(grid,'slotsize'),'height'))==0
+assert scroll_y+scroll_height<close_rect[1]
+print('PASS: Bills dialog centers its buttons and fits complete rows above the footer.')
+
 
 # Each state setup must write to the same representative IDs used by the map.
 representatives={}
@@ -465,17 +514,18 @@ for name,node in by_name.items():
   assert get(node,'alwaystransparent')=='yes'
 print('PASS: nine native Speaker cards, every VP portrait, nameplate layering and checkbox hit areas.')
 
-# Lobbying behavior still needs to match the confirmation UI.
-factions=['moderate_dem','progressive_dem','dixiecrat_dem','moderate_gop','conservative_gop','liberal_gop']
-for choice,faction in enumerate(factions,1):
- e=env(vars={'lobby_check':choice,faction:13,'supseat_sen':5},flags={'law_passing'})
- run(effects['lobbying_effect'],e)
+# Lobbying purchases happen through the overview buttons.
+from generate_us_congress_lobbying import FACTIONS, generate as generate_lobbying, LOCALISATION as LOBBY_LOC, SCRIPTED_LOC as LOBBY_SCRIPT
+lobby_clicks=get(overview,'effects')
+for _,_,_,faction,button,_ in FACTIONS:
+ e=env(vars={faction:13,'supseat_sen':5},flags={'law_passing'})
+ run(get(lobby_clicks,button+'_click'),e)
  assert e['pp']==50 and e['vars']['supseat_sen']==18 and faction+'_sup' in e['flags']
- run(effects['lobbying_effect'],e)
+ run(get(lobby_clicks,button+'_click'),e)
  assert e['pp']==50 and e['vars']['supseat_sen']==18
 for power,flags in [(49.5,{'law_passing'}),(100,set())]:
- e=env(vars={'lobby_check':1,'moderate_dem':13,'supseat_sen':5},flags=flags,pp=power)
- run(effects['lobbying_effect'],e)
+ e=env(vars={'moderate_dem':13,'supseat_sen':5},flags=flags,pp=power)
+ run(get(lobby_clicks,'senate_mod_lobbying_click'),e)
  assert e['pp']==power and e['vars']['supseat_sen']==5
 for mode in (0,1,2):
  e=env(vars={'show_usa_congress_alt':mode,'USA_SEN_POL_DETAILS':378})
@@ -483,41 +533,16 @@ for mode in (0,1,2):
   assert visibility(name,e)==(mode==2),(mode,name)
 print('PASS: campaign controls are excluded from Congress; lobbying charges once and rejects stale/repeat purchases.')
 
-# The lobbying dialog has a separate window and uses bottom-anchored buttons.
-modal=find_named(get(trees['interface/WMD.gui'],'guiTypes'),'US_CONGRESS_UI_LOBBYING')
-for choice in (1,2,3,4,5,6,10):
- e=env(vars={'lobby_check':choice,**{faction:13 for faction in factions},'supseat':190,'supseat_sen':40,'US_SENATE':96,'US_HOUSE_SIZE':435},flags={'law_passing'})
- canvas=Image.new('RGBA',(527,315));labels=[];buttons=[]
- for kind,o,node in modal:
-  if not isinstance(node,list):continue
-  name=get(node,'name');node=list(node)
-  if get(node,'Orientation')=='LOWER_LEFT':
-   position=get(node,'position')
-   node=[(k,o,v) for k,o,v in node if k!='position']+[('position','=',[(k,o,str(float(v)+315) if k=='y' else v) for k,o,v in position])]
-  if kind.lower() in ('buttontype','background'):
-   sprite=get(node,'quadTextureSprite');image=load_sprite(sprite)
-   x,y,w,h=rect(node,image)
-   assert x>=0 and y>=0 and x+w<=527 and y+h<=315,('Dialog image bounds',name)
-   canvas.alpha_composite(image,(round(x),round(y)))
-   if kind.lower()=='buttontype':
-    buttons.append((name,(x,y,w,h)))
-    text=expand(get(node,'buttonText'),e);font=get(node,'buttonFont')
-    assert advance(font,text)<=w-8,('Dialog button label',name,text)
-  elif kind.lower()=='instanttextboxtype':
-   text=expand(get(node,'text'),e);font=get(node,'font')
-   x,y,w,h=rect(node)
-   assert x>=0 and y>=0 and x+w<=527 and y+h<=315,('Dialog text bounds',name)
-   assert paint_text(canvas,node,text)<=h,('Dialog text overflow',choice,name)
-   labels.append((name,(x,y,w,h)))
- for name,r in labels:
-  for button,br in buttons:assert not overlaps(r,br),('Dialog text/control collision',choice,name,button)
- if audit_dir and choice==1:canvas.convert('RGB').save(audit_dir/'lobbying.png')
-print('PASS: all seven lobbying dialog variants fit above their buttons.')
-
+assert get(gui_tree,'US_CONGRESS_LOBBYING') is None
+assert all(get(node,'name')!='US_CONGRESS_UI_LOBBYING'
+           for _,_,node in get(trees['interface/WMD.gui'],'guiTypes') if isinstance(node,list))
 
 # All party colours share silhouettes through native sprite-compatible shaders.
 generated=R/'interface/US_Congress_State_Overlays.gfx'
-assert generated.read_text(encoding='utf-8')==generate(), 'Regenerate Congress overlays.'
+# Ordering of independent sprites has no effect on the game.
+def overlay_definitions(content):
+ return {get(node,'name'):node for kind,_,node in get(parse(content),'spriteTypes')}
+assert overlay_definitions(generated.read_text(encoding='utf-8'))==overlay_definitions(generate()), 'Regenerate Congress overlays.'
 colour_names=[]
 by_state={}
 for name,node in sprites.items():
@@ -656,7 +681,6 @@ assert not (R/'common/scripted_localisation/USA_congress_gui_localisation.txt').
 print('PASS: VP and Speaker tooltips share one layout with a matching name and biography for every officeholder.')
 
 # Lobbying must explain the same guards used by the transaction, and report only success.
-from generate_us_congress_lobbying import FACTIONS, generate as generate_lobbying, LOCALISATION as LOBBY_LOC, SCRIPTED_LOC as LOBBY_SCRIPT
 expected_loc,expected_script=generate_lobbying()
 assert LOBBY_LOC.read_text(encoding='utf-8-sig')==expected_loc
 assert LOBBY_SCRIPT.read_text(encoding='utf-8')==expected_script
@@ -677,12 +701,11 @@ for choice,code,label,faction,button,caption in FACTIONS:
   (13,100,{'law_passing',faction+'_sup'},'ALREADY'),
   (13,50,{'law_passing'},'READY'),
  ]:
-  e=env(vars={'lobby_check':choice,faction:members,'supseat_sen':5},pp=pp,flags=flags)
+  e=env(vars={faction:members,'supseat_sen':5},pp=pp,flags=flags)
   assert select_func(function,e)=='USA_CONGRESS_LOBBY_'+want,(faction,want)
-  assert test(custom['USA_congress_can_lobby'],e)==(want=='READY')
   assert visibility(button+'_supported',e)==(want=='ALREADY')
   assert test(triggers[button+'_click_enabled'],e)==(want=='READY')
-  run(effects['lobbying_effect'],e)
+  run(get(lobby_clicks,button+'_click'),e)
   assert e['vars'].get('usa_lobby_result_target',0)==(choice if want=='READY' else 0)
   assert e['pp']==(0 if want=='READY' else pp)
   if want=='READY':
@@ -692,68 +715,150 @@ for choice,code,label,faction,button,caption in FACTIONS:
    run(effects['clear_support_types'],e)
    assert not visibility('lobby_feedback',e)
 for support,pp,flags,want in [(190,100,set(),'NO_BILL'),(190,49,{'law_passing'},'POOR'),(218,100,{'law_passing'},'HOUSE_FULL'),(190,100,{'law_passing'},'READY')]:
- e=env(vars={'lobby_check':10,'supseat':support},pp=pp,flags=flags)
+ e=env(vars={'supseat':support},pp=pp,flags=flags)
  assert select_func('GetUSACongressLobbyHouseStatus',e)=='USA_CONGRESS_LOBBY_'+want
- run(effects['lobbying_effect'],e)
+ run(get(lobby_clicks,'house_lobbying_click'),e)
  assert e['vars']['supseat']==support+(22 if want=='READY' else 0)
  assert e['pp']==pp-(50 if want=='READY' else 0)
  if want=='READY':
   assert e['vars']['usa_lobby_result_votes']==22 and e['vars']['usa_lobby_result_target']==10
   assert '+22 House votes' in expand('[GetUSACongressLobbyFeedback]',e)
-  run(effects['lobbying_effect'],e)
+  run(get(lobby_clicks,'house_lobbying_click'),e)
   assert e['vars']['supseat']==234 and e['pp']==0
-  run(effects['lobbying_effect'],e)
+  run(get(lobby_clicks,'house_lobbying_click'),e)
   assert e['vars']['supseat']==234 and e['pp']==0
 print('PASS: lobbying tooltips match affordability, eligibility and existing support; success feedback and bill cleanup match actual purchases.')
 
-# Validate every bill's new hooks against its existing success conditions.
-assert instrument(bill_source,vote_bills)==bill_source
-generated_effects,generated_script,generated_loc=generate_votes(vote_bills)
-assert read(vote_effect_file)==generated_effects
-assert '$' not in generated_effects, 'HOI4 scripted effects take no parameters'
+# Validate generated decisions and simulate the actual shared vote scripts.
+assert read('common/decisions/US_HOUSE.txt')==generate_decisions(vote_bills)
+assert read(catalogue_effect_file)==generate_effects(vote_bills)
+assert read(catalogue_trigger_file)==generate_triggers(vote_bills)
+generated_script,generated_loc=generate_localisation(vote_bills)
 assert read(vote_loc_file)==generated_script
 assert read('localisation/english/US_Congress_Votes_l_english.yml')==generated_loc
-assert '### days_decision_timeout' in (G/'documentation/dynamic_variables_documentation.md').read_text()
-assert loc['USA_CONGRESS_VOTE_COUNTDOWN'].count('days_decision_timeout@var:usa_current_legislation')==1
-on_actions=read('common/on_actions/USA_congress_gui_on_actions.txt')
-assert 'days_decision_timeout' not in on_actions and 'usa_vote_days' not in generated_effects
-assert 'set_country_flag' not in generated_effects and 'country_event' not in generated_effects
+assert '### num_days' in (G/'documentation/dynamic_variables_documentation.md').read_text()
+assert '[?USA.usa_vote_days_remaining|0]' in loc['USA_CONGRESS_VOTE_COUNTDOWN']
+# The margin labels use the same RGB values as the map overlays.
+palette = read('interface/core.gfx')
+for party, label, code in [('DEM', 'D', 'J'), ('GOP', 'R', 'K')]:
+ rgb = ' '.join(map(str, PARTY_COLOURS[party]))
+ assert re.search(rf'^\s*{code} = \{{ {rgb} \}}', palette, re.M)
+ for chamber in ('HOUSE', 'SENATE'):
+  assert f'§{code}{label}+' in loc[f'USA_CONGRESS_{chamber}_BALANCE_{label}']
 decision_nodes=get(trees['common/decisions/US_HOUSE.txt'],'CONGRESS_US')
 for bill in vote_bills:
- node=get(decision_nodes,bill['key'])
- complete=get(node,'complete_effect');remove=get(node,'remove_effect')
- start=complete[-1][2]
- record=remove[0][2]
- assert get(start,'USA_begin_congress_vote')=='yes' and get(record,'USA_record_congress_vote')=='yes',('Vote hook placement',bill['key'])
- assert start==parse(requirements(bill)+' USA_begin_congress_vote = yes'),('Vote hook requirements',bill['key'])
- assert record==parse(requirements(bill)+' USA_record_congress_vote = yes'),('Vote hook requirements',bill['key'])
- senate=48 if bill['dynamic'] else int(bill['senate'])+1
+ key=bill['key']
+ node=get(decision_nodes,key)
+ assert get(node,'days_remove')=='50' and get(node,'fire_only_once')=='yes'
+ senate=bill['senate'] or 49
  for house_votes,senate_votes,passed in [(bill['house'],senate,True),(bill['house']-1,senate,False),(bill['house'],senate-1,False)]:
-  e=env(vars={'usa_current_legislation':bill['key'],'senate_passing_value':47,'supseat':house_votes,'supseat_sen':senate_votes,'US_HOUSE_SIZE':435,'US_SENATE':96},flags={'law_passing'})
-  run(start,e)
+  e=env(vars={'usa_current_legislation':key,'supseat':house_votes,'supseat_sen':senate_votes,'US_HOUSE_SIZE':435},flags={'law_passing'})
+  e['game_day']=527
+  e['vars']['usa_vote_deadline']=550
+  run(effects['USA_refresh_congress_vote_totals'],e)
   assert e['vars']['usa_vote_house_required']==bill['house'] and e['vars']['usa_vote_senate_required']==senate
   assert e['vars']['usa_vote_house_needed']==max(0,bill['house']-house_votes)
   assert e['vars']['usa_vote_senate_needed']==max(0,senate-senate_votes)
-  e['decision_timers']={bill['key']:23}
   assert expand('[GetUSACongressVoteCountdown]',e)=='Vote in 23 days'
-  e['decision_timers'][bill['key']]=7
-  assert expand('[GetUSACongressVoteCountdown]',e)=='Vote in 7 days'
-  run(record,e)
+  run(effects['USA_record_congress_vote'],e)
   assert e['vars']['usa_last_bill_result']==(1 if passed else 2)
   assert e['vars']['usa_last_house_support']==house_votes and e['vars']['usa_last_senate_support']==senate_votes
-  assert e['vars']['usa_last_bill']==bill['key'] and e['vars']['usa_last_bill_short']==bill['short_key']
+  assert e['vars']['usa_last_bill']==key and e['vars']['usa_last_bill_short']==bill['short_key']
   run(effects['clear_support_types'],e)
   assert 'usa_vote_house_required' not in e['vars'] and 'usa_current_legislation_short' not in e['vars']
-  assert e['vars']['usa_last_bill']==bill['key'] and e['vars']['usa_last_house_support']==house_votes
+  assert e['vars']['usa_last_bill']==key
  short=loc[bill['short_key']]
- assert len(wrapped('hoi_16mbs',short,280))*font_data('hoi_16mbs')[1]<=40,('Last bill name overflow',bill['key'])
-for bill in (vote_bills[0],vote_bills[len(vote_bills)//2],vote_bills[-1]):
- e=env(vars={'usa_current_legislation':bill['key'],'senate_passing_value':47},flags={'law_passing'})
- run(effects['USA_recover_congress_vote_metadata'],e)
- assert e['vars']['usa_vote_house_required']==bill['house'] and e['vars']['usa_current_legislation_short']==bill['short_key']
+ assert len(wrapped('hoi_16mbs',short,280))*font_data('hoi_16mbs')[1]<=40,('Last bill name overflow',key)
+
+# A single start and exactly one outcome even when statehood changes the chamber.
+first=vote_bills[0]
+key=first['key']
+setup_stubs={'bipartisan_house_calc','senate_normal_dem_support','senate_dixiecrat_dem_support','senate_gop_total_support'}
+e=env(vars={'usa_selected_congress_bill':key,'US_HOUSE_SIZE':435},flags={'Admission_of_Alaska_and_Hawaii_vote'},stub_effects=setup_stubs)
+assert test(custom[unlocked(first)],e)
+assert test(custom['USA_can_start_congress_vote'],e)
+assert not test(custom['USA_can_start_congress_vote'],dict(e,pp=49))
+assert not test(custom['USA_can_start_congress_vote'],dict(e,decision_timers={'McCarran_Walter_Act_Override':40}))
+run(effects['USA_collect_congress_bills'],e)
+assert e['arrays']['usa_available_congress_bills']==[key]
+run(effects['USA_activate_congress_bill'],e)
+assert e['pp']==50 and e['decision_timers'][key]==50
+assert 'usa_introducing_bill_from_overview' not in e['flags']
+assert not test(custom['USA_can_start_congress_vote'],e) and not test(custom[unlocked(first)],e)
+run(get(get(decision_nodes,key),'complete_effect')[:1],e)
+assert e['pp']==50 and e['arrays']['usa_introduced_congress_bills']==[key]
+for senate_votes,expected in ((48,'parliament.1'),(49,'us_congress.100')):
+ e=env(vars={'usa_current_legislation':key,'supseat':217,'supseat_sen':senate_votes,'US_HOUSE_SIZE':435},
+       flags={'law_passing'},stub_effects={'add_ideas','463','629'})
+ remove=get(get(decision_nodes,key),'remove_effect')
+ run(remove,e)
+ run(remove,e)
+ assert e['events']==[expected] and 'law_passing' not in e['flags']
+ assert e['vars']['usa_last_senate_total']==96
+ assert e['vars']['US_SENATE']==(100 if senate_votes==49 else 96)
+for house_votes,senate_votes in ((218,49),(217,50)):
+ key='National_Historic_Preservation_Act'
+ e=env(vars={'usa_current_legislation':key,'supseat':house_votes,'supseat_sen':senate_votes,'US_HOUSE_SIZE':435},flags={'law_passing'})
+ run(get(get(decision_nodes,key),'remove_effect'),e)
+ assert e['events']==['parliament.1'] and e['vars']['usa_last_bill_result']==2
+key='Tourism_Development_Incentive_Act'
+e=env(vars={'supseat':225,'supseat_sen':51,'US_HOUSE_SIZE':435},flags={'law_passing','ak_hi_state'},
+      decision_timers={key:0},game_day=531,flag_ages={'law_passing':31})
+run(effects['USA_recover_congress_vote_metadata'],e)
+run(effects['USA_refresh_congress_vote_totals'],e)
+assert e['vars']['usa_current_legislation']==key and e['vars']['usa_vote_senate_required']==51
+assert expand('[GetUSACongressVoteCountdown]',e)=='Vote in 19 days'
+key='Agricultural_Act_of_1949'
+e=env(vars={'usa_current_legislation':key,'US_HOUSE_SIZE':435,'supseat':0,'supseat_sen':0},
+      flags={'law_passing'},game_day=500)
+run(effects['USA_set_congress_vote_deadline'],e)
+assert e['vars']['usa_vote_deadline']==550
+for day, label in ((500,'Vote in 50 days'),(501,'Vote in 49 days'),(549,'Vote in 1 day')):
+ e['game_day']=day
+ run(effects['USA_refresh_congress_vote_clock'],e)
+ assert expand('[GetUSACongressVoteCountdown]',e)==label
+daily=get(get(get(trees['common/on_actions/USA_congress_gui_on_actions.txt'],'on_actions'),'on_daily'),'effect')
+run(daily,e)
+run(get(get(decision_nodes,key),'remove_effect'),e)
+assert 'law_passing' in e['flags'] and 'events' not in e
+e['game_day']=550
+run(daily,e)
+run(get(get(decision_nodes,key),'remove_effect'),e)
+assert e['events']==['parliament.1'] and 'law_passing' not in e['flags']
+assert 'usa_vote_deadline' not in e['vars']
+key='McCarran_Walter_Act_Override'
+e=env(vars={'usa_current_legislation':key},flags={'law_passing'},game_day=500)
+run(effects['USA_set_congress_vote_deadline'],e)
+run(effects['USA_refresh_congress_vote_clock'],e)
+assert expand('[GetUSACongressVoteCountdown]',e)=='Vote in 40 days'
+
+# At full support, labels and bar frames use chamber size while tooltips show the threshold.
+key='Central_Intelligence_Agency_Act'
+e=env(vars={'usa_current_legislation':key,'supseat':435,'supseat_sen':96,'US_HOUSE_SIZE':435},
+      flags={'law_passing'},game_day=500)
+run(effects['USA_refresh_congress_vote_totals'],e)
+assert expand('[GetUSACongressHouseVoteStatus]',e)=='House: 435/435 · Ready'
+assert expand('[GetUSACongressSenateVoteStatus]',e)=='Senate: 96/96 · Ready'
+assert 'Required for this bill: 49' in expand('USA_CONGRESS_SENATE_REQUIREMENT_TT',e)
+assert e['vars']['usa_house_vote_bar_frame']==e['vars']['usa_senate_vote_bar_frame']==21
+current_key=get(by_name['LEGISLATION'],'pdx_tooltip')
+assert current_key in loc
+current_tooltip=expand(current_key,e)
+run(effects['USA_record_congress_vote'],e)
+run(effects['clear_support_types'],e)
+last_key=get(by_name['last_vote_name'],'pdx_tooltip')
+assert last_key in loc
+last_tooltip=expand(last_key,e)
+for line in ('Encryption: +0.20','Decryption: +0.20','Ideology drift defense: +15.0%','Foreign Influence Defense: +15.0%'):
+ assert line in current_tooltip and line in last_tooltip, (line,current_tooltip,last_tooltip)
+orphan=env(vars={'supseat':250,'supseat_sen':60},flags={'law_passing','Ryan_White_CARE_Act_Vote_Vetoed'})
+run(effects['USA_recover_congress_vote_metadata'],orphan)
+assert 'law_passing' not in orphan['flags'] and orphan['vars']['supseat']==0
+assert test(custom['USA_congress_unlocked_Ryan_White_CARE_Act_Vote_Vetoed'],orphan)
+assert load_sprite('GFX_USA_congress_vote_bar',1).size==(176,4)
+assert load_sprite('GFX_USA_congress_vote_bar',1).getpixel((1,1))!=load_sprite('GFX_USA_congress_vote_bar',21).getpixel((1,1))
 for required,support,enabled in [(217,217,False),(218,217,True),(292,220,True),(292,292,False)]:
- e=env(vars={'lobby_check':10,'usa_vote_house_required':required,'supseat':support},flags={'law_passing'})
- assert test(custom['USA_congress_can_lobby'],e)==enabled
+ e=env(vars={'usa_vote_house_required':required,'supseat':support},flags={'law_passing'})
  assert test(triggers['house_lobbying_click_enabled'],e)==enabled
  assert visibility('house_lobbying_supported',e)==(not enabled)
 legend=by_name['congress_legend_panel'];assert rect(legend,load_sprite(get(legend,'spriteType')))==(710,223,94,120)
@@ -769,4 +874,4 @@ for name,node in by_name.items():
  assert image.getchannel('A').crop((int(710-x),int(223-y),int(804-x),int(343-y))).getbbox() is None,('Legend covers an interactive state mask',name)
 assert 'if available' not in LOBBY_LOC.read_text(encoding='utf-8-sig').lower()
 assert 'Checked: supporting' not in LOBBY_LOC.read_text(encoding='utf-8-sig')
-print('PASS: 517 real vote thresholds, native countdown reads, pass/fail snapshots, saved-vote recovery and offshore legend clearance.')
+print(f'PASS: {len(vote_bills)} vote thresholds, one-shot resolution, persisted countdowns, chamber bars, bill tooltips, saved-vote recovery and offshore legend clearance.')

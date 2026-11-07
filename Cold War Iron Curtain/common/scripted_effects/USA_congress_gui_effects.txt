@@ -1,6 +1,19 @@
 # Refresh derived display data without running another election or adding bill support.
 USA_refresh_congress_overview = {
 	senate_caucus_calc = yes
+    USA_refresh_congress_senate_size = yes
+    set_variable = { usa_house_margin = dem_house_caucus }
+    subtract_from_variable = { usa_house_margin = gop_house_caucus }
+    if = {
+        limit = { check_variable = { usa_house_margin < 0 } }
+        multiply_variable = { usa_house_margin = -1 }
+    }
+    set_variable = { usa_senate_margin = senate_dem_caucus }
+    subtract_from_variable = { usa_senate_margin = senate_gop_caucus }
+    if = {
+        limit = { check_variable = { usa_senate_margin < 0 } }
+        multiply_variable = { usa_senate_margin = -1 }
+    }
 	# The engine also expands hidden primary text when creating this window.
 	# Keep its global state target valid even before the first map selection.
 	if = {
@@ -13,13 +26,16 @@ USA_refresh_congress_overview = {
 			ic_election_map_effect = yes
 		}
 	}
-	if = {
-		limit = {
-			has_country_flag = law_passing
-			has_variable = usa_current_legislation
-			NOT = { has_variable = usa_vote_house_required }
-		}
-		USA_recover_congress_vote_metadata = yes
-	}
-	USA_refresh_congress_vote_totals = yes
+    USA_recover_congress_vote_metadata = yes
+    USA_refresh_congress_vote_totals = yes
+    if = {
+        limit = { has_variable = usa_last_bill NOT = { has_variable = usa_last_bill_effects } }
+        set_temp_variable = { usa_bill_key = usa_last_bill }
+        USA_lookup_congress_bill = yes
+        set_variable = { usa_last_bill_effects = usa_bill_effects }
+    }
+    if = {
+        limit = { check_variable = { usa_congress_bills_open = 1 } }
+        USA_collect_congress_bills = yes
+    }
 }
