@@ -44,25 +44,25 @@ TECH_DIR = MOD / "common/technologies"
 # structural gridbox checks below are kept; the edge comparison is not.
 TECH_FOLDER_X_GRIDBOX = {
     "nsb_armor_folder": {
+        # Folder x is per gridbox, so one x can sit in more than one tree; the
+        # map only pins which columns are in use. Shared columns name one tree.
+        -9: "nsb_iw_armored_vehicles_tree",
+        -6: "nsb_iw_armored_vehicles_tree",
         -2: "nsb_iw_armored_vehicles_tree",
         0: "nsb_iw_armored_vehicles_tree",
         2: "nsb_iw_armored_vehicles_tree",
         4: "nsb_iw_armored_vehicles_tree",
         6: "nsb_iw_armored_vehicles_tree",
-        8: "nsb_iw_armored_vehicles_tree",
-        -9: "nsb_engines_tree",
-        -6: "nsb_engines_tree",
-        9: "nsb_engines_tree",
-        10: "nsb_engines_tree",
-        12: "nsb_engines_tree",
-        14: "nsb_engines_tree",
-        15: "nsb_engines_tree",
-        16: "nsb_engines_tree",
-        18: "nsb_engines_tree",
-        20: "nsb_iw_armored_vehicles_tree",
-        22: "nsb_armor_tree",
-        26: "nsb_armor_tree",
-        30: "nsb_armor_tree",
+        8: "nsb_iw_armored_vehicles_tree",  # also nsb_armor_tree (ERA)
+        9: "nsb_armor_tree",
+        10: "nsb_engines_tree",  # also nsb_armor_tree (DU armour)
+        12: "nsb_armor_tree",
+        13: "nsb_engines_tree",
+        14: "nsb_armor_tree",
+        17: "nsb_engines_tree",  # also nsb_armor_tree (add-on armour)
+        19: "nsb_engines_tree",  # also nsb_armor_tree (defences)
+        21: "nsb_armor_tree",
+        23: "nsb_armor_tree",
     },
     "nsb_armor_modules_folder": {
         0: "nsb_light_guns_tree",
