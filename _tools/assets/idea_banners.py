@@ -100,7 +100,36 @@ def label(text):
 
 
 def banner(src, box, text, tint):
-    im = photo(src, box, tint).convert("RGBA")
+    return put_label(photo(src, box, tint).convert("RGBA"), text)
+
+
+# Empty Rocketry slots: a dimmed schematic from the space art with its own label
+# erased, so an empty slot reads as "pick a launch vehicle" rather than a blank box.
+SPACE = "gfx/interface/ideas/spaceideas/"
+SPACE_SLOTS = {
+    SPACE + "slot_booster.dds": (SPACE + "Saturn_5.dds", "LAUNCH VEHICLE"),
+    SPACE + "slot_upper_stages.dds": (SPACE + "Centaur_C.dds", "UPPER STAGE"),
+    SPACE + "slot_mission.dds": (SPACE + "Space_Shuttle.dds", "MISSION"),
+    SPACE + "slot_supplementaries.dds": (SPACE + "SRBS_4x.dds", "SUPPLEMENTARY"),
+}
+SPACE_BG = (22, 26, 22)
+
+
+def space_slot(src, text):
+    im = Image.open(MOD / src).convert("RGB")
+    im = ImageEnhance.Brightness(im).enhance(0.45)
+    bg = Image.new("RGB", im.size, SPACE_BG)
+    # Fade the lower band (where the source's own label sits) into the background.
+    mask = Image.new("L", im.size, 0)
+    d = ImageDraw.Draw(mask)
+    for y in range(H):
+        t = min(1.0, max(0.0, (y - 58) / 14))
+        d.line([(0, y), (W, y)], fill=int(255 * t))
+    im = Image.composite(bg, im, mask)
+    return put_label(im.convert("RGBA"), text)
+
+
+def put_label(im, text):
     mask = label(text)
     x, y = 6, H - mask.height - 6
     shadow = Image.new("RGBA", im.size, (0, 0, 0, 0))
@@ -125,6 +154,7 @@ def main():
     ap.add_argument("--preview", help="write a contact sheet instead of the DDS files")
     args = ap.parse_args()
     images = {out: banner(*spec) for out, spec in BANNERS.items()}
+    images.update({out: space_slot(*spec) for out, spec in SPACE_SLOTS.items()})
     if args.preview:
         sheet = Image.new("RGBA", (W, H * len(images)))
         for i, im in enumerate(images.values()):
