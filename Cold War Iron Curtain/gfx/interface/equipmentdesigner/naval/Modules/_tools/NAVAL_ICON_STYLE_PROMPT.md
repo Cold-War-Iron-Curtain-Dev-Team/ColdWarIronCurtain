@@ -47,4 +47,6 @@ REAL SYSTEM: <named system for that era, e.g. RIM-7M Sea Sparrow> (if blank, pic
    and regenerates interface/cwic_naval_rework_icons.gfx (GFX_SMI_<module>, GFX_<tech>, GFX_<tech>_medium).
    Never hand-edit that .gfx. If a sprite name is newly taken over, delete its old definition elsewhere in interface/
    (equipmentdesignermoduleicons.gfx, Technologies.gfx) so names stay unique. A module with `gfx = X` uses GFX_SMI_X.
-5. CIWS (n_ciws.py) and SR-SAM (n_sam85.py) are still standalone trial scripts, not yet in naval_icons.py or wired in.
+5. A module that borrows another module's sprite via `gfx = <sprite>` changes with it. Before redrawing a sprite, grep
+   00_ship_modules.txt for `gfx = <sprite>`; give borrowers their own name and keep their old art via the LEGACY list in
+   naval_icons.py.
