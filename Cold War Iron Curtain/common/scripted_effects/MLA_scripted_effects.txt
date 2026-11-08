@@ -419,7 +419,7 @@ MAL_emergency_ai_turn = {
 				break = MAL_emergency_ai_done
 				if = {
 					limit = { event_target:MAL_emergency_ai_target = { malaya_state_decision_enabled = yes } }
-					log = "IC_MALAYA|AI_ACTION|date=[GetDateText]|tag=[Root.GetTag]|state=[?event_target:MAL_emergency_ai_target.id]|action=[?malaya_gui_decisions_list^i]"
+					log = "IC_MALAYA|AI_ACTION|date=[GetDateText]|tag=[Root.GetTag]|state=[event_target:MAL_emergency_ai_target.GetName]|action=[?malaya_gui_decisions_list^i]"
 					event_target:MAL_emergency_ai_target = { mla_malaya_state_pseudo_decision_effect = yes }
 					log = "IC_MALAYA|AI_ACTION_DONE|tag=[Root.GetTag]"
 					add_political_power = -25
@@ -592,6 +592,52 @@ MAL_Launch_Final_Sweep = {
 		}
 	}
 	news_event = { id = MLA_Victory.24 hours = 4 random_hours = 6 }
+}
+
+MAL_final_sweep_monthly = {
+	if = {
+		limit = {
+			tag = MLA
+			country_exists = MAL
+			has_war_with = MAL
+			MAL = { has_country_flag = MAL_final_sweep }
+			NOT = { has_global_flag = MAL_EMERGENCY_MAL_Victory }
+			NOT = { has_global_flag = MAL_EMERGENCY_MLA_Victory }
+		}
+		add_to_variable = { MAL_sweep_months = 1 }
+		add_manpower = -1500
+		add_equipment_to_stockpile = { type = infantry_equipment_0 amount = -300 }
+		add_equipment_to_stockpile = { type = support_equipment_1 amount = -20 }
+		add_political_power = -10
+		add_war_support = -0.02
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						is_historical_focus_on = yes
+						is_ai = yes
+						date > 1960.7.30
+					}
+					AND = {
+						check_variable = { MAL_sweep_months > 35 }
+						NOT = { any_state = { is_controlled_by = MLA NOT = { state = 791 } } }
+					}
+				}
+			}
+			Exile_Of_The_MNLA = yes
+		}
+	}
+	else_if = {
+		limit = {
+			tag = MLA
+			is_ai = yes
+			is_historical_focus_on = yes
+			date > 1957.12.31
+			MAL = { is_ai = yes }
+			MAL_emergency_contest_active = yes
+		}
+		MAL_Launch_Final_Sweep = yes
+	}
 }
 
 Exile_Of_The_MNLA = {
