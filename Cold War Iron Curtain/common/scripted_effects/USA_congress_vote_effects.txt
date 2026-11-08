@@ -1,4 +1,10 @@
-# Shared native decision and Congress overview vote lifecycle.
+# Shared US Congress vote lifecycle. Bills are decisions in common/decisions/US_HOUSE.txt.
+# A bill's complete_effect sets usa_current_legislation, usa_current_legislation_short,
+# usa_current_bill_effects, usa_vote_house_required and usa_vote_senate_required (0 = simple
+# majority), adds its starting support, then calls USA_begin_congress_vote. The decision's own
+# timer ends the vote: its remove_effect calls USA_record_congress_vote, applies the outcome
+# and calls USA_finish_congress_vote. usa_vote_deadline only drives the overview countdown.
+
 USA_refresh_congress_senate_size = {
     set_variable = { US_SENATE = 96 }
     if = {
@@ -15,128 +21,37 @@ USA_refresh_congress_senate_size = {
     }
 }
 
-USA_set_congress_senate_majority = {
-    set_variable = { usa_vote_senate_required = US_SENATE }
-    divide_variable = { usa_vote_senate_required = 2 }
-    add_to_variable = { usa_vote_senate_required = 1 }
-}
-
-USA_lookup_congress_bill = {
-    set_temp_variable = { usa_bill_house = 217 }
-    set_temp_variable = { usa_bill_senate = 0 }
-    set_temp_variable = { usa_bill_short = usa_bill_key }
-    set_temp_variable = { usa_bill_effects = 0 }
-    if = {
-        limit = { check_variable = { usa_bill_key = token:McCarran_Walter_Act_Override } }
-        set_temp_variable = { usa_bill_house = 290 }
-        set_temp_variable = { usa_bill_senate = 63 }
-        set_temp_variable = { usa_bill_short = token:USA_CONGRESS_SHORT_MCCARRAN_OVERRIDE }
-        set_temp_variable = { usa_bill_effects = token:USA_CONGRESS_EFFECTS_MCCARRAN_OVERRIDE }
-    }
-    else = { USA_configure_congress_vote = yes }
-}
-
-USA_prepare_congress_vote_metadata = {
-    USA_refresh_congress_senate_size = yes
-    set_temp_variable = { usa_bill_key = usa_current_legislation }
-    USA_lookup_congress_bill = yes
-    set_variable = { usa_vote_house_required = usa_bill_house }
-    set_variable = { usa_vote_senate_required = usa_bill_senate }
+# Optional temp variable usa_vote_duration (days) must match the decision's days_remove; default 50.
+USA_begin_congress_vote = {
+    set_country_flag = law_passing
+    add_to_array = { usa_introduced_congress_bills = usa_current_legislation }
     if = {
         limit = { check_variable = { usa_vote_senate_required = 0 } }
-        USA_set_congress_senate_majority = yes
+        set_variable = { usa_vote_senate_majority = 1 }
     }
-    set_variable = { usa_current_legislation_short = usa_bill_short }
-    set_variable = { usa_current_bill_effects = usa_bill_effects }
-}
-
-USA_set_congress_vote_deadline = {
-    USA_set_congress_vote_duration = yes
+    if = {
+        limit = { NOT = { check_variable = { usa_vote_duration > 0 } } }
+        set_temp_variable = { usa_vote_duration = 50 }
+    }
     set_variable = { usa_vote_deadline = global.num_days }
     add_to_variable = { usa_vote_deadline = usa_vote_duration }
-}
-
-USA_refresh_congress_vote_clock = {
-    if = {
-        limit = { NOT = { has_variable = usa_vote_deadline } }
-        USA_set_congress_vote_deadline = yes
-        USA_recover_congress_vote_age = yes
-        subtract_from_variable = { usa_vote_deadline = usa_vote_age }
-    }
-    set_variable = { usa_vote_days_remaining = usa_vote_deadline }
-    subtract_from_variable = { usa_vote_days_remaining = global.num_days }
-    clamp_variable = { var = usa_vote_days_remaining min = 0 max = 50 }
-}
-
-USA_start_congress_vote = {
-    if = {
-        limit = { USA_can_start_congress_vote = yes }
-        set_variable = { usa_current_legislation = usa_starting_congress_bill }
-        add_political_power = -50
-        set_country_flag = law_passing
-        USA_set_congress_vote_deadline = yes
-        add_to_array = { usa_introduced_congress_bills = usa_current_legislation }
-        USA_apply_congress_start_effects = yes
-        USA_refresh_congress_vote_totals = yes
-    }
-}
-
-USA_begin_mccarran_override = {
-    set_variable = { usa_current_legislation = token:McCarran_Walter_Act_Override }
-    set_country_flag = law_passing
-    USA_set_congress_vote_deadline = yes
-    set_variable = { bipartisan_value = 0.55 }
-    bipartisan_house_calc = yes
-    senate_normal_dem_support = yes
-    senate_gop_moderate_support = yes
     USA_refresh_congress_vote_totals = yes
-}
-
-USA_recover_congress_vote_metadata = {
-    if = {
-        limit = {
-            has_country_flag = law_passing
-            NOT = { has_variable = usa_current_legislation }
-        }
-        USA_find_legacy_congress_bill = yes
-        # The old Ryan White event could lock Congress without a real timer.
-        if = {
-            limit = {
-                NOT = { has_variable = usa_current_legislation }
-                has_country_flag = Ryan_White_CARE_Act_Vote_Vetoed
-            }
-            set_variable = { supseat = 0 }
-            set_variable = { supseat_sen = 0 }
-            clr_country_flag = law_passing
-            clear_support_types = yes
-        }
-    }
-    if = {
-        limit = { NOT = { has_country_flag = law_passing } }
-        if = {
-            limit = { has_decision = McCarran_Walter_Act_Override }
-            USA_begin_mccarran_override = yes
-        }
-        else_if = {
-            limit = { has_decision = Metric_Conversion_Act }
-            set_variable = { usa_current_legislation = token:Metric_Conversion_Act }
-            set_country_flag = law_passing
-        }
-    }
-    if = {
-        limit = {
-            has_variable = usa_last_bill
-            NOT = { is_in_array = { array = usa_introduced_congress_bills value = usa_last_bill } }
-        }
-        add_to_array = { usa_introduced_congress_bills = usa_last_bill }
-    }
 }
 
 USA_refresh_congress_vote_totals = {
     if = {
         limit = { has_country_flag = law_passing has_variable = usa_current_legislation }
-        USA_prepare_congress_vote_metadata = yes
-        USA_refresh_congress_vote_clock = yes
+        USA_refresh_congress_senate_size = yes
+        # A simple majority follows the chamber size, which statehood can change mid-vote.
+        if = {
+            limit = { check_variable = { usa_vote_senate_majority = 1 } }
+            set_variable = { usa_vote_senate_required = US_SENATE }
+            divide_variable = { usa_vote_senate_required = 2 }
+            add_to_variable = { usa_vote_senate_required = 1 }
+        }
+        set_variable = { usa_vote_days_remaining = usa_vote_deadline }
+        subtract_from_variable = { usa_vote_days_remaining = global.num_days }
+        clamp_variable = { var = usa_vote_days_remaining min = 0 max = 50 }
         set_variable = { usa_vote_house_needed = usa_vote_house_required }
         subtract_from_variable = { usa_vote_house_needed = supseat }
         clamp_variable = { var = usa_vote_house_needed min = 0 max = 10000 }
@@ -158,7 +73,9 @@ USA_refresh_congress_vote_totals = {
     }
 }
 
+# Sets usa_last_bill_result: 1 = passed, 2 = failed.
 USA_record_congress_vote = {
+    USA_refresh_congress_vote_totals = yes
     set_variable = { usa_last_bill = usa_current_legislation }
     set_variable = { usa_last_bill_short = usa_current_legislation_short }
     set_variable = { usa_last_bill_effects = usa_current_bill_effects }
@@ -178,68 +95,11 @@ USA_record_congress_vote = {
     }
 }
 
-USA_expire_congress_vote = {
-    if = {
-        limit = {
-            OR = {
-                NOT = { has_variable = usa_vote_deadline }
-                NOT = { check_variable = { usa_vote_deadline > global.num_days } }
-            }
-            OR = {
-                check_variable = { usa_current_legislation = usa_expiring_congress_bill }
-                AND = {
-                    NOT = { has_variable = usa_current_legislation }
-                    OR = {
-                        has_country_flag = law_passing
-                        AND = {
-                            check_variable = { usa_expiring_congress_bill = token:Metric_Conversion_Act }
-                            NOT = { is_in_array = { array = usa_introduced_congress_bills value = token:Metric_Conversion_Act } }
-                        }
-                    }
-                }
-            }
-        }
-        set_variable = { usa_current_legislation = usa_expiring_congress_bill }
-        USA_resolve_congress_vote = yes
-    }
-}
-
-USA_resolve_congress_vote = {
-    USA_prepare_congress_vote_metadata = yes
-    USA_record_congress_vote = yes
-    if = {
-        limit = { NOT = { is_in_array = { array = usa_introduced_congress_bills value = usa_current_legislation } } }
-        add_to_array = { usa_introduced_congress_bills = usa_current_legislation }
-    }
-    if = {
-        limit = { check_variable = { usa_current_legislation = token:McCarran_Walter_Act_Override } }
-        if = {
-            limit = { check_variable = { usa_last_bill_result = 1 } }
-            news_event = { id = McCarran_Walter_Act.1 }
-            add_political_power = -30
-            add_ideas = McCarran_Walter_Act
-        }
-        else = {
-            add_political_power = 100
-            news_event = { id = McCarran_Walter_Act.2 }
-        }
-    }
-    else_if = {
-        limit = { check_variable = { usa_last_bill_result = 1 } }
-        USA_apply_congress_pass_effects = yes
-    }
-    else = {
-        set_temp_variable = { usa_custom_congress_failure = 0 }
-        USA_apply_congress_failure_override = yes
-        if = {
-            limit = { check_variable = { usa_custom_congress_failure = 0 } }
-            country_event = { id = parliament.1 }
-        }
-    }
+USA_finish_congress_vote = {
     set_variable = { supseat = 0 }
     set_variable = { supseat_sen = 0 }
     clr_country_flag = law_passing
-    USA_apply_congress_after_vote = yes
+    clear_variable = usa_vote_senate_majority
     clear_support_types = yes
     USA_refresh_congress_senate_size = yes
 }

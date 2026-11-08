@@ -1,38 +1,24 @@
 on_actions = {
+	on_startup = {
+		effect = {
+			every_country = {
+				limit = { tag = USA is_ai = no }
+				USA_open_congress_by_default = yes
+			}
+		}
+	}
 	on_daily = {
 		effect = {
-            if = {
-                limit = {
-                    tag = USA
-                    OR = {
-                        AND = {
-                            has_country_flag = law_passing
-                            NOT = { has_variable = usa_current_legislation }
-                        }
-                        AND = {
-                            NOT = { has_country_flag = law_passing }
-                            OR = {
-                                has_decision = McCarran_Walter_Act_Override
-                                has_decision = Metric_Conversion_Act
-                            }
-                        }
-                    }
-                }
-                USA_recover_congress_vote_metadata = yes
-            }
-            if = {
-                limit = {
-                    tag = USA
-                    has_country_flag = law_passing
-                    has_variable = usa_current_legislation
-                }
-                USA_refresh_congress_vote_clock = yes
-                # Native expiry can run first. A pending vote still resolves at its deadline.
-                if = {
-                    limit = { check_variable = { usa_vote_days_remaining = 0 } }
-                    USA_resolve_congress_vote = yes
-                }
-            }
+			# Fallback if on_startup ran before the player was assigned.
+			if = {
+				limit = { tag = USA is_ai = no NOT = { has_country_flag = usa_congress_opened_by_default } }
+				USA_open_congress_by_default = yes
+			}
+			# Bills unlocked by focuses go before Congress automatically, one at a time.
+			if = {
+				limit = { tag = USA NOT = { has_country_flag = law_passing } }
+				USA_start_next_congress_bill = yes
+			}
 			if = {
 				limit = {
 					tag = USA

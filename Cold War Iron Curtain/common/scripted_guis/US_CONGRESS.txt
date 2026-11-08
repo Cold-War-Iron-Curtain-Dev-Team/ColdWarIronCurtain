@@ -596,6 +596,7 @@ scripted_gui = {
 
 		context_type = player_context
 		window_name = "US_CONGRESS_UI"
+		parent_window_token = politics_tab
         # No dirty variable: live flags and seat totals must refresh while open.
 
 		visible = {
@@ -638,7 +639,7 @@ scripted_gui = {
             vote_countdown_visible = { check_variable = { USA.show_usa_congress_alt = 0 } has_country_flag = law_passing }
             house_vote_bar_visible = { check_variable = { show_usa_congress_alt = 0 } has_country_flag = law_passing }
             senate_vote_bar_visible = { check_variable = { show_usa_congress_alt = 0 } has_country_flag = law_passing }
-            congress_open_bills_visible = { check_variable = { show_usa_congress_alt = 0 } }
+            congress_bills_hint_visible = { check_variable = { show_usa_congress_alt = 0 } }
 
 
 
@@ -3185,17 +3186,10 @@ scripted_gui = {
                 }
                 generate_campaign_map_numbers_dem = yes
             }
-            congress_open_bills_click = {
-                set_variable = { usa_congress_bills_open = 1 }
-                clear_variable = usa_congress_bill_start_failed
-                USA_collect_congress_bills = yes
-            }
             closebutton_click = {
-                clear_variable = usa_congress_bills_open
                 set_variable = { show_usa_congress = 0 }
             }
 			exitbutton_click = {
-                clear_variable = usa_congress_bills_open
                 set_variable = { show_usa_congress = 0 }
 			}
 
@@ -3557,41 +3551,6 @@ scripted_gui = {
 		#	}
 		#}
 
-    }
-    US_CONGRESS_BILLS = {
-        context_type = player_context
-        window_name = "US_CONGRESS_UI_BILLS"
-        visible = {
-            tag = USA
-            check_variable = { show_usa_congress = 1 }
-            check_variable = { show_usa_congress_alt = 0 }
-            check_variable = { usa_congress_bills_open = 1 }
-        }
-        dynamic_lists = {
-            congress_bill_list = {
-                array = ROOT.usa_available_congress_bills
-                entry_container = congress_bill_row
-            }
-        }
-        triggers = {
-            congress_introduce_bill_click_enabled = { USA_can_start_congress_vote = yes }
-        }
-        effects = {
-            congress_close_bills_click = { clear_variable = usa_congress_bills_open }
-            congress_introduce_bill_click = {
-                if = {
-                    limit = { USA_can_start_congress_vote = yes }
-                    set_temp_variable = { usa_selected_congress_bill = ROOT.usa_available_congress_bills^i }
-                    USA_activate_congress_bill = yes
-                    if = {
-                        limit = { has_country_flag = law_passing }
-                        clear_variable = usa_congress_bills_open
-                        clear_variable = usa_congress_bill_start_failed
-                    }
-                    else = { set_variable = { usa_congress_bill_start_failed = 1 } }
-                }
-            }
-        }
     }
 
     #The Negotiator
