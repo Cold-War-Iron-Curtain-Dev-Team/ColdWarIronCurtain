@@ -9,6 +9,7 @@ BUILDS = [
     "religions/build_religions.py",
     "cultures/build_cultures.py",
     "goods/build_goods.py",
+    "news_tiers/build_news_tiers.py",
 ]
 
 failed = []
