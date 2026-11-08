@@ -724,6 +724,16 @@ DOCTRINE_LAND_BASE_TRACKS = ("infantry", "combat_support", "armor", "operations"
 DOCTRINE_LAND_ERAS = (("", None), ("_e2", "1960.1.1"), ("_e3", "1980.1.1"))
 DOCTRINE_LAND_TRACKS_PER_GD = len(DOCTRINE_LAND_BASE_TRACKS) * len(DOCTRINE_LAND_ERAS)
 DOCTRINE_LAND_MAX_COLUMNS = len(DOCTRINE_LAND_BASE_TRACKS)
+DOCTRINE_NAVAL_BASE_TRACKS = ("capital_ships", "carriers", "screens", "submarines")
+DOCTRINE_AIR_BASE_TRACKS = ("fighter_aircraft", "strike_aircraft", "medium_aircraft", "heavy_aircraft")
+DOCTRINE_SF_BASE_TRACKS = ("special_forces_first", "special_forces_second")
+DOCTRINE_SHARED_ERAS = (("", None), ("_e2", "1960.1.1"), ("_e3", "1980.1.1"))
+DOCTRINE_SF_ERAS = (("", None), ("_e2", "1970.1.1"))
+NONLAND_GRAND_SPECS = {
+    "CWIC_naval_grand_doctrines.txt": (DOCTRINE_NAVAL_BASE_TRACKS, DOCTRINE_SHARED_ERAS),
+    "CWIC_air_grand_doctrines.txt": (DOCTRINE_AIR_BASE_TRACKS, DOCTRINE_SHARED_ERAS),
+    "CWIC_special_forces_grand_doctrines.txt": (DOCTRINE_SF_BASE_TRACKS, DOCTRINE_SF_ERAS),
+}
 DOCTRINE_LEGACY_DIR = MOD / "common/technologies/doctrine rework"
 DOCTRINE_LEGACY_LOC = MOD / "localisation/english/Land_Doctrine_l_english.yml"
 DOCTRINE_LEGACY_TOKEN = re.compile(r"old_(?:land|naval|air)_doctrine_folder")
@@ -1147,6 +1157,18 @@ def validate_doctrine_rework() -> None:
                     fail(f"{path.name}: {track_name} must be gated by active = {{ NOT = {{ date < {era_gate} }} }}")
             elif track_name in land_tracks_expected() and re.search(r"\bdate\b", top_level_block_text(track_entry, "active")):
                 fail(f"{path.name}: era-1 track {track_name} must not carry a date gate")
+            nonland_gate = nonland_track_gates().get(track_name)
+            if track_name in nonland_tracks_expected():
+                active_text = " ".join(top_level_block_text(track_entry, "active").split())
+                if nonland_gate:
+                    if f"NOT = {{ date < {nonland_gate} }}" not in active_text:
+                        fail(f"{path.name}: {track_name} must be gated by NOT = {{ date < {nonland_gate} }}")
+                elif re.search(r"\bdate\b", active_text):
+                    fail(f"{path.name}: base track {track_name} must not carry a date gate")
+                if track_name.startswith("special_forces_second") and "can_unlock_second_track_of_sf_doctrine = yes" not in active_text:
+                    fail(f"{path.name}: {track_name} must keep can_unlock_second_track_of_sf_doctrine = yes")
+                if track_name.startswith("special_forces_second") and nonland_gate and not re.search(r"\bAND\s*=\s*\{", active_text):
+                    fail(f"{path.name}: {track_name} must combine its date gate and second-track condition with AND")
             for background in top_level_values(track_entry, "background"):
                 if background.strip('"') != f"GFX_cw_track_{track_name}":
                     fail(f"{path.name}: {track_name} background {background} must be GFX_cw_track_{track_name}")
@@ -1158,8 +1180,11 @@ def validate_doctrine_rework() -> None:
     }
     if len(land_tracks) != 84:
         fail(f"land tracks must total 84, expected set has {len(land_tracks)}")
-    if len(tracks) != 38 - 28 + len(land_tracks):
-        fail(f"doctrine tracks must total {38 - 28 + len(land_tracks)}, found {len(tracks)}")
+    nonland_total = len(nonland_tracks_expected())
+    if len(tracks) != nonland_total + len(land_tracks):
+        fail(f"doctrine tracks must total {nonland_total + len(land_tracks)}, found {len(tracks)}")
+    if not nonland_tracks_expected() <= tracks:
+        fail(f"missing non-land tracks {sorted(nonland_tracks_expected() - tracks)}")
     if not land_tracks <= tracks:
         fail(f"missing land tracks {sorted(land_tracks - tracks)}")
     for old_track in DOCTRINE_LAND_BASE_TRACKS:
@@ -1203,6 +1228,16 @@ def validate_doctrine_rework() -> None:
                     fail(f"{path.name}: {name} must have {DOCTRINE_LAND_TRACKS_PER_GD} tracks, found {len(track_tokens)}")
                 if milestones_count_of(children) != DOCTRINE_LAND_TRACKS_PER_GD:
                     fail(f"{path.name}: {name} must have {DOCTRINE_LAND_TRACKS_PER_GD} milestones")
+            nonland_spec = NONLAND_GRAND_SPECS.get(path.name)
+            if nonland_spec:
+                expected = nonland_era_row_tracks(*nonland_spec)
+                if track_tokens != expected:
+                    fail(f"{path.name}: {name} must list {len(expected)} tracks {expected} in order")
+                columns = top_level_values(entry, "max_track_columns")
+                if columns != [str(len(nonland_spec[0]))]:
+                    fail(f"{path.name}: {name} must set max_track_columns = {len(nonland_spec[0])}, found {columns}")
+                if milestones_count_of(children) != len(expected):
+                    fail(f"{path.name}: {name} must have {len(expected)} milestones")
             for track in track_tokens:
                 if track not in tracks:
                     fail(f"{path.name}: {name} references unknown track {track}")
@@ -1236,6 +1271,10 @@ def validate_doctrine_rework() -> None:
                 gate_era = {"1960.1.1": "_e2", "1980.1.1": "_e3"}.get(gate_match.group(1) if gate_match else "", "")
                 if len(track_eras) != 1 or gate_era not in track_eras:
                     fail(f"{path.name}: {name} era from available ({gate_era or 'era 1'}) must match track suffix {sorted(track_eras)}")
+            if sub_tracks and sub_tracks[0] in nonland_tracks_expected():
+                fail_message = nonland_subdoctrine_era_error(entry, sub_tracks)
+                if fail_message:
+                    fail(f"{path.name}: {name} {fail_message}")
             rewards = children.get("rewards", "")
             if rewards and len(top_level_ranges(rewards, f"{name}.rewards")) != DOCTRINE_REWARD_COUNT:
                 fail(f"{path.name}: {name} must have exactly {DOCTRINE_REWARD_COUNT} named rewards")
@@ -1261,6 +1300,43 @@ def land_tracks_expected() -> set[str]:
         for base in DOCTRINE_LAND_BASE_TRACKS
         for suffix, _ in DOCTRINE_LAND_ERAS
     }
+
+
+def nonland_tracks_expected() -> set[str]:
+    names: set[str] = set()
+    for base_tracks, eras in NONLAND_GRAND_SPECS.values():
+        for base in base_tracks:
+            for suffix, _ in eras:
+                names.add(f"{base}{suffix}")
+    return names
+
+
+def nonland_track_gates() -> dict[str, str]:
+    gates: dict[str, str] = {}
+    for base_tracks, eras in NONLAND_GRAND_SPECS.values():
+        for base in base_tracks:
+            for suffix, gate in eras:
+                if gate:
+                    gates[f"{base}{suffix}"] = gate
+    return gates
+
+
+def nonland_era_row_tracks(base_tracks: tuple[str, ...], eras: tuple[tuple[str, str | None], ...]) -> list[str]:
+    return [f"{base}{suffix}" for suffix, _ in eras for base in base_tracks]
+
+
+def nonland_subdoctrine_era_error(entry: str, sub_tracks: list[str]) -> str:
+    available_text = " ".join(top_level_block_text(entry, "available").split())
+    gate_match = re.search(r"date < (\d{4}\.\d+\.\d+)", available_text)
+    gate = gate_match.group(1) if gate_match else ""
+    track_eras = {track[-3:] if track.endswith(("_e2", "_e3")) else "" for track in sub_tracks}
+    if sub_tracks[0].startswith("special_forces"):
+        expected = "_e2" if gate else ""
+    else:
+        expected = {"1960.1.1": "_e2", "1980.1.1": "_e3"}.get(gate, "")
+    if track_eras != {expected}:
+        return f"era from available ({gate or 'era 1'}) must match track suffix {sorted(track_eras)}"
+    return ""
 
 
 def top_level_block_text(entry: str, key: str) -> str:

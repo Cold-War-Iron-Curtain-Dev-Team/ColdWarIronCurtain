@@ -90,6 +90,23 @@ the same era in `track = { ... }`; a school-exclusive or lineage subdoctrine lis
 its school and era. Triggers that ask "has this kind of track completed" (`has_completed_track`) are
 an `OR` over the 7 schools x 3 eras = 21 variants.
 
+Naval and air era rows (decision 2026-11-06, extended): the naval folder (`capital_ships`, `carriers`,
+`screens`, `submarines`) and the air folder (`fighter_aircraft`, `strike_aircraft`, `medium_aircraft`,
+`heavy_aircraft`) share era tracks. Each grand doctrine lists its 4 base tracks, then the 4 `_e2`
+tracks, then the 4 `_e3` tracks, with `max_track_columns = 4` and 12 positional milestones (the
+original 4 plus 8 era milestones). Era gates match land: `_e2` = `active = { NOT = { date < 1960.1.1 } }`,
+`_e3` = `active = { NOT = { date < 1980.1.1 } }`. 1980 bookmark seeding: era-1 subdoctrines get
+`add_mastery` 500 and era-2 subdoctrines 300. Naval/air subdoctrines follow the land rule: `track`
+suffix equals the `available` date gate (none, 1960.1.1 = `_e2`, 1980.1.1 = `_e3`).
+
+Special forces era row: a single extra row, `special_forces_first_e2` and `special_forces_second_e2`,
+gated by `active = { NOT = { date < 1970.1.1 } }`; `special_forces_second_e2` also ANDs the existing
+`can_unlock_second_track_of_sf_doctrine = yes`. Each SF grand doctrine lists 2 base tracks then the 2
+era tracks, `max_track_columns = 2`, and 4 milestones. SF subdoctrines gated at 1960 move to the
+`_e2` row with their gate changed to 1970.1.1; those gated at 1980 stay at 1980 on the `_e2` row.
+Era-track backgrounds reuse the base track texture until art lands (`GFX_cw_track_<track_id>`).
+
+
 Sprite naming: track background `GFX_cw_track_<track_id>` (all 94), grand doctrine icon
 `GFX_cw_gd_<grand_doctrine_id>` (17), subdoctrine icon `GFX_cw_sd_<subdoctrine_id>` (all subdoctrines).
 All are declared in `interface/CWIC_Doctrines.gfx`; images live under `gfx/interface/doctrines/cwic/{tracks,grand,icons}/`
