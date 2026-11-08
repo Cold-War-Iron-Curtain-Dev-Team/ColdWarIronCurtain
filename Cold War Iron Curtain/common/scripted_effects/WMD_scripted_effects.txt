@@ -75,19 +75,49 @@ wmd_deselect_all_enemies = {
 	}
 }
 
+# Spend missile_cost missiles from the stockpile, longest range first.
+# The launch button checks the combined ICBM+IRBM+SLBM+SRBM stock, so drain
+# each type in turn instead of charging a single tech-picked type.
+# Missiles deployed in rocket-site or submarine wings are not in the stockpile.
+wmd_pay_missile_cost = {
+	set_temp_variable = { wmd_cost_left = missile_cost }
+	# icbm_equipment
+	set_temp_variable = { wmd_pay = num_equipment@icbm_equipment }
+	clamp_temp_variable = { var = wmd_pay min = 0 max = wmd_cost_left }
+	subtract_from_temp_variable = { wmd_cost_left = wmd_pay }
+	multiply_temp_variable = { wmd_pay = -1 }
+	if = { limit = { check_variable = { wmd_pay < 0 } }
+		add_equipment_to_stockpile = { type = icbm_equipment amount = wmd_pay }
+	}
+	# irbm_equipment
+	set_temp_variable = { wmd_pay = num_equipment@irbm_equipment }
+	clamp_temp_variable = { var = wmd_pay min = 0 max = wmd_cost_left }
+	subtract_from_temp_variable = { wmd_cost_left = wmd_pay }
+	multiply_temp_variable = { wmd_pay = -1 }
+	if = { limit = { check_variable = { wmd_pay < 0 } }
+		add_equipment_to_stockpile = { type = irbm_equipment amount = wmd_pay }
+	}
+	# slbm_equipment
+	set_temp_variable = { wmd_pay = num_equipment@slbm_equipment }
+	clamp_temp_variable = { var = wmd_pay min = 0 max = wmd_cost_left }
+	subtract_from_temp_variable = { wmd_cost_left = wmd_pay }
+	multiply_temp_variable = { wmd_pay = -1 }
+	if = { limit = { check_variable = { wmd_pay < 0 } }
+		add_equipment_to_stockpile = { type = slbm_equipment amount = wmd_pay }
+	}
+	# srbm_equipment
+	set_temp_variable = { wmd_pay = num_equipment@srbm_equipment }
+	clamp_temp_variable = { var = wmd_pay min = 0 max = wmd_cost_left }
+	subtract_from_temp_variable = { wmd_cost_left = wmd_pay }
+	multiply_temp_variable = { wmd_pay = -1 }
+	if = { limit = { check_variable = { wmd_pay < 0 } }
+		add_equipment_to_stockpile = { type = srbm_equipment amount = wmd_pay }
+	}
+}
+
 wmd_nuke_launch = {
 	# Pay before strike events or wmd_reset can clear missile_cost.
-	set_temp_variable = { icbm_cost = missile_cost }
-	multiply_temp_variable = { icbm_cost = -1 }
-	if = { limit = { has_tech = icbm1 }
-		add_equipment_to_stockpile = { type = icbm_equipment amount = icbm_cost }
-	}
-	else_if = { limit = { has_tech = irbm1 }
-		add_equipment_to_stockpile = { type = irbm_equipment amount = icbm_cost }
-	}
-	else = {
-		add_equipment_to_stockpile = { type = srbm_equipment amount = icbm_cost }
-	}
+	wmd_pay_missile_cost = yes
 
 	# set News Events target country
 	clr_country_flag = found
@@ -129,17 +159,6 @@ wmd_nuke_launch = {
 			}
 		}
 		set_variable = { wmd_strike_cuban_crisis = 1 }
-	}
-	set_temp_variable = { icbm_cost = missile_cost }
-	multiply_temp_variable = { icbm_cost = -1 }
-	if = { limit =  { has_tech = icbm1 }
-		add_equipment_to_stockpile = { type = icbm_equipment amount = icbm_cost }
-	}
-	else_if = { limit =  { has_tech = irbm1 }
-		add_equipment_to_stockpile = { type = irbm_equipment amount = icbm_cost }
-	}
-	else = {
-		add_equipment_to_stockpile = { type = srbm_equipment amount = icbm_cost }
 	}
 	set_variable = { wmd_strike_ongoing = 1 }
 	for_each_loop = {

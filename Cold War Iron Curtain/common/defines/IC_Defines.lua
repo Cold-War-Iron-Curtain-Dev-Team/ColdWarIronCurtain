@@ -15,6 +15,7 @@ NDefines.NAir.AIR_WING_MAX_STATS_ATTACK = 1000					-- Max stats
 NDefines.NAir.AIR_WING_MAX_STATS_DEFENCE = 1000
 NDefines.NAir.AIR_WING_MAX_STATS_AGILITY = 1000
 NDefines.NAir.AIR_WING_MAX_STATS_SPEED = 10000
+NDefines.NAir.SUBMARINE_CARRIER_SIZE_STAT_INCREMENT = 4		-- SLBMs per sub_slbm_tube point (vanilla 3); only SLBMs use submarine carriers
 NDefines.NAir.AIR_WING_MAX_STATS_BOMBING = 1000
 NDefines.NAir.AIR_WING_MAX_SIZE = 1000 							-- Max amount of airplanes in wing
 NDefines.NAir.AIR_WING_BOMB_DAMAGE_FACTOR = 2					-- Used to balance the damage done while bombing.
