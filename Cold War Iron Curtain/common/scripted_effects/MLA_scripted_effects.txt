@@ -154,22 +154,6 @@ ENG_Setup_MLA_Victory = {
 	}
 }
 
-MLA_prepare_emergency_operation = {
-	add_timed_idea = {
-		idea = MLA_prepared_operation
-		days = 75
-	}
-	add_manpower = 400	# modest strike package so assault columns field some heavy kit, not a full army
-	add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 200 producer = MLA }
-	add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 12 producer = CUM }
-	add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = MLA }
-	add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 15 producer = ENG }
-	set_country_flag = {
-		flag = MLA_operation_cooldown
-		days = 45
-	}
-}
-
 MLA_clamp_emergency_momentum = {
 	clamp_variable = {
 		var = emergency_momentum
@@ -177,162 +161,270 @@ MLA_clamp_emergency_momentum = {
 		max = 250
 	}
 }
+MLA_shift_emergency_momentum = {
+	custom_effect_tooltip = MAL_EMERGENCY_MOMENTUM_SHIFT_TT
+	hidden_effect = {
+		set_temp_variable = { emergency_control_shift = emergency_momentum_shift }
+		multiply_temp_variable = { emergency_control_shift = 0.4 }
+		every_state = {
+			limit = { MAL_emergency_is_contest_state = yes }
+			MAL_emergency_shift_control = yes
+		}
+		MLA = { MAL_emergency_recount = yes }
+	}
+}
 
-MLA_register_emergency_operation_win = {
-	set_temp_variable = { emergency_streak_shift = MLA_emergency_win_streak }
-	multiply_temp_variable = { emergency_streak_shift = 5 }	# +5 momentum per consecutive prior win
-	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 20 }
-	add_to_variable = { emergency_momentum = emergency_momentum_base }
-	add_to_variable = { emergency_momentum = emergency_streak_shift }
-	add_to_variable = { MLA_emergency_win_streak = 1 }
-	set_variable = { MLA_emergency_lose_streak = 0 }
-	add_to_variable = { MLA_operations_won = 1 }	# scales the size of the General Uprising package
+MAL_emergency_shift_control = {
+	if = {
+		limit = {
+			MAL_emergency_is_contest_state = yes
+			MAL_emergency_contest_active = yes
+		}
+		custom_effect_tooltip = MAL_EMERGENCY_CONTROL_SHIFT_TT
+		add_to_variable = { emergency_control = emergency_control_shift }
+		clamp_variable = { var = emergency_control min = -100 max = 100 }
+		MAL_emergency_set_control_frame = yes
+	}
+}
+
+MAL_emergency_set_control_frame = {
+	if = {
+		limit = { check_variable = { emergency_control > 59 } }
+		set_variable = { Malaysia_Control = 14 }
+	}
+	else_if = {
+		limit = { check_variable = { emergency_control > 19 } }
+		set_variable = { Malaysia_Control = 13 }
+	}
+	else_if = {
+		limit = { check_variable = { emergency_control > -20 } }
+		set_variable = { Malaysia_Control = 12 }
+	}
+	else_if = {
+		limit = { check_variable = { emergency_control > -60 } }
+		set_variable = { Malaysia_Control = 11 }
+	}
+	else = {
+		set_variable = { Malaysia_Control = 10 }
+	}
+}
+
+MAL_emergency_init_control = {
+	784 = { set_variable = { emergency_control = -30 } }
+	791 = { set_variable = { emergency_control = 50 } set_state_flag = MLA_cell_present }
+	792 = { set_variable = { emergency_control = -10 } }
+	960 = { set_variable = { emergency_control = 20 } set_state_flag = MLA_cell_present }
+	1676 = { set_variable = { emergency_control = 20 } set_state_flag = MLA_cell_present }
+	1892 = { set_variable = { emergency_control = -25 } }
+	1893 = { set_variable = { emergency_control = -20 } }
+	1894 = { set_variable = { emergency_control = 5 } }
+	1895 = { set_variable = { emergency_control = 10 } }
+	every_state = {
+		limit = { MAL_emergency_is_contest_state = yes }
+		MAL_emergency_set_control_frame = yes
+	}
+	MLA = { MAL_emergency_recount = yes }
+}
+
+MAL_emergency_recount = {
+	set_variable = { emergency_liberated_states = 0 }
+	set_variable = { emergency_secured_states = 0 }
+	set_temp_variable = { emergency_control_sum = 0 }
+	every_state = {
+		limit = { MAL_emergency_is_contest_state = yes }
+		add_to_temp_variable = { emergency_control_sum = emergency_control }
+		if = {
+			limit = { check_variable = { emergency_control > 59 } }
+			PREV = { add_to_variable = { emergency_liberated_states = 1 } }
+		}
+		if = {
+			limit = { check_variable = { emergency_control < -59 } }
+			PREV = { add_to_variable = { emergency_secured_states = 1 } }
+		}
+	}
+	set_variable = { emergency_momentum = emergency_control_sum }
+	divide_variable = { emergency_momentum = 3.6 }
 	MLA_clamp_emergency_momentum = yes
 }
 
-MLA_register_emergency_operation_loss = {
-	set_temp_variable = { emergency_streak_shift = MLA_emergency_lose_streak }
-	multiply_temp_variable = { emergency_streak_shift = 8 }	# -8 momentum per consecutive prior loss: defeats snowball harder than victories
-	clamp_temp_variable = { var = emergency_streak_shift min = 0 max = 32 }
-	subtract_from_variable = { emergency_momentum = emergency_momentum_base }
-	subtract_from_variable = { emergency_momentum = emergency_streak_shift }
-	add_to_variable = { MLA_emergency_lose_streak = 1 }
-	set_variable = { MLA_emergency_win_streak = 0 }
-	MLA_clamp_emergency_momentum = yes
-}
-
-MLA_shift_emergency_momentum = {	# MLA scope; expects temp emergency_momentum_shift, signed. Diplomatic swings deliberately leave the win/lose streaks alone
-	add_to_variable = { emergency_momentum = emergency_momentum_shift }
-	MLA_clamp_emergency_momentum = yes
-}
-
-MLA_apply_minor_operation_result = {
+MAL_emergency_monthly_tick = {
 	if = {
-		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 16 }
-		MLA_register_emergency_operation_win = yes
-		add_manpower = 250
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 200
-			producer = ENG
+		limit = { MAL_emergency_contest_active = yes }
+		every_state = {
+			limit = { MAL_emergency_is_contest_state = yes }
+			set_temp_variable = { emergency_control_shift = 0 }
+			if = {
+				limit = { MLA = { divisions_in_state = { state = PREV size > 0 } } }
+				add_to_temp_variable = { emergency_control_shift = 2 }
+			}
+			if = {
+				limit = { MLA = { divisions_in_state = { state = PREV size > 2 } } }
+				add_to_temp_variable = { emergency_control_shift = 2 }
+			}
+			if = {
+				limit = {
+					OR = {
+						MAL = { divisions_in_state = { state = PREV size > 0 } }
+						ENG = { divisions_in_state = { state = PREV size > 0 } }
+					}
+				}
+				add_to_temp_variable = { emergency_control_shift = -2 }
+			}
+			if = {
+				limit = {
+					OR = {
+						MAL = { divisions_in_state = { state = PREV size > 3 } }
+						ENG = { divisions_in_state = { state = PREV size > 3 } }
+					}
+				}
+				add_to_temp_variable = { emergency_control_shift = -2 }
+			}
+			if = {
+				limit = { has_state_flag = MLA_cell_present }
+				add_to_temp_variable = { emergency_control_shift = 1 }
+			}
+			if = {
+				limit = {
+					has_state_flag = MLA_cell_present
+					has_state_flag = is_jungle_state
+				}
+				add_to_temp_variable = { emergency_control_shift = 1 }
+			}
+			if = {
+				limit = {
+					any_neighbor_state = {
+						MAL_emergency_is_contest_state = yes
+						check_variable = { emergency_control > 59 }
+					}
+				}
+				add_to_temp_variable = { emergency_control_shift = 1 }
+			}
+			if = {
+				limit = {
+					any_neighbor_state = {
+						MAL_emergency_is_contest_state = yes
+						check_variable = { emergency_control < -59 }
+					}
+				}
+				add_to_temp_variable = { emergency_control_shift = -1 }
+			}
+			if = { limit = { has_dynamic_modifier = { modifier = village_soviet_cells } } add_to_temp_variable = { emergency_control_shift = 1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = red_guard_militia_present } } add_to_temp_variable = { emergency_control_shift = 1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = coordinated_insurgency } } add_to_temp_variable = { emergency_control_shift = 2 } }
+			if = { limit = { has_dynamic_modifier = { modifier = armed_militia_cache } } add_to_temp_variable = { emergency_control_shift = 1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = emergency_resettlement_program } } add_to_temp_variable = { emergency_control_shift = -3 } }
+			if = { limit = { has_dynamic_modifier = { modifier = gurkha_outpost_present } } add_to_temp_variable = { emergency_control_shift = -2 } }
+			if = { limit = { has_dynamic_modifier = { modifier = local_intelligence_network } } add_to_temp_variable = { emergency_control_shift = -1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = special_branch_ops } } add_to_temp_variable = { emergency_control_shift = -2 } }
+			if = { limit = { has_dynamic_modifier = { modifier = home_guard_active } } add_to_temp_variable = { emergency_control_shift = -1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = orang_asli_scouts } } add_to_temp_variable = { emergency_control_shift = -1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = curfew_enforced } } add_to_temp_variable = { emergency_control_shift = -1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = psyops_influence } } add_to_temp_variable = { emergency_control_shift = -1 } }
+			if = { limit = { has_dynamic_modifier = { modifier = aerial_recon_support } } add_to_temp_variable = { emergency_control_shift = -1 } }
+			if = {
+				limit = { MAL = { has_completed_focus = MAL_Implement_the_Briggs_Plan } }
+				add_to_temp_variable = { emergency_control_shift = -2 }
+			}
+			if = {
+				limit = { is_controlled_by = MLA }
+				add_to_temp_variable = { emergency_control_shift = 2 }
+			}
+			if = {
+				limit = {
+					MAL = { is_ai = yes is_historical_focus_on = yes }
+					MLA = { is_ai = yes }
+				}
+				add_to_temp_variable = { emergency_control_shift = -1 }
+			}
+			if = {
+				limit = {
+					date > 1954.1.1
+					MAL = { is_ai = yes is_historical_focus_on = yes }
+					MLA = { is_ai = yes }
+				}
+				add_to_temp_variable = { emergency_control_shift = -1 }
+			}
+			MAL_emergency_shift_control = yes
 		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 10 producer = ENG }
-		army_experience = 3
+		MAL_emergency_recount = yes
 	}
-	else = {
-		MLA = {
-			set_temp_variable = { emergency_momentum_base = 13 }
-			MLA_register_emergency_operation_loss = yes
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 60
+}
+
+MAL_emergency_ai_turn = {
+	if = {
+		limit = {
+			is_ai = yes
+			MAL_emergency_contest_active = yes
+			has_political_power > 25
+			NOT = { has_country_flag = Recent_MLA_State_Decision }
+		}
+		set_temp_variable = { MAL_emergency_ai_skip = 0 }
+		if = {
+			limit = { tag = MLA is_historical_focus_on = yes }
+			random = {
+				chance = 70
+				set_temp_variable = { MAL_emergency_ai_skip = 1 }
 			}
 		}
-	}
-}
-
-MLA_apply_standard_operation_result = {
-	if = {
-		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 24 }
-		MLA_register_emergency_operation_win = yes
-		add_manpower = 350
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 300
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 15 producer = ENG }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 8 producer = ENG }
-		army_experience = 5
-	}
-	else = {
-		MLA = {
-			set_temp_variable = { emergency_momentum_base = 16 }
-			MLA_register_emergency_operation_loss = yes
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 60
+		if = {
+			limit = { tag = MLA }
+			random_state = {
+				limit = {
+					MAL_emergency_is_contest_state = yes
+					check_variable = { emergency_control > -20 }
+					check_variable = { emergency_control < 100 }
+				}
+				save_event_target_as = MAL_emergency_ai_target
+			}
+			if = {
+				limit = { NOT = { has_event_target = MAL_emergency_ai_target } }
+				random_state = {
+					limit = {
+						MAL_emergency_is_contest_state = yes
+						check_variable = { emergency_control < 100 }
+					}
+					save_event_target_as = MAL_emergency_ai_target
+				}
 			}
 		}
-	}
-}
-
-MLA_apply_major_operation_result = {
-	if = {
-		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 32 }
-		MLA_register_emergency_operation_win = yes
-		add_manpower = 475
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 450
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 20 producer = ENG }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 12 producer = ENG }
-		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 10 producer = ENG }
-		army_experience = 8
-	}
-	else = {
-		MLA = {
-			set_temp_variable = { emergency_momentum_base = 24 }
-			MLA_register_emergency_operation_loss = yes
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 75
+		else = {
+			random_state = {
+				limit = {
+					MAL_emergency_is_contest_state = yes
+					check_variable = { emergency_control > 19 }
+				}
+				save_event_target_as = MAL_emergency_ai_target
+			}
+			if = {
+				limit = { NOT = { has_event_target = MAL_emergency_ai_target } }
+				random_state = {
+					limit = {
+						MAL_emergency_is_contest_state = yes
+						check_variable = { emergency_control > -100 }
+					}
+					save_event_target_as = MAL_emergency_ai_target
+				}
 			}
 		}
-	}
-}
-
-MLA_apply_final_operation_result = {
-	if = {
-		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 40 }
-		MLA_register_emergency_operation_win = yes
-		add_manpower = 600
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 600
-			producer = ENG
-		}
-		add_equipment_to_stockpile = { type = support_equipment_1 amount = 25 producer = ENG }
-		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 15 producer = ENG }
-		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 15 producer = ENG }
-		army_experience = 10
-	}
-	else = {
-		MLA = {
-			set_temp_variable = { emergency_momentum_base = 24 }
-			MLA_register_emergency_operation_loss = yes
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 75
+		if = {
+			limit = {
+				has_event_target = MAL_emergency_ai_target
+				check_variable = { MAL_emergency_ai_skip = 0 }
 			}
-		}
-	}
-}
-
-MLA_apply_counterinsurgency_raid_result = {
-	if = {
-		limit = { tag = MLA }
-		set_temp_variable = { emergency_momentum_base = 10 }
-		MLA_register_emergency_operation_win = yes
-		add_equipment_to_stockpile = {
-			type = infantry_equipment_0
-			amount = 100
-			producer = ENG
-		}
-	}
-	else = {
-		MLA = {
-			set_temp_variable = { emergency_momentum_base = 10 }
-			MLA_register_emergency_operation_loss = yes
-			add_timed_idea = {
-				idea = MLA_operation_exhaustion
-				days = 45
+			set_temp_variable = { MAL_emergency_ai_done = 0 }
+			for_each_loop = {
+				array = malaya_gui_decisions_list
+				index = i
+				break = MAL_emergency_ai_done
+				if = {
+					limit = { event_target:MAL_emergency_ai_target = { malaya_state_decision_enabled = yes } }
+					log = "IC_MALAYA|AI_ACTION|date=[GetDateText]|tag=[Root.GetTag]|state=[?event_target:MAL_emergency_ai_target.id]|action=[?malaya_gui_decisions_list^i]"
+					event_target:MAL_emergency_ai_target = { mla_malaya_state_pseudo_decision_effect = yes }
+					log = "IC_MALAYA|AI_ACTION_DONE|tag=[Root.GetTag]"
+					add_political_power = -25
+					set_country_flag = { flag = Recent_MLA_State_Decision days = 5 value = 1 }
+					set_temp_variable = { MAL_emergency_ai_done = 1 }
+				}
 			}
 		}
 	}
@@ -398,13 +490,13 @@ MLA_Launch_General_Uprising = {
 		add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = CUM }
 		add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 100 producer = CUM }
 		if = {
-			limit = { check_variable = { MLA_operations_won > 3 } }
+			limit = { check_variable = { emergency_liberated_states > 5 } }
 			add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 2000 producer = CUM }
 			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 50 producer = CUM }
 			add_manpower = 15000
 		}
 		if = {
-			limit = { check_variable = { MLA_operations_won > 7 } }
+			limit = { check_variable = { emergency_liberated_states > 7 } }
 			add_equipment_to_stockpile = { type = infantry_equipment_0 amount = 2000 producer = CUM }
 			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 50 producer = CUM }
 			add_manpower = 15000
@@ -413,7 +505,13 @@ MLA_Launch_General_Uprising = {
 		every_state = {
 			limit = {
 				is_core_of = MLA
-				has_state_flag = MLA_cell_present
+				OR = {
+					has_state_flag = MLA_cell_present
+					AND = {
+						MAL_emergency_is_contest_state = yes
+						check_variable = { emergency_control > 59 }
+					}
+				}
 				owner = { OR = { tag = MAL tag = ENG } }
 			}
 			set_state_controller_to = MLA
@@ -611,8 +709,6 @@ MAL_End_The_Emergency = {
 		remove_ideas = MLA_operation_exhaustion
 		remove_ideas = MLA_encirclement
 		set_variable = { emergency_momentum = 0 }
-		set_variable = { MLA_emergency_win_streak = 0 }
-		set_variable = { MLA_emergency_lose_streak = 0 }
 	}
 	every_state = {
 		limit = { has_state_flag = MLA_cell_present }
@@ -723,6 +819,8 @@ Baling_Peace_Treaty = {
 
 
 MLA_Main_Influence_effect = {
+	set_temp_variable = { MLA_Influence_neg_temp = MLA_Main_Influence_temp }
+	multiply_temp_variable = { MLA_Influence_neg_temp = -1 }
 	custom_effect_tooltip = MLA_Main_Influence_Effect_tt
 	add_to_variable = {
 		var = MLA_Main_Influence
@@ -742,10 +840,12 @@ MLA_Main_Influence_effect = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 MLA_Alt_Influence_effect = {
+	set_temp_variable = { MLA_Influence_neg_temp = MLA_Alt_Influence_temp }
+	multiply_temp_variable = { MLA_Influence_neg_temp = -1 }
 	custom_effect_tooltip = MLA_Alt_Influence_Effect_tt
 	add_to_variable = {
 		var = MLA_Alt_Influence
@@ -765,7 +865,7 @@ MLA_Alt_Influence_effect = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 add_MLA_Influence = {
@@ -779,7 +879,7 @@ add_MLA_Influence = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 minus_MLA_Influence = {
@@ -793,7 +893,7 @@ minus_MLA_Influence = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 add_Main_Support = {
@@ -807,7 +907,7 @@ add_Main_Support = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 minus_Main_Support = {
@@ -821,7 +921,7 @@ minus_Main_Support = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 add_Alt_Support = {
@@ -835,7 +935,7 @@ add_Alt_Support = {
 		min = 0
 		max = 100
 	}
-	add_to_variable = { MLA_Refresh_Variable = 1 }
+	MLA_update_factional_modifier = yes
 }
 
 minus_Alt_Support = {
@@ -848,6 +948,25 @@ minus_Alt_Support = {
 		var = MLA_Alt_Support
 		min = 0
 		max = 100
+	}
+	MLA_update_factional_modifier = yes
+}
+
+MLA_update_factional_modifier = {
+	set_variable = { MLA_fb_prc = MLA_Main_Influence }
+	subtract_from_variable = { MLA_fb_prc = 50 }
+	divide_variable = { MLA_fb_prc = 500 }
+	set_variable = { MLA_fb_ind = MLA_Influence }
+	subtract_from_variable = { MLA_fb_ind = 50 }
+	divide_variable = { MLA_fb_ind = 500 }
+	set_variable = { MLA_fb_sup = MLA_Main_Support }
+	subtract_from_variable = { MLA_fb_sup = MLA_Alt_Support }
+	divide_variable = { MLA_fb_sup = 1000 }
+	if = {
+		limit = {
+			NOT = { has_dynamic_modifier = { modifier = MLA_factional_balance } }
+		}
+		add_dynamic_modifier = { modifier = MLA_factional_balance }
 	}
 	add_to_variable = { MLA_Refresh_Variable = 1 }
 }
