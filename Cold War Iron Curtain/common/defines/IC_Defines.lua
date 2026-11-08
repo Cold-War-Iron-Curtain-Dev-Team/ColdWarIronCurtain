@@ -1,16 +1,14 @@
-NDefines.NAI.DEPLOY_MIN_EQUIPMENT_WAR_FACTOR = 0.75 -- Required percentage of equipment (1.0 = 100%) for AI to deploy unit in wartime
+NDefines.NAI.DEPLOY_MIN_EQUIPMENT_WAR_FACTOR = 0.85 -- Required percentage of equipment (1.0 = 100%) for AI to deploy unit in wartime
 NDefines.NAI.DIPLO_PREFER_OTHER_FACTION = -125 -- The country has yet to ask some other faction it would prefer to be a part of.
 NDefines.NAI.DIPLOMACY_CREATE_FACTION_FACTOR = 0.0 -- Factor for AI desire to create a new faction. Val < 1.0 makes it less likely to create than to join.
 NDefines.NAI.DIPLOMACY_FACTION_GLOBAL_TENSION_FACTOR = 0.0 -- How much the AI takes global tension into account when considering faction actions
 NDefines.NAI.DIPLOMACY_FACTION_SAME_IDEOLOGY_MAJOR = 0 -- AI bonus acceptance when being asked about faction is a major of the same ideology
 NDefines.NAI.DIPLOMACY_FACTION_WRONG_IDEOLOGY_PENALTY = 0 -- AI penalty for diplomatic faction acitons between nations of different ideologies
 NDefines.NAI.DIPLOMATIC_ACTION_BREAK_SCORE = -10 -- AI must score a diplomatic action less than this to break it off
-NDefines.NAI.RESEARCH_AHEAD_OF_TIME_FACTOR = 10.0 -- To which extent AI should care about ahead of time penalties to research
 NDefines.NAI.RESEARCH_AIR_DOCTRINE_NEED_GAIN_FACTOR = 0.08 -- Multiplies value based on relative number of air base / country size.
 NDefines.NAI.RESEARCH_BONUS_FACTOR = 1.5 -- To which extent AI should care about bonuses to research
 NDefines.NAI.RESEARCH_LAND_DOCTRINE_NEED_GAIN_FACTOR = 0.1 -- Multiplies value based on relative military industry size / country size.
 NDefines.NAI.RESEARCH_NAVAL_DOCTRINE_NEED_GAIN_FACTOR = 0.075 -- Multiplies value based on relative naval industry size / country size.
-NDefines.NAI.AIR_WING_REINFORCEMENT_LIMIT = 60
 
 NDefines.NAir.AIR_WING_FLIGHT_SPEED_MULT = 0.02					-- Global speed multiplier for airplanes (affects fe.transferring to another base)
 NDefines.NAir.AIR_WING_MAX_STATS_ATTACK = 1000					-- Max stats
@@ -20,10 +18,7 @@ NDefines.NAir.AIR_WING_MAX_STATS_SPEED = 10000
 NDefines.NAir.AIR_WING_MAX_STATS_BOMBING = 1000
 NDefines.NAir.AIR_WING_MAX_SIZE = 1000 							-- Max amount of airplanes in wing
 NDefines.NAir.AIR_WING_BOMB_DAMAGE_FACTOR = 2					-- Used to balance the damage done while bombing.
-NDefines.NAir.COMBAT_STAT_IMPORTANCE_SPEED = 2 				-- How important is speed when comparing stats.
-NDefines.NAir.COMBAT_STAT_IMPORTANCE_AGILITY = 1				-- How important is agility when comparing stats.
 NDefines.NAir.BIGGEST_AGILITY_FACTOR_DIFF = 2.5					-- biggest factor difference in agility for doing damage (caps to this)
-NDefines.NAir.COMBAT_DAMAGE_STATS_MULTILIER = 0.3
 NDefines.NAir.COMBAT_BETTER_AGILITY_DAMAGE_REDUCTION = 0.6 		-- How much the better agility (then opponent's) can reduce their damage to us.
 NDefines.NAir.COMBAT_MAX_WINGS_AT_ONCE = 10000						-- Max amount of air wings in one combat simulation. The higher value, the quicker countries may loose their wings. It's a gameplay balance value.
 NDefines.NAir.COMBAT_MAX_WINGS_AT_GROUND_ATTACK = 10000	        	-- we can really pounce a land strike and escalate
@@ -32,9 +27,7 @@ NDefines.NAir.AIR_REGION_SUPERIORITY_PIXEL_SCALE = 0.04          -- air superior
 NDefines.NAir.COMBAT_MULTIPLANE_CAP = 3						-- How many planes can shoot at each plane on other side ( if there are 100 planes we are atttacking COMBAT_MULTIPLANE_CAP * 100 of our planes can shoot )
 NDefines.NAir.COMBAT_DAMAGE_SCALE = 0.2						-- Higher value = more shot down planes
 NDefines.NAir.CAS_NIGHT_ATTACK_FACTOR = 0.8 -- CAS damaged get multiplied by this in land combats at night
-NDefines.NAir.STRATEGIC_BOMBER_NUKE_AIR_SUPERIORITY = 10.0 -- How much air superiority is needed for a tactical bomber to be able to nuke a province
 NDefines.NAir.NAVAL_COMBAT_EXTERNAL_PLANES_JOIN_RATIO = 0.02 -- Max planes that can join a combat comparing to the total strength of the ships
-NDefines.NAir.COMBAT_STACK_LIMIT = 3 -- The biggest allowed dogfight combination (1vs1 or 2vs1). Bigger value cause that amount of airplanes matters more then their stats. Only used in naval air combat, for land air combat see COMBAT_MULTIPLANE_CAP
 NDefines.NAir.NAVAL_STRIKE_DAMAGE_TO_STR = 2 -- Balancing value to convert damage ( naval_strike_attack * hits ) to Strength reduction.
 NDefines.NAir.MISSION_COMMAND_POWER_COSTS = {  -- command power cost per plane to create a mission (synced to vanilla mission list, 19 entries)
 	0.0, -- AIR_SUPERIORITY
@@ -98,13 +91,12 @@ NDefines.NCountry.NAVY_SCORE_MULTIPLIER = 25.0 -- Based on number of navies.
 NDefines.NCountry.AIR_SCORE_MULTIPLIER = 0.01 -- Based on number of planes (which is typically a lot).
 NDefines.NCountry.INDUSTRY_SCORE_MULTIPLIER = 1.0 -- Based on number of factories.
 NDefines.NCountry.PROVINCE_SCORE_MULTIPLIER = 0.1 -- Based on number of controlled provinces.
-NDefines.NCountry.STATE_VALUE_NON_CORE_STATE_FRACTION = 1
 NDefines.NCountry.POPULATION_YEARLY_GROWTH_BASE = 0.008
 NDefines.NCountry.MIN_COUP_SUCCESS_STABILITY = -2 -- NO COUPS ALLOWED!!!!
 NDefines.NCountry.BASE_FUEL_GAIN_PER_OIL = 4 -- VANILLA 2
 NDefines.NCountry.DAYS_OF_WAR_BEFORE_SURRENDER = 7 -- VANILLA 7
 
-NDefines.NCountry.AIR_VOLUNTEER_PLANES_LIMIT = 0.5	-- Ratio for volunteer planes available for sending in relation to sender air force
+NDefines.NCountry.AIR_VOLUNTEER_PLANES_RATIO = 0.5	-- Ratio for volunteer planes available for sending in relation to sender air force
 NDefines.NCountry.AIR_VOLUNTEER_BASES_CAPACITY_LIMIT = 0.5	-- Ratio for volunteer planes available for sending in relation to receiver air base capacity
 
 
@@ -119,7 +111,6 @@ NDefines.NDiplomacy.TENSION_ANNEX_CLAIM = 0.075 -- Amount of tension generated b
 NDefines.NDiplomacy.TENSION_ANNEX_CORE = 0.05 -- Amount of tension generated by annexing a state that is your core
 NDefines.NDiplomacy.TENSION_CAPITULATE = 0.0 -- Scale of the amount of tension created by a countries capitulation.
 NDefines.NDiplomacy.TENSION_CB_WAR = 5 -- Amount of tension generated by a war with a CB
-NDefines.NDiplomacy.TENSION_DECAY = 0.10 -- Each months tension decays this much
 NDefines.NDiplomacy.TENSION_GUARANTEE = 0
 NDefines.NDiplomacy.TENSION_LIBERATE = 0 -- Amount of tension generated by liberating a country.
 NDefines.NDiplomacy.TENSION_NO_CB_WAR = 15 -- Amount of tension generated by a no-CB war
@@ -154,16 +145,13 @@ NDefines.NMilitary.BASE_DIVISION_SUPPORT_SLOT_COST = 1 	--Base cost to unlock a 
 NDefines.NMilitary.EXPERIENCE_COMBAT_FACTOR = 0.1 --Combat bonus units get from their experience. Default value is 0.25. Experience per unit level = -x, 0, x, 2x, 3x, level 2 being the "basic" level and always having 0% bonus.
 NDefines.NMilitary.MIN_DIVISION_BRIGADE_HEIGHT = 5 -- Unlocks max brigade height in division designer by default to better align with starting templates
 
-NDefines.NNavy.CARRIER_STACK_PENALTY = 8 -- The most efficient is 4 carriers in combat. 5+ brings the penalty to the amount of wings in battle.
-NDefines.NNavy.CARRIER_STACK_PENALTY_EFFECT = 0.1 -- Each carrier above the optimal amount decreases the amount of airplanes being able to takeoff by such %.
 NDefines.NNavy.SUBMARINE_HIDE_TIMEOUT = 4 -- Amount of in-game-hours that takes the submarine (with position unrevealed) to hide.
 NDefines.NNavy.SUBMARINE_REVEAL_BASE_CHANCE = 0.002 -- Base chance for submarine detection. It's modified by the difference of a spootter's submarines detection vs submarine visibility. Use this variable for game balancing.
 NDefines.NNavy.SUBMARINE_REVEALED_TIMEOUT = 8 -- Amount of in-game-hours that makes the submarine visible if it is on the defender side.
 NDefines.NNavy.SHORE_BOMBARDMENT_CAP = 0.15 -- Maximum shore bombardment
 NDefines.NNavy.LIGHT_GUN_ATTACK_TO_SHORE_BOMBARDMENT = 0.15 --heavy gun attack value is divided by this value * 100 and added to shore bombardment modifier --changed from vanilla (0.05) to reflect gun/missile dichotomy
 NDefines.NNavy.HEAVY_GUN_ATTACK_TO_SHORE_BOMBARDMENT = 0.05 -- light gun attack value is divided by this value * 100 and added to shore bombardment modifier --changed from vanilla (0.1) to reflect gun/missile dichotomy
-NDefines.NNavy.NAVAL_INVASION_PREPARE_HOURS = 72 -- base hours needed to prepare an invasion
-NDefines.NNavy.SEA_AIR_COMBAT_MAX_WINGS_ON_STACK = 75 -- max planes that can enter naval combat
+NDefines.NNavy.NAVAL_INVASION_PREPARE_DAYS = 45 -- vanilla 60; base days needed to prepare a naval invasion
 NDefines.NTechnology.BASE_RESEARCH_POINTS_SAVED = 50.0 -- Base amount of research points a country can save per slot.
 NDefines.NTechnology.BASE_YEAR_AHEAD_PENALTY_FACTOR = 1 -- Base year ahead penalty
 NDefines.NTechnology.MAX_TECH_SHARING_BONUS = 0.15 -- Max technology sharing bonus that can be applied instantly
@@ -181,17 +169,9 @@ NDefines.NAI.DIPLOMACY_SCARED_MINOR_EXTRA_RELUCTANCE = -50 -- extra reluctance t
 NDefines.NAI.DIPLOMACY_BOOST_PARTY_COST_FACTOR = 0.0	-- Desire to boost party popularity subtracts the daily cost multiplied by this
 NDefines.NAI.DIPLOMACY_IMPROVE_RELATION_COST_FACTOR = 0.0-- Desire to boost relations subtracts the cost multiplied by this
 NDefines.NAI.DIPLOMACY_IMPROVE_RELATION_PP_FACTOR = 0.0	-- Desire to boost relations adds total PP multiplied by this
-NDefines.NAI.DIVISION_UPGRADE_MIN_XP = 9999999
-NDefines.NAI.DIVISION_CREATE_MIN_XP = 9999999
-NDefines.NAI.VARIANT_UPGRADE_MIN_XP = 9999999
-NDefines.NAI.MAX_AHEAD_RESEARCH_PENALTY = 0
-NDefines.NAI.RESEARCH_AHEAD_OF_TIME_FACTOR = 9999999
+NDefines.NAI.MAX_AHEAD_RESEARCH_PENALTY = 2 -- vanilla 3; max ahead-of-time penalty the AI will consider (was 0)
+NDefines.NAI.RESEARCH_AHEAD_OF_TIME_FACTOR = 4.0 -- vanilla 4.0; was 9999999 which stopped the AI researching anything ahead of time
 
--- Performance Optimizations
-NDefines.NAI.DAYS_BETWEEN_DECISION_CHECKS = 3 -- Check AI decisions every 3 days instead of daily, saving ~66% of AI decision trigger evaluation CPU cost
-NDefines.NAI.HOURS_BETWEEN_MILITARY_ASSESMENT = 48 -- Re-evaluate military postures every 48 hours
-NDefines.NAI.AI_UPDATE_ROLES_INTERVAL = 48 -- Interval for updating division roles
-NDefines.NAI.UPDATE_TACTICS_INTERVAL = 24 -- Combat tactic recalculation interval
 NDefines.NGame.COMBAT_LOG_MAX_MONTHS = 6 -- Limit combat log retention to 6 months to reduce memory and savegame bloat
 
 NDefines.NProduction.MAX_EQUIPMENT_RESOURCES_NEED = 4
