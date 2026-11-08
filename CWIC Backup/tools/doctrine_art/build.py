@@ -32,7 +32,7 @@ POOLS = {
 TRACK_BANNER = {
     "forward_defense": {"infantry": "NATO_1940s", "combat_support": "NATO_1960s", "armor": "NATO_1990s", "operations": "SADF_1970s"},
     "deep_battle": {"infantry": "dprk_1990s", "combat_support": "dprk_1970s", "armor": "Warsaw_1960s", "operations": "Warsaw_1990s"},
-    "peoples_war": {"infantry": "Maoist_1980s", "combat_support": "Maoist_1970s", "armor": "prc_1970s", "operations": "prc_1940s"},
+    "peoples_war": {"infantry": "prc_1940s", "combat_support": "Maoist_1970s", "armor": "prc_1970s", "operations": "prc_1940s"},
     "intervention_pacification": {"infantry": "france_1960s", "combat_support": "france_1950s", "armor": "france_1970s", "operations": "france_1940s"},
     "preemptive_maneuver": {"infantry": "israel_1940s", "combat_support": "israel_1960s", "armor": "israel_1970s", "operations": "israel_1950s"},
     "total_national_defense": {"infantry": "Yugoslav_1940s", "combat_support": "himalayan_1970s", "armor": "non_aligned_1970s", "operations": "iran_1990s"},
@@ -43,7 +43,7 @@ TRACK_BANNER_ERA = {
     2: {
         "forward_defense": {"infantry": ("SADF_1960s",), "combat_support": ("NATO_1970s",), "armor": ("NATO_1960s", R, 1.35), "operations": ("NATO_1950s",)},
         "deep_battle": {"infantry": ("dprk_1960s",), "combat_support": ("Warsaw_1970s",), "armor": ("Warsaw_1950s",), "operations": ("Warsaw_1960s", R, 1.35)},
-        "peoples_war": {"infantry": ("Maoist_1960s",), "combat_support": ("prc_1960s",), "armor": ("prc_1970s", R, 1.35), "operations": ("prc_1950s",)},
+        "peoples_war": {"infantry": ("Maoist_1960s",), "combat_support": ("prc_1970s", R, 1.35), "armor": ("prc_1970s", R, 1.35), "operations": ("prc_1950s",)},
         "intervention_pacification": {"infantry": ("france_1960s", L, 1.5), "combat_support": ("france_1950s", R, 1.5), "armor": ("france_1970s", R, 1.5), "operations": ("france_1940s", L, 1.5)},
         "preemptive_maneuver": {"infantry": ("israel_1960s", L, 1.5), "combat_support": ("israel_1970s", R, 1.5), "armor": ("israel_1950s", R, 1.5), "operations": ("israel_1940s", L, 1.5)},
         "total_national_defense": {"infantry": ("Yugoslav_1960s",), "combat_support": ("himalayan_1960s",), "armor": ("non_aligned_1960s",), "operations": ("Yugoslav_1970s",)},
@@ -271,6 +271,32 @@ def crop_icon(banner_name, zoom, anchor, variant):
 
 
 
+def cover_focus(im, tw, th, fx, fy, zoom=1.0):
+    w, h = im.size
+    s = max(tw / w, th / h) * zoom
+    r = im.resize((max(tw, round(w * s)), max(th, round(h * s))), Image.LANCZOS)
+    x0 = min(max(0, round(r.width * fx - tw / 2)), r.width - tw)
+    y0 = min(max(0, round(r.height * fy - th / 2)), r.height - th)
+    return r.crop((x0, y0, x0 + tw, y0 + th))
+
+
+def apply_picks(made):
+    picks = json.load(open(W + "/picks.json"))
+    for sprite, pk in picks.items():
+        src = load(W + "/" + pk["src"])
+        fx, fy = pk.get("focus") or (0.5, 0.5)
+        stem = sprite[4:]
+        if sprite.startswith("GFX_cw_track_"):
+            im = crt(cover_focus(src, 360, 660, fx, fy))
+            path = f"{OUT}/tracks/{stem}.png"
+        else:
+            sq = cover_focus(src, 256, 256, fx, fy, 1.15).resize((64, 64), Image.LANCZOS)
+            im = normalize(circle(crt(sq)))
+            path = f"{OUT}/{'grand' if sprite.startswith('GFX_cw_gd_') else 'icons'}/{stem}.png"
+        save(im, path)
+    made["picked"] = list(picks)
+
+
 def main():
     made = {"track": [], "grand": [], "sub": []}
     # ---- tracks ----
@@ -319,6 +345,7 @@ def main():
         p = save(im, f"{OUT}/icons/cw_sd_{sid}.png")
         made["sub"].append((f"GFX_cw_sd_{sid}", p))
     json.dump(made, open(W + "/made.json", "w"), indent=1)
+    apply_picks(made)
     print({k: len(v) for k, v in made.items()})
 
 
