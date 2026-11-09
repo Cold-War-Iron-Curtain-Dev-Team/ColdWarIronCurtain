@@ -2071,8 +2071,7 @@ scripted_gui = {
         }
         effects = {
             display_projects_info_click = {
-                set_variable = { show_bay_of_pigs = 0 }
-                clear_array = ROOT.current_operations_potential_toggle
+                CWIC_espionage_reset_project_views = yes
                 if = {
                     limit = {
                         check_variable = {
@@ -2637,13 +2636,8 @@ scripted_gui = {
                     operative_number_step < 5
                 }
             }
-            led = {
-                check_variable = {
-                    operative_number_step = 5
-                }
-                check_variable = {
-                    name_verification = 1
-                }
+            create_group_click_enabled = {
+                CWIC_espionage_can_create_group_trigger = yes
             }
             name_toggle_unconfirm_visible = {
                 check_variable = {
@@ -2690,6 +2684,7 @@ scripted_gui = {
                 CWIC_espionage_refresh_preview = yes
             }
             create_group_click = {
+                CWIC_espionage_pay_group_creation = yes
                 add_to_variable = { num_espionage_paramilitary_squads = 1 }
                 startup_squad_creation_trait_modifiers = yes
                 add_to_variable = { Black_Ops_Maintenance_Monthly = 2 }
@@ -3702,19 +3697,19 @@ scripted_gui = {
         triggers = {
             mission_toggle_unconfirm_visible = {
                 check_variable = {
-                    ROOT.current_operations_potential_toggle_enabled^i = 0
+                    ROOT.gladio_toggle_enabled^i = 0
                 }
             }
             mission_toggle_confirm_visible = {
                 check_variable = {
-                    ROOT.current_operations_potential_toggle_enabled^i = 1
+                    ROOT.gladio_toggle_enabled^i = 1
                 }
             }
         }
         effects = {
              mission_toggle_unconfirm_click = { #on
                 set_variable = {
-                    ROOT.current_operations_potential_toggle_enabled^i = 1
+                    ROOT.gladio_toggle_enabled^i = 1
                 }
                 #1 Fallback Operations
                 if = {
@@ -3799,7 +3794,7 @@ scripted_gui = {
             }
              mission_toggle_confirm_click = {   #off
                 set_variable = {
-                    ROOT.current_operations_potential_toggle_enabled^i = 0
+                    ROOT.gladio_toggle_enabled^i = 0
                 }
                 ROOT = {
                     refresh_possible_gladio_missions = yes
@@ -3846,11 +3841,15 @@ scripted_gui = {
                 add_to_array = { ROOT.local_gladio_possible_operations_operation_type = 4 }
                 add_to_array = { ROOT.local_gladio_possible_operations_operation_type = 5 }
                 add_to_array = { ROOT.local_gladio_possible_operations_operation_type = 6 }
+                clear_array = ROOT.gladio_toggle_enabled
+                add_to_array = { ROOT.gladio_toggle_enabled = 0 }
+                add_to_array = { ROOT.gladio_toggle_enabled = 0 }
+                add_to_array = { ROOT.gladio_toggle_enabled = 0 }
+                add_to_array = { ROOT.gladio_toggle_enabled = 0 }
+                add_to_array = { ROOT.gladio_toggle_enabled = 0 }
+                add_to_array = { ROOT.gladio_toggle_enabled = 0 }
                 set_variable = {
                     ROOT.GLADIO_MEMBER_POSITION_CURRENT = i
-                }
-                ROOT = {
-                    generate_espionage_toggles = yes
                 }
                 set_variable = {
                     ci_strength_temp = THIS.modifier@drift_defence_factor
@@ -3939,6 +3938,7 @@ scripted_gui = {
             clear_array = local_possible_operations_target
             clear_array = local_possible_operations_id_token
             clear_array = local_possible_operations_personnel_target
+            CWIC_espionage_reset_project_views = yes
 
             if = {
                 limit = {
@@ -4158,6 +4158,7 @@ scripted_gui = {
                 clear_array = local_possible_operations_repeatable_condition
                 clear_array = local_possible_operations_target
                 clear_array = local_possible_operations_id_token
+                clear_array = local_possible_operations_personnel_target
                 for_each_loop = {
                     array = USA.bay_of_pigs_operation
                     add_to_array = { local_possible_operations = USA.bay_of_pigs_operation^i }
@@ -4167,6 +4168,7 @@ scripted_gui = {
                     add_to_array = { local_possible_operations_repeatable_condition = USA.bay_of_pigs_operation_repeatable_condition^i }
                     add_to_array = { local_possible_operations_target = USA.bay_of_pigs_operation_target^i }
                     add_to_array = { local_possible_operations_id_token = USA.bay_of_pigs_operation_id_tokens^i }
+                    add_to_array = { local_possible_operations_personnel_target = 1 }  #Void
                 }
 
             }
@@ -4374,92 +4376,12 @@ scripted_gui = {
         }
         effects = {
              mission_toggle_unconfirm_click = {
-                set_variable = {
-                    ROOT.current_operations_potential_toggle_enabled^i = 1
-                }
-                if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 1
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                        add_assassinate_generals_operations = yes
-                        add_assassinate_admirals_operations = yes
-                    }
-                }
-                else_if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 2
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                        add_nuclear_site_sabotage_operations = yes
-                        add_sabotage_nuclear_programme_operations = yes
-                    }
-                }
-                else_if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 3
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                        add_arms_factory_sabotage_operations = yes
-                        add_factory_sabotage_operations = yes
-                        add_airfield_sabotage_operations = yes
-                        add_dockyard_sabotage_operations = yes
-                        add_port_sabotage_operations = yes
-                        add_infrastructure_sabotage_operations = yes
-                    }
-                }
-                else_if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 4
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                       add_terrorist_attack_operations = yes
-                    }
-                }
-                else_if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 5
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                        add_local_uprising_operations = yes
-                        add_local_resistance_contacts_operations = yes
-                        add_arm_local_resistance_operations = yes
-                    }
-                }
-                else_if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 6
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                        Make_Embed_into_Insurgency_List = yes
-                        Make_Into_Counter_Espionage_Embed = yes
-                    }
-                }
-                else_if = {
-                    limit = {
-                        check_variable = {
-                            ROOT.current_operations_potential_toggle^i = 7
-                        }
-                    }
-                    var:generic_operations_selected_target = {
-                        add_tech_stealing_operations = yes
-                    }
-                }
-                else = { }
-
-                CWIC_espionage_refresh_preview = yes
+                 set_variable = {
+                     ROOT.current_operations_potential_toggle_enabled^i = 1
+                 }
+                 set_temp_variable = { CWIC_espionage_toggle_id = ROOT.current_operations_potential_toggle^i }
+                 CWIC_espionage_add_generic_category = yes
+                 CWIC_espionage_refresh_preview = yes
             }
             mission_toggle_confirm_click = {
                 set_variable = {

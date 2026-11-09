@@ -198,7 +198,9 @@ DEFS = definitions('common/scripted_effects/CWIC_Espionage_lifecycle_effects.txt
     'common/scripted_effects/Espionage_Scripting_Special_Effects.txt',
     'common/scripted_effects/USA_MKUltra_mknaomi_effects.txt',
     'common/scripted_effects/Espionage_WIA_Pulse.txt',
-    'common/scripted_triggers/CWIC_Espionage_lifecycle_triggers.txt')
+    'common/scripted_effects/CWIC_Espionage_completion_effects.txt',
+    'common/scripted_triggers/CWIC_Espionage_lifecycle_triggers.txt',
+    'common/scripted_triggers/CWIC_Espionage_completion_triggers.txt')
 
 
 class MergeContracts(unittest.TestCase):
