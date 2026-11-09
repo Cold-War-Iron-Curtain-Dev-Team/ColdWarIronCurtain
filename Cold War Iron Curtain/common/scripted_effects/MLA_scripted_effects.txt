@@ -181,6 +181,13 @@ MAL_emergency_shift_control = {
 			MAL_emergency_contest_active = yes
 		}
 		custom_effect_tooltip = MAL_EMERGENCY_CONTROL_SHIFT_TT
+		if = {
+			limit = {
+				check_variable = { emergency_control > 59 }
+				check_variable = { emergency_control_shift > 0 }
+			}
+			multiply_temp_variable = { emergency_control_shift = 0.5 }
+		}
 		add_to_variable = { emergency_control = emergency_control_shift }
 		clamp_variable = { var = emergency_control min = -100 max = 100 }
 		MAL_emergency_set_control_frame = yes
@@ -345,6 +352,18 @@ MAL_emergency_monthly_tick = {
 				}
 				add_to_temp_variable = { emergency_control_shift = -1 }
 			}
+			if = {
+				limit = { MLA = { check_variable = { emergency_liberated_states > 1 } } }
+				add_to_temp_variable = { emergency_control_shift = -1 }
+			}
+			if = {
+				limit = { MLA = { check_variable = { emergency_liberated_states > 3 } } }
+				add_to_temp_variable = { emergency_control_shift = -1 }
+			}
+			if = {
+				limit = { MLA = { check_variable = { emergency_liberated_states > 5 } } }
+				add_to_temp_variable = { emergency_control_shift = -1 }
+			}
 			MAL_emergency_shift_control = yes
 		}
 		MAL_emergency_recount = yes
@@ -428,6 +447,36 @@ MAL_emergency_ai_turn = {
 				}
 			}
 		}
+	}
+}
+
+MAL_emergency_reinforcements = {
+	if = {
+		limit = {
+			date > 1950.6.1
+			NOT = { has_country_flag = MAL_gurkha_brigade_sent }
+		}
+		set_country_flag = MAL_gurkha_brigade_sent
+		capital_scope = {
+			create_unit = {
+				division = "name = \"1st Gurkha Brigade\" division_template = \"Bahagian Infantri\" start_experience_factor = 0.3 start_manpower_factor = 1"
+				owner = MAL
+			}
+		}
+	}
+	if = {
+		limit = {
+			date > 1951.10.1
+			NOT = { has_country_flag = MAL_templer_surge_sent }
+		}
+		set_country_flag = MAL_templer_surge_sent
+		capital_scope = {
+			create_unit = {
+				division = "name = \"1st Templer Surge Division\" division_template = \"Bahagian Infantri\" start_experience_factor = 0.3 start_manpower_factor = 1"
+				owner = MAL
+			}
+		}
+		add_manpower = 2000
 	}
 }
 
@@ -515,7 +564,7 @@ MLA_Launch_General_Uprising = {
 				}
 				owner = { OR = { tag = MAL tag = ENG } }
 			}
-			set_state_controller_to = MLA
+			transfer_state_to = MLA
 		}
 		declare_war_on = {
 			target = MAL
@@ -584,7 +633,7 @@ MAL_Launch_Final_Sweep = {
 				NOT = { state = 791 }
 				is_controlled_by = MLA
 			}
-			set_state_controller_to = MAL
+			transfer_state_to = MAL
 		}
 		every_state = {
 			limit = { has_state_flag = MLA_cell_present }
