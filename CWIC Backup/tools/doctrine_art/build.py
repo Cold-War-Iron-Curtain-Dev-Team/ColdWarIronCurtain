@@ -313,6 +313,28 @@ def apply_picks(made):
     made["picked"] = list(picks)
 
 
+def soften_track(im):
+    from PIL import ImageFilter, ImageEnhance
+    a = im.convert("RGBA")
+    a = a.filter(ImageFilter.GaussianBlur(1.6))
+    a = ImageEnhance.Contrast(a).enhance(0.82)
+    a = ImageEnhance.Brightness(a).enhance(0.78)
+    w, h = a.size
+    xs = np.abs(np.linspace(-1, 1, w))
+    band = 0.30 * np.clip(1 - xs / 0.45, 0, 1) ** 1.5
+    ys = np.linspace(0, 1, h)
+    top = 0.25 * np.clip(1 - ys / 0.12, 0, 1)
+    shade = 1 - np.clip(band[None, :] + top[:, None], 0, 0.6)
+    arr = np.asarray(a).astype(np.float32)
+    arr[..., :3] *= shade[..., None]
+    return Image.fromarray(arr.clip(0, 255).astype(np.uint8), "RGBA")
+
+
+def soften_all_tracks():
+    for f in sorted(glob.glob(f"{OUT}/tracks/*.png")):
+        save(soften_track(load(f)), f)
+
+
 def main():
     made = {"track": [], "grand": [], "sub": []}
     # ---- tracks ----
@@ -362,6 +384,7 @@ def main():
         made["sub"].append((f"GFX_cw_sd_{sid}", p))
     json.dump(made, open(W + "/made.json", "w"), indent=1)
     apply_picks(made)
+    soften_all_tracks()
     print({k: len(v) for k, v in made.items()})
 
 
