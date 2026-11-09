@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 ROOT = "/home/zom/Projects/ColdWarIronCurtain/Cold War Iron Curtain"
 OUT = ROOT + "/gfx/interface/doctrines/cwic"
 W = os.path.dirname(os.path.abspath(__file__))
-BANNERS = ROOT + "/gfx/interface/doctrines"
+BANNERS = os.path.dirname(os.path.abspath(__file__)) + "/banners"
 inv = json.load(open(W + "/inv.json"))
 srcs = json.load(open(W + "/srcfiles.json"))
 
@@ -382,7 +382,6 @@ def main():
             im = im.resize((64, 64), Image.LANCZOS)
         p = save(im, f"{OUT}/icons/cw_sd_{sid}.png")
         made["sub"].append((f"GFX_cw_sd_{sid}", p))
-    json.dump(made, open(W + "/made.json", "w"), indent=1)
     apply_picks(made)
     soften_all_tracks()
     print({k: len(v) for k, v in made.items()})

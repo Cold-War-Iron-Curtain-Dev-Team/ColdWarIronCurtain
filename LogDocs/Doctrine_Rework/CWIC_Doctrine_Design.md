@@ -96,7 +96,7 @@ Naval and air era rows (decision 2026-11-06, extended): the naval folder (`capit
 tracks, then the 4 `_e3` tracks, with `max_track_columns = 4` and 12 positional milestones (the
 original 4 plus 8 era milestones). Era gates match land: `_e2` = `active = { NOT = { date < 1960.1.1 } }`,
 `_e3` = `active = { NOT = { date < 1980.1.1 } }`. 1980 bookmark seeding: era-1 subdoctrines get
-`add_mastery` 500 and era-2 subdoctrines 300. Naval/air subdoctrines follow the land rule: `track`
+`add_mastery` 500 and era-2 subdoctrines 500. Naval/air subdoctrines follow the land rule: `track`
 suffix equals the `available` date gate (none, 1960.1.1 = `_e2`, 1980.1.1 = `_e3`).
 
 Special forces era row: a single extra row, `special_forces_first_e2` and `special_forces_second_e2`,
@@ -269,7 +269,7 @@ doctrine start blank.
 Era-row seeding: in each 1980.1.1 block, every era-1 land subdoctrine the country received in its
 1949 block gets `add_mastery = { amount = 500 sub_doctrine = <id> }` (the veteran era-1 row is
 complete by 1980), and every era-2 land subdoctrine set in the 1980 block gets
-`add_mastery = { amount = 300 sub_doctrine = <id> }`. Empty tracks stay empty unless history is obvious.
+`add_mastery = { amount = 500 sub_doctrine = <id> }`. Final rule: a country holding any grand doctrine in a folder at 1980 has every era-1 and era-2 track of it filled at mastery 500; era-3 tracks get a subdoctrine at mastery 100 for major powers, and for minors only where the 1980 block already set one.
 
 ## Cost reductions
 
@@ -411,11 +411,10 @@ section once rewritten.
 
 ## Status (2026-11-06)
 
-Implemented on `development-branch` (uncommitted). Legacy trees, `old_*_doctrine_folder` registrations,
+Implemented on branch `doctrine-rework`. Legacy trees, `old_*_doctrine_folder` registrations,
 `Land_Doctrine_l_english.yml` and the 80 per-node PNGs in `gfx/interface/doctrines/Technology/` are
-deleted. Obsolete planning docs in this directory: `Doctrine_Rework_Plan.md`,
-`Doctrine_Cell_Manifest.md`, `Land_Doctrine_Tree_Structure.md`, `Doctrine_Icon_Art_Requests.md`,
-`Doctrine_Rework_Handoff.md` (doctrine sections).
+deleted, as are the legacy-tree planning documents. The 78 bloc banners moved to
+`CWIC Backup/tools/doctrine_art/banners/` (art source only; no longer game assets).
 
 Also changed outside the doctrine files:
 

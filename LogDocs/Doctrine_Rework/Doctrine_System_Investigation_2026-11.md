@@ -1,8 +1,7 @@
 # Doctrine System Investigation (2026-11-06)
 
-Supersedes the architecture sections of `Doctrine_Rework_Investigation.md`,
-`Doctrine_Rework_Plan.md`, `Doctrine_Cell_Manifest.md` and
-`Land_Doctrine_Tree_Structure.md`. `New_Doctrine_System_Reference.md` stays valid as the
+Supersedes the architecture sections of `Doctrine_Rework_Investigation.md` and the removed
+legacy-tree planning documents. `New_Doctrine_System_Reference.md` stays valid as the
 engine reference (sections 1-7); its section 8 "current state" is out of date, see below.
 
 Game: HOI4 `Operation Postern v1.19.4.2`. Repo: `development-branch` at `49a45bdcba`.

@@ -3,10 +3,8 @@
 Date: 2026-09-05. Written against local Hearts of Iron IV **1.19.2** (`Operation Postern`), all DLC.
 
 This is a study of `common/doctrines/` - the framework the game itself uses since Graveyard of
-Empires / Operation Postern. It is **not** the legacy `common/technologies/*_doctrine.txt` model that
-`Doctrine_Rework_Plan.md`, `Land_Doctrine_Tree_Structure.md` and `Doctrine_Cell_Manifest.md` describe.
-Those documents own the currently-shipping CWIC architecture. This one exists so a future conversion
-pass has an accurate picture of the target before anyone starts moving files again.
+Empires / Operation Postern. It is **not** the removed legacy `common/technologies/*_doctrine.txt` model. CWIC now ships on
+this framework; its design is in `CWIC_Doctrine_Design.md`.
 
 Primary evidence is the installed vanilla game, not the wiki. Where the in-repo
 `_documentation.md` files disagree with shipped vanilla script, **the shipped script wins** - see
@@ -500,5 +498,4 @@ Order that avoids the previous false start:
 6. Only then go wide.
 
 Cross-references: `Doctrine_Rework_Investigation.md` (why both systems were parked, and the July 2026
-decision trail), `Doctrine_Rework_Plan.md` + `Doctrine_Cell_Manifest.md` + `Land_Doctrine_Tree_Structure.md`
-(the legacy architecture that currently ships), `Doctrine_Icon_Art_Requests.md` (existing art backlog).
+decision trail), `CWIC_Doctrine_Design.md` (the shipped design).
