@@ -280,6 +280,19 @@ def cover_focus(im, tw, th, fx, fy, zoom=1.0):
     return r.crop((x0, y0, x0 + tw, y0 + th))
 
 
+def fit_track(im, fy=0.5, scale=1.0, tw=360, th=660):
+    from PIL import ImageFilter
+    w, h = im.size
+    s = tw / w * scale
+    fg = im.resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS)
+    bg = cover_focus(im, tw, th, 0.5, 0.5).filter(ImageFilter.GaussianBlur(18))
+    bg = Image.blend(bg, Image.new("RGBA", bg.size, (0, 0, 0, 255)), 0.55)
+    x = (tw - fg.width) // 2
+    y = round((th - fg.height) * fy)
+    bg.alpha_composite(fg, (x, y))
+    return bg
+
+
 def apply_picks(made):
     picks = json.load(open(W + "/picks.json"))
     for sprite, pk in picks.items():
@@ -287,7 +300,10 @@ def apply_picks(made):
         fx, fy = pk.get("focus") or (0.5, 0.5)
         stem = sprite[4:]
         if sprite.startswith("GFX_cw_track_"):
-            im = crt(cover_focus(src, 360, 660, fx, fy))
+            if pk.get("mode") == "fit":
+                im = crt(fit_track(src, pk.get("fit_y", 0.45), pk.get("fit_scale", 1.0)))
+            else:
+                im = crt(cover_focus(src, 360, 660, fx, fy, pk.get("zoom", 1.0)))
             path = f"{OUT}/tracks/{stem}.png"
         else:
             sq = cover_focus(src, 256, 256, fx, fy, 1.15).resize((64, 64), Image.LANCZOS)
