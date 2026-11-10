@@ -336,6 +336,12 @@ CWIC_espionage_calculate_selected_operation = {
         add_to_variable = { selected_operation_strength_bonus = squad_combined_factory_sabotage_power }
     }
     add_to_variable = { selected_operation_success = selected_operation_success_bonus }
+    # Stage 2: underfunding and the target's counter-intelligence (CWIC_espionage_update_counter_intelligence).
+    if = {
+        limit = { has_country_flag = CWIC_espionage_underfunded }
+        subtract_from_variable = { selected_operation_success = 0.10 }
+    }
+    add_to_variable = { selected_operation_detection = CWIC_espionage_ci_penalty }
     subtract_from_variable = { selected_operation_detection = selected_operation_stealth_bonus }
     clamp_variable = { var = selected_operation_success min = 0 max = 1 }
     clamp_variable = { var = selected_operation_detection min = 0 max = 1 }
@@ -377,6 +383,7 @@ CWIC_espionage_calculate_selected_operation = {
 CWIC_espionage_refresh_preview = {
     if = {
         limit = { CWIC_espionage_selected_operation_supported_trigger = yes }
+        CWIC_espionage_update_counter_intelligence = yes
         CWIC_espionage_calculate_selected_operation = yes
     }
     CWIC_espionage_mark_gui_dirty = yes
@@ -454,6 +461,7 @@ operation_closeout_effect = {
         limit = { check_variable = { slot_one_operation_active = 1 } }
         set_variable = { slot_one_operation_active = 0 }
         set_variable = { slot_one_current_failure_status = 0 }
+        set_variable = { CWIC_espionage_aar_pending = 1 }
         set_variable = { current_espionage_slot_calc = 1 }
         set_variable = { current_page = selected_squad_slot_1_Current_Page_Ref }
         set_variable = { history_target = slot_one_target }
@@ -517,7 +525,6 @@ CWIC_espionage_resolve_casualties = {
             set_variable_to_random = CWIC_espionage_reduction_roll
             if = {
                 limit = { NOT = { check_variable = { CWIC_espionage_reduction_roll < slot_one_escape_bonus } } }
-                remove_current_operative_1 = yes
                 set_variable = { operative_1_mia^current_page = 1 }
             }
         }
@@ -553,7 +560,6 @@ CWIC_espionage_resolve_casualties = {
             set_variable_to_random = CWIC_espionage_reduction_roll
             if = {
                 limit = { NOT = { check_variable = { CWIC_espionage_reduction_roll < slot_one_escape_bonus } } }
-                remove_current_operative_2 = yes
                 set_variable = { operative_2_mia^current_page = 1 }
             }
         }
@@ -589,7 +595,6 @@ CWIC_espionage_resolve_casualties = {
             set_variable_to_random = CWIC_espionage_reduction_roll
             if = {
                 limit = { NOT = { check_variable = { CWIC_espionage_reduction_roll < slot_one_escape_bonus } } }
-                remove_current_operative_3 = yes
                 set_variable = { operative_3_mia^current_page = 1 }
             }
         }
@@ -625,7 +630,6 @@ CWIC_espionage_resolve_casualties = {
             set_variable_to_random = CWIC_espionage_reduction_roll
             if = {
                 limit = { NOT = { check_variable = { CWIC_espionage_reduction_roll < slot_one_escape_bonus } } }
-                remove_current_operative_4 = yes
                 set_variable = { operative_4_mia^current_page = 1 }
             }
         }
@@ -661,7 +665,6 @@ CWIC_espionage_resolve_casualties = {
             set_variable_to_random = CWIC_espionage_reduction_roll
             if = {
                 limit = { NOT = { check_variable = { CWIC_espionage_reduction_roll < slot_one_escape_bonus } } }
-                remove_current_operative_5 = yes
                 set_variable = { operative_5_mia^current_page = 1 }
             }
         }

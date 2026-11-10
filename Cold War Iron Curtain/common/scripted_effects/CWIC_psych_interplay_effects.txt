@@ -79,6 +79,20 @@ CWIC_interplay_lower_race = {
 	CWIC_interplay_mark_dirty = yes
 }
 
+CWIC_interplay_shift_mirror_race = {
+	if = {
+		limit = { CWIC_interplay_enabled_trigger = yes }
+		if = {
+			limit = { check_variable = { cwic_interplay_race_delta > 0 } }
+			CWIC_interplay_raise_race = yes
+		}
+		else_if = {
+			limit = { check_variable = { cwic_interplay_race_delta < 0 } }
+			CWIC_interplay_lower_race = yes
+		}
+	}
+}
+
 ###########################################################################
 # Monthly pulse (CWIC_psych_interplay_on_actions.txt, USA scope)
 ###########################################################################
@@ -140,6 +154,30 @@ CWIC_interplay_reconcile = {
 		set_global_flag = CWIC_interplay_counted_grill_flame_skeptical
 		CWIC_interplay_lower_race = yes
 	}
+	# 1977: the Moscow correspondent and the Petukhov manuscript (Toth incident).
+	if = {
+		limit = {
+			date > 1977.6.1
+			date < 1980.1.1
+			NOT = { has_global_flag = CWIC_interplay_toth_incident_fired }
+			CWIC_interplay_soviet_target_live_trigger = yes
+		}
+		set_global_flag = CWIC_interplay_toth_incident_fired
+		CWIC_interplay_open_file = yes
+		SOV = { country_event = { id = cwic_interplay.50 days = 1 } }
+	}
+	# 1988: the Esalen-Moscow citizen-diplomacy exchange delegation.
+	if = {
+		limit = {
+			date > 1988.5.1
+			date < 1991.8.1
+			NOT = { has_global_flag = CWIC_interplay_1988_exchange_fired }
+			CWIC_interplay_soviet_target_live_trigger = yes
+		}
+		set_global_flag = CWIC_interplay_1988_exchange_fired
+		CWIC_interplay_open_file = yes
+		country_event = { id = cwic_interplay.60 days = 1 }
+	}
 	# Budget pressure, once per game.
 	if = {
 		limit = {
@@ -175,6 +213,8 @@ CWIC_interplay_seed_late_start = {
 		limit = { CWIC_interplay_enabled_trigger = yes }
 		set_global_flag = CWIC_interplay_dia_report_fired
 		set_global_flag = CWIC_interplay_dia_circulated
+		set_global_flag = CWIC_interplay_toth_incident_fired
+		set_global_flag = CWIC_interplay_toth_detained
 		set_variable = { global.CWIC_interplay_mirror_race = 1 }
 		CWIC_interplay_clamp = yes
 		CWIC_interplay_open_file = yes
@@ -459,4 +499,136 @@ CWIC_interplay_sov_inflate_gap = {
 CWIC_interplay_sov_candid = {
 	set_global_flag = CWIC_interplay_sov_candid
 	CWIC_interplay_lower_race = yes
+}
+
+###########################################################################
+# June 1977: The Moscow Correspondent & Petukhov Manuscript (50/51)
+###########################################################################
+
+# cwic_interplay.50.a (SOV)
+CWIC_interplay_resolve_50_detain = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_50_resolved } }
+		set_global_flag = CWIC_interplay_50_resolved
+		set_global_flag = CWIC_interplay_toth_detained
+		add_political_power = 10
+		add_to_variable = { SOV_psych_scrutiny = 4 }
+		SOV_psych_clamp_variables = yes
+		CWIC_interplay_add_east_hold = yes
+		CWIC_interplay_raise_race = yes
+		if = {
+			limit = { country_exists = USA }
+			USA = { country_event = { id = cwic_interplay.51 days = 3 } }
+		}
+	}
+}
+
+# cwic_interplay.50.b (SOV)
+CWIC_interplay_resolve_50_dismiss = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_50_resolved } }
+		set_global_flag = CWIC_interplay_50_resolved
+		set_global_flag = CWIC_interplay_toth_dismissed
+		add_political_power = -10
+		add_to_variable = { SOV_psych_scrutiny = -3 }
+		SOV_psych_clamp_variables = yes
+		if = {
+			limit = { country_exists = USA }
+			USA = { country_event = { id = cwic_interplay.51 days = 3 } }
+		}
+	}
+}
+
+# cwic_interplay.51.a (USA)
+CWIC_interplay_resolve_51_cite = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_51_resolved } }
+		set_global_flag = CWIC_interplay_51_resolved
+		set_global_flag = CWIC_interplay_toth_cited_in_washington
+		add_political_power = 15
+		add_to_variable = { USA_mkultra_exposure = 3 }
+		USA_mkultra_clamp_variables = yes
+		CWIC_interplay_raise_race = yes
+		if = {
+			limit = { has_global_flag = CWIC_interplay_toth_detained }
+			CWIC_interplay_add_west_hold = yes
+		}
+	}
+}
+
+# cwic_interplay.51.b (USA)
+CWIC_interplay_resolve_51_downplay = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_51_resolved } }
+		set_global_flag = CWIC_interplay_51_resolved
+		set_global_flag = CWIC_interplay_toth_downplayed
+		add_political_power = -10
+		add_to_variable = { USA_mkultra_exposure = -3 }
+		USA_mkultra_clamp_variables = yes
+		CWIC_interplay_lower_race = yes
+	}
+}
+
+###########################################################################
+# May 1988: The Esalen-Moscow Exchange Delegation (60/61)
+###########################################################################
+
+# cwic_interplay.60.a (USA)
+CWIC_interplay_resolve_60_archive = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_60_resolved } }
+		set_global_flag = CWIC_interplay_60_resolved
+		set_global_flag = CWIC_interplay_1988_exchange_archived
+		add_political_power = -10
+		add_to_variable = { USA_mkultra_exposure = -2 }
+		USA_mkultra_clamp_variables = yes
+		CWIC_interplay_lower_race = yes
+		if = {
+			limit = { country_exists = SOV }
+			SOV = { country_event = { id = cwic_interplay.61 days = 4 } }
+		}
+	}
+}
+
+# cwic_interplay.60.b (USA)
+CWIC_interplay_resolve_60_circulate = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_60_resolved } }
+		set_global_flag = CWIC_interplay_60_resolved
+		set_global_flag = CWIC_interplay_1988_exchange_circulated
+		add_political_power = 10
+		add_to_variable = { USA_mkultra_exposure = 4 }
+		USA_mkultra_clamp_variables = yes
+		CWIC_interplay_raise_race = yes
+		if = {
+			limit = { country_exists = SOV }
+			SOV = { country_event = { id = cwic_interplay.61 days = 4 } }
+		}
+	}
+}
+
+# cwic_interplay.61.a (SOV)
+CWIC_interplay_resolve_61_controls = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_61_resolved } }
+		set_global_flag = CWIC_interplay_61_resolved
+		set_global_flag = CWIC_interplay_1988_exchange_controlled
+		add_political_power = -10
+		add_to_variable = { SOV_psych_scrutiny = -3 }
+		SOV_psych_clamp_variables = yes
+		CWIC_interplay_lower_race = yes
+	}
+}
+
+# cwic_interplay.61.b (SOV)
+CWIC_interplay_resolve_61_stipends = {
+	if = {
+		limit = { NOT = { has_global_flag = CWIC_interplay_61_resolved } }
+		set_global_flag = CWIC_interplay_61_resolved
+		set_global_flag = CWIC_interplay_1988_exchange_stipends
+		add_political_power = 10
+		add_to_variable = { SOV_psych_scrutiny = 4 }
+		SOV_psych_clamp_variables = yes
+		CWIC_interplay_raise_race = yes
+	}
 }

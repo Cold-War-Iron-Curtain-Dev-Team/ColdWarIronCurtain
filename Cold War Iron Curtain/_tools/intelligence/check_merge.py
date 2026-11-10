@@ -218,6 +218,7 @@ class MergeContracts(unittest.TestCase):
         # Use the shipped member defaults, including their legacy sentinels.
         count = state.value('num_espionage_paramilitary_squads')
         state.variables['num_espionage_paramilitary_squads'] = 1
+        state.variables['CWIC_espionage_trait_page'] = 1  # defaults index by the trait page (stage 2)
         for member in range(1, 6):
             state.run(f'generate_skill_traits_default_member_{member}')
         state.variables['num_espionage_paramilitary_squads'] = count

@@ -93,3 +93,260 @@ CWIC_espionage_pay_group_creation = {
 	add_political_power = -25
 	subtract_from_variable = { currentMoney = 0.05 }
 }
+
+# ---------------------------------------------------------------------------
+# Stage 2: operative lifecycle.
+
+# Runs from the slot mission's timeout_effect, right after the closeout. The
+# closeout sets CWIC_espionage_aar_pending, so a stray timeout cannot repeat it.
+# Member status: 0 returned, 1 wounded, 2 killed, 3 captured. Captured members
+# keep their record (the closeout no longer wipes them) until exchanged or
+# disavowed; the launch gate keeps a squad with a missing member at home.
+CWIC_espionage_after_action = {
+	if = {
+		limit = { check_variable = { CWIC_espionage_aar_pending = 1 } }
+		set_variable = { CWIC_espionage_aar_pending = 0 }
+		set_temp_variable = { CWIC_esp_page = selected_squad_slot_1_Current_Page_Ref }
+		if = {
+			limit = { var:history_target = { exists = yes } }
+			var:history_target = { save_global_event_target_as = CWIC_esp_mia_target }
+		}
+		set_variable = { CWIC_esp_aar_1 = 0 }
+		if = {
+			limit = { check_variable = { paramilitary_operative_squad_leader_name_type^CWIC_esp_page = -1 } }
+			set_variable = { CWIC_esp_aar_1 = 2 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_1_mia^CWIC_esp_page = 1 } }
+			set_variable = { CWIC_esp_aar_1 = 3 }
+			set_variable = { CWIC_esp_mia_target_1 = history_target }
+			set_variable = { CWIC_esp_mia_page_1 = CWIC_esp_page }
+			set_variable = { CWIC_esp_mia_pending_1 = 1 }
+			country_event = { id = cwic_esp.1 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_1_wia^CWIC_esp_page > 0 } }
+			set_variable = { CWIC_esp_aar_1 = 1 }
+		}
+		set_variable = { CWIC_esp_aar_2 = 0 }
+		if = {
+			limit = { check_variable = { paramilitary_operative_squad_unit_2_name_type^CWIC_esp_page = -1 } }
+			set_variable = { CWIC_esp_aar_2 = 2 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_2_mia^CWIC_esp_page = 1 } }
+			set_variable = { CWIC_esp_aar_2 = 3 }
+			set_variable = { CWIC_esp_mia_target_2 = history_target }
+			set_variable = { CWIC_esp_mia_page_2 = CWIC_esp_page }
+			set_variable = { CWIC_esp_mia_pending_2 = 1 }
+			country_event = { id = cwic_esp.2 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_2_wia^CWIC_esp_page > 0 } }
+			set_variable = { CWIC_esp_aar_2 = 1 }
+		}
+		set_variable = { CWIC_esp_aar_3 = 0 }
+		if = {
+			limit = { check_variable = { paramilitary_operative_squad_unit_3_name_type^CWIC_esp_page = -1 } }
+			set_variable = { CWIC_esp_aar_3 = 2 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_3_mia^CWIC_esp_page = 1 } }
+			set_variable = { CWIC_esp_aar_3 = 3 }
+			set_variable = { CWIC_esp_mia_target_3 = history_target }
+			set_variable = { CWIC_esp_mia_page_3 = CWIC_esp_page }
+			set_variable = { CWIC_esp_mia_pending_3 = 1 }
+			country_event = { id = cwic_esp.3 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_3_wia^CWIC_esp_page > 0 } }
+			set_variable = { CWIC_esp_aar_3 = 1 }
+		}
+		set_variable = { CWIC_esp_aar_4 = 0 }
+		if = {
+			limit = { check_variable = { paramilitary_operative_squad_unit_4_name_type^CWIC_esp_page = -1 } }
+			set_variable = { CWIC_esp_aar_4 = 2 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_4_mia^CWIC_esp_page = 1 } }
+			set_variable = { CWIC_esp_aar_4 = 3 }
+			set_variable = { CWIC_esp_mia_target_4 = history_target }
+			set_variable = { CWIC_esp_mia_page_4 = CWIC_esp_page }
+			set_variable = { CWIC_esp_mia_pending_4 = 1 }
+			country_event = { id = cwic_esp.4 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_4_wia^CWIC_esp_page > 0 } }
+			set_variable = { CWIC_esp_aar_4 = 1 }
+		}
+		set_variable = { CWIC_esp_aar_5 = 0 }
+		if = {
+			limit = { check_variable = { paramilitary_operative_squad_unit_5_name_type^CWIC_esp_page = -1 } }
+			set_variable = { CWIC_esp_aar_5 = 2 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_5_mia^CWIC_esp_page = 1 } }
+			set_variable = { CWIC_esp_aar_5 = 3 }
+			set_variable = { CWIC_esp_mia_target_5 = history_target }
+			set_variable = { CWIC_esp_mia_page_5 = CWIC_esp_page }
+			set_variable = { CWIC_esp_mia_pending_5 = 1 }
+			country_event = { id = cwic_esp.5 }
+		}
+		else_if = {
+			limit = { check_variable = { operative_5_wia^CWIC_esp_page > 0 } }
+			set_variable = { CWIC_esp_aar_5 = 1 }
+		}
+		# A failed operation costs the local network; a detected one also costs
+		# political capital and puts the target's counter-intelligence on alert.
+		set_variable = { CWIC_esp_aar_consequence = 0 }
+		if = {
+			limit = {
+				check_variable = { slot_one_successful = 0 }
+				var:history_target = { exists = yes }
+			}
+			if = {
+				limit = { check_variable = { slot_one_detected = 1 } }
+				set_variable = { CWIC_esp_aar_consequence = 2 }
+				add_political_power = -10
+				subtract_from_variable = { network_strength^history_target = 0.05 }
+				var:history_target = {
+					set_country_flag = { flag = CWIC_esp_ci_alert_@ROOT value = 1 days = 180 }
+				}
+			}
+			else = {
+				set_variable = { CWIC_esp_aar_consequence = 1 }
+				subtract_from_variable = { network_strength^history_target = 0.02 }
+			}
+			clamp_variable = { var = network_strength^history_target min = 0 max = 1 }
+		}
+		CWIC_espionage_mark_gui_dirty = yes
+	}
+}
+
+# Target counter-intelligence: 1.5% detection per agency upgrade (up to 25%),
+# plus 10% while a CI alert from an earlier detected failure is live. It is
+# computed on the GUI path, before the probability maths, so previews and the
+# launch read the same CWIC_espionage_ci_penalty.
+CWIC_espionage_update_counter_intelligence = {
+	set_variable = { CWIC_espionage_ci_penalty = 0 }
+	if = {
+		limit = { var:selected_operation_index_target = { exists = yes } }
+		var:selected_operation_index_target = {
+			if = { limit = { agency_upgrade_number > 16 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.25 } }
+			else_if = { limit = { agency_upgrade_number > 15 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.225 } }
+			else_if = { limit = { agency_upgrade_number > 14 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.21 } }
+			else_if = { limit = { agency_upgrade_number > 13 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.195 } }
+			else_if = { limit = { agency_upgrade_number > 12 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.18 } }
+			else_if = { limit = { agency_upgrade_number > 11 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.165 } }
+			else_if = { limit = { agency_upgrade_number > 10 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.15 } }
+			else_if = { limit = { agency_upgrade_number > 9 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.135 } }
+			else_if = { limit = { agency_upgrade_number > 8 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.12 } }
+			else_if = { limit = { agency_upgrade_number > 7 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.105 } }
+			else_if = { limit = { agency_upgrade_number > 6 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.09 } }
+			else_if = { limit = { agency_upgrade_number > 5 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.075 } }
+			else_if = { limit = { agency_upgrade_number > 4 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.06 } }
+			else_if = { limit = { agency_upgrade_number > 3 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.045 } }
+			else_if = { limit = { agency_upgrade_number > 2 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.03 } }
+			else_if = { limit = { agency_upgrade_number > 1 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.015 } }
+			else_if = { limit = { agency_upgrade_number > 0 } set_variable = { ROOT.CWIC_espionage_ci_penalty = 0.015 } }
+			if = {
+				limit = { has_country_flag = CWIC_esp_ci_alert_@ROOT }
+				add_to_variable = { ROOT.CWIC_espionage_ci_penalty = 0.10 }
+			}
+		}
+	}
+}
+
+# Monthly upkeep: $2M per squad (currentMoney is in billions). A month that
+# cannot be paid marks the service underfunded (-10% success for 35 days)
+# instead of running the treasury into debt.
+CWIC_espionage_monthly_upkeep = {
+	set_variable = { CWIC_espionage_upkeep = num_espionage_paramilitary_squads }
+	multiply_variable = { CWIC_espionage_upkeep = 0.002 }
+	if = {
+		limit = { check_variable = { currentMoney < CWIC_espionage_upkeep } }
+		set_country_flag = { flag = CWIC_espionage_underfunded value = 1 days = 35 }
+	}
+	else = {
+		subtract_from_variable = { currentMoney = CWIC_espionage_upkeep }
+	}
+}
+
+# Replacement recruit: 5 PP and $2M.
+CWIC_espionage_pay_replacement = {
+	add_political_power = -5
+	subtract_from_variable = { currentMoney = 0.002 }
+}
+
+# Temp CWIC_esp_seat picks the member; CWIC_esp_mia_page_N is the squad page.
+CWIC_espionage_exchange_operative = {
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 1 } }
+		set_variable = { operative_1_mia^CWIC_esp_mia_page_1 = 0 }
+		set_variable = { CWIC_esp_mia_pending_1 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 2 } }
+		set_variable = { operative_2_mia^CWIC_esp_mia_page_2 = 0 }
+		set_variable = { CWIC_esp_mia_pending_2 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 3 } }
+		set_variable = { operative_3_mia^CWIC_esp_mia_page_3 = 0 }
+		set_variable = { CWIC_esp_mia_pending_3 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 4 } }
+		set_variable = { operative_4_mia^CWIC_esp_mia_page_4 = 0 }
+		set_variable = { CWIC_esp_mia_pending_4 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 5 } }
+		set_variable = { operative_5_mia^CWIC_esp_mia_page_5 = 0 }
+		set_variable = { CWIC_esp_mia_pending_5 = 0 }
+	}
+	CWIC_espionage_mark_gui_dirty = yes
+}
+
+# Disavowing wipes the seat the same way a death does, so it can be refilled.
+# remove_current_operative_N indexes by current_page, which is restored after.
+CWIC_espionage_disavow_operative = {
+	set_variable = { CWIC_esp_saved_page = current_page }
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 1 } }
+		set_variable = { current_page = CWIC_esp_mia_page_1 }
+		remove_current_operative_1 = yes
+		set_variable = { operative_1_mia^CWIC_esp_mia_page_1 = 0 }
+		set_variable = { CWIC_esp_mia_pending_1 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 2 } }
+		set_variable = { current_page = CWIC_esp_mia_page_2 }
+		remove_current_operative_2 = yes
+		set_variable = { operative_2_mia^CWIC_esp_mia_page_2 = 0 }
+		set_variable = { CWIC_esp_mia_pending_2 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 3 } }
+		set_variable = { current_page = CWIC_esp_mia_page_3 }
+		remove_current_operative_3 = yes
+		set_variable = { operative_3_mia^CWIC_esp_mia_page_3 = 0 }
+		set_variable = { CWIC_esp_mia_pending_3 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 4 } }
+		set_variable = { current_page = CWIC_esp_mia_page_4 }
+		remove_current_operative_4 = yes
+		set_variable = { operative_4_mia^CWIC_esp_mia_page_4 = 0 }
+		set_variable = { CWIC_esp_mia_pending_4 = 0 }
+	}
+	if = {
+		limit = { check_variable = { CWIC_esp_seat = 5 } }
+		set_variable = { current_page = CWIC_esp_mia_page_5 }
+		remove_current_operative_5 = yes
+		set_variable = { operative_5_mia^CWIC_esp_mia_page_5 = 0 }
+		set_variable = { CWIC_esp_mia_pending_5 = 0 }
+	}
+	set_variable = { current_page = CWIC_esp_saved_page }
+	CWIC_espionage_mark_gui_dirty = yes
+}

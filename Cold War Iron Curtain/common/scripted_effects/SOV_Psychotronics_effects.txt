@@ -59,6 +59,10 @@ SOV_psych_seed_1980 = {
 		}
 		set_country_flag = SOV_psych_initialized
 		set_country_flag = SOV_psych_prague_reviewed
+		set_country_flag = SOV_psych_1973_commission_fired
+		set_country_flag = SOV_psych_1973_commission_academy
+		set_country_flag = SOV_psych_1978_bauman_fired
+		set_country_flag = SOV_psych_1978_bauman_telemetry
 	}
 }
 
@@ -204,6 +208,376 @@ SOV_psych_fund_academy_reply = {
 			add_to_variable = { global.WP_psych_scrutiny = -5 }
 			WP_psych_evaluate_thresholds = yes
 		}
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_epilogue_flags = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = SOV_psych_methodological_archive }
+			NOT = { has_country_flag = SOV_psych_fragmented_archive }
+			NOT = { has_country_flag = SOV_psych_claims_without_program }
+		}
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = SOV_psych_claim_rejected
+					has_country_flag = SOV_psych_integrated_complete
+					AND = {
+						check_variable = { SOV_psych_record > 19 }
+						check_variable = { SOV_psych_scrutiny < 25 }
+					}
+				}
+			}
+			set_country_flag = SOV_psych_methodological_archive
+		}
+		else_if = {
+			limit = { has_country_flag = SOV_psych_prague_reviewed }
+			set_country_flag = SOV_psych_fragmented_archive
+		}
+		else = {
+			set_country_flag = SOV_psych_claims_without_program
+		}
+	}
+}
+
+SOV_psych_monthly_incidents = {
+	if = {
+		limit = {
+			date > 1973.9.1
+			date < 1980.1.1
+			NOT = { has_country_flag = SOV_psych_epilogue_fired }
+			NOT = { has_country_flag = SOV_psych_1973_commission_fired }
+		}
+		set_country_flag = SOV_psych_1973_commission_fired
+		country_event = { id = cwic_sov_psych.5 }
+	}
+	if = {
+		limit = {
+			date > 1978.10.1
+			date < 1982.1.1
+			NOT = { has_country_flag = SOV_psych_epilogue_fired }
+			NOT = { has_country_flag = SOV_psych_1978_bauman_fired }
+		}
+		set_country_flag = SOV_psych_1978_bauman_fired
+		country_event = { id = cwic_sov_psych.6 }
+	}
+	if = {
+		limit = {
+			date > 1983.2.1
+			date < 1986.1.1
+			NOT = { has_country_flag = SOV_psych_epilogue_fired }
+			NOT = { has_country_flag = SOV_psych_1983_audit_fired }
+		}
+		set_country_flag = SOV_psych_1983_audit_fired
+		country_event = { id = cwic_sov_psych.7 }
+	}
+	if = {
+		limit = {
+			date > 1989.9.1
+			date < 1991.8.1
+			NOT = { has_country_flag = SOV_psych_epilogue_fired }
+			NOT = { has_country_flag = SOV_psych_1989_broadcasts_fired }
+		}
+		set_country_flag = SOV_psych_1989_broadcasts_fired
+		country_event = { id = cwic_sov_psych.8 }
+	}
+	if = {
+		limit = {
+			date > 1991.1.15
+			date < 1991.8.1
+			NOT = { has_country_flag = SOV_psych_epilogue_fired }
+			NOT = { has_country_flag = SOV_psych_1991_torsion_fired }
+		}
+		set_country_flag = SOV_psych_1991_torsion_fired
+		country_event = { id = cwic_sov_psych.9 }
+	}
+	if = {
+		limit = {
+			date > 1994.4.1
+			has_country_flag = SOV_psych_epilogue_fired
+			NOT = { has_country_flag = SOV_psych_1994_archive_fired }
+		}
+		set_country_flag = SOV_psych_1994_archive_fired
+		country_event = { id = cwic_sov_psych.10 }
+	}
+}
+
+###########################################################################
+# Event 5: The Questions of Philosophy Commission (Oct 1973)
+###########################################################################
+
+SOV_psych_resolve_5_academy = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_5_resolved } }
+		set_country_flag = SOV_psych_5_resolved
+		set_country_flag = SOV_psych_1973_commission_academy
+		add_political_power = -15
+		add_to_variable = { SOV_psych_record = 5 }
+		add_to_variable = { SOV_psych_scrutiny = -5 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = -4 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_5_exempt = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_5_resolved } }
+		set_country_flag = SOV_psych_5_resolved
+		set_country_flag = SOV_psych_1973_commission_exempt
+		add_political_power = 10
+		add_to_variable = { SOV_psych_scrutiny = 6 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = 4 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		set_temp_variable = { cwic_interplay_race_delta = 1 }
+		CWIC_interplay_shift_mirror_race = yes
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_5_nominal = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_5_resolved } }
+		set_country_flag = SOV_psych_5_resolved
+		set_country_flag = SOV_psych_1973_commission_nominal
+		add_to_variable = { SOV_psych_record = 2 }
+		add_to_variable = { SOV_psych_scrutiny = 2 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+###########################################################################
+# Event 6: The Bauman & Pulkovo Instrumentation Review (Nov 1978)
+###########################################################################
+
+SOV_psych_resolve_6_telemetry = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_6_resolved } }
+		set_country_flag = SOV_psych_6_resolved
+		set_country_flag = SOV_psych_1978_bauman_telemetry
+		add_political_power = -15
+		add_to_variable = { SOV_psych_record = 6 }
+		add_to_variable = { SOV_psych_scrutiny = -4 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_record = 4 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_6_classified = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_6_resolved } }
+		set_country_flag = SOV_psych_6_resolved
+		set_country_flag = SOV_psych_1978_bauman_classified
+		add_political_power = 10
+		add_to_variable = { SOV_psych_scrutiny = 6 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = 5 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		set_temp_variable = { cwic_interplay_race_delta = 1 }
+		CWIC_interplay_shift_mirror_race = yes
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_6_folded = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_6_resolved } }
+		set_country_flag = SOV_psych_6_resolved
+		set_country_flag = SOV_psych_1978_bauman_folded
+		add_to_variable = { SOV_psych_scrutiny = -3 }
+		add_to_variable = { SOV_psych_record = 2 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+###########################################################################
+# Event 7: The State Control Audit of "Biolocation" Contracts (Mar 1983)
+###########################################################################
+
+SOV_psych_resolve_7_enforced = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_7_resolved } }
+		set_country_flag = SOV_psych_7_resolved
+		set_country_flag = SOV_psych_1983_audit_enforced
+		add_political_power = -15
+		add_to_variable = { SOV_psych_record = 6 }
+		add_to_variable = { SOV_psych_scrutiny = -6 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = -5 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_7_shielded = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_7_resolved } }
+		set_country_flag = SOV_psych_7_resolved
+		set_country_flag = SOV_psych_1983_audit_shielded
+		add_political_power = 15
+		add_to_variable = { SOV_psych_scrutiny = 7 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = 5 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		set_temp_variable = { cwic_interplay_race_delta = 1 }
+		CWIC_interplay_shift_mirror_race = yes
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_7_reassigned = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_7_resolved } }
+		set_country_flag = SOV_psych_7_resolved
+		set_country_flag = SOV_psych_1983_audit_reassigned
+		add_political_power = -5
+		add_to_variable = { SOV_psych_record = 3 }
+		add_to_variable = { SOV_psych_scrutiny = -2 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+###########################################################################
+# Event 8: Television Healers & The General Staff Advisory Desk (Oct 1989)
+###########################################################################
+
+SOV_psych_resolve_8_academy = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_8_resolved } }
+		set_country_flag = SOV_psych_8_resolved
+		set_country_flag = SOV_psych_1989_academy_backed
+		add_political_power = -20
+		add_to_variable = { SOV_psych_record = 5 }
+		add_to_variable = { SOV_psych_scrutiny = -6 }
+		if = {
+			limit = { check_variable = { global.WP_psych_directorate_state > 0 } }
+			add_to_variable = { global.WP_psych_scrutiny = -4 }
+			WP_psych_evaluate_thresholds = yes
+		}
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_8_unit10003 = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_8_resolved } }
+		set_country_flag = SOV_psych_8_resolved
+		set_country_flag = SOV_psych_1989_unit10003_chartered
+		add_political_power = -10
+		add_to_variable = { SOV_psych_record = 4 }
+		add_to_variable = { SOV_psych_scrutiny = 6 }
+		set_temp_variable = { cwic_interplay_race_delta = 1 }
+		CWIC_interplay_shift_mirror_race = yes
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_8_broadcasts = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_8_resolved } }
+		set_country_flag = SOV_psych_8_resolved
+		set_country_flag = SOV_psych_1989_broadcasts_allowed
+		add_political_power = 15
+		add_stability = -0.01
+		add_to_variable = { SOV_psych_scrutiny = 8 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+###########################################################################
+# Event 9: The Supreme Soviet Science Committee & Torsion Fields (Feb 1991)
+###########################################################################
+
+SOV_psych_resolve_9_refuted = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_9_resolved } }
+		set_country_flag = SOV_psych_9_resolved
+		set_country_flag = SOV_psych_1991_torsion_refuted
+		add_political_power = 15
+		add_to_variable = { SOV_psych_record = 6 }
+		add_to_variable = { SOV_psych_scrutiny = -6 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_9_sealed = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_9_resolved } }
+		set_country_flag = SOV_psych_9_resolved
+		set_country_flag = SOV_psych_1991_torsion_sealed
+		add_political_power = -15
+		add_to_variable = { SOV_psych_scrutiny = 6 }
+		set_temp_variable = { cwic_interplay_race_delta = 1 }
+		CWIC_interplay_shift_mirror_race = yes
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_9_quiet = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_9_resolved } }
+		set_country_flag = SOV_psych_9_resolved
+		set_country_flag = SOV_psych_1991_torsion_quiet
+		add_to_variable = { SOV_psych_scrutiny = -2 }
+		add_to_variable = { SOV_psych_record = 2 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+###########################################################################
+# Event 10: Foreign Buyers at the Institute Door (May 1994)
+###########################################################################
+
+SOV_psych_resolve_10_sealed = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_10_resolved } }
+		set_country_flag = SOV_psych_10_resolved
+		set_country_flag = SOV_psych_1994_archive_sealed
+		add_political_power = -15
+		add_stability = 0.01
+		add_to_variable = { SOV_psych_record = 4 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_10_licensed = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_10_resolved } }
+		set_country_flag = SOV_psych_10_resolved
+		set_country_flag = SOV_psych_1994_archive_licensed
+		add_political_power = 25
+		add_to_variable = { SOV_psych_record = 3 }
+		SOV_psych_clamp_variables = yes
+	}
+}
+
+SOV_psych_resolve_10_sold = {
+	if = {
+		limit = { NOT = { has_country_flag = SOV_psych_10_resolved } }
+		set_country_flag = SOV_psych_10_resolved
+		set_country_flag = SOV_psych_1994_archive_sold
+		add_political_power = 15
+		add_stability = -0.01
+		set_temp_variable = { cwic_interplay_race_delta = 1 }
+		CWIC_interplay_shift_mirror_race = yes
 		SOV_psych_clamp_variables = yes
 	}
 }
