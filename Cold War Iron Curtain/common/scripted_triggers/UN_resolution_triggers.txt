@@ -1,0 +1,75 @@
+# UN resolution API checks. Both read the temp variables un_v_action,
+# un_v_target and un_v_state (set by UN_QUEUE_SCRIPTED_RESOLUTION and
+# UN_DISPATCH_QUEUED_RESOLUTION).
+
+# Well-formed input. A failure here is a scripting bug and gets logged.
+UN_resolution_input_valid = {
+	check_variable = { un_v_action > -1 }
+	check_variable = { un_v_action < 20 }
+	OR = {
+		check_variable = { un_v_target > 0 }
+		check_variable = { un_v_state > 0 }
+	}
+	# A state-status vote needs both the state and the country it would go to.
+	if = {
+		limit = { check_variable = { un_v_action = 9 } }
+		check_variable = { un_v_state > 0 }
+		check_variable = { un_v_target > 0 }
+	}
+}
+
+# The world still makes this vote meaningful. Failing here is normal (the
+# sanction is already in place, there is nothing to lift, the target is gone)
+# and the vote is skipped silently.
+UN_resolution_state_allows = {
+	if = {
+		# Freedom for a people: the nation must not exist yet and someone must hold its cores.
+		limit = { check_variable = { un_v_action = 16 } }
+		var:un_v_target = { exists = no }
+		any_state = { is_core_of = var:un_v_target }
+	}
+	else_if = {
+		limit = { check_variable = { un_v_target > 0 } }
+		var:un_v_target = {
+			exists = yes
+			# Each sanction is applied once and lifted once.
+			if = {
+				limit = { check_variable = { un_v_action = 3 } }
+				NOT = { has_idea = UN_national_asset_freeze }
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 4 } }
+				NOT = { has_idea = UN_officials_sanctioned }
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 5 } }
+				NOT = { has_idea = UN_Trade_Sanctions }
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 6 } }
+				NOT = { has_idea = UN_Weapon_Trade_Ban }
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 14 } }
+				has_idea = UN_Trade_Sanctions
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 15 } }
+				has_idea = UN_Weapon_Trade_Ban
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 18 } }
+				has_idea = UN_national_asset_freeze
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 19 } }
+				has_idea = UN_officials_sanctioned
+			}
+			else_if = {
+				limit = { check_variable = { un_v_action = 17 } }
+				NOT = { has_idea = un_member }
+				NOT = { has_idea = UN_Security_Council_Member_Perm }
+			}
+		}
+	}
+}

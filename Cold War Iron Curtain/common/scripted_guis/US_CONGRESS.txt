@@ -596,12 +596,17 @@ scripted_gui = {
 
 		context_type = player_context
 		window_name = "US_CONGRESS_UI"
+		parent_window_token = politics_tab
         # No dirty variable: live flags and seat totals must refresh while open.
 
 		visible = {
             tag = USA
             check_variable = { show_usa_congress = 1 }
 		}
+        properties = {
+            house_vote_bar = { frame = usa_house_vote_bar_frame }
+            senate_vote_bar = { frame = usa_senate_vote_bar_frame }
+        }
         triggers = {
             SENATE_FACTION_EST_DEM_visible = { check_variable = { USA.show_usa_congress_alt = 0 } }
             senate_mod_lobbying_supported_visible = { check_variable = { USA.show_usa_congress_alt = 0 } has_country_flag = law_passing has_country_flag = moderate_dem_sup }
@@ -632,6 +637,10 @@ scripted_gui = {
             last_vote_name_visible = { check_variable = { USA.show_usa_congress_alt = 0 } check_variable = { USA_SEN_POL_DETAILS = 0 } }
             last_vote_totals_visible = { check_variable = { USA.show_usa_congress_alt = 0 } check_variable = { USA_SEN_POL_DETAILS = 0 } check_variable = { usa_last_bill_result > 0 } }
             vote_countdown_visible = { check_variable = { USA.show_usa_congress_alt = 0 } has_country_flag = law_passing }
+            house_vote_bar_visible = { check_variable = { show_usa_congress_alt = 0 } has_country_flag = law_passing }
+            senate_vote_bar_visible = { check_variable = { show_usa_congress_alt = 0 } has_country_flag = law_passing }
+            congress_bills_hint_visible = { check_variable = { show_usa_congress_alt = 0 } }
+
 
 
             lobby_feedback_visible = {
@@ -3179,34 +3188,39 @@ scripted_gui = {
             }
             closebutton_click = {
                 set_variable = { show_usa_congress = 0 }
-                set_variable = { lobby_check = 0 }
             }
 			exitbutton_click = {
                 set_variable = { show_usa_congress = 0 }
-                set_variable = { lobby_check = 0 }
 			}
 
-			house_lobbying_click = {    #has_country_flag = law_passing
-				set_variable = { lobby_check = 10 }
-			}
+            house_lobbying_click = {
+                set_temp_variable = { usa_lobby_target = 10 }
+                lobbying_effect = yes
+            }
             senate_mod_lobbying_click = {
-				set_variable = { lobby_check = 1 }
-			}
+                set_temp_variable = { usa_lobby_target = 1 }
+                lobbying_effect = yes
+            }
             senate_pro_lobbying_click = {
-				set_variable = { lobby_check = 2 }
-			}
+                set_temp_variable = { usa_lobby_target = 2 }
+                lobbying_effect = yes
+            }
             senate_dixie_lobbying_click = {
-				set_variable = { lobby_check = 3 }
-			}
+                set_temp_variable = { usa_lobby_target = 3 }
+                lobbying_effect = yes
+            }
             senate_mod_gop_lobbying_click = {
-				set_variable = { lobby_check = 4 }
-			}
+                set_temp_variable = { usa_lobby_target = 4 }
+                lobbying_effect = yes
+            }
             senate_con_gop_lobbying_click = {
-				set_variable = { lobby_check = 5 }
-			}
+                set_temp_variable = { usa_lobby_target = 5 }
+                lobbying_effect = yes
+            }
             senate_lib_gop_lobbying_click = {
-				set_variable = { lobby_check = 6 }
-			}
+                set_temp_variable = { usa_lobby_target = 6 }
+                lobbying_effect = yes
+            }
 
 			washington_poli_details_click = {
 				set_variable = { USA_SEN_POL_DETAILS = 386.id }
@@ -3538,34 +3552,7 @@ scripted_gui = {
 		#}
 
     }
-	US_CONGRESS_LOBBYING = {
 
-		context_type = player_context
-		window_name = "US_CONGRESS_UI_LOBBYING"
-
-		visible = {
-            tag = USA
-            check_variable = { show_usa_congress = 1 }
-            has_country_flag = law_passing
-            NOT = { check_variable = { lobby_check = 0 } }
-		}
-        triggers = {
-            send_button_click_enabled = { USA_congress_can_lobby = yes }
-        }
-        effects = {
-            send_button_click = {
-                lobbying_effect = yes
-                set_variable = {
-                    lobby_check = 0
-                }
-            }
-            cancel_button_click = {
-                set_variable = {
-                    lobby_check = 0
-                }
-            }
-        } 
-    }
     #The Negotiator
     
     #Primary Prompts

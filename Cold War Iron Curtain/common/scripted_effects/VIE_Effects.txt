@@ -511,6 +511,7 @@ activate_sect_menu = {
 	}
 	set_country_flag = activate_sect_menu
 	country_event = VIE_Mechanics.2
+	country_event = { id = VIE_Sect_Intro.1 days = 3 }
 }
 
 vietnam_faction_ui_update_number = {
@@ -538,6 +539,11 @@ vietnam_faction_ui_update_number = {
 	subtract_from_variable = { UMDC_Loyalty_number = UMDC_Loyalty }
 	set_variable = { UMDC_Annihilation_number = 100 }
 	subtract_from_variable = { UMDC_Annihilation_number = UMDC_Annihilation }
+
+	set_variable = { Lien_Minh_Loyalty_number = 100 }
+	subtract_from_variable = { Lien_Minh_Loyalty_number = Lien_Minh_Loyalty }
+	set_variable = { Lien_Minh_Annihilation_number = 100 }
+	subtract_from_variable = { Lien_Minh_Annihilation_number = Lien_Minh_Annihilation }
 }
 
 VIE_annex_country = {
@@ -874,6 +880,50 @@ vietnam_sect_conditions_met_check = {
 		if = {
 			limit = {
 				check_variable = {
+					Lien_Minh_Loyalty < 95
+				}
+			}
+			clr_country_flag = Min_Lien_Minh_Loyalty_Requirement_NOT_MET
+			else = {
+				set_country_flag = Min_Lien_Minh_Loyalty_Requirement_NOT_MET
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					Lien_Minh_Loyalty < 90
+				}
+			}
+			clr_country_flag = Ten_Lien_Minh_Loyalty_Requirement_NOT_MET
+			else = {
+				set_country_flag = Ten_Lien_Minh_Loyalty_Requirement_NOT_MET
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					Lien_Minh_Loyalty < 3
+				}
+			}
+			clr_country_flag = Max_Lien_Minh_Loyalty_Requirement_NOT_MET
+			else = {
+				set_country_flag = Max_Lien_Minh_Loyalty_Requirement_NOT_MET
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
+					Lien_Minh_Annihilation < 3
+				}
+			}
+			clr_country_flag = Max_Lien_Minh_Annihilation_Requirement_NOT_MET
+			else = {
+				set_country_flag = Max_Lien_Minh_Annihilation_Requirement_NOT_MET
+			}
+		}
+		if = {
+			limit = {
+				check_variable = {
 					Hoa_Hao_Loyalty < 95
 				}
 			}
@@ -964,7 +1014,7 @@ vietnam_sect_conditions_met_check = {
 
 VIE_dismantle_binh_xuyen = {
 	set_variable = { VIE_Warlord_Status_2 = 3 }
-	set_variable = { VIE_Region_16_Faction = 1 } #16 - Long An
+	set_variable = { VIE_Region_17_Faction = 1 } #17 - Gia Dinh
 	every_state = {
 		limit = {
 			has_dynamic_modifier = { modifier = Binh_Xuyen_warlord_modifier }
@@ -1314,6 +1364,34 @@ harmonism_annihilation_change_tt = {
 	}
 }
 
+lien_minh_loyalty_change_tt = {
+	set_temp_variable = { inverse_number = lien_minh_loyalty_change }
+	multiply_temp_variable = {
+		inverse_number = -1
+		tooltip = change_lien_minh_loyalty_TT
+	}
+	add_to_variable = { Lien_Minh_Loyalty = lien_minh_loyalty_change }
+	clamp_variable = {
+		var = Lien_Minh_Loyalty
+		min = 0
+		max = 100
+	}
+}
+
+lien_minh_annihilation_change_tt = {
+	set_temp_variable = { inverse_number = lien_minh_annihilation_change }
+	multiply_temp_variable = {
+		inverse_number = -1
+		tooltip = change_lien_minh_annihilation_TT
+	}
+	add_to_variable = { Lien_Minh_Annihilation = lien_minh_annihilation_change }
+	clamp_variable = {
+		var = Lien_Minh_Annihilation
+		min = 0
+		max = 100
+	}
+}
+
 hoa_hao_loyalty_change_tt = {
 	set_temp_variable = { inverse_number = hoa_hao_loyalty_change }
 	multiply_temp_variable = {
@@ -1636,7 +1714,7 @@ vietnam_faction_ui_decision_click = {
 			check_variable = { vietnam_factionalism_decisions_list^i = 113 }	#Integrate the Binh-Xuyen
 		}
 		set_variable = { VIE_Warlord_Status_2 = 4 }
-		set_variable = { VIE_Region_16_Faction = 1 } #16 - Long An
+		set_variable = { VIE_Region_17_Faction = 1 } #17 - Gia Dinh
 		add_political_power = -50
 		add_corps_commander_role = {
 			Character = VIE_Lai_Huu_Tai
@@ -2069,6 +2147,295 @@ vietnam_faction_ui_decision_click = {
 		}
 		set_country_flag = integrated_cao_dai
 		custom_effect_tooltip = integrate_cao_dai_TT
+	}
+	#Lien-Minh Start
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 600 }	#Request Control Over the Hac-Y Paramilitary
+		}
+		add_political_power = -45
+		set_country_flag = Decision_600_Completed
+		set_temp_variable = { lien_minh_loyalty_change = 8 }
+		lien_minh_loyalty_change_tt = yes
+		custom_effect_tooltip = VIE_3Recruit_LienMinh_Militias_tt
+		hidden_effect = {
+			division_template = {
+				name = "Quan-Doi Quoc-Gia Lien-Minh"
+				division_names_group = VIE_MIL_01
+				priority = 0
+				is_locked = no
+				regiments = {
+					infantry = { x = 0 y = 0 }
+					infantry = { x = 0 y = 1 }
+					infantry = { x = 0 y = 2 }
+					militia = { x = 1 y = 0 }
+					militia = { x = 1 y = 1 }
+					militia = { x = 1 y = 2 }
+				}
+				support = {
+					engineer = { x = 0 y = 0 }
+					light_artillery_support = { x = 1 y = 0 }
+				}
+			}
+			capital_scope = {
+				create_unit = {
+					division = "name = \"Lien-Minh Militia\" division_template = \"Quan-Doi Quoc-Gia Lien-Minh\" start_experience_factor = 0.5 start_equipment_factor = 1"
+					owner = VIE
+				}
+				create_unit = {
+					division = "name = \"Lien-Minh Militia\" division_template = \"Quan-Doi Quoc-Gia Lien-Minh\" start_experience_factor = 0.5 start_equipment_factor = 1"
+					owner = VIE
+				}
+				create_unit = {
+					division = "name = \"Lien-Minh Militia\" division_template = \"Quan-Doi Quoc-Gia Lien-Minh\" start_experience_factor = 0.5 start_equipment_factor = 1"
+					owner = VIE
+				}
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 601 }	#Promote Lien-Minh Military Officers
+		}
+		add_political_power = -35
+		set_country_flag = Decision_601_Completed
+		set_temp_variable = { lien_minh_loyalty_change = -10 }
+		lien_minh_loyalty_change_tt = yes
+		if = {
+			limit = { NOT = { has_country_flag = VIE_Lien_Minh_Phuong_Leader } }
+			set_variable = { VIE_Warlord_Status_1 = 4 }
+			add_corps_commander_role = {
+				Character = CCC_Trinh_Minh_The
+				traits = { irregular_officer infantry_leader CaoDai_Member }
+				skill = 3
+				attack_skill = 2
+				defense_skill = 3
+				planning_skill = 3
+				logistics_skill = 2
+			}
+		}
+		add_corps_commander_role = {
+			Character = VIE_Van_Thanh_Cao
+			traits = { irregular_officer infantry_leader CaoDai_Member }
+			skill = 2
+			attack_skill = 2
+			defense_skill = 2
+			planning_skill = 2
+			logistics_skill = 2
+		}
+		army_experience = 15
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 602 }	#Permit Cambodia-Vietnam Gunrunners
+		}
+		add_political_power = -40
+		set_country_flag = Decision_602_Completed
+		set_temp_variable = { lien_minh_loyalty_change = -15 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { money_to_gain = -5 }
+		add_money_with_tooltip_effect = yes
+		add_equipment_to_stockpile = {
+			type = infantry_equipment
+			amount = 2000
+		}
+		add_equipment_to_stockpile = {
+			type = support_equipment
+			amount = 200
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 603 }	#Subsidize the Black Virgin Mountain Investments
+		}
+		add_political_power = -40
+		set_country_flag = Decision_603_Completed
+		set_temp_variable = { lien_minh_loyalty_change = -20 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { money_to_gain = -7 }
+		add_money_with_tooltip_effect = yes
+		1755 = {
+			add_building_construction = {
+				type = bunker
+				level = 1
+				instant_build = yes
+				province = 13711
+			}
+			add_building_construction = {
+				type = industrial_complex
+				level = 1
+				instant_build = yes
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 604 }	#Ask for "Donation" to the National Treasury
+		}
+		add_political_power = -30
+		add_stability = -0.05
+		set_temp_variable = { lien_minh_loyalty_change = 10 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { money_to_gain = 5 }
+		add_money_with_tooltip_effect = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 605 }	#Ask for "Donation" to the Army
+		}
+		add_political_power = -30
+		add_stability = -0.05
+		set_temp_variable = { lien_minh_loyalty_change = 15 }
+		lien_minh_loyalty_change_tt = yes
+		add_manpower = 1000
+		add_equipment_to_stockpile = {
+			type = infantry_equipment
+			amount = 1000
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 606 }	#Ask for Anti-Communist Security Support
+		}
+		set_temp_variable = { lien_minh_loyalty_change = 3 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { lien_minh_annihilation_change = 3 }
+		lien_minh_annihilation_change_tt = yes
+		add_political_power = -30
+		add_war_support = 0.05
+		add_stability = 0.03
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 607 }	#Pardon Trinh-Minh-The for General Chanson's Death
+		}
+		set_temp_variable = { lien_minh_loyalty_change = -30 }
+		lien_minh_loyalty_change_tt = yes
+		add_political_power = -100
+		add_stability = -0.10
+		set_temp_variable = { cao_dai_loyalty_change = 5 }
+		cao_dai_loyalty_change_tt = yes
+		set_country_flag = VIE_Pardoned_Trinh_Minh_The
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 608 }	#Contain Lien-Minh's Operations
+		}
+		add_political_power = -30
+		set_temp_variable = { lien_minh_loyalty_change = 5 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { lien_minh_annihilation_change = -3 }
+		lien_minh_annihilation_change_tt = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 609 }	#Attack Lien-Minh Forces
+		}
+		add_political_power = -40
+		add_command_power = -5
+		custom_effect_tooltip = Attack_lien_minh_Forces_TT
+		set_variable = { VIE_success_chance = random }
+		set_variable = { VIE_Conflict_ID = 6 }
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_6 }
+		set_temp_variable = { lien_minh_loyalty_change = 5 }
+		lien_minh_loyalty_change_tt = yes
+		set_variable = { show_vie_sect_conflict = 1 }
+		if = {
+			limit = { check_variable = { VIE_success_chance > 0.25 } }
+			set_variable = { VIE_Sect_Conflict_Prompt = 1 }
+			hidden_effect = {
+				set_temp_variable = { lien_minh_annihilation_change = -10 }
+				lien_minh_annihilation_change_tt = yes
+				set_variable = { VIE_Sect_Pity_6 = 0 }
+			}
+		}
+		else = {
+			set_variable = { VIE_Sect_Conflict_Prompt = 2 }
+			add_political_power = 15
+			hidden_effect = {
+				set_temp_variable = { lien_minh_annihilation_change = 2 }
+				lien_minh_annihilation_change_tt = yes
+				add_to_variable = { VIE_Sect_Pity_6 = 0.15 }
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 610 }	#Seize Lien-Minh Bases
+		}
+		add_command_power = -5
+		add_political_power = -35
+		custom_effect_tooltip = Attempt_to_Seize_lien_minh_Facilities_TT
+		set_variable = { VIE_success_chance = random }
+		set_variable = { VIE_Conflict_ID = 6 }
+		add_to_variable = { VIE_success_chance = VIE_Sect_Pity_6 }
+		set_variable = { show_vie_sect_conflict = 1 }
+		set_temp_variable = { lien_minh_loyalty_change = 15 }
+		lien_minh_loyalty_change_tt = yes
+		if = {
+			limit = { check_variable = { VIE_success_chance > 0.39 } }
+			set_variable = { VIE_Sect_Conflict_Prompt = 3 }
+			set_country_flag = Seized_lien_minh_Facilities
+			set_temp_variable = { lien_minh_annihilation_change = -25 }
+			lien_minh_annihilation_change_tt = yes
+			set_variable = { VIE_Sect_Pity_6 = 0 }
+		}
+		else = {
+			set_variable = { VIE_Sect_Conflict_Prompt = 4 }
+			add_political_power = 10
+			set_temp_variable = { lien_minh_annihilation_change = 5 }
+			lien_minh_annihilation_change_tt = yes
+			add_to_variable = { VIE_Sect_Pity_6 = 0.15 }
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 611 }	#Broadcast Pro-Government Messaging
+		}
+		add_political_power = -15
+		set_temp_variable = { lien_minh_loyalty_change = 5 }
+		lien_minh_loyalty_change_tt = yes
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 612 }	#Dismantle the Lien-Minh Warlords
+		}
+		add_political_power = -50
+		if = {
+			limit = { NOT = { has_country_flag = VIE_Lien_Minh_Phuong_Leader } }
+			set_variable = { VIE_Warlord_Status_1 = 3 }
+		}
+		set_country_flag = crushed_lien_minh
+		VIE_resolve_region_overlaps = yes
+		custom_effect_tooltip = eliminate_lien_minh_TT
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 613 }	#Integrate the Lien-Minh Warlords
+		}
+		add_political_power = -50
+		if = {
+			limit = { NOT = { has_country_flag = VIE_Lien_Minh_Phuong_Leader } }
+			set_variable = { VIE_Warlord_Status_1 = 4 }
+		}
+		set_country_flag = integrated_lien_minh
+		VIE_resolve_region_overlaps = yes
+		army_experience = 15
+		add_manpower = 3000
+		custom_effect_tooltip = integrate_lien_minh_TT
+	}
+	else_if = {
+		limit = {
+			check_variable = { vietnam_factionalism_decisions_list^i = 614 }	#Court the Lien-Minh Officers
+		}
+		add_political_power = -25
+		set_temp_variable = { money_to_gain = -2 }
+		add_money_with_tooltip_effect = yes
+		set_temp_variable = { lien_minh_loyalty_change = -5 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { cao_dai_loyalty_change = 3 }
+		cao_dai_loyalty_change_tt = yes
+		set_country_flag = { flag = VIE_Courted_Lien_Minh days = 30 value = 1 }
 	}
 	#Harmonism Start
 	else_if = {
@@ -9860,6 +10227,9 @@ VIE_startup_guis = {
 	set_variable = { UMDC_Loyalty = 90 }
 	set_variable = { UMDC_Annihilation = 100 }
 
+	set_variable = { Lien_Minh_Loyalty = 100 }
+	set_variable = { Lien_Minh_Annihilation = 100 }
+
 	set_variable = { VIE_Hinh_Standoff = 0 }
 	set_variable = { VIE_DaiViet_Threat = 0 }
 	set_variable = { VIE_Referendum_Score = 0 }
@@ -9882,9 +10252,10 @@ VIE_startup_guis = {
 	set_variable = { VIE_Region_13_Faction = 1 } #13 - Go Cong
 	set_variable = { VIE_Region_14_Faction = 5 } #14 - Dinh Tuong
 	set_variable = { VIE_Region_15_Faction = 6 } #15 - Kien Tuong
-	set_variable = { VIE_Region_16_Faction = 2 } #16 - Long An
-	set_variable = { VIE_Region_17_Faction = 1 } #17 - Gia Dinh
+	set_variable = { VIE_Region_16_Faction = 1 } #16 - Long An
+	set_variable = { VIE_Region_17_Faction = 2 } #17 - Gia Dinh
 	set_variable = { VIE_Region_18_Faction = 5 } #18 - Bien Hoa
+	set_variable = { VIE_Region_18_Faction_2 = 2 }
 	set_variable = { VIE_Region_19_Faction = 1 } #19 - Phuoc Tuy
 	set_variable = { VIE_Region_20_Faction = 5 } #20 - Long Khan
 	set_variable = { VIE_Region_21_Faction = 1 } #21 - Phuoc Long
@@ -11128,4 +11499,197 @@ add_umdc_decisions = {
 	add_to_array = { vietnam_factionalism_decisions_list = 512 }	#Dismantle the UMDC
 	add_to_array = { vietnam_factionalism_decisions_list = 513 }	#Integrate the UMDC
 	add_to_array = { vietnam_factionalism_decisions_list = 514 }	#Court the Catholic Bishops
+}
+add_lien_minh_decisions = {
+	clear_array = vietnam_factionalism_decisions_list
+	add_to_array = { vietnam_factionalism_decisions_list = 600 }
+	add_to_array = { vietnam_factionalism_decisions_list = 601 }
+	add_to_array = { vietnam_factionalism_decisions_list = 602 }
+	add_to_array = { vietnam_factionalism_decisions_list = 603 }
+	add_to_array = { vietnam_factionalism_decisions_list = 604 }
+	add_to_array = { vietnam_factionalism_decisions_list = 605 }
+	add_to_array = { vietnam_factionalism_decisions_list = 606 }
+	add_to_array = { vietnam_factionalism_decisions_list = 607 }
+	add_to_array = { vietnam_factionalism_decisions_list = 608 }
+	add_to_array = { vietnam_factionalism_decisions_list = 609 }
+	add_to_array = { vietnam_factionalism_decisions_list = 610 }
+	add_to_array = { vietnam_factionalism_decisions_list = 611 }
+	add_to_array = { vietnam_factionalism_decisions_list = 612 }
+	add_to_array = { vietnam_factionalism_decisions_list = 613 }
+	add_to_array = { vietnam_factionalism_decisions_list = 614 }
+}
+
+VIE_spawn_lien_minh = {
+	set_country_flag = activate_lien_minh
+	set_variable = { Lien_Minh_Loyalty = 95 }
+	set_variable = { Lien_Minh_Annihilation = 100 }
+	set_variable = { VIE_Region_22_Faction = 7 }
+	set_variable = { VIE_Region_23_Faction = 7 }
+	set_variable = { VIE_Region_24_Faction_2 = 7 }
+	if = {
+		limit = { check_variable = { VIE_Warlord_Status_1 = 4 } }
+		set_country_flag = VIE_Lien_Minh_Phuong_Leader
+	}
+	else = {
+		set_variable = { VIE_Warlord_Status_1 = 1 }
+	}
+	if = {
+		limit = { has_country_flag = VIE_Main_Cuong_De }
+		set_temp_variable = { lien_minh_loyalty_change = -35 }
+		lien_minh_loyalty_change_tt = yes
+		set_temp_variable = { cao_dai_loyalty_change = 10 }
+		cao_dai_loyalty_change_tt = yes
+	}
+	vietnam_faction_ui_update_number = yes
+	custom_effect_tooltip = activate_lien_minh_tt
+}
+
+VIE_resolve_region_overlap = {
+	if = {
+		limit = { check_variable = { vie_rs > 0 } }
+		set_temp_variable = { vie_region_sect = vie_rs }
+		if = {
+			limit = { VIE_region_sect_gone = yes }
+			set_temp_variable = { vie_rs = 0 }
+		}
+	}
+	if = {
+		limit = { check_variable = { vie_rp > 1 } }
+		set_temp_variable = { vie_region_sect = vie_rp }
+		if = {
+			limit = { VIE_region_sect_gone = yes }
+			set_temp_variable = { vie_rp = 1 }
+		}
+	}
+	if = {
+		limit = {
+			check_variable = { vie_rp = 1 }
+			check_variable = { vie_rs > 0 }
+		}
+		set_temp_variable = { vie_rp = vie_rs }
+		set_temp_variable = { vie_rs = 0 }
+	}
+}
+
+VIE_resolve_region_overlaps = {
+	set_temp_variable = { vie_rp = VIE_Region_1_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_1_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_1_Faction = vie_rp }
+	set_variable = { VIE_Region_1_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_2_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_2_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_2_Faction = vie_rp }
+	set_variable = { VIE_Region_2_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_3_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_3_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_3_Faction = vie_rp }
+	set_variable = { VIE_Region_3_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_4_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_4_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_4_Faction = vie_rp }
+	set_variable = { VIE_Region_4_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_5_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_5_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_5_Faction = vie_rp }
+	set_variable = { VIE_Region_5_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_6_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_6_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_6_Faction = vie_rp }
+	set_variable = { VIE_Region_6_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_7_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_7_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_7_Faction = vie_rp }
+	set_variable = { VIE_Region_7_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_8_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_8_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_8_Faction = vie_rp }
+	set_variable = { VIE_Region_8_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_9_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_9_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_9_Faction = vie_rp }
+	set_variable = { VIE_Region_9_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_10_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_10_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_10_Faction = vie_rp }
+	set_variable = { VIE_Region_10_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_11_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_11_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_11_Faction = vie_rp }
+	set_variable = { VIE_Region_11_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_12_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_12_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_12_Faction = vie_rp }
+	set_variable = { VIE_Region_12_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_13_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_13_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_13_Faction = vie_rp }
+	set_variable = { VIE_Region_13_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_14_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_14_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_14_Faction = vie_rp }
+	set_variable = { VIE_Region_14_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_15_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_15_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_15_Faction = vie_rp }
+	set_variable = { VIE_Region_15_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_16_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_16_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_16_Faction = vie_rp }
+	set_variable = { VIE_Region_16_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_17_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_17_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_17_Faction = vie_rp }
+	set_variable = { VIE_Region_17_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_18_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_18_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_18_Faction = vie_rp }
+	set_variable = { VIE_Region_18_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_19_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_19_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_19_Faction = vie_rp }
+	set_variable = { VIE_Region_19_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_20_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_20_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_20_Faction = vie_rp }
+	set_variable = { VIE_Region_20_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_21_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_21_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_21_Faction = vie_rp }
+	set_variable = { VIE_Region_21_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_22_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_22_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_22_Faction = vie_rp }
+	set_variable = { VIE_Region_22_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_23_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_23_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_23_Faction = vie_rp }
+	set_variable = { VIE_Region_23_Faction_2 = vie_rs }
+	set_temp_variable = { vie_rp = VIE_Region_24_Faction }
+	set_temp_variable = { vie_rs = VIE_Region_24_Faction_2 }
+	VIE_resolve_region_overlap = yes
+	set_variable = { VIE_Region_24_Faction = vie_rp }
+	set_variable = { VIE_Region_24_Faction_2 = vie_rs }
 }

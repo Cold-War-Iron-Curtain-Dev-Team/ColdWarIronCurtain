@@ -41,6 +41,7 @@ UN_RESET_VOTE_STATE = {
     set_variable = { UNS.un_nation_proposal = 0 }
     set_variable = { UNS.un_state_target = 0 }
     set_variable = { UNS.un_historical_resolution_id = 0 }
+    set_variable = { UNS.un_vote_subject = 0 }
     set_variable = { UNS.coalition_tag = 0 }
 
     set_variable = { root.un_state_target_owner = 0 }
@@ -53,88 +54,199 @@ UN_RESET_VOTE_STATE = {
     clr_country_flag = UN_Vote_Cleanup
 }
 
-UN_START_SCRIPTED_RESOLUTION = {
+################################################################################
+# UN RESOLUTION API
+#
+# Queue a resolution from a country scope. It starts immediately if the floor is free,
+# otherwise it waits and starts as soon as the current vote's cleanup finishes.
+# Nothing is ever dropped because another vote happened to be running.
+#
+#   set_temp_variable = { un_q_target = ISR.id }   # nation target (0 if state-only)
+#   set_temp_variable = { un_q_action = 10 }       # un_action_set, 0-19 (see UN_APPLY_RESOLUTION_EFFECT)
+#   set_temp_variable = { un_q_state  = 0 }        # state target id (0 if none)
+#   set_temp_variable = { un_q_id     = 1949073 }  # historical id YYYYNNN (0 for a generic resolution)
+#   UN_QUEUE_SCRIPTED_RESOLUTION = yes
+#
+# All four temp variables are required. The calling country (THIS) is recorded
+# as the proposer, and leads the coalition for action 13. Malformed input
+# (action outside 0-19, no target or state) is rejected and written to game.log.
+# Votes that would do nothing (UN_resolution_state_allows) are skipped silently:
+# each sanction (3/4/5/6) can only be applied once and lifted (18/19/14/15) once.
+#
+# Inputs are temp variables, so callers leave nothing in the save. The queue is
+# five parallel arrays on UNS that only hold entries while something is waiting,
+# and they are cleared once the queue empties. A historical id that is already
+# queued, on the floor, or has passed is ignored, so repeated calls are safe.
+#
+# To give a historical id bespoke effects/text, add branches keyed on
+# UNS.un_historical_resolution_id in UN_APPLY_HISTORICAL_RESOLUTION_EFFECT,
+# UN_APPLY_RESOLUTION_EFFECT (news event override), and the UN scripted
+# localisation (GetUNPromptEffects, UN_SELECTION_BUTTON_2/3/5).
+################################################################################
+
+UN_QUEUE_SCRIPTED_RESOLUTION = {
+    set_temp_variable = { un_v_action = un_q_action }
+    set_temp_variable = { un_v_target = un_q_target }
+    set_temp_variable = { un_v_state = un_q_state }
+    # Reject malformed input outright rather than opening a broken vote.
     if = {
-        limit = {
-            UNS = {
-                has_country_flag = Current_UN_Vote
-            }
-            has_variable = un_force_current_vote_end
-            check_variable = { un_force_current_vote_end = 1 }
-        }
-        UN_VOTE_FORCE_END = yes
+        limit = { NOT = { UN_resolution_input_valid = yes } }
+        log = "[GetDateText] UN_QUEUE_SCRIPTED_RESOLUTION rejected: action=[?un_q_action] target=[?un_q_target] state=[?un_q_state] id=[?un_q_id] from [THIS.GetTag]"
     }
+    # Pointless votes are skipped silently: sanctions the target already has,
+    # lifting sanctions it doesn't have, a missing target, and so on.
+    else_if = {
+        limit = { NOT = { UN_resolution_state_allows = yes } }
+    }
+    else_if = {
+        limit = {
+            OR = {
+                check_variable = { un_q_id = 0 }
+                NOT = {
+                    OR = {
+                        is_in_array = { array = UNS.un_queue_id value = un_q_id }
+                        is_in_array = { array = UNS.un_historical_resolution_id_historical value = un_q_id }
+                        AND = {
+                            UNS = { has_country_flag = Current_UN_Vote }
+                            check_variable = { UNS.un_historical_resolution_id = un_q_id }
+                        }
+                    }
+                }
+            }
+        }
+        add_to_array = { UNS.un_queue_proposer = THIS.id }
+        add_to_array = { UNS.un_queue_target = un_q_target }
+        add_to_array = { UNS.un_queue_action = un_q_action }
+        add_to_array = { UNS.un_queue_state = un_q_state }
+        add_to_array = { UNS.un_queue_id = un_q_id }
+        UN_DISPATCH_QUEUED_RESOLUTION = yes
+    }
+}
+
+# Internal: start the next queued resolution if the floor is free. Called after
+# queueing, when a vote's cleanup ends, and weekly as a fallback.
+UN_DISPATCH_QUEUED_RESOLUTION = {
     if = {
         limit = {
             UNS = {
                 NOT = { has_country_flag = Current_UN_Vote }
+                check_variable = { un_queue_action^num > 0 }
             }
         }
-        UNS = {
-            UN_CLEAR_CURRENT_VOTE_COUNTS = yes
-            activate_mission = UN_Vote
-            activate_mission = UN_Vote_Cleanuo
-            set_country_flag = Current_UN_Vote
-            set_country_flag = UN_Vote_Ongoing
-        }
-        every_country = {
+        while_loop_effect = {
             limit = {
-                OR = {
-                    has_idea = un_member
-                    has_idea = UN_Security_Council_Member_Perm
+                UNS = {
+                    NOT = { has_country_flag = Current_UN_Vote }
+                    check_variable = { un_queue_action^num > 0 }
                 }
             }
-            set_variable = { un_check = 1 }
-        }
-        set_variable = { UNS.un_nation_proposal = root.id }
-        set_variable = { UNS.un_nation_target = root.un_nation_target }
-        set_variable = { UNS.un_action_set = root.un_action_set }
-        set_variable = { UNS.un_state_target = root.un_state_target }
-        if = {
-            limit = {
-                has_variable = un_historical_resolution_id
+            set_temp_variable = { un_v_proposer = UNS.un_queue_proposer^0 }
+            set_temp_variable = { un_v_target = UNS.un_queue_target^0 }
+            set_temp_variable = { un_v_action = UNS.un_queue_action^0 }
+            set_temp_variable = { un_v_state = UNS.un_queue_state^0 }
+            set_temp_variable = { un_v_id = UNS.un_queue_id^0 }
+            UNS = {
+                remove_from_array = { array = un_queue_proposer index = 0 }
+                remove_from_array = { array = un_queue_target index = 0 }
+                remove_from_array = { array = un_queue_action index = 0 }
+                remove_from_array = { array = un_queue_state index = 0 }
+                remove_from_array = { array = un_queue_id index = 0 }
             }
-            set_variable = { UNS.un_historical_resolution_id = root.un_historical_resolution_id }
-        }
-        else = {
-            set_variable = { UNS.un_historical_resolution_id = 0 }
-        }
-        if = {
-            limit = {
-                check_variable = { root.un_nation_target > 0 }
-            }
-            var:root.un_nation_target = {
-                save_global_event_target_as = un_nation_global_target
+            # Re-check now: the target may have been annexed, or the sanction
+            # applied or lifted, while the entry waited.
+            if = {
+                limit = { UN_resolution_state_allows = yes }
+                UN_BEGIN_VOTE = yes
             }
         }
         if = {
-            limit = {
-                check_variable = { root.un_state_target > 0 }
-            }
-            var:root.un_state_target = {
-                save_global_event_target_as = un_state_global_target
-                owner = {
-                    set_variable = { UNS.un_state_target_owner = THIS.id }
-                }
-            }
-            var:UNS.un_state_target_owner = {
-                save_global_event_target_as = un_state_owner_global_target
+            limit = { UNS = { check_variable = { un_queue_action^num = 0 } } }
+            UNS = {
+                clear_array = un_queue_proposer
+                clear_array = un_queue_target
+                clear_array = un_queue_action
+                clear_array = un_queue_state
+                clear_array = un_queue_id
             }
         }
-        every_country = {
-            limit = {
-                is_ai = yes
-                OR = {
-                    has_idea = un_member
-                    has_idea = UN_Security_Council_Member_Perm
-                }
-            }
-            UN_ai_vote_sorting = yes
+    }
+}
+
+# Internal: open a vote from temp variables un_v_proposer/target/action/state/id.
+# Callers must have checked that no vote is running.
+UN_BEGIN_VOTE = {
+    UNS = {
+        UN_CLEAR_CURRENT_VOTE_COUNTS = yes
+        activate_mission = UN_Vote
+        activate_mission = UN_Vote_Cleanuo
+        set_country_flag = Current_UN_Vote
+        set_country_flag = UN_Vote_Ongoing
+        set_variable = { un_nation_proposal = un_v_proposer }
+        set_variable = { un_nation_target = un_v_target }
+        set_variable = { un_action_set = un_v_action }
+        set_variable = { un_state_target = un_v_state }
+        set_variable = { un_historical_resolution_id = un_v_id }
+        # The country AI voters judge. For a state-status vote that is the
+        # state's owner, set below. Kept separate from un_nation_target so
+        # voting never overwrites who the state would go to.
+        set_variable = { un_vote_subject = un_v_target }
+        # Coalition member: the proposer leads a coalition against the target (13),
+        # the requesting target joins a UN intervention force (12).
+        if = {
+            limit = { check_variable = { un_v_action = 13 } }
+            set_variable = { coalition_tag = un_v_proposer }
         }
-        set_variable = { root.un_nation_target = 0 }
-        set_variable = { root.un_action_set = 0 }
-        set_variable = { root.un_state_target = 0 }
-        set_variable = { root.un_historical_resolution_id = 0 }
+        else_if = {
+            limit = { check_variable = { un_v_action = 12 } }
+            set_variable = { coalition_tag = un_v_target }
+        }
+    }
+    # Opens the vote prompt; only players see it, so AI members get no variable.
+    every_country = {
+        limit = {
+            is_ai = no
+            OR = {
+                has_idea = un_member
+                has_idea = UN_Security_Council_Member_Perm
+            }
+        }
+        add_to_variable = { un_check = 1 }
+    }
+    if = {
+        limit = {
+            check_variable = { un_v_target > 0 }
+        }
+        var:un_v_target = {
+            save_global_event_target_as = un_nation_global_target
+        }
+    }
+    if = {
+        limit = {
+            check_variable = { un_v_state > 0 }
+        }
+        var:un_v_state = {
+            save_global_event_target_as = un_state_global_target
+            owner = {
+                set_variable = { UNS.un_state_target_owner = THIS.id }
+            }
+        }
+        var:UNS.un_state_target_owner = {
+            save_global_event_target_as = un_state_owner_global_target
+        }
+        if = {
+            limit = { check_variable = { un_v_action = 9 } }
+            set_variable = { UNS.un_vote_subject = UNS.un_state_target_owner }
+        }
+    }
+    every_country = {
+        limit = {
+            is_ai = yes
+            OR = {
+                has_idea = un_member
+                has_idea = UN_Security_Council_Member_Perm
+            }
+        }
+        UN_ai_vote_sorting = yes
     }
 }
 
@@ -148,18 +260,25 @@ UN_RESOLVE_CURRENT_VOTE = {
         add_to_array = { UNS.un_state_target_owner_historical = UNS.un_state_target_owner }
         add_to_array = { UNS.un_action_set_historical = UNS.un_action_set }
         add_to_array = { UNS.un_nation_target_historical = UNS.un_nation_target }
-        if = {
+        # The id log must stay index-aligned with the arrays above (the past
+        # resolutions list reads them all at ^i), so record 0 for generic
+        # resolutions. Pad first to self-heal saves where it fell behind.
+        set_temp_variable = { un_hist_pad_target = UNS.un_nation_proposal_historical^num }
+        subtract_from_temp_variable = { un_hist_pad_target = 1 }
+        while_loop_effect = {
             limit = {
-                check_variable = { UNS.un_historical_resolution_id > 0 }
+                check_variable = { UNS.un_historical_resolution_id_historical^num < un_hist_pad_target }
             }
-            add_to_array = { UNS.un_historical_resolution_id_historical = UNS.un_historical_resolution_id }
+            add_to_array = { UNS.un_historical_resolution_id_historical = 0 }
         }
+        add_to_array = { UNS.un_historical_resolution_id_historical = UNS.un_historical_resolution_id }
         UN_APPLY_RESOLUTION_EFFECT = yes
     }
     if = {
         limit = {
             check_variable = { un_veto_count < 1 }
-            check_variable = { un_yes_count < un_no_count }
+            # A tie fails too (it used to fall through with no outcome at all).
+            NOT = { check_variable = { un_yes_count > un_no_count } }
         }
         news_event = UN_RESOLUTION.29
     }
@@ -170,6 +289,13 @@ UN_RESOLVE_CURRENT_VOTE = {
         news_event = UN_RESOLUTION.30
     }
     set_country_flag = UN_Vote_Cleanup
+    every_country = {
+        limit = {
+            is_ai = no
+            check_variable = { un_check > 0 }
+        }
+        add_to_variable = { un_check = 1 }
+    }
 }
 
 UN_APPLY_RESOLUTION_EFFECT = {
@@ -209,13 +335,9 @@ UN_APPLY_RESOLUTION_EFFECT = {
         limit = {
             check_variable = { UNS.un_action_set = 3 }
         }
+        # Permanent until lifted (action 18), like trade sanctions and arms embargoes.
         var:UNS.un_nation_target = {
-            add_timed_idea = {
-                idea = UN_national_asset_freeze
-                days = 3650
-            }
-            set_variable = { THIS.idea_len_@token:UN_national_asset_freeze = 3650 }
-            set_variable = { THIS.idea_date_@token:UN_national_asset_freeze = global.num_days }
+            add_ideas = UN_national_asset_freeze
         }
         news_event = UN_RESOLUTION.5
     }
@@ -223,13 +345,9 @@ UN_APPLY_RESOLUTION_EFFECT = {
         limit = {
             check_variable = { UNS.un_action_set = 4 }
         }
+        # Permanent until lifted (action 19).
         var:UNS.un_nation_target = {
-            add_timed_idea = {
-                idea = UN_officials_sanctioned
-                days = 3650
-            }
-            set_variable = { THIS.idea_len_@token:UN_officials_sanctioned = 3650 }
-            set_variable = { THIS.idea_date_@token:UN_officials_sanctioned = global.num_days }
+            add_ideas = UN_officials_sanctioned
         }
         news_event = UN_RESOLUTION.6
     }
@@ -403,6 +521,24 @@ UN_APPLY_RESOLUTION_EFFECT = {
         }
         news_event = UN_RESOLUTION.50
     }
+    if = {
+        limit = {
+            check_variable = { UNS.un_action_set = 18 }
+        }
+        var:UNS.un_nation_target = {
+            remove_ideas = UN_national_asset_freeze
+        }
+        news_event = UN_RESOLUTION.40
+    }
+    if = {
+        limit = {
+            check_variable = { UNS.un_action_set = 19 }
+        }
+        var:UNS.un_nation_target = {
+            remove_ideas = UN_officials_sanctioned
+        }
+        news_event = UN_RESOLUTION.41
+    }
     UN_APPLY_HISTORICAL_RESOLUTION_EFFECT = yes
 }
 
@@ -487,101 +623,36 @@ UN_APPLY_HISTORICAL_RESOLUTION_EFFECT = {
     }
 }
 
-UN_VOTE_FORCE_END = {
-    UNS = {
-        UN_RESOLVE_CURRENT_VOTE = yes
-        UN_RESET_VOTE_STATE = yes
-    }
-}
-
-UN_QUEUE_DUTCH_INDONESIA_WAR_SANCTIONS_EFFECT = {
-    set_global_flag = UN_HISTORICAL_DUTCH_INDONESIA_WAR_SANCTIONS_PENDING
-}
+################################################################################
+# Historical resolutions (all go through UN_QUEUE_SCRIPTED_RESOLUTION)
+################################################################################
 
 DUTCH_INDONESIA_WAR_SANCTIONS_EFFECT = {
-    set_variable = { un_nation_target = HOL.id }
-    set_variable = { un_action_set = 5 }
-    set_variable = { un_state_target = 0 }
-    set_variable = { un_historical_resolution_id = 1949001 }
-    set_variable = { un_force_current_vote_end = 0 }
-    UN_START_SCRIPTED_RESOLUTION = yes
-    set_variable = { un_force_current_vote_end = 0 }
+    set_temp_variable = { un_q_target = HOL.id }
+    set_temp_variable = { un_q_action = 5 }
+    set_temp_variable = { un_q_state = 0 }
+    set_temp_variable = { un_q_id = 1949001 }
+    UN_QUEUE_SCRIPTED_RESOLUTION = yes
 }
 
-UN_PALESTINE_ARMISTICE_RESOLUTION_EFFECT = {
-    set_variable = { un_nation_target = ISR.id }
-    set_variable = { un_action_set = 10 }
-    set_variable = { un_state_target = 0 }
-    set_variable = { un_historical_resolution_id = 1949073 }
-    set_variable = { un_force_current_vote_end = 0 }
-    UN_START_SCRIPTED_RESOLUTION = yes
-    set_variable = { un_force_current_vote_end = 0 }
-}
-
-UN_INDIA_PAKISTAN_COMMISSION_RESOLUTION_EFFECT = {
-    set_variable = { un_nation_target = RAJ.id }
-    set_variable = { un_action_set = 10 }
-    set_variable = { un_state_target = 0 }
-    set_variable = { un_historical_resolution_id = 1949075 }
-    set_variable = { un_force_current_vote_end = 0 }
-    UN_START_SCRIPTED_RESOLUTION = yes
-    set_variable = { un_force_current_vote_end = 0 }
-}
-
-UN_INDONESIA_OBSERVERS_RESOLUTION_EFFECT = {
-    set_variable = { un_nation_target = INO.id }
-    set_variable = { un_action_set = 10 }
-    set_variable = { un_state_target = 0 }
-    set_variable = { un_historical_resolution_id = 1949076 }
-    set_variable = { un_force_current_vote_end = 0 }
-    UN_START_SCRIPTED_RESOLUTION = yes
-    set_variable = { un_force_current_vote_end = 0 }
-}
-
+# Runs weekly in UNS scope. The dated resolutions (including the 1949 ones)
+# live in the generated UN_historical_schedule.txt; each is queued once in a
+# short window on its date and waits in the queue if the floor is busy.
 UN_HISTORICAL_RESOLUTION_WEEKLY_CHECK = {
+    # Watchdog: a vote flag with no cleanup mission behind it would block the
+    # queue forever, so release it. Runs first, so a vote opened by the
+    # schedule below is never mistaken for a stuck one.
     if = {
         limit = {
-            has_global_flag = UN_HISTORICAL_DUTCH_INDONESIA_WAR_SANCTIONS_PENDING
-            NOT = { has_country_flag = Current_UN_Vote }
+            has_country_flag = Current_UN_Vote
+            NOT = { has_active_mission = UN_Vote_Cleanuo }
         }
-        clr_global_flag = UN_HISTORICAL_DUTCH_INDONESIA_WAR_SANCTIONS_PENDING
-        DUTCH_INDONESIA_WAR_SANCTIONS_EFFECT = yes
+        log = "[GetDateText] UN watchdog: cleared a stuck UN vote"
+        UN_RESET_VOTE_STATE = yes
     }
-    if = {
-        limit = {
-            date > 1949.8.10
-            date < 1950.1.1
-            country_exists = ISR
-            NOT = { has_global_flag = UN_HISTORICAL_PALESTINE_ARMISTICE_DONE }
-            NOT = { has_country_flag = Current_UN_Vote }
-        }
-        set_global_flag = UN_HISTORICAL_PALESTINE_ARMISTICE_DONE
-        UN_PALESTINE_ARMISTICE_RESOLUTION_EFFECT = yes
-    }
-    if = {
-        limit = {
-            date > 1949.9.26
-            date < 1950.1.1
-            country_exists = RAJ
-            country_exists = PAK
-            NOT = { has_global_flag = UN_HISTORICAL_INDIA_PAKISTAN_COMMISSION_DONE }
-            NOT = { has_country_flag = Current_UN_Vote }
-            NOT = { has_country_flag = UN_Kashmir_Refferendum_Active }
-        }
-        set_global_flag = UN_HISTORICAL_INDIA_PAKISTAN_COMMISSION_DONE
-        UN_INDIA_PAKISTAN_COMMISSION_RESOLUTION_EFFECT = yes
-    }
-    if = {
-        limit = {
-            date > 1949.10.4
-            date < 1950.1.1
-            country_exists = INO
-            NOT = { has_global_flag = UN_HISTORICAL_INDONESIA_OBSERVERS_DONE }
-            NOT = { has_country_flag = Current_UN_Vote }
-        }
-        set_global_flag = UN_HISTORICAL_INDONESIA_OBSERVERS_DONE
-        UN_INDONESIA_OBSERVERS_RESOLUTION_EFFECT = yes
-    }
+    UN_HISTORICAL_RESOLUTION_SCHEDULE = yes
+    # Fallback in case a cleanup ended without dispatching.
+    UN_DISPATCH_QUEUED_RESOLUTION = yes
 }
 
 balkanise_country = {

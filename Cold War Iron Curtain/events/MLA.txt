@@ -17,7 +17,7 @@ country_event = {
 	fire_only_once = yes
 	trigger = {
 		tag = MLA
-		has_global_flag = PRC_victory
+		has_global_flag = PRC_Victory
 	}
 
 	option = {
@@ -43,7 +43,7 @@ country_event = {
 
 	trigger = {
 		tag = MLA
-		has_global_flag = ROC_victory
+		has_global_flag = ROC_Victory
 	}
 	option = {
 		name = MLA_Power_Struggle.2.a
@@ -81,6 +81,7 @@ news_event = {
 	picture = GFX_Fall_Of_Singapore
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -95,6 +96,7 @@ news_event = {
 	picture = GFX_Red_Malaysia
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -109,6 +111,7 @@ news_event = {
 	picture = GFX_Gerald_Templer
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -123,6 +126,7 @@ news_event = {
 	picture = GFX_dalai_lama
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -137,6 +141,7 @@ news_event = {
 	picture = GFX_PRC_Landlord_Classicide
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -152,6 +157,7 @@ news_event = {
 	picture = GFX_Buddhist_Communist_Movement1
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -167,6 +173,7 @@ news_event = {
 	picture = GFX_Destroy_Malaysian_Mosque
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -181,6 +188,7 @@ news_event = {
 	picture = GFX_Chin_Peng_Denounces_Religion
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -195,6 +203,7 @@ news_event = {
 	picture = GFX_Malaysia_Modernizes
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -317,9 +326,8 @@ country_event = {
 
 	option = {
 		name = MLA.15.a2
-		MLA = {
-			complete_national_focus = MLA_Chinese_Alignment
-		}
+		set_country_flag = MLA_Path_China
+		country_event = { id = MLA_Power_Struggle.3 days = 14 }
 		ai_chance = {
 			factor = 10
 			modifier = {
@@ -337,14 +345,17 @@ country_event = {
 	}
 	option = {
 		name = MLA.15.b2
-		MLA = {
-			complete_national_focus = MLA_Co-rule_With_Shamsiah_Fakeh
-		}
+		set_country_flag = MLA_Path_Soviet
+		country_event = { id = MLA_Power_Struggle.4 days = 14 }
 		ai_chance = {
 			factor = 10
 			modifier = {
 				is_historical_focus_on = yes
 				factor = 0
+			}
+			modifier = {
+				PRC = { has_country_flag = PRC_Soviet_Aligned }
+				factor = 5
 			}
 			modifier = {
 				has_game_rule = {
@@ -353,6 +364,79 @@ country_event = {
 				}
 				factor = 0
 			}
+		}
+	}
+}
+
+country_event = {
+	id = MLA_Power_Struggle.3
+	title = MLA_Power_Struggle.3.t
+	desc = MLA_Power_Struggle.3.d
+	picture = GFX_MLA_Power_Struggle.1
+
+	is_triggered_only = yes
+
+	option = {
+		name = MLA_Power_Struggle.3.a
+		trigger = { check_variable = { MLA_Alt_Influence < 50 } }
+		set_country_flag = MLA_Path_Maoist
+		mark_focus_tree_layout_dirty = yes
+		custom_effect_tooltip = MLA_Path_Maoist_tt
+		if = {
+			limit = { has_global_flag = PRC_Victory }
+			hidden_effect = { country_event = { id = MLA_Power_Struggle.1 days = 1 } }
+		}
+		ai_chance = {
+			factor = 10
+			modifier = { check_variable = { MLA_Main_Influence > 64 } factor = 3 }
+			modifier = { is_historical_focus_on = yes factor = 5 }
+		}
+	}
+	option = {
+		name = MLA_Power_Struggle.3.b
+		trigger = { check_variable = { MLA_Alt_Influence > 29 } }
+		set_country_flag = MLA_Path_Tridemist
+		mark_focus_tree_layout_dirty = yes
+		custom_effect_tooltip = MLA_Path_Tridemist_tt
+		add_popularity = { ideology = Social_Democratic popularity = 0.05 }
+		if = {
+			limit = { has_global_flag = ROC_Victory }
+			hidden_effect = { country_event = { id = MLA_Power_Struggle.2 days = 1 } }
+		}
+		ai_chance = {
+			factor = 10
+			modifier = { check_variable = { MLA_Alt_Influence > 49 } factor = 3 }
+		}
+	}
+}
+
+country_event = {
+	id = MLA_Power_Struggle.4
+	title = MLA_Power_Struggle.4.t
+	desc = MLA_Power_Struggle.4.d
+	picture = GFX_ZhenbaoConflict_Soviet
+
+	is_triggered_only = yes
+
+	option = {
+		name = MLA_Power_Struggle.4.a
+		trigger = { check_variable = { MLA_Alt_Support < 50 } }
+		custom_effect_tooltip = MLA_Chin_Peng_Holds_tt
+		complete_national_focus = MLA_Co-rule_With_Shamsiah_Fakeh
+		ai_chance = {
+			factor = 10
+			modifier = { check_variable = { MLA_Main_Support > MLA_Alt_Support } factor = 3 }
+		}
+	}
+	option = {
+		name = MLA_Power_Struggle.4.b
+		trigger = { check_variable = { MLA_Alt_Support > 29 } }
+		set_country_flag = MLA_Fakeh_Leads
+		custom_effect_tooltip = MLA_Fakeh_Leads_tt
+		complete_national_focus = MLA_Co-rule_With_Shamsiah_Fakeh
+		ai_chance = {
+			factor = 10
+			modifier = { check_variable = { MLA_Alt_Support > MLA_Main_Support } factor = 3 }
 		}
 	}
 }
@@ -447,6 +531,7 @@ news_event = {
 	picture = GFX_Destroy_Malaysian_Mosque
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -540,6 +625,7 @@ news_event = {
 	picture = GFX_Fekah_Purged
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -554,6 +640,7 @@ news_event = {
 	picture = GFX_Thai_Econ_Crash
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -568,6 +655,7 @@ news_event = {
 	picture = GFX_Rocket_Train
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -582,6 +670,7 @@ news_event = {
 	picture = GFX_Thai_Insurgency
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -965,6 +1054,7 @@ news_event = {
 	picture = GFX_Thai_Insurgency
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -979,6 +1069,7 @@ news_event = {
 	picture = GFX_Red_Malaysia
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -993,6 +1084,7 @@ news_event = {
 	picture = GFX_Red_Malaysia
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -1007,6 +1099,7 @@ news_event = {
 	picture = GFX_Thai_Insurgency
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -1021,6 +1114,7 @@ news_event = {
 	picture = GFX_Pol_Pot_Assassinated
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -1036,6 +1130,7 @@ news_event = {
 	picture = GFX_Pol_Pot_Survives
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -1051,6 +1146,7 @@ news_event = {
 	picture = GFX_huks_insurgency_10
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -1065,6 +1161,7 @@ news_event = {
 	picture = GFX_Turkey_Soviet_2
 
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 	is_triggered_only = yes
 
 	option = {
@@ -1341,6 +1438,7 @@ news_event = {
 
 	is_triggered_only = yes
 	major = yes
+	show_major = { CWIC_news_regional = yes }
 
 	option = {
 		name = MLA_PRC.0.a
@@ -1658,15 +1756,8 @@ country_event = {
 
 	option = {
 		name = MLA_Syndies.5.a
-		hidden_effect = { 
-				remove_ideas = {
-				policy_women_temp_0
-				policy_women_temp_1
-				policy_women_temp_2
-				policy_women_temp_3
-			}
-		}
-			add_ideas = policy_women_temp_4
+		set_temp_variable = { policy_target_temp = 5 }
+		swap_womens_ideas = yes
 	}
 }
 

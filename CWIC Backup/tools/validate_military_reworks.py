@@ -14,7 +14,6 @@ import tempfile
 import json
 import unicodedata
 from collections import Counter
-from hashlib import sha256
 from pathlib import Path
 from zipfile import ZipFile
 from xml.etree import ElementTree
@@ -44,25 +43,25 @@ TECH_DIR = MOD / "common/technologies"
 # structural gridbox checks below are kept; the edge comparison is not.
 TECH_FOLDER_X_GRIDBOX = {
     "nsb_armor_folder": {
+        # Folder x is per gridbox, so one x can sit in more than one tree; the
+        # map only pins which columns are in use. Shared columns name one tree.
+        -9: "nsb_iw_armored_vehicles_tree",
+        -6: "nsb_iw_armored_vehicles_tree",
         -2: "nsb_iw_armored_vehicles_tree",
         0: "nsb_iw_armored_vehicles_tree",
         2: "nsb_iw_armored_vehicles_tree",
         4: "nsb_iw_armored_vehicles_tree",
         6: "nsb_iw_armored_vehicles_tree",
-        8: "nsb_iw_armored_vehicles_tree",
-        -9: "nsb_engines_tree",
-        -6: "nsb_engines_tree",
-        9: "nsb_engines_tree",
-        10: "nsb_engines_tree",
-        12: "nsb_engines_tree",
-        14: "nsb_engines_tree",
-        15: "nsb_engines_tree",
-        16: "nsb_engines_tree",
-        18: "nsb_engines_tree",
-        20: "nsb_iw_armored_vehicles_tree",
-        22: "nsb_armor_tree",
-        26: "nsb_armor_tree",
-        30: "nsb_armor_tree",
+        8: "nsb_iw_armored_vehicles_tree",  # also nsb_armor_tree (ERA)
+        9: "nsb_armor_tree",
+        10: "nsb_engines_tree",  # also nsb_armor_tree (DU armour)
+        12: "nsb_armor_tree",
+        13: "nsb_engines_tree",
+        14: "nsb_armor_tree",
+        17: "nsb_engines_tree",  # also nsb_armor_tree (add-on armour)
+        19: "nsb_engines_tree",  # also nsb_armor_tree (defences)
+        21: "nsb_armor_tree",
+        23: "nsb_armor_tree",
     },
     "nsb_armor_modules_folder": {
         0: "nsb_light_guns_tree",
@@ -703,33 +702,41 @@ def oob_variant_producer(block: str, default_tag: str) -> str:
 
 errors: list[str] = []
 
-LAND_MANIFEST_FILE = ROOT / "LogDocs/Doctrine_Rework/Doctrine_Cell_Manifest.md"
-REVIEWED_LAND_MANIFEST_SHA256 = "d0adb7a947404256e43fe7a28a08b9d31a94a114a2252c76fafb11b61ccf201e"
-DOCTRINE_CONTENT_SHA256 = {
-    "land_doctrine.txt": "30f7b88844a779da077ddbea0cb2f5bf3ab6f47c5d21db9167b59dbe40941fea",
-    "air_doctrine.txt": "60805d1cddae8deb5e2827501dfcb1186708f2b1045702c72dff4a6bab78f89c",
-    "naval_doctrine.txt": "81b983873396a3dd108c85184163beaf2efdb02f2ff144904d7d4c1ed420d085",
-}
-EXPECTED_DOCTRINE_COUNTS = {"land_doctrine.txt": 528, "air_doctrine.txt": 73, "naval_doctrine.txt": 45}
-LAND_ROOTS = (
-    "cw_nato_1940s_integrated_arms_reorganization",
-    "cw_france_1940s_doctrine_header",
-    "cw_israel_1940s_doctrine_header",
-    "cw_warsaw_1940s_doctrine_header",
-    "cw_prc_1940s_doctrine_header",
-    "cw_yugo_1940s_doctrine_header",
-    "cw_himalayan_1960s_doctrine_header",
-    "cw_non_aligned_1940s_doctrine_header",
-    "cw_iran_1980s_doctrine_header",
-    "cw_ins_1940s_doctrine_header",
-    "cw_islamist_alt_ins_1990s_doctrine_header",
+DOCTRINE_ROOT = MOD / "common/doctrines"
+DOCTRINE_GRAND_DIR = DOCTRINE_ROOT / "grand_doctrines"
+DOCTRINE_SUB_DIR = DOCTRINE_ROOT / "subdoctrines"
+DOCTRINE_TRACK_DIR = DOCTRINE_ROOT / "tracks"
+DOCTRINE_FOLDER_FILE = DOCTRINE_ROOT / "folders/doctrine_folders.txt"
+DOCTRINE_DESIGN_FILE = ROOT / "CWIC Backup/documentation/Doctrine_System.md"
+DOCTRINE_VANILLA_GFX = Path.home() / ".local/share/Steam/steamapps/common/Hearts of Iron IV/interface/doctrines/doctrines.gfx"
+DOCTRINE_FOLDERS = ("land", "naval", "air", "special_forces")
+DOCTRINE_REWARD_COUNT = 5
+DOCTRINE_LAND_SCHOOLS = (
+    "forward_defense",
+    "deep_battle",
+    "peoples_war",
+    "intervention_pacification",
+    "preemptive_maneuver",
+    "total_national_defense",
+    "revolutionary_insurgency",
 )
-LAND_ROW_Y = {1940: 172, 1950: 790, 1960: 1420, 1970: 2050, 1980: 2680, 1990: 3310}
-LEDGER_FOLDERS = {
-    "old_land_doctrine_folder": "army",
-    "old_naval_doctrine_folder": "navy",
-    "old_air_doctrine_folder": "air",
+DOCTRINE_LAND_BASE_TRACKS = ("infantry", "combat_support", "armor", "operations")
+DOCTRINE_LAND_ERAS = (("", None), ("_e2", "1960.1.1"), ("_e3", "1980.1.1"))
+DOCTRINE_LAND_TRACKS_PER_GD = len(DOCTRINE_LAND_BASE_TRACKS) * len(DOCTRINE_LAND_ERAS)
+DOCTRINE_LAND_MAX_COLUMNS = len(DOCTRINE_LAND_BASE_TRACKS)
+DOCTRINE_NAVAL_BASE_TRACKS = ("capital_ships", "carriers", "screens", "submarines")
+DOCTRINE_AIR_BASE_TRACKS = ("fighter_aircraft", "strike_aircraft", "medium_aircraft", "heavy_aircraft")
+DOCTRINE_SF_BASE_TRACKS = ("special_forces_first", "special_forces_second")
+DOCTRINE_SHARED_ERAS = (("", None), ("_e2", "1960.1.1"), ("_e3", "1980.1.1"))
+DOCTRINE_SF_ERAS = (("", None), ("_e2", "1970.1.1"))
+NONLAND_GRAND_SPECS = {
+    "CWIC_naval_grand_doctrines.txt": (DOCTRINE_NAVAL_BASE_TRACKS, DOCTRINE_SHARED_ERAS),
+    "CWIC_air_grand_doctrines.txt": (DOCTRINE_AIR_BASE_TRACKS, DOCTRINE_SHARED_ERAS),
+    "CWIC_special_forces_grand_doctrines.txt": (DOCTRINE_SF_BASE_TRACKS, DOCTRINE_SF_ERAS),
 }
+DOCTRINE_LEGACY_DIR = MOD / "common/technologies/doctrine rework"
+DOCTRINE_LEGACY_LOC = MOD / "localisation/english/Land_Doctrine_l_english.yml"
+DOCTRINE_LEGACY_TOKEN = re.compile(r"old_(?:land|naval|air)_doctrine_folder")
 
 
 class ScriptParseError(ValueError):
@@ -959,59 +966,6 @@ def top_level_quoted_values(block: str, key: str) -> list[str]:
     return result
 
 
-def doctrine_content_digest(blocks: list[tuple[str, str]]) -> str:
-    canonical: list[str] = []
-    for name, block in blocks:
-        code = strip_script_comments(block)
-        for child_name, start, ending, _ in reversed(top_level_ranges(code, name)):
-            if child_name == "allow":
-                code = code[:start] + code[ending + 1 :]
-        canonical.append(name + "=" + re.sub(r"\s+", " ", code).strip())
-    return sha256("\n".join(sorted(canonical)).encode("utf-8")).hexdigest()
-
-
-def read_land_manifest() -> list[dict[str, object]]:
-    rows: list[dict[str, object]] = []
-    value = text(LAND_MANIFEST_FILE)
-    for line in value.splitlines():
-        if not line.startswith("| ") or line.startswith("| GUI") or line.startswith("| ---"):
-            continue
-        fields = [field.strip() for field in line.strip("|").split("|")]
-        if len(fields) != 6:
-            fail(f"malformed land cell manifest row: {line}")
-            continue
-        x, decade, header, nodes, terminal, parent = fields
-        try:
-            row = {
-                "x": int(x),
-                "decade": int(decade),
-                "header": header.strip("`"),
-                "nodes": int(nodes),
-                "terminal": terminal.strip("`"),
-                "parent": None if parent.startswith("**") else parent.strip("`"),
-            }
-        except ValueError:
-            fail(f"malformed land cell manifest row: {line}")
-            continue
-        rows.append(row)
-    canonical = "\n".join(
-        "|".join(
-            (
-                str(row["x"]),
-                str(row["decade"]),
-                str(row["header"]),
-                str(row["nodes"]),
-                str(row["terminal"]),
-                "ROOT" if row["parent"] is None else str(row["parent"]),
-            )
-        )
-        for row in rows
-    ) + "\n"
-    if sha256(canonical.encode("utf-8")).hexdigest() != REVIEWED_LAND_MANIFEST_SHA256:
-        fail("reviewed land cell manifest does not match its implementation contract")
-    return rows
-
-
 def named_gui_blocks(value: str, kind: str, wanted: str | None, label: str) -> list[str]:
     code = strip_script_comments(value)
     result: list[str] = []
@@ -1094,612 +1048,311 @@ def validate_tank_folder_gridboxes(
                 )
 
 
-def parse_allow_signature(allow: str, technology: str) -> tuple[list[str], list[tuple[str, str]]]:
-    children = top_level_ranges(allow, f"{technology}.allow")
-    if any(name in {"OR", "AND"} for name, _, _, _ in children):
-        fail(f"{technology} allow prerequisite is hidden under OR/AND")
-    direct_positive = top_level_values(allow, "has_tech")
-    direct_researching = top_level_values(allow, "is_researching_technology")
-    if direct_researching:
-        fail(f"{technology} allow has a direct research-state clause")
-    clauses: list[tuple[str, str]] = []
-    for name, _, _, child in children:
-        if name != "NOT":
-            if name not in {"allow"}:
-                fail(f"{technology} allow contains unsupported block {name}")
+def file_entries(value: str, label: str) -> list[tuple[str, str]]:
+    """Return top-level `name = { ... }` entries of a whole script file."""
+    code = strip_script_comments(value)
+    entry = re.compile(r"\s*([A-Za-z0-9_]+)\s*=\s*\{")
+    result: list[tuple[str, str]] = []
+    index = 0
+    while index < len(code):
+        match = entry.match(code, index)
+        if not match:
+            index += 1
             continue
-        child_has = top_level_values(child, "has_tech")
-        child_researching = top_level_values(child, "is_researching_technology")
-        dates = re.findall(r"\bdate\s*<\s*([0-9]+\.[0-9]+\.[0-9]+)", child)
-        if child_has and not child_researching and not dates and len(child_has) == 1:
-            clauses.append(("has", child_has[0]))
-        elif child_researching and not child_has and not dates and len(child_researching) == 1:
-            clauses.append(("researching", child_researching[0]))
-        elif dates and not child_has and not child_researching and len(dates) == 1:
-            clauses.append(("date", dates[0]))
-        else:
-            fail(f"{technology} allow contains malformed NOT clause")
-    if re.search(r"\bdate\s*[<>]=?", allow) and not re.search(
-        r"\bdate\s*<\s*[0-9]+\.[0-9]+\.[0-9]+", allow
-    ):
-        fail(f"{technology} allow has an unsupported date boundary")
-    return direct_positive, clauses
+        ending = balanced_end(code, match.end() - 1, f"{label}.{match.group(1)}")
+        result.append((match.group(1), code[match.start(1) : ending + 1]))
+        index = ending + 1
+    return result
 
 
-def fixture_allow_signature(allow: str) -> tuple[list[str], list[tuple[str, str]]]:
-    """Parse an allow fixture without adding failures to the real validation run."""
-    children = top_level_ranges(allow, "fixture.allow")
-    if any(name in {"OR", "AND"} for name, _, _, _ in children):
-        raise ScriptParseError("allow contains OR/AND")
-    positive = top_level_values(allow, "has_tech")
-    clauses: list[tuple[str, str]] = []
-    for name, _, _, child in children:
-        if name != "NOT":
-            raise ScriptParseError(f"unsupported allow block {name}")
-        child_has = top_level_values(child, "has_tech")
-        child_researching = top_level_values(child, "is_researching_technology")
-        dates = re.findall(r"\bdate\s*<\s*([0-9]+\.[0-9]+\.[0-9]+)", child)
-        if child_has and not child_researching and not dates and len(child_has) == 1:
-            clauses.append(("has", child_has[0]))
-        elif child_researching and not child_has and not dates and len(child_researching) == 1:
-            clauses.append(("researching", child_researching[0]))
-        elif dates and not child_has and not child_researching and len(dates) == 1:
-            clauses.append(("date", dates[0]))
-        else:
-            raise ScriptParseError("malformed NOT clause")
-    if re.search(r"\bdate\s*[<>]=?", allow) and not re.search(
-        r"\bdate\s*<\s*[0-9]+\.[0-9]+\.[0-9]+", allow
-    ):
-        raise ScriptParseError("unsupported date boundary")
-    return positive, clauses
+def anonymous_child_count(block: str, label: str) -> int:
+    code = strip_script_comments(block)
+    opening = code.find("{")
+    ending = balanced_end(code, opening, label)
+    depth = 0
+    count = 0
+    for character in code[opening + 1 : ending]:
+        if character == "{":
+            if depth == 0:
+                count += 1
+            depth += 1
+        elif character == "}":
+            depth -= 1
+    return count
 
 
-def fixture_graph_check(
-    edges: dict[str, list[str]], anchors: list[str], all_nodes: set[str]
-) -> None:
-    owners: dict[str, str] = {}
-    state: dict[str, int] = {}
-
-    def visit_graph(node: str) -> None:
-        if state.get(node, 0) == 1:
-            raise ScriptParseError(f"cycle at {node}")
-        if state.get(node, 0) == 2:
-            return
-        state[node] = 1
-        for target in edges.get(node, []):
-            if target not in all_nodes:
-                raise ScriptParseError(f"undefined target {target}")
-            visit_graph(target)
-        state[node] = 2
-
-    for node in all_nodes:
-        visit_graph(node)
-
-    def visit_cell(cell: str, node: str, active: set[str]) -> None:
-        if node in active:
-            raise ScriptParseError(f"cycle at {node}")
-        if node in owners:
-            if owners[node] != cell:
-                raise ScriptParseError(f"duplicate ownership of {node}")
-            return
-        owners[node] = cell
-        active.add(node)
-        for target in edges.get(node, []):
-            visit_cell(cell, target, active)
-        active.remove(node)
-
-    for anchor in anchors:
-        if anchor not in all_nodes:
-            raise ScriptParseError(f"orphan anchor {anchor}")
-        visit_cell(anchor, anchor, set())
-    if set(owners) != all_nodes:
-        raise ScriptParseError(f"orphan nodes: {sorted(all_nodes - set(owners))}")
-    for source, targets in edges.items():
-        for target in targets:
-            if owners.get(source) != owners.get(target):
-                raise ScriptParseError(f"cross-cell edge {source} -> {target}")
+def block_tokens(body: str) -> list[str]:
+    if "{" not in body:
+        return []
+    inner = strip_script_comments(body)
+    inner = inner[inner.find("{") + 1 : inner.rfind("}")]
+    return re.findall(r"[A-Za-z0-9_]+", inner)
 
 
-def run_doctrine_negative_fixtures() -> None:
-    def require_rejection(label: str, function) -> None:
-        try:
-            function()
-        except (AssertionError, ScriptParseError):
-            return
-        fail(f"doctrine negative fixture was accepted: {label}")
+def loc_keys() -> set[str]:
+    keys: set[str] = set()
+    for path in (MOD / "localisation/english").glob("*.yml"):
+        for line in text(path).splitlines():
+            match = re.match(r"\s*([A-Za-z0-9_.\-]+):\d*\s", line)
+            if match:
+                keys.add(match.group(1))
+    return keys
 
-    def assert_one_allow_fixture() -> None:
-        assert len(top_level_named_blocks("tech = { allow = { has_tech = root } allow = { has_tech = root } }", "allow")) == 1
 
-    def assert_allow_signature(value: str, positive: list[str], clauses: list[tuple[str, str]]) -> None:
-        assert fixture_allow_signature(value) == (positive, clauses)
+def doctrine_gfx_names() -> set[str]:
+    names: set[str] = set()
+    for path in [*(MOD / "interface").rglob("*.gfx"), DOCTRINE_VANILLA_GFX]:
+        if path.is_file():
+            names.update(re.findall(r'name\s*=\s*"([^"]+)"', text(path)))
+    return names
 
-    def assert_without_test_flag(value: str) -> None:
-        assert "X_TESt" not in strip_script_comments(value)
 
-    accepted = strict_top_level_blocks(
-        "technologies = { root = { path = { leads_to_tech = child } } child = { allow  = { has_tech = root NOT = { date < 1950.1.1 } } } }",
-        "technologies",
-        "two-space fixture",
-    )
-    accepted_map = dict(accepted)
-    assert top_level_values(top_level_named_blocks(accepted_map["root"], "path")[0], "leads_to_tech") == ["child"]
-    assert fixture_allow_signature(top_level_named_blocks(accepted_map["child"], "allow")[0]) == (
-        ["root"],
-        [("date", "1950.1.1")],
-    )
-    inline = strict_top_level_blocks(
-        "technologies = { root = { path = { leads_to_tech = child } } child = { allow = { has_tech = root } } }",
-        "technologies",
-        "inline fixture",
-    )
-    assert fixture_allow_signature(top_level_named_blocks(dict(inline)["child"], "allow")[0]) == (["root"], [])
-    commented = strict_top_level_blocks(
-        "technologies = { root = { # path = { leads_to_tech = ghost }\n } }",
-        "technologies",
-        "comment fixture",
-    )
-    assert not top_level_named_blocks(dict(commented)["root"], "path")
-
-    require_rejection(
-        "unbalanced block",
-        lambda: strict_top_level_blocks("technologies = { root = {", "technologies", "unbalanced fixture"),
-    )
-    require_rejection(
-        "missing prerequisite",
-        lambda: assert_allow_signature("allow = { NOT = { date < 1950.1.1 } }", ["root"], [("date", "1950.1.1")]),
-    )
-    require_rejection(
-        "wrong prerequisite",
-        lambda: assert_allow_signature("allow = { has_tech = wrong }", ["root"], []),
-    )
-    require_rejection(
-        "negated prerequisite",
-        lambda: assert_allow_signature("allow = { NOT = { has_tech = root } }", ["root"], []),
-    )
-    require_rejection(
-        "OR bypass",
-        lambda: fixture_allow_signature("allow = { OR = { has_tech = root has_tech = sibling } }"),
-    )
-    require_rejection(
-        "wrong date boundary",
-        lambda: fixture_allow_signature("allow = { NOT = { date > 1950.1.1 } }"),
-    )
-    require_rejection(
-        "duplicate allow",
-        lambda: assert_one_allow_fixture(),
-    )
-    require_rejection(
-        "missing reciprocal exclusion",
-        lambda: assert_allow_signature(
-            "allow = { NOT = { has_tech = rival } }",
-            ["root"],
-            [("has", "rival"), ("researching", "rival")],
-        ),
-    )
-    require_rejection(
-        "restored test flag",
-        lambda: assert_without_test_flag("allow = { has_country_flag = X_TESt }"),
-    )
-    require_rejection(
-        "cross-cell edge",
-        lambda: fixture_graph_check({"a": ["b"], "b": []}, ["a", "b"], {"a", "b"}),
-    )
-    require_rejection(
-        "cycle",
-        lambda: fixture_graph_check({"a": ["b"], "b": ["a"]}, ["a"], {"a", "b"}),
-    )
-    require_rejection(
-        "orphan",
-        lambda: fixture_graph_check({"a": [], "b": []}, ["a"], {"a", "b"}),
-    )
-    require_rejection(
-        "duplicate ownership",
-        lambda: fixture_graph_check({"a": ["c"], "b": ["c"], "c": []}, ["a", "b"], {"a", "b", "c"}),
-    )
-    # Prefix changes do not change cell ownership; the anchor traversal is the contract.
-    fixture_graph_check({"alt_header": ["cw_islamist_ins_1990s_global_operational_continuum"], "cw_islamist_ins_1990s_global_operational_continuum": []}, ["alt_header"], {"alt_header", "cw_islamist_ins_1990s_global_operational_continuum"})
+def validate_doctrine_entry(
+    name: str,
+    entry: str,
+    label: str,
+    keys: tuple[str, ...],
+    loc: set[str],
+    gfx: set[str],
+) -> dict[str, str]:
+    children = {child: body for child, _, _, body in top_level_ranges(entry, f"{label}.{name}")}
+    for key in keys:
+        if key not in children and not top_level_values(entry, key):
+            fail(f"{label}: {name} is missing {key}")
+    for key in ("name", "description"):
+        for value in top_level_values(entry, key):
+            if value.strip('"') not in loc:
+                fail(f"{label}: {name} {key} {value} has no English localisation key")
+    for value in top_level_values(entry, "icon"):
+        if value.strip('"') not in gfx:
+            fail(f"{label}: {name} icon {value} is not a declared sprite")
+    return children
 
 
 def validate_doctrine_rework() -> None:
-    parked = [path for path in doctrine_files if not path.is_file()]
-    if len(parked) == len(doctrine_files):
-        print(
-            "Doctrine rework is parked under "
-            "'common/technologies/doctrine rework/' and is not loaded by the game; "
-            "skipping doctrine contracts."
-        )
-        return
-    if parked:
-        fail(
-            "doctrine rework is half parked; these files are missing from the active "
-            f"technologies directory: {sorted(path.name for path in parked)}"
-        )
-        return
-    by_file: dict[str, dict[str, str]] = {}
-    for path in doctrine_files:
-        filename = path.name
-        try:
-            blocks = strict_top_level_blocks(text(path), "technologies", filename)
-        except ScriptParseError as problem:
-            fail(str(problem))
-            continue
-        by_file[filename] = dict(blocks)
-        expected_count = EXPECTED_DOCTRINE_COUNTS[filename]
-        if len(blocks) != expected_count:
-            fail(f"{filename} must contain {expected_count} technologies, found {len(blocks)}")
-        expected_type = {"land_doctrine.txt": "army", "air_doctrine.txt": "air", "naval_doctrine.txt": "navy"}[filename]
-        for name, block in blocks:
-            for field in ("xp_research_type", "xp_unlock_cost", "doctrine"):
-                values = top_level_values(block, field)
-                if len(values) != 1:
-                    fail(f"{name} in {filename} must define exactly one {field}")
-            if top_level_values(block, "xp_research_type") != [expected_type]:
-                fail(f"{name} in {filename} has the wrong XP research type")
-            if top_level_values(block, "xp_unlock_cost") != ["100"]:
-                fail(f"{name} in {filename} must cost exactly 100 XP")
-            if top_level_values(block, "doctrine") != ["yes"]:
-                fail(f"{name} in {filename} must retain doctrine = yes")
-            for path_block in top_level_named_blocks(block, "path", name):
-                targets = top_level_values(path_block, "leads_to_tech")
-                if not targets:
-                    # Land capstones retain a documented, commented-out future path.
-                    continue
-                if len(targets) != 1:
-                    fail(f"{name} has a malformed path block")
-                elif targets[0] not in technology_set:
-                    fail(f"undefined technology path {name} -> {targets[0]} in {filename}")
-            for target in re.findall(
-                r"\b(?:has_tech|is_researching_technology)\s*=\s*([A-Za-z0-9_]+)",
-                strip_script_comments(block),
-            ):
-                if target not in technology_set:
-                    fail(f"undefined doctrine prerequisite target {target} in {name}")
-        expected_digest = DOCTRINE_CONTENT_SHA256.get(filename)
-        if expected_digest and doctrine_content_digest(blocks) != expected_digest:
-            fail(f"{filename} has an unexpected effect/path/content change outside allow blocks")
-
-    land = by_file.get("land_doctrine.txt", {})
-    air = by_file.get("air_doctrine.txt", {})
-    naval = by_file.get("naval_doctrine.txt", {})
-    manifest = read_land_manifest()
-    if len(manifest) != 78:
-        fail(f"land cell manifest must contain 78 rows, found {len(manifest)}")
-    manifest_by_header = {row["header"]: row for row in manifest}
-    if len(manifest_by_header) != len(manifest):
-        fail("land cell manifest contains duplicate headers")
-    if tuple(row["header"] for row in manifest if row["parent"] is None) != tuple(
-        row["header"] for row in manifest if row["header"] in LAND_ROOTS
-    ):
-        fail("land cell manifest root set or order changed")
-    if set(row["header"] for row in manifest if row["parent"] is None) != set(LAND_ROOTS):
-        fail("land cell manifest has the wrong independent root set")
-
-    if land:
-        for name, block in land.items():
-            allows = top_level_named_blocks(block, "allow", name)
-            if top_level_named_blocks(block, "dependencies", name):
-                fail(f"land technology {name} adds a cumulative dependencies block")
-            if name not in manifest_by_header:
-                if allows:
-                    fail(f"non-header land technology {name} retains an allow block")
-                continue
-            if len(allows) != 1:
-                fail(f"land header {name} must contain exactly one allow block")
-                continue
-            positive, clauses = parse_allow_signature(allows[0], name)
-            row = manifest_by_header[name]
-            expected_positive = [] if row["parent"] is None else [row["parent"]]
-            if positive != expected_positive:
-                fail(f"{name} has the wrong direct lineage prerequisite: {positive}")
-            expected_clauses: set[tuple[str, str]] = set()
-            if row["decade"] > 1940:
-                expected_clauses.add(("date", f"{row['decade']}.1.1"))
-            if name in LAND_ROOTS:
-                for rival in LAND_ROOTS:
-                    if rival != name:
-                        expected_clauses.add(("has", rival))
-                        expected_clauses.add(("researching", rival))
-            if len(clauses) != len(set(clauses)) or set(clauses) != expected_clauses:
-                fail(f"{name} has the wrong lineage/date/root exclusion clauses")
-        header_names = set(manifest_by_header)
-        actual_allow_names = {name for name, block in land.items() if top_level_named_blocks(block, "allow", name)}
-        if actual_allow_names != header_names:
-            fail("land allow blocks are not exactly the 78 reviewed header blocks")
-        if re.search(r"\b(?:X_TESt|has_country_flag)\b", strip_script_comments(text(doctrine_files[0]))):
-            fail("land doctrine retains the obsolete X_TESt/country-flag gate")
-
-        outgoing: dict[str, list[str]] = {name: [] for name in land}
-        incoming: dict[str, list[str]] = {name: [] for name in land}
-        for name, block in land.items():
-            for path_block in top_level_named_blocks(block, "path", name):
-                targets = top_level_values(path_block, "leads_to_tech")
-                if len(targets) != 1:
-                    continue
-                target = targets[0]
-                outgoing[name].append(target)
-                if target in incoming:
-                    incoming[target].append(name)
-            if len(outgoing[name]) != len(set(outgoing[name])):
-                fail(f"land technology {name} contains a duplicate active path")
-
-        graph_state: dict[str, int] = {}
-        def visit_graph(node: str) -> None:
-            state = graph_state.get(node, 0)
-            if state == 1:
-                fail(f"land doctrine path graph contains a cycle at {node}")
-                return
-            if state == 2:
-                return
-            graph_state[node] = 1
-            for target in outgoing.get(node, []):
-                if target in land:
-                    visit_graph(target)
-            graph_state[node] = 2
-        for name in land:
-            visit_graph(name)
-
-        owners: dict[str, str] = {}
-        def visit_cell(cell: str, node: str, active: set[str]) -> None:
-            if node in active:
-                fail(f"land cell {cell} contains a cycle at {node}")
-                return
-            previous = owners.get(node)
-            if previous is not None:
-                if previous != cell:
-                    fail(f"land technology {node} is owned by both {previous} and {cell}")
-                return
-            owners[node] = cell
-            active.add(node)
-            for target in outgoing.get(node, []):
-                if target in land:
-                    visit_cell(cell, target, active)
-            active.remove(node)
-
-        for row in manifest:
-            header = row["header"]
-            if header in land:
-                visit_cell(header, header, set())
-        if set(owners) != set(land):
-            fail(
-                "land GUI anchors do not uniquely cover all technologies: "
-                f"missing={sorted(set(land) - set(owners))}, extra={sorted(set(owners) - set(land))}"
+    if DOCTRINE_LEGACY_DIR.exists():
+        fail(f"legacy doctrine tech folder still exists: {DOCTRINE_LEGACY_DIR.relative_to(ROOT)}")
+    if DOCTRINE_LEGACY_LOC.exists():
+        fail(f"legacy doctrine loc still exists: {DOCTRINE_LEGACY_LOC.relative_to(ROOT)}")
+    scan = [
+        path
+        for folder in ("common", "interface", "events", "history", "localisation/english")
+        for path in (MOD / folder).rglob("*")
+        if path.is_file() and path.suffix in {".txt", ".gui", ".gfx", ".yml"}
+    ]
+    for path in scan:
+        if DOCTRINE_LEGACY_TOKEN.search(text(path)):
+            fail(f"{path.relative_to(ROOT)} references a removed legacy doctrine folder")
+    folders = {name for name, _ in file_entries(text(DOCTRINE_FOLDER_FILE), "doctrine_folders")}
+    if folders != set(DOCTRINE_FOLDERS):
+        fail(f"doctrine folders {sorted(folders)} must be {sorted(DOCTRINE_FOLDERS)}")
+    tracks: set[str] = set()
+    for path in sorted(DOCTRINE_TRACK_DIR.glob("*.txt")):
+        for track_name, track_entry in file_entries(text(path), path.name):
+            tracks.add(track_name)
+            era_suffix = track_name[-3:] if track_name.endswith(("_e2", "_e3")) else ""
+            era_gate = dict(DOCTRINE_LAND_ERAS).get(era_suffix) if track_name in land_tracks_expected() else None
+            if era_gate:
+                if not re.search(rf"active\s*=\s*\{{\s*NOT\s*=\s*\{{\s*date\s*<\s*{re.escape(era_gate)}\s*\}}\s*\}}", track_entry):
+                    fail(f"{path.name}: {track_name} must be gated by active = {{ NOT = {{ date < {era_gate} }} }}")
+            elif track_name in land_tracks_expected() and re.search(r"\bdate\b", top_level_block_text(track_entry, "active")):
+                fail(f"{path.name}: era-1 track {track_name} must not carry a date gate")
+            nonland_gate = nonland_track_gates().get(track_name)
+            if track_name in nonland_tracks_expected():
+                active_text = " ".join(top_level_block_text(track_entry, "active").split())
+                if nonland_gate:
+                    if f"NOT = {{ date < {nonland_gate} }}" not in active_text:
+                        fail(f"{path.name}: {track_name} must be gated by NOT = {{ date < {nonland_gate} }}")
+                elif re.search(r"\bdate\b", active_text):
+                    fail(f"{path.name}: base track {track_name} must not carry a date gate")
+                if track_name.startswith("special_forces_second") and "can_unlock_second_track_of_sf_doctrine = yes" not in active_text:
+                    fail(f"{path.name}: {track_name} must keep can_unlock_second_track_of_sf_doctrine = yes")
+                if track_name.startswith("special_forces_second") and nonland_gate and not re.search(r"\bAND\s*=\s*\{", active_text):
+                    fail(f"{path.name}: {track_name} must combine its date gate and second-track condition with AND")
+            for background in top_level_values(track_entry, "background"):
+                if background.strip('"') != f"GFX_cw_track_{track_name}":
+                    fail(f"{path.name}: {track_name} background {background} must be GFX_cw_track_{track_name}")
+    land_tracks = {
+        f"cw_{school}_{base}{suffix}"
+        for school in DOCTRINE_LAND_SCHOOLS
+        for base in DOCTRINE_LAND_BASE_TRACKS
+        for suffix, _ in DOCTRINE_LAND_ERAS
+    }
+    if len(land_tracks) != 84:
+        fail(f"land tracks must total 84, expected set has {len(land_tracks)}")
+    nonland_total = len(nonland_tracks_expected())
+    if len(tracks) != nonland_total + len(land_tracks):
+        fail(f"doctrine tracks must total {nonland_total + len(land_tracks)}, found {len(tracks)}")
+    if not nonland_tracks_expected() <= tracks:
+        fail(f"missing non-land tracks {sorted(nonland_tracks_expected() - tracks)}")
+    if not land_tracks <= tracks:
+        fail(f"missing land tracks {sorted(land_tracks - tracks)}")
+    for old_track in DOCTRINE_LAND_BASE_TRACKS:
+        if old_track in tracks:
+            fail(f"bare land track {old_track} must not exist")
+    loc = loc_keys()
+    gfx = doctrine_gfx_names()
+    grand_ids: list[str] = []
+    sub_ids: list[str] = []
+    for path in sorted(DOCTRINE_GRAND_DIR.glob("*.txt")):
+        for name, entry in file_entries(text(path), path.name):
+            grand_ids.append(name)
+            children = validate_doctrine_entry(
+                name,
+                entry,
+                path.name,
+                ("folder", "name", "description", "icon", "available", "xp_cost", "xp_type", "ai_will_do", "tracks", "milestones"),
+                loc,
+                gfx,
             )
-        for source, targets in outgoing.items():
-            for target in targets:
-                if target in owners and source in owners and owners[source] != owners[target]:
-                    fail(f"cross-cell land path {source} -> {target}")
-        for row in manifest:
-            cell = row["header"]
-            nodes = {name for name, owner in owners.items() if owner == cell}
-            cell_roots = [name for name in nodes if not any(source in nodes for source in incoming[name])]
-            cell_terminals = [name for name in nodes if not any(target in nodes for target in outgoing[name])]
-            if len(nodes) != row["nodes"]:
-                fail(f"land cell {cell} owns {len(nodes)} nodes, expected {row['nodes']}")
-            if len(cell_roots) != 1 or cell_roots[0] != cell:
-                fail(f"land cell {cell} must have exactly one root at its header")
-            if len(cell_terminals) != 1 or cell_terminals[0] != row["terminal"]:
-                fail(f"land cell {cell} has the wrong terminal: {cell_terminals}")
+            for folder in top_level_values(entry, "folder"):
+                if folder not in DOCTRINE_FOLDERS:
+                    fail(f"{path.name}: {name} folder {folder} is not a doctrine folder")
+            track_tokens = block_tokens(children.get("tracks", ""))
+            for icon in top_level_values(entry, "icon"):
+                if icon.strip('"') != f"GFX_cw_gd_{name}":
+                    fail(f"{path.name}: {name} icon {icon} must be GFX_cw_gd_{name}")
+            if name.removeprefix("cw_") in DOCTRINE_LAND_SCHOOLS:
+                school = name.removeprefix("cw_")
+                expected = [
+                    f"cw_{school}_{base}{suffix}"
+                    for suffix, _ in DOCTRINE_LAND_ERAS
+                    for base in DOCTRINE_LAND_BASE_TRACKS
+                ]
+                if track_tokens != expected:
+                    fail(f"{path.name}: {name} must list {DOCTRINE_LAND_TRACKS_PER_GD} tracks {expected} in order")
+                columns = top_level_values(entry, "max_track_columns")
+                if columns != [str(DOCTRINE_LAND_MAX_COLUMNS)]:
+                    fail(f"{path.name}: {name} must set max_track_columns = {DOCTRINE_LAND_MAX_COLUMNS}, found {columns}")
+                if len(track_tokens) != DOCTRINE_LAND_TRACKS_PER_GD:
+                    fail(f"{path.name}: {name} must have {DOCTRINE_LAND_TRACKS_PER_GD} tracks, found {len(track_tokens)}")
+                if milestones_count_of(children) != DOCTRINE_LAND_TRACKS_PER_GD:
+                    fail(f"{path.name}: {name} must have {DOCTRINE_LAND_TRACKS_PER_GD} milestones")
+            nonland_spec = NONLAND_GRAND_SPECS.get(path.name)
+            if nonland_spec:
+                expected = nonland_era_row_tracks(*nonland_spec)
+                if track_tokens != expected:
+                    fail(f"{path.name}: {name} must list {len(expected)} tracks {expected} in order")
+                columns = top_level_values(entry, "max_track_columns")
+                if columns != [str(len(nonland_spec[0]))]:
+                    fail(f"{path.name}: {name} must set max_track_columns = {len(nonland_spec[0])}, found {columns}")
+                if milestones_count_of(children) != len(expected):
+                    fail(f"{path.name}: {name} must have {len(expected)} milestones")
+            for track in track_tokens:
+                if track not in tracks:
+                    fail(f"{path.name}: {name} references unknown track {track}")
+            milestones = children.get("milestones", "")
+            if milestones and anonymous_child_count(milestones, f"{name}.milestones") != len(track_tokens):
+                fail(f"{path.name}: {name} milestone count must equal its track count {len(track_tokens)}")
+    for path in sorted(DOCTRINE_SUB_DIR.rglob("*.txt")):
+        for name, entry in file_entries(text(path), path.name):
+            sub_ids.append(name)
+            children = validate_doctrine_entry(
+                name,
+                entry,
+                path.name,
+                ("track", "name", "description", "icon", "xp_cost", "xp_type", "available", "ai_will_do", "rewards"),
+                loc,
+                gfx,
+            )
+            for icon in top_level_values(entry, "icon"):
+                if icon.strip('"') != f"GFX_cw_sd_{name}":
+                    fail(f"{path.name}: {name} icon {icon} must be GFX_cw_sd_{name}")
+            sub_tracks = top_level_values(entry, "track") or block_tokens(children.get("track", ""))
+            if len(sub_tracks) > 1 and sub_tracks[0].startswith("cw_") and len(sub_tracks) != len(DOCTRINE_LAND_SCHOOLS):
+                fail(f"{path.name}: {name} multi-track list must hold the {len(DOCTRINE_LAND_SCHOOLS)} school variants of one base track")
+            for track in sub_tracks:
+                if track not in tracks:
+                    fail(f"{path.name}: {name} references unknown track {track}")
+            if sub_tracks and sub_tracks[0] in land_tracks_expected():
+                track_eras = {track[-3:] if track.endswith(("_e2", "_e3")) else "" for track in sub_tracks}
+                available_text = " ".join(top_level_block_text(entry, "available").split())
+                gate_match = re.search(r"date < (\d{4}\.\d+\.\d+)", available_text)
+                gate_era = {"1960.1.1": "_e2", "1980.1.1": "_e3"}.get(gate_match.group(1) if gate_match else "", "")
+                if len(track_eras) != 1 or gate_era not in track_eras:
+                    fail(f"{path.name}: {name} era from available ({gate_era or 'era 1'}) must match track suffix {sorted(track_eras)}")
+            if sub_tracks and sub_tracks[0] in nonland_tracks_expected():
+                fail_message = nonland_subdoctrine_era_error(entry, sub_tracks)
+                if fail_message:
+                    fail(f"{path.name}: {name} {fail_message}")
+            rewards = children.get("rewards", "")
+            if rewards and len(top_level_ranges(rewards, f"{name}.rewards")) != DOCTRINE_REWARD_COUNT:
+                fail(f"{path.name}: {name} must have exactly {DOCTRINE_REWARD_COUNT} named rewards")
+    for path in [*DOCTRINE_GRAND_DIR.glob("*.txt"), *DOCTRINE_SUB_DIR.rglob("*.txt"), *DOCTRINE_TRACK_DIR.glob("*.txt")]:
+        if "special_forces" not in path.name and re.search(r"\bhas_dlc\b", strip_script_comments(text(path))):
+            fail(f"{path.name}: has_dlc is only allowed in special-forces doctrine content")
+    defined = grand_ids + sub_ids
+    for name in sorted({name for name in defined if defined.count(name) > 1}):
+        fail(f"doctrine id {name} is defined more than once")
+    contract_ids: set[str] = set()
+    for line in text(DOCTRINE_DESIGN_FILE).splitlines():
+        contract_ids.update(re.findall(r"`(cw_[a-z0-9_]+)`", line))
+    for name in sorted(contract_ids - set(defined)):
+        fail(f"contract doctrine id {name} is not defined under common/doctrines")
+    for name in sorted(set(defined) - contract_ids):
+        fail(f"doctrine id {name} is not listed in the contract")
 
-        gui_code = strip_script_comments(text(MOD / "interface/countrytechtreeview.gui"))
-        land_folders = named_gui_blocks(gui_code, "containerWindowType", "old_land_doctrine_folder", "countrytechtreeview")
-        if len(land_folders) != 1:
-            fail(f"expected one active old_land_doctrine_folder GUI container, found {len(land_folders)}")
-        else:
-            anchors: dict[str, tuple[int, int]] = {}
-            for grid in top_level_named_blocks(land_folders[0], "gridboxtype", "old_land_doctrine_folder"):
-                name_match = re.search(r'(?m)^\s*name\s*=\s*"([^"]+)"', grid)
-                if not name_match:
-                    fail("land GUI grid anchor has no name")
-                    continue
-                grid_name = name_match.group(1)
-                if not grid_name.endswith("_tree"):
-                    fail(f"unexpected non-cell grid in old_land_doctrine_folder: {grid_name}")
-                    continue
-                technology = grid_name[:-5]
-                position = re.search(
-                    r"\bposition\s*=\s*\{\s*x\s*=\s*(-?[0-9]+)\s*y\s*=\s*(-?[0-9]+)",
-                    grid,
-                )
-                if not position:
-                    fail(f"land GUI anchor {technology} has no position")
-                    continue
-                if technology in anchors:
-                    fail(f"duplicate land GUI anchor: {technology}")
-                anchors[technology] = (int(position.group(1)), int(position.group(2)))
-            expected_anchors = {
-                row["header"]: (row["x"], LAND_ROW_Y.get(row["decade"], -1)) for row in manifest
-            }
-            if anchors != expected_anchors:
-                fail("land GUI anchors or coordinates differ from the reviewed manifest")
 
-    expected_air = {
-        "air_doctrine_versatile": {("has", "air_doctrine_integral"), ("researching", "air_doctrine_integral"), ("has", "air_doctrine_systemic"), ("researching", "air_doctrine_systemic")},
-        "air_doctrine_systemic": {("has", "air_doctrine_integral"), ("researching", "air_doctrine_integral"), ("has", "air_doctrine_versatile"), ("researching", "air_doctrine_versatile")},
-        "air_doctrine_integral": {("has", "air_doctrine_systemic"), ("researching", "air_doctrine_systemic"), ("has", "air_doctrine_versatile"), ("researching", "air_doctrine_versatile")},
-        "air_doctrine_systemic_5a1": {("has", "air_doctrine_systemic_5a2"), ("researching", "air_doctrine_systemic_5a2")},
-        "air_doctrine_systemic_5a2": {("has", "air_doctrine_systemic_5a1"), ("researching", "air_doctrine_systemic_5a1")},
-        "air_doctrine_systemic_5b1": {("has", "air_doctrine_systemic_5b2"), ("researching", "air_doctrine_systemic_5b2")},
-        "air_doctrine_systemic_5b2": {("has", "air_doctrine_systemic_5b1"), ("researching", "air_doctrine_systemic_5b1")},
-        "air_doctrine_integral_2a1": {("has", "air_doctrine_integral_2a2"), ("researching", "air_doctrine_integral_2a2")},
-        "air_doctrine_integral_2a2": {("has", "air_doctrine_integral_2a1"), ("researching", "air_doctrine_integral_2a1")},
-        "air_doctrine_integral_2b1": {("has", "air_doctrine_integral_2b2"), ("researching", "air_doctrine_integral_2b2")},
-        "air_doctrine_integral_2b2": {("has", "air_doctrine_integral_2b1"), ("researching", "air_doctrine_integral_2b1")},
-        "air_doctrine_integral_6a": {("has", "air_doctrine_integral_6b"), ("researching", "air_doctrine_integral_6b")},
-        "air_doctrine_integral_6b": {("has", "air_doctrine_integral_6a"), ("researching", "air_doctrine_integral_6a")},
+def land_tracks_expected() -> set[str]:
+    return {
+        f"cw_{school}_{base}{suffix}"
+        for school in DOCTRINE_LAND_SCHOOLS
+        for base in DOCTRINE_LAND_BASE_TRACKS
+        for suffix, _ in DOCTRINE_LAND_ERAS
     }
-    if air:
-        actual_air = {}
-        for name, block in air.items():
-            allows = top_level_named_blocks(block, "allow", name)
-            if allows:
-                if len(allows) != 1:
-                    fail(f"{name} has duplicate air allow blocks")
-                else:
-                    positive, clauses = parse_allow_signature(allows[0], name)
-                    if positive or len(clauses) != len(set(clauses)):
-                        fail(f"{name} has a malformed air exclusion block")
-                    actual_air[name] = set(clauses)
-        if set(actual_air) != set(expected_air):
-            fail(f"air exclusion block set changed: {sorted(set(actual_air) ^ set(expected_air))}")
-        for name, expected in expected_air.items():
-            if actual_air.get(name) != expected:
-                fail(f"air exclusion semantics changed for {name}")
 
-    expected_naval = {
-        "fleet_in_being": {("has", "trade_interdiction"), ("researching", "trade_interdiction"), ("has", "base_strike"), ("researching", "base_strike")},
-        "trade_interdiction": {("has", "fleet_in_being"), ("researching", "fleet_in_being"), ("has", "base_strike"), ("researching", "base_strike")},
-        "base_strike": {("has", "fleet_in_being"), ("researching", "fleet_in_being"), ("has", "trade_interdiction"), ("researching", "trade_interdiction")},
-    }
-    if naval:
-        actual_naval = {}
-        for name, block in naval.items():
-            allows = top_level_named_blocks(block, "allow", name)
-            if allows:
-                if len(allows) != 1:
-                    fail(f"{name} has duplicate naval allow blocks")
-                else:
-                    positive, clauses = parse_allow_signature(allows[0], name)
-                    if positive or len(clauses) != len(set(clauses)):
-                        fail(f"{name} has a malformed naval exclusion block")
-                    actual_naval[name] = set(clauses)
-        if actual_naval != expected_naval:
-            fail("naval root exclusion semantics changed")
 
-    tags_code = strip_script_comments(text(MOD / "common/technology_tags/00_technology.txt"))
-    gui_code = strip_script_comments(text(MOD / "interface/countrytechtreeview.gui"))
-    for folder, ledger in LEDGER_FOLDERS.items():
-        tag_blocks = key_blocks(tags_code, folder, "technology_tags")
-        if len(tag_blocks) != 1:
-            fail(f"expected one technology tag definition for {folder}")
-        elif top_level_values(tag_blocks[0], "ledger") != [ledger] or top_level_values(tag_blocks[0], "doctrine") != ["no"]:
-            fail(f"{folder} must remain an ordinary {ledger} ledger folder")
-        if len(named_gui_blocks(gui_code, "containerWindowType", folder, "countrytechtreeview")) != 1:
-            fail(f"missing active GUI container for {folder}")
-        tabs = named_gui_blocks(gui_code, "containerWindowType", "folder_tabs", "countrytechtreeview")
-        if len(tabs) != 1:
-            fail("expected one active folder_tabs container")
-        else:
-            button_names = []
-            for button in top_level_named_blocks(tabs[0], "buttonType", "folder_tabs"):
-                name_match = re.search(r'(?m)^\s*name\s*=\s*"([^"]+)"', button)
-                if name_match:
-                    button_names.append(name_match.group(1))
-            if button_names.count(folder + "_tab") != 1:
-                fail(f"missing or duplicate tab registration for {folder}")
-        for suffix in ("_item", "_small_item"):
-            template = "techtree_" + folder + suffix
-            if len(named_gui_blocks(gui_code, "containerWindowType", template, "countrytechtreeview")) != 1:
-                fail(f"missing or duplicate node template for {template}")
+def nonland_tracks_expected() -> set[str]:
+    names: set[str] = set()
+    for base_tracks, eras in NONLAND_GRAND_SPECS.values():
+        for base in base_tracks:
+            for suffix, _ in eras:
+                names.add(f"{base}{suffix}")
+    return names
 
-    gfx_code = strip_script_comments(text(MOD / "interface/CWIC_Doctrines.gfx"))
-    doctrine_sprites = named_gui_blocks(gfx_code, "spriteType", None, "CWIC_Doctrines")
-    doctrine_sprites += named_gui_blocks(gfx_code, "SpriteType", None, "CWIC_Doctrines")
-    for sprite in doctrine_sprites:
-        texture = re.search(r'\btexturefile\s*=\s*"([^"]+)"', sprite)
-        vanilla_placeholder = "gfx/interface/doctrines/icons/doctrine_placeholder.dds"
-        if texture and texture.group(1).startswith("gfx/") and texture.group(1) != vanilla_placeholder and not (MOD / texture.group(1)).is_file():
-            name_match = re.search(r'\bname\s*=\s*"([^"]+)"', sprite)
-            fail(f"missing doctrine icon texture for {name_match.group(1) if name_match else 'unnamed sprite'}")
 
-    if manifest:
-        expected_parent_count = sum(row["parent"] is not None for row in manifest)
-        expected_date_count = sum(row["decade"] > 1940 for row in manifest)
-        if expected_parent_count != 67 or expected_date_count != 70:
-            fail("reviewed land manifest counts changed: expected 67 lineage and 70 date gates")
-        # Static route model: the graph must expose a route to each terminal,
-        # while header conjunctions enforce the reviewed date and lineage.
-        for row in manifest:
-            header = row["header"]
-            terminal = row["terminal"]
-            reachable = {header}
-            frontier = [header]
-            while frontier:
-                node = frontier.pop()
-                for target in outgoing.get(node, []):
-                    if target not in reachable:
-                        reachable.add(target)
-                        frontier.append(target)
-            if terminal not in reachable:
-                fail(f"static route model cannot reach terminal {terminal} from {header}")
+def nonland_track_gates() -> dict[str, str]:
+    gates: dict[str, str] = {}
+    for base_tracks, eras in NONLAND_GRAND_SPECS.values():
+        for base in base_tracks:
+            for suffix, gate in eras:
+                if gate:
+                    gates[f"{base}{suffix}"] = gate
+    return gates
 
-        def model_eligible(row: dict[str, object], year: int, owned: set[str], researching: set[str]) -> bool:
-            if year < row["decade"]:
-                return False
-            parent = row["parent"]
-            if parent is not None and parent not in owned:
-                return False
-            if row["header"] in LAND_ROOTS:
-                rival_roots = set(LAND_ROOTS) - {row["header"]}
-                if rival_roots & (owned | researching):
-                    return False
-            return True
 
-        for year, expected_roots in (
-            (1949, {row["header"] for row in manifest if row["decade"] == 1940}),
-            (1980, {row["header"] for row in manifest if row["header"] in LAND_ROOTS and row["decade"] <= 1980}),
-        ):
-            eligible = {row["header"] for row in manifest if model_eligible(row, year, set(), set())}
-            if eligible != expected_roots:
-                fail(f"static date model has the wrong eligible headers at {year}")
-        for row in manifest:
-            if row["decade"] <= 1940:
-                continue
-            parent_owned = set() if row["parent"] is None else {row["parent"]}
-            if model_eligible(row, row["decade"] - 1, parent_owned, set()):
-                fail(f"static date model accepts {row['header']} before {row['decade']}.1.1")
-            if not model_eligible(row, row["decade"], parent_owned, set()):
-                fail(f"static date model rejects {row['header']} on {row['decade']}.1.1")
-            if row["parent"] is not None and model_eligible(row, row["decade"], set(), set()):
-                fail(f"static lineage model unlocks {row['header']} without its predecessor")
-        for root in LAND_ROOTS:
-            root_row = manifest_by_header.get(root)
-            if root_row is None:
-                continue
-            for rival in set(LAND_ROOTS) - {root}:
-                if model_eligible(root_row, root_row["decade"], {rival}, set()) or model_eligible(root_row, root_row["decade"], set(), {rival}):
-                    fail(f"static root exclusion model permits {root} after {rival}")
-        children_by_parent: dict[str, list[dict[str, object]]] = {}
-        for row in manifest:
-            if row["parent"] is not None:
-                children_by_parent.setdefault(row["parent"], []).append(row)
-        for parent, children in children_by_parent.items():
-            if len(children) < 2:
-                continue
-            year = max(child["decade"] for child in children)
-            if not all(model_eligible(child, year, {parent}, set()) for child in children):
-                fail(f"static sibling model cannot unlock all children of {parent}")
+def nonland_era_row_tracks(base_tracks: tuple[str, ...], eras: tuple[tuple[str, str | None], ...]) -> list[str]:
+    return [f"{base}{suffix}" for suffix, _ in eras for base in base_tracks]
 
-        # Follow each independent root through its manifest descendants. This
-        # permits multiple native branch routes inside a cell without inventing
-        # an all-branches prerequisite for the terminal.
-        for root in LAND_ROOTS:
-            owned_terminals: set[str] = set()
-            completed: set[str] = set()
-            changed = True
-            while changed:
-                changed = False
-                for row in manifest:
-                    if row["header"] in completed:
-                        continue
-                    if row["parent"] is None:
-                        available = row["header"] == root
-                    else:
-                        available = row["parent"] in owned_terminals
-                    if available and model_eligible(row, max(1949, row["decade"]), owned_terminals, set()):
-                        completed.add(row["header"])
-                        owned_terminals.add(row["terminal"])
-                        changed = True
-            expected_family = {root}
-            changed = True
-            while changed:
-                changed = False
-                for row in manifest:
-                    if row["parent"] in {manifest_by_header[name]["terminal"] for name in expected_family} and row["header"] not in expected_family:
-                        expected_family.add(row["header"])
-                        changed = True
-            if completed != expected_family:
-                fail(f"static family route model cannot complete descendants of {root}")
+
+def nonland_subdoctrine_era_error(entry: str, sub_tracks: list[str]) -> str:
+    available_text = " ".join(top_level_block_text(entry, "available").split())
+    gate_match = re.search(r"date < (\d{4}\.\d+\.\d+)", available_text)
+    gate = gate_match.group(1) if gate_match else ""
+    track_eras = {track[-3:] if track.endswith(("_e2", "_e3")) else "" for track in sub_tracks}
+    if sub_tracks[0].startswith("special_forces"):
+        expected = "_e2" if gate else ""
+    else:
+        expected = {"1960.1.1": "_e2", "1980.1.1": "_e3"}.get(gate, "")
+    if track_eras != {expected}:
+        return f"era from available ({gate or 'era 1'}) must match track suffix {sorted(track_eras)}"
+    return ""
+
+
+def top_level_block_text(entry: str, key: str) -> str:
+    match = re.search(rf"(?m)^\s*{key}\s*=\s*\{{", entry)
+    if not match:
+        return ""
+    depth = 1
+    index = match.end()
+    while depth and index < len(entry):
+        depth += (entry[index] == "{") - (entry[index] == "}")
+        index += 1
+    return entry[match.end() : index - 1]
+
+
+def milestones_count_of(children: dict[str, str]) -> int:
+    return anonymous_child_count(children.get("milestones", ""), "milestones")
 
 
 def fail(message: str) -> None:
@@ -4989,12 +4642,7 @@ def expected_tank_types() -> set[str]:
     return result
 
 
-doctrine_files = [
-    TECH_DIR / "land_doctrine.txt",
-    TECH_DIR / "air_doctrine.txt",
-    TECH_DIR / "naval_doctrine.txt",
-]
-key_files = doctrine_files + [
+key_files = [
     TECH_DIR / "NSB_armor.txt",
     TECH_DIR / "NSB_armor_modules.txt",
     TECH_DIR / "armor.txt",
@@ -5015,62 +4663,9 @@ key_files = doctrine_files + [
     *FOCUS_FILES,
 ]
 for candidate in key_files:
-    if candidate in doctrine_files and not candidate.is_file():
-        continue
     brace_balance(candidate)
 
-# Doctrine loader contract. The rework is either active in
-# common/technologies/ or parked in common/technologies/doctrine rework/,
-# which HOI4 does not load. Both are valid; a mix of the two is not.
-parked_dir = TECH_DIR / "doctrine rework"
-active_doctrine = [path for path in doctrine_files if path.is_file() and path.stat().st_size]
-parked_doctrine = sorted(parked_dir.glob("*.txt")) if parked_dir.is_dir() else []
-if active_doctrine and parked_doctrine:
-    fail(
-        "doctrine technologies exist both in common/technologies and in "
-        "common/technologies/doctrine rework; the game would load only the active copy"
-    )
-elif active_doctrine and len(active_doctrine) != len(doctrine_files):
-    missing = sorted(path.name for path in doctrine_files if path not in active_doctrine)
-    fail(f"doctrine rework is active but incomplete; missing: {missing}")
-elif not active_doctrine and not parked_doctrine:
-    fail("doctrine technologies are neither active nor parked")
 
-doctrine_root = MOD / "common/doctrines"
-intentional_empty = {
-    "grand_doctrines/air_grand_doctrines.txt",
-    "grand_doctrines/land_grand_doctrines.txt",
-    "grand_doctrines/sea_grand_doctrines.txt",
-    "grand_doctrines/special_forces_grand_doctrines.txt",
-    "tracks/air_doctrine_track.txt",
-    "tracks/land_doctrine_tracks.txt",
-    "tracks/sea_doctrine_tracks.txt",
-    "tracks/special_forces_tracks.txt",
-    "subdoctrines/air/air_fighter_aircraft_subdoctrines.txt",
-    "subdoctrines/air/air_heavy_aircraft_subdoctrines.txt",
-    "subdoctrines/air/air_medium_aircraft_subdoctrines.txt",
-    "subdoctrines/air/air_strike_aircraft_subdoctrines.txt",
-    "subdoctrines/land/armor_subdoctrines.txt",
-    "subdoctrines/land/combat_support_subdoctrines.txt",
-    "subdoctrines/land/infantry_subdoctrines.txt",
-    "subdoctrines/land/operations_subdoctrines.txt",
-    "subdoctrines/sea/navy_capital_subdoctrines.txt",
-    "subdoctrines/sea/navy_carrier_doctrines.txt",
-    "subdoctrines/sea/navy_screen_doctrines.txt",
-    "subdoctrines/sea/navy_submarine_doctrines.txt",
-    "subdoctrines/special_forces/special_forces_subdoctrines.txt",
-}
-actual_empty = {
-    str(path.relative_to(doctrine_root))
-    for path in doctrine_root.rglob("*.txt")
-    if path.stat().st_size == 0
-}
-if actual_empty != intentional_empty:
-    fail(
-        "zero-byte doctrine override set changed: "
-        f"missing={sorted(intentional_empty - actual_empty)}, "
-        f"unexpected={sorted(actual_empty - intentional_empty)}"
-    )
 
 # Technology IDs, links, folders, and duplicate definitions.
 technology_blocks: list[tuple[str, str, Path]] = []
@@ -5085,70 +4680,18 @@ for name, count in Counter(technology_ids).items():
 technology_set = set(technology_ids)
 for name, block, path in technology_blocks:
     for target in re.findall(r"\bleads_to_tech\s*=\s*([A-Za-z0-9_]+)", code_only(block)):
-        checked_path_files = set(doctrine_files) | {
+        checked_path_files = {
             TECH_DIR / "NSB_armor.txt",
             TECH_DIR / "NSB_armor_modules.txt",
         }
         if path in checked_path_files and target not in technology_set:
             fail(f"undefined technology path {name} -> {target} in {path.name}")
 
-# A cross-decade path plus an allow prerequisite assigns the target to two grid
-# boxes. The engine reports this as "multiple potential grid boxes" at startup.
-land_blocks = {
-    name: block
-    for name, block, path in technology_blocks
-    if path == TECH_DIR / "land_doctrine.txt"
-}
-for source, block in land_blocks.items():
-    source_decade = re.search(r"_(\d{4})s_", source)
-    if not source_decade:
-        continue
-    for target in re.findall(r"\bleads_to_tech\s*=\s*([A-Za-z0-9_]+)", code_only(block)):
-        target_decade = re.search(r"_(\d{4})s_", target)
-        target_block = code_only(land_blocks.get(target, ""))
-        if (
-            target_decade
-            and source_decade.group(1) != target_decade.group(1)
-            and re.search(rf"\bhas_tech\s*=\s*{re.escape(source)}\b", target_block)
-        ):
-            fail(
-                "cross-decade doctrine path duplicates its allow prerequisite: "
-                f"{source} -> {target}"
-            )
-
-doctrine_blocks = [
-    (name, block, path)
-    for name, block, path in technology_blocks
-    if path in set(doctrine_files)
-]
 english_loc_keys = set()
 for path in (MOD / "localisation/english").glob("*.yml"):
     english_loc_keys.update(
         re.findall(r"^\s*([A-Za-z0-9_.-]+):\d*\s", text(path), re.MULTILINE)
     )
-for name, _, path in doctrine_blocks:
-    if name not in english_loc_keys:
-        fail(f"missing English doctrine name for {name} ({path.name})")
-    if f"{name}_desc" not in english_loc_keys:
-        fail(f"missing English doctrine description for {name} ({path.name})")
-
-land_effect_patterns = (
-    r"\bcategory_all_armor\s*=\s*\{",
-    r"\bcategory_all_infantry\s*=\s*\{",
-    r"\bartillery\s*=\s*\{",
-    r"\brecon\s*=\s*\{",
-    r"\bplanning_speed\s*=",
-    r"\bsupply_consumption_factor\s*=",
-)
-for name, block, path in doctrine_blocks:
-    if path == TECH_DIR / "land_doctrine.txt" and not any(
-        re.search(pattern, code_only(block)) for pattern in land_effect_patterns
-    ):
-        fail(f"land doctrine has no gameplay effect: {name}")
-if active_doctrine and re.search(
-    r"\bdefence\s*=", code_only(text(TECH_DIR / "land_doctrine.txt"))
-):
-    fail("land doctrine uses rejected equipment stat spelling 'defence'; use 'defense'")
 
 tag_text = code_only(text(MOD / "common/technology_tags/00_technology.txt"))
 folder_ids = set(re.findall(r"^\s*([A-Za-z0-9_]+)\s*=\s*\{", tag_text, re.MULTILINE))
@@ -5726,8 +5269,6 @@ for row, generation in enumerate(MARINE_ROW_GENERATIONS, 1):
         fail(f"mechanized_marine_equipment_{row} visual_level {levels} must be {generation} to show its own era's model")
 
 validate_doctrine_rework()
-if "--doctrine-self-test" in sys.argv:
-    run_doctrine_negative_fixtures()
 validate_tank_rework()
 if "--tank-self-test" in sys.argv:
     run_tank_negative_fixtures()

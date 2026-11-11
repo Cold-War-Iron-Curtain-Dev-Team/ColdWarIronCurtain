@@ -1,6 +1,35 @@
+# Congress is docked to the politics view and starts open for the player (once per game, so closing it sticks).
+USA_open_congress_by_default = {
+	if = {
+		limit = {
+			tag = USA
+			is_ai = no
+			NOT = { has_country_flag = usa_congress_opened_by_default }
+		}
+		set_country_flag = usa_congress_opened_by_default
+		set_variable = { show_usa_congress = 1 }
+		set_variable = { show_usa_congress_alt = 0 }
+		set_variable = { USA_SEN_POL_DETAILS = 0 }
+		USA_refresh_congress_overview = yes
+	}
+}
+
 # Refresh derived display data without running another election or adding bill support.
 USA_refresh_congress_overview = {
 	senate_caucus_calc = yes
+    USA_refresh_congress_senate_size = yes
+    set_variable = { usa_house_margin = dem_house_caucus }
+    subtract_from_variable = { usa_house_margin = gop_house_caucus }
+    if = {
+        limit = { check_variable = { usa_house_margin < 0 } }
+        multiply_variable = { usa_house_margin = -1 }
+    }
+    set_variable = { usa_senate_margin = senate_dem_caucus }
+    subtract_from_variable = { usa_senate_margin = senate_gop_caucus }
+    if = {
+        limit = { check_variable = { usa_senate_margin < 0 } }
+        multiply_variable = { usa_senate_margin = -1 }
+    }
 	# The engine also expands hidden primary text when creating this window.
 	# Keep its global state target valid even before the first map selection.
 	if = {
@@ -13,13 +42,5 @@ USA_refresh_congress_overview = {
 			ic_election_map_effect = yes
 		}
 	}
-	if = {
-		limit = {
-			has_country_flag = law_passing
-			has_variable = usa_current_legislation
-			NOT = { has_variable = usa_vote_house_required }
-		}
-		USA_recover_congress_vote_metadata = yes
-	}
-	USA_refresh_congress_vote_totals = yes
+    USA_refresh_congress_vote_totals = yes
 }

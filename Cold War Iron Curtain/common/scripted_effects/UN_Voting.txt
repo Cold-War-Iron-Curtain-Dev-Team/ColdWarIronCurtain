@@ -1,19 +1,12 @@
 un_ai_vote_weights ={
-    #var:UNS.un_nation_target is the UN Voting Target
+    #var:UNS.un_vote_subject is the country being judged: the target, or the
+    #state's owner for a state-status vote (set once in UN_BEGIN_VOTE).
     #influence_array^0 is the largest foreign influencer
 
-    if = {
-        limit = {
-            check_variable = { UNS.un_action_set = 9 }
-        }
-        set_variable = {
-            UNS.un_nation_target = UNS.un_state_target_owner
-        }
-    }
     set_variable = {
         ai_un_voting_weight = 0
     }
-    var:UNS.un_nation_target = {
+    var:UNS.un_vote_subject = {
         set_variable = {
             PREV.target_badboy = badboy
         }
@@ -25,18 +18,18 @@ un_ai_vote_weights ={
         text = {
             add_to_variable = { ai_un_voting_weight = THIS.opinion@[CHECKTAG] }
         }
-        CHECKTAG = "[?var:UNS.un_nation_target.GetTag]"
+        CHECKTAG = "[?var:UNS.un_vote_subject.GetTag]"
     }       
     if = {
         limit = {
-            has_war_with = UNS.un_nation_target
+            has_war_with = var:UNS.un_vote_subject
         }
         add_to_variable = { ai_un_voting_weight = -500 }
     }
     if = {
         limit = {
             tag = USA
-            var:UNS.un_nation_target = {
+            var:UNS.un_vote_subject = {
                 tag = ISR
             }
         }
@@ -51,7 +44,7 @@ un_ai_vote_weights ={
             NOT = {
                 has_country_flag = Anti_Apartheid_FP
             }
-            var:UNS.un_nation_target = {
+            var:UNS.un_vote_subject = {
                 tag = SAF
             }
         }
@@ -59,7 +52,7 @@ un_ai_vote_weights ={
     }
     if = {
         limit = {
-            var:UNS.un_nation_target = {
+            var:UNS.un_vote_subject = {
                 is_subject_of = PREV
             }
         }
@@ -67,7 +60,7 @@ un_ai_vote_weights ={
     }
     if = {
         limit = {
-            var:UNS.un_nation_target = {
+            var:UNS.un_vote_subject = {
                 NOT = { check_variable = { influence_array^0 = 0 } }
                 var:influence_array^0 = {
                     tag = PREV.PREV
@@ -80,7 +73,7 @@ un_ai_vote_weights ={
         limit = {
             NOT = { check_variable = { influence_array^0 = 0 } }
             var:influence_array^0 = {
-                tag = var:UNS.un_nation_target
+                tag = var:UNS.un_vote_subject
             }
         }
         add_to_variable = { ai_un_voting_weight = 200 }
@@ -95,7 +88,7 @@ un_ai_vote_weights ={
         }
         if = {
             limit = {
-                var:UNS.un_nation_target = {
+                var:UNS.un_vote_subject = {
                     OR = {
                         has_idea = SEATO_member
                         has_idea = CENTO_member
@@ -107,7 +100,7 @@ un_ai_vote_weights ={
         }
         #if = {
         #    limit = {
-        #        var:UNS.un_nation_target = {
+        #        var:UNS.un_vote_subject = {
         #            OVERLORD = {
         #                OR = {
         #                    has_idea = SEATO_member
@@ -129,7 +122,7 @@ un_ai_vote_weights ={
         }
         if = {
             limit = {
-                var:UNS.un_nation_target = {
+                var:UNS.un_vote_subject = {
                     OR = {
                         has_government = communism
                         has_government = maoism
@@ -141,7 +134,7 @@ un_ai_vote_weights ={
         }
         if = {
             limit = {
-                var:UNS.un_nation_target = {
+                var:UNS.un_vote_subject = {
                     OR = {
                         has_government = fascism
                         has_government = nationalist
@@ -161,7 +154,7 @@ un_ai_vote_weights ={
         }
         if = {
             limit = {
-                var:UNS.un_nation_target = {
+                var:UNS.un_vote_subject = {
                     OR = {
                         has_government = communism
                         has_government = maoism
@@ -173,7 +166,7 @@ un_ai_vote_weights ={
         }
         if = {
             limit = {
-                var:UNS.un_nation_target = {
+                var:UNS.un_vote_subject = {
                     has_government = fascism
                 }
             }
@@ -181,7 +174,7 @@ un_ai_vote_weights ={
         }
         if = {
             limit = {
-                var:UNS.un_nation_target = {
+                var:UNS.un_vote_subject = {
                     OR = {
                         has_idea = SEATO_member
                         has_idea = CENTO_member
@@ -191,6 +184,20 @@ un_ai_vote_weights ={
             }
             add_to_variable = { ai_un_voting_weight = -50 }
         }
+    }
+    # Historical peacekeeping, mediation and observer resolutions passed with broad
+    # support (the Aug 1949 Palestine armistice resolution, S/RES/73, passed 9-0-2),
+    # so members back them unless war or hostility above outweighs it.
+    if = {
+        limit = {
+            check_variable = { UNS.un_historical_resolution_id > 0 }
+            OR = {
+                check_variable = { UNS.un_action_set = 10 }
+                check_variable = { UNS.un_action_set = 11 }
+                check_variable = { UNS.un_action_set = 12 }
+            }
+        }
+        add_to_variable = { ai_un_voting_weight = 75 }
     }
     
     #if = {
@@ -321,7 +328,6 @@ UN_ai_vote_sorting = {
                 check_variable = { UNS.un_action_set = 6 }
                 check_variable = { UNS.un_action_set = 7 }
                 check_variable = { UNS.un_action_set = 8 }
-                check_variable = { UNS.un_action_set = 17 }
             }
         }
         
@@ -496,9 +502,15 @@ UN_ai_vote_sorting = {
     }
 	if = {
         limit = {
+            # Actions that help the target: lifting sanctions, and membership
+            # (membership used to sit with the punitive group, so the
+            # applicant's friends vetoed it).
             OR = {
                 check_variable = { UNS.un_action_set = 14 }
                 check_variable = { UNS.un_action_set = 15 }
+                check_variable = { UNS.un_action_set = 17 }
+                check_variable = { UNS.un_action_set = 18 }
+                check_variable = { UNS.un_action_set = 19 }
             }
         }
             if = {

@@ -14,6 +14,11 @@ on_actions = {
 			cwic_global_monthly_tick = yes
 		}
 	}
+	on_daily = {
+		effect = {
+			cwic_cache_operative_count_flags = yes
+		}
+	}
 	on_monthly = {
 		effect = {
 			# Continue the world tick when the Vatican has been annexed.
@@ -29,11 +34,6 @@ on_actions = {
 			if = {
 				limit = { has_country_flag = coalition_leader }
 				coalition_recount_founders = yes
-			}
-			if = {
-				limit = { NOT = { has_global_flag = cwic_trade_exporter_lists_built } }
-				set_global_flag = { flag = cwic_trade_exporter_lists_built days = 25 }
-				cwic_rebuild_trade_exporter_lists = yes
 			}
 			if = {
 				limit = { NOT = { has_global_flag = cwic_debug_skip_education } }
@@ -71,12 +71,6 @@ on_actions = {
 				limit = {
 					is_ai = no
 				}
-				GDP_Graph_Financial_Tab_Update = yes
-				GDP_Debt_Graph_Financial_Tab_Update = yes
-				Food_Graph_Financial_Tab_Update = yes
-				Income_Graph_Financial_Tab_Update = yes
-				Electricity_Graph_Financial_Tab_Update = yes
-
 				add_to_variable = {
 					Current_Month = 1
 				}
@@ -96,9 +90,11 @@ on_actions = {
 						limit = { NOT = { has_variable = last_year_gdp } }
 						set_variable = { last_year_gdp = grossdomesticproduct }
 						set_variable = { last_year_debt = GDP_Debt_Ratio }
-						set_variable = { last_year_food = FoodBalanceTotal }
-						set_variable = { last_year_electricty = resource@coal }
-						set_variable = { last_year_balance = IncomeCheck }
+					}
+					if = {
+						limit = { NOT = { has_variable = last_year_inflation } }
+						set_variable = { last_year_inflation = CWIC_inflation_mom }
+						set_variable = { last_year_fx_reserves = CWIC_fx_reserves }
 					}
 					#GDP YOY
 					set_variable = {
@@ -120,46 +116,61 @@ on_actions = {
 					set_variable = {
 						last_year_debt = GDP_Debt_Ratio
 					}
-					#Food YOY
-					set_variable = {
-						yoy_change_food = FoodBalanceTotal
+					#Inflation YOY
+					set_variable = { yoy_change_inflation = CWIC_inflation_mom }
+					subtract_from_variable = { yoy_change_inflation = last_year_inflation }
+					set_variable = { last_year_inflation = CWIC_inflation_mom }
+					#FX Reserves YOY
+					set_variable = { yoy_change_fx_reserves = CWIC_fx_reserves }
+					subtract_from_variable = { yoy_change_fx_reserves = last_year_fx_reserves }
+					set_variable = { last_year_fx_reserves = CWIC_fx_reserves }
+				}
+				# Finance graphs: one Month_Label entry per graph sample, so the x-axis lines up
+				# Warm-up: the economy values are not settled on the first monthly ticks, so for
+				# the first two months (and once on saves from before the graph rework) every graph
+				# is re-seeded flat from the current value instead of starting with a cliff
+				if = {
+					limit = { NOT = { check_variable = { finance_graph_warmup > 1 } } }
+					add_to_variable = { finance_graph_warmup = 1 }
+					clear_array = Month_Label
+					clear_array = GDP_history
+					clear_array = Debt_history
+					clear_array = Food_history
+					clear_array = Electricity_history
+					clear_array = Treasury_history
+					clear_array = Inflation_history
+					clear_array = FX_Reserves_history
+				}
+				if = {	# New history: label the 11 padded samples with the preceding months
+					limit = { check_variable = { Month_Label^num = 0 } }
+					set_temp_variable = { seed_month = Current_Month }
+					subtract_from_temp_variable = { seed_month = 11 }
+					if = {
+						limit = { check_variable = { seed_month < 1 } }
+						add_to_temp_variable = { seed_month = 12 }
 					}
-					subtract_from_variable = {
-						yoy_change_food = last_year_food
-					}
-					set_variable = {
-						last_year_food = FoodBalanceTotal
-					}
-					#Electricity YOY
-					set_variable = {
-						yoy_change_electricty = resource@coal
-					}
-					subtract_from_variable = {
-						yoy_change_electricty = last_year_electricty
-					}
-					set_variable = {
-						last_year_electricty = resource@coal
-					}
-					#Balance YOY
-					set_variable = {
-						yoy_change_balance = IncomeCheck
-					}
-					subtract_from_variable = {
-						yoy_change_balance = last_year_balance
-					}
-					set_variable = {
-						last_year_balance = IncomeCheck
+					while_loop_effect = {
+						limit = { check_variable = { Month_Label^num < 11 } }
+						add_to_array = { Month_Label = seed_month }
+						add_to_temp_variable = { seed_month = 1 }
+						if = {
+							limit = { check_variable = { seed_month > 12 } }
+							set_temp_variable = { seed_month = 1 }
+						}
 					}
 				}
-				add_to_array = {
-					Month_Label = Current_Month
-				}
-				if = {	#keeps in balance
-					limit = {
-						check_variable = { month_counter > 20 }
-					}
+				add_to_array = { Month_Label = Current_Month }
+				while_loop_effect = {
+					limit = { check_variable = { Month_Label^num > 20 } }
 					remove_from_array = { array = Month_Label index = 0 }
 				}
+				cwic_refresh_tax_rate_display = yes
+				GDP_Graph_Financial_Tab_Update = yes
+				GDP_Debt_Graph_Financial_Tab_Update = yes
+				set_variable = { finance_graph_daily_pending = 1 }	# Food and Electricity sample in food_pulse.1 tomorrow, once the values settle
+				Treasury_Graph_Financial_Tab_Update = yes
+				Inflation_Graph_Financial_Tab_Update = yes
+				FX_Reserves_Graph_Financial_Tab_Update = yes
 			}
 
 			#ENG = {

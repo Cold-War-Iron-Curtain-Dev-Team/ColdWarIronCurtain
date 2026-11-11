@@ -1,0 +1,65 @@
+###############################################################################
+# Debug: verifies how FROM resolves inside show_major (news relevance tiers).
+# Console:  event cwic_news_test.1
+# Run as a country that is NOT Iraq and NOT bordering Iraq.
+###############################################################################
+add_namespace = cwic_news_test
+
+country_event = {
+	id = cwic_news_test.1
+	title = cwic_news_test.1.t
+	desc = cwic_news_test.1.d
+	is_triggered_only = yes
+
+	option = {
+		name = cwic_news_test.1.a
+		news_event = cwic_news_test.2
+		IRQ = { news_event = cwic_news_test.3 }
+		IRQ = { news_event = cwic_news_test.4 }
+		IRQ = { news_event = cwic_news_test.5 }
+	}
+}
+
+# Control: show_major can never pass. If this appears, show_major is ignored.
+news_event = {
+	id = cwic_news_test.5
+	title = cwic_news_test.5.t
+	desc = cwic_news_test.5.d
+	is_triggered_only = yes
+	major = yes
+	show_major = { always = no }
+	option = { name = cwic_news_test.ok }
+}
+
+# Local, fired by you. Should appear. If it does not, FROM is not the firer in show_major.
+news_event = {
+	id = cwic_news_test.2
+	title = cwic_news_test.2.t
+	desc = cwic_news_test.2.d
+	is_triggered_only = yes
+	major = yes
+	show_major = { CWIC_news_local = yes }
+	option = { name = cwic_news_test.ok }
+}
+
+# World, fired in IRQ scope. Always appears; desc names FROM.
+news_event = {
+	id = cwic_news_test.3
+	title = cwic_news_test.3.t
+	desc = cwic_news_test.3.d
+	is_triggered_only = yes
+	major = yes
+	show_major = { CWIC_news_world = yes }
+	option = { name = cwic_news_test.ok }
+}
+
+# Local, fired in IRQ scope. Should NOT appear (FROM = IRQ). If it appears, FROM = you.
+news_event = {
+	id = cwic_news_test.4
+	title = cwic_news_test.4.t
+	desc = cwic_news_test.4.d
+	is_triggered_only = yes
+	major = yes
+	show_major = { CWIC_news_local = yes }
+	option = { name = cwic_news_test.ok }
+}

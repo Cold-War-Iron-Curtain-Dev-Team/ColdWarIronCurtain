@@ -1,27 +1,44 @@
 # QA harness for the Malayan Emergency. Run from the console with `e <effect_name>`.
 
-# Puts the MNLA one point short of the General Uprising threshold so the gate can be checked.
-test_mla_momentum_near_win = {
+# Liberates four contested states: one short of the General Uprising threshold.
+test_mla_contest_near_win = {
     MLA = {
-        set_variable = { emergency_momentum = 249 }
         set_country_flag = active_insurgency
+        set_country_flag = MLA_final_perak_ready
+        set_country_flag = MLA_final_kuala_lumpur_ready
+        set_country_flag = MLA_final_terengganu_ready
     }
+    791 = { set_variable = { emergency_control = 80 } }
+    960 = { set_variable = { emergency_control = 80 } }
+    1676 = { set_variable = { emergency_control = 80 } }
+    1895 = { set_variable = { emergency_control = 80 } }
+    every_state = {
+        limit = { MAL_emergency_is_contest_state = yes }
+        MAL_emergency_set_control_frame = yes
+    }
+    MLA = { MAL_emergency_recount = yes }
 }
 
-# Puts the MNLA at the General Uprising threshold.
-test_mla_momentum_win = {
-    MLA = {
-        set_variable = { emergency_momentum = 250 }
-        set_country_flag = active_insurgency
-    }
+# Liberates five contested states: the General Uprising threshold.
+test_mla_contest_win = {
+    test_mla_contest_near_win = yes
+    1894 = { set_variable = { emergency_control = 80 } MAL_emergency_set_control_frame = yes }
+    MLA = { MAL_emergency_recount = yes }
 }
 
-# Puts the MNLA at the Final Sweep threshold.
-test_mla_momentum_loss = {
-    MLA = {
-        set_variable = { emergency_momentum = -250 }
-        set_country_flag = active_insurgency
+# Secures seven contested states: the Final Sweep threshold.
+test_mal_contest_win = {
+    MLA = { set_country_flag = active_insurgency }
+    every_state = {
+        limit = {
+            MAL_emergency_is_contest_state = yes
+            NOT = { state = 791 }
+            NOT = { state = 960 }
+        }
+        set_variable = { emergency_control = -80 }
+        MAL_emergency_set_control_frame = yes
     }
+    MLA = { MAL_emergency_recount = yes }
 }
 
 # Seeds cells across the peninsula so the uprising's set_state_controller sweep has targets.
@@ -38,7 +55,7 @@ test_mla_seed_cells = {
 # Full MNLA path: seed cells, bank a plausible operation record, then declare the war.
 test_mla_launch_uprising = {
     test_mla_seed_cells = yes
-    MLA = { set_variable = { MLA_operations_won = 8 } }
+    test_mla_contest_win = yes
     MLA_Launch_General_Uprising = yes
 }
 
@@ -68,11 +85,8 @@ test_mla_reset_emergency = {
         clr_country_flag = Victory_in_Malaysian_Emergency
         remove_ideas = MLA_general_uprising_idea
         remove_ideas = MLA_encirclement
-        set_variable = { emergency_momentum = -40 }
-        set_variable = { MLA_emergency_win_streak = 0 }
-        set_variable = { MLA_emergency_lose_streak = 0 }
-        set_variable = { MLA_operations_won = 0 }
     }
+    MAL_emergency_init_control = yes
     MAL = {
         clr_country_flag = MAL_final_sweep
         clr_country_flag = Victory_in_Malaysian_Emergency
