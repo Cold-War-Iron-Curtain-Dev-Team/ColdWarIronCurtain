@@ -1806,24 +1806,6 @@ ic_calc_trade_exports = {
 		consumer_goods_export_income = 0
 	}
 	set_variable = {
-		oil_exports = 0
-	}
-	set_variable = {
-		aluminium_exports = 0
-	}
-	set_variable = {
-		rubber_exports = 0
-	}
-	set_variable = {
-		tungsten_exports = 0
-	}
-	set_variable = {
-		steel_exports = 0
-	}
-	set_variable = {
-		chromium_exports = 0
-	}
-	set_variable = {
 		cgBasicT0_exports = 0
 	}
 	set_variable = {
@@ -1892,139 +1874,32 @@ ic_calc_trade_exports = {
 	set_variable = {
 		cgElectronicsT5_exports = 0
 	}
-	for_each_scope_loop = {
-		array = Nuclear_Export_List
-		if = {
-			limit = {
-				NOT = {
-					is_in_array = {
-						array = ROOT.Export_List
-						value = THIS.id
-					}
-				}
-			}
-			add_to_array = {
-				ROOT.Export_List = THIS.id
-			}
-			set_temp_variable = {
-				chromium_export_check = 1
-			}
-			ic_bloc_pair_factor = yes
-			set_temp_variable = { bloc_amt = ROOT.chromiumExportTargetMonthly^THIS }
-			multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-			add_to_variable = { ROOT.chromium_exports = bloc_amt }
+	cwic_update_market_refunds = yes
+	if = {
+		limit = {
+			is_ai = no
+			check_variable = { trade_automation = 2 }
 		}
+		cwic_auto_import_native = yes
 	}
-	clear_array = ROOT.Export_List
-	for_each_scope_loop = {
-		array = Food_Export_List
-		if = {
-			limit = {
-				NOT = {
-					is_in_array = {
-						array = ROOT.Export_List
-						value = THIS.id
-					}
-				}
-			}
-			add_to_array = {
-				ROOT.Export_List = THIS.id
-			}
-			ic_bloc_pair_factor = yes
-			set_temp_variable = { bloc_amt = ROOT.foodExportTargetMonthly^THIS }
-			multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-			add_to_variable = { ROOT.rubber_exports = bloc_amt }
-		}
-	}
-	clear_array = ROOT.Export_List
-	for_each_scope_loop = {
-		array = Oil_Export_List
-		if = {
-			limit = {
-				NOT = {
-					is_in_array = {
-						array = ROOT.Export_List
-						value = THIS.id
-					}
-				}
-			}
-			add_to_array = {
-				ROOT.Export_List = THIS.id
-			}
-			ic_bloc_pair_factor = yes
-			set_temp_variable = { bloc_amt = ROOT.oilExportTargetMonthly^THIS }
-			multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-			add_to_variable = { ROOT.oil_exports = bloc_amt }
-		}
-	}
-	clear_array = ROOT.Export_List
-	for_each_scope_loop = {
-		array = Steel_Export_List
-		# FIX 2026-07-05: this loop used a steel_export_check temp flag that
-		# tripped after the FIRST partner, so steel income from every partner
-		# after the first was silently dropped. Now uses the same Export_List
-		# dedupe pattern as the other resource loops.
-		if = {
-			limit = {
-				NOT = {
-					is_in_array = {
-						array = ROOT.Export_List
-						value = THIS.id
-					}
-				}
-			}
-			add_to_array = {
-				ROOT.Export_List = THIS.id
-			}
-			ic_bloc_pair_factor = yes
-			set_temp_variable = { bloc_amt = ROOT.steelExportTargetMonthly^THIS }
-			multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-			add_to_variable = { ROOT.steel_exports = bloc_amt }
-		}
-	}
-	clear_array = ROOT.Export_List
-	for_each_scope_loop = {
-		array = Aluminium_Export_List
-		if = {
-			limit = {
-				NOT = {
-					is_in_array = {
-						array = ROOT.Export_List
-						value = THIS.id
-					}
-				}
-			}
-			add_to_array = {
-				ROOT.Export_List = THIS.id
-			}
-			ic_bloc_pair_factor = yes
-			set_temp_variable = { bloc_amt = ROOT.aluminiumExportTargetMonthly^THIS }
-			multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-			add_to_variable = { ROOT.aluminium_exports = bloc_amt }
-		}
-	}
-	clear_array = ROOT.Export_List
-	for_each_scope_loop = {
-		array = RareEarth_Export_List
-		if = {
-			limit = {
-				NOT = {
-					is_in_array = {
-						array = ROOT.Export_List
-						value = THIS.id
-					}
-				}
-			}
-			add_to_array = {
-				ROOT.Export_List = THIS.id
-			}
-			ic_bloc_pair_factor = yes
-			set_temp_variable = { bloc_amt = ROOT.rareEarthExportTargetMonthly^THIS }
-			multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-			add_to_variable = { ROOT.tungsten_exports = bloc_amt }
-		}
-	}
-	clear_array = ROOT.Export_List
+	set_variable = { cwic_nt_oil_imported = resource_imported@oil }
+	set_variable = { cwic_nt_oil_exported = resource_exported@oil }
+	set_variable = { cwic_nt_steel_imported = resource_imported@steel }
+	set_variable = { cwic_nt_steel_exported = resource_exported@steel }
+	set_variable = { cwic_nt_aluminium_imported = resource_imported@aluminium }
+	set_variable = { cwic_nt_aluminium_exported = resource_exported@aluminium }
+	set_variable = { cwic_nt_tungsten_imported = resource_imported@tungsten }
+	set_variable = { cwic_nt_tungsten_exported = resource_exported@tungsten }
+	set_variable = { cwic_nt_chromium_imported = resource_imported@chromium }
+	set_variable = { cwic_nt_chromium_exported = resource_exported@chromium }
+	set_variable = { cwic_nt_rubber_imported = resource_imported@rubber }
+	set_variable = { cwic_nt_rubber_exported = resource_exported@rubber }
+	set_variable = { oil_exports = { value = cwic_nt_oil_exported multiply = global.oilBasePrice } }
+	set_variable = { steel_exports = { value = cwic_nt_steel_exported multiply = global.steelBasePrice } }
+	set_variable = { aluminium_exports = { value = cwic_nt_aluminium_exported multiply = global.aluminiumBasePrice } }
+	set_variable = { tungsten_exports = { value = cwic_nt_tungsten_exported multiply = global.rareEarthBasePrice } }
+	set_variable = { chromium_exports = { value = cwic_nt_chromium_exported multiply = global.chromiumBasePrice } }
+	set_variable = { rubber_exports = { value = cwic_nt_rubber_exported multiply = global.foodBasePrice } }
 	#Consumer Goods Export Income
 	for_each_scope_loop = {
 		array = CgBasicT0_Export_List
@@ -2570,24 +2445,6 @@ ic_calc_trade_imports = {
 		consumer_goods_import_cost = 0
 	}
 	set_variable = {
-		oil_imports = 0
-	}
-	set_variable = {
-		aluminium_imports = 0
-	}
-	set_variable = {
-		rubber_imports = 0
-	}
-	set_variable = {
-		tungsten_imports = 0
-	}
-	set_variable = {
-		steel_imports = 0
-	}
-	set_variable = {
-		chromium_imports = 0
-	}
-	set_variable = {
 		cgBasicT0_imports = 0
 	}
 	set_variable = {
@@ -2656,48 +2513,13 @@ ic_calc_trade_imports = {
 	set_variable = {
 		cgElectronicsT5_imports = 0
 	}
-	for_each_scope_loop = {
-		array = Food_Import_List
-		ic_bloc_pair_factor = yes
-		set_temp_variable = { bloc_amt = ROOT.foodImportTargetMonthly^THIS }
-		multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-		add_to_variable = { ROOT.rubber_imports = bloc_amt }
-	}
-	for_each_scope_loop = {
-		array = Nuclear_Import_List
-		ic_bloc_pair_factor = yes
-		set_temp_variable = { bloc_amt = ROOT.chromiumImportTargetMonthly^THIS }
-		multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-		add_to_variable = { ROOT.chromium_imports = bloc_amt }
-	}
-	for_each_scope_loop = {
-		array = Oil_Import_List
-		ic_bloc_pair_factor = yes
-		set_temp_variable = { bloc_amt = ROOT.oilImportTargetMonthly^THIS }
-		multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-		add_to_variable = { ROOT.oil_imports = bloc_amt }
-	}
-	for_each_scope_loop = {
-		array = Steel_Import_List
-		ic_bloc_pair_factor = yes
-		set_temp_variable = { bloc_amt = ROOT.steelImportTargetMonthly^THIS }
-		multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-		add_to_variable = { ROOT.steel_imports = bloc_amt }
-	}
-	for_each_scope_loop = {
-		array = Aluminium_Import_List
-		ic_bloc_pair_factor = yes
-		set_temp_variable = { bloc_amt = ROOT.aluminiumImportTargetMonthly^THIS }
-		multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-		add_to_variable = { ROOT.aluminium_imports = bloc_amt }
-	}
-	for_each_scope_loop = {
-		array = RareEarth_Import_List
-		ic_bloc_pair_factor = yes
-		set_temp_variable = { bloc_amt = ROOT.rareEarthImportTargetMonthly^THIS }
-		multiply_temp_variable = { bloc_amt = ROOT.bloc_pair_factor }
-		add_to_variable = { ROOT.tungsten_imports = bloc_amt }
-	}
+	set_variable = { oil_imports = { value = cwic_nt_oil_imported multiply = global.oilBasePrice } }
+	set_variable = { steel_imports = { value = cwic_nt_steel_imported multiply = global.steelBasePrice } }
+	set_variable = { aluminium_imports = { value = cwic_nt_aluminium_imported multiply = global.aluminiumBasePrice } }
+	set_variable = { tungsten_imports = { value = cwic_nt_tungsten_imported multiply = global.rareEarthBasePrice } }
+	set_variable = { chromium_imports = { value = cwic_nt_chromium_imported multiply = global.chromiumBasePrice } }
+	set_variable = { rubber_imports = { value = cwic_nt_rubber_imported multiply = global.foodBasePrice } }
+	set_variable = { cwic_raw_import_cost = { value = oil_imports add = steel_imports add = aluminium_imports add = tungsten_imports add = chromium_imports add = rubber_imports } }
 
 	#Consumer Goods Import Costs
 	for_each_scope_loop = {
