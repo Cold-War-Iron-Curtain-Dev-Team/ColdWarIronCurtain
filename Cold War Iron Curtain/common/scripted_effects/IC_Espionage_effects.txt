@@ -1370,12 +1370,7 @@ CWIC_espionage_dispatch_operation_outcome = {
 				paramilitary_slot_one_bulletin = 1
 			}
 			#Actual Effects add to script GLADIO_MEMBER_POSITION_CURRENT GLADIO_MEMBER_POSITION_HISTORY
-			var:history_target = {
-				meta_effect = {
-                    text = { remove_unit_leader = [LEADER_ID] }
-                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
-                }
-			}
+			var:history_personnel_target = { retire = yes }
 		}
 		else = {	#Failure
 			set_variable = {
@@ -1554,12 +1549,7 @@ CWIC_espionage_dispatch_operation_outcome = {
 				paramilitary_slot_one_bulletin = 1
 			}
 			#Actual Effects add to script GLADIO_MEMBER_POSITION_CURRENT GLADIO_MEMBER_POSITION_HISTORY
-			var:history_target = {
-				meta_effect = {
-                    text = { remove_unit_leader = [LEADER_ID] }
-                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
-                }
-			}
+			var:history_personnel_target = { retire = yes }
 		}
 		else = {	#Failure
 			set_variable = {
@@ -4161,12 +4151,7 @@ CWIC_espionage_dispatch_operation_outcome = {
             slot_1_operation_success_shared_effect = yes
 
             #Specific Effects
-			var:history_target = {
-				meta_effect = {
-                    text = { remove_unit_leader = [LEADER_ID] }
-                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
-                }
-			}
+			var:history_personnel_target = { retire = yes }
             #End
             refresh_possible_mission_types = yes
 		}
@@ -4188,12 +4173,7 @@ CWIC_espionage_dispatch_operation_outcome = {
             slot_1_operation_success_shared_effect = yes
 
             #Specific Effects
-			var:history_target = {
-				meta_effect = {
-                    text = { remove_unit_leader = [LEADER_ID] }
-                    LEADER_ID = "[?ROOT.history_personnel_target|0]"
-                }
-			}
+			var:history_personnel_target = { retire = yes }
             #End
             refresh_possible_mission_types = yes
 		}
@@ -4461,6 +4441,7 @@ CWIC_espionage_dispatch_operation_outcome = {
             slot_1_operation_success_shared_effect = yes
 
             #Specific Effects
+			var:history_personnel_target = { save_global_event_target_as = CWIC_esp_terror_state }
 			var:history_target = {
 				country_event = Generic_Terrorist_Attack.0
 				news_event = Generic_Terrorist_Attack.1
@@ -4706,8 +4687,58 @@ CWIC_espionage_dispatch_operation_outcome = {
             slot_1_operation_failure_effect = yes
         }
 	}
-		#Insurgency Embed
-		#Counter-Espionage Emded
+	if = {
+		limit = {
+			check_variable = {
+				current_token = 18 #Insurgency Embed
+			}
+		}
+
+		if = {	#Success
+			limit = {
+				check_variable = { slot_one_successful = 1 }
+			}
+            slot_1_operation_success_shared_effect = yes
+
+            #Specific Effects: the squad rides with the movement for a year and
+            #the local network grows from its contacts.
+			var:history_personnel_target = {
+				set_country_flag = { flag = CWIC_esp_insurgency_embed_@ROOT value = 1 days = 365 }
+			}
+			add_to_variable = { network_strength^history_target = 0.10 }
+			clamp_variable = { var = network_strength^history_target min = 0 max = 1 }
+            #End
+            refresh_possible_mission_types = yes
+		}
+        else = {	#Failure
+            slot_1_operation_failure_effect = yes
+        }
+	}
+	if = {
+		limit = {
+			check_variable = {
+				current_token = 19 #Counter-Espionage Embed
+			}
+		}
+
+		if = {	#Success
+			limit = {
+				check_variable = { slot_one_successful = 1 }
+			}
+            slot_1_operation_success_shared_effect = yes
+
+            #Specific Effects: a year inside the target's service offsets its
+            #counter-intelligence (CWIC_espionage_update_counter_intelligence).
+			var:history_target = {
+				set_country_flag = { flag = CWIC_esp_ci_embed_@ROOT value = 1 days = 365 }
+			}
+            #End
+            refresh_possible_mission_types = yes
+		}
+        else = {	#Failure
+            slot_1_operation_failure_effect = yes
+        }
+	}
 	if = {
 		limit = {
 			check_variable = {
@@ -4917,24 +4948,17 @@ add_local_uprising_operations = {
 add_terrorist_attack_operations = {
 	for_each_scope_loop = {
 		array = controlled_states
-		for_each_loop = {
-			array = vp_provinces
-			if = {
-				limit = {
-					check_variable = {
-						vp_values^i > 0
-					}
-				}
-				add_to_array = { ROOT.local_possible_operations = 13 }
-				add_to_array = { ROOT.local_possible_operations_risk_level = 6 }
-				add_to_array = { ROOT.local_possible_operations_operation_type = 21 }
-				add_to_array = { ROOT.local_possible_operations_money_cost = 100 }
-				add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
+		if = {
+			limit = { check_variable = { vp_provinces^num > 0 } }
+			add_to_array = { ROOT.local_possible_operations = 13 }
+			add_to_array = { ROOT.local_possible_operations_risk_level = 6 }
+			add_to_array = { ROOT.local_possible_operations_operation_type = 21 }
+			add_to_array = { ROOT.local_possible_operations_money_cost = 100 }
+			add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
 
-				add_to_array = { ROOT.local_possible_operations_id_token = 13 }
-				add_to_array = { ROOT.local_possible_operations_personnel_target = v }
-				add_to_array = { ROOT.local_possible_operations_target = PREV.id }
-			}
+			add_to_array = { ROOT.local_possible_operations_id_token = 13 }
+			add_to_array = { ROOT.local_possible_operations_personnel_target = THIS }
+			add_to_array = { ROOT.local_possible_operations_target = PREV.id }
 		}
 	}
 }
@@ -5118,12 +5142,37 @@ add_arm_local_resistance_operations = {
 
 #Embed into Insurgency
 Make_Embed_into_Insurgency_List = {
+	# Target scope. check_active_insurgency_list fills Active_Insurgencies from the
+	# target's insurgency flags; nothing else calls it.
+	check_active_insurgency_list = yes
+	for_each_loop = {
+		array = Active_Insurgencies
+		add_to_array = { ROOT.local_possible_operations = 18 }
+		add_to_array = { ROOT.local_possible_operations_risk_level = 4 }
+		add_to_array = { ROOT.local_possible_operations_operation_type = 1 }
+		add_to_array = { ROOT.local_possible_operations_money_cost = 25 }
+		add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
 
+		add_to_array = { ROOT.local_possible_operations_id_token = 18 }
+		add_to_array = { ROOT.local_possible_operations_personnel_target = v }
+		add_to_array = { ROOT.local_possible_operations_target = THIS.id }
+	}
 }
 
 #Counter Espionage Embed
 Make_Into_Counter_Espionage_Embed = {
+	if = {
+		limit = { has_intelligence_agency = yes }
+		add_to_array = { ROOT.local_possible_operations = 19 }
+		add_to_array = { ROOT.local_possible_operations_risk_level = 5 }
+		add_to_array = { ROOT.local_possible_operations_operation_type = 25 }
+		add_to_array = { ROOT.local_possible_operations_money_cost = 40 }
+		add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
 
+		add_to_array = { ROOT.local_possible_operations_id_token = 19 }
+		add_to_array = { ROOT.local_possible_operations_personnel_target = THIS }
+		add_to_array = { ROOT.local_possible_operations_target = THIS.id }
+	}
 }
 Make_Local_Insurgency_List = {
 	add_to_array = { Insurgency_Tag_List = CRO.id }

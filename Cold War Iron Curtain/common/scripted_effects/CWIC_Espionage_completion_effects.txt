@@ -47,6 +47,7 @@ CWIC_espionage_add_generic_category = {
 			add_dockyard_sabotage_operations = yes
 			add_port_sabotage_operations = yes
 			add_infrastructure_sabotage_operations = yes
+			add_railway_sabotage_operations = yes
 		}
 	}
 	else_if = {
@@ -60,7 +61,9 @@ CWIC_espionage_add_generic_category = {
 		var:generic_operations_selected_target = {
 			add_local_uprising_operations = yes
 			add_local_resistance_contacts_operations = yes
+			add_train_local_resistance_operations = yes
 			add_arm_local_resistance_operations = yes
+			add_counter_insurgency_operations = yes
 		}
 	}
 	else_if = {
@@ -847,5 +850,355 @@ CWIC_espionage_show_next_bulletin = {
 		set_variable = { current_page = selected_squad_slot_1_Current_Page_Ref }
 		set_variable = { paramilitary_slot_one_bulletin = 1 }
 		CWIC_espionage_mark_gui_dirty = yes
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Stage 5: generic operation builders that had no source. Both run in the
+# target country's scope like the other add_*_operations effects.
+
+# 21: help an ally hold down its own insurgents.
+add_counter_insurgency_operations = {
+	if = {
+		limit = { is_in_faction_with = ROOT }
+		for_each_scope_loop = {
+			array = controlled_states
+			if = {
+				limit = { has_active_resistance = yes }
+				add_to_array = { ROOT.local_possible_operations = 21 }
+				add_to_array = { ROOT.local_possible_operations_risk_level = 3 }
+				add_to_array = { ROOT.local_possible_operations_operation_type = 25 }
+				add_to_array = { ROOT.local_possible_operations_money_cost = 30 }
+				add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
+
+				add_to_array = { ROOT.local_possible_operations_id_token = 21 }
+				add_to_array = { ROOT.local_possible_operations_personnel_target = THIS }
+				add_to_array = { ROOT.local_possible_operations_target = PREV.id }
+			}
+		}
+	}
+}
+
+# 22: railways.
+add_railway_sabotage_operations = {
+	for_each_scope_loop = {
+		array = controlled_states
+		if = {
+			limit = { rail_way > 0 }
+			add_to_array = { ROOT.local_possible_operations = 22 }
+			add_to_array = { ROOT.local_possible_operations_risk_level = 4 }
+			add_to_array = { ROOT.local_possible_operations_operation_type = 12 }
+			add_to_array = { ROOT.local_possible_operations_money_cost = 40 }
+			add_to_array = { ROOT.local_possible_operations_repeatable_condition = 2 }
+
+			add_to_array = { ROOT.local_possible_operations_id_token = 22 }
+			add_to_array = { ROOT.local_possible_operations_personnel_target = THIS }
+			add_to_array = { ROOT.local_possible_operations_target = PREV.id }
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Stage 6: a service granted mid-game (focus or decision). Gives the vanilla
+# agency if missing, the generic project and a Western-style recruit pool.
+CWIC_espionage_grant_service = {
+	set_country_flag = cwic_esp_service
+	if = {
+		limit = { has_intelligence_agency = no }
+		create_intelligence_agency = yes
+	}
+	if = {
+		limit = { NOT = { is_in_array = { black_ops_project_list = 100 } } }
+		add_to_array = { black_ops_project_list = 100 }
+	}
+	if = {
+		limit = { check_variable = { espionage_paramilitary_operative_type^num = 0 } }
+		add_to_array = { espionage_paramilitary_operative_type = 160 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 161 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 162 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 163 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 164 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 165 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 166 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+		add_to_array = { espionage_paramilitary_operative_type = 167 }
+		add_to_array = { espionage_paramilitary_operative_name_type = THIS.id }
+	}
+	CWIC_espionage_mark_gui_dirty = yes
+}
+
+# Yemen's victory focus called this; it was never defined.
+create_intelligence_agency_effect = {
+	CWIC_espionage_grant_service = yes
+}
+
+# ---------------------------------------------------------------------------
+# Stage 7: AI driver. AI services run headless: no squads, characters, bulletin
+# or money. Every 60-120 days (divided by their squad count) they pick a target
+# from a yearly list and resolve one allowed operation on the spot, with the
+# same detection consequences a player suffers.
+
+CWIC_espionage_ai_tick = {
+	if = {
+		limit = { NOT = { has_variable = esp_ai_squads } }
+		set_variable = { esp_ai_squads = 1 }
+		if = { limit = { is_major = yes } add_to_variable = { esp_ai_squads = 1 } }
+		if = { limit = { agency_upgrade_number > 5 } add_to_variable = { esp_ai_squads = 1 } }
+		set_variable = { esp_ai_quality = 1 }
+		set_variable_to_random = { var = CWIC_esp_ai_wait min = 30 max = 90 integer = yes }
+		set_variable = { CWIC_esp_ai_next_days = global.num_days }
+		add_to_variable = { CWIC_esp_ai_next_days = CWIC_esp_ai_wait }
+	}
+	if = {
+		limit = { NOT = { check_variable = { global.num_days < CWIC_esp_ai_next_days } } }
+		# next action
+		set_variable_to_random = { var = CWIC_esp_ai_wait min = 60 max = 120 integer = yes }
+		divide_variable = { CWIC_esp_ai_wait = esp_ai_squads }
+		round_variable = CWIC_esp_ai_wait
+		set_variable = { CWIC_esp_ai_next_days = global.num_days }
+		add_to_variable = { CWIC_esp_ai_next_days = CWIC_esp_ai_wait }
+		# experience: a tenth of the ticks raise the service's quality, up to 3
+		set_variable_to_random = CWIC_esp_ai_roll
+		if = {
+			limit = { check_variable = { CWIC_esp_ai_roll < 0.1 } check_variable = { esp_ai_quality < 3 } }
+			add_to_variable = { esp_ai_quality = 1 }
+		}
+		# targets, refreshed yearly
+		if = {
+			limit = {
+				OR = {
+					NOT = { has_variable = CWIC_esp_ai_target_refresh }
+					check_variable = { CWIC_esp_ai_target_refresh < global.num_days }
+				}
+			}
+			CWIC_espionage_ai_refresh_targets = yes
+		}
+		if = {
+			limit = { check_variable = { CWIC_esp_ai_targets^num > 0 } }
+			set_variable_to_random = CWIC_esp_ai_pick
+			multiply_variable = { CWIC_esp_ai_pick = CWIC_esp_ai_targets^num }
+			subtract_from_variable = { CWIC_esp_ai_pick = 0.5 }
+			round_variable = CWIC_esp_ai_pick
+			set_variable = { CWIC_esp_ai_max = CWIC_esp_ai_targets^num }
+			subtract_from_variable = { CWIC_esp_ai_max = 1 }
+			clamp_variable = { var = CWIC_esp_ai_pick min = 0 max = CWIC_esp_ai_max }
+			set_variable = { CWIC_esp_ai_target = CWIC_esp_ai_targets^CWIC_esp_ai_pick }
+			if = {
+				limit = { var:CWIC_esp_ai_target = { exists = yes } }
+				CWIC_espionage_ai_resolve = yes
+			}
+		}
+	}
+}
+
+# Console: effect <TAG> CWIC_espionage_ai_force
+CWIC_espionage_ai_force = {
+	set_variable = { CWIC_esp_ai_next_days = 0 }
+	CWIC_espionage_ai_tick = yes
+}
+
+CWIC_espionage_ai_refresh_targets = {
+	clear_array = CWIC_esp_ai_targets
+	every_country = {
+		limit = {
+			NOT = { tag = ROOT }
+			exists = yes
+			NOT = { is_subject_of = ROOT }
+			NOT = { is_in_faction_with = ROOT }
+			NOT = { has_opinion = { target = ROOT value > 50 } }
+			OR = {
+				has_war_with = ROOT
+				AND = {
+					is_major = yes
+					NOT = { has_opinion = { target = ROOT value > 0 } }
+				}
+				AND = {
+					is_neighbor_of = ROOT
+					NOT = { has_opinion = { target = ROOT value > 0 } }
+				}
+			}
+		}
+		add_to_array = { ROOT.CWIC_esp_ai_targets = THIS }
+		if = {
+			limit = { has_war_with = ROOT }
+			add_to_array = { ROOT.CWIC_esp_ai_targets = THIS }
+			add_to_array = { ROOT.CWIC_esp_ai_targets = THIS }
+		}
+		else_if = {
+			limit = { is_major = yes }
+			add_to_array = { ROOT.CWIC_esp_ai_targets = THIS }
+		}
+	}
+	set_variable = { CWIC_esp_ai_target_refresh = global.num_days }
+	add_to_variable = { CWIC_esp_ai_target_refresh = 365 }
+}
+
+CWIC_espionage_ai_resolve = {
+	# the operation
+	set_variable = { CWIC_esp_ai_op = 0 }
+	random_list = {
+		15 = {
+			trigger = { NOT = { check_variable = { espionage_network_status^CWIC_esp_ai_target = 1 } } }
+			set_variable = { CWIC_esp_ai_op = 1 }
+		}
+		15 = {
+			trigger = { check_variable = { espionage_network_status^CWIC_esp_ai_target = 1 } }
+			set_variable = { CWIC_esp_ai_op = 2 }
+		}
+		8 = { set_variable = { CWIC_esp_ai_op = 7 } }
+		8 = { set_variable = { CWIC_esp_ai_op = 8 } }
+		6 = { set_variable = { CWIC_esp_ai_op = 9 } }
+		8 = { set_variable = { CWIC_esp_ai_op = 11 } }
+		8 = { set_variable = { CWIC_esp_ai_op = 12 } }
+		6 = { set_variable = { CWIC_esp_ai_op = 22 } }
+		8 = { set_variable = { CWIC_esp_ai_op = 19 } }
+		10 = { set_variable = { CWIC_esp_ai_op = 20 } }
+		10 = {
+			trigger = { has_war_with = var:CWIC_esp_ai_target }
+			set_variable = { CWIC_esp_ai_op = 3 }
+		}
+		12 = {
+			trigger = { has_war_with = var:CWIC_esp_ai_target }
+			set_variable = { CWIC_esp_ai_op = 16 }
+		}
+	}
+	# chances: quality and the target's counter-intelligence
+	set_variable = { selected_operation_index_target = CWIC_esp_ai_target }
+	CWIC_espionage_update_counter_intelligence = yes
+	set_variable = { CWIC_esp_ai_success = 0.45 }
+	set_variable = { CWIC_esp_ai_temp = esp_ai_quality }
+	multiply_variable = { CWIC_esp_ai_temp = 0.08 }
+	add_to_variable = { CWIC_esp_ai_success = CWIC_esp_ai_temp }
+	subtract_from_variable = { CWIC_esp_ai_success = CWIC_espionage_ci_penalty }
+	clamp_variable = { var = CWIC_esp_ai_success min = 0.1 max = 0.9 }
+	set_variable = { CWIC_esp_ai_detection = 0.35 }
+	set_variable = { CWIC_esp_ai_temp = esp_ai_quality }
+	multiply_variable = { CWIC_esp_ai_temp = 0.05 }
+	subtract_from_variable = { CWIC_esp_ai_detection = CWIC_esp_ai_temp }
+	add_to_variable = { CWIC_esp_ai_detection = CWIC_espionage_ci_penalty }
+	clamp_variable = { var = CWIC_esp_ai_detection min = 0.05 max = 0.9 }
+	set_variable_to_random = CWIC_esp_ai_roll
+	if = {
+		limit = { check_variable = { CWIC_esp_ai_roll < CWIC_esp_ai_success } }
+		CWIC_espionage_ai_apply_outcome = yes
+	}
+	set_variable_to_random = CWIC_esp_ai_roll
+	if = {
+		limit = { check_variable = { CWIC_esp_ai_roll < CWIC_esp_ai_detection } }
+		var:CWIC_esp_ai_target = {
+			add_opinion_modifier = { target = ROOT modifier = CWIC_espionage_detected_operation }
+			set_country_flag = { flag = CWIC_esp_ci_alert_@ROOT value = 1 days = 180 }
+		}
+		subtract_from_variable = { network_strength^CWIC_esp_ai_target = 0.05 }
+		clamp_variable = { var = network_strength^CWIC_esp_ai_target min = 0 max = 1 }
+	}
+}
+
+CWIC_espionage_ai_apply_outcome = {
+	if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 1 } }
+		set_variable = { espionage_network_status^CWIC_esp_ai_target = 1 }
+		if = {
+			limit = { check_variable = { network_strength^CWIC_esp_ai_target < 0.15 } }
+			set_variable = { network_strength^CWIC_esp_ai_target = 0.15 }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 2 } }
+		add_to_variable = { network_strength^CWIC_esp_ai_target = 0.05 }
+		clamp_variable = { var = network_strength^CWIC_esp_ai_target min = 0 max = 1 }
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 7 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { air_base > 0 }
+				damage_building = { type = air_base damage = 2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 8 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { arms_factory > 0 }
+				damage_building = { type = arms_factory damage = 2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 9 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { dockyard > 0 }
+				damage_building = { type = dockyard damage = 2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 11 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { industrial_complex > 0 }
+				damage_building = { type = industrial_complex damage = 2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 12 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { infrastructure > 0 }
+				damage_building = { type = infrastructure damage = 2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 22 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { rail_way > 0 }
+				damage_building = { type = rail_way damage = 2 }
+			}
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 19 } }
+		var:CWIC_esp_ai_target = {
+			set_country_flag = { flag = CWIC_esp_ci_embed_@ROOT value = 1 days = 365 }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 20 } }
+		steal_random_tech_bonus = {
+			folder = electronics_folder
+			folder = industry_folder
+			bonus = 0.5
+			base_bonus = 0.1
+			target = var:CWIC_esp_ai_target
+			dynamic = yes
+			uses = 1
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 3 } }
+		var:CWIC_esp_ai_target = {
+			random_army_leader = { retire = yes }
+		}
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_ai_op = 16 } }
+		var:CWIC_esp_ai_target = {
+			random_owned_controlled_state = {
+				limit = { has_active_resistance = yes }
+				add_resistance = 10
+			}
+		}
 	}
 }
