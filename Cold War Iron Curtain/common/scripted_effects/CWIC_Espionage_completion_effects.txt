@@ -229,6 +229,16 @@ CWIC_espionage_after_action = {
 # launch read the same CWIC_espionage_ci_penalty.
 CWIC_espionage_update_counter_intelligence = {
 	set_variable = { CWIC_espionage_ci_penalty = 0 }
+	# Operation slots: one, plus one with at least two squads, plus one with four agency upgrades.
+	set_variable = { CWIC_espionage_slot_cap = 1 }
+	if = {
+		limit = { check_variable = { num_espionage_paramilitary_squads > 1 } }
+		add_to_variable = { CWIC_espionage_slot_cap = 1 }
+	}
+	if = {
+		limit = { agency_upgrade_number > 3 }
+		add_to_variable = { CWIC_espionage_slot_cap = 1 }
+	}
 	if = {
 		limit = { var:selected_operation_index_target = { exists = yes } }
 		var:selected_operation_index_target = {
@@ -466,5 +476,376 @@ CWIC_espionage_pick_national_t3 = {
 			CURRENT_PAGE = "[?current_page]"
 			SQUAD_POSITION = "[?squad_position]"
 		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Stage 4: operation slots 2 and 3.
+#
+# slot_one_* stay the working registers that launch, closeout and the bulletin
+# use. Each launch copies them into esp_sN_* for the slot it took, and that
+# slot's mission timeout loads them back before the closeout runs. The slot cap
+# is computed on the GUI path (CWIC_espionage_update_counter_intelligence).
+
+CWIC_espionage_pick_free_slot = {
+	set_variable = { CWIC_esp_launch_slot = 0 }
+	if = {
+		limit = {
+			NOT = { has_active_mission = Espionage_Operation_Slot_1 }
+			check_variable = { esp_s1_active = 0 }
+		}
+		set_variable = { CWIC_esp_launch_slot = 1 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { CWIC_espionage_slot_cap > 1 }
+			NOT = { has_active_mission = Espionage_Operation_Slot_2 }
+			check_variable = { esp_s2_active = 0 }
+		}
+		set_variable = { CWIC_esp_launch_slot = 2 }
+	}
+	else_if = {
+		limit = {
+			check_variable = { CWIC_espionage_slot_cap > 2 }
+			NOT = { has_active_mission = Espionage_Operation_Slot_3 }
+			check_variable = { esp_s3_active = 0 }
+		}
+		set_variable = { CWIC_esp_launch_slot = 3 }
+	}
+}
+
+# Called by launch_operation_effect in place of a fixed activate_mission.
+CWIC_espionage_activate_slot_mission = {
+	CWIC_espionage_pick_free_slot = yes
+	if = {
+		limit = { check_variable = { CWIC_esp_launch_slot = 2 } }
+		activate_mission = Espionage_Operation_Slot_2
+		CWIC_espionage_store_slot_2 = yes
+	}
+	else_if = {
+		limit = { check_variable = { CWIC_esp_launch_slot = 3 } }
+		activate_mission = Espionage_Operation_Slot_3
+		CWIC_espionage_store_slot_3 = yes
+	}
+	else = {
+		set_variable = { CWIC_esp_launch_slot = 1 }
+		activate_mission = Espionage_Operation_Slot_1
+		CWIC_espionage_store_slot_1 = yes
+	}
+}
+
+CWIC_espionage_store_slot_1 = {
+	set_variable = { esp_s1_active = 1 }
+	set_variable = { esp_s1_slot_one_operation_active = slot_one_operation_active }
+	set_variable = { esp_s1_slot_one_target = slot_one_target }
+	set_variable = { esp_s1_slot_one_personnel_target = slot_one_personnel_target }
+	set_variable = { esp_s1_selected_squad_slot_1_Current_Page_Ref = selected_squad_slot_1_Current_Page_Ref }
+	set_variable = { esp_s1_selected_squad_slot_1 = selected_squad_slot_1 }
+	set_variable = { esp_s1_slot_one_mission_token = slot_one_mission_token }
+	set_variable = { esp_s1_slot_one_risk = slot_one_risk }
+	set_variable = { esp_s1_slot_one_success_chance = slot_one_success_chance }
+	set_variable = { esp_s1_slot_one_detection_chance = slot_one_detection_chance }
+	set_variable = { esp_s1_slot_1_casualty_chance = slot_1_casualty_chance }
+	set_variable = { esp_s1_slot_one_money_cost = slot_one_money_cost }
+	set_variable = { esp_s1_slot_one_time_duration = slot_one_time_duration }
+	set_variable = { esp_s1_slot_one_mission_type = slot_one_mission_type }
+	set_variable = { esp_s1_slot_one_outcome_strength = slot_one_outcome_strength }
+	set_variable = { esp_s1_slot_one_escape_bonus = slot_one_escape_bonus }
+	set_variable = { esp_s1_slot_one_kia_reduction = slot_one_kia_reduction }
+	set_variable = { esp_s1_slot_one_recovery_bonus = slot_one_recovery_bonus }
+	set_variable = { esp_s1_slot_one_member_1_kia_reduction = slot_one_member_1_kia_reduction }
+	set_variable = { esp_s1_slot_one_member_2_kia_reduction = slot_one_member_2_kia_reduction }
+	set_variable = { esp_s1_slot_one_member_3_kia_reduction = slot_one_member_3_kia_reduction }
+	set_variable = { esp_s1_slot_one_member_4_kia_reduction = slot_one_member_4_kia_reduction }
+	set_variable = { esp_s1_slot_one_member_5_kia_reduction = slot_one_member_5_kia_reduction }
+	set_variable = { esp_s1_slot_one_member_1_casualty = slot_one_member_1_casualty }
+	set_variable = { esp_s1_slot_one_member_2_casualty = slot_one_member_2_casualty }
+	set_variable = { esp_s1_slot_one_member_3_casualty = slot_one_member_3_casualty }
+	set_variable = { esp_s1_slot_one_member_4_casualty = slot_one_member_4_casualty }
+	set_variable = { esp_s1_slot_one_member_5_casualty = slot_one_member_5_casualty }
+	set_variable = { esp_s1_slot_one_training_bonus = slot_one_training_bonus }
+	set_variable = { esp_s1_slot_one_smuggling_bonus = slot_one_smuggling_bonus }
+	set_variable = { esp_s1_slot_one_resistance_bonus = slot_one_resistance_bonus }
+	set_variable = { esp_s1_slot_one_damage = slot_one_damage }
+	set_variable = { esp_s1_slot_one_stability_hit = slot_one_stability_hit }
+	set_variable = { esp_s1_slot_one_modifier_days = slot_one_modifier_days }
+	set_variable = { esp_s1_slot_one_snapshot_version = slot_one_snapshot_version }
+}
+CWIC_espionage_load_slot_1 = {
+	if = {
+		limit = { check_variable = { esp_s1_active = 1 } }
+		set_variable = { slot_one_operation_active = esp_s1_slot_one_operation_active }
+		set_variable = { slot_one_target = esp_s1_slot_one_target }
+		set_variable = { slot_one_personnel_target = esp_s1_slot_one_personnel_target }
+		set_variable = { selected_squad_slot_1_Current_Page_Ref = esp_s1_selected_squad_slot_1_Current_Page_Ref }
+		set_variable = { selected_squad_slot_1 = esp_s1_selected_squad_slot_1 }
+		set_variable = { slot_one_mission_token = esp_s1_slot_one_mission_token }
+		set_variable = { slot_one_risk = esp_s1_slot_one_risk }
+		set_variable = { slot_one_success_chance = esp_s1_slot_one_success_chance }
+		set_variable = { slot_one_detection_chance = esp_s1_slot_one_detection_chance }
+		set_variable = { slot_1_casualty_chance = esp_s1_slot_1_casualty_chance }
+		set_variable = { slot_one_money_cost = esp_s1_slot_one_money_cost }
+		set_variable = { slot_one_time_duration = esp_s1_slot_one_time_duration }
+		set_variable = { slot_one_mission_type = esp_s1_slot_one_mission_type }
+		set_variable = { slot_one_outcome_strength = esp_s1_slot_one_outcome_strength }
+		set_variable = { slot_one_escape_bonus = esp_s1_slot_one_escape_bonus }
+		set_variable = { slot_one_kia_reduction = esp_s1_slot_one_kia_reduction }
+		set_variable = { slot_one_recovery_bonus = esp_s1_slot_one_recovery_bonus }
+		set_variable = { slot_one_member_1_kia_reduction = esp_s1_slot_one_member_1_kia_reduction }
+		set_variable = { slot_one_member_2_kia_reduction = esp_s1_slot_one_member_2_kia_reduction }
+		set_variable = { slot_one_member_3_kia_reduction = esp_s1_slot_one_member_3_kia_reduction }
+		set_variable = { slot_one_member_4_kia_reduction = esp_s1_slot_one_member_4_kia_reduction }
+		set_variable = { slot_one_member_5_kia_reduction = esp_s1_slot_one_member_5_kia_reduction }
+		set_variable = { slot_one_member_1_casualty = esp_s1_slot_one_member_1_casualty }
+		set_variable = { slot_one_member_2_casualty = esp_s1_slot_one_member_2_casualty }
+		set_variable = { slot_one_member_3_casualty = esp_s1_slot_one_member_3_casualty }
+		set_variable = { slot_one_member_4_casualty = esp_s1_slot_one_member_4_casualty }
+		set_variable = { slot_one_member_5_casualty = esp_s1_slot_one_member_5_casualty }
+		set_variable = { slot_one_training_bonus = esp_s1_slot_one_training_bonus }
+		set_variable = { slot_one_smuggling_bonus = esp_s1_slot_one_smuggling_bonus }
+		set_variable = { slot_one_resistance_bonus = esp_s1_slot_one_resistance_bonus }
+		set_variable = { slot_one_damage = esp_s1_slot_one_damage }
+		set_variable = { slot_one_stability_hit = esp_s1_slot_one_stability_hit }
+		set_variable = { slot_one_modifier_days = esp_s1_slot_one_modifier_days }
+		set_variable = { slot_one_snapshot_version = esp_s1_slot_one_snapshot_version }
+	}
+}
+CWIC_espionage_release_slot_1 = {
+	set_variable = { esp_s1_active = 0 }
+}
+CWIC_espionage_store_slot_2 = {
+	set_variable = { esp_s2_active = 1 }
+	set_variable = { esp_s2_slot_one_operation_active = slot_one_operation_active }
+	set_variable = { esp_s2_slot_one_target = slot_one_target }
+	set_variable = { esp_s2_slot_one_personnel_target = slot_one_personnel_target }
+	set_variable = { esp_s2_selected_squad_slot_1_Current_Page_Ref = selected_squad_slot_1_Current_Page_Ref }
+	set_variable = { esp_s2_selected_squad_slot_1 = selected_squad_slot_1 }
+	set_variable = { esp_s2_slot_one_mission_token = slot_one_mission_token }
+	set_variable = { esp_s2_slot_one_risk = slot_one_risk }
+	set_variable = { esp_s2_slot_one_success_chance = slot_one_success_chance }
+	set_variable = { esp_s2_slot_one_detection_chance = slot_one_detection_chance }
+	set_variable = { esp_s2_slot_1_casualty_chance = slot_1_casualty_chance }
+	set_variable = { esp_s2_slot_one_money_cost = slot_one_money_cost }
+	set_variable = { esp_s2_slot_one_time_duration = slot_one_time_duration }
+	set_variable = { esp_s2_slot_one_mission_type = slot_one_mission_type }
+	set_variable = { esp_s2_slot_one_outcome_strength = slot_one_outcome_strength }
+	set_variable = { esp_s2_slot_one_escape_bonus = slot_one_escape_bonus }
+	set_variable = { esp_s2_slot_one_kia_reduction = slot_one_kia_reduction }
+	set_variable = { esp_s2_slot_one_recovery_bonus = slot_one_recovery_bonus }
+	set_variable = { esp_s2_slot_one_member_1_kia_reduction = slot_one_member_1_kia_reduction }
+	set_variable = { esp_s2_slot_one_member_2_kia_reduction = slot_one_member_2_kia_reduction }
+	set_variable = { esp_s2_slot_one_member_3_kia_reduction = slot_one_member_3_kia_reduction }
+	set_variable = { esp_s2_slot_one_member_4_kia_reduction = slot_one_member_4_kia_reduction }
+	set_variable = { esp_s2_slot_one_member_5_kia_reduction = slot_one_member_5_kia_reduction }
+	set_variable = { esp_s2_slot_one_member_1_casualty = slot_one_member_1_casualty }
+	set_variable = { esp_s2_slot_one_member_2_casualty = slot_one_member_2_casualty }
+	set_variable = { esp_s2_slot_one_member_3_casualty = slot_one_member_3_casualty }
+	set_variable = { esp_s2_slot_one_member_4_casualty = slot_one_member_4_casualty }
+	set_variable = { esp_s2_slot_one_member_5_casualty = slot_one_member_5_casualty }
+	set_variable = { esp_s2_slot_one_training_bonus = slot_one_training_bonus }
+	set_variable = { esp_s2_slot_one_smuggling_bonus = slot_one_smuggling_bonus }
+	set_variable = { esp_s2_slot_one_resistance_bonus = slot_one_resistance_bonus }
+	set_variable = { esp_s2_slot_one_damage = slot_one_damage }
+	set_variable = { esp_s2_slot_one_stability_hit = slot_one_stability_hit }
+	set_variable = { esp_s2_slot_one_modifier_days = slot_one_modifier_days }
+	set_variable = { esp_s2_slot_one_snapshot_version = slot_one_snapshot_version }
+}
+CWIC_espionage_load_slot_2 = {
+	if = {
+		limit = { check_variable = { esp_s2_active = 1 } }
+		set_variable = { slot_one_operation_active = esp_s2_slot_one_operation_active }
+		set_variable = { slot_one_target = esp_s2_slot_one_target }
+		set_variable = { slot_one_personnel_target = esp_s2_slot_one_personnel_target }
+		set_variable = { selected_squad_slot_1_Current_Page_Ref = esp_s2_selected_squad_slot_1_Current_Page_Ref }
+		set_variable = { selected_squad_slot_1 = esp_s2_selected_squad_slot_1 }
+		set_variable = { slot_one_mission_token = esp_s2_slot_one_mission_token }
+		set_variable = { slot_one_risk = esp_s2_slot_one_risk }
+		set_variable = { slot_one_success_chance = esp_s2_slot_one_success_chance }
+		set_variable = { slot_one_detection_chance = esp_s2_slot_one_detection_chance }
+		set_variable = { slot_1_casualty_chance = esp_s2_slot_1_casualty_chance }
+		set_variable = { slot_one_money_cost = esp_s2_slot_one_money_cost }
+		set_variable = { slot_one_time_duration = esp_s2_slot_one_time_duration }
+		set_variable = { slot_one_mission_type = esp_s2_slot_one_mission_type }
+		set_variable = { slot_one_outcome_strength = esp_s2_slot_one_outcome_strength }
+		set_variable = { slot_one_escape_bonus = esp_s2_slot_one_escape_bonus }
+		set_variable = { slot_one_kia_reduction = esp_s2_slot_one_kia_reduction }
+		set_variable = { slot_one_recovery_bonus = esp_s2_slot_one_recovery_bonus }
+		set_variable = { slot_one_member_1_kia_reduction = esp_s2_slot_one_member_1_kia_reduction }
+		set_variable = { slot_one_member_2_kia_reduction = esp_s2_slot_one_member_2_kia_reduction }
+		set_variable = { slot_one_member_3_kia_reduction = esp_s2_slot_one_member_3_kia_reduction }
+		set_variable = { slot_one_member_4_kia_reduction = esp_s2_slot_one_member_4_kia_reduction }
+		set_variable = { slot_one_member_5_kia_reduction = esp_s2_slot_one_member_5_kia_reduction }
+		set_variable = { slot_one_member_1_casualty = esp_s2_slot_one_member_1_casualty }
+		set_variable = { slot_one_member_2_casualty = esp_s2_slot_one_member_2_casualty }
+		set_variable = { slot_one_member_3_casualty = esp_s2_slot_one_member_3_casualty }
+		set_variable = { slot_one_member_4_casualty = esp_s2_slot_one_member_4_casualty }
+		set_variable = { slot_one_member_5_casualty = esp_s2_slot_one_member_5_casualty }
+		set_variable = { slot_one_training_bonus = esp_s2_slot_one_training_bonus }
+		set_variable = { slot_one_smuggling_bonus = esp_s2_slot_one_smuggling_bonus }
+		set_variable = { slot_one_resistance_bonus = esp_s2_slot_one_resistance_bonus }
+		set_variable = { slot_one_damage = esp_s2_slot_one_damage }
+		set_variable = { slot_one_stability_hit = esp_s2_slot_one_stability_hit }
+		set_variable = { slot_one_modifier_days = esp_s2_slot_one_modifier_days }
+		set_variable = { slot_one_snapshot_version = esp_s2_slot_one_snapshot_version }
+	}
+}
+CWIC_espionage_release_slot_2 = {
+	set_variable = { esp_s2_active = 0 }
+}
+CWIC_espionage_store_slot_3 = {
+	set_variable = { esp_s3_active = 1 }
+	set_variable = { esp_s3_slot_one_operation_active = slot_one_operation_active }
+	set_variable = { esp_s3_slot_one_target = slot_one_target }
+	set_variable = { esp_s3_slot_one_personnel_target = slot_one_personnel_target }
+	set_variable = { esp_s3_selected_squad_slot_1_Current_Page_Ref = selected_squad_slot_1_Current_Page_Ref }
+	set_variable = { esp_s3_selected_squad_slot_1 = selected_squad_slot_1 }
+	set_variable = { esp_s3_slot_one_mission_token = slot_one_mission_token }
+	set_variable = { esp_s3_slot_one_risk = slot_one_risk }
+	set_variable = { esp_s3_slot_one_success_chance = slot_one_success_chance }
+	set_variable = { esp_s3_slot_one_detection_chance = slot_one_detection_chance }
+	set_variable = { esp_s3_slot_1_casualty_chance = slot_1_casualty_chance }
+	set_variable = { esp_s3_slot_one_money_cost = slot_one_money_cost }
+	set_variable = { esp_s3_slot_one_time_duration = slot_one_time_duration }
+	set_variable = { esp_s3_slot_one_mission_type = slot_one_mission_type }
+	set_variable = { esp_s3_slot_one_outcome_strength = slot_one_outcome_strength }
+	set_variable = { esp_s3_slot_one_escape_bonus = slot_one_escape_bonus }
+	set_variable = { esp_s3_slot_one_kia_reduction = slot_one_kia_reduction }
+	set_variable = { esp_s3_slot_one_recovery_bonus = slot_one_recovery_bonus }
+	set_variable = { esp_s3_slot_one_member_1_kia_reduction = slot_one_member_1_kia_reduction }
+	set_variable = { esp_s3_slot_one_member_2_kia_reduction = slot_one_member_2_kia_reduction }
+	set_variable = { esp_s3_slot_one_member_3_kia_reduction = slot_one_member_3_kia_reduction }
+	set_variable = { esp_s3_slot_one_member_4_kia_reduction = slot_one_member_4_kia_reduction }
+	set_variable = { esp_s3_slot_one_member_5_kia_reduction = slot_one_member_5_kia_reduction }
+	set_variable = { esp_s3_slot_one_member_1_casualty = slot_one_member_1_casualty }
+	set_variable = { esp_s3_slot_one_member_2_casualty = slot_one_member_2_casualty }
+	set_variable = { esp_s3_slot_one_member_3_casualty = slot_one_member_3_casualty }
+	set_variable = { esp_s3_slot_one_member_4_casualty = slot_one_member_4_casualty }
+	set_variable = { esp_s3_slot_one_member_5_casualty = slot_one_member_5_casualty }
+	set_variable = { esp_s3_slot_one_training_bonus = slot_one_training_bonus }
+	set_variable = { esp_s3_slot_one_smuggling_bonus = slot_one_smuggling_bonus }
+	set_variable = { esp_s3_slot_one_resistance_bonus = slot_one_resistance_bonus }
+	set_variable = { esp_s3_slot_one_damage = slot_one_damage }
+	set_variable = { esp_s3_slot_one_stability_hit = slot_one_stability_hit }
+	set_variable = { esp_s3_slot_one_modifier_days = slot_one_modifier_days }
+	set_variable = { esp_s3_slot_one_snapshot_version = slot_one_snapshot_version }
+}
+CWIC_espionage_load_slot_3 = {
+	if = {
+		limit = { check_variable = { esp_s3_active = 1 } }
+		set_variable = { slot_one_operation_active = esp_s3_slot_one_operation_active }
+		set_variable = { slot_one_target = esp_s3_slot_one_target }
+		set_variable = { slot_one_personnel_target = esp_s3_slot_one_personnel_target }
+		set_variable = { selected_squad_slot_1_Current_Page_Ref = esp_s3_selected_squad_slot_1_Current_Page_Ref }
+		set_variable = { selected_squad_slot_1 = esp_s3_selected_squad_slot_1 }
+		set_variable = { slot_one_mission_token = esp_s3_slot_one_mission_token }
+		set_variable = { slot_one_risk = esp_s3_slot_one_risk }
+		set_variable = { slot_one_success_chance = esp_s3_slot_one_success_chance }
+		set_variable = { slot_one_detection_chance = esp_s3_slot_one_detection_chance }
+		set_variable = { slot_1_casualty_chance = esp_s3_slot_1_casualty_chance }
+		set_variable = { slot_one_money_cost = esp_s3_slot_one_money_cost }
+		set_variable = { slot_one_time_duration = esp_s3_slot_one_time_duration }
+		set_variable = { slot_one_mission_type = esp_s3_slot_one_mission_type }
+		set_variable = { slot_one_outcome_strength = esp_s3_slot_one_outcome_strength }
+		set_variable = { slot_one_escape_bonus = esp_s3_slot_one_escape_bonus }
+		set_variable = { slot_one_kia_reduction = esp_s3_slot_one_kia_reduction }
+		set_variable = { slot_one_recovery_bonus = esp_s3_slot_one_recovery_bonus }
+		set_variable = { slot_one_member_1_kia_reduction = esp_s3_slot_one_member_1_kia_reduction }
+		set_variable = { slot_one_member_2_kia_reduction = esp_s3_slot_one_member_2_kia_reduction }
+		set_variable = { slot_one_member_3_kia_reduction = esp_s3_slot_one_member_3_kia_reduction }
+		set_variable = { slot_one_member_4_kia_reduction = esp_s3_slot_one_member_4_kia_reduction }
+		set_variable = { slot_one_member_5_kia_reduction = esp_s3_slot_one_member_5_kia_reduction }
+		set_variable = { slot_one_member_1_casualty = esp_s3_slot_one_member_1_casualty }
+		set_variable = { slot_one_member_2_casualty = esp_s3_slot_one_member_2_casualty }
+		set_variable = { slot_one_member_3_casualty = esp_s3_slot_one_member_3_casualty }
+		set_variable = { slot_one_member_4_casualty = esp_s3_slot_one_member_4_casualty }
+		set_variable = { slot_one_member_5_casualty = esp_s3_slot_one_member_5_casualty }
+		set_variable = { slot_one_training_bonus = esp_s3_slot_one_training_bonus }
+		set_variable = { slot_one_smuggling_bonus = esp_s3_slot_one_smuggling_bonus }
+		set_variable = { slot_one_resistance_bonus = esp_s3_slot_one_resistance_bonus }
+		set_variable = { slot_one_damage = esp_s3_slot_one_damage }
+		set_variable = { slot_one_stability_hit = esp_s3_slot_one_stability_hit }
+		set_variable = { slot_one_modifier_days = esp_s3_slot_one_modifier_days }
+		set_variable = { slot_one_snapshot_version = esp_s3_slot_one_snapshot_version }
+	}
+}
+CWIC_espionage_release_slot_3 = {
+	set_variable = { esp_s3_active = 0 }
+}
+
+# Bulletin queue: if a bulletin is still open when another operation ends, the
+# open one is parked and shown again after the player has read the new one.
+CWIC_espionage_before_closeout = {
+	if = {
+		limit = { check_variable = { paramilitary_slot_one_bulletin = 1 } }
+		add_to_array = { CWIC_esp_bq_0 = slot_one_mission_token }
+		add_to_array = { CWIC_esp_bq_1 = slot_one_current_failure_status }
+		add_to_array = { CWIC_esp_bq_2 = slot_one_successful }
+		add_to_array = { CWIC_esp_bq_3 = slot_one_detected }
+		add_to_array = { CWIC_esp_bq_4 = history_target }
+		add_to_array = { CWIC_esp_bq_5 = history_personnel_target }
+		add_to_array = { CWIC_esp_bq_6 = selected_squad_slot_1_Current_Page_Ref }
+		add_to_array = { CWIC_esp_bq_7 = paramilitary_slot_one_bulletion_choices }
+		add_to_array = { CWIC_esp_bq_8 = CWIC_esp_aar_consequence }
+		add_to_array = { CWIC_esp_bq_9 = CWIC_esp_aar_1 }
+		add_to_array = { CWIC_esp_bq_10 = CWIC_esp_aar_2 }
+		add_to_array = { CWIC_esp_bq_11 = CWIC_esp_aar_3 }
+		add_to_array = { CWIC_esp_bq_12 = CWIC_esp_aar_4 }
+		add_to_array = { CWIC_esp_bq_13 = CWIC_esp_aar_5 }
+		add_to_array = { CWIC_esp_bq_14 = slot_1_operative_1_experience_gain }
+		add_to_array = { CWIC_esp_bq_15 = slot_1_operative_2_experience_gain }
+		add_to_array = { CWIC_esp_bq_16 = slot_1_operative_3_experience_gain }
+		add_to_array = { CWIC_esp_bq_17 = slot_1_operative_4_experience_gain }
+		add_to_array = { CWIC_esp_bq_18 = slot_1_operative_5_experience_gain }
+		set_variable = { paramilitary_slot_one_bulletin = 0 }
+	}
+}
+
+CWIC_espionage_show_next_bulletin = {
+	if = {
+		limit = {
+			check_variable = { paramilitary_slot_one_bulletin = 0 }
+			check_variable = { CWIC_esp_bq_0^num > 0 }
+		}
+		set_variable = { slot_one_mission_token = CWIC_esp_bq_0^0 }
+		remove_from_array = { array = CWIC_esp_bq_0 index = 0 }
+		set_variable = { slot_one_current_failure_status = CWIC_esp_bq_1^0 }
+		remove_from_array = { array = CWIC_esp_bq_1 index = 0 }
+		set_variable = { slot_one_successful = CWIC_esp_bq_2^0 }
+		remove_from_array = { array = CWIC_esp_bq_2 index = 0 }
+		set_variable = { slot_one_detected = CWIC_esp_bq_3^0 }
+		remove_from_array = { array = CWIC_esp_bq_3 index = 0 }
+		set_variable = { history_target = CWIC_esp_bq_4^0 }
+		remove_from_array = { array = CWIC_esp_bq_4 index = 0 }
+		set_variable = { history_personnel_target = CWIC_esp_bq_5^0 }
+		remove_from_array = { array = CWIC_esp_bq_5 index = 0 }
+		set_variable = { selected_squad_slot_1_Current_Page_Ref = CWIC_esp_bq_6^0 }
+		remove_from_array = { array = CWIC_esp_bq_6 index = 0 }
+		set_variable = { paramilitary_slot_one_bulletion_choices = CWIC_esp_bq_7^0 }
+		remove_from_array = { array = CWIC_esp_bq_7 index = 0 }
+		set_variable = { CWIC_esp_aar_consequence = CWIC_esp_bq_8^0 }
+		remove_from_array = { array = CWIC_esp_bq_8 index = 0 }
+		set_variable = { CWIC_esp_aar_1 = CWIC_esp_bq_9^0 }
+		remove_from_array = { array = CWIC_esp_bq_9 index = 0 }
+		set_variable = { CWIC_esp_aar_2 = CWIC_esp_bq_10^0 }
+		remove_from_array = { array = CWIC_esp_bq_10 index = 0 }
+		set_variable = { CWIC_esp_aar_3 = CWIC_esp_bq_11^0 }
+		remove_from_array = { array = CWIC_esp_bq_11 index = 0 }
+		set_variable = { CWIC_esp_aar_4 = CWIC_esp_bq_12^0 }
+		remove_from_array = { array = CWIC_esp_bq_12 index = 0 }
+		set_variable = { CWIC_esp_aar_5 = CWIC_esp_bq_13^0 }
+		remove_from_array = { array = CWIC_esp_bq_13 index = 0 }
+		set_variable = { slot_1_operative_1_experience_gain = CWIC_esp_bq_14^0 }
+		remove_from_array = { array = CWIC_esp_bq_14 index = 0 }
+		set_variable = { slot_1_operative_2_experience_gain = CWIC_esp_bq_15^0 }
+		remove_from_array = { array = CWIC_esp_bq_15 index = 0 }
+		set_variable = { slot_1_operative_3_experience_gain = CWIC_esp_bq_16^0 }
+		remove_from_array = { array = CWIC_esp_bq_16 index = 0 }
+		set_variable = { slot_1_operative_4_experience_gain = CWIC_esp_bq_17^0 }
+		remove_from_array = { array = CWIC_esp_bq_17 index = 0 }
+		set_variable = { slot_1_operative_5_experience_gain = CWIC_esp_bq_18^0 }
+		remove_from_array = { array = CWIC_esp_bq_18 index = 0 }
+		set_variable = { current_page = selected_squad_slot_1_Current_Page_Ref }
+		set_variable = { paramilitary_slot_one_bulletin = 1 }
+		CWIC_espionage_mark_gui_dirty = yes
 	}
 }

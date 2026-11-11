@@ -50,8 +50,11 @@ CWIC_espionage_selected_operation_supported_trigger = {
 CWIC_espionage_launch_ready_trigger = {
     CWIC_espionage_enabled_trigger = yes
     CWIC_espionage_selected_operation_supported_trigger = yes
-    check_variable = { current_operations < 1 }
-    NOT = { check_variable = { slot_one_operation_active = 1 } }
+    # Stage 4: up to CWIC_espionage_slot_cap operations at once (one until the GUI has computed the cap).
+    OR = {
+        check_variable = { current_operations < 1 }
+        check_variable = { current_operations < CWIC_espionage_slot_cap }
+    }
     check_variable = { selected_squad_origin > 0 }
     NOT = { check_variable = { selected_squad_origin > num_espionage_paramilitary_squads } }
     NOT = { check_variable = { currentMoney < selected_operation_index_cost } }
