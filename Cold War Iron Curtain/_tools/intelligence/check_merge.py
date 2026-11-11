@@ -280,8 +280,8 @@ class MergeContracts(unittest.TestCase):
         s.variables['paramilitary_operative_squad_synergy_sabotage_stealth_bonus^1'] = 20
         s.variables['paramilitary_operative_squad_synergy_operation_planning_speed^1'] = 20
         s.run('CWIC_espionage_calculate_selected_operation')
-        self.assertEqual(s.value('selected_operation_success'), 1)
-        self.assertEqual(s.value('selected_operation_detection'), 0)
+        self.assertLessEqual(s.value('selected_operation_success'), 0.95)
+        self.assertGreaterEqual(s.value('selected_operation_detection'), 0.05)
         self.assertEqual(s.value('selected_operation_index_mission_duration'), 1)
         before = copy.deepcopy(s.variables)
         s.run('CWIC_espionage_calculate_selected_operation')

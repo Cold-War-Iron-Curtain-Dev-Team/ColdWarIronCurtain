@@ -253,6 +253,11 @@ CWIC_espionage_update_counter_intelligence = {
 				limit = { has_country_flag = CWIC_esp_ci_alert_@ROOT }
 				add_to_variable = { ROOT.CWIC_espionage_ci_penalty = 0.10 }
 			}
+			# A counter-espionage embed inside the target's service (token 19) offsets it.
+			if = {
+				limit = { has_country_flag = CWIC_esp_ci_embed_@ROOT }
+				subtract_from_variable = { ROOT.CWIC_espionage_ci_penalty = 0.10 }
+			}
 		}
 	}
 }
@@ -349,4 +354,117 @@ CWIC_espionage_disavow_operative = {
 	}
 	set_variable = { current_page = CWIC_esp_saved_page }
 	CWIC_espionage_mark_gui_dirty = yes
+}
+
+# ---------------------------------------------------------------------------
+# Stage 3: trait window cache and the national-service trait slots.
+
+# The trait window used ~230 meta_triggers that rebuilt the selected member's
+# array name on every frame. The selection is cached here instead, on every
+# preview refresh (every click in the window goes through it).
+CWIC_espionage_cache_selected_operative = {
+	clear_array = CWIC_esp_sel_traits
+	set_variable = { CWIC_esp_sel_level = 0 }
+	if = {
+		limit = {
+			check_variable = { squad_position > 0 }
+			check_variable = { squad_position < 6 }
+			check_variable = { current_page > 0 }
+		}
+		meta_effect = {
+			text = {
+				for_each_loop = {
+					array = paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE]
+					add_to_array = { CWIC_esp_sel_traits = v }
+				}
+				set_variable = { CWIC_esp_sel_level = paramilitary_operative_squad_unit_[SQUAD_POSITION]_level^[CURRENT_PAGE] }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
+}
+
+# National-service traits: 601-603 (tier 2, slot 9) and 604-606 (tier 3, slot 4).
+CWIC_espionage_pick_national_t2 = {
+	if = {
+		limit = { tag = USA }
+		meta_effect = {
+			text = {
+				add_to_array = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE] = 601 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_network_stealth^[CURRENT_PAGE] = 0.05 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_intel_gathering_speed^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_covert_logistics_bonus^[CURRENT_PAGE] = 0.05 }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
+	else_if = {
+		limit = { CWIC_espionage_eastern_service_trigger = yes }
+		meta_effect = {
+			text = {
+				add_to_array = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE] = 602 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_counterintelligence_strength^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_interrogation_success_rate^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_false_testimony_bonus^[CURRENT_PAGE] = 0.05 }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
+	else_if = {
+		limit = { always = yes }
+		meta_effect = {
+			text = {
+				add_to_array = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE] = 603 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_operation_planning_speed^[CURRENT_PAGE] = 0.05 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_support_staff_efficiency^[CURRENT_PAGE] = 0.05 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_network_stealth^[CURRENT_PAGE] = 0.03 }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
+}
+CWIC_espionage_pick_national_t3 = {
+	if = {
+		limit = { tag = USA }
+		meta_effect = {
+			text = {
+				add_to_array = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE] = 604 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_black_ops_combat_effectiveness^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_air_infiltration_success_rate^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_urban_warfare_bonus^[CURRENT_PAGE] = 0.05 }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
+	else_if = {
+		limit = { CWIC_espionage_eastern_service_trigger = yes }
+		meta_effect = {
+			text = {
+				add_to_array = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE] = 605 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_covert_combat_damage_reduction^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_ambush_power_bonus^[CURRENT_PAGE] = 0.1 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_urban_warfare_bonus^[CURRENT_PAGE] = 0.05 }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
+	else_if = {
+		limit = { always = yes }
+		meta_effect = {
+			text = {
+				add_to_array = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_skill_trait_[CURRENT_PAGE] = 606 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_black_ops_combat_effectiveness^[CURRENT_PAGE] = 0.05 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_covert_combat_damage_reduction^[CURRENT_PAGE] = 0.05 }
+				add_to_variable = { paramilitary_operative_squad_unit_[SQUAD_POSITION]_operation_planning_speed^[CURRENT_PAGE] = 0.05 }
+			}
+			CURRENT_PAGE = "[?current_page]"
+			SQUAD_POSITION = "[?squad_position]"
+		}
+	}
 }

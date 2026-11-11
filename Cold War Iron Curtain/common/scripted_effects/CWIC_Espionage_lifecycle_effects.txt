@@ -335,6 +335,9 @@ CWIC_espionage_calculate_selected_operation = {
         limit = { OR = { check_variable = { selected_operation_index_id_token = 8 } check_variable = { selected_operation_index_id_token = 11 } } }
         add_to_variable = { selected_operation_strength_bonus = squad_combined_factory_sabotage_power }
     }
+    # Stage 3: stats and synergy share one pool per side (0.20 + 0.10).
+    clamp_variable = { var = selected_operation_success_bonus min = -0.30 max = 0.30 }
+    clamp_variable = { var = selected_operation_stealth_bonus min = -0.30 max = 0.30 }
     add_to_variable = { selected_operation_success = selected_operation_success_bonus }
     # Stage 2: underfunding and the target's counter-intelligence (CWIC_espionage_update_counter_intelligence).
     if = {
@@ -343,8 +346,27 @@ CWIC_espionage_calculate_selected_operation = {
     }
     add_to_variable = { selected_operation_detection = CWIC_espionage_ci_penalty }
     subtract_from_variable = { selected_operation_detection = selected_operation_stealth_bonus }
-    clamp_variable = { var = selected_operation_success min = 0 max = 1 }
-    clamp_variable = { var = selected_operation_detection min = 0 max = 1 }
+    # Stage 3: operative levels (0.008 per level above 1, up to 0.08) and the
+    # local network (up to +0.15 success, -0.10 detection). Nothing is ever
+    # certain: both chances stay within 5% and 95%.
+    set_variable = { CWIC_espionage_level_bonus = paramilitary_operative_squad_unit_1_level^CWIC_espionage_squad_page }
+    add_to_variable = { CWIC_espionage_level_bonus = paramilitary_operative_squad_unit_2_level^CWIC_espionage_squad_page }
+    add_to_variable = { CWIC_espionage_level_bonus = paramilitary_operative_squad_unit_3_level^CWIC_espionage_squad_page }
+    add_to_variable = { CWIC_espionage_level_bonus = paramilitary_operative_squad_unit_4_level^CWIC_espionage_squad_page }
+    add_to_variable = { CWIC_espionage_level_bonus = paramilitary_operative_squad_unit_5_level^CWIC_espionage_squad_page }
+    subtract_from_variable = { CWIC_espionage_level_bonus = 5 }
+    multiply_variable = { CWIC_espionage_level_bonus = 0.008 }
+    clamp_variable = { var = CWIC_espionage_level_bonus min = 0 max = 0.08 }
+    add_to_variable = { selected_operation_success = CWIC_espionage_level_bonus }
+    set_variable = { CWIC_espionage_network_bonus = network_strength^selected_operation_index_target }
+    clamp_variable = { var = CWIC_espionage_network_bonus min = 0 max = 1 }
+    set_variable = { CWIC_espionage_network_stealth = CWIC_espionage_network_bonus }
+    multiply_variable = { CWIC_espionage_network_bonus = 0.15 }
+    multiply_variable = { CWIC_espionage_network_stealth = 0.10 }
+    add_to_variable = { selected_operation_success = CWIC_espionage_network_bonus }
+    subtract_from_variable = { selected_operation_detection = CWIC_espionage_network_stealth }
+    clamp_variable = { var = selected_operation_success min = 0.05 max = 0.95 }
+    clamp_variable = { var = selected_operation_detection min = 0.05 max = 0.95 }
     set_variable = { CWIC_espionage_casualty_factor = 1 }
     subtract_from_variable = { CWIC_espionage_casualty_factor = squad_combined_covert_combat_damage_reduction }
     subtract_from_variable = { CWIC_espionage_casualty_factor = squad_combined_stay_behind_cell_survivability }
@@ -386,6 +408,7 @@ CWIC_espionage_refresh_preview = {
         CWIC_espionage_update_counter_intelligence = yes
         CWIC_espionage_calculate_selected_operation = yes
     }
+    CWIC_espionage_cache_selected_operative = yes
     CWIC_espionage_mark_gui_dirty = yes
 }
 
