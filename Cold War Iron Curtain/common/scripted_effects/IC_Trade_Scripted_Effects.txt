@@ -819,7 +819,7 @@ cwic_sync_trade_embargoes = {
 
 cwic_update_market_refunds = {
 	set_temp_variable = { cwic_mr_share = modifier@min_export }
-	clamp_temp_variable = { var = cwic_mr_share min = 0 max = 0.9 }
+	clamp_temp_variable = { var = cwic_mr_share min = 0.01 max = 0.9 }
 	set_temp_variable = { cwic_mr_law = 0 }
 	set_temp_variable = { cwic_mr_food_law = 0 }
 	set_temp_variable = { cwic_mr_chromium_law = 0 }
@@ -850,15 +850,23 @@ cwic_update_market_refunds = {
 	set_temp_variable = { cwic_mr_keep = 1 }
 	subtract_from_temp_variable = { cwic_mr_keep = cwic_mr_share }
 
-	set_temp_variable = { cwic_mr_base = resource_produced@coal }
+	set_variable = { cwic_mr_gross = 0 }
+	every_controlled_state = { add_to_variable = { PREV.cwic_mr_gross = resource@coal } }
+	set_temp_variable = { cwic_mr_base = cwic_mr_gross }
+	add_to_temp_variable = { cwic_mr_base = modifier@country_resource_coal }
 	subtract_from_temp_variable = { cwic_mr_base = cwic_coal_market_refund }
+	subtract_from_temp_variable = { cwic_mr_base = modifier@country_resource_cost_coal }
 	clamp_temp_variable = { var = cwic_mr_base min = 0 }
 	set_variable = { cwic_coal_market_refund = cwic_mr_base }
 	multiply_variable = { cwic_coal_market_refund = cwic_mr_share }
 	divide_variable = { cwic_coal_market_refund = cwic_mr_keep }
 
-	set_temp_variable = { cwic_mr_base = resource_produced@rubber }
+	set_variable = { cwic_mr_gross = 0 }
+	every_controlled_state = { add_to_variable = { PREV.cwic_mr_gross = resource@rubber } }
+	set_temp_variable = { cwic_mr_base = cwic_mr_gross }
+	add_to_temp_variable = { cwic_mr_base = modifier@country_resource_rubber }
 	subtract_from_temp_variable = { cwic_mr_base = cwic_rubber_market_refund }
+	subtract_from_temp_variable = { cwic_mr_base = modifier@country_resource_cost_rubber }
 	clamp_temp_variable = { var = cwic_mr_base min = 0 }
 	set_temp_variable = { cwic_mr_food_rate = cwic_mr_food_law }
 	add_to_temp_variable = { cwic_mr_food_rate = cwic_mr_share }
@@ -872,8 +880,12 @@ cwic_update_market_refunds = {
 	clamp_variable = { var = cwic_rubber_market_refund min = 0 }
 	divide_variable = { cwic_rubber_market_refund = cwic_mr_keep }
 
-	set_temp_variable = { cwic_mr_base = resource_produced@chromium }
+	set_variable = { cwic_mr_gross = 0 }
+	every_controlled_state = { add_to_variable = { PREV.cwic_mr_gross = resource@chromium } }
+	set_temp_variable = { cwic_mr_base = cwic_mr_gross }
+	add_to_temp_variable = { cwic_mr_base = modifier@country_resource_chromium }
 	subtract_from_temp_variable = { cwic_mr_base = cwic_chromium_market_refund }
+	subtract_from_temp_variable = { cwic_mr_base = modifier@country_resource_cost_chromium }
 	clamp_temp_variable = { var = cwic_mr_base min = 0 }
 	set_temp_variable = { cwic_mr_k = cwic_mr_law }
 	subtract_from_temp_variable = { cwic_mr_k = cwic_mr_chromium_law }
@@ -1472,4 +1484,15 @@ cwic_price_shock_end_chromium = {
 
 cwic_price_shock_end_food = {
 	set_variable = { global.foodShockMonths = 0 }
+}
+
+cwic_trade_startup_resync = {
+	cwic_update_market_refunds = yes
+	set_temp_variable = { cwic_resync_old = trade_income }
+	ic_calc_trade_exports = yes
+	set_temp_variable = { cwic_resync_delta = trade_income }
+	subtract_from_temp_variable = { cwic_resync_delta = cwic_resync_old }
+	add_to_variable = { display_income = cwic_resync_delta }
+	add_to_variable = { display_balance = cwic_resync_delta }
+	add_to_variable = { IncomeCheck = cwic_resync_delta }
 }
