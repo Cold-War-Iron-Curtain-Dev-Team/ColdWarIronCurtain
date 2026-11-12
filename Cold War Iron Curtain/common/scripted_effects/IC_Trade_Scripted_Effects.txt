@@ -779,41 +779,74 @@ cwic_calculate_consumer_goods_export_stock_totals = {
 
 cwic_sync_trade_embargoes = {
 	every_country = {
-		clear_temp_array = cwic_emb_lift
-		for_each_scope_loop = {
-			array = cwic_embargo_applied
+		every_other_country = {
+			PREV = { cwic_sync_native_embargo = yes }
 			if = {
 				limit = {
+					OR = {
+						check_variable = { PREV.trade_embargo_check^THIS = 1 }
+						check_variable = { trade_embargo_check^PREV = 1 }
+					}
+					NOT = { is_in_array = { array = PREV.cwic_emb_block value = THIS.id } }
+				}
+				cwic_apply_embargo_block = yes
+			}
+			else_if = {
+				limit = {
 					NOT = { check_variable = { PREV.trade_embargo_check^THIS = 1 } }
-					PREV = { NOT = { check_variable = { PREV.trade_embargo_check^THIS = 1 } } }
+					NOT = { check_variable = { trade_embargo_check^PREV = 1 } }
+					is_in_array = { array = PREV.cwic_emb_block value = THIS.id }
 				}
-				add_to_temp_array = { cwic_emb_lift = THIS.id }
+				cwic_lift_embargo_block = yes
 			}
 		}
-		for_each_scope_loop = {
-			array = cwic_emb_lift
-			remove_opinion_modifier = { target = PREV modifier = cwic_trade_embargo }
-			remove_from_array = { cwic_embargo_applied = PREV.id }
+	}
+}
+
+cwic_apply_embargo_block = {
+	add_relation_modifier = { target = PREV modifier = cwic_trade_embargo_block }
+	add_to_array = { cwic_emb_block = PREV.id }
+	cwic_cut_cg_deals_to_prev = yes
+	PREV = {
+		add_relation_modifier = { target = PREV modifier = cwic_trade_embargo_block }
+		add_to_array = { cwic_emb_block = PREV.id }
+		cwic_cut_cg_deals_to_prev = yes
+	}
+	if = {
+		limit = { NOT = { has_global_flag = cwic_emb_quiet } }
+		if = {
+			limit = { PREV = { is_ai = no } }
 			PREV = {
-				remove_opinion_modifier = { target = PREV modifier = cwic_trade_embargo }
-				remove_from_array = { cwic_embargo_applied = PREV.id }
+				set_variable = { cwic_emb_partner_tmp = PREV.id }
+				country_event = trade.51
 			}
 		}
-		every_other_country = {
-			limit = {
-				OR = {
-					check_variable = { PREV.trade_embargo_check^THIS = 1 }
-					PREV = { check_variable = { PREV.trade_embargo_check^THIS = 1 } }
-				}
-				NOT = { is_in_array = { array = PREV.cwic_embargo_applied value = THIS.id } }
-			}
-			add_opinion_modifier = { target = PREV modifier = cwic_trade_embargo }
-			add_to_array = { cwic_embargo_applied = PREV.id }
-			PREV = {
-				add_opinion_modifier = { target = PREV modifier = cwic_trade_embargo }
-				add_to_array = { cwic_embargo_applied = PREV.id }
-			}
+		if = {
+			limit = { is_ai = no }
+			set_variable = { cwic_emb_partner_tmp = PREV.id }
+			country_event = trade.51
 		}
+	}
+}
+
+cwic_lift_embargo_block = {
+	remove_relation_modifier = { target = PREV modifier = cwic_trade_embargo_block }
+	remove_from_array = { cwic_emb_block = PREV.id }
+	PREV = {
+		remove_relation_modifier = { target = PREV modifier = cwic_trade_embargo_block }
+		remove_from_array = { cwic_emb_block = PREV.id }
+	}
+	if = {
+		limit = { PREV = { is_ai = no } }
+		PREV = {
+			set_variable = { cwic_emb_partner_tmp = PREV.id }
+		country_event = trade.52
+		}
+	}
+	if = {
+		limit = { is_ai = no }
+		set_variable = { cwic_emb_partner_tmp = PREV.id }
+		country_event = trade.52
 	}
 }
 
@@ -1495,4 +1528,418 @@ cwic_trade_startup_resync = {
 	add_to_variable = { display_income = cwic_resync_delta }
 	add_to_variable = { display_balance = cwic_resync_delta }
 	add_to_variable = { IncomeCheck = cwic_resync_delta }
+}
+cwic_cut_cg_deals_to_prev = {
+	if = {
+		limit = { check_variable = { CgBasicT0ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgBasicT0ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgBasicT0Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgBasicT0Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgBasicT0Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgBasicT0 = cwic_cg_cut }
+		set_variable = { CgBasicT0ExportTarget^PREV = 0 }
+		set_variable = { CgBasicT0ExportTargetAmount^PREV = 0 }
+		set_variable = { CgBasicT0ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgBasicT0ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgBasicT0ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgBasicT0ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgBasicT1ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgBasicT1ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgBasicT1Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgBasicT1Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgBasicT1Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgBasicT1 = cwic_cg_cut }
+		set_variable = { CgBasicT1ExportTarget^PREV = 0 }
+		set_variable = { CgBasicT1ExportTargetAmount^PREV = 0 }
+		set_variable = { CgBasicT1ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgBasicT1ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgBasicT1ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgBasicT1ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgBasicT2ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgBasicT2ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgBasicT2Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgBasicT2Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgBasicT2Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgBasicT2 = cwic_cg_cut }
+		set_variable = { CgBasicT2ExportTarget^PREV = 0 }
+		set_variable = { CgBasicT2ExportTargetAmount^PREV = 0 }
+		set_variable = { CgBasicT2ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgBasicT2ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgBasicT2ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgBasicT2ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgBasicT3ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgBasicT3ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgBasicT3Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgBasicT3Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgBasicT3Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgBasicT3 = cwic_cg_cut }
+		set_variable = { CgBasicT3ExportTarget^PREV = 0 }
+		set_variable = { CgBasicT3ExportTargetAmount^PREV = 0 }
+		set_variable = { CgBasicT3ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgBasicT3ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgBasicT3ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgBasicT3ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgBasicT4ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgBasicT4ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgBasicT4Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgBasicT4Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgBasicT4Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgBasicT4 = cwic_cg_cut }
+		set_variable = { CgBasicT4ExportTarget^PREV = 0 }
+		set_variable = { CgBasicT4ExportTargetAmount^PREV = 0 }
+		set_variable = { CgBasicT4ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgBasicT4ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgBasicT4ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgBasicT4ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgBasicT5ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgBasicT5ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgBasicT5Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgBasicT5Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgBasicT5Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgBasicT5 = cwic_cg_cut }
+		set_variable = { CgBasicT5ExportTarget^PREV = 0 }
+		set_variable = { CgBasicT5ExportTargetAmount^PREV = 0 }
+		set_variable = { CgBasicT5ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgBasicT5ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgBasicT5ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgBasicT5ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgDurableT0ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgDurableT0ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgDurableT0Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgDurableT0Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgDurableT0Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgDurableT0 = cwic_cg_cut }
+		set_variable = { CgDurableT0ExportTarget^PREV = 0 }
+		set_variable = { CgDurableT0ExportTargetAmount^PREV = 0 }
+		set_variable = { CgDurableT0ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgDurableT0ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgDurableT0ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgDurableT0ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgDurableT1ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgDurableT1ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgDurableT1Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgDurableT1Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgDurableT1Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgDurableT1 = cwic_cg_cut }
+		set_variable = { CgDurableT1ExportTarget^PREV = 0 }
+		set_variable = { CgDurableT1ExportTargetAmount^PREV = 0 }
+		set_variable = { CgDurableT1ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgDurableT1ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgDurableT1ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgDurableT1ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgDurableT2ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgDurableT2ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgDurableT2Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgDurableT2Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgDurableT2Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgDurableT2 = cwic_cg_cut }
+		set_variable = { CgDurableT2ExportTarget^PREV = 0 }
+		set_variable = { CgDurableT2ExportTargetAmount^PREV = 0 }
+		set_variable = { CgDurableT2ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgDurableT2ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgDurableT2ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgDurableT2ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgDurableT3ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgDurableT3ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgDurableT3Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgDurableT3Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgDurableT3Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgDurableT3 = cwic_cg_cut }
+		set_variable = { CgDurableT3ExportTarget^PREV = 0 }
+		set_variable = { CgDurableT3ExportTargetAmount^PREV = 0 }
+		set_variable = { CgDurableT3ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgDurableT3ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgDurableT3ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgDurableT3ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgDurableT4ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgDurableT4ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgDurableT4Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgDurableT4Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgDurableT4Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgDurableT4 = cwic_cg_cut }
+		set_variable = { CgDurableT4ExportTarget^PREV = 0 }
+		set_variable = { CgDurableT4ExportTargetAmount^PREV = 0 }
+		set_variable = { CgDurableT4ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgDurableT4ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgDurableT4ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgDurableT4ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgDurableT5ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgDurableT5ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgDurableT5Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgDurableT5Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgDurableT5Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgDurableT5 = cwic_cg_cut }
+		set_variable = { CgDurableT5ExportTarget^PREV = 0 }
+		set_variable = { CgDurableT5ExportTargetAmount^PREV = 0 }
+		set_variable = { CgDurableT5ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgDurableT5ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgDurableT5ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgDurableT5ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgVehiclesT0ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgVehiclesT0ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgVehiclesT0Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgVehiclesT0Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgVehiclesT0Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgVehiclesT0 = cwic_cg_cut }
+		set_variable = { CgVehiclesT0ExportTarget^PREV = 0 }
+		set_variable = { CgVehiclesT0ExportTargetAmount^PREV = 0 }
+		set_variable = { CgVehiclesT0ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgVehiclesT0ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT0ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT0ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgVehiclesT1ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgVehiclesT1ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgVehiclesT1Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgVehiclesT1Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgVehiclesT1Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgVehiclesT1 = cwic_cg_cut }
+		set_variable = { CgVehiclesT1ExportTarget^PREV = 0 }
+		set_variable = { CgVehiclesT1ExportTargetAmount^PREV = 0 }
+		set_variable = { CgVehiclesT1ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgVehiclesT1ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT1ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT1ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgVehiclesT2ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgVehiclesT2ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgVehiclesT2Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgVehiclesT2Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgVehiclesT2Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgVehiclesT2 = cwic_cg_cut }
+		set_variable = { CgVehiclesT2ExportTarget^PREV = 0 }
+		set_variable = { CgVehiclesT2ExportTargetAmount^PREV = 0 }
+		set_variable = { CgVehiclesT2ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgVehiclesT2ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT2ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT2ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgVehiclesT3ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgVehiclesT3ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgVehiclesT3Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgVehiclesT3Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgVehiclesT3Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgVehiclesT3 = cwic_cg_cut }
+		set_variable = { CgVehiclesT3ExportTarget^PREV = 0 }
+		set_variable = { CgVehiclesT3ExportTargetAmount^PREV = 0 }
+		set_variable = { CgVehiclesT3ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgVehiclesT3ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT3ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT3ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgVehiclesT4ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgVehiclesT4ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgVehiclesT4Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgVehiclesT4Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgVehiclesT4Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgVehiclesT4 = cwic_cg_cut }
+		set_variable = { CgVehiclesT4ExportTarget^PREV = 0 }
+		set_variable = { CgVehiclesT4ExportTargetAmount^PREV = 0 }
+		set_variable = { CgVehiclesT4ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgVehiclesT4ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT4ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT4ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgVehiclesT5ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgVehiclesT5ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgVehiclesT5Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgVehiclesT5Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgVehiclesT5Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgVehiclesT5 = cwic_cg_cut }
+		set_variable = { CgVehiclesT5ExportTarget^PREV = 0 }
+		set_variable = { CgVehiclesT5ExportTargetAmount^PREV = 0 }
+		set_variable = { CgVehiclesT5ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgVehiclesT5ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT5ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgVehiclesT5ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgElectronicsT1ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgElectronicsT1ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgElectronicsT1Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgElectronicsT1Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgElectronicsT1Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgElectronicsT1 = cwic_cg_cut }
+		set_variable = { CgElectronicsT1ExportTarget^PREV = 0 }
+		set_variable = { CgElectronicsT1ExportTargetAmount^PREV = 0 }
+		set_variable = { CgElectronicsT1ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgElectronicsT1ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT1ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT1ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgElectronicsT2ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgElectronicsT2ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgElectronicsT2Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgElectronicsT2Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgElectronicsT2Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgElectronicsT2 = cwic_cg_cut }
+		set_variable = { CgElectronicsT2ExportTarget^PREV = 0 }
+		set_variable = { CgElectronicsT2ExportTargetAmount^PREV = 0 }
+		set_variable = { CgElectronicsT2ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgElectronicsT2ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT2ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT2ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgElectronicsT3ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgElectronicsT3ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgElectronicsT3Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgElectronicsT3Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgElectronicsT3Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgElectronicsT3 = cwic_cg_cut }
+		set_variable = { CgElectronicsT3ExportTarget^PREV = 0 }
+		set_variable = { CgElectronicsT3ExportTargetAmount^PREV = 0 }
+		set_variable = { CgElectronicsT3ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgElectronicsT3ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT3ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT3ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgElectronicsT4ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgElectronicsT4ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgElectronicsT4Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgElectronicsT4Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgElectronicsT4Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgElectronicsT4 = cwic_cg_cut }
+		set_variable = { CgElectronicsT4ExportTarget^PREV = 0 }
+		set_variable = { CgElectronicsT4ExportTargetAmount^PREV = 0 }
+		set_variable = { CgElectronicsT4ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgElectronicsT4ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT4ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT4ImportTargetAmount^THIS = 0 }
+	}
+	if = {
+		limit = { check_variable = { CgElectronicsT5ExportTargetAmount^PREV > 0 } }
+		set_temp_variable = { cwic_cg_cut = CgElectronicsT5ExportTargetAmount^PREV }
+		subtract_from_variable = { PREV.cgElectronicsT5Imports = cwic_cg_cut }
+		clamp_variable = { var = PREV.cgElectronicsT5Imports min = 0 }
+		add_to_variable = { PREV.trade_infrastructure_total_available = cwic_cg_cut }
+		subtract_from_variable = { PREV.trade_infrastructure_total_used = cwic_cg_cut }
+		clamp_variable = { var = PREV.trade_infrastructure_total_used min = 0 }
+		add_to_variable = { currentAvailableCgElectronicsT5Export = cwic_cg_cut }
+		subtract_from_variable = { currentExportedCgElectronicsT5 = cwic_cg_cut }
+		set_variable = { CgElectronicsT5ExportTarget^PREV = 0 }
+		set_variable = { CgElectronicsT5ExportTargetAmount^PREV = 0 }
+		set_variable = { CgElectronicsT5ExportTargetMonthly^PREV = 0 }
+		set_variable = { PREV.CgElectronicsT5ImportTargetMonthly^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT5ImportTarget^THIS = 0 }
+		set_variable = { PREV.CgElectronicsT5ImportTargetAmount^THIS = 0 }
+	}
+}
+
+cwic_sync_native_embargo = {
+	if = {
+		limit = {
+			check_variable = { trade_embargo_check^PREV = 1 }
+			NOT = { is_embargoing = PREV }
+		}
+		set_global_flag = cwic_native_embargo_ok
+		send_embargo = PREV
+		clr_global_flag = cwic_native_embargo_ok
+	}
+	else_if = {
+		limit = {
+			NOT = { check_variable = { trade_embargo_check^PREV = 1 } }
+			is_embargoing = PREV
+		}
+		set_global_flag = cwic_native_embargo_ok
+		break_embargo = PREV
+		clr_global_flag = cwic_native_embargo_ok
+	}
 }
