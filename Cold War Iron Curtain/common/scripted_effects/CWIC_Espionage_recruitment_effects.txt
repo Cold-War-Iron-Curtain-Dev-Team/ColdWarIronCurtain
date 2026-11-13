@@ -1,0 +1,50 @@
+# The builder stores five confirmed rows before Create Group may charge the player.
+CWIC_espionage_reset_group_builder = {
+    set_variable = { operative_number_step = 0 }
+    set_variable = { CWIC_espionage_recruit_selected = 0 }
+    set_variable = { selected = 0 }
+    set_variable = { current_char = -1 }
+    set_variable = { CWIC_esp_next_squad_id = num_espionage_paramilitary_squads }
+    add_to_variable = { CWIC_esp_next_squad_id = 1 }
+    clear_array = temp_build_espionage_paramilitary_operative_type
+    clear_array = temp_build_espionage_paramilitary_operative_name_type
+    clear_array = temp_build_first_name
+    clear_array = temp_build_surname
+    clear_array = temp_build_portrait
+    clear_array = espionage_paramilitary_operative_type_selection
+    for_each_loop = {
+        array = espionage_paramilitary_operative_type
+        set_variable = { espionage_paramilitary_operative_type_selection^i = 0 }
+    }
+}
+
+CWIC_espionage_confirm_recruit = {
+    set_variable = { espionage_paramilitary_operative_type_selection^selected = 1 }
+    add_to_array = { temp_build_espionage_paramilitary_operative_type = temp_build_espionage_paramilitary_operative_type_1 }
+    add_to_array = { temp_build_espionage_paramilitary_operative_name_type = temp_build_espionage_paramilitary_operative_name_type_1 }
+    add_to_array = { temp_build_first_name = temp_build_first_name_1 }
+    add_to_array = { temp_build_surname = temp_build_surname_1 }
+    add_to_array = { temp_build_portrait = temp_build_portrait_1 }
+    set_variable = { CWIC_espionage_recruit_selected = 0 }
+    set_variable = { selected = 0 }
+    add_to_variable = { operative_number_step = 1 }
+}
+
+# A name is optional. Generate "Squad 1" through "Squad 5" only if none was typed.
+# Squad count is still zero based here; the creation effect increments it next.
+CWIC_espionage_ensure_group_name = {
+    if = {
+        limit = { check_variable = { chars^0 = 0 } }
+        clear_array = chars
+        resize_array = { array = chars size = 32 }
+        set_variable = { chars^0 = 83 }
+        set_variable = { chars^1 = 113 }
+        set_variable = { chars^2 = 117 }
+        set_variable = { chars^3 = 97 }
+        set_variable = { chars^4 = 100 }
+        set_variable = { chars^5 = 32 }
+        set_variable = { chars^6 = num_espionage_paramilitary_squads }
+        add_to_variable = { chars^6 = 49 }
+        set_variable = { current_char = 6 }
+    }
+}
