@@ -66,6 +66,11 @@ scripted_diplomatic_actions = {
 			set_variable = {
 				ROOT.trade_embargo_check^THIS = 1
 			}
+			ROOT = { cwic_sync_native_embargo = yes }
+			if = {
+				limit = { NOT = { is_in_array = { array = ROOT.cwic_emb_block value = THIS.id } } }
+				ROOT = { cwic_apply_embargo_block = yes }
+			}
 		}
 		reject_effect = {} # runs when the action is properly sent and rejected
 		can_be_sent = {} # send button will be disabled if no
@@ -106,6 +111,14 @@ scripted_diplomatic_actions = {
 		complete_effect = {
 			set_variable = {
 				ROOT.trade_embargo_check^THIS = 0
+			}
+			ROOT = { cwic_sync_native_embargo = yes }
+			if = {
+				limit = {
+					NOT = { check_variable = { trade_embargo_check^ROOT = 1 } }
+					is_in_array = { array = ROOT.cwic_emb_block value = THIS.id }
+				}
+				ROOT = { cwic_lift_embargo_block = yes }
 			}
 		}
 		reject_effect = {} # runs when the action is properly sent and rejected
