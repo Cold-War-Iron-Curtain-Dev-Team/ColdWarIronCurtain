@@ -385,3 +385,84 @@ With a handful of seats, the panel switches to the large layout by itself.
 - **Why the display files are long even though the effects are short:** inlays can only pick a portrait (`scripted_images`) or a text (scripted localisation) through triggers, so each seat needs one branch per character. That code is generated, so you never edit it.
 
 ---
+
+## 7. The Molotov-era panel (`SOV_Molotov_presidium_inlay`)
+
+A second panel attached to the `SOV_Molotov` focus tree, x=2250 (calibrated in-game - see the
+placement caveat below).
+Unlike the Stalin panel it is **STATIC**: it never reads the shared
+`SOV_pres_*` seat array, so no dead, dismissed or stale member can ever appear in it, even
+before the handover effect runs. Its loc file contains only the panel's 13 people. It is also
+**REVEAL-GATED**: when the tree starts only Molotov (big portrait) is drawn; each seat
+appears once the focus that appoints its holder completes (`REVEALS` in the data file), and
+seats without an owning focus appear once `DEFAULT_REVEAL` (`SOV_Molotov_Vision`) completes.
+
+| File | What it is |
+|---|---|
+| `_tools/presidium/molotov_presidium_data.py` | This panel's data: portraits, seats, relations, ranks, bios, position |
+| `_tools/presidium/gen_molotov_presidium.py` | Its generator - run `python gen_molotov_presidium.py` |
+| `common/focus_inlay_windows/SOV_Molotov_presidium_inlay_window.txt` | generated inlay definition (leader unconditional, 12 reveal-gated picks with blank fallback) |
+| `interface/SOV_Molotov_presidium_inlay.gui` | generated window layout (two rows of six, emitted at UI_SCALE 0.8 -> 800x358) |
+| `common/scripted_localisation/SOV_Molotov_presidium_scripted_loc.txt` | generated scripted localisation (leader static; seat entries gate on `has_completed_focus`) |
+| `localisation/english/SOV_Molotov_presidium_l_english.yml` | generated tooltips - self-contained, panel cast only |
+| `common/scripted_effects/SOV_Molotov_presidium_effects.txt` | `SOV_pres_molotov_government` (mirrors Molotov's government into the shared state) and `SOV_pres_molotov_guard` (self-healing check) |
+| `common/on_actions/SOV_Molotov_presidium_on_actions.txt` | runs the guard on startup and every SOV month |
+
+How it fits together:
+
+- **Display is reveal-gated**: the big portrait is always Molotov
+  (`GFX_Vyacheslav_Molotov_60s`, unconditional pick). Each seat's image block is
+  `SPRITE = { has_completed_focus = <focus> }` with a `GFX_SOV_pres_blank = yes` fallback,
+  so a seat is invisible (fully blank) until its holder's focus in `REVEALS` completes -
+  or until `DEFAULT_REVEAL` for the four seats without their own focus (Pervukhin,
+  Kuznetsov, Gromyko, Voroshilov). Seat N still shows the character listed Nth in
+  `START_SEATS`. Names, posts, factions and tooltips use the same trigger; hidden seats
+  fall back to the empty key, so nothing renders under the blank portrait. The big
+  portrait emits at scale 0.88 (`LEADER_SCALE` 1.10 x `UI_SCALE` 0.8) - clearly larger
+  than the seats (0.65 x 0.8 = 0.52).
+- **Hidden seats are silent**: a not-yet-revealed seat is fully blank - blank portrait,
+  empty name/post/faction, and an EMPTY tooltip (`SOV_mpres_empty` renders nothing), so
+  hovering it shows nothing at all. Same pattern as the Stalin panel's hidden slots.
+- **The focuses announce the appointments**: each focus in `REVEALS` carries a hand-added
+  `custom_effect_tooltip = SOV_mpres_reveal_<holder>` as the first line of its
+  `completion_reward` in `SOV_Molotov.txt` (it shows in the focus's reward tooltip), and
+  `SOV_Molotov_Vision` carries `SOV_mpres_reveal_generic`, which deliberately names no
+  member ("More ministers will be appointed to the government"). The generator emits the
+  loc text ("<Name> joins the Presidium as <post>") into the panel's loc file and asserts
+  every `REVEALS` focus id exists in the tree and has an english loc title. The display
+  keys off focus completion only: a later dismissal event will not hide a seat it has
+  revealed (that could be added later if wanted).
+- **Portraits use the mod's own sprite names** from `interface/_leader_portraits.gfx`
+  (e.g. `GFX_Georgy_Malenkov` -> `Georgy_Malenkov_50s.dds`, `GFX_SOV_Minister_Suslov_50s` ->
+  the `Mikhail_Suslov_60s.dds` texture). Do NOT use dds basenames - most decade files have no
+  sprite named after them and render as the grey silhouette. Shepilov and Pervukhin are
+  deliberately absent from `PORTRAITS` and show the silhouette placeholder for now.
+- The shared state is still maintained for other content: `SOV_pres_molotov_government`
+  clears all seats and re-seats the same 12 into the `SOV_pres_*` arrays, sets relations,
+  ranks and the "Presidium..." title flag. The guard re-applies it on load and monthly ticks
+  whenever the `SOV_Molotov` tree is active and the state is missing or stale
+  (`debug_load_Molotov_tree` calls it directly; a future handover event should do the same).
+- Changing the cast: edit `START_SEATS` / `PORTRAITS` / `BIOS` / `REVEALS` in
+  `molotov_presidium_data.py` and re-run the generator. `BIOS` must cover exactly the leader
+  plus every seat holder (the generator asserts this), so nobody extra can leak into the loc;
+  `REVEALS` keys must be seat holders whose focus ids exist in the tree and in the english loc.
+- Placement caveat: the focus view can render zoomed out (wide tree auto-fit) while inlay
+  windows draw at their full GUI scale, so the on-screen gap between tree and panel does NOT
+  match the raw pixel numbers, and a naive 150px-per-column collision scan overestimates how
+  far right the panel can sit. `INLAY_POSITION` was calibrated against in-game screenshots
+  (x=3200 -> x=3100 -> x=2250); after moving or resizing the panel, expect to re-tune it from
+  a screenshot rather than from the column math.
+- `UI_SCALE` (0.8) in `molotov_presidium_data.py`: every coordinate and sprite scale in the
+  generated .gui is multiplied by it, because the focus view renders zoomed out for wide
+  trees while inlay windows keep their full GUI size. Fonts are NOT scaled (they are named
+  fonts) - only geometry and portraits shrink; text line pitch is kept unscaled so lines
+  don't overlap. Re-tune it from a screenshot, together with the position.
+- The panel sits inside the tree's natural scroll bounds (its right edge is left of the
+  rightmost focus column), so no scroll-bounds spacer focus is needed -
+  `SOV_molotov_presidium_panel_spacer` (x=28, y=6) was removed from `SOV_Molotov.txt` after
+  the in-game calibration. If the panel ever moves beyond the scroll bounds again, re-add a
+  spacer focus rendered as nothing (blank `GFX_SOV_pres_blank` icon + empty loc name), and
+  remember that a plain `visible = { always = no }` does NOT hide a focus in the tree view -
+  the engine still draws its icon and name.
+
+---

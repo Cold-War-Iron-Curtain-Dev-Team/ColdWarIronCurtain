@@ -76,6 +76,9 @@ if = {
 }
 ```
 
+- In the three preset files, `limit`, `upgrades` and `modules` each sit on one line, and the four
+  flags (`allow_without_tech` … `mark_older_equipment_obsolete`) share one line. Keep `name`,
+  `type` and `icon` on their own lines: the validator reads those line by line.
 - `show_position = no` is required. Without it the name gains a `Mk0` suffix.
 - `icon` is required. Without it the designer offers the pool, but the design does not take it.
 - Use exactly one `has_tech` per guard. `allow_without_tech` already covers the modules.

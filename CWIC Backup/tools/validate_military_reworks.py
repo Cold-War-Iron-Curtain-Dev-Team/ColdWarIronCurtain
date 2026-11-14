@@ -2491,7 +2491,7 @@ def _variant_recipes() -> dict[tuple[str, str], dict[str, object]]:
             opening = module_body.find("{")
             ending = balanced_end(module_body, opening, f"{name_match.group(1)}.modules")
             for match in re.finditer(
-                r"(?m)^\s*([A-Za-z0-9_]+)\s*=\s*([A-Za-z0-9_]+)\s*$",
+                r"([A-Za-z0-9_]+)\s*=\s*([A-Za-z0-9_]+)",
                 module_body[opening + 1 : ending],
             ):
                 if match.group(2) != "empty":
@@ -3695,7 +3695,7 @@ def validate_national_tank_presets(national_override: str | None = None, generic
             if required not in guard:
                 fail(f"national preset {name} missing contract: {required}")
         blocks = keyed_blocks(guard, "modules")
-        actual = re.findall(r"(?m)^\s*(\w+)\s*=\s*(\w+)\s*$", blocks[0]) if len(blocks) == 1 else []
+        actual = re.findall(r"(\w+)\s*=\s*(\w+)", blocks[0]) if len(blocks) == 1 else []
         for message in variant_slot_errors(actual, preset["modules"]):
             fail(f"national preset {name} {message}")
         if not re.search(rf'(?m)^\s*{re.escape(preset["legacy_name_key"])}:\d*\s*"{re.escape(name)}"', legacy_loc):

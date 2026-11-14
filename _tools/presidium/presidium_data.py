@@ -61,6 +61,10 @@ MINISTRIES = [
     ("ukraine",        "First Secretary, Ukraine"),
     ("kolkhoz",        "Council for Kolkhoz Affairs"),
     ("dep_atomic",     "Deputy Premier, Atomic Project"),
+    # Molotov-era posts (ids 29-31, appended - see the golden rule above)
+    ("second_secretary", "Second Secretary"),
+    ("deputy_premier",   "Deputy Premier"),
+    ("dep_chem_power",   "Deputy Premier, Chem. & Power"),
 ]
 
 # Traits are flavour only (shown in tooltips, no gameplay effect). key: (name, description)
@@ -86,7 +90,7 @@ UNKNOWN = "GFX_leader_unknown"
 # politburo = starting Politburo rank: 2 full member, 1 candidate, 0 not a member
 CHARACTERS = [
     dict(key="stalin", politburo=2,     name="Joseph Stalin",       portrait="GFX_Joseph_Stalin_50sLate", faction="old_guard",   relation=100, traits=[],
-         bio="The Vozhd. Every seat around this table exists at his pleasure."),
+         bio="The Vozhd. Lenin's Successor, General Secretary of the Party and the face of the international communist Movement."),
     dict(key="malenkov", politburo=2,   name="Georgy Malenkov",     portrait="GFX_Georgy_Malenkov",       faction="technocrats", relation=60,  traits=["apparatchik", "planner"],
          bio="Back in the Secretariat since 1948, he is busy destroying the Leningrad group."),
     dict(key="beria", politburo=2,      name="Lavrentiy Beria",     portrait="GFX_Lavrentiy_Beria",       faction="organs",      relation=40,  traits=["chekist", "industrialist"],
@@ -98,11 +102,11 @@ CHARACTERS = [
     dict(key="kaganovich", politburo=2, name="Lazar Kaganovich",    portrait="GFX_Lazar_Kaganovich",      faction="old_guard",   relation=45,  traits=["industrialist", "brutal"],
          bio="The iron commissar of heavy industry and the railways."),
     dict(key="molotov", politburo=2,    name="Vyacheslav Molotov",  portrait="GFX_Vyacheslav_Molotov_50s", faction="old_guard",  relation=-40, traits=["diplomat", "ideologue"],
-         bio="Removed from the Foreign Ministry in March 1949; his wife Polina was arrested in January."),
+         bio="Former right hand of Stalin. Removed from the Foreign Ministry in March 1949; his wife Polina was arrested in January, yet he remains undoubtedly loyal to the cause."),
     dict(key="mikoyan", politburo=2,    name="Anastas Mikoyan",     portrait="GFX_Anastas_Mikoyan",       faction="technocrats", relation=-20, traits=["trader", "planner"],
          bio="Removed from the Ministry of Foreign Trade in March 1949. The great survivor."),
     dict(key="voroshilov", politburo=2, name="Kliment Voroshilov",  portrait="GFX_FIELD_MARSHALS_Kliment_Voroshilov", faction="old_guard", relation=-20, traits=["soldier", "ideologue"],
-         bio="Stalin's old comrade from Tsaritsyn, lately suspected of being a British spy."),
+         bio="Stalin's old comrade from Tsaritsyn, now criticized due to his military blunders during the war."),
     dict(key="shvernik", politburo=1,   name="Nikolay Shvernik",    portrait="GFX_Nikolay_Shvernik",      faction="old_guard",   relation=20,  traits=["apparatchik", "populist"],
          bio="Chairman of the Presidium of the Supreme Soviet."),
     dict(key="vyshinsky", politburo=0,  name="Andrey Vyshinsky",    portrait=UNKNOWN,                     faction="old_guard",   relation=50,  traits=["diplomat", "brutal"],
@@ -135,6 +139,13 @@ CHARACTERS = [
          bio="Chairman of the Council for Kolkhoz Affairs; his link-system farming is out of favour."),
     dict(key="voznesensky", politburo=0, name="Nikolai Voznesensky", portrait=UNKNOWN,                    faction="technocrats", relation=-80, traits=["planner", "scholar"],
          bio="The brilliant planner of the war economy, dismissed in March 1949 and awaiting his fate."),
+    # Molotov-era figures (ids 26-28, appended - see the golden rule above)
+    dict(key="shelepin", politburo=0,    name="Alexander Shelepin",  portrait="GFX_Alexander_Shelepin", faction="organs",     relation=30,  traits=["chekist", "scholar"],
+         bio="The young First Secretary of the Komsomol, marked out by the old guard for great things."),
+    dict(key="konev", politburo=0,       name="Ivan Konev",          portrait="GFX_FIELD_MARSHALS_Ivan_Konev", faction="military", relation=20, traits=["soldier", "planner"],
+         bio="Marshal of the Soviet Union, commanding the Soviet forces in Germany."),
+    dict(key="pervukhin", politburo=0,   name="Mikhail Pervukhin",   portrait=UNKNOWN,                     faction="technocrats", relation=40,  traits=["planner", "industrialist"],
+         bio="Deputy Premier and a veteran of the atomic project; oversees the chemical and power industries."),
 ]
 
 # ---- Starting state (applied once by SOV_pres_init) ----
