@@ -1,0 +1,190 @@
+fre_lower_laos_cleanup = {
+	if = {
+		limit = { has_idea = FRE_Lower_Laos_Reserves_Diverted }
+		remove_ideas = FRE_Lower_Laos_Reserves_Diverted
+	}
+	if = {
+		limit = {
+			country_exists = LOS
+			LOS = { has_country_flag = LOS_Bolovens_Template_Loaded }
+		}
+		LOS = { delete_units = { division_template = "Groupement Aeroporte Bolovens" } }
+	}
+	clr_country_flag = FRE_Lower_Laos_Reinforced
+}
+
+fre_lower_laos_reinforce_bolovens = {
+	set_country_flag = FRE_Lower_Laos_Reinforced
+	set_temp_variable = { fre_credit_amount = -40 }
+	fre_change_war_credits = yes
+	# The airlifted groupement is raised under Royal Lao colours: the engine
+	# will not spawn a CEFEO unit on ground controlled by a country CEFEO is not
+	# at war with, and Lower Laos must not open a war or access deal with Laos.
+	if = {
+		limit = {
+			country_exists = LOS
+			1187 = { is_controlled_by = LOS }
+		}
+		LOS = {
+			if = {
+				limit = { NOT = { has_country_flag = LOS_Bolovens_Template_Loaded } }
+				set_country_flag = LOS_Bolovens_Template_Loaded
+				division_template = {
+					name = "Groupement Aeroporte Bolovens"
+					regiments = {
+						infantry = { x = 0 y = 0 }
+						infantry = { x = 0 y = 1 }
+						infantry = { x = 1 y = 0 }
+					}
+					priority = 0
+				}
+			}
+		}
+		1187 = {
+			create_unit = {
+				division = "name = \"Groupement Aeroporte Bolovens\" division_template = \"Groupement Aeroporte Bolovens\" start_experience_factor = 0.5 start_equipment_factor = 1.0"
+				owner = LOS
+				prioritize_location = 1563
+			}
+		}
+		set_temp_variable = { ic_bolovens_present = 0 }
+		if = { limit = { LOS = { divisions_in_state = { state = 1187 size > 0 } } } set_temp_variable = { ic_bolovens_present = 1 } }
+		log = "IC_AFK|LOWER_LAOS_RESPONSE|date=[GetDateText]|choice=reinforce|spawn=royal_lao|champasak_divisions_present=[?ic_bolovens_present|0]"
+	}
+	else = {
+		set_temp_variable = { fre_credit_amount = 40 }
+		fre_change_war_credits = yes
+		log = "IC_AFK|LOWER_LAOS_RESPONSE|date=[GetDateText]|choice=reinforce|spawn=skipped|reason=champasak_not_royal_lao|credits_refunded=40"
+	}
+	if = {
+		limit = { has_country_flag = FRE_Atlante_Offensive_Active }
+		if = {
+			limit = { NOT = { has_variable = FRE_Atlante_Hold_Extension } }
+			set_variable = { FRE_Atlante_Hold_Extension = 0 }
+		}
+		add_to_variable = { FRE_Atlante_Hold_Extension = 3 }
+	}
+	log = "IC_AFK|LOWER_LAOS_RESPONSE|date=[GetDateText]|choice=reinforce|credits=[?FRE_War_Credits|0]"
+}
+
+vin_lower_laos_apply_atlante_pressure = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied }
+			country_exists = FRE
+			FRE = { has_country_flag = FRE_Atlante_Offensive_Active }
+		}
+		set_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied
+		FRE = {
+			if = {
+				limit = { NOT = { has_variable = FRE_Atlante_Hold_Extension } }
+				set_variable = { FRE_Atlante_Hold_Extension = 0 }
+			}
+			add_to_variable = { FRE_Atlante_Hold_Extension = 4 }
+			if = {
+				limit = { NOT = { has_idea = FRE_Lower_Laos_Reserves_Diverted } }
+				add_ideas = FRE_Lower_Laos_Reserves_Diverted
+			}
+		}
+	}
+}
+
+vin_lower_laos_begin = {
+	if = {
+		limit = {
+			vin_lower_laos_live_window_trigger = yes
+			NOT = { has_country_flag = VIN_Lower_Laos_Diversion_Active }
+			NOT = { has_country_flag = VIN_Lower_Laos_Offensive_Launched }
+		}
+		set_country_flag = VIN_Lower_Laos_Offensive_Launched
+		set_country_flag = VIN_Lower_Laos_Diversion_Active
+		clr_country_flag = VIN_Lower_Laos_Result_Pressure
+		clr_country_flag = VIN_Lower_Laos_Result_Contained
+		clr_country_flag = VIN_Lower_Laos_Result_Superseded
+		clr_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen
+		clr_country_flag = VIN_Lower_Laos_Atlante_Hold_Applied
+		set_variable = { VIN_Lower_Laos_Days = 0 }
+		set_temp_variable = { vin_supply_amount = -20 }
+		vin_change_campaign_supply = yes
+		if = {
+			limit = { country_exists = FRE }
+			FRE = { country_event = { id = FRE_Lower_Laos.1 hours = 6 } }
+		}
+		vin_lower_laos_apply_atlante_pressure = yes
+	}
+	else = {
+		set_country_flag = VIN_Lower_Laos_Focus_Superseded
+		set_country_flag = VIN_Lower_Laos_Result_Superseded
+	}
+}
+
+vin_lower_laos_finish = {
+	clr_country_flag = VIN_Lower_Laos_Diversion_Active
+	if = {
+		limit = { country_exists = FRE }
+		FRE = { fre_lower_laos_cleanup = yes }
+	}
+}
+
+vin_lower_laos_resolve = {
+	if = {
+		limit = { has_country_flag = VIN_Lower_Laos_Diversion_Active }
+		clr_country_flag = VIN_Lower_Laos_Result_Pressure
+		clr_country_flag = VIN_Lower_Laos_Result_Contained
+		clr_country_flag = VIN_Lower_Laos_Result_Superseded
+		if = {
+			limit = { check_variable = { vin_lower_laos_outcome = 1 } }
+			set_country_flag = VIN_Lower_Laos_Result_Pressure
+			if = {
+				limit = { country_exists = FRA }
+				set_temp_variable = { ic_trace_writer = 18 }
+				set_temp_variable = { ic_trace_amount = 15 }
+				ic_afk_trace_score_communist = yes
+				FRA = {
+					add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 15 tooltip = Add_to_Communist_Victory_Points_TT }
+					indochina_struggle_recalculate_total_anti_communist_score = yes
+				}
+			}
+		}
+		else_if = {
+			limit = { check_variable = { vin_lower_laos_outcome = 2 } }
+			set_country_flag = VIN_Lower_Laos_Result_Contained
+			set_temp_variable = { vin_supply_amount = 10 }
+			vin_change_campaign_supply = yes
+		}
+		else = { set_country_flag = VIN_Lower_Laos_Result_Superseded }
+		vin_lower_laos_finish = yes
+	}
+}
+
+vin_lower_laos_daily_tick = {
+	if = {
+		limit = { has_country_flag = VIN_Lower_Laos_Diversion_Active }
+		add_to_variable = { VIN_Lower_Laos_Days = 1 }
+		if = {
+			limit = { NOT = { vin_lower_laos_live_window_trigger = yes } }
+			set_temp_variable = { vin_lower_laos_outcome = 3 }
+			vin_lower_laos_resolve = yes
+		}
+		else = {
+			vin_lower_laos_apply_atlante_pressure = yes
+			if = {
+				limit = {
+					NOT = { has_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen }
+					country_exists = FRE
+					FRE = { vin_lower_laos_fre_garrison_present_trigger = yes }
+				}
+				set_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen
+			}
+			if = {
+				limit = { NOT = { check_variable = { VIN_Lower_Laos_Days < 45 } } }
+				if = {
+					limit = { has_country_flag = VIN_Lower_Laos_FRE_Garrison_Seen }
+					set_temp_variable = { vin_lower_laos_outcome = 2 }
+				}
+				else = { set_temp_variable = { vin_lower_laos_outcome = 1 } }
+				vin_lower_laos_resolve = yes
+			}
+		}
+	}
+}

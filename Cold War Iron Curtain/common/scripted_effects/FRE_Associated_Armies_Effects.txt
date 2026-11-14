@@ -1,0 +1,133 @@
+fre_associated_armies_los_template = {
+	if = {
+		limit = { NOT = { has_template = "Armee Nationale Laotienne" } }
+		division_template = {
+			name = "Armee Nationale Laotienne"
+			regiments = {
+				infantry = { x = 0 y = 0 }
+				infantry = { x = 0 y = 1 }
+				infantry = { x = 1 y = 0 }
+				artillery = { x = 2 y = 0 }
+			}
+			support = {
+				engineer = { x = 0 y = 0 }
+			}
+			priority = 0
+		}
+	}
+}
+
+fre_associated_armies_cam_template = {
+	if = {
+		limit = { NOT = { has_template = "Armee Nationale Khmere" } }
+		division_template = {
+			name = "Armee Nationale Khmere"
+			regiments = {
+				infantry = { x = 0 y = 0 }
+				infantry = { x = 0 y = 1 }
+				infantry = { x = 1 y = 0 }
+				artillery = { x = 2 y = 0 }
+			}
+			support = {
+				engineer = { x = 0 y = 0 }
+			}
+			priority = 0
+		}
+	}
+}
+
+fre_associated_armies_raise_los = {
+	fre_associated_armies_los_template = yes
+	set_country_flag = LOS_Associated_Army_Raised
+	add_manpower = 4000
+	add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 3000 producer = FRA }
+	add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 120 producer = FRA }
+	add_equipment_to_stockpile = { type = support_equipment amount = 120 producer = FRA }
+	random_owned_controlled_state = {
+		prioritize = { 670 }
+		create_unit = {
+			division = "name = \"1re Division de l'Armee Nationale Laotienne\" division_template = \"Armee Nationale Laotienne\" start_experience_factor = 0.3 start_equipment_factor = 0.9"
+			owner = LOS
+		}
+	}
+	random_owned_controlled_state = {
+		prioritize = { 1198 }
+		create_unit = {
+			division = "name = \"2e Division de l'Armee Nationale Laotienne\" division_template = \"Armee Nationale Laotienne\" start_experience_factor = 0.3 start_equipment_factor = 0.9"
+			owner = LOS
+		}
+	}
+}
+
+fre_associated_armies_raise_cam = {
+	fre_associated_armies_cam_template = yes
+	set_country_flag = CAM_Associated_Army_Raised
+	add_manpower = 4000
+	add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 3000 producer = FRA }
+	add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 120 producer = FRA }
+	add_equipment_to_stockpile = { type = support_equipment amount = 120 producer = FRA }
+	random_owned_controlled_state = {
+		create_unit = {
+			division = "name = \"1re Division de l'Armee Nationale Khmere\" division_template = \"Armee Nationale Khmere\" start_experience_factor = 0.3 start_equipment_factor = 0.9"
+			owner = CAM
+		}
+	}
+	random_owned_controlled_state = {
+		create_unit = {
+			division = "name = \"2e Division de l'Armee Nationale Khmere\" division_template = \"Armee Nationale Khmere\" start_experience_factor = 0.3 start_equipment_factor = 0.9"
+			owner = CAM
+		}
+	}
+}
+
+fre_associated_armies_commit = {
+	if = {
+		limit = {
+			NOT = { has_country_flag = FRE_Associated_Armies_Chosen }
+			NOT = { has_completed_focus = FRE_Arm_the_National_Army }
+			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = geneva_conference_concluded }
+			check_variable = { global.Indochina_War_Active_Phase < 9 }
+			NOT = { check_variable = { FRE_War_Credits < 60 } }
+			country_exists = LOS
+			country_exists = CAM
+			LOS = { any_owned_state = { is_controlled_by = LOS } }
+			CAM = { any_owned_state = { is_controlled_by = CAM } }
+		}
+		set_country_flag = FRE_Associated_Armies_Chosen
+		set_temp_variable = { fre_credit_amount = -60 }
+		fre_change_war_credits = yes
+		LOS = { fre_associated_armies_raise_los = yes }
+		CAM = { fre_associated_armies_raise_cam = yes }
+		if = {
+			limit = { country_exists = VIE }
+			VIE = { set_country_flag = VIE_Associated_Armies_Cap_Reduced }
+		}
+		set_temp_variable = { geneva_lev_amount = 30 }
+		geneva_add_ethnic_leverage = yes
+		set_temp_variable = { ic_trace_writer = 31 }
+		set_temp_variable = { ic_trace_amount = 10 }
+		ic_afk_trace_score_pro_france = yes
+		FRA = {
+			add_to_variable = {
+				StruggleInvolvedNationsIndochinaProFranceScore = 10
+				tooltip = Add_to_French_Victory_Points_TT
+			}
+			indochina_struggle_recalculate_total_anti_communist_score = yes
+		}
+		log = "IC_AFK|ASSOCIATED_ARMIES|date=[GetDateText]|choice=associated|los_divisions=2|cam_divisions=2|credits=[?FRE_War_Credits|0]|vie_cap=25"
+	}
+}
+
+ic_associated_armies_raid_defence = {
+	if = {
+		limit = {
+			country_exists = LOS
+			LOS = { has_country_flag = LOS_Associated_Army_Raised }
+		}
+		670 = { set_building_level = { type = bunker level = 4 province = { id = 1464 } } }
+		1198 = { set_building_level = { type = bunker level = 4 province = { id = 4613 } } }
+		LOS = { add_manpower = 3000 }
+		log = "IC_AFK|ASSOCIATED_ARMIES_RAID|date=[GetDateText]|bunker_level=4|provinces=1464,4613"
+	}
+}

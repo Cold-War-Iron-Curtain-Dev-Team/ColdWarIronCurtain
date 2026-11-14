@@ -1,0 +1,203 @@
+vin_laos_raid_modifier_sync = {
+	if = {
+		limit = { has_idea = VIN_Campaign_Overextension_Severe }
+		if = {
+			limit = { has_dynamic_modifier = { modifier = laos_raid_overextension } }
+			remove_dynamic_modifier = { modifier = laos_raid_overextension }
+		}
+		if = {
+			limit = { has_dynamic_modifier = { modifier = laos_raid_overextension_severe } }
+			remove_dynamic_modifier = { modifier = laos_raid_overextension_severe }
+		}
+	}
+	else_if = {
+		limit = { has_global_flag = Laos_Raid_Active }
+		if = {
+			limit = { has_global_flag = Laos_Raid_Last_Chance }
+			if = {
+				limit = { NOT = { has_dynamic_modifier = { modifier = laos_raid_overextension_severe } } }
+				add_dynamic_modifier = { modifier = laos_raid_overextension_severe }
+			}
+		}
+		else_if = {
+			limit = { NOT = { has_dynamic_modifier = { modifier = laos_raid_overextension } } }
+			add_dynamic_modifier = { modifier = laos_raid_overextension }
+		}
+	}
+}
+
+vin_all_in_luang_prabang_daily = {
+	if = {
+		limit = { has_global_flag = Laos_All_In_Luang_Prabang_Active }
+		if = {
+			limit = {
+				OR = {
+					vin_all_in_corridor_overextended_trigger = yes
+					vin_campaign_severe_overextension_trigger = yes
+				}
+			}
+			vin_overextension_severe_apply = yes
+		}
+		else = {
+			vin_overextension_severe_clear = yes
+		}
+	}
+	vin_laos_raid_modifier_sync = yes
+}
+
+vin_all_in_luang_prabang_begin = {
+	if = {
+		limit = { vin_luang_prabang_launch_ready_trigger = yes }
+		set_global_flag = Phase3
+		set_global_flag = Laos_All_In_Luang_Prabang_Chosen
+		set_global_flag = Laos_All_In_Luang_Prabang_Active
+		clr_global_flag = Laos_All_In_Luang_Prabang_Resolved
+		clr_country_flag = VIN_All_In_Luang_Prabang_Result_Success
+		clr_country_flag = VIN_All_In_Luang_Prabang_Result_Failure
+		clr_country_flag = VIN_All_In_Luang_Prabang_Result_Superseded
+		set_country_flag = VIN_All_In_Luang_Prabang_Corridor
+		757 = {
+			if = {
+				limit = { NOT = { has_dynamic_modifier = { modifier = unplanned_offensive } } }
+				add_dynamic_modifier = { modifier = unplanned_offensive }
+			}
+		}
+		ic_laos_raid_release_pathet_lao = yes
+		LOS = {
+			declare_war_on = {
+				target = LAO
+				type = annex_everything
+			}
+			if = {
+				limit = { NOT = { has_war_with = VIN } }
+				declare_war_on = {
+					target = VIN
+					type = puppet_wargoal_focus
+				}
+			}
+		}
+		ic_laos_raid_launch = yes
+		set_variable = { global.Laos_Raid_Days_Elapsed = -30 }
+		if = {
+			limit = { country_exists = LAO }
+			lao_ensure_templates = yes
+			1295 = {
+				create_unit = {
+					division = "name = \"Kong Phan 5\" division_template = \"Kong Phan\" start_experience_factor = 0.3 start_equipment_factor = 0.8"
+					owner = LAO
+					allow_spawning_on_enemy_provs = yes
+				}
+				create_unit = {
+					division = "name = \"Kong Phan 6\" division_template = \"Kong Phan\" start_experience_factor = 0.3 start_equipment_factor = 0.8"
+					owner = LAO
+					allow_spawning_on_enemy_provs = yes
+				}
+				create_unit = {
+					division = "name = \"Kong Pathom 3\" division_template = \"Kong Pathom\" start_experience_factor = 0.35 start_equipment_factor = 0.9"
+					owner = LAO
+					allow_spawning_on_enemy_provs = yes
+				}
+			}
+			LAO = {
+				add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 2000 producer = VIN }
+				add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 150 producer = VIN }
+			}
+		}
+		set_temp_variable = { vin_supply_amount = -40 }
+		vin_change_campaign_supply = yes
+		log = "IC_AFK|STAGE|date=[GetDateText]|owner=VIN|package=Luang_Prabang_All_In|stage=commitment|supply=-40|deadline_bonus=30|extra_divisions=3"
+	}
+	else = {
+		log = "IC_AFK|STAGE|date=[GetDateText]|owner=VIN|package=Luang_Prabang_All_In|stage=refused"
+	}
+}
+
+vin_all_in_luang_prabang_resolve = {
+	if = {
+		limit = { has_global_flag = Laos_All_In_Luang_Prabang_Active }
+		clr_global_flag = Laos_All_In_Luang_Prabang_Active
+		set_global_flag = Laos_All_In_Luang_Prabang_Resolved
+		if = {
+			limit = { NOT = { has_global_flag = Laos_Raid_Last_Chance } }
+			add_to_variable = { global.Laos_Raid_Last_Duration = 30 }
+		}
+		if = {
+			limit = { country_exists = VIN }
+			VIN = {
+				clr_country_flag = VIN_All_In_Luang_Prabang_Corridor
+				if = {
+					limit = { NOT = { vin_campaign_severe_overextension_trigger = yes } }
+					vin_overextension_severe_clear = yes
+				}
+				if = {
+					limit = { vin_luang_prabang_live_window_trigger = yes }
+					if = {
+						limit = {
+							OR = {
+								has_global_flag = Laos_Raid_Attacker_Won
+								has_global_flag = Laos_Total_War
+							}
+						}
+						set_country_flag = VIN_All_In_Luang_Prabang_Result_Success
+						if = {
+							limit = { country_exists = FRA }
+							set_temp_variable = { ic_trace_writer = 27 }
+							set_temp_variable = { ic_trace_amount = 40 }
+							ic_afk_trace_score_communist = yes
+							FRA = {
+								add_to_variable = { StruggleInvolvedNationsIndochinaCommunistScore = 40 tooltip = Add_to_Communist_Victory_Points_TT }
+								indochina_struggle_recalculate_total_anti_communist_score = yes
+							}
+						}
+					}
+					else = {
+						set_country_flag = VIN_All_In_Luang_Prabang_Result_Failure
+						set_temp_variable = { vin_supply_amount = -50 }
+						vin_change_campaign_supply = yes
+						if = {
+							limit = { country_exists = FRE }
+							FRE = { set_country_flag = FRE_Luang_Prabang_Callback }
+							log = "IC_AFK|CALLBACK|date=[GetDateText]|package=Castor|source=Luang_Prabang|result=armed|discount=15"
+						}
+					}
+				}
+				else = {
+					set_country_flag = VIN_All_In_Luang_Prabang_Result_Superseded
+				}
+			}
+		}
+	}
+}
+
+vin_all_in_luang_prabang_campaign_callback = {
+	if = {
+		limit = {
+			has_country_flag = VIN_All_In_Luang_Prabang_Result_Success
+			check_variable = { vin_camp_id = 11 }
+			NOT = { has_country_flag = VIN_All_In_Luang_Prabang_Corridor_Credited_Lai_Chau }
+		}
+		set_country_flag = VIN_All_In_Luang_Prabang_Corridor_Credited_Lai_Chau
+		set_temp_variable = { vin_supply_amount = 10 }
+		vin_change_campaign_supply = yes
+		log = "IC_AFK|CALLBACK|date=[GetDateText]|campaign=11|source=Luang_Prabang|supply=10"
+	}
+	if = {
+		limit = {
+			has_country_flag = VIN_All_In_Luang_Prabang_Result_Success
+			check_variable = { vin_camp_id = 3 }
+			NOT = { has_country_flag = VIN_All_In_Luang_Prabang_Corridor_Credited_Dien_Bien }
+		}
+		set_country_flag = VIN_All_In_Luang_Prabang_Corridor_Credited_Dien_Bien
+		set_temp_variable = { vin_supply_amount = 10 }
+		vin_change_campaign_supply = yes
+		log = "IC_AFK|CALLBACK|date=[GetDateText]|campaign=3|source=Luang_Prabang|supply=10"
+	}
+}
+
+test_vin_all_in_luang_prabang_begin = {
+	vin_all_in_luang_prabang_begin = yes
+}
+
+test_vin_all_in_luang_prabang_resolve = {
+	vin_all_in_luang_prabang_resolve = yes
+}

@@ -1,0 +1,133 @@
+fre_hedgehog_network_focus_complete = {
+	if = {
+		limit = { FRE_hedgehog_network_available_trigger = yes }
+		set_country_flag = FRE_Hedgehog_Network_Chosen
+		set_temp_variable = { fre_credit_amount = -120 }
+		fre_change_war_credits = yes
+		set_temp_variable = { fre_patience_delta = -4 }
+		fre_metropole_patience_change = yes
+		add_manpower = -3000
+		fre_hedgehog_network_establish = yes
+	}
+	else = {
+		set_country_flag = FRE_Hedgehog_Network_Superseded
+		log = "IC_AFK|HEDGEHOG|date=[GetDateText]|stage=superseded_at_completion"
+	}
+}
+
+fre_hedgehog_network_establish = {
+	set_temp_variable = { hedgehog_size = 1 }
+	if = {
+		limit = { check_variable = { FRE_Metropole_Patience > 65 } }
+		set_temp_variable = { hedgehog_size = 2 }
+	}
+	671 = {
+		set_building_level = { type = bunker level = 3 province = { id = 13757 } }
+		set_building_level = { type = bunker level = 3 province = { id = 13765 } }
+		if = {
+			limit = { NOT = { has_dynamic_modifier = { modifier = FRE_Hedgehog_Base } } }
+			add_dynamic_modifier = { modifier = FRE_Hedgehog_Base }
+		}
+	}
+	1198 = {
+		set_building_level = { type = bunker level = 3 province = { id = 4613 } }
+		if = {
+			limit = { NOT = { has_dynamic_modifier = { modifier = FRE_Hedgehog_Base } } }
+			add_dynamic_modifier = { modifier = FRE_Hedgehog_Base }
+		}
+	}
+	set_temp_variable = { hedgehog_base_size = hedgehog_size }
+	if = {
+		limit = { has_country_flag = FRE_Na_San_Success }
+		add_to_temp_variable = { hedgehog_base_size = 1 }
+	}
+	set_temp_variable = { hedgehog_i = 0 }
+	while_loop_effect = {
+		limit = { check_variable = { hedgehog_i < hedgehog_base_size } }
+		671 = { fre_hedgehog_spawn_na_san = yes }
+		add_to_temp_variable = { hedgehog_i = 1 }
+	}
+	set_temp_variable = { hedgehog_i = 0 }
+	while_loop_effect = {
+		limit = { check_variable = { hedgehog_i < hedgehog_size } }
+		671 = { fre_hedgehog_spawn_lai_chau = yes }
+		1198 = { fre_hedgehog_spawn_luang_prabang = yes }
+		add_to_temp_variable = { hedgehog_i = 1 }
+	}
+	log = "IC_AFK|HEDGEHOG|date=[GetDateText]|stage=established|per_base=[?hedgehog_size|0]|na_san=[?hedgehog_base_size|0]|patience=[?FRE_Metropole_Patience|0]"
+}
+
+fre_hedgehog_load_template = {
+	if = {
+		limit = { NOT = { has_country_flag = FRE_Hedgehog_Template_Loaded } }
+		set_country_flag = FRE_Hedgehog_Template_Loaded
+		division_template = {
+			name = "Groupement de Herisson"
+			regiments = {
+				infantry = { x = 0 y = 0 }
+				infantry = { x = 0 y = 1 }
+				infantry = { x = 0 y = 2 }
+				infantry = { x = 1 y = 0 }
+			}
+			support = {
+				engineer = { x = 0 y = 0 }
+			}
+			priority = 0
+		}
+	}
+}
+
+fre_hedgehog_spawn_na_san = {
+	if = {
+		limit = { is_controlled_by = FRE }
+		FRE = { fre_hedgehog_load_template = yes }
+		create_unit = { division = "name = \"Herisson de Na San\" division_template = \"Groupement de Herisson\" start_experience_factor = 0.45 start_equipment_factor = 1.0" owner = FRE prioritize_location = 13757 }
+	}
+	else_if = {
+		limit = { is_controlled_by = TAI }
+		TAI = { fre_hedgehog_load_template = yes }
+		create_unit = { division = "name = \"Herisson de Na San\" division_template = \"Groupement de Herisson\" start_experience_factor = 0.4 start_equipment_factor = 1.0" owner = TAI prioritize_location = 13757 }
+	}
+}
+
+fre_hedgehog_spawn_lai_chau = {
+	if = {
+		limit = { is_controlled_by = FRE }
+		FRE = { fre_hedgehog_load_template = yes }
+		create_unit = { division = "name = \"Herisson de Lai Chau\" division_template = \"Groupement de Herisson\" start_experience_factor = 0.4 start_equipment_factor = 1.0" owner = FRE prioritize_location = 13765 }
+	}
+	else_if = {
+		limit = { is_controlled_by = TAI }
+		TAI = { fre_hedgehog_load_template = yes }
+		create_unit = { division = "name = \"Herisson de Lai Chau\" division_template = \"Groupement de Herisson\" start_experience_factor = 0.35 start_equipment_factor = 1.0" owner = TAI prioritize_location = 13765 }
+	}
+}
+
+fre_hedgehog_spawn_luang_prabang = {
+	if = {
+		limit = { is_controlled_by = LOS }
+		LOS = { fre_hedgehog_load_template = yes }
+		create_unit = { division = "name = \"Herisson de Luang Prabang\" division_template = \"Groupement de Herisson\" start_experience_factor = 0.35 start_equipment_factor = 1.0" owner = LOS prioritize_location = 4613 }
+	}
+	else_if = {
+		limit = { is_controlled_by = FRE }
+		FRE = { fre_hedgehog_load_template = yes }
+		create_unit = { division = "name = \"Herisson de Luang Prabang\" division_template = \"Groupement de Herisson\" start_experience_factor = 0.4 start_equipment_factor = 1.0" owner = FRE prioritize_location = 4613 }
+	}
+}
+
+fre_hedgehog_network_cleanup = {
+	if = {
+		limit = { has_country_flag = FRE_Hedgehog_Network_Chosen }
+		671 = {
+			if = { limit = { has_dynamic_modifier = { modifier = FRE_Hedgehog_Base } } remove_dynamic_modifier = { modifier = FRE_Hedgehog_Base } }
+		}
+		1198 = {
+			if = { limit = { has_dynamic_modifier = { modifier = FRE_Hedgehog_Base } } remove_dynamic_modifier = { modifier = FRE_Hedgehog_Base } }
+		}
+		if = { limit = { has_country_flag = FRE_Hedgehog_Template_Loaded } clr_country_flag = FRE_Hedgehog_Template_Loaded delete_unit_template_and_units = { division_template = "Groupement de Herisson" } }
+		if = { limit = { country_exists = TAI TAI = { has_country_flag = FRE_Hedgehog_Template_Loaded } } TAI = { clr_country_flag = FRE_Hedgehog_Template_Loaded delete_unit_template_and_units = { division_template = "Groupement de Herisson" } } }
+		if = { limit = { country_exists = LOS LOS = { has_country_flag = FRE_Hedgehog_Template_Loaded } } LOS = { clr_country_flag = FRE_Hedgehog_Template_Loaded delete_unit_template_and_units = { division_template = "Groupement de Herisson" } } }
+		log = "IC_AFK|HEDGEHOG|date=[GetDateText]|stage=cleanup"
+	}
+}
