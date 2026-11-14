@@ -61,6 +61,10 @@ MINISTRIES = [
     ("ukraine",        "First Secretary, Ukraine"),
     ("kolkhoz",        "Council for Kolkhoz Affairs"),
     ("dep_atomic",     "Deputy Premier, Atomic Project"),
+    # Molotov-era posts (ids 29-31, appended - see the golden rule above)
+    ("second_secretary", "Second Secretary"),
+    ("deputy_premier",   "Deputy Premier"),
+    ("dep_chem_power",   "Deputy Premier, Chem. & Power"),
 ]
 
 # Traits are flavour only (shown in tooltips, no gameplay effect). key: (name, description)
@@ -135,6 +139,13 @@ CHARACTERS = [
          bio="Chairman of the Council for Kolkhoz Affairs; his link-system farming is out of favour."),
     dict(key="voznesensky", politburo=0, name="Nikolai Voznesensky", portrait=UNKNOWN,                    faction="technocrats", relation=-80, traits=["planner", "scholar"],
          bio="The brilliant planner of the war economy, dismissed in March 1949 and awaiting his fate."),
+    # Molotov-era figures (ids 26-28, appended - see the golden rule above)
+    dict(key="shelepin", politburo=0,    name="Alexander Shelepin",  portrait="GFX_Alexander_Shelepin", faction="organs",     relation=30,  traits=["chekist", "scholar"],
+         bio="The young First Secretary of the Komsomol, marked out by the old guard for great things."),
+    dict(key="konev", politburo=0,       name="Ivan Konev",          portrait="GFX_FIELD_MARSHALS_Ivan_Konev", faction="military", relation=20, traits=["soldier", "planner"],
+         bio="Marshal of the Soviet Union, commanding the Soviet forces in Germany."),
+    dict(key="pervukhin", politburo=0,   name="Mikhail Pervukhin",   portrait=UNKNOWN,                     faction="technocrats", relation=40,  traits=["planner", "industrialist"],
+         bio="Deputy Premier and a veteran of the atomic project; oversees the chemical and power industries."),
 ]
 
 # ---- Starting state (applied once by SOV_pres_init) ----
