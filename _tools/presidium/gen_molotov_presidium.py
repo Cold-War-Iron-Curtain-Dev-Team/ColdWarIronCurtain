@@ -4,11 +4,15 @@ Run:  python gen_molotov_presidium.py
 Writes into the mod folder two levels up (this file lives in <repo>/_tools/presidium/,
 next to the mod folder). Set MOD_ROOT to override.
 
-Unlike the Stalin panel (gen_presidium.py), this panel is STATIC: it always
-shows exactly START_LEADER + START_SEATS with the PORTRAITS sprites and never
+Unlike the Stalin panel (gen_presidium.py), this panel is STATIC: it never
 reads the shared SOV_pres_* seat array - no dead, dismissed or stale member
-can ever leak into it. SOV_pres_molotov_government (still generated below)
-mirrors the same government into the shared state so other content can read
+can ever leak into it. It is also REVEAL-GATED: only Molotov is drawn until
+the focuses in REVEALS / DEFAULT_REVEAL (molotov_presidium_data.py) complete,
+then each seat appears; hidden seats fall back to a fully blank sprite with
+no tooltip at all. The revealing focuses carry SOV_mpres_reveal_*
+custom_effect_tooltip lines in the tree (hand-added there); this generator
+emits their loc text. SOV_pres_molotov_government (still generated below)
+mirrors the full government into the shared state so other content can read
 it. Layout math mirrors gen_presidium.py on purpose - keep them in sync.
 """
 import os
@@ -53,6 +57,24 @@ for k in RELATIONS:
     assert -100 <= RELATIONS[k] <= 100, f"RELATIONS: {k} out of range"
 for k in RANKS:
     assert k in CID and RANKS[k] in (0, 1, 2), f"RANKS: bad entry {k}"
+
+# ---- reveal validation: focus ids must exist in the tree and have titles
+SEAT_HOLDERS = {h for _, h in START_SEATS}
+assert set(REVEALS) <= SEAT_HOLDERS, f"REVEALS: unknown seat holder {set(REVEALS) - SEAT_HOLDERS}"
+assert LEADER not in REVEALS, "REVEALS: the leader has no seat to reveal"
+REVEAL_IDS = list(REVEALS.values()) + [DEFAULT_REVEAL]
+_tree = MOD / TREE_FILE
+_tree_txt = _tree.read_bytes().decode("utf-8") if _tree.exists() else None
+if _tree_txt is not None:
+    for fid in REVEAL_IDS:
+        assert re.search(rf"(?m)^\s*id = {re.escape(fid)}\s*$", _tree_txt), \
+            f"reveal focus {fid} not found in {TREE_FILE}"
+_lockeys = set()
+if (MOD / "localisation/english").exists():
+    for yml in (MOD / "localisation/english").glob("*.yml"):
+        _lockeys |= set(re.findall(r"(?m)^\s*(\S+?):\d", yml.read_bytes().decode("utf-8", errors="replace")))
+    for fid in REVEAL_IDS:
+        assert fid in _lockeys, f"reveal focus {fid} has no english loc title (vacant tooltips quote it)"
 
 
 def write(rel, data, bom=False):
@@ -154,10 +176,17 @@ for i, (m, h) in enumerate(START_SEATS, 1):
 gui.append("\t}\n}\n")
 write(GUI_FILE, "".join(gui))
 
-# ============================================================ inlay window (static picks)
+# ============================================================ inlay window (reveal-gated picks)
+# Molotov is always drawn; each seat shows its portrait only once the focus
+# that appoints its holder has completed, else the fully blank sprite
+# (scripted_images picks are first-true-wins).
 imgs = [f"\t\t{PREFIX}_leader_portrait = {{\n\t\t\t{sprite_of(LEADER)} = yes\n\t\t}}\n"]
 for i, (m, h) in enumerate(START_SEATS, 1):
-    imgs.append(f"\t\t{PREFIX}_s{i}_portrait = {{\n\t\t\t{sprite_of(h)} = yes\n\t\t}}\n")
+    fid = REVEALS.get(h, DEFAULT_REVEAL)
+    imgs.append(f"\t\t{PREFIX}_s{i}_portrait = {{\n"
+                f"\t\t\t{sprite_of(h)} = {{ has_completed_focus = {fid} }}\n"
+                f"\t\t\t{BLANK} = yes\n"
+                f"\t\t}}\n")
 write(DEF_FILE, HDR + f"""{PANEL_ID} = {{
 	window_name = {WINDOW_NAME}
 	internal = no
@@ -167,9 +196,16 @@ write(DEF_FILE, HDR + f"""{PANEL_ID} = {{
 }}
 """)
 
-# ============================================================ scripted localisation (all static)
+# ============================================================ scripted localisation (leader static, seats reveal-gated)
 def fixed(name, key):
     return f"defined_text = {{\n\tname = {name}\n\ttext = {{ localization_key = {key} }}\n}}\n"
+
+
+def gated(name, key, fid, fallback):
+    """Revealed -> key, still hidden -> fallback (first-true-wins triggered text)."""
+    return (f"defined_text = {{\n\tname = {name}\n"
+            f"\ttext = {{ trigger = {{ has_completed_focus = {fid} }} localization_key = {key} }}\n"
+            f"\ttext = {{ localization_key = {fallback} }}\n}}\n")
 
 
 SL = [HDR]
@@ -178,10 +214,12 @@ SL.append(fixed(f"{PREFIX}_leader_name", f"{PREFIX}_char_{LEADER}"))
 SL.append(fixed(f"{PREFIX}_leader_title", f"{PREFIX}_min_{LEADER_MIN}"))
 SL.append(fixed(f"{PREFIX}_leader_tt", f"{PREFIX}_char_{LEADER}_tt_leader"))
 for i, (m, h) in enumerate(START_SEATS, 1):
-    SL.append(fixed(f"{PREFIX}_s{i}_name", f"{PREFIX}_char_{h}_ui"))
-    SL.append(fixed(f"{PREFIX}_s{i}_title", f"{PREFIX}_min_{m}"))
-    SL.append(fixed(f"{PREFIX}_s{i}_faction", f"{PREFIX}_char_{h}_faction"))
-    SL.append(fixed(f"{PREFIX}_s{i}_tt", f"{PREFIX}_char_{h}_tt"))
+    fid = REVEALS.get(h, DEFAULT_REVEAL)
+    SL.append(gated(f"{PREFIX}_s{i}_name", f"{PREFIX}_char_{h}_ui", fid, f"{PREFIX}_empty"))
+    SL.append(gated(f"{PREFIX}_s{i}_title", f"{PREFIX}_min_{m}", fid, f"{PREFIX}_empty"))
+    SL.append(gated(f"{PREFIX}_s{i}_faction", f"{PREFIX}_char_{h}_faction", fid, f"{PREFIX}_empty"))
+    # a hidden seat is fully silent: blank portrait, no name, no tooltip
+    SL.append(gated(f"{PREFIX}_s{i}_tt", f"{PREFIX}_char_{h}_tt", fid, f"{PREFIX}_empty"))
 write(SCRIPTED_LOC_FILE, "\n".join(SL))
 
 # ============================================================ localisation (self-contained, panel cast only)
@@ -197,9 +235,14 @@ def rel_text(v):
 used_mins = {m for m, _ in START_SEATS} | {LEADER_MIN}
 Lc = ["l_english:\n"]
 Lc.append(f' {PREFIX}_title:0 "Presidium of the Central Committee and Government"\n')
-# the scroll-bounds spacer focus renders nothing: blank icon in the tree +
-# empty name here (a plain `visible = { always = no }` does not hide a focus)
-Lc.append(f' {SPACER_FOCUS}:0 ""\n')
+# reveal gating: hidden seats fall back to this empty key (renders nothing -
+# no name, no post, no tooltip). The appointing focuses announce their member
+# in the tree via custom_effect_tooltip; this loc file only supplies its text.
+Lc.append(f' {PREFIX}_empty:0 ""\n')
+for m2, h2 in START_SEATS:
+    if h2 in REVEALS:
+        Lc.append(f' {PREFIX}_reveal_{h2}:0 "§Y{CH[h2]["name"]}§! joins the Presidium as {MIN[m2][1]}"\n')
+Lc.append(f' {PREFIX}_reveal_generic:0 "More ministers will be appointed to the government"\n')
 Lc += [f' {PREFIX}_min_{m}:0 "{MIN[m][1]}"\n' for m, _ in MINISTRIES if m in used_mins]
 for ck in CAST:
     c = CH[ck]
@@ -225,10 +268,11 @@ E = [HDR, """# -----------------------------------------------------------------
 # SOV_Stalin_presidium_effects.txt, which stays the single source of the
 # shared SOV_pres_* state - do not duplicate those effects here.
 #
-# The Molotov PANEL itself is static (see gen_molotov_presidium.py): it always
-# displays START_LEADER + START_SEATS and never reads this state. This effect
-# only mirrors Molotov's government into the shared variables so other content
-# (events, focuses, triggers) can use them.
+# The Molotov PANEL itself is static (see gen_molotov_presidium.py): it never
+# reads this state - it draws START_LEADER + START_SEATS with each seat
+# appearing once its appointing focus completes. This effect still mirrors the
+# full government into the shared variables so other content (events, focuses,
+# triggers) can use them.
 #
 #   SOV_pres_molotov_guard      - call any time; re-applies Molotov's
 #                                 government when the SOV_Molotov tree is
@@ -298,6 +342,8 @@ if tree.exists():
         tree.write_bytes(s2.encode("utf-8"))
         print("updated inlay position in", TREE_FILE)
 
+print(f"reveal-gated display: {len(REVEALS)} seats unlock via their focus, "
+      f"{N_SEATS - len(REVEALS)} via {DEFAULT_REVEAL}")
 print(f"static panel: {LEADER} as {LEADER_MIN} + {N_SEATS} seats in rows {ROW_PROFILE} "
       f"(emitted at UI_SCALE {UI_SCALE}: seats x{SCALE * UI_SCALE:.2f}, leader x{LEADER_SCALE * UI_SCALE:.2f})")
 print(f"panel {sx(W)}x{sx(H)} gui pixels at {INLAY_POSITION} in {TREE_FILE}")

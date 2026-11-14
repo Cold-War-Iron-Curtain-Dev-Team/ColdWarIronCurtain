@@ -73,9 +73,12 @@ def slot_shown(L, i):
     return f"check_variable = {{ SOV_pres_seat_min^num > {max(lo, i - 1)} }} check_variable = {{ SOV_pres_seat_min^num < {hi + 1} }}"
 
 
-# ============================================================ blank sprite (8x8 transparent tga)
+# ============================================================ blank sprite (transparent tga)
+# Native portrait size (156x210), NOT 8x8: iconType hit-testing follows the
+# sprite rect, so a portrait-sized blank keeps tooltips (vacant Stalin seats,
+# hidden Molotov-panel seats) hoverable over the whole portrait area.
 write("gfx/interface/SOV_pres_blank.tga",
-      struct.pack("<BBBHHBHHHHBB", 0, 0, 2, 0, 0, 0, 0, 0, 8, 8, 32, 8) + bytes(8 * 8 * 4))
+      struct.pack("<BBBHHBHHHHBB", 0, 0, 2, 0, 0, 0, 0, 0, 156, 210, 32, 8) + bytes(156 * 210 * 4))
 write("interface/SOV_Stalin_presidium.gfx", HDR + f"""spriteTypes = {{
 	spriteType = {{
 		name = "{BLANK}"

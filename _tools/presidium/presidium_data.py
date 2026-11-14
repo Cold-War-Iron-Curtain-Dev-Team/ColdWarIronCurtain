@@ -90,7 +90,7 @@ UNKNOWN = "GFX_leader_unknown"
 # politburo = starting Politburo rank: 2 full member, 1 candidate, 0 not a member
 CHARACTERS = [
     dict(key="stalin", politburo=2,     name="Joseph Stalin",       portrait="GFX_Joseph_Stalin_50sLate", faction="old_guard",   relation=100, traits=[],
-         bio="The Vozhd. Every seat around this table exists at his pleasure."),
+         bio="The Vozhd. Lenin's Successor, General Secretary of the Party and the face of the international communist Movement."),
     dict(key="malenkov", politburo=2,   name="Georgy Malenkov",     portrait="GFX_Georgy_Malenkov",       faction="technocrats", relation=60,  traits=["apparatchik", "planner"],
          bio="Back in the Secretariat since 1948, he is busy destroying the Leningrad group."),
     dict(key="beria", politburo=2,      name="Lavrentiy Beria",     portrait="GFX_Lavrentiy_Beria",       faction="organs",      relation=40,  traits=["chekist", "industrialist"],
@@ -102,11 +102,11 @@ CHARACTERS = [
     dict(key="kaganovich", politburo=2, name="Lazar Kaganovich",    portrait="GFX_Lazar_Kaganovich",      faction="old_guard",   relation=45,  traits=["industrialist", "brutal"],
          bio="The iron commissar of heavy industry and the railways."),
     dict(key="molotov", politburo=2,    name="Vyacheslav Molotov",  portrait="GFX_Vyacheslav_Molotov_50s", faction="old_guard",  relation=-40, traits=["diplomat", "ideologue"],
-         bio="Removed from the Foreign Ministry in March 1949; his wife Polina was arrested in January."),
+         bio="Former right hand of Stalin. Removed from the Foreign Ministry in March 1949; his wife Polina was arrested in January, yet he remains undoubtedly loyal to the cause."),
     dict(key="mikoyan", politburo=2,    name="Anastas Mikoyan",     portrait="GFX_Anastas_Mikoyan",       faction="technocrats", relation=-20, traits=["trader", "planner"],
          bio="Removed from the Ministry of Foreign Trade in March 1949. The great survivor."),
     dict(key="voroshilov", politburo=2, name="Kliment Voroshilov",  portrait="GFX_FIELD_MARSHALS_Kliment_Voroshilov", faction="old_guard", relation=-20, traits=["soldier", "ideologue"],
-         bio="Stalin's old comrade from Tsaritsyn, lately suspected of being a British spy."),
+         bio="Stalin's old comrade from Tsaritsyn, now criticized due to his military blunders during the war."),
     dict(key="shvernik", politburo=1,   name="Nikolay Shvernik",    portrait="GFX_Nikolay_Shvernik",      faction="old_guard",   relation=20,  traits=["apparatchik", "populist"],
          bio="Chairman of the Presidium of the Supreme Soviet."),
     dict(key="vyshinsky", politburo=0,  name="Andrey Vyshinsky",    portrait=UNKNOWN,                     faction="old_guard",   relation=50,  traits=["diplomat", "brutal"],

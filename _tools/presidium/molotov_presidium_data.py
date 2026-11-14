@@ -4,12 +4,18 @@
 #  (characters, ministries, factions, traits) and the Stalin panel setup.
 #  Edit this file, then run:  python gen_molotov_presidium.py
 #
-#  UNLIKE the Stalin panel, this panel is STATIC: the window always shows
-#  exactly the government listed in START_SEATS with the portraits in
-#  PORTRAITS, plus Molotov as the big leader portrait. It never reads the
-#  shared SOV_pres_* seat array, so no dead, dismissed or stale member can
-#  ever appear in it. The generated SOV_pres_molotov_government effect still
+#  UNLIKE the Stalin panel, this panel is STATIC: it never reads the shared
+#  SOV_pres_* seat array, so no dead, dismissed or stale member can ever
+#  appear in it. The generated SOV_pres_molotov_government effect still
 #  mirrors this government into the shared state for other content to use.
+#
+#  The panel is also REVEAL-GATED: when the tree starts, only Molotov (the
+#  big leader portrait) is drawn. Each seat appears once the focus that
+#  appoints its holder completes (REVEALS below); seats without an owning
+#  focus appear once DEFAULT_REVEAL completes. A hidden seat renders a fully
+#  blank portrait with no name/post/faction and NO tooltip (hover shows
+#  nothing); the appointing focus itself announces the member through its
+#  custom_effect_tooltip loc key.
 # ============================================================================
 
 from presidium_data import UNKNOWN  # noqa: F401  (silhouette placeholder sprite)
@@ -37,10 +43,10 @@ TREE_FILE = "common/national_focus/SOV_Molotov.txt"
 # overestimates how far right the panel can sit. The position below is
 # CALIBRATED IN-GAME (user screenshot, Nov 2026): at x=3100 the panel sat
 # roughly a full panel-width away from the KGB branch; x=2250 puts its left
-# edge just right of the tree. If the tree layout or panel size changes,
-# expect to re-tune this number from a screenshot.
-# The spacer focus at x=28 (raw 4200) still guarantees the tree can scroll
-# past the panel's right edge.
+# edge just right of the tree. The panel fits the tree's natural scroll
+# bounds (rightmost focus column is 24), so no scroll-bounds spacer focus is
+# needed. If the tree layout or panel size changes, expect to re-tune this
+# number from a screenshot.
 INLAY_POSITION = (2250, 20)
 
 # One fixed seat grid: seats fill the rows in ROW_PROFILE top to bottom, and
@@ -81,10 +87,6 @@ LEADER_SCALE = 1.10
 # focuses). Fonts keep their native size - only geometry and portraits shrink.
 UI_SCALE = 0.8
 
-# The scroll-bounds spacer focus in the tree (its name is also emitted as an
-# empty loc key so it renders no text).
-SPACER_FOCUS = "SOV_molotov_presidium_panel_spacer"
-
 # ---- Molotov government (big portrait; mirrored into the shared state by
 #      SOV_pres_molotov_government) ----
 START_LEADER = ("molotov", "gensec")
@@ -104,6 +106,28 @@ START_SEATS = [
     ("head_of_state",    "voroshilov"),   # Chairman of the Presidium of the Supreme Soviet
     ("gosplan",          "bulganin"),
 ]
+
+# ---- reveal gating ---------------------------------------------------------
+# The panel starts with only Molotov. A seat becomes visible once its holder's
+# appointing focus completes; the focus ids MUST exist in SOV_Molotov.txt and
+# have english loc titles (the generator asserts both). Each focus listed here
+# also carries a hand-added `custom_effect_tooltip = SOV_mpres_reveal_<key>`
+# line in its completion_reward in the tree, for which the generator emits the
+# loc text ("<Name> joins the Presidium as <post>").
+REVEALS = {
+    "kaganovich": "SOV_kaganovich_second_secretary",
+    "malenkov":   "SOV_Malenkov_Chairman",
+    "shepilov":   "SOV_Shepilov_Deputy",
+    "suslov":     "SOV_ensure_suslov_loyalty",
+    "shelepin":   "SOV_reorganise_kgb",
+    "kruglov":    "SOV_kruglov_rehab",
+    "konev":      "SOV_encourage_zhukovs_retirement",
+    "bulganin":   "SOV_Bulganin_Gosplan",
+}
+# pervukhin, kuznetsov, gromyko and voroshilov have no appointing focus; they
+# arrive with the closing vision focus (its custom_effect_tooltip stays
+# generic and names no members).
+DEFAULT_REVEAL = "SOV_Molotov_Vision"
 
 # Relations with the leader (flavour) applied by the rebuild into the shared
 # state - the static panel's tooltips carry the same numbers baked in.
