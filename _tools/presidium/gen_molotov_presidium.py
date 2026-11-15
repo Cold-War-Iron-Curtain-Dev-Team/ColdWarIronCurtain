@@ -63,18 +63,21 @@ SEAT_HOLDERS = {h for _, h in START_SEATS}
 assert set(REVEALS) <= SEAT_HOLDERS, f"REVEALS: unknown seat holder {set(REVEALS) - SEAT_HOLDERS}"
 assert LEADER not in REVEALS, "REVEALS: the leader has no seat to reveal"
 REVEAL_IDS = list(REVEALS.values()) + [DEFAULT_REVEAL]
+assert set(PORTRAIT_VARIANTS) <= SEAT_HOLDERS and set(PORTRAIT_VARIANTS) <= set(PORTRAITS), \
+    "PORTRAIT_VARIANTS: keys must be seat holders that also have a base portrait"
+VARIANT_IDS = [fid for _, fid in PORTRAIT_VARIANTS.values()]
 _tree = MOD / TREE_FILE
 _tree_txt = _tree.read_bytes().decode("utf-8") if _tree.exists() else None
 if _tree_txt is not None:
-    for fid in REVEAL_IDS:
+    for fid in REVEAL_IDS + VARIANT_IDS:
         assert re.search(rf"(?m)^\s*id = {re.escape(fid)}\s*$", _tree_txt), \
-            f"reveal focus {fid} not found in {TREE_FILE}"
+            f"focus id {fid} not found in {TREE_FILE}"
 _lockeys = set()
 if (MOD / "localisation/english").exists():
     for yml in (MOD / "localisation/english").glob("*.yml"):
         _lockeys |= set(re.findall(r"(?m)^\s*(\S+?):\d", yml.read_bytes().decode("utf-8", errors="replace")))
     for fid in REVEAL_IDS:
-        assert fid in _lockeys, f"reveal focus {fid} has no english loc title (vacant tooltips quote it)"
+        assert fid in _lockeys, f"reveal focus {fid} has no english loc title"
 
 
 def write(rel, data, bom=False):
@@ -183,10 +186,18 @@ write(GUI_FILE, "".join(gui))
 imgs = [f"\t\t{PREFIX}_leader_portrait = {{\n\t\t\t{sprite_of(LEADER)} = yes\n\t\t}}\n"]
 for i, (m, h) in enumerate(START_SEATS, 1):
     fid = REVEALS.get(h, DEFAULT_REVEAL)
-    imgs.append(f"\t\t{PREFIX}_s{i}_portrait = {{\n"
-                f"\t\t\t{sprite_of(h)} = {{ has_completed_focus = {fid} }}\n"
-                f"\t\t\t{BLANK} = yes\n"
-                f"\t\t}}\n")
+    if h in PORTRAIT_VARIANTS:
+        vs, vf = PORTRAIT_VARIANTS[h]
+        imgs.append(f"\t\t{PREFIX}_s{i}_portrait = {{\n"
+                    f"\t\t\t{vs} = {{ has_completed_focus = {vf} }}\n"
+                    f"\t\t\t{sprite_of(h)} = {{ has_completed_focus = {fid} }}\n"
+                    f"\t\t\t{BLANK} = yes\n"
+                    f"\t\t}}\n")
+    else:
+        imgs.append(f"\t\t{PREFIX}_s{i}_portrait = {{\n"
+                    f"\t\t\t{sprite_of(h)} = {{ has_completed_focus = {fid} }}\n"
+                    f"\t\t\t{BLANK} = yes\n"
+                    f"\t\t}}\n")
 write(DEF_FILE, HDR + f"""{PANEL_ID} = {{
 	window_name = {WINDOW_NAME}
 	internal = no
@@ -344,6 +355,9 @@ if tree.exists():
 
 print(f"reveal-gated display: {len(REVEALS)} seats unlock via their focus, "
       f"{N_SEATS - len(REVEALS)} via {DEFAULT_REVEAL}")
+if PORTRAIT_VARIANTS:
+    print("portrait variants: " + ", ".join(f"{h} -> {vs} after {vf}"
+                                            for h, (vs, vf) in PORTRAIT_VARIANTS.items()))
 print(f"static panel: {LEADER} as {LEADER_MIN} + {N_SEATS} seats in rows {ROW_PROFILE} "
       f"(emitted at UI_SCALE {UI_SCALE}: seats x{SCALE * UI_SCALE:.2f}, leader x{LEADER_SCALE * UI_SCALE:.2f})")
 print(f"panel {sx(W)}x{sx(H)} gui pixels at {INLAY_POSITION} in {TREE_FILE}")

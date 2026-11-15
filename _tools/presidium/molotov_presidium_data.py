@@ -64,7 +64,7 @@ PORTRAITS = {
     "suslov":     "GFX_SOV_Minister_Suslov_50s",       # -> Mikhail_Suslov_60s.dds (legacy name)
     "bulganin":   "GFX_Nikolai_Bulganin",              # -> Nikolai_Bulganin_50s.dds
     "kruglov":    "GFX_Sergei_Kruglov",                # -> Sergei_Kruglov_60s.dds
-    "shelepin":   "GFX_Alexander_Shelepin",            # -> Alexander_Shelepin_70s.dds
+    "shelepin":   "GFX_Alexander_Shelepin_60s",        # -> Ministers/Alexander_Shelepin_60s.dds
     "konev":      "GFX_FIELD_MARSHALS_Ivan_Konev",     # -> FIELD_MARSHALS/Ivan_Konev.dds
     "voroshilov": "GFX_SOV_Minister_Voroshilov_50s",   # -> Ministers/Kliment_Voroshilov_50s.dds
     "kuznetsov":  "GFX_ADMIRALS_Nikolay_Kuznetsov",    # -> ADMIRALS/Nikolay_Kuznetsov.dds
@@ -73,6 +73,13 @@ PORTRAITS = {
 # Seats without art simply stay out of this dict and render as the grey
 # silhouette placeholder: "shepilov" (only 80s art exists), "pervukhin"
 # (nothing at all yet).
+
+# Optional portrait variants: holder -> (variant sprite, focus id). Once the
+# focus completes, the seat swaps to the variant sprite INSTEAD of the
+# PORTRAITS base (emitted as the highest-priority pick, before the reveal).
+PORTRAIT_VARIANTS = {
+    "shelepin": ("GFX_Alexander_Shelepin_60s_Commissar", "SOV_rename_ministries_to_peoples_commissariats"),
+}
 
 # Portrait art native size (read from the .dds headers) and the big leader
 # portrait's scale. Seat scale is height-bound (~0.60); 1.10 keeps Molotov
