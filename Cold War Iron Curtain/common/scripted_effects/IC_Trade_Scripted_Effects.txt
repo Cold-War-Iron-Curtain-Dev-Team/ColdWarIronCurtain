@@ -1018,6 +1018,14 @@ cwic_update_world_cg_market = {
 	set_temp_variable = { cwic_wm_offer_cgElectronics = 0 }
 	set_temp_variable = { cwic_wm_sold_cgElectronics = 0 }
 	set_temp_variable = { cwic_wm_tier_cgElectronics = 0 }
+	set_temp_variable = { cwic_wb_prod_basic = 0 }
+	set_temp_variable = { cwic_wb_dem_basic = 0 }
+	set_temp_variable = { cwic_wb_prod_durable = 0 }
+	set_temp_variable = { cwic_wb_dem_durable = 0 }
+	set_temp_variable = { cwic_wb_prod_vehicles = 0 }
+	set_temp_variable = { cwic_wb_dem_vehicles = 0 }
+	set_temp_variable = { cwic_wb_prod_electronics = 0 }
+	set_temp_variable = { cwic_wb_dem_electronics = 0 }
 	every_country = {
 		add_to_temp_variable = { cwic_wm_offer_cgBasic = resource_exported@cg_basic }
 		add_to_temp_variable = { cwic_wm_sold_cgBasic = resource_imported@cg_basic }
@@ -1039,6 +1047,66 @@ cwic_update_world_cg_market = {
 		set_temp_variable = { cwic_wm_q = resource_exported@cg_electronics }
 		multiply_temp_variable = { cwic_wm_q = cg_consumer_electronics_tier_applied }
 		add_to_temp_variable = { cwic_wm_tier_cgElectronics = cwic_wm_q }
+		add_to_temp_variable = { cwic_wb_prod_basic = cg_basic_produced_this_month }
+		add_to_temp_variable = { cwic_wb_dem_basic = cg_basic_demand }
+		add_to_temp_variable = { cwic_wb_prod_durable = cg_durable_produced_this_month }
+		add_to_temp_variable = { cwic_wb_dem_durable = cg_durable_demand }
+		add_to_temp_variable = { cwic_wb_prod_vehicles = cg_vehicles_produced_this_month }
+		add_to_temp_variable = { cwic_wb_dem_vehicles = cg_vehicles_demand }
+		add_to_temp_variable = { cwic_wb_prod_electronics = cg_consumer_electronics_produced_this_month }
+		add_to_temp_variable = { cwic_wb_dem_electronics = cg_consumer_electronics_demand }
+	}
+	if = { limit = { NOT = { has_variable = global.cg_basic_demand_scale } } set_variable = { global.cg_basic_demand_scale = 1 } }
+	if = {
+		limit = { check_variable = { cwic_wb_dem_basic > 0 } check_variable = { cwic_wb_prod_basic > 0 } }
+		set_temp_variable = { cwic_wb_t = cwic_wb_prod_basic }
+		multiply_temp_variable = { cwic_wb_t = 0.92 }
+		divide_temp_variable = { cwic_wb_t = cwic_wb_dem_basic }
+		clamp_temp_variable = { var = cwic_wb_t min = 0.8 max = 1.25 }
+		multiply_temp_variable = { cwic_wb_t = global.cg_basic_demand_scale }
+		subtract_from_temp_variable = { cwic_wb_t = global.cg_basic_demand_scale }
+		multiply_temp_variable = { cwic_wb_t = 0.1 }
+		add_to_variable = { global.cg_basic_demand_scale = cwic_wb_t }
+		clamp_variable = { var = global.cg_basic_demand_scale min = 0.4 max = 1.5 }
+	}
+	if = { limit = { NOT = { has_variable = global.cg_durable_demand_scale } } set_variable = { global.cg_durable_demand_scale = 1 } }
+	if = {
+		limit = { check_variable = { cwic_wb_dem_durable > 0 } check_variable = { cwic_wb_prod_durable > 0 } }
+		set_temp_variable = { cwic_wb_t = cwic_wb_prod_durable }
+		multiply_temp_variable = { cwic_wb_t = 0.92 }
+		divide_temp_variable = { cwic_wb_t = cwic_wb_dem_durable }
+		clamp_temp_variable = { var = cwic_wb_t min = 0.8 max = 1.25 }
+		multiply_temp_variable = { cwic_wb_t = global.cg_durable_demand_scale }
+		subtract_from_temp_variable = { cwic_wb_t = global.cg_durable_demand_scale }
+		multiply_temp_variable = { cwic_wb_t = 0.1 }
+		add_to_variable = { global.cg_durable_demand_scale = cwic_wb_t }
+		clamp_variable = { var = global.cg_durable_demand_scale min = 0.4 max = 1.5 }
+	}
+	if = { limit = { NOT = { has_variable = global.cg_vehicles_demand_scale } } set_variable = { global.cg_vehicles_demand_scale = 1 } }
+	if = {
+		limit = { check_variable = { cwic_wb_dem_vehicles > 0 } check_variable = { cwic_wb_prod_vehicles > 0 } }
+		set_temp_variable = { cwic_wb_t = cwic_wb_prod_vehicles }
+		multiply_temp_variable = { cwic_wb_t = 0.92 }
+		divide_temp_variable = { cwic_wb_t = cwic_wb_dem_vehicles }
+		clamp_temp_variable = { var = cwic_wb_t min = 0.8 max = 1.25 }
+		multiply_temp_variable = { cwic_wb_t = global.cg_vehicles_demand_scale }
+		subtract_from_temp_variable = { cwic_wb_t = global.cg_vehicles_demand_scale }
+		multiply_temp_variable = { cwic_wb_t = 0.1 }
+		add_to_variable = { global.cg_vehicles_demand_scale = cwic_wb_t }
+		clamp_variable = { var = global.cg_vehicles_demand_scale min = 0.4 max = 1.5 }
+	}
+	if = { limit = { NOT = { has_variable = global.cg_electronics_demand_scale } } set_variable = { global.cg_electronics_demand_scale = 1 } }
+	if = {
+		limit = { check_variable = { cwic_wb_dem_electronics > 0 } check_variable = { cwic_wb_prod_electronics > 0 } }
+		set_temp_variable = { cwic_wb_t = cwic_wb_prod_electronics }
+		multiply_temp_variable = { cwic_wb_t = 0.92 }
+		divide_temp_variable = { cwic_wb_t = cwic_wb_dem_electronics }
+		clamp_temp_variable = { var = cwic_wb_t min = 0.8 max = 1.25 }
+		multiply_temp_variable = { cwic_wb_t = global.cg_electronics_demand_scale }
+		subtract_from_temp_variable = { cwic_wb_t = global.cg_electronics_demand_scale }
+		multiply_temp_variable = { cwic_wb_t = 0.1 }
+		add_to_variable = { global.cg_electronics_demand_scale = cwic_wb_t }
+		clamp_variable = { var = global.cg_electronics_demand_scale min = 0.4 max = 1.5 }
 	}
 
 	set_variable = { global.cg_basic_world_tier = 1 }
@@ -1167,7 +1235,7 @@ cwic_cg_auto_import = {
 				clamp_variable = { var = purchase_amount max = cwic_ai_best }
 				multiply_variable = { purchase_amount = 5 }
 				var:currentPurchaser = { add_to_variable = { cg_basic_promised = PREV.purchase_amount } }
-				set_country_flag = { flag = cg_import_cd_basic days = 90 value = 1 }
+				set_country_flag = { flag = cg_import_cd_basic days = 45 value = 1 }
 				meta_effect = {
 					text = {
 						create_import = { resource = cg_basic amount = [AMT] exporter = [TAG] }
@@ -1215,7 +1283,7 @@ cwic_cg_auto_import = {
 				clamp_variable = { var = purchase_amount max = cwic_ai_best }
 				multiply_variable = { purchase_amount = 4 }
 				var:currentPurchaser = { add_to_variable = { cg_durable_promised = PREV.purchase_amount } }
-				set_country_flag = { flag = cg_import_cd_durable days = 90 value = 1 }
+				set_country_flag = { flag = cg_import_cd_durable days = 45 value = 1 }
 				meta_effect = {
 					text = {
 						create_import = { resource = cg_durable amount = [AMT] exporter = [TAG] }
@@ -1264,7 +1332,7 @@ cwic_cg_auto_import = {
 				clamp_variable = { var = purchase_amount max = cwic_ai_best }
 				multiply_variable = { purchase_amount = 4 }
 				var:currentPurchaser = { add_to_variable = { cg_vehicles_promised = PREV.purchase_amount } }
-				set_country_flag = { flag = cg_import_cd_vehicles days = 90 value = 1 }
+				set_country_flag = { flag = cg_import_cd_vehicles days = 45 value = 1 }
 				meta_effect = {
 					text = {
 						create_import = { resource = cg_vehicles amount = [AMT] exporter = [TAG] }
@@ -1313,7 +1381,7 @@ cwic_cg_auto_import = {
 				clamp_variable = { var = purchase_amount max = cwic_ai_best }
 				multiply_variable = { purchase_amount = 4 }
 				var:currentPurchaser = { add_to_variable = { cg_consumer_electronics_promised = PREV.purchase_amount } }
-				set_country_flag = { flag = cg_import_cd_electronics days = 90 value = 1 }
+				set_country_flag = { flag = cg_import_cd_electronics days = 45 value = 1 }
 				meta_effect = {
 					text = {
 						create_import = { resource = cg_electronics amount = [AMT] exporter = [TAG] }
