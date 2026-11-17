@@ -4318,48 +4318,35 @@ test_viet_bac_establish = {
 # `e test_viet_bac_check` - assertions. Silence is a pass.
 test_viet_bac_check = {
 	if = {
-		limit = { NOT = { country_exists = THO } }
-		log = "VIET BAC: FAIL - THO does not exist"
+		limit = { country_exists = THO }
+		log = "VIET BAC: FAIL - THO was released; the region must stay inside VIN"
 	}
 	if = {
-		limit = { country_exists = THO NOT = { THO = { is_subject_of = VIN } } }
-		log = "VIET BAC: FAIL - THO is not a subject of VIN"
+		limit = { NOT = { has_country_flag = VIN_viet_bac_zone_established } }
+		log = "VIET BAC: FAIL - VIN_viet_bac_zone_established missing"
 	}
 	if = {
-		limit = { NOT = { 1280 = { is_owned_by = THO } } }
-		log = "VIET BAC: FAIL - Cao Bang is not THO's"
+		limit = { NOT = { 1280 = { is_owned_by = VIN has_state_flag = VIN_viet_bac_region } } }
+		log = "VIET BAC: FAIL - Cao Bang is not a VIN-owned region state"
 	}
 	if = {
-		limit = { NOT = { 1768 = { is_owned_by = THO } } }
-		log = "VIET BAC: FAIL - Lang Son is not THO's"
+		limit = { NOT = { 1768 = { is_owned_by = VIN has_state_flag = VIN_viet_bac_region } } }
+		log = "VIET BAC: FAIL - Lang Son is not a VIN-owned region state"
 	}
 	if = {
-		limit = { NOT = { 881 = { is_owned_by = THO } } }
-		log = "VIET BAC: FAIL - Dong Bac Bo is not THO's"
-	}
-	if = {	# only a failure when Hanoi actually held Ha Giang to give
-		limit = {
-			NOT = { 1767 = { is_owned_by = THO } }
-			NOT = { 1767 = { is_owned_by = MEO } }
-		}
-		log = "VIET BAC: FAIL - Ha Giang went to neither THO nor MEO"
+		limit = { NOT = { 881 = { is_owned_by = VIN has_state_flag = VIN_viet_bac_region } } }
+		log = "VIET BAC: FAIL - Dong Bac Bo is not a VIN-owned region state"
 	}
 	if = {
-		limit = { NOT = { THO = { has_country_flag = THO_viet_bac_zone } } }
-		log = "VIET BAC: FAIL - zone flag missing"
+		limit = { 1280 = { NOT = { has_dynamic_modifier = { modifier = VIN_viet_bac_region_state } } } }
+		log = "VIET BAC: FAIL - region modifier missing on Cao Bang"
 	}
 	if = {
 		limit = {
-			NOT = {
-				THO = {
-					has_country_leader = {
-						character = VIN_Chu_Van_Tan
-						ruling_only = yes
-					}
-				}
-			}
+			NOT = { has_idea = VIN_highland_autonomy_compact }
+			NOT = { has_idea = VIN_highland_autonomy_compact_2 }
 		}
-		log = "VIET BAC: FAIL - Chu Van Tan is not chairing the zone"
+		log = "VIET BAC: FAIL - autonomy compact spirit missing"
 	}
 	log = "VIET BAC: check complete"
 }
@@ -4367,12 +4354,21 @@ test_viet_bac_check = {
 # `e test_viet_bac_reset` - put the north back the way it was so the whole
 # chain can be run again from a single save.
 test_viet_bac_reset = {
-	if = {
-		limit = { country_exists = THO }
-		VIN_Chu_Van_Tan = { set_nationality = VIN }
-		THO = { drop_cosmetic_tag = yes }
-		annex_country = { target = THO transfer_troops = no }
+	every_owned_state = {
+		limit = { has_state_flag = VIN_viet_bac_region }
+		clr_state_flag = VIN_viet_bac_region
+		remove_dynamic_modifier = { modifier = VIN_viet_bac_region_state }
 	}
+	every_owned_state = {
+		limit = { has_dynamic_modifier = { modifier = VIN_highland_direct_rule_state } }
+		remove_dynamic_modifier = { modifier = VIN_highland_direct_rule_state }
+	}
+	if = { limit = { has_idea = VIN_highland_autonomy_compact } remove_ideas = VIN_highland_autonomy_compact }
+	if = { limit = { has_idea = VIN_highland_autonomy_compact_2 } remove_ideas = VIN_highland_autonomy_compact_2 }
+	if = { limit = { has_idea = VIN_highland_direct_rule } remove_ideas = VIN_highland_direct_rule }
+	if = { limit = { has_idea = VIN_highland_direct_rule_2 } remove_ideas = VIN_highland_direct_rule_2 }
+	set_variable = { VIN_highland_autonomy_regions = 0 }
+	set_variable = { VIN_highland_direct_rule_regions = 0 }
 	clr_country_flag = VIN_viet_bac_question_asked
 	clr_country_flag = VIN_viet_bac_zone_granted
 	clr_country_flag = VIN_viet_bac_zone_refused
@@ -7041,4 +7037,60 @@ test_vie_border_debug = {
 
 test_brevet_refuse = {
 	country_event = Brevert_Lines.3
+}
+
+# ============================================================================
+# Autonomous region preview. Runs from any tag at game start:
+#   e test_autonomous_regions_preview
+# VIN takes the Viet Bac and Tai-Meo states and constitutes both regions;
+# VIE constitutes the Trung-Phan commissariat. Hover the states to see the
+# region modifiers. `e test_autonomous_regions_vcs` swaps Tai-Meo to the
+# Vuong Chi Sinh variant.
+# ============================================================================
+
+test_autonomous_regions_preview = {
+	if = {
+		limit = { country_exists = VIN }
+		VIN = {
+			if = {
+				limit = { country_exists = THO }
+				annex_country = { target = THO transfer_troops = no }
+			}
+			if = {
+				limit = { country_exists = MEO }
+				annex_country = { target = MEO transfer_troops = no }
+			}
+			every_state = {
+				limit = {
+					OR = {
+						state = 1280
+						state = 1768
+						state = 881
+						state = 671
+						state = 1767
+					}
+					NOT = { is_owned_by = VIN }
+				}
+				VIN = { transfer_state = PREV }
+			}
+			vin_establish_tai_meo_region = yes
+			vin_establish_viet_bac_zone = yes
+		}
+		log = "REGIONS: Viet Bac and Tai-Meo constituted"
+	}
+	if = {
+		limit = { country_exists = VIE }
+		VIE = { VIE_create_trung_phan_commissariat = yes }
+		log = "REGIONS: Trung-Phan commissariat constituted"
+	}
+}
+
+test_autonomous_regions_vcs = {
+	VIN = {
+		every_owned_state = {
+			limit = { has_dynamic_modifier = { modifier = VIN_tai_meo_region_state } }
+			remove_dynamic_modifier = { modifier = VIN_tai_meo_region_state }
+			add_dynamic_modifier = { modifier = VIN_tai_meo_region_vcs_state }
+		}
+	}
 }
