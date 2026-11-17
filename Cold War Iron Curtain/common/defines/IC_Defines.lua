@@ -189,6 +189,19 @@ NDefines.NAI.ROCKET_MIN_PRIO_ASSIGN_SCORE = 0
 NDefines.NAI.ROCKET_ASSIGN_SCORE_REDUCTION_PER_ASSIGNMENT = 0
 NDefines.NAI.ROCKETSITE_CAPACITY_MULT = 0
 NDefines.NAI.NUM_SILOS_PER_CIVILIAN_FACTORIES = 0.2
+NDefines.NAI.MIN_FACTORIES_TO_WANT_TO_IMPORT = {  -- per resource, in 00_resources.txt order; consumer goods are imported by script (cwic_cg_auto_import), so the engine AI never evaluates them
+	0, -- oil
+	0, -- aluminium
+	0, -- rubber
+	0, -- tungsten
+	0, -- steel
+	0, -- chromium
+	10, -- coal
+	100000, -- cg_basic
+	100000, -- cg_durable
+	100000, -- cg_vehicles
+	100000, -- cg_electronics
+}
 
 NDefines.NOperatives.AGENCY_CREATION_DAYS = 10000000
 NDefines.NOperatives.AGENCY_UPGRADE_DAYS = 10000000
