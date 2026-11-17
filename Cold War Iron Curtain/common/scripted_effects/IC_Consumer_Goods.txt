@@ -640,10 +640,14 @@ cwic_calculate_consumer_goods_monthly_demand = {
 
 	if = {
 		limit = { has_variable = cg_basic_demand_anchor }
+		set_temp_variable = { cg_demand_mult = modifier@cg_demand_factor }
+		clamp_temp_variable = { var = cg_demand_mult min = -0.5 max = 0.5 }
+		add_to_temp_variable = { cg_demand_mult = 1 }
 		set_temp_variable = { cg_target = cg_basic_demand_raw }
 		multiply_temp_variable = { cg_target = cg_basic_demand_anchor }
 		multiply_temp_variable = { cg_target = 0.05 }
 		if = { limit = { has_variable = global.cg_basic_demand_scale } multiply_temp_variable = { cg_target = global.cg_basic_demand_scale } }
+		multiply_temp_variable = { cg_target = cg_demand_mult }
 		multiply_variable = { cg_basic_demand = 0.95 }
 		add_to_variable = { cg_basic_demand = cg_target }
 
@@ -651,6 +655,7 @@ cwic_calculate_consumer_goods_monthly_demand = {
 		multiply_temp_variable = { cg_target = cg_durable_demand_anchor }
 		multiply_temp_variable = { cg_target = 0.05 }
 		if = { limit = { has_variable = global.cg_durable_demand_scale } multiply_temp_variable = { cg_target = global.cg_durable_demand_scale } }
+		multiply_temp_variable = { cg_target = cg_demand_mult }
 		multiply_variable = { cg_durable_demand = 0.95 }
 		add_to_variable = { cg_durable_demand = cg_target }
 
@@ -658,6 +663,7 @@ cwic_calculate_consumer_goods_monthly_demand = {
 		multiply_temp_variable = { cg_target = cg_vehicles_demand_anchor }
 		multiply_temp_variable = { cg_target = 0.05 }
 		if = { limit = { has_variable = global.cg_vehicles_demand_scale } multiply_temp_variable = { cg_target = global.cg_vehicles_demand_scale } }
+		multiply_temp_variable = { cg_target = cg_demand_mult }
 		multiply_variable = { cg_vehicles_demand = 0.95 }
 		add_to_variable = { cg_vehicles_demand = cg_target }
 
@@ -665,6 +671,7 @@ cwic_calculate_consumer_goods_monthly_demand = {
 		multiply_temp_variable = { cg_target = cg_consumer_electronics_demand_anchor }
 		multiply_temp_variable = { cg_target = 0.05 }
 		if = { limit = { has_variable = global.cg_electronics_demand_scale } multiply_temp_variable = { cg_target = global.cg_electronics_demand_scale } }
+		multiply_temp_variable = { cg_target = cg_demand_mult }
 		multiply_variable = { cg_consumer_electronics_demand = 0.95 }
 		add_to_variable = { cg_consumer_electronics_demand = cg_target }
 	}
@@ -816,6 +823,8 @@ cwic_cg_monthly_production_and_allotment = {
 		if = { limit = { check_variable = { elec_rare_gate < 0 } } set_temp_variable = { elec_rare_gate = 0 } }
 		if = { limit = { check_variable = { elec_rare_gate > 1 } } set_temp_variable = { elec_rare_gate = 1 } }
 	}
+	add_to_temp_variable = { elec_rare_gate = modifier@cg_rare_earth_relief }
+	clamp_temp_variable = { var = elec_rare_gate min = 0 max = 1 }
 	if = { limit = { check_variable = { elec_rare_gate < 0.01 } } set_temp_variable = { allow_elec = 0 } }
 
 
@@ -973,6 +982,22 @@ cwic_cg_monthly_production_and_allotment = {
 	add_to_temp_variable = { cost_elec = 3.00 }
 	set_temp_variable = { units_elec = pts_elec }
 	divide_temp_variable = { units_elec = cost_elec }
+	set_temp_variable = { cg_out_mult = modifier@cg_basic_output_factor }
+	clamp_temp_variable = { var = cg_out_mult min = -0.5 max = 0.5 }
+	add_to_temp_variable = { cg_out_mult = 1 }
+	multiply_temp_variable = { units_basic = cg_out_mult }
+	set_temp_variable = { cg_out_mult = modifier@cg_durable_output_factor }
+	clamp_temp_variable = { var = cg_out_mult min = -0.5 max = 0.5 }
+	add_to_temp_variable = { cg_out_mult = 1 }
+	multiply_temp_variable = { units_durable = cg_out_mult }
+	set_temp_variable = { cg_out_mult = modifier@cg_vehicles_output_factor }
+	clamp_temp_variable = { var = cg_out_mult min = -0.5 max = 0.5 }
+	add_to_temp_variable = { cg_out_mult = 1 }
+	multiply_temp_variable = { units_vehicles = cg_out_mult }
+	set_temp_variable = { cg_out_mult = modifier@cg_electronics_output_factor }
+	clamp_temp_variable = { var = cg_out_mult min = -0.5 max = 0.5 }
+	add_to_temp_variable = { cg_out_mult = 1 }
+	multiply_temp_variable = { units_elec = cg_out_mult }
 
 	round_temp_variable = units_basic
 	round_temp_variable = units_durable
@@ -1008,6 +1033,11 @@ cwic_cg_monthly_production_and_allotment = {
     multiply_temp_variable = { coal_u = 0.01 }
     add_to_temp_variable = { coal_u = 0.03 }
 
+    set_temp_variable = { cg_floor_units = modifier@cg_input_floor }
+    add_to_temp_variable = { cg_floor_units = 0.5 }
+    clamp_temp_variable = { var = cg_floor_units min = 0.5 max = 1 }
+    multiply_temp_variable = { cg_floor_units = units_basic }
+    round_temp_variable = cg_floor_units
     # Cap by STEEL pool
     set_temp_variable = { cap_units = ROOT.cwic_res_steel_pool }
     divide_temp_variable = { cap_units = steel_u }
@@ -1031,6 +1061,7 @@ cwic_cg_monthly_production_and_allotment = {
 
     round_temp_variable = units_basic
     if = { limit = { check_variable = { units_basic < 0 } } set_temp_variable = { units_basic = 0 } }
+    if = { limit = { check_variable = { units_basic < cg_floor_units } } set_temp_variable = { units_basic = cg_floor_units } }
 
     set_variable = { units_basic_test5 = units_basic }
 
@@ -1040,6 +1071,7 @@ cwic_cg_monthly_production_and_allotment = {
     round_temp_variable = cg_tmp
     if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
     subtract_from_variable = { cwic_res_steel_pool = cg_tmp }
+    if = { limit = { check_variable = { cwic_res_steel_pool < 0 } } set_variable = { cwic_res_steel_pool = 0 } }
 
 
     # Spend COAL
@@ -1048,6 +1080,7 @@ cwic_cg_monthly_production_and_allotment = {
     round_temp_variable = cg_tmp
     if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
     subtract_from_variable = { cwic_res_coal_pool = cg_tmp }
+    if = { limit = { check_variable = { cwic_res_coal_pool < 0 } } set_variable = { cwic_res_coal_pool = 0 } }
 
 
 
@@ -1069,6 +1102,11 @@ cwic_cg_monthly_production_and_allotment = {
     set_temp_variable = { coal_u = ROOT.cg_durable_producible_tier }
     multiply_temp_variable = { coal_u = 0.01 }
     add_to_temp_variable = { coal_u = 0.10 }
+    set_temp_variable = { cg_floor_durable = modifier@cg_input_floor }
+    add_to_temp_variable = { cg_floor_durable = 0.5 }
+    clamp_temp_variable = { var = cg_floor_durable min = 0.5 max = 1 }
+    multiply_temp_variable = { cg_floor_durable = units_durable }
+    round_temp_variable = cg_floor_durable
 
     # Cap by STEEL
     set_temp_variable = { cap_units = ROOT.cwic_res_steel_pool }
@@ -1103,6 +1141,7 @@ cwic_cg_monthly_production_and_allotment = {
 
     round_temp_variable = units_durable
     if = { limit = { check_variable = { units_durable < 0 } } set_temp_variable = { units_durable = 0 } }
+    if = { limit = { check_variable = { units_durable < cg_floor_durable } } set_temp_variable = { units_durable = cg_floor_durable } }
 
     set_variable = { units_durable_test5 = units_durable }
 
@@ -1112,6 +1151,7 @@ cwic_cg_monthly_production_and_allotment = {
     round_temp_variable = cg_tmp
     if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
     subtract_from_variable = { cwic_res_steel_pool = cg_tmp }
+    if = { limit = { check_variable = { cwic_res_steel_pool < 0 } } set_variable = { cwic_res_steel_pool = 0 } }
 
     # Spend ALUMINIUM
     set_temp_variable = { cg_tmp = units_durable }
@@ -1119,6 +1159,7 @@ cwic_cg_monthly_production_and_allotment = {
     round_temp_variable = cg_tmp
     if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
     subtract_from_variable = { cwic_res_aluminium_pool = cg_tmp }
+    if = { limit = { check_variable = { cwic_res_aluminium_pool < 0 } } set_variable = { cwic_res_aluminium_pool = 0 } }
 
     # Spend COAL
     set_temp_variable = { cg_tmp = units_durable }
@@ -1126,6 +1167,7 @@ cwic_cg_monthly_production_and_allotment = {
     round_temp_variable = cg_tmp
     if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
     subtract_from_variable = { cwic_res_coal_pool = cg_tmp }
+    if = { limit = { check_variable = { cwic_res_coal_pool < 0 } } set_variable = { cwic_res_coal_pool = 0 } }
 
 
     # ----------------------------
@@ -1258,7 +1300,10 @@ cwic_cg_monthly_production_and_allotment = {
     if = { limit = { check_variable = { units_elec > cap_units } } set_temp_variable = { units_elec = cap_units } }
 
     # Cap by TUNGSTEN (rare earth)
-    set_temp_variable = { cap_units = ROOT.cwic_res_tungsten_pool }
+    set_temp_variable = { cap_units = modifier@cg_rare_earth_relief }
+    clamp_temp_variable = { var = cap_units min = 0 max = 1 }
+    multiply_temp_variable = { cap_units = 16 }
+    add_to_temp_variable = { cap_units = ROOT.cwic_res_tungsten_pool }
     divide_temp_variable = { cap_units = tung_u }
     subtract_from_temp_variable = { cap_units = 0.49 }
     round_temp_variable = cap_units
@@ -1300,6 +1345,7 @@ cwic_cg_monthly_production_and_allotment = {
     round_temp_variable = cg_tmp
     if = { limit = { check_variable = { cg_tmp < 0 } } set_temp_variable = { cg_tmp = 0 } }
     subtract_from_variable = { cwic_res_tungsten_pool = cg_tmp }
+    if = { limit = { check_variable = { cwic_res_tungsten_pool < 0 } } set_variable = { cwic_res_tungsten_pool = 0 } }
 
     # Spend COAL
     set_temp_variable = { cg_tmp = units_elec }
@@ -1371,6 +1417,9 @@ cwic_cg_monthly_production_and_allotment = {
 	clear_variable = tung_u
 	clear_variable = oil_u
 	clear_variable = coal_u
+	clear_variable = cg_out_mult
+	clear_variable = cg_floor_units
+	clear_variable = cg_floor_durable
 	clear_variable = cap_units
 	clear_variable = cg_tmp
 
@@ -1570,6 +1619,67 @@ cwic_cg_push_native_resources = {
 }
 
 cwic_cg_monthly_master_tick = {
+	if = {
+		limit = { NOT = { has_country_flag = cwic_heavy_industry_first_granted } }
+		if = {
+			limit = {
+				has_government = communism
+				OR = {
+					original_tag = SOV
+					original_tag = POL
+					original_tag = CZE
+					original_tag = HUN
+					original_tag = DDR
+					original_tag = ROM
+					original_tag = BUL
+				}
+				NOT = { has_idea = cwic_heavy_industry_first }
+				NOT = { has_idea = cwic_heavy_industry_first_reformed }
+				NOT = { has_completed_focus = HUN_60s_Kadar_The_New_Economic_Mechanism }
+				NOT = { has_completed_focus = DDR_Market_Reforms }
+				NOT = { has_completed_focus = DDR_Market_Socialist_Reforms }
+			}
+			if = {
+				limit = {
+					OR = {
+						has_completed_focus = SOV_ECON_Follow_Kosygins_Lead
+						has_completed_focus = SOV_Refocus_Planning_Toward_Consumer_Goods_Output
+						has_completed_focus = HUN_60s_Kadar_Expanding_Goulash_Communism
+						has_completed_focus = DDR_60s_The_Neues_Okonomisches_System
+					}
+				}
+				add_ideas = cwic_heavy_industry_first_reformed
+			}
+			else = { add_ideas = cwic_heavy_industry_first }
+			set_country_flag = cwic_heavy_industry_first_granted
+		}
+	}
+	if = {
+		limit = {
+			NOT = { has_government = communism }
+			OR = {
+				has_idea = cwic_heavy_industry_first
+				has_idea = cwic_heavy_industry_first_reformed
+			}
+		}
+		if = { limit = { has_idea = cwic_heavy_industry_first } remove_ideas = cwic_heavy_industry_first }
+		if = { limit = { has_idea = cwic_heavy_industry_first_reformed } remove_ideas = cwic_heavy_industry_first_reformed }
+	}
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					check_variable = { cg_strategy = 2 }
+					NOT = { cwic_cg_strategy_durables_allowed = yes }
+				}
+				AND = {
+					check_variable = { cg_strategy = 3 }
+					NOT = { cwic_cg_strategy_export_allowed = yes }
+				}
+			}
+		}
+		set_variable = { cg_strategy = 0 }
+	}
 	cwic_cg_read_native_supply = yes
 	cwic_cg_auto_import = yes
 	cwic_calculate_consumer_goods_monthly_demand = yes
@@ -1580,6 +1690,90 @@ cwic_cg_monthly_master_tick = {
 	}
 	cwic_cg_push_native_resources = yes
 	cwic_apply_consumer_goods_pressure_master = yes
+	if = { limit = { NOT = { has_variable = CWIC_black_market_pressure } } set_variable = { CWIC_black_market_pressure = 0 } }
+	if = {
+		limit = { check_variable = { cg_crisis_severity = 3 } }
+		add_to_variable = { CWIC_black_market_pressure = 0.01 }
+	}
+	if = {
+		limit = { check_variable = { cg_crisis_severity > 3 } }
+		add_to_variable = { CWIC_black_market_pressure = 0.02 }
+	}
+	if = { limit = { check_variable = { CWIC_black_market_pressure > 1 } } set_variable = { CWIC_black_market_pressure = 1 } }
+	if = {
+		limit = {
+			check_variable = { cg_crisis_severity > 2 }
+			NOT = { has_country_flag = cwic_cg_crisis_event_cd }
+			has_country_flag = CWIC_price_controls_basic
+		}
+		random_list = {
+			10 = {
+				set_country_flag = { flag = cwic_cg_crisis_event_cd days = 240 value = 1 }
+				random_list = {
+					40 = { country_event = { id = cwic_cg_crisis.1 days = 1 } }
+					30 = { country_event = { id = cwic_cg_crisis.2 days = 1 } }
+					30 = {
+						modifier = {
+							factor = 0
+							OR = {
+								NOT = { check_variable = { cg_crisis_severity > 3 } }
+								NOT = { check_variable = { cg_basic_shortage_level > 3 } }
+							}
+						}
+						country_event = { id = cwic_cg_crisis.3 days = 1 }
+					}
+					30 = {
+						modifier = {
+							factor = 0
+							OR = {
+								check_variable = { cg_crisis_severity < 4 }
+								has_idea = cwic_cg_rationing
+							}
+						}
+						country_event = { id = cwic_cg_crisis.4 days = 1 }
+					}
+				}
+			}
+			90 = { }
+		}
+	}
+	if = {
+		limit = {
+			check_variable = { cg_crisis_severity > 2 }
+			NOT = { has_country_flag = cwic_cg_crisis_event_cd }
+			NOT = { has_country_flag = CWIC_price_controls_basic }
+		}
+		random_list = {
+			20 = {
+				set_country_flag = { flag = cwic_cg_crisis_event_cd days = 240 value = 1 }
+				random_list = {
+					40 = { country_event = { id = cwic_cg_crisis.1 days = 1 } }
+					30 = { country_event = { id = cwic_cg_crisis.2 days = 1 } }
+					30 = {
+						modifier = {
+							factor = 0
+							OR = {
+								NOT = { check_variable = { cg_crisis_severity > 3 } }
+								NOT = { check_variable = { cg_basic_shortage_level > 3 } }
+							}
+						}
+						country_event = { id = cwic_cg_crisis.3 days = 1 }
+					}
+					30 = {
+						modifier = {
+							factor = 0
+							OR = {
+								check_variable = { cg_crisis_severity < 4 }
+								has_idea = cwic_cg_rationing
+							}
+						}
+						country_event = { id = cwic_cg_crisis.4 days = 1 }
+					}
+				}
+			}
+			80 = { }
+		}
+	}
 }
 cwic_cg_sync_resource_pools_from_vanilla = {
 
@@ -1590,6 +1784,7 @@ cwic_cg_sync_resource_pools_from_vanilla = {
 	set_variable = { cwic_res_oil_pool = resource_produced@oil }
 	add_to_variable = { cwic_res_oil_pool = resource_imported@oil }
 	set_variable = { cwic_res_coal_pool = resource_produced@coal }
+	add_to_variable = { cwic_res_coal_pool = resource_imported@coal }
 	set_variable = { cwic_res_tungsten_pool = resource_produced@tungsten }
 	add_to_variable = { cwic_res_tungsten_pool = resource_imported@tungsten }
 
@@ -1722,11 +1917,7 @@ cwic_cg_calibrate_demand = {
 		clamp_temp_variable = { var = cg_home min = 0.1 max = 1 }
 		multiply_temp_variable = { cg_t = cg_home }
 
-		set_temp_variable = { cg_cost = cg_basic_producible_tier }
-		multiply_temp_variable = { cg_cost = 0.10 }
-		add_to_temp_variable = { cg_cost = 1.125 }
-		set_variable = { cg_basic_demand_anchor = cg_monthly_points_basic }
-		divide_variable = { cg_basic_demand_anchor = cg_cost }
+		set_variable = { cg_basic_demand_anchor = cg_basic_produced_this_month }
 		multiply_variable = { cg_basic_demand_anchor = cg_t }
 		divide_variable = { cg_basic_demand_anchor = cg_basic_demand_raw }
 
@@ -1734,14 +1925,10 @@ cwic_cg_calibrate_demand = {
 		multiply_variable = { cg_durable_demand_anchor = 0.6 }
 		if = {
 			limit = {
-				check_variable = { cg_monthly_points_durable > 0 }
+				check_variable = { cg_durable_produced_this_month > 0 }
 				check_variable = { cg_durable_demand_raw > 0 }
 			}
-			set_temp_variable = { cg_cost = cg_durable_producible_tier }
-			multiply_temp_variable = { cg_cost = 0.20 }
-			add_to_temp_variable = { cg_cost = 2.00 }
-			set_variable = { cg_durable_demand_anchor = cg_monthly_points_durable }
-			divide_variable = { cg_durable_demand_anchor = cg_cost }
+			set_variable = { cg_durable_demand_anchor = cg_durable_produced_this_month }
 			multiply_variable = { cg_durable_demand_anchor = cg_t }
 			divide_variable = { cg_durable_demand_anchor = cg_durable_demand_raw }
 		}
@@ -1750,14 +1937,10 @@ cwic_cg_calibrate_demand = {
 		multiply_variable = { cg_vehicles_demand_anchor = 0.35 }
 		if = {
 			limit = {
-				check_variable = { cg_monthly_points_vehicles > 0 }
+				check_variable = { cg_vehicles_produced_this_month > 0 }
 				check_variable = { cg_vehicles_demand_raw > 0 }
 			}
-			set_temp_variable = { cg_cost = cg_vehicles_producible_tier }
-			multiply_temp_variable = { cg_cost = 0.30 }
-			add_to_temp_variable = { cg_cost = 4.00 }
-			set_variable = { cg_vehicles_demand_anchor = cg_monthly_points_vehicles }
-			divide_variable = { cg_vehicles_demand_anchor = cg_cost }
+			set_variable = { cg_vehicles_demand_anchor = cg_vehicles_produced_this_month }
 			multiply_variable = { cg_vehicles_demand_anchor = cg_t }
 			divide_variable = { cg_vehicles_demand_anchor = cg_vehicles_demand_raw }
 		}
@@ -1766,14 +1949,10 @@ cwic_cg_calibrate_demand = {
 		multiply_variable = { cg_consumer_electronics_demand_anchor = 0.35 }
 		if = {
 			limit = {
-				check_variable = { cg_monthly_points_electronics > 0 }
+				check_variable = { cg_consumer_electronics_produced_this_month > 0 }
 				check_variable = { cg_consumer_electronics_demand_raw > 0 }
 			}
-			set_temp_variable = { cg_cost = cg_consumer_electronics_producible_tier }
-			multiply_temp_variable = { cg_cost = 0.35 }
-			add_to_temp_variable = { cg_cost = 3.00 }
-			set_variable = { cg_consumer_electronics_demand_anchor = cg_monthly_points_electronics }
-			divide_variable = { cg_consumer_electronics_demand_anchor = cg_cost }
+			set_variable = { cg_consumer_electronics_demand_anchor = cg_consumer_electronics_produced_this_month }
 			multiply_variable = { cg_consumer_electronics_demand_anchor = cg_t }
 			divide_variable = { cg_consumer_electronics_demand_anchor = cg_consumer_electronics_demand_raw }
 		}
@@ -1801,4 +1980,37 @@ cwic_cg_calibrate_demand = {
 cwic_cg_set_strategy = {
 	set_variable = { cg_strategy = cg_strategy_pick }
 	set_country_flag = { flag = cg_strategy_cd days = 180 value = 1 }
+}
+
+cwic_cg_grant_aid_shipment = {
+	if = {
+		limit = { NOT = { has_idea = cwic_cg_aid_shipment } }
+		add_timed_idea = { idea = cwic_cg_aid_shipment days = 180 }
+	}
+}
+
+cwic_cg_ensure_office_parks = {
+	custom_effect_tooltip = CG_ensure_office_parks_tt
+	hidden_effect = {
+		set_temp_variable = { cg_parks = 0 }
+		every_owned_state = {
+			add_to_temp_variable = { cg_parks = building_level@office_park }
+		}
+		for_loop_effect = {
+			start = 0
+			end = 3
+			if = {
+				limit = { check_variable = { cg_parks < 3 } }
+				capital_scope = {
+					add_extra_state_shared_building_slots = 1
+					add_building_construction = {
+						type = office_park
+						level = 1
+						instant_build = yes
+					}
+				}
+				add_to_temp_variable = { cg_parks = 1 }
+			}
+		}
+	}
 }
