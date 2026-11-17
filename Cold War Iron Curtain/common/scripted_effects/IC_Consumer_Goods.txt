@@ -1989,6 +1989,66 @@ cwic_cg_grant_aid_shipment = {
 	}
 }
 
+# Permanent consumer-industry base for content. Set any of these temp variables
+# first, then call: ci_light, ci_precision, ci_auto, ci_elec, ci_mgmt (capability
+# points, techs give 1-3 each) and ci_basic_out, ci_durable_out, ci_vehicles_out,
+# ci_elec_out (output factor, 0.02-0.06 per step). Values accumulate in the
+# cwic_consumer_industry dynamic modifier.
+cwic_add_consumer_industry = {
+	if = { limit = { check_variable = { ci_light > 0 } } custom_effect_tooltip = CWIC_CI_LIGHT_TT }
+	if = { limit = { check_variable = { ci_precision > 0 } } custom_effect_tooltip = CWIC_CI_PRECISION_TT }
+	if = { limit = { check_variable = { ci_auto > 0 } } custom_effect_tooltip = CWIC_CI_AUTO_TT }
+	if = { limit = { check_variable = { ci_elec > 0 } } custom_effect_tooltip = CWIC_CI_ELEC_TT }
+	if = { limit = { check_variable = { ci_mgmt > 0 } } custom_effect_tooltip = CWIC_CI_MGMT_TT }
+	if = { limit = { check_variable = { ci_basic_out > 0 } } custom_effect_tooltip = CWIC_CI_BASIC_OUT_TT }
+	if = { limit = { check_variable = { ci_durable_out > 0 } } custom_effect_tooltip = CWIC_CI_DURABLE_OUT_TT }
+	if = { limit = { check_variable = { ci_vehicles_out > 0 } } custom_effect_tooltip = CWIC_CI_VEHICLES_OUT_TT }
+	if = { limit = { check_variable = { ci_elec_out > 0 } } custom_effect_tooltip = CWIC_CI_ELEC_OUT_TT }
+	hidden_effect = {
+		add_to_variable = { cwic_ci_cap_light = ci_light }
+		add_to_variable = { cwic_ci_cap_precision = ci_precision }
+		add_to_variable = { cwic_ci_cap_auto = ci_auto }
+		add_to_variable = { cwic_ci_cap_elec = ci_elec }
+		add_to_variable = { cwic_ci_cap_mgmt = ci_mgmt }
+		add_to_variable = { cwic_ci_basic_out = ci_basic_out }
+		add_to_variable = { cwic_ci_durable_out = ci_durable_out }
+		add_to_variable = { cwic_ci_vehicles_out = ci_vehicles_out }
+		add_to_variable = { cwic_ci_elec_out = ci_elec_out }
+		if = {
+			limit = { NOT = { has_dynamic_modifier = { modifier = cwic_consumer_industry } } }
+			add_dynamic_modifier = { modifier = cwic_consumer_industry }
+		}
+	}
+}
+
+# Opens one small native import deal for consumer vehicles (cic 0.25, so 4 units
+# is one civilian factory). Set ci_import_from to the exporter's id first. Skips
+# when the exporter is not offering enough or the pair is embargoed.
+cwic_import_consumer_vehicles = {
+	custom_effect_tooltip = CWIC_CI_VEHICLE_IMPORT_TT
+	hidden_effect = {
+		var:ci_import_from = {
+			if = {
+				limit = {
+					check_variable = { cg_vehicles_offered > 3 }
+					NOT = { check_variable = { ROOT.trade_embargo_check^THIS = 1 } }
+					NOT = { check_variable = { trade_embargo_check^ROOT = 1 } }
+				}
+				save_event_target_as = ci_vehicle_exporter
+			}
+		}
+		if = {
+			limit = { has_event_target = ci_vehicle_exporter }
+			meta_effect = {
+				text = {
+					create_import = { resource = cg_vehicles amount = 4 exporter = [TAG] }
+				}
+				TAG = "[?event_target:ci_vehicle_exporter.GetTag]"
+			}
+		}
+	}
+}
+
 cwic_cg_ensure_office_parks = {
 	custom_effect_tooltip = CG_ensure_office_parks_tt
 	hidden_effect = {
