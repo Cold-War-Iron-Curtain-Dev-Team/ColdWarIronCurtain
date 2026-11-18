@@ -437,6 +437,14 @@ How it fits together:
   the `Mikhail_Suslov_60s.dds` texture). Do NOT use dds basenames - most decade files have no
   sprite named after them and render as the grey silhouette. Shepilov and Pervukhin are
   deliberately absent from `PORTRAITS` and show the silhouette placeholder for now.
+- **Portrait variants**: `PORTRAIT_VARIANTS` maps a seat holder to
+  `(variant sprite, focus id)`. Its pick is emitted as the HIGHEST-priority sprite in that
+  seat's block (before the reveal pick), so the seat shows the variant once that focus
+  completes and the base `PORTRAITS` sprite otherwise (or blank while hidden). The variant
+  sprite must exist in `_leader_portraits.gfx` and its focus id must be in the tree (the
+  generator asserts both). Example: `"shelepin": ("GFX_Alexander_Shelepin_60s_Commissar",
+  "SOV_rename_ministries_to_peoples_commissariats")` - Shelepin wears the MGB suit until the
+  ministries are renamed to people's commissariats, then swaps to the Commissar portrait.
 - The shared state is still maintained for other content: `SOV_pres_molotov_government`
   clears all seats and re-seats the same 12 into the `SOV_pres_*` arrays, sets relations,
   ranks and the "Presidium..." title flag. The guard re-applies it on load and monthly ticks

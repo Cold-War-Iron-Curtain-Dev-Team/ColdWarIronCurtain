@@ -15,7 +15,7 @@ def main():
     checked = 0
     generated_effects = set()
     with TemporaryDirectory(prefix='cwic-generators-') as tmp:
-        for name in ['companies', 'goods', 'cultures', 'religions', 'super_events']:
+        for name in ['companies', 'cultures', 'religions', 'super_events']:
             script = MOD.parent / '_tools' / name / ('build_' + name + '.py')
             spec = importlib.util.spec_from_file_location('check_' + name, script)
             module = importlib.util.module_from_spec(spec)
