@@ -29,6 +29,7 @@ class ScriptFixture:
             self.defs.update({n.key: n for n in parse(MOD / 'common/scripted_effects' / name).children()})
         self.defs.update({n.key: n for n in parse(MOD / 'common/scripted_triggers/CWIC_Espionage_completion_triggers.txt').children()})
         gui = parse(MOD / 'common/scripted_guis/IC_Espionage_Expansion.txt').children('scripted_gui')[0]
+        self.gui = gui
         self.builder = gui.children('country_special_operations_recruitment_list')[0]
         self.gates = {n.key: n for n in self.builder.children('triggers')[0].children()}
         self.clicks = {n.key: n for n in self.builder.children('effects')[0].children()}
@@ -99,11 +100,12 @@ class ScriptFixture:
             if n.key == 'if':
                 if self.condition(n.children('limit')[0]):
                     self.execute_body(n, 'limit')
-            elif n.key in ('set_variable', 'add_to_variable', 'subtract_from_variable'):
+            elif n.key in ('set_variable', 'add_to_variable', 'subtract_from_variable',
+                           'set_temp_variable', 'add_to_temp_variable', 'subtract_from_temp_variable'):
                 assignment = n.children()[0]
                 value = self.value(assignment.value)
-                if n.key != 'set_variable':
-                    value = self.value(assignment.key) + (value if n.key == 'add_to_variable' else -value)
+                if not n.key.startswith('set_'):
+                    value = self.value(assignment.key) + (value if n.key.startswith('add_') else -value)
                 self.put(assignment.key, value)
             elif n.key == 'clamp_variable':
                 name = n.get('var')
@@ -117,6 +119,13 @@ class ScriptFixture:
             elif n.key == 'add_to_array':
                 assignment = n.children()[0]
                 self.arrays.setdefault(assignment.key, []).append(self.value(assignment.value))
+            elif n.key == 'while_loop_effect':
+                for _ in range(1000):  # the engine's default cap
+                    if not self.condition(n.children('limit')[0]):
+                        break
+                    self.execute_body(n, 'limit')
+                else:
+                    raise AssertionError('while_loop_effect did not terminate')
             elif n.key == 'for_each_loop':
                 for i, value in enumerate(self.arrays[n.get('array')]):
                     self.vars.update(i=i, v=value)
@@ -219,6 +228,69 @@ class RecruitmentTests(unittest.TestCase):
         self.s.execute(self.s.defs['get_keypress_1'])
         self.assertEqual(self.s.arrays['chars'][0], ord('1'))
         self.assertEqual(self.s.value('current_char'), 0)
+
+    def test_staged_row_is_highlighted_before_confirmation(self):
+        highlighted = self.s.gates['special_operations_recruitment_target_entry_button_active_visible']
+        self.s.execute(self.s.defs['CWIC_espionage_reset_group_builder'])
+        for name, values in (
+            ('espionage_paramilitary_operative_name_type', range(10, 18)),
+            ('first_name', range(20, 28)), ('surname', range(30, 38)), ('portrait', range(40, 48)),
+        ):
+            self.s.arrays[name] = list(values)
+        for row in range(8):
+            self.s.vars['i'] = row
+            self.assertFalse(self.s.condition(highlighted), row)
+        self.s.vars['i'] = 3
+        self.s.execute(self.s.clicks['special_operations_recruitment_target_entry_button_click'])
+        for row in range(8):
+            self.s.vars['i'] = row
+            self.assertEqual(self.s.condition(highlighted), row == 3, row)
+        self.s.execute(self.s.clicks['next_button_click'])
+        for row in range(8):  # confirmed row stays lit; row 0 must not light up from the cleared pick
+            self.s.vars['i'] = row
+            self.assertEqual(self.s.condition(highlighted), row == 3, row)
+
+    def test_five_confirmed_members_without_political_power_stay_blocked(self):
+        self.s.vars['has_political_power'] = 0
+        self.s.recruit_five()
+        self.assertFalse(self.s.ready())
+
+    def test_unit_builder_fills_the_pool_before_sizing_the_selection_list(self):
+        start = self.s.gui.children('Paramilitary_Intel_Button_Placeholder')[0].children('effects')[0]
+        order = [n.key for n in start.children('create_special_operations_team_start_click')[0].children()]
+        self.assertLess(order.index('espionage_recruitment_generation'),
+                        order.index('CWIC_espionage_reset_group_builder'))
+
+    def test_new_squad_state_is_initialised_without_touching_older_squads(self):
+        init = self.s.defs['CWIC_espionage_init_new_squad_state']
+        self.s.vars['num_espionage_paramilitary_squads'] = 1
+        self.s.execute(init)
+        self.s.put('operative_3_wia^1', 1)  # squad 1 takes a casualty before squad 2 exists
+        self.s.vars['num_espionage_paramilitary_squads'] = 2
+        self.s.execute(init)
+        for member in range(1, 6):
+            for kind in ('wia', 'mia'):
+                data = self.s.arrays[f'operative_{member}_{kind}']
+                self.assertEqual(len(data), 3)
+                self.assertEqual(data[2], 0)
+        self.assertEqual(self.s.arrays['operative_3_wia'][1], 1)
+        self.assertEqual(self.s.arrays['paramilitary_operative_squad_leader_on_mission'], [0, 0])
+
+    def test_create_click_pays_then_initialises_the_squad(self):
+        order = [n.key for n in self.s.clicks['create_group_click'].children()]
+        self.assertLess(order.index('CWIC_espionage_pay_group_creation'),
+                        order.index('CWIC_espionage_init_new_squad_state'))
+
+    def test_create_tooltip_names_every_gate_condition(self):
+        text = (MOD / 'common/scripted_localisation/CWIC_Espionage_recruitment_scripted_localisation.txt').read_text('utf-8-sig')
+        loc = (MOD / 'localisation/english/CWIC_Espionage_recruitment_l_english.yml').read_text('utf-8-sig')
+        gui = (MOD / 'interface/CWIC_Espionage.gui').read_text('utf-8-sig')
+        self.assertIn('pdx_tooltip = CWIC_ESP_CREATE_GROUP_TT', gui)
+        for name in ('Members', 'PP', 'Money', 'Cap'):
+            self.assertIn(f'name = GetCWICEspCreate{name}Line', text)
+            self.assertIn(f'[GetCWICEspCreate{name}Line]', loc)
+        for key in re.findall(r'localization_key = (CWIC_ESP_CREATE_\w+)', text):
+            self.assertIn(f' {key}:0 ', loc)
 
     def test_ai_random_choices_have_no_invalid_trigger_effects(self):
         root = parse(MOD / 'common/scripted_effects/CWIC_Espionage_completion_effects.txt')

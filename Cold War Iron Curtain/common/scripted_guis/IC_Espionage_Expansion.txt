@@ -252,6 +252,9 @@ scripted_gui = {
                 set_variable = {
                     paramilitary_selection_toggle = 1
                 }
+                # A fresh row click is needed each time the picker opens.
+                set_variable = { squad_selected_part_one = 0 }
+                set_variable = { selected_squad_temp = 0 }
                 clear_array = ROOT.portrait
                 for_each_loop = {
                     array = operative_leader_portrait_tokens
@@ -884,7 +887,7 @@ scripted_gui = {
                             add_to_array = { black_ops_team_history_entries_target = black_ops_group_[ARRAY_NUMBER]_history_entry_target^i }
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -936,7 +939,7 @@ scripted_gui = {
                             add_to_array = { black_ops_team_history_entries_target = black_ops_group_[ARRAY_NUMBER]_history_entry_target^i }
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2015,7 +2018,7 @@ scripted_gui = {
                             add_to_array = { black_ops_team_history_entries_target = black_ops_group_[ARRAY_NUMBER]_history_entry_target^i }
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2037,8 +2040,10 @@ scripted_gui = {
 		}
         effects = {
             create_special_operations_team_start_click = {
-                CWIC_espionage_reset_group_builder = yes
+                # Build the pool first: the reset sizes the selection list from it
+                # (SOV's pool is only rebuilt inside the generation effect).
                 espionage_recruitment_generation = yes
+                CWIC_espionage_reset_group_builder = yes
 
                 CWIC_espionage_refresh_preview = yes
             }
@@ -2502,9 +2507,17 @@ scripted_gui = {
             }
         }
         triggers = {
+            # Highlighted when confirmed, and also while staged (clicked but not yet
+            # confirmed), so a click on a row shows at once.
             special_operations_recruitment_target_entry_button_active_visible = {
-                check_variable = {
-                    espionage_paramilitary_operative_type_selection^i = 1
+                OR = {
+                    check_variable = {
+                        espionage_paramilitary_operative_type_selection^i = 1
+                    }
+                    AND = {
+                        check_variable = { CWIC_espionage_recruit_selected = 1 }
+                        check_variable = { selected = i }
+                    }
                 }
             }
             special_operations_recruitment_target_entry_button_visible = {
@@ -2566,6 +2579,8 @@ scripted_gui = {
                 CWIC_espionage_refresh_preview = yes
             }
             create_group_click = {
+                # Stage 0 trace (removed in Stage 10): shows in logs/game.log whether the click ran.
+                log = "CWIC esp: create_group_click start, squads [?num_espionage_paramilitary_squads|0], step [?operative_number_step|0]"
                 CWIC_espionage_ensure_group_name = yes
                 CWIC_espionage_pay_group_creation = yes
                 add_to_variable = { num_espionage_paramilitary_squads = 1 }
@@ -2706,7 +2721,7 @@ scripted_gui = {
                         }
 
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2763,7 +2778,7 @@ scripted_gui = {
                             value = temp_build_espionage_paramilitary_operative_type^1
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2811,7 +2826,7 @@ scripted_gui = {
                             value = temp_build_espionage_paramilitary_operative_type^2
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2859,7 +2874,7 @@ scripted_gui = {
                             value = temp_build_espionage_paramilitary_operative_type^3
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2913,7 +2928,7 @@ scripted_gui = {
                             value = temp_build_espionage_paramilitary_operative_type^4
                         }
                     }
-                    TAG = "[?ROOT.GetTag]"
+                    TAG = "[ROOT.GetTag]"
                     OPERATIVE = "[?operative_number]"
                     ARRAY_NUMBER = "[?current_page]"
                 }
@@ -2933,6 +2948,8 @@ scripted_gui = {
                         espionage_paramilitary_operative_type_selection^i = 0
                     }
                 }
+                CWIC_espionage_init_new_squad_state = yes
+                log = "CWIC esp: create_group_click end, squads [?num_espionage_paramilitary_squads|0], operatives [?operative_number|0]"
 
                 CWIC_espionage_refresh_preview = yes
             }
