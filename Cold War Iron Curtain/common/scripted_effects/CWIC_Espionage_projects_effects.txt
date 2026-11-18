@@ -1,0 +1,783 @@
+# Stage 9a: closeout handlers and builders for the two scripted projects that
+# were listed in the Black Operations window but could never be launched:
+#   Cuban Regime Change (USA, tokens 100-116)
+#   Pacifying Western Ukraine (SOV, tokens 500-506)
+#
+# CWIC_espionage_dispatch_project_outcome runs at the end of
+# CWIC_espionage_dispatch_operation_outcome, in the launching country's scope,
+# after operation_closeout_effect has rolled slot_one_successful and
+# slot_one_detected. current_token is the temp variable set by the closeout.
+# Token 100 keeps its handler in IC_Espionage_effects.txt.
+#
+# Every flag and variable written here is one that
+# current_entry_visible_trigger (scripted_triggers/IC_Espionage.txt) or the
+# project panel already reads. Nothing wrote them before this file.
+
+CWIC_espionage_dispatch_project_outcome = {
+    if = {
+        limit = {
+            check_variable = { current_token > 100 }
+            check_variable = { current_token < 117 }
+        }
+        if = {
+            limit = { check_variable = { current_token = 116 } }
+            CWIC_espionage_bop_roll_liberation = yes
+        }
+        if = {
+            limit = { check_variable = { slot_one_successful = 1 } }
+            CWIC_espionage_bop_success = yes
+            slot_1_operation_success_shared_effect = yes
+        }
+        else = {
+            CWIC_espionage_bop_failure = yes
+            slot_1_operation_failure_effect = yes
+        }
+        CWIC_espionage_bop_recount = yes
+        CWIC_espionage_refresh_operation_status = yes
+    }
+    if = {
+        limit = {
+            check_variable = { current_token > 499 }
+            check_variable = { current_token < 507 }
+        }
+        if = {
+            limit = { check_variable = { slot_one_successful = 1 } }
+            CWIC_espionage_uia_success = yes
+            slot_1_operation_success_shared_effect = yes
+        }
+        else = {
+            CWIC_espionage_uia_failure = yes
+            slot_1_operation_failure_effect = yes
+        }
+        CWIC_espionage_uia_check_end = yes
+        CWIC_espionage_refresh_operation_status = yes
+    }
+}
+
+###########################################################################
+# Cuban Regime Change
+###########################################################################
+
+CWIC_espionage_bop_success = {
+    if = {
+        limit = { check_variable = { current_token = 101 } }    # Establish Brigade 2506
+        set_country_flag = Brigade_2506_Token
+        add_to_variable = { Bay_of_Pigs_Recruits = 200 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 102 } }    # Pilot Recruitment
+        set_country_flag = Recruited_Cuban_Pilots_Token
+        add_to_variable = { Bay_of_Pigs_Pilots = 25 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 103 } }    # Acquire Aircraft
+        set_country_flag = Acquired_Aircraft_for_Cuban_Project_Token
+        add_to_variable = { Bay_of_Pigs_B26s = 8 }
+        add_to_variable = { Bay_of_Pigs_C46s = 4 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 104 } }    # Cuban Liberation Air Force
+        set_country_flag = Cuban_Liberation_Air_Force_Token
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 105 } }    # Rayo Base
+        set_country_flag = Rayo_Base_Token
+        if = {
+            limit = { GUA = { exists = yes } }
+            GUA = { add_opinion_modifier = { target = ROOT modifier = CWIC_espionage_bop_base_hosted } }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 106 } }    # Pilot Training
+        set_country_flag = Pilots_Trained_Cuba_Project_Token
+        add_to_variable = { Bay_of_Pigs_Pilots = 30 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 107 } }    # Recruit Cuban Emigres
+        add_to_variable = { Bay_of_Pigs_Recruits = 400 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 108 } }    # Divert Infantry Equipment
+        add_equipment_to_stockpile = { type = infantry_equipment amount = -1000 }
+        add_to_variable = { Bay_of_Pigs_Infantry_Equipment = 1000 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 109 } }    # Train Invasion Force Members
+        set_variable = { CWIC_esp_bop_trainees = Bay_of_Pigs_Recruits }
+        clamp_variable = { var = CWIC_esp_bop_trainees min = 0 max = 400 }
+        subtract_from_variable = { Bay_of_Pigs_Recruits = CWIC_esp_bop_trainees }
+        add_to_variable = { Bay_of_Pigs_Trained_Recruits = CWIC_esp_bop_trainees }
+        add_to_variable = { Bay_of_Pigs_Experience = 15 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 110 } }    # Landing craft
+        add_to_variable = { Bay_of_Pigs_Ships = 4 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 111 } }    # Infiltrate Cuba
+        set_country_flag = Infilitrated_Cuba_Cuba_Project_Token
+        set_variable = { CWIC_esp_bop_landing_site = 1 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 112 } }    # Contact insurgents in Cuba
+        set_country_flag = Contacted_Insurgents_Cuba_Project_Token
+        set_variable = { CWIC_esp_bop_landing_site = 2 }
+        if = {
+            limit = { CUB = { exists = yes } }
+            CUB = {
+                every_owned_state = {
+                    limit = { has_resistance = yes }
+                    add_resistance = 10
+                }
+            }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 113 } }    # Operation Puma
+        set_country_flag = Operation_Puma_Token
+        if = {
+            limit = { CUB = { exists = yes } }
+            CUB = { add_dynamic_modifier = { modifier = CWIC_espionage_bop_air_strikes days = 90 } }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 114 } }    # Psychological warfare over Havana
+        set_country_flag = Psychological_Warfare_Havana_Token
+        if = {
+            limit = { CUB = { exists = yes } }
+            CUB = {
+                add_stability = -0.05
+                add_war_support = -0.05
+            }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 115 } }    # Diversionary strikes
+        set_country_flag = Diversionary_Strikes_Cuba_Project_Token
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 116 } }    # The landing
+        set_country_flag = Bay_of_Pigs_Start_Token
+        set_variable = { CWIC_esp_bop_outcome = 2 }
+        set_global_flag = bay_of_pigs_successful
+        if = {
+            limit = { CUB = { exists = yes } }
+            CUB = {
+                news_event = bay_of_pigs.4
+                if = {
+                    limit = { has_government = communism }
+                    set_politics = { ruling_party = Social_Democratic elections_allowed = yes }
+                    start_civil_war = { ideology = communism size = 0.35 }
+                }
+                else = {
+                    add_stability = -0.15
+                    add_war_support = -0.1
+                }
+            }
+        }
+    }
+}
+
+CWIC_espionage_bop_failure = {
+    if = {
+        limit = { check_variable = { current_token = 101 } }
+        if = {
+            limit = { check_variable = { slot_one_detected = 1 } }
+            add_political_power = -10
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 102 } }
+        add_to_variable = { Bay_of_Pigs_Pilots = 5 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 103 } }
+        add_to_variable = { Bay_of_Pigs_B26s = 4 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 105 } }
+        if = {
+            limit = { GUA = { exists = yes } }
+            GUA = { add_opinion_modifier = { target = ROOT modifier = CWIC_espionage_bop_base_exposed } }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 106 } }
+        subtract_from_variable = { Bay_of_Pigs_Pilots = 5 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 107 } }
+        add_to_variable = { Bay_of_Pigs_Recruits = 100 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 108 } }
+        add_equipment_to_stockpile = { type = infantry_equipment amount = -300 }
+        add_to_variable = { Bay_of_Pigs_Infantry_Equipment = 300 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 109 } }
+        add_to_variable = { Bay_of_Pigs_Experience = 5 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 110 } }
+        add_to_variable = { Bay_of_Pigs_Ships = 1 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 111 } }
+        if = {
+            limit = { CUB = { exists = yes } }
+            CUB = { add_opinion_modifier = { target = ROOT modifier = CWIC_espionage_bop_infiltrators_caught } }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 113 } }
+        subtract_from_variable = { Bay_of_Pigs_B26s = 2 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 115 } }
+        subtract_from_variable = { Bay_of_Pigs_B26s = 2 }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 116 } }
+        # One attempt only: the landing is spent whether or not it works.
+        set_country_flag = Bay_of_Pigs_Start_Token
+        set_variable = { CWIC_esp_bop_outcome = 1 }
+        set_global_flag = bay_of_pigs_disaster
+        add_political_power = -100
+        if = {
+            limit = { CUB = { exists = yes } }
+            CUB = {
+                news_event = bay_of_pigs.3
+                add_stability = 0.1
+            }
+        }
+    }
+}
+
+# The landing does not use the generic mission table: its odds come from how
+# well the brigade was prepared. 10% base, up to +45% from training level,
+# +5% each for Operation Puma and the diversionary strikes, +10% if the
+# insurgents inside Cuba were contacted. Maximum 75%.
+CWIC_espionage_bop_roll_liberation = {
+    set_variable = { CWIC_esp_bop_chance = Bay_of_Pigs_Experience }
+    multiply_variable = { CWIC_esp_bop_chance = 0.0045 }
+    clamp_variable = { var = CWIC_esp_bop_chance min = 0 max = 0.45 }
+    add_to_variable = { CWIC_esp_bop_chance = 0.1 }
+    if = {
+        limit = { has_country_flag = Operation_Puma_Token }
+        add_to_variable = { CWIC_esp_bop_chance = 0.05 }
+    }
+    if = {
+        limit = { has_country_flag = Diversionary_Strikes_Cuba_Project_Token }
+        add_to_variable = { CWIC_esp_bop_chance = 0.05 }
+    }
+    if = {
+        limit = { has_country_flag = Contacted_Insurgents_Cuba_Project_Token }
+        add_to_variable = { CWIC_esp_bop_chance = 0.1 }
+    }
+    set_variable_to_random = CWIC_esp_bop_roll
+    set_variable = { slot_one_successful = 0 }
+    if = {
+        limit = { check_variable = { CWIC_esp_bop_roll < CWIC_esp_bop_chance } }
+        set_variable = { slot_one_successful = 1 }
+    }
+}
+
+# Keeps the materials panel and the eight-line checklist in step with the
+# flags. Safe to call at any time, on any save.
+CWIC_espionage_bop_recount = {
+    clamp_variable = { var = Bay_of_Pigs_Recruits min = 0 max = 99999 }
+    clamp_variable = { var = Bay_of_Pigs_Trained_Recruits min = 0 max = 99999 }
+    clamp_variable = { var = Bay_of_Pigs_Pilots min = 0 max = 9999 }
+    clamp_variable = { var = Bay_of_Pigs_Ships min = 0 max = 999 }
+    clamp_variable = { var = Bay_of_Pigs_B26s min = 0 max = 999 }
+    clamp_variable = { var = Bay_of_Pigs_C46s min = 0 max = 999 }
+    clamp_variable = { var = Bay_of_Pigs_AD5s min = 0 max = 999 }
+    clamp_variable = { var = Bay_of_Pigs_C54s min = 0 max = 999 }
+    clamp_variable = { var = Bay_of_Pigs_Infantry_Equipment min = 0 max = 99999 }
+    clamp_variable = { var = Bay_of_Pigs_Experience min = 0 max = 100 }
+    set_variable = { Bay_of_Pigs_Aircraft = Bay_of_Pigs_B26s }
+    add_to_variable = { Bay_of_Pigs_Aircraft = Bay_of_Pigs_C46s }
+    add_to_variable = { Bay_of_Pigs_Aircraft = Bay_of_Pigs_AD5s }
+    add_to_variable = { Bay_of_Pigs_Aircraft = Bay_of_Pigs_C54s }
+    # The landing needs ten craft, so the acquisition stays on offer until then.
+    if = {
+        limit = { check_variable = { Bay_of_Pigs_Ships > 9 } }
+        set_country_flag = Acquired_Landing_Craft_Cuba_Project_Token
+    }
+    clear_array = bay_of_pigs_operation_list_verification
+    resize_array = { array = bay_of_pigs_operation_list_verification size = 8 }
+    if = {
+        limit = { has_country_flag = Brigade_2506_Token }
+        set_variable = { bay_of_pigs_operation_list_verification^0 = 1 }
+    }
+    if = {
+        limit = { has_country_flag = Cuban_Liberation_Air_Force_Token }
+        set_variable = { bay_of_pigs_operation_list_verification^1 = 1 }
+    }
+    if = {
+        limit = { has_country_flag = Rayo_Base_Token }
+        set_variable = { bay_of_pigs_operation_list_verification^2 = 1 }
+    }
+    if = {
+        limit = { check_variable = { Bay_of_Pigs_Pilots > 99 } }
+        set_variable = { bay_of_pigs_operation_list_verification^3 = 1 }
+    }
+    if = {
+        limit = { check_variable = { Bay_of_Pigs_Trained_Recruits > 1499 } }
+        set_variable = { bay_of_pigs_operation_list_verification^4 = 1 }
+    }
+    if = {
+        limit = { has_country_flag = Infilitrated_Cuba_Cuba_Project_Token }
+        set_variable = { bay_of_pigs_operation_list_verification^5 = 1 }
+    }
+    if = {
+        limit = { has_country_flag = Operation_Puma_Token }
+        set_variable = { bay_of_pigs_operation_list_verification^6 = 1 }
+    }
+    if = {
+        limit = { has_country_flag = Diversionary_Strikes_Cuba_Project_Token }
+        set_variable = { bay_of_pigs_operation_list_verification^7 = 1 }
+    }
+}
+
+# Rebuilt every time the project is opened, so a save whose tables were filled
+# by the old one-time setup (which appended the risk column twice) is repaired.
+CWIC_espionage_build_bay_of_pigs_operations = {
+    set_country_flag = Bay_of_Pigs_Project_Setup
+    clear_array = bay_of_pigs_material_list
+    clear_array = bay_of_pigs_operation_list
+    clear_array = bay_of_pigs_operation
+    clear_array = bay_of_pigs_operation_target
+    clear_array = bay_of_pigs_operation_id_tokens
+    clear_array = bay_of_pigs_operation_risk_level
+    clear_array = bay_of_pigs_operation_type
+    clear_array = bay_of_pigs_operation_repeatable_condition
+    clear_array = bay_of_pigs_operation_cost
+
+    add_to_array = { bay_of_pigs_material_list = 1 }
+    add_to_array = { bay_of_pigs_material_list = 2 }
+    add_to_array = { bay_of_pigs_material_list = 3 }
+    add_to_array = { bay_of_pigs_material_list = 4 }
+    add_to_array = { bay_of_pigs_material_list = 5 }
+    add_to_array = { bay_of_pigs_material_list = 6 }
+    add_to_array = { bay_of_pigs_material_list = 7 }
+    add_to_array = { bay_of_pigs_material_list = 8 }
+    add_to_array = { bay_of_pigs_material_list = 9 }
+    add_to_array = { bay_of_pigs_material_list = 10 }
+    add_to_array = { bay_of_pigs_material_list = 11 }
+
+    add_to_array = { bay_of_pigs_operation_list = 1 }
+    add_to_array = { bay_of_pigs_operation_list = 2 }
+    add_to_array = { bay_of_pigs_operation_list = 3 }
+    add_to_array = { bay_of_pigs_operation_list = 4 }
+    add_to_array = { bay_of_pigs_operation_list = 5 }
+    add_to_array = { bay_of_pigs_operation_list = 6 }
+    add_to_array = { bay_of_pigs_operation_list = 7 }
+    add_to_array = { bay_of_pigs_operation_list = 8 }
+
+    # op, token, target, risk, type, repeatable (1 no, 2 yes), cost
+    # 1 Contact Cuban Exiles
+    add_to_array = { bay_of_pigs_operation = 1 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 100 }
+    add_to_array = { bay_of_pigs_operation_target = USA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 22 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 2 }
+    # 2 Establish Brigade 2506
+    add_to_array = { bay_of_pigs_operation = 2 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 101 }
+    add_to_array = { bay_of_pigs_operation_target = GUA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 13 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 5 }
+    # 3 Pilot Recruitment
+    add_to_array = { bay_of_pigs_operation = 3 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 102 }
+    add_to_array = { bay_of_pigs_operation_target = USA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 19 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 2 }
+    add_to_array = { bay_of_pigs_operation_cost = 2 }
+    # 4 Acquire Aircraft
+    add_to_array = { bay_of_pigs_operation = 4 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 103 }
+    add_to_array = { bay_of_pigs_operation_target = USA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 4 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 2 }
+    add_to_array = { bay_of_pigs_operation_cost = 10 }
+    # 5 Establish Cuban Liberation Air Force
+    add_to_array = { bay_of_pigs_operation = 5 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 104 }
+    add_to_array = { bay_of_pigs_operation_target = GUA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 14 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 3 }
+    # 6 Establish Rayo Base
+    add_to_array = { bay_of_pigs_operation = 6 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 105 }
+    add_to_array = { bay_of_pigs_operation_target = GUA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 14 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 5 }
+    # 7 Pilot Training
+    add_to_array = { bay_of_pigs_operation = 7 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 106 }
+    add_to_array = { bay_of_pigs_operation_target = USA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 18 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 3 }
+    # 8 Recruit Cuban Emigres
+    add_to_array = { bay_of_pigs_operation = 8 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 107 }
+    add_to_array = { bay_of_pigs_operation_target = USA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 19 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 2 }
+    add_to_array = { bay_of_pigs_operation_cost = 3 }
+    # 9 Divert Infantry Equipment
+    add_to_array = { bay_of_pigs_operation = 9 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 108 }
+    add_to_array = { bay_of_pigs_operation_target = GUA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 1 }
+    add_to_array = { bay_of_pigs_operation_type = 4 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 2 }
+    add_to_array = { bay_of_pigs_operation_cost = 5 }
+    # 10 Train Invasion Force Members
+    add_to_array = { bay_of_pigs_operation = 10 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 109 }
+    add_to_array = { bay_of_pigs_operation_target = GUA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 2 }
+    add_to_array = { bay_of_pigs_operation_type = 18 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 2 }
+    add_to_array = { bay_of_pigs_operation_cost = 2 }
+    # 11 Acquire Landing Craft
+    add_to_array = { bay_of_pigs_operation = 11 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 110 }
+    add_to_array = { bay_of_pigs_operation_target = USA.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 4 }
+    add_to_array = { bay_of_pigs_operation_type = 4 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 2 }
+    add_to_array = { bay_of_pigs_operation_cost = 10 }
+    # 12 Infiltrate Cuba
+    add_to_array = { bay_of_pigs_operation = 12 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 111 }
+    add_to_array = { bay_of_pigs_operation_target = CUB.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 5 }
+    add_to_array = { bay_of_pigs_operation_type = 3 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 2 }
+    # 13 Contact Insurgents in Cuba
+    add_to_array = { bay_of_pigs_operation = 13 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 112 }
+    add_to_array = { bay_of_pigs_operation_target = CUB.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 4 }
+    add_to_array = { bay_of_pigs_operation_type = 22 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 1 }
+    # 14 Operation Puma
+    add_to_array = { bay_of_pigs_operation = 14 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 113 }
+    add_to_array = { bay_of_pigs_operation_target = CUB.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 5 }
+    add_to_array = { bay_of_pigs_operation_type = 21 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 5 }
+    # 15 Psychological Warfare over Havana
+    add_to_array = { bay_of_pigs_operation = 15 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 114 }
+    add_to_array = { bay_of_pigs_operation_target = CUB.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 5 }
+    add_to_array = { bay_of_pigs_operation_type = 20 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 1 }
+    # 16 Diversionary Strikes
+    add_to_array = { bay_of_pigs_operation = 16 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 115 }
+    add_to_array = { bay_of_pigs_operation_target = CUB.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 5 }
+    add_to_array = { bay_of_pigs_operation_type = 10 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 2 }
+    # 17 The landing
+    add_to_array = { bay_of_pigs_operation = 17 }
+    add_to_array = { bay_of_pigs_operation_id_tokens = 116 }
+    add_to_array = { bay_of_pigs_operation_target = CUB.id }
+    add_to_array = { bay_of_pigs_operation_risk_level = 6 }
+    add_to_array = { bay_of_pigs_operation_type = 8 }
+    add_to_array = { bay_of_pigs_operation_repeatable_condition = 1 }
+    add_to_array = { bay_of_pigs_operation_cost = 10 }
+
+    CWIC_espionage_bop_recount = yes
+}
+
+###########################################################################
+# Pacifying Western Ukraine
+###########################################################################
+
+# The UIA is not a country on the map, so every operation targets the USSR
+# itself (the launch gate and the closeout both require an existing target);
+# the state, where one matters, is the personnel target.
+CWIC_espionage_uia_success = {
+    if = {
+        limit = { check_variable = { current_token = 500 } }    # Shukhevych
+        set_country_flag = Shukhevych_Eliminated_Token
+        every_owned_state = {
+            limit = { has_state_flag = uia_target has_resistance = yes }
+            add_resistance = -10
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 501 } }    # Raid in one oblast
+        set_country_flag = { flag = Recent_Anti_UIA_Raid days = 60 value = 1 }
+        if = {
+            limit = { var:history_personnel_target = { has_resistance = yes } }
+            var:history_personnel_target = {
+                add_resistance = -15
+                add_compliance = 5
+            }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 502 } }    # Deport villages
+        set_country_flag = { flag = Recent_Anti_UIA_Deportation days = 180 value = 1 }
+        add_stability = -0.02
+        every_owned_state = {
+            limit = { has_state_flag = uia_target has_resistance = yes }
+            add_resistance = -25
+            add_compliance = 10
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 503 } }    # False OUN leadership
+        set_country_flag = Established_False_UIA_Leadership
+        every_owned_state = {
+            limit = { has_state_flag = uia_target has_resistance = yes }
+            add_resistance = -5
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 504 } }    # Kiev oblast cells
+        set_country_flag = Arrested_UIA_Cell_1
+        every_owned_state = {
+            limit = {
+                OR = { state = 202 state = 2086 }
+                has_resistance = yes
+            }
+            add_resistance = -30
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 505 } }    # Vinnytsia oblast cells
+        set_country_flag = Arrested_UIA_Cell_2
+        every_owned_state = {
+            limit = { state = 198 has_resistance = yes }
+            add_resistance = -30
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 506 } }    # Bandera
+        set_country_flag = Bandera_Assassinated
+        every_owned_state = {
+            limit = { has_state_flag = uia_target has_resistance = yes }
+            add_resistance = -15
+        }
+    }
+}
+
+CWIC_espionage_uia_failure = {
+    if = {
+        limit = { check_variable = { current_token = 501 } }
+        set_country_flag = { flag = Recent_Anti_UIA_Raid days = 30 value = 1 }
+        if = {
+            limit = { var:history_personnel_target = { has_resistance = yes } }
+            var:history_personnel_target = { add_resistance = 5 }
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 502 } }
+        set_country_flag = { flag = Recent_Anti_UIA_Deportation days = 180 value = 1 }
+        every_owned_state = {
+            limit = { has_state_flag = uia_target has_resistance = yes }
+            add_resistance = 10
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 504 } }
+        every_owned_state = {
+            limit = {
+                OR = { state = 202 state = 2086 }
+                has_resistance = yes
+            }
+            add_resistance = 10
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 505 } }
+        every_owned_state = {
+            limit = { state = 198 has_resistance = yes }
+            add_resistance = 10
+        }
+    }
+    else_if = {
+        limit = { check_variable = { current_token = 506 } }
+        add_political_power = -25
+        if = {
+            limit = { WGR = { exists = yes } }
+            WGR = { add_opinion_modifier = { target = ROOT modifier = CWIC_espionage_uia_munich_incident } }
+        }
+    }
+}
+
+# The project is over once the leadership and both cell networks are gone.
+CWIC_espionage_uia_check_end = {
+    if = {
+        limit = {
+            has_country_flag = ukranian_seccessionism
+            has_country_flag = Shukhevych_Eliminated_Token
+            has_country_flag = Arrested_UIA_Cell_1
+            has_country_flag = Arrested_UIA_Cell_2
+        }
+        clr_country_flag = ukranian_seccessionism
+        set_country_flag = CWIC_esp_uia_pacified
+        every_owned_state = {
+            limit = { has_state_flag = uia_target }
+            clr_state_flag = uia_target
+            clr_state_flag = insurg_lvl1
+            clr_state_flag = insurg_lvl2
+            clr_state_flag = insurg_lvl3
+            clr_state_flag = actively_resisting_state
+        }
+    }
+}
+
+# Rebuilt on every open: the per-oblast raid rows depend on which states are
+# still marked, and the old one-time setup aimed every row at a country that
+# does not exist, which the launch gate rejects.
+CWIC_espionage_build_uia_operations = {
+    set_country_flag = Anti_UIA_Project_Setup
+    clear_array = uia_operation
+    clear_array = uia_operation_id_tokens
+    clear_array = uia_operation_risk_level
+    clear_array = uia_operation_type
+    clear_array = uia_personnel_target
+    clear_array = uia_operation_target
+    clear_array = uia_operation_repeatable_condition
+    clear_array = uia_operation_cost
+    every_owned_state = {
+        limit = {
+            OR = {
+                has_state_flag = uia_target
+                is_core_of = UIA
+            }
+        }
+        add_to_array = { ROOT.uia_operation = 2 }
+        add_to_array = { ROOT.uia_operation_id_tokens = 501 }
+        add_to_array = { ROOT.uia_operation_risk_level = 3 }
+        add_to_array = { ROOT.uia_operation_type = 25 }
+        add_to_array = { ROOT.uia_personnel_target = THIS.id }
+        add_to_array = { ROOT.uia_operation_target = ROOT.id }
+        add_to_array = { ROOT.uia_operation_repeatable_condition = 2 }
+        add_to_array = { ROOT.uia_operation_cost = 2 }
+    }
+    # 1 Shukhevych
+    add_to_array = { uia_operation = 1 }
+    add_to_array = { uia_operation_id_tokens = 500 }
+    add_to_array = { uia_operation_risk_level = 4 }
+    add_to_array = { uia_operation_type = 7 }
+    add_to_array = { uia_personnel_target = 1 }
+    add_to_array = { uia_operation_target = ROOT.id }
+    add_to_array = { uia_operation_repeatable_condition = 1 }
+    add_to_array = { uia_operation_cost = 3 }
+    # 3 Deport villages
+    add_to_array = { uia_operation = 3 }
+    add_to_array = { uia_operation_id_tokens = 502 }
+    add_to_array = { uia_operation_risk_level = 3 }
+    add_to_array = { uia_operation_type = 25 }
+    add_to_array = { uia_personnel_target = 1 }
+    add_to_array = { uia_operation_target = ROOT.id }
+    add_to_array = { uia_operation_repeatable_condition = 2 }
+    add_to_array = { uia_operation_cost = 1 }
+    # 4 False OUN leadership
+    add_to_array = { uia_operation = 4 }
+    add_to_array = { uia_operation_id_tokens = 503 }
+    add_to_array = { uia_operation_risk_level = 3 }
+    add_to_array = { uia_operation_type = 15 }
+    add_to_array = { uia_personnel_target = 1 }
+    add_to_array = { uia_operation_target = ROOT.id }
+    add_to_array = { uia_operation_repeatable_condition = 1 }
+    add_to_array = { uia_operation_cost = 5 }
+    # 5 Kiev oblast cells
+    add_to_array = { uia_operation = 5 }
+    add_to_array = { uia_operation_id_tokens = 504 }
+    add_to_array = { uia_operation_risk_level = 2 }
+    add_to_array = { uia_operation_type = 25 }
+    add_to_array = { uia_personnel_target = 1 }
+    add_to_array = { uia_operation_target = ROOT.id }
+    add_to_array = { uia_operation_repeatable_condition = 1 }
+    add_to_array = { uia_operation_cost = 1 }
+    # 6 Vinnytsia oblast cells
+    add_to_array = { uia_operation = 6 }
+    add_to_array = { uia_operation_id_tokens = 505 }
+    add_to_array = { uia_operation_risk_level = 2 }
+    add_to_array = { uia_operation_type = 25 }
+    add_to_array = { uia_personnel_target = 1 }
+    add_to_array = { uia_operation_target = ROOT.id }
+    add_to_array = { uia_operation_repeatable_condition = 1 }
+    add_to_array = { uia_operation_cost = 1 }
+    # 7 Bandera
+    add_to_array = { uia_operation = 7 }
+    add_to_array = { uia_operation_id_tokens = 506 }
+    add_to_array = { uia_operation_risk_level = 5 }
+    add_to_array = { uia_operation_type = 7 }
+    add_to_array = { uia_personnel_target = 1 }
+    add_to_array = { uia_operation_target = ROOT.id }
+    add_to_array = { uia_operation_repeatable_condition = 1 }
+    add_to_array = { uia_operation_cost = 4 }
+}
+
+###########################################################################
+# Row markers
+###########################################################################
+
+# The operation list has an "in progress" icon and a "completed" tick that read
+# local_possible_operations_completed_status (1 and 2). Nothing filled that
+# array before. It is filled only while one of the two projects above is the
+# open list; any other list keeps it empty (CWIC_espionage_reset_project_views
+# clears it), so no stale marker can land on another project's rows.
+CWIC_espionage_refresh_operation_status = {
+    clear_array = local_possible_operations_completed_status
+    if = {
+        limit = {
+            OR = {
+                check_variable = { show_bay_of_pigs = 1 }
+                check_variable = { show_uia = 1 }
+            }
+        }
+        for_each_loop = {
+            array = local_possible_operations_id_token
+            index = CWIC_esp_status_index
+            set_temp_variable = { CWIC_esp_status_token = local_possible_operations_id_token^CWIC_esp_status_index }
+            set_temp_variable = { CWIC_esp_status = 0 }
+            if = {
+                limit = {
+                    is_in_array = { array = current_operation_list value = CWIC_esp_status_token }
+                    # Raids share token 501 across oblasts; do not mark every row.
+                    NOT = { check_variable = { CWIC_esp_status_token = 501 } }
+                }
+                set_temp_variable = { CWIC_esp_status = 1 }
+            }
+            else_if = {
+                limit = { CWIC_espionage_project_token_done_trigger = yes }
+                set_temp_variable = { CWIC_esp_status = 2 }
+            }
+            add_to_array = { local_possible_operations_completed_status = CWIC_esp_status }
+        }
+    }
+}
