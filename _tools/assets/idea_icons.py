@@ -34,7 +34,7 @@ ICONS = {
     'gfx/interface/ideas/fre/FRE_Command_Navarre.dds':
         ('gfx/event_pictures/VIE/VIE_Huu.7.png', 0.02),
     'gfx/interface/ideas/fre/FRE_Command_Salan.dds':
-        ('gfx/event_pictures/Indochina_Border_War_5.png', None),
+        ('FRE_Command_Salan.png', None),
     'gfx/interface/ideas/fre/FRE_ECO_CEFEO_Pay_Raise.dds':
         ('gfx/event_pictures/Indochina_Border_War_6.png', None),
     'gfx/interface/ideas/fre/FRE_ECO_Infant_Illness_Prevention.dds':
@@ -48,7 +48,7 @@ ICONS = {
     'gfx/interface/ideas/fre/FRE_Limited_Operation_Light.dds':
         ('gfx/event_pictures/Indochina_Border_War_13.png', None),
     'gfx/interface/ideas/fre/FRE_Limited_Operation_Maximum.dds':
-        ('gfx/event_pictures/Indochina_Border_War_30.png', None),
+        ('FRE_Limited_Operation_Maximum.png', None),
     'gfx/interface/ideas/fre/FRE_Limited_Operation_Standard.dds':
         ('FRE_Limited_Operation_Standard.png', None),
     'gfx/interface/ideas/fre/FRE_Lorraine_Deep_Columns.dds':
@@ -62,7 +62,7 @@ ICONS = {
     'gfx/interface/ideas/fre/FRE_Metropole_Subsidies_Reduced.dds':
         ('gfx/event_pictures/VIE/Etat_du_Vietnam.1.png', None),
     'gfx/interface/ideas/fre/FRE_Northwest_Concentrated_Defence.dds':
-        ('gfx/event_pictures/Indochina_Border_War_39.png', None),
+        ('FRE_Northwest_Concentrated_Defence.png', None),
     'gfx/interface/ideas/fre/FRE_Operation_Overextension.dds':
         ('gfx/event_pictures/Indochina_Border_War_22.png', None),
     'gfx/interface/ideas/fre/FRE_Preparation_Maximum.dds':
@@ -84,7 +84,7 @@ ICONS = {
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_DBP_Maximum_Holdout.dds':
         ('gfx/event_pictures/FRE/FRE_Dien_Bien.1.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_DBP_Standard_Holdout.dds':
-        ('gfx/event_pictures/Battle_of_Dien_Bien_Phu_FRA.dds', None),
+        ('FRE_DBP_Standard_Holdout.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_DBP_Vulture_Air_Support.dds':
         ('FRE_DBP_Vulture_Air_Support.png', 0.12),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Dak_Doa_GM100_Defense.dds':
@@ -98,9 +98,9 @@ ICONS = {
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_ECO_Growth.dds':
         ('gfx/event_pictures/Generic_1950s_Saigon.dds', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_ECO_Industrial_Infancy.dds':
-        ('gfx/event_pictures/VIE/Central_Highland_Railway.1.png', None),
+        ('FRE_ECO_Industrial_Infancy.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_ECO_Metropolitan_Dependency.dds':
-        ('gfx/event_pictures/VIE/Elysee_Accords.1.png', None),
+        ('FRE_ECO_Metropolitan_Dependency.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_ECO_Piastre_Inflation_Crisis.dds':
         ('gfx/event_pictures/VIE/CuongDe.1.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Hedgehog_Base.dds':
@@ -116,7 +116,7 @@ ICONS = {
     'gfx/interface/ideas/fre/dynamic_modifiers/IC_laos_raid_capital_defense.dds':
         ('gfx/event_pictures/CIA_Laos.dds', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/IC_laos_raid_overextension.dds':
-        ('gfx/event_pictures/news_laos_raid_2.png', None),
+        ('IC_laos_raid_overextension.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/IC_laos_raid_overextension_severe.dds':
         ('gfx/event_pictures/Vietminhlaos.dds', None),
     'gfx/interface/ideas/los/LOS_French_Airlift.dds':
