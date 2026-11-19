@@ -15,10 +15,13 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageOps
 
 MOD = Path(__file__).resolve().parents[2] / "Cold War Iron Curtain"
+# Recoloured or newly sourced pictures, already cropped to the photo: idea_icon_sources/<icon>.png
+SOURCES = Path(__file__).resolve().parent / "idea_icon_sources"
 W, H = 150, 57
 EDGE = 7
 
-# output (relative to the mod) -> (source event picture, vertical crop anchor or None for auto)
+# output (relative to the mod) -> (source, vertical crop anchor or None for auto).
+# A source is an event picture relative to the mod, or a bare filename in SOURCES.
 ICONS = {
     'gfx/interface/ideas/fre/FRE_Campaign_Overextension.dds':
         ('gfx/event_pictures/Indochina_Border_War_2.png', None),
@@ -39,15 +42,15 @@ ICONS = {
     'gfx/interface/ideas/fre/FRE_Expeditionary_Command.dds':
         ('gfx/event_pictures/VIE/Colonel_Massau.1.png', None),
     'gfx/interface/ideas/fre/FRE_Highland_Overextension.dds':
-        ('gfx/event_pictures/VIE/Montagnard_Administrative.1.png', None),
+        ('FRE_Highland_Overextension.png', None),
     'gfx/interface/ideas/fre/FRE_Indochina_War_Credits.dds':
-        ('gfx/event_pictures/USA_VIE50s_3.dds', None),
+        ('FRE_Indochina_War_Credits.png', 0.0),
     'gfx/interface/ideas/fre/FRE_Limited_Operation_Light.dds':
         ('gfx/event_pictures/Indochina_Border_War_13.png', None),
     'gfx/interface/ideas/fre/FRE_Limited_Operation_Maximum.dds':
         ('gfx/event_pictures/Indochina_Border_War_30.png', None),
     'gfx/interface/ideas/fre/FRE_Limited_Operation_Standard.dds':
-        ('gfx/event_pictures/Batle_of_Vinh_Yen_FRA.dds', None),
+        ('FRE_Limited_Operation_Standard.png', None),
     'gfx/interface/ideas/fre/FRE_Lorraine_Deep_Columns.dds':
         ('gfx/event_pictures/Indochina_Border_War_7.png', None),
     'gfx/interface/ideas/fre/FRE_Lower_Laos_Reserves_Diverted.dds':
@@ -71,7 +74,7 @@ ICONS = {
     'gfx/interface/ideas/fre/FRE_Under_Metropole_Command.dds':
         ('gfx/event_pictures/Generic_Indochina_French.dds', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Cao_Bac_Hold_Defense.dds':
-        ('gfx/event_pictures/Batle_of_Dong_Khe_FRA.dds', None),
+        ('FRE_Cao_Bac_Hold_Defense.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Cao_Bac_Reinforce_Defense.dds':
         ('gfx/event_pictures/Coloniale_Route_4_VIN.dds', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Castor_Airhead_Forming.dds':
@@ -83,7 +86,7 @@ ICONS = {
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_DBP_Standard_Holdout.dds':
         ('gfx/event_pictures/Battle_of_Dien_Bien_Phu_FRA.dds', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_DBP_Vulture_Air_Support.dds':
-        ('gfx/event_pictures/Indonesian_National_Revolution_13.png', None),
+        ('FRE_DBP_Vulture_Air_Support.png', 0.12),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Dak_Doa_GM100_Defense.dds':
         ('gfx/event_pictures/Indochina_Border_War_25.png', None),
     'gfx/interface/ideas/fre/dynamic_modifiers/FRE_Dak_Doa_Isolated_Post.dds':
@@ -119,15 +122,15 @@ ICONS = {
     'gfx/interface/ideas/los/LOS_French_Airlift.dds':
         ('gfx/event_pictures/CAM/CAM_Military.4.dds', None),
     'gfx/interface/ideas/vie/VIE_Air_Academy.dds':
-        ('gfx/event_pictures/VIE_Insurgency_Options_5.dds', None),
+        ('VIE_Air_Academy.png', 0.85),
     'gfx/interface/ideas/vie/VIE_AnNinh_QuocGia.dds':
         ('gfx/event_pictures/VIE/Diem.72.png', None),
     'gfx/interface/ideas/vie/VIE_Cach_Mang_Quoc_Gia_Press.dds':
         ('gfx/event_pictures/VIE/BaoDai.12.png', None),
     'gfx/interface/ideas/vie/VIE_Can_Lao_Party.dds':
-        ('gfx/event_pictures/Can_Lao_Party_Formation.dds', None),
+        ('VIE_Can_Lao_Party.png', 0.05),
     'gfx/interface/ideas/vie/VIE_Caretaker_Cabinet.dds':
-        ('gfx/event_pictures/VIE/VIE_Huu.3.png', None),
+        ('VIE_Caretaker_Cabinet.png', None),
     'gfx/interface/ideas/vie/VIE_Censor_French.dds':
         ('gfx/event_pictures/VIE/VIE_Sect_Intro.3.png', None),
     'gfx/interface/ideas/vie/VIE_Chastened_Frontier.dds':
@@ -171,7 +174,7 @@ ICONS = {
     'gfx/interface/ideas/vie/VIE_French_Province.dds':
         ('gfx/event_pictures/VIE/Diem.70.png', None),
     'gfx/interface/ideas/vie/VIE_Importing_IBM_Computers.dds':
-        ('gfx/event_pictures/VIE/VIE_Huu.4.png', None),
+        ('VIE_Importing_IBM_Computers.png', None),
     'gfx/interface/ideas/vie/VIE_Independent_Facade.dds':
         ('gfx/event_pictures/VIE/Etat_du_Vietnam.3.png', None),
     'gfx/interface/ideas/vie/VIE_Joint_Staffs.dds':
@@ -295,9 +298,9 @@ ICONS = {
     'gfx/interface/ideas/vin/VIN_Econ_Reconstruction_Program.dds':
         ('gfx/event_pictures/VIN_Land_Reform_Aftermath.dds', None),
     'gfx/interface/ideas/vin/VIN_Econ_Soviet_Aid.dds':
-        ('gfx/event_pictures/sovietpavilion.dds', None),
+        ('VIN_Econ_Soviet_Aid.png', None),
     'gfx/interface/ideas/vin/VIN_Econ_Textile_Output.dds':
-        ('gfx/event_pictures/VIE/CD_Nhiep.11.png', None),
+        ('VIN_Econ_Textile_Output.png', None),
     'gfx/interface/ideas/vin/VIN_Econ_Three_Year_Plan.dds':
         ('gfx/event_pictures/VIE/MayDay_Parade.1.png', None),
     'gfx/interface/ideas/vin/VIN_Election_Campaign_Machinery.dds':
@@ -447,8 +450,12 @@ def interior(im):
 
 
 def icon(src, vy):
-    im = Image.open(MOD / src).convert("RGB")
-    x0, y0, x1, y1 = interior(im)
+    if "/" in src:
+        im = Image.open(MOD / src).convert("RGB")
+        x0, y0, x1, y1 = interior(im)
+    else:
+        im = Image.open(SOURCES / src).convert("RGB")
+        x0, y0, x1, y1 = 0, 0, im.width, im.height
     w, h = x1 - x0, y1 - y0
     if vy is None:
         vy = 0.18 if h > w * 0.9 else 0.4  # portraits: keep the head
