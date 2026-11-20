@@ -1004,8 +1004,10 @@ The region-absorb, TRP and CEFEO economy merges break no guardrail.
 Decided: Flexible Path keeps its Social Democratic popularity; VIN credit
 rating stays as is.
 
+Same day: the CEFEO economy focus builds in `1760`, `786` and `1281` (and
+the Hanoi coal) now require CEFEO to own the state, matching the power
+plant reward; ledger checks 115-116.
+
 Next session order:
-1. Score checks 63, 81 and 83-114 in the next run.
-2. Decide whether the CEFEO economy focus rewards that build in `1760`,
-   `786` and `1281` should require CEFEO to own the state.
-3. Ask the playtester to retry Bretagne as CEFEO.
+1. Score checks 63, 81 and 83-116 in the next run.
+2. Ask the playtester to retry Bretagne as CEFEO.

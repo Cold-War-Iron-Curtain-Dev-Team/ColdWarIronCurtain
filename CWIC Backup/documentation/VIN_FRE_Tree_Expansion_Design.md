@@ -2928,3 +2928,18 @@ no engine run this session.
      Cao Bac and Mao Khe with NUN at war.
 114. No `relative_focus_id` lines for VIN in error.log; the southern
      command branch draws in the same place as before.
+
+## 2026-11-19 patch: CEFEO economy builds require ownership
+
+Statically verified only. On the user's decision, every CEFEO economy
+focus reward that builds in `1760`, `786` or `1281` now wraps the build in
+`if = { limit = { is_owned_by = ROOT } }`, matching the existing power plant
+reward. The Hanoi coal from the power plant focus is gated the same way.
+Money, ideas, flags and company unlocks still apply when the state is lost.
+
+### Consolidated-playtest checks added
+
+115. A CEFEO economy focus completed while VIN, NUN or another tag holds
+     Hanoi, the delta or the Nung state builds nothing there and adds no
+     Hanoi coal; its other effects still apply.
+116. The same focuses with CEFEO owning the state build as before.
