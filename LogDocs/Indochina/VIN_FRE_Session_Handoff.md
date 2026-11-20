@@ -992,3 +992,20 @@ at the user's request; THO keeps its deliberately unnamed council. Work
 moved from `Econ-fix` to `development-branch` this session.
 Next session order: score checks 63 and 81-112 in the next run; check 82
 first, since negative `build_army` is unproven.
+
+## 2026-11-19 run review and merge review
+
+Log review of the 18 Nov AFK run plus static fixes; ledger "2026-11-19
+run review", checks 113-114. The run reached the Geneva ending on 6 Oct
+1954 through the post-DBP choice latch; check 82 (State of Vietnam army
+cap) holds. The two envelope FAILs were a stale validator (NUN is called
+into Cao Bac and Mao Khe by design); the Nam Bo focus-order error is fixed.
+The region-absorb, TRP and CEFEO economy merges break no guardrail.
+Decided: Flexible Path keeps its Social Democratic popularity; VIN credit
+rating stays as is.
+
+Next session order:
+1. Score checks 63, 81 and 83-114 in the next run.
+2. Decide whether the CEFEO economy focus rewards that build in `1760`,
+   `786` and `1281` should require CEFEO to own the state.
+3. Ask the playtester to retry Bretagne as CEFEO.

@@ -2882,3 +2882,49 @@ Statically verified only. User decisions on every open handoff item.
 111. At campaign end `FRE_Cao_Bac.2` shows the matching result and the
      modifiers are gone.
 112. The package transfers no territory and makes no peace.
+
+## 2026-11-19 run review: 18 Nov AFK run, envelope check, focus order, merge review
+
+Logs archived in `_local/logs/2026-11-19/`. Log review plus static fixes;
+no engine run this session.
+
+- Run arc: Cao Bac clean, Vinh Yen costly, Mao Khe clean, Day River
+  failure, Nghia Lo clean, Hoa Binh, Northwest, Na San, Lai Chau, Dien Bien
+  Phu (7 Jun 1954), Lower Laos; post-DBP negotiations, `GENEVA_SOURCE`
+  deferred twice on `VIN_post_DBP_choice_unresolved`, invite 16 Aug,
+  `scripted_Geneva_concluded` 6 Oct 1954. Every campaign `full_armistice`
+  PASS. Check 82 holds: VIE `ARMY_CAP` peaks at 30/30, never over. No
+  rework-file lines in error.log.
+- `VIN_campaign_participant_envelope` FAIL at campaigns 4 and 6: the
+  validator was stale. `indochina_call_all_vin_fre_theater_forces` calls
+  NUN into Cao Bac and Mao Khe by design since 2026-10-28, and the armistice
+  already white-peaces NUN. `ic_afk_validation_vin_balance_contract`
+  (Indochina_Test_Effects) now exempts campaigns 4 and 6 from the NUN
+  clause. Gameplay unchanged.
+- `relative_focus_id: VIN_Nam_Bo_Khang_Chien does not exist`: the southern
+  command chain (`VIN_Raise_the_Smuggling_Fleet` through
+  `VIN_Victory_in_the_South`) was defined before its anchor. The block now
+  sits directly after `VIN_Nam_Bo_Khang_Chien` in `VIN_50s.txt`; contents
+  and positions unchanged. A scan finds no other forward
+  `relative_position_id` in the file.
+- Merge review, region absorb (`9c7f8e7954`) and TRP restore
+  (`930b5ebdcf`): no removed effect has a remaining caller. THO still
+  exists at start; it is no longer released as a VIN subject, so the
+  Geneva and Communist-victory THO annexation paths (checks 63, 81) still
+  apply and the `is_subject_of = VIN` guard is now always true.
+- Merge review, CEFEO economy branch (`891348e654`, `2434c2f7d5`,
+  `f59302bce9`): no transfer, peace, war, Geneva or struggle-score writes;
+  guardrails intact. Open, not changed: several focus rewards build in
+  states `1760`, `786` and `1281` without an `is_owned_by = ROOT` guard
+  (the power plant reward has one), so a focus taken after losing Hanoi,
+  the delta or Nung territory builds for the holder.
+- User decisions: `VIN_Follow_a_Flexible_Path` keeps its Social Democratic
+  popularity. VIN's credit rating and fiscal crisis stay as they are; they
+  represent VIN's period economy.
+
+### Consolidated-playtest checks added
+
+113. `VIN_campaign_participant_envelope` PASSes at every launch, including
+     Cao Bac and Mao Khe with NUN at war.
+114. No `relative_focus_id` lines for VIN in error.log; the southern
+     command branch draws in the same place as before.
