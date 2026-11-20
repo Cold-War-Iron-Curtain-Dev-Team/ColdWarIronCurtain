@@ -1025,6 +1025,7 @@ geneva_conf_announce = {
 			NOT = { has_global_flag = geneva_conference_in_session }
 			NOT = { has_global_flag = geneva_conference_concluded }
 			NOT = { has_global_flag = Indochina_War_Over }
+			NOT = { has_global_flag = geneva_conference_cooldown }
 		}
 		set_global_flag = geneva_conference_announced
 		set_global_flag = Geneva_Conference_Preparations
@@ -1064,6 +1065,7 @@ indochina_geneva_pursuit_tick = {
 			NOT = { has_global_flag = geneva_conference_announced }
 			NOT = { has_global_flag = geneva_conference_in_session }
 			NOT = { has_global_flag = geneva_conference_concluded }
+			NOT = { has_global_flag = geneva_conference_cooldown }
 		}
 		if = {
 			limit = {
@@ -1074,7 +1076,13 @@ indochina_geneva_pursuit_tick = {
 		}
 		else_if = {
 			limit = {
-				geneva_conference_should_be_available_trigger = yes
+				OR = {
+					geneva_conference_should_be_available_trigger = yes
+					AND = {
+						has_global_flag = Indochina_Geneva_Panic
+						geneva_conference_vietnam_at_peace_trigger = yes
+					}
+				}
 			}
 			indochina_struggle_invite_countries_to_geneva = yes
 		}
@@ -1184,6 +1192,7 @@ geneva_conf_catch_up_delegation_focuses = {
 			USA = {
 				USA_has_1950s_focus_tree_trigger = yes
 				NOT = { has_completed_focus = USA_50s_The_Geneva_Conferece }
+				NOT = { has_completed_focus = USA_50s_The_Fall_of_the_Viet_Minh }
 			}
 		}
 		USA = { complete_national_focus = USA_50s_The_Geneva_Conferece }
@@ -1210,6 +1219,28 @@ geneva_conf_catch_up_delegation_focuses = {
 	}
 	if = {
 		limit = {
+			country_exists = VIE
+			VIE = {
+				has_focus_tree = VIE_Bao_Dai_50
+				has_completed_focus = VIE_Assign_Loc_PM
+				NOT = { has_completed_focus = VIE_Accept_Geneva_Conference }
+				NOT = { has_completed_focus = VIE_BaoDai_Liberator_of_Vietnam }
+			}
+		}
+		VIE = { complete_national_focus = VIE_Accept_Geneva_Conference }
+	}
+	if = {
+		limit = {
+			country_exists = VIE
+			VIE = {
+				has_focus_tree = VIE_CuongDe_50
+				NOT = { has_completed_focus = VIE_CD_Geneva_Conference }
+			}
+		}
+		VIE = { complete_national_focus = VIE_CD_Geneva_Conference }	# the Cuong-De outcome row hangs off it
+	}
+	if = {
+		limit = {
 			country_exists = ENG
 			ENG = {
 				has_focus_tree = UK50
@@ -1217,16 +1248,6 @@ geneva_conf_catch_up_delegation_focuses = {
 			}
 		}
 		ENG = { complete_national_focus = UK50_Participate_Geneva_Conference }
-	}
-	if = {
-		limit = {
-			country_exists = CAM
-			CAM = {
-				has_focus_tree = 1950s_Cambodia
-				NOT = { has_completed_focus = CAM_The_Geneva_Conference }
-			}
-		}
-		CAM = { complete_national_focus = CAM_The_Geneva_Conference }
 	}
 }
 
@@ -1708,6 +1729,7 @@ geneva_conf_compile_settlement = {
 	if = {
 		limit = { has_global_flag = geneva_conference_in_session }
 		clr_global_flag = geneva_conference_in_session
+		clr_global_flag = geneva_conference_announced
 		set_global_flag = geneva_conference_concluded
 		geneva_neg_clear = yes
 		every_country = {
@@ -1759,7 +1781,7 @@ geneva_conf_compile_settlement = {
 					limit = { is_ai = no }
 					news_event = Geneva_Conference_Session.3
 				}
-				indochina_struggle_run_never_ending_conflict_ending_effect = yes
+				indochina_geneva_conference_collapse_effect = yes
 			}
 		}
 		else = {
@@ -1775,6 +1797,11 @@ geneva_conf_compile_settlement = {
 			if = {
 				limit = { check_variable = { global.geneva_clause_current^1 = 0 } }
 				set_global_flag = geneva_unified_settlement
+				if = {
+					limit = { check_variable = { global.geneva_clause_current^2 < 2 } }
+					set_variable = { global.geneva_clause_current^2 = 2 }
+					set_variable = { global.geneva_elections_term = 2 }
+				}
 			}
 			if = {
 				limit = { country_exists = FRA }

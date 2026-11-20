@@ -893,6 +893,7 @@ indochina_struggle_southern_victory = {
 				NOT = { has_completed_focus = FRA_Transfer_North_To_South }
 			}
 		}
+		indochina_fra_complete_geneva_parent = yes
 		FRA = {
 			if = {
 				limit = { NOT = { has_completed_focus = FRA_Total_Victory } }
@@ -1152,6 +1153,7 @@ indochina_struggle_federal_vietnam = {
 				NOT = { has_completed_focus = FRA_Enforce_Federation_Proposal }
 			}
 		}
+		indochina_fra_complete_geneva_parent = yes
 		FRA = { complete_national_focus = FRA_Enforce_Federation_Proposal }
 	}
 
@@ -1335,6 +1337,7 @@ indochina_struggle_balkanized_vietnam = {
 			}
 		}
 		FRA = {
+			indochina_fra_complete_geneva_parent = yes
 			if = {
 				limit = { NOT = { has_completed_focus = FRA_Total_Victory } }
 				complete_national_focus = FRA_Total_Victory
@@ -1815,8 +1818,412 @@ indochina_struggle_unlock_geneva_conference = {
 	set_global_flag = Geneva_Conference
 }
 
+indochina_struggle_geneva_daily_tick = {
+	if = {
+		limit = { geneva_panic_collapse_trigger = yes }
+		indochina_geneva_panic_force_conference = yes
+	}
+	geneva_conf_world_leverage_pulse = yes
+	if = {
+		limit = { has_global_flag = geneva_conference_in_session }
+		geneva_neg_daily_tick = yes
+		add_to_variable = { global.geneva_tick_days = 1 }
+		if = {
+			limit = { check_variable = { global.geneva_tick_days > 6 } }
+			set_variable = { global.geneva_tick_days = 0 }
+			geneva_conf_round_tick = yes
+		}
+	}
+}
+
+indochina_fra_complete_geneva_parent = {
+	if = {
+		limit = {
+			country_exists = FRA
+			FRA = {
+				has_focus_tree = FRA_1950s
+				NOT = { has_completed_focus = FRA_Geneva_Peace_Conference }
+			}
+		}
+		FRA = { complete_national_focus = FRA_Geneva_Peace_Conference }
+	}
+}
+
+# The single source of truth for the focus-tree cues that mark how the Indochina
+# war and the Geneva conference ended. Set temp ic_cue_outcome first:
+#   1 partition settlement   2 unified settlement   3 conference collapse
+#   4 failed state           5 three states         6 election won by Hanoi
+#   7 election won by Saigon 8 ballot refused       9 federal Vietnam
+#   10 Dan-Quoc peace        11 American North Vietnam
+#   12 southern victory      13 communist victory
+# Every completion is guarded by the tree (and, for VIE, the Geneva parent), so a
+# tag on another tree is never touched.
+indochina_geneva_mark_outcome_cues = {
+	# ---------------- VIN ----------------
+	if = {
+		limit = {
+			country_exists = VIN
+			VIN = { has_focus_tree = VIN_1950s }
+		}
+		VIN = {
+			if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 1 }
+					NOT = { has_completed_focus = VIN_Accept_Temporary_Partitions }
+				}
+				complete_national_focus = VIN_Accept_Temporary_Partitions
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 2 }
+					NOT = { has_completed_focus = VIN_Accept_Unified_Interim_Settlement }
+				}
+				complete_national_focus = VIN_Accept_Unified_Interim_Settlement
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 3 }
+					NOT = { has_completed_focus = VIN_The_Conference_Collapses }
+				}
+				complete_national_focus = VIN_The_Conference_Collapses
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 4 }
+					NOT = { has_completed_focus = VIN_A_Failed_State }
+				}
+				complete_national_focus = VIN_A_Failed_State
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 5 }
+					NOT = { has_completed_focus = VIN_Accept_Three_States_Settlement }
+				}
+				complete_national_focus = VIN_Accept_Three_States_Settlement
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 6 }
+					NOT = { has_completed_focus = VIN_The_Nation_Votes_for_Hanoi }
+				}
+				complete_national_focus = VIN_The_Nation_Votes_for_Hanoi
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 9 }
+					NOT = { has_completed_focus = VIN_Accept_French_Three_Vietnam_Federal_Scheme }
+				}
+				complete_national_focus = VIN_Accept_French_Three_Vietnam_Federal_Scheme
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 11 }
+					NOT = { has_completed_focus = VIN_American_Brokered_Reunification }
+				}
+				complete_national_focus = VIN_American_Brokered_Reunification
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 13 }
+					NOT = { has_completed_focus = VIN_Total_Victory }
+				}
+				complete_national_focus = VIN_Total_Victory
+			}
+		}
+	}
+	# ---------------- FRA ----------------
+	if = {
+		limit = {
+			country_exists = FRA
+			FRA = { has_focus_tree = FRA_1950s }
+			OR = {
+				check_variable = { ic_cue_outcome = 1 }
+				check_variable = { ic_cue_outcome = 2 }
+				check_variable = { ic_cue_outcome = 3 }
+				check_variable = { ic_cue_outcome = 4 }
+				check_variable = { ic_cue_outcome = 5 }
+				check_variable = { ic_cue_outcome = 9 }
+				check_variable = { ic_cue_outcome = 12 }
+			}
+		}
+		indochina_fra_complete_geneva_parent = yes
+		FRA = {
+			if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 1 }
+					NOT = { has_completed_focus = FRA_Accept_Temporary_Partitions }
+				}
+				complete_national_focus = FRA_Accept_Temporary_Partitions
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 2 }
+					NOT = { has_completed_focus = FRA_Accept_Unified_Interim_Settlement }
+				}
+				complete_national_focus = FRA_Accept_Unified_Interim_Settlement
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 3 }
+					NOT = { has_completed_focus = FRA_The_Conference_Collapses }
+				}
+				complete_national_focus = FRA_The_Conference_Collapses
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 4 }
+					NOT = { has_completed_focus = FRA_Failed_State_Ending }
+				}
+				complete_national_focus = FRA_Failed_State_Ending
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 5 }
+					NOT = { has_completed_focus = FRA_Accept_Three_States_Settlement }
+				}
+				complete_national_focus = FRA_Accept_Three_States_Settlement
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 9 }
+					NOT = { has_completed_focus = FRA_Enforce_Federation_Proposal }
+				}
+				complete_national_focus = FRA_Enforce_Federation_Proposal
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 12 }
+					NOT = { has_completed_focus = FRA_Total_Victory }
+				}
+				complete_national_focus = FRA_Total_Victory
+			}
+		}
+	}
+	# ---------------- VIE (Bao Dai tree) ----------------
+	if = {
+		limit = {
+			country_exists = VIE
+			VIE = { has_focus_tree = VIE_Bao_Dai_50 }
+		}
+		VIE = {
+			if = {
+				limit = { has_completed_focus = VIE_Accept_Geneva_Conference }	# the Geneva outcome row hangs off it
+				if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 1 }
+						NOT = { has_completed_focus = VIE_Geneva_Partition_Accords }
+					}
+					complete_national_focus = VIE_Geneva_Partition_Accords
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 2 }
+						NOT = { has_completed_focus = VIE_Geneva_Unified_Settlement }
+					}
+					complete_national_focus = VIE_Geneva_Unified_Settlement
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 3 }
+						NOT = { has_completed_focus = VIE_Geneva_Conference_Collapses }
+					}
+					complete_national_focus = VIE_Geneva_Conference_Collapses
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 4 }
+						NOT = { has_completed_focus = VIE_Geneva_Failed_State }
+					}
+					complete_national_focus = VIE_Geneva_Failed_State
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 5 }
+						NOT = { has_completed_focus = VIE_Geneva_Three_States }
+					}
+					complete_national_focus = VIE_Geneva_Three_States
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 7 }
+						NOT = { has_completed_focus = VIE_The_Nation_Votes_for_Saigon }
+					}
+					complete_national_focus = VIE_The_Nation_Votes_for_Saigon
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 8 }
+					has_country_flag = VIE_reunification_election_refused	# Saigon refused; a ballot Hanoi cancelled is not Saigon's refusal
+					NOT = { has_completed_focus = VIE_Diem_Reject_the_Geneva_Elections }
+				}
+				set_global_flag = geneva_vie_refusal_autogranted	# the refusal has already been carried out; the reward must not re-cancel the vote at VIN
+				complete_national_focus = VIE_Diem_Reject_the_Geneva_Elections
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 9 }
+					NOT = { has_completed_focus = VIE_Federal_Vietnam_Settlement }
+				}
+				complete_national_focus = VIE_Federal_Vietnam_Settlement
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 10 }
+					NOT = { has_completed_focus = VIE_Dan_Quoc_Peace_Settlement }
+				}
+				complete_national_focus = VIE_Dan_Quoc_Peace_Settlement
+			}
+			else_if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 12 }
+					NOT = { has_completed_focus = VIE_BaoDai_Liberator_of_Vietnam }
+				}
+				complete_national_focus = VIE_BaoDai_Liberator_of_Vietnam
+			}
+		}
+	}
+	# ---------------- VIE (Cuong De tree) ----------------
+	if = {
+		limit = {
+			country_exists = VIE
+			VIE = { has_focus_tree = VIE_CuongDe_50 }
+		}
+		VIE = {
+			if = {
+				limit = { has_completed_focus = VIE_CD_Geneva_Conference }
+				if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 1 }
+						NOT = { has_completed_focus = VIE_CD_Geneva_Partition_Accords }
+					}
+					complete_national_focus = VIE_CD_Geneva_Partition_Accords
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 2 }
+						NOT = { has_completed_focus = VIE_CD_Geneva_Unified_Settlement }
+					}
+					complete_national_focus = VIE_CD_Geneva_Unified_Settlement
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 3 }
+						NOT = { has_completed_focus = VIE_CD_Geneva_Conference_Collapses }
+					}
+					complete_national_focus = VIE_CD_Geneva_Conference_Collapses
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 4 }
+						NOT = { has_completed_focus = VIE_CD_Geneva_Failed_State }
+					}
+					complete_national_focus = VIE_CD_Geneva_Failed_State
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 5 }
+						NOT = { has_completed_focus = VIE_CD_Geneva_Three_States }
+					}
+					complete_national_focus = VIE_CD_Geneva_Three_States
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 7 }
+						NOT = { has_completed_focus = VIE_CD_The_Nation_Votes_for_Saigon }
+					}
+					complete_national_focus = VIE_CD_The_Nation_Votes_for_Saigon
+				}
+				else_if = {
+					limit = {
+						check_variable = { ic_cue_outcome = 8 }
+						NOT = { has_completed_focus = VIE_CD_Geneva_Ballot_Refused }
+					}
+					complete_national_focus = VIE_CD_Geneva_Ballot_Refused
+				}
+			}
+			if = {
+				limit = {
+					check_variable = { ic_cue_outcome = 10 }
+					NOT = { has_completed_focus = VIE_CD_Dan_Quoc_Peace_Settlement }
+				}
+				complete_national_focus = VIE_CD_Dan_Quoc_Peace_Settlement
+			}
+		}
+	}
+	# ---------------- CAM ----------------
+	if = {
+		limit = {
+			OR = {
+				check_variable = { ic_cue_outcome = 1 }
+				check_variable = { ic_cue_outcome = 2 }
+				check_variable = { ic_cue_outcome = 5 }
+			}
+			country_exists = CAM
+			CAM = {
+				has_focus_tree = 1950s_Cambodia
+				NOT = { has_completed_focus = CAM_The_Geneva_Conference }
+			}
+		}
+		CAM = { complete_national_focus = CAM_The_Geneva_Conference }
+	}
+}
+
+# PQC (the Viet Nam Quoc Dan Dang and its Kuomintang backers) keeps the northern
+# zone it holds when the accords are compiled. Geneva recognises a third
+# Vietnamese state: PQC is released from any overlord, every state it owns is
+# flagged as a PQC zone, and the other powers make peace with it.
+indochina_geneva_three_states_settlement_effect = {
+	set_global_flag = geneva_three_states_settlement
+	PQC = {
+		every_owned_state = { set_state_flag = geneva_pqc_zone }
+		if = {
+			limit = { is_subject = yes }
+			overlord = { end_puppet = PQC }
+		}
+	}
+	if = { limit = { country_exists = VIN PQC = { has_war_with = VIN } } PQC = { white_peace = VIN } }
+	if = { limit = { country_exists = FRA PQC = { has_war_with = FRA } } PQC = { white_peace = FRA } }
+	if = { limit = { country_exists = VIE PQC = { has_war_with = VIE } } PQC = { white_peace = VIE } }
+}
+
+# The USA disowned the settlement (USA_INDO.4.b). The accords are not American
+# property: Washington's opinion of Saigon falls and Saigon is freer to refuse
+# the ballot (VIE_50s_Bao_Dai reads geneva_usa_panic_disowns_settlement).
+indochina_geneva_usa_disown_effect = {
+	if = {
+		limit = { country_exists = USA country_exists = VIE }
+		USA = { add_opinion_modifier = { target = VIE modifier = medium_decrease } }
+		VIE = { add_opinion_modifier = { target = USA modifier = medium_decrease } }
+	}
+}
+
+# The conference broke up without a settlement. The war is NOT over: the
+# theatre drops back into the fighting phase, the conference latches are
+# cleared, and Geneva can be convened again once the cooldown lapses.
+indochina_geneva_conference_collapse_effect = {
+	clr_global_flag = geneva_conference_concluded
+	clr_global_flag = geneva_conference_announced
+	clr_global_flag = geneva_conference_in_session
+	clr_global_flag = Geneva_Conference
+	clr_global_flag = Geneva_Conference_Preparations
+	clr_global_flag = Indochina_Geneva_Pursuit
+	clr_global_flag = Indochina_Geneva_Panic
+	set_global_flag = { flag = geneva_conference_cooldown days = 180 }
+	set_global_flag = geneva_conference_collapsed
+	set_variable = { global.Indochina_War_Active_Phase = 8 }
+	set_variable = { global.Indochina_War_Next_Phase_A_Points = 0 }
+	set_variable = { global.Indochina_War_Next_Phase_B_Points = 0 }
+	set_variable = { global.Indochina_Geneva_Pursuit_Source = 0 }
+	indochina_struggle_update_phase_transitions = yes
+	set_temp_variable = { ic_cue_outcome = 3 }
+	indochina_geneva_mark_outcome_cues = yes
+	log = "GENEVA_SOURCE|COLLAPSE|date=[GetDateText]|the war resumes; Geneva may reconvene after 180 days"
+}
+
 indochina_geneva_panic_force_conference = {
 	set_global_flag = Indochina_Geneva_Panic
+	set_global_flag = Indochina_Geneva_Panic_Spent	# the panic fires once; an abort clearing Indochina_Geneva_Panic must not re-arm it
 	set_variable = { global.Indochina_Geneva_Pursuit_Source = 5 }
 	set_variable = { global.Indochina_War_Active_Phase = 11 }
 	indochina_struggle_unlock_geneva_conference = yes
@@ -1833,41 +2240,14 @@ indochina_geneva_panic_force_conference = {
 }
 
 indochina_struggle_run_geneva_ending_effect = {
-	if = {
-		limit = { geneva_conference_complete_failure_trigger = yes }
-		random_country = {
-			limit = { is_ai = no }
-			news_event = Geneva_Conference_Outcome.3
-		}
-		set_variable = { global.Indochina_War_Active_Phase = 10 }
-		set_global_flag = Indochina_Ending_Failed_State
 		if = {
-			limit = {
-				country_exists = VIN
-				VIN = {
-					has_focus_tree = VIN_1950s
-					NOT = { has_completed_focus = VIN_A_Failed_State }
-				}
-			}
-			VIN = { complete_national_focus = VIN_A_Failed_State }
+			limit = { indochina_geneva_three_states_trigger = yes }
+			indochina_geneva_three_states_settlement_effect = yes
 		}
 		if = {
-			limit = {
-				country_exists = FRA
-				FRA = {
-					has_focus_tree = FRA_1950s
-					NOT = { has_completed_focus = FRA_Failed_State_Ending }
-				}
-			}
-			FRA = { complete_national_focus = FRA_Failed_State_Ending }
+			limit = { has_global_flag = geneva_usa_panic_disowns_settlement }
+			indochina_geneva_usa_disown_effect = yes
 		}
-		indochina_struggle_ending_cleanup = yes
-		random_country = {
-			limit = { is_ai = no }
-			news_event = { id = Indochina_Struggle_Ending.10 days = 3 }
-		}
-	}
-	else = {
 		indochina_struggle_unlock_geneva_conference = yes
 		set_variable = { global.Indochina_War_Active_Phase = 11 }
 		if = {
@@ -1943,27 +2323,27 @@ indochina_struggle_run_geneva_ending_effect = {
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 1 } }
-					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } NOT = { 982 = { is_owned_by = TRP } } } transfer_state = 982 }
-					transfer_state = 286
-					transfer_state = 983
+				if = { limit = { NOT = { 982 = { is_owned_by = FUL } } NOT = { 982 = { is_owned_by = TRP } } NOT = { 982 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 982 }
+				if = { limit = { NOT = { 286 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 286 }
+				if = { limit = { NOT = { 983 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 983 }
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 3 } }
-					if = { limit = { NOT = { 757 = { is_owned_by = TRP } } } transfer_state = 757 }
-					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } NOT = { 982 = { is_owned_by = TRP } } } transfer_state = 982 }
-					transfer_state = 286
-					if = { limit = { NOT = { 1287 = { is_owned_by = TRP } } } transfer_state = 1287 }
-					transfer_state = 983
-					transfer_state = 838
-					transfer_state = 1763
-					transfer_state = 1875
+					if = { limit = { NOT = { 757 = { is_owned_by = TRP } } NOT = { 757 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 757 }
+					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } NOT = { 982 = { is_owned_by = TRP } } NOT = { 982 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 982 }
+					if = { limit = { NOT = { 286 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 286 }
+					if = { limit = { NOT = { 1287 = { is_owned_by = TRP } } NOT = { 1287 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1287 }
+					if = { limit = { NOT = { 983 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 983 }
+					if = { limit = { NOT = { 838 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 838 }
+					if = { limit = { NOT = { 1763 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1763 }
+					if = { limit = { NOT = { 1875 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1875 }
 				}
 				else = {
-					if = { limit = { NOT = { 757 = { is_owned_by = TRP } } } transfer_state = 757 }
-					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } NOT = { 982 = { is_owned_by = TRP } } } transfer_state = 982 }
-					transfer_state = 286
-					if = { limit = { NOT = { 1287 = { is_owned_by = TRP } } } transfer_state = 1287 }
-					transfer_state = 983
+					if = { limit = { NOT = { 757 = { is_owned_by = TRP } } NOT = { 757 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 757 }
+					if = { limit = { NOT = { 982 = { is_owned_by = FUL } } NOT = { 982 = { is_owned_by = TRP } } NOT = { 982 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 982 }
+					if = { limit = { NOT = { 286 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 286 }
+					if = { limit = { NOT = { 1287 = { is_owned_by = TRP } } NOT = { 1287 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1287 }
+					if = { limit = { NOT = { 983 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 983 }
 				}
 				if = {
 					limit = {
@@ -1996,16 +2376,19 @@ indochina_struggle_run_geneva_ending_effect = {
 				}
 			}
 			LAO = {
-				transfer_state = 841
-				transfer_state = 1295
+				if = { limit = { NOT = { 841 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 841 }
+				if = { limit = { NOT = { 1295 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1295 }
 				keep_current_politics = yes
 			}
-			VIN = {
-				set_autonomy = {
-					target = LAO
-					autonomy_state = autonomy_easternbloc
-					end_wars = no
-					end_civil_wars = no
+			if = {
+				limit = { LAO = { is_subject_of = VIN } }
+				VIN = {
+					set_autonomy = {
+						target = LAO
+						autonomy_state = autonomy_easternbloc
+						end_wars = no
+						end_civil_wars = no
+					}
 				}
 			}
 		}
@@ -2045,13 +2428,14 @@ indochina_struggle_run_geneva_ending_effect = {
 				check_variable = { global.geneva_laos_cambodia_term = 1 }
 			}
 			LAO = {
-				transfer_state = 841
-				transfer_state = 1295
+				if = { limit = { NOT = { 841 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 841 }
+				if = { limit = { NOT = { 1295 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1295 }
 				set_capital = { state = 1295 }
 				every_owned_state = {
 					limit = {
 						NOT = { state = 841 }
 						NOT = { state = 1295 }
+						NOT = { has_state_flag = geneva_pqc_zone }
 					}
 					transfer_state_to = LOS
 				}
@@ -2089,20 +2473,20 @@ indochina_struggle_run_geneva_ending_effect = {
 		if = {
 			limit = { country_exists = VIN }
 			VIN = {
-				transfer_state = 786	# Dong Bang Song Hong, the delta
-				transfer_state = 1760	# Hanoi, the CEFEO's seat
+				if = { limit = { NOT = { 786 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 786 }	# Dong Bang Song Hong, the delta
+				if = { limit = { NOT = { 1760 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1760 }	# Hanoi, the CEFEO's seat
 				if = {
-					limit = { NOT = { 671 = { is_owned_by = MEO } } }
+					limit = { NOT = { 671 = { is_owned_by = MEO } } NOT = { 671 = { has_state_flag = geneva_pqc_zone } } }
 					transfer_state = 671
 				}
-				transfer_state = 1761	# Hoang Lien Son
-				transfer_state = 1766	# Hoa Binh
-				transfer_state = 1281	# Van Don-Quang Ninh, the Nung marches
-				transfer_state = 881
+				if = { limit = { NOT = { 1761 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1761 }	# Hoang Lien Son
+				if = { limit = { NOT = { 1766 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1766 }	# Hoa Binh
+				if = { limit = { NOT = { 1281 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1281 }	# Van Don-Quang Ninh, the Nung marches
+				if = { limit = { NOT = { 881 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 881 }
 				if = {
 					limit = { NOT = { country_exists = THO } }
-					transfer_state = 1280
-					transfer_state = 1768	# Lang Son, a VIN and THO core exactly like Cao Bang
+					if = { limit = { NOT = { 1280 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1280 }
+					if = { limit = { NOT = { 1768 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1768 }	# Lang Son, a VIN and THO core exactly like Cao Bang
 				}
 				if = {
 					limit = { country_exists = MEO }
@@ -2110,6 +2494,7 @@ indochina_struggle_run_geneva_ending_effect = {
 						limit = {
 							has_global_flag = geneva_conference_concluded
 							check_variable = { global.geneva_minorities_term = 1 }
+							MEO = { is_subject_of = VIN }
 						}
 						set_autonomy = {
 							target = MEO
@@ -2119,35 +2504,50 @@ indochina_struggle_run_geneva_ending_effect = {
 						}
 					}
 					else = {
-						set_autonomy = {
-							target = MEO
-							autonomy_state = autonomy_integrated_puppet
-							end_wars = no
-							end_civil_wars = no
+						if = {
+							limit = { MEO = { is_subject_of = VIN } }
+							set_autonomy = {
+								target = MEO
+								autonomy_state = autonomy_integrated_puppet
+								end_wars = no
+								end_civil_wars = no
+							}
 						}
 					}
 				}
 				else = {
-					transfer_state = 1767
+					if = { limit = { NOT = { 1767 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1767 }
 				}
 				if = {
 					limit = { has_global_flag = geneva_unified_settlement }
-					transfer_state = 838
+					if = { limit = { NOT = { 838 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 838 }
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 1 } }
-					transfer_state = 838
-					transfer_state = 1758
-					transfer_state = 757
-					transfer_state = 1287
-					transfer_state = 1286
-					transfer_state = 1759
+					if = { limit = { NOT = { 838 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 838 }
+					if = { limit = { NOT = { 1758 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1758 }
+					if = { limit = { NOT = { 757 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 757 }
+					if = { limit = { NOT = { 1287 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1287 }
+					if = {
+						limit = {
+							NOT = { 1286 = { is_owned_by = FUL } }
+							NOT = { 1286 = { is_owned_by = TRP } }
+						}
+						if = { limit = { NOT = { 1286 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1286 }
+					}
+					if = {
+						limit = {
+							NOT = { 1759 = { is_owned_by = FUL } }
+							NOT = { 1759 = { is_owned_by = TRP } }
+						}
+						if = { limit = { NOT = { 1759 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 1759 }
+					}
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 3 } }
 				}
 				else = {
-					transfer_state = 838
+					if = { limit = { NOT = { 838 = { has_state_flag = geneva_pqc_zone } } } transfer_state = 838 }
 				}
 				set_capital = { state = 1760 }
 				if = {
@@ -2206,80 +2606,35 @@ indochina_struggle_run_geneva_ending_effect = {
 			}
 		}
 		if = {
-			limit = {
-				country_exists = VIN
-				VIN = {
-					has_focus_tree = VIN_1950s
-					NOT = { has_completed_focus = VIN_Accept_Temporary_Partitions }
-				}
-			}
-			VIN = { complete_national_focus = VIN_Accept_Temporary_Partitions }
+			limit = { has_global_flag = geneva_three_states_settlement }
+			set_temp_variable = { ic_cue_outcome = 5 }
 		}
-		if = {
-			limit = {
-				country_exists = FRA
-				FRA = {
-					has_focus_tree = FRA_1950s
-					NOT = { has_completed_focus = FRA_Accept_Temporary_Partitions }
-				}
-			}
-			FRA = { complete_national_focus = FRA_Accept_Temporary_Partitions }
+		else_if = {
+			limit = { check_variable = { global.geneva_clause_current^1 = 0 } }
+			set_temp_variable = { ic_cue_outcome = 2 }
 		}
+		else = {
+			set_temp_variable = { ic_cue_outcome = 1 }
+		}
+		indochina_geneva_mark_outcome_cues = yes
 		indochina_struggle_geneva_ending_wrapup = yes
-	}
 }
 indochina_struggle_geneva_ending_wrapup = {
 	indochina_struggle_ending_cleanup = yes
 	if = {
-		limit = { NOT = { has_global_flag = geneva_conference_concluded } }
-	if = {
-		limit = { geneva_conference_complete_success_trigger = yes }
+		limit = { geneva_conference_complete_success_trigger = yes NOT = { has_global_flag = geneva_three_states_settlement } }
 		random_country = {
 			limit = { is_ai = no }
 			news_event = Geneva_Conference_Outcome.1
 		}
 	}
-	else_if = {
-		limit = { geneva_conference_otl_success_trigger = yes }
+	if = {
+		limit = { geneva_conference_complete_success_trigger = yes has_global_flag = geneva_three_states_settlement }
 		random_country = {
 			limit = { is_ai = no }
-			news_event = Indochina_Struggle_Ending.8
+			news_event = Indochina_Struggle_Ending.11
 		}
 	}
-	else = {
-		if = {
-			limit = { country_exists = PQC }
-			random_country = {
-				limit = { is_ai = no }
-				news_event = Indochina_Struggle_Ending.11
-			}
-		}
-		else = {
-			random_country = {
-				limit = { is_ai = no }
-				news_event = Indochina_Struggle_Ending.8
-			}
-		}
-	}
-}
-}
-indochina_struggle_run_geneva_ending_alternate_effect = {
-    if = {
-        limit = { country_exists = FRA }
-        FRA = {
-            indochina_struggle_ending_cleanup = yes
-            news_event = Indochina_Struggle_Ending.11
-        }
-    }
-    else = {
-        indochina_struggle_ending_cleanup = yes
-        news_event = Indochina_Struggle_Ending.11
-    }
-}
-indochina_struggle_run_never_ending_conflict_ending_effect = {
-	set_variable = { global.Indochina_War_Active_Phase = 9 }
-	indochina_struggle_ending_cleanup = yes
-	news_event = { id = Indochina_Struggle_Ending.9 days = 1  }
 }
 
 indochina_struggle_run_failed_state_ending_effect = {
@@ -2312,26 +2667,8 @@ indochina_struggle_run_failed_state_ending_effect = {
 		}
 	}
 
-	if = {
-		limit = {
-			country_exists = VIN
-			VIN = {
-				has_focus_tree = VIN_1950s
-				NOT = { has_completed_focus = VIN_A_Failed_State }
-			}
-		}
-		VIN = { complete_national_focus = VIN_A_Failed_State }
-	}
-	if = {
-		limit = {
-			country_exists = FRA
-			FRA = {
-				has_focus_tree = FRA_1950s
-				NOT = { has_completed_focus = FRA_Failed_State_Ending }
-			}
-		}
-		FRA = { complete_national_focus = FRA_Failed_State_Ending }
-	}
+	set_temp_variable = { ic_cue_outcome = 4 }
+	indochina_geneva_mark_outcome_cues = yes
 
 	indochina_struggle_ending_cleanup = yes
 	random_country = {
@@ -3966,14 +4303,24 @@ indochina_failsafe_set_receiver = {
 indochina_failsafe_geneva_abort = {
 	if = {
 		limit = { ic_failsafe_geneva_latched_dead_trigger = yes }
-		clr_global_flag = Geneva_Conference
-		clr_global_flag = Geneva_Conference_Preparations
-		clr_global_flag = Indochina_Geneva_Pursuit
-		clr_global_flag = Indochina_Geneva_Panic
-		set_global_flag = ic_failsafe_geneva_aborted
-		indochina_failsafe_geneva_teardown_gui = yes
+		indochina_failsafe_geneva_teardown = yes
 		log = "[GetDateText]: Indochina failsafe - cleared a dead Geneva_Conference latch"
 	}
+}
+
+indochina_failsafe_geneva_cut = {
+	indochina_failsafe_geneva_teardown = yes
+	log = "[GetDateText]: Indochina failsafe - cut a stalled Geneva_Conference"
+}
+
+indochina_failsafe_geneva_teardown = {
+	clr_global_flag = Geneva_Conference
+	clr_global_flag = Geneva_Conference_Preparations
+	clr_global_flag = geneva_conference_announced
+	clr_global_flag = Indochina_Geneva_Pursuit
+	clr_global_flag = Indochina_Geneva_Panic
+	set_global_flag = ic_failsafe_geneva_aborted
+	indochina_failsafe_geneva_teardown_gui = yes
 }
 
 # Only geneva_conf_compile_settlement takes the conference window and its
@@ -4342,8 +4689,8 @@ indochina_failsafe_enforce_state_allow_list = {
 
 # The guarantee, and the one place the layer could do real damage if it were
 # unconditional. If a rung ran but its payload no-opped on a country_exists
-# guard, the war has to be closed anyway - never_ending_conflict calls
-# indochina_struggle_ending_cleanup unconditionally, so nothing survives it.
+# guard, the war has to be closed anyway - the failsafe ends it through
+# indochina_struggle_run_failed_state_ending_effect, which calls cleanup unconditionally.
 #
 # But a router call that matched no rung at all is not evidence of a broken war.
 # It is usually evidence that the caller was over-eager, and terminating there
@@ -4371,8 +4718,8 @@ indochina_failsafe_force_cleanup_if_needed = {
 				}
 			}
 		}
-		log = "[GetDateText]: Indochina failsafe - no ending payload landed on a war that cannot continue, forcing the terminator"
-		indochina_struggle_run_never_ending_conflict_ending_effect = yes
+		log = "[GetDateText]: Indochina failsafe - no ending payload landed on a war that cannot continue, forcing the failed-state ending"
+		indochina_struggle_run_failed_state_ending_effect = yes
 	}
 	else_if = {
 		limit = { NOT = { has_global_flag = Indochina_War_Over } }
@@ -4669,8 +5016,9 @@ indochina_failsafe_watchdog_tick = {
 				limit = { check_variable = { global.ic_stall_geneva_days > 149 } }
 				log = "[GetDateText]: Indochina failsafe - the conference would not conclude, cutting it short"
 				set_variable = { global.ic_stall_geneva_days = 0 }
-				clr_global_flag = geneva_conference_in_session	# geneva_abort only cuts a dead latch, and an in-session flag is by definition not one
-				indochina_failsafe_geneva_abort = yes
+				clr_global_flag = geneva_conference_in_session	# the cut tears the whole conference down, not only a dead latch
+				clr_global_flag = geneva_conference_announced
+				indochina_failsafe_geneva_cut = yes
 				indochina_failsafe_route_decisive_result = yes
 			}
 			else_if = {
