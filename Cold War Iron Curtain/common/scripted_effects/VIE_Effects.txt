@@ -11726,3 +11726,37 @@ VIE_resolve_region_overlaps = {
 	set_variable = { VIE_Region_24_Faction = vie_rp }
 	set_variable = { VIE_Region_24_Faction_2 = vie_rs }
 }
+
+# Toan's coup (Bao-Dai tree). Success chance is 15% per point of
+# Toan_Radicalism above 2, clamped to 10-90%: radicalism measures how far the
+# Dan-Xa cadres have been mobilised for an armed seizure of power.
+# Range on the forced path is 3-8 (events VIE_Toan.2/.3/.4 decide it).
+VIE_toan_coup_chance = {
+	set_temp_variable = { toan_coup_chance = Toan_Radicalism }
+	subtract_from_temp_variable = { toan_coup_chance = 2 }
+	multiply_temp_variable = { toan_coup_chance = 15 }
+	clamp_temp_variable = {
+		var = toan_coup_chance
+		min = 10
+		max = 90
+	}
+}
+
+VIE_toan_resolve_coup = {
+	VIE_toan_coup_chance = yes
+	custom_effect_tooltip = VIE_toan_coup_odds_tt
+	hidden_effect = {
+		set_temp_variable_to_random = {
+			var = toan_coup_roll
+			max = 100
+			integer = yes
+		}
+		if = {
+			limit = { check_variable = { toan_coup_roll < toan_coup_chance } }
+			complete_national_focus = VIE_Toan_Success
+		}
+		else = {
+			complete_national_focus = VIE_Toan_Assassination
+		}
+	}
+}
