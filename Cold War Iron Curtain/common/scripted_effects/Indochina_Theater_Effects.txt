@@ -893,6 +893,7 @@ indochina_struggle_southern_victory = {
 				NOT = { has_completed_focus = FRA_Transfer_North_To_South }
 			}
 		}
+		indochina_fra_complete_geneva_parent = yes
 		FRA = {
 			if = {
 				limit = { NOT = { has_completed_focus = FRA_Total_Victory } }
@@ -1152,6 +1153,7 @@ indochina_struggle_federal_vietnam = {
 				NOT = { has_completed_focus = FRA_Enforce_Federation_Proposal }
 			}
 		}
+		indochina_fra_complete_geneva_parent = yes
 		FRA = { complete_national_focus = FRA_Enforce_Federation_Proposal }
 	}
 
@@ -1335,6 +1337,7 @@ indochina_struggle_balkanized_vietnam = {
 			}
 		}
 		FRA = {
+			indochina_fra_complete_geneva_parent = yes
 			if = {
 				limit = { NOT = { has_completed_focus = FRA_Total_Victory } }
 				complete_national_focus = FRA_Total_Victory
@@ -1815,8 +1818,40 @@ indochina_struggle_unlock_geneva_conference = {
 	set_global_flag = Geneva_Conference
 }
 
+indochina_struggle_geneva_daily_tick = {
+	if = {
+		limit = { geneva_panic_collapse_trigger = yes }
+		indochina_geneva_panic_force_conference = yes
+	}
+	geneva_conf_world_leverage_pulse = yes
+	if = {
+		limit = { has_global_flag = geneva_conference_in_session }
+		geneva_neg_daily_tick = yes
+		add_to_variable = { global.geneva_tick_days = 1 }
+		if = {
+			limit = { check_variable = { global.geneva_tick_days > 6 } }
+			set_variable = { global.geneva_tick_days = 0 }
+			geneva_conf_round_tick = yes
+		}
+	}
+}
+
+indochina_fra_complete_geneva_parent = {
+	if = {
+		limit = {
+			country_exists = FRA
+			FRA = {
+				has_focus_tree = FRA_1950s
+				NOT = { has_completed_focus = FRA_Geneva_Peace_Conference }
+			}
+		}
+		FRA = { complete_national_focus = FRA_Geneva_Peace_Conference }
+	}
+}
+
 indochina_geneva_panic_force_conference = {
 	set_global_flag = Indochina_Geneva_Panic
+	set_global_flag = Indochina_Geneva_Panic_Spent	# the panic fires once; an abort clearing Indochina_Geneva_Panic must not re-arm it
 	set_variable = { global.Indochina_Geneva_Pursuit_Source = 5 }
 	set_variable = { global.Indochina_War_Active_Phase = 11 }
 	indochina_struggle_unlock_geneva_conference = yes
@@ -1859,6 +1894,7 @@ indochina_struggle_run_geneva_ending_effect = {
 					NOT = { has_completed_focus = FRA_Failed_State_Ending }
 				}
 			}
+			indochina_fra_complete_geneva_parent = yes
 			FRA = { complete_national_focus = FRA_Failed_State_Ending }
 		}
 		indochina_struggle_ending_cleanup = yes
@@ -2000,12 +2036,15 @@ indochina_struggle_run_geneva_ending_effect = {
 				transfer_state = 1295
 				keep_current_politics = yes
 			}
-			VIN = {
-				set_autonomy = {
-					target = LAO
-					autonomy_state = autonomy_easternbloc
-					end_wars = no
-					end_civil_wars = no
+			if = {
+				limit = { LAO = { is_subject_of = VIN } }
+				VIN = {
+					set_autonomy = {
+						target = LAO
+						autonomy_state = autonomy_easternbloc
+						end_wars = no
+						end_civil_wars = no
+					}
 				}
 			}
 		}
@@ -2110,6 +2149,7 @@ indochina_struggle_run_geneva_ending_effect = {
 						limit = {
 							has_global_flag = geneva_conference_concluded
 							check_variable = { global.geneva_minorities_term = 1 }
+							MEO = { is_subject_of = VIN }
 						}
 						set_autonomy = {
 							target = MEO
@@ -2119,11 +2159,14 @@ indochina_struggle_run_geneva_ending_effect = {
 						}
 					}
 					else = {
-						set_autonomy = {
-							target = MEO
-							autonomy_state = autonomy_integrated_puppet
-							end_wars = no
-							end_civil_wars = no
+						if = {
+							limit = { MEO = { is_subject_of = VIN } }
+							set_autonomy = {
+								target = MEO
+								autonomy_state = autonomy_integrated_puppet
+								end_wars = no
+								end_civil_wars = no
+							}
 						}
 					}
 				}
@@ -2140,8 +2183,20 @@ indochina_struggle_run_geneva_ending_effect = {
 					transfer_state = 1758
 					transfer_state = 757
 					transfer_state = 1287
-					transfer_state = 1286
-					transfer_state = 1759
+					if = {
+						limit = {
+							NOT = { 1286 = { is_owned_by = FUL } }
+							NOT = { 1286 = { is_owned_by = TRP } }
+						}
+						transfer_state = 1286
+					}
+					if = {
+						limit = {
+							NOT = { 1759 = { is_owned_by = FUL } }
+							NOT = { 1759 = { is_owned_by = TRP } }
+						}
+						transfer_state = 1759
+					}
 				}
 				else_if = {
 					limit = { check_variable = { global.geneva_partition_line = 3 } }
@@ -2223,6 +2278,7 @@ indochina_struggle_run_geneva_ending_effect = {
 					NOT = { has_completed_focus = FRA_Accept_Temporary_Partitions }
 				}
 			}
+			indochina_fra_complete_geneva_parent = yes
 			FRA = { complete_national_focus = FRA_Accept_Temporary_Partitions }
 		}
 		indochina_struggle_geneva_ending_wrapup = yes
@@ -2330,6 +2386,7 @@ indochina_struggle_run_failed_state_ending_effect = {
 				NOT = { has_completed_focus = FRA_Failed_State_Ending }
 			}
 		}
+		indochina_fra_complete_geneva_parent = yes
 		FRA = { complete_national_focus = FRA_Failed_State_Ending }
 	}
 
@@ -3966,14 +4023,24 @@ indochina_failsafe_set_receiver = {
 indochina_failsafe_geneva_abort = {
 	if = {
 		limit = { ic_failsafe_geneva_latched_dead_trigger = yes }
-		clr_global_flag = Geneva_Conference
-		clr_global_flag = Geneva_Conference_Preparations
-		clr_global_flag = Indochina_Geneva_Pursuit
-		clr_global_flag = Indochina_Geneva_Panic
-		set_global_flag = ic_failsafe_geneva_aborted
-		indochina_failsafe_geneva_teardown_gui = yes
+		indochina_failsafe_geneva_teardown = yes
 		log = "[GetDateText]: Indochina failsafe - cleared a dead Geneva_Conference latch"
 	}
+}
+
+indochina_failsafe_geneva_cut = {
+	indochina_failsafe_geneva_teardown = yes
+	log = "[GetDateText]: Indochina failsafe - cut a stalled Geneva_Conference"
+}
+
+indochina_failsafe_geneva_teardown = {
+	clr_global_flag = Geneva_Conference
+	clr_global_flag = Geneva_Conference_Preparations
+	clr_global_flag = geneva_conference_announced
+	clr_global_flag = Indochina_Geneva_Pursuit
+	clr_global_flag = Indochina_Geneva_Panic
+	set_global_flag = ic_failsafe_geneva_aborted
+	indochina_failsafe_geneva_teardown_gui = yes
 }
 
 # Only geneva_conf_compile_settlement takes the conference window and its
@@ -4669,8 +4736,9 @@ indochina_failsafe_watchdog_tick = {
 				limit = { check_variable = { global.ic_stall_geneva_days > 149 } }
 				log = "[GetDateText]: Indochina failsafe - the conference would not conclude, cutting it short"
 				set_variable = { global.ic_stall_geneva_days = 0 }
-				clr_global_flag = geneva_conference_in_session	# geneva_abort only cuts a dead latch, and an in-session flag is by definition not one
-				indochina_failsafe_geneva_abort = yes
+				clr_global_flag = geneva_conference_in_session	# the cut tears the whole conference down, not only a dead latch
+				clr_global_flag = geneva_conference_announced
+				indochina_failsafe_geneva_cut = yes
 				indochina_failsafe_route_decisive_result = yes
 			}
 			else_if = {
