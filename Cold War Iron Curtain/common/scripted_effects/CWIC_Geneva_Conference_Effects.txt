@@ -619,7 +619,8 @@ geneva_conf_seat_delegation = {
 	geneva_conf_seed_weight = yes
 	set_variable = { geneva_actions_used = 0 }
 	set_variable = { geneva_sel_clause = 0 }
-	set_variable = { geneva_sel_option = 0 }
+	set_variable = { geneva_sel_option = geneva_pref^0 }	# the dossier opens on clause I with our own position selected
+	set_variable = { geneva_walkout_round = 0 }
 	set_variable = { geneva_sel_target = 0 }
 	set_variable = { geneva_pressured_until = 0 }
 	set_variable = { geneva_backchannel_next = 0 }
@@ -1108,6 +1109,12 @@ geneva_conf_initialize = {
 		set_variable = { global.geneva_wrecker = 0 }
 		set_variable = { global.geneva_walkout_news = 0 }
 		clear_array = global.geneva_delegations
+		clr_global_flag = geneva_conference_collapsed
+		set_variable = { global.geneva_days_to_vote = 7 }
+		set_variable = { global.geneva_reconvene_days = 0 }
+		set_variable = { global.geneva_collapse_round = 0 }
+		geneva_locks_reset = yes
+		geneva_log_clear = yes
 
 		clear_array = global.geneva_clause_current
 		add_to_array = { global.geneva_clause_current = 2 }	# immediate ceasefire
@@ -1175,6 +1182,10 @@ geneva_conf_initialize = {
 		if = { limit = { country_exists = PQC } PQC = { geneva_conf_seat_delegation = yes } }
 
 		geneva_conf_catch_up_delegation_focuses = yes
+		geneva_ui_assign_seats = yes
+		set_temp_variable = { g_log_type = 1 }
+		geneva_log_push = yes
+		geneva_ui_refresh_all = yes
 
 		random_country = {
 			limit = { is_ai = no }
@@ -1330,6 +1341,7 @@ geneva_conf_round_tick = {
 				if = {
 					limit = {
 							check_variable = { g_acted = 0 }
+							check_variable = { global.geneva_clause_lock^g_ci = 0 }
 						NOT = { check_variable = { g_pv = g_tv } }
 							check_variable = { g_care > g_bcare }
 					}
@@ -1412,46 +1424,7 @@ geneva_conf_round_tick = {
 		set_temp_variable = { g_c = 0 }
 		while_loop_effect = {
 			limit = { check_variable = { g_c < 7 } }
-			set_temp_variable = { g_opt_0 = 0 }
-			set_temp_variable = { g_opt_1 = 0 }
-			set_temp_variable = { g_opt_2 = 0 }
-			set_temp_variable = { g_opt_3 = 0 }
-			every_country = {
-				limit = {
-					is_in_array = { global.geneva_delegations = THIS.id }
-					NOT = { has_country_flag = geneva_walked_out }
-				}
-				set_temp_variable = { g_vote = geneva_weight }
-				multiply_temp_variable = { g_vote = geneva_prio^g_c }
-				set_temp_variable = { g_p = geneva_pref^g_c }
-				if = {
-					limit = { check_variable = { g_p = 0 } }
-					add_to_temp_variable = { g_opt_0 = g_vote }
-				}
-				else_if = {
-					limit = { check_variable = { g_p = 1 } }
-					add_to_temp_variable = { g_opt_1 = g_vote }
-				}
-				else_if = {
-					limit = { check_variable = { g_p = 2 } }
-					add_to_temp_variable = { g_opt_2 = g_vote }
-				}
-				else = {
-					add_to_temp_variable = { g_opt_3 = g_vote }
-				}
-			}
-			set_temp_variable = { g_pi0 = g_c }
-			multiply_temp_variable = { g_pi0 = 4 }
-			set_temp_variable = { g_pi1 = g_pi0 }
-			add_to_temp_variable = { g_pi1 = 1 }
-			set_temp_variable = { g_pi2 = g_pi0 }
-			add_to_temp_variable = { g_pi2 = 2 }
-			set_temp_variable = { g_pi3 = g_pi0 }
-			add_to_temp_variable = { g_pi3 = 3 }
-			add_to_temp_variable = { g_opt_0 = global.geneva_push^g_pi0 }
-			add_to_temp_variable = { g_opt_1 = global.geneva_push^g_pi1 }
-			add_to_temp_variable = { g_opt_2 = global.geneva_push^g_pi2 }
-			add_to_temp_variable = { g_opt_3 = global.geneva_push^g_pi3 }
+			geneva_vote_tally = yes
 			set_temp_variable = { g_best = global.geneva_clause_current^g_c }
 			if = {
 				limit = { check_variable = { g_best = 0 } }
@@ -1511,6 +1484,13 @@ geneva_conf_round_tick = {
 					}
 				}
 			}
+			if = {
+				limit = { check_variable = { global.geneva_clause_lock^g_c > 0 } }
+				set_temp_variable = { g_best = global.geneva_clause_current^g_c }	# a settled clause is off the table for the rest of the session
+			}
+			else = {
+				geneva_locks_after_vote = yes
+			}
 			set_variable = { global.geneva_clause_current^g_c = g_best }
 			add_to_temp_variable = { g_c = 1 }
 		}
@@ -1535,6 +1515,13 @@ geneva_conf_round_tick = {
 			else = { set_temp_variable = { g_rprev = g_prev_6 } }
 			set_temp_variable = { g_rnew = global.geneva_clause_current^g_rc }
 			set_temp_variable = { g_rsev = global.geneva_severity^g_rc }
+			if = {
+				limit = { NOT = { check_variable = { g_rprev = g_rnew } } }
+				set_temp_variable = { g_log_type = 10 }
+				set_temp_variable = { g_log_clause = g_rc }
+				set_temp_variable = { g_log_opt = g_rnew }
+				geneva_log_push = yes
+			}
 			if = {
 				limit = {
 					NOT = { check_variable = { g_rprev = g_rnew } }
@@ -1695,6 +1682,10 @@ geneva_conf_round_tick = {
 				save_global_event_target_as = Geneva_Wrecker
 				set_variable = { global.geneva_wrecker = THIS.id }
 				add_to_variable = { global.geneva_walkout_news = 1 }	# reported once below, and only if the collapse check is not about to report it with .3/.4 instead
+				set_variable = { geneva_walkout_round = global.geneva_round }
+				set_temp_variable = { g_log_type = 9 }
+				set_temp_variable = { g_log_actor = THIS.id }
+				geneva_log_push = yes
 			}
 		}
 
@@ -1725,6 +1716,7 @@ geneva_conf_round_tick = {
 			limit = { check_variable = { global.geneva_round > 9 } }
 			geneva_conf_compile_settlement = yes
 		}
+		geneva_ui_refresh_all = yes
 	}
 }
 
@@ -1763,6 +1755,14 @@ geneva_conf_compile_settlement = {
 			}
 			# ------------------------- COLLAPSE -------------------------
 			set_variable = { global.geneva_outcome = 2 }
+			set_variable = { global.geneva_collapse_round = global.geneva_round }
+			set_variable = { global.geneva_collapse_cause = 1 }	# 1 core walkouts, 2 no ceasefire on the table
+			if = {
+				limit = { NOT = { check_variable = { g_core_out > 1 } } }
+				set_variable = { global.geneva_collapse_cause = 2 }
+			}
+			set_temp_variable = { g_log_type = 13 }
+			geneva_log_push = yes
 			every_country = {
 				limit = {
 					has_country_flag = geneva_core_delegation
@@ -1792,6 +1792,8 @@ geneva_conf_compile_settlement = {
 			# ------------------------- SETTLEMENT -------------------------
 			set_variable = { global.geneva_outcome = 1 }
 			set_global_flag = Geneva_Conference_Negotiations_Complete
+			set_temp_variable = { g_log_type = 14 }
+			geneva_log_push = yes
 			set_variable = { global.geneva_partition_line = global.geneva_clause_current^1 }
 			set_variable = { global.geneva_elections_term = global.geneva_clause_current^2 }
 			set_variable = { global.geneva_withdrawal_term = global.geneva_clause_current^3 }
@@ -2005,6 +2007,7 @@ geneva_action_champion = {
 			has_political_power > 24
 			check_variable = { geneva_weight > g_ch_cost_x2 }
 			check_variable = { geneva_neg_mine^geneva_sel_clause = 0 }
+			check_variable = { global.geneva_clause_lock^geneva_sel_clause = 0 }
 		}
 		add_political_power = -25
 		add_to_variable = { geneva_actions_used = 1 }
@@ -2020,6 +2023,14 @@ geneva_action_champion = {
 		divide_temp_variable = { g_neg_amount = 2 }
 		add_to_temp_variable = { g_neg_amount = 100 }
 		geneva_neg_start = yes
+		if = {
+			limit = { is_ai = no }
+			set_temp_variable = { g_log_type = 2 }
+			set_temp_variable = { g_log_actor = THIS.id }
+			set_temp_variable = { g_log_clause = geneva_sel_clause }
+			set_temp_variable = { g_log_opt = geneva_sel_option }
+			geneva_log_push = yes
+		}
 	}
 }
 
@@ -2029,6 +2040,7 @@ geneva_action_pressure = {
 			geneva_action_possible_trigger = yes
 			has_political_power > 24
 			check_variable = { geneva_weight > 25 }
+			check_variable = { global.geneva_clause_lock^geneva_sel_clause = 0 }
 			NOT = { check_variable = { geneva_sel_target = THIS.id } }
 		}
 		set_temp_variable = { g_tid = geneva_sel_target }
@@ -2059,6 +2071,11 @@ geneva_action_pressure = {
 			add_political_power = -25
 			add_to_variable = { geneva_actions_used = 1 }
 			subtract_from_variable = { geneva_weight = g_cost }
+			set_temp_variable = { g_log_type = 3 }
+			set_temp_variable = { g_log_actor = THIS.id }
+			set_temp_variable = { g_log_actor2 = g_tid }
+			set_temp_variable = { g_log_clause = g_c }
+			geneva_log_push = yes
 			clamp_variable = {
 				var = geneva_weight
 				min = 5
@@ -2070,13 +2087,24 @@ geneva_action_pressure = {
 
 geneva_action_concede = {
 	if = {
-		limit = { geneva_action_possible_trigger = yes }
+		limit = {
+			geneva_action_possible_trigger = yes
+			check_variable = { global.geneva_clause_lock^geneva_sel_clause = 0 }
+		}
 		add_to_variable = { geneva_actions_used = 1 }
 		set_temp_variable = { g_c = geneva_sel_clause }
 		set_temp_variable = { g_t = global.geneva_clause_current^g_c }
 		set_variable = { geneva_pref^g_c = g_t }
 		set_variable = { geneva_prio^g_c = 1 }
 		add_to_variable = { geneva_weight = 15 }
+		if = {
+			limit = { is_ai = no }
+			set_temp_variable = { g_log_type = 4 }
+			set_temp_variable = { g_log_actor = THIS.id }
+			set_temp_variable = { g_log_clause = g_c }
+			set_temp_variable = { g_log_opt = g_t }
+			geneva_log_push = yes
+		}
 		every_country = {
 			limit = {
 				is_in_array = { global.geneva_delegations = THIS.id }
@@ -2118,6 +2146,10 @@ geneva_action_backchannel = {
 		add_to_variable = { geneva_backchannel_next = 2 }
 		set_temp_variable = { geneva_lev_amount = 25 }
 		geneva_add_vie_vin_rapprochement = yes
+		set_temp_variable = { g_log_type = 5 }
+		set_temp_variable = { g_log_actor = THIS.id }
+		set_temp_variable = { g_log_actor2 = geneva_sel_target }
+		geneva_log_push = yes
 		if = {
 			limit = {
 				tag = VIE
@@ -2147,6 +2179,7 @@ geneva_action_threaten = {
 			check_variable = { geneva_patience > 25 }
 			NOT = { check_variable = { geneva_threat_next > global.geneva_round } }
 			check_variable = { geneva_neg_mine^geneva_sel_clause = 0 }
+			check_variable = { global.geneva_clause_lock^geneva_sel_clause = 0 }
 		}
 		add_to_variable = { geneva_actions_used = 1 }
 		set_variable = { geneva_threat_next = global.geneva_round }
@@ -2165,6 +2198,18 @@ geneva_action_threaten = {
 		set_temp_variable = { g_neg_amount = geneva_weight }
 		add_to_temp_variable = { g_neg_amount = 250 }
 		geneva_neg_start = yes
+		if = {
+			limit = { has_country_flag = geneva_core_delegation }
+			set_temp_variable = { g_thr_opt = geneva_pref^geneva_sel_clause }
+			add_to_temp_variable = { g_thr_opt = 1 }
+			set_variable = { global.geneva_threat_opt^geneva_sel_clause = g_thr_opt }
+			set_variable = { global.geneva_threat_actor^geneva_sel_clause = THIS.id }
+		}
+		set_temp_variable = { g_log_type = 6 }
+		set_temp_variable = { g_log_actor = THIS.id }
+		set_temp_variable = { g_log_clause = geneva_sel_clause }
+		set_temp_variable = { g_log_opt = geneva_pref^geneva_sel_clause }
+		geneva_log_push = yes
 	}
 }
 
@@ -2179,6 +2224,9 @@ geneva_action_force_vote = {
 		}
 		add_political_power = -50
 		geneva_neg_flush_all = yes
+		set_temp_variable = { g_log_type = 7 }
+		set_temp_variable = { g_log_actor = THIS.id }
+		geneva_log_push = yes
 		set_variable = { global.geneva_round = 9 }
 		geneva_conf_round_tick = yes
 	}
@@ -2201,6 +2249,10 @@ geneva_action_lean_on_saigon = {
 		add_political_power = -50
 		add_to_variable = { geneva_actions_used = 1 }
 		set_country_flag = USA_geneva_leaned_on_saigon
+		set_temp_variable = { g_log_type = 8 }
+		set_temp_variable = { g_log_actor = THIS.id }
+		set_temp_variable = { g_log_actor2 = VIE.id }
+		geneva_log_push = yes
 		set_country_flag = USA_Tampered_With_VIE
 		VIE = {
 			set_variable = { geneva_pref^2 = 0 }
@@ -2238,54 +2290,353 @@ geneva_action_lean_on_saigon = {
 }
 
 # ----------------------------------------------------------------------------
-# c0=3, c1=4, c2=4, c3=3, c4=2, c5=3, c6=2.
+# Conference window support: the shared vote tally, clause locks, the
+# conference record, seat assignment and the per-viewer readouts.
+# Option counts per clause: c0=3, c1=4, c2=4, c3=3, c4=2, c5=3, c6=2.
 # ----------------------------------------------------------------------------
 
-geneva_ui_cycle_clause = {
-	add_to_variable = { geneva_sel_clause = 1 }
-	if = {
-		limit = { check_variable = { geneva_sel_clause > 6 } }
-		set_variable = { geneva_sel_clause = 0 }
-	}
-	set_variable = { geneva_sel_option = 0 }
-}
-geneva_ui_cycle_option = {
-	add_to_variable = { geneva_sel_option = 1 }
-	if = {
+# Tally one clause. In: temp g_c. Out: temps g_opt_0..g_opt_3 (weight x priority
+# plus banked pushes) and g_active (1 when a push or a running negotiation
+# touched the clause). The weekly vote and the window's projected split both
+# call this, so the preview cannot drift from the real count.
+geneva_vote_tally = {
+	set_temp_variable = { g_opt_0 = 0 }
+	set_temp_variable = { g_opt_1 = 0 }
+	set_temp_variable = { g_opt_2 = 0 }
+	set_temp_variable = { g_opt_3 = 0 }
+	every_country = {
 		limit = {
-			check_variable = { geneva_sel_clause = 1 }
+			is_in_array = { global.geneva_delegations = THIS.id }
+			NOT = { has_country_flag = geneva_walked_out }
 		}
+		set_temp_variable = { g_vote = geneva_weight }
+		multiply_temp_variable = { g_vote = geneva_prio^g_c }
+		set_temp_variable = { g_p = geneva_pref^g_c }
 		if = {
-			limit = { check_variable = { geneva_sel_option > 3 } }
-			set_variable = { geneva_sel_option = 0 }
+			limit = { check_variable = { g_p = 0 } }
+			add_to_temp_variable = { g_opt_0 = g_vote }
+		}
+		else_if = {
+			limit = { check_variable = { g_p = 1 } }
+			add_to_temp_variable = { g_opt_1 = g_vote }
+		}
+		else_if = {
+			limit = { check_variable = { g_p = 2 } }
+			add_to_temp_variable = { g_opt_2 = g_vote }
+		}
+		else = {
+			add_to_temp_variable = { g_opt_3 = g_vote }
 		}
 	}
-	else_if = {
-		limit = {
-			check_variable = { geneva_sel_clause = 2 }
-		}
-		if = {
-			limit = { check_variable = { geneva_sel_option > 3 } }
-			set_variable = { geneva_sel_option = 0 }
-		}
-	}
-	else_if = {
+	set_temp_variable = { g_pi0 = g_c }
+	multiply_temp_variable = { g_pi0 = 4 }
+	set_temp_variable = { g_pi1 = g_pi0 }
+	add_to_temp_variable = { g_pi1 = 1 }
+	set_temp_variable = { g_pi2 = g_pi0 }
+	add_to_temp_variable = { g_pi2 = 2 }
+	set_temp_variable = { g_pi3 = g_pi0 }
+	add_to_temp_variable = { g_pi3 = 3 }
+	add_to_temp_variable = { g_opt_0 = global.geneva_push^g_pi0 }
+	add_to_temp_variable = { g_opt_1 = global.geneva_push^g_pi1 }
+	add_to_temp_variable = { g_opt_2 = global.geneva_push^g_pi2 }
+	add_to_temp_variable = { g_opt_3 = global.geneva_push^g_pi3 }
+	set_temp_variable = { g_psum = global.geneva_push^g_pi0 }
+	add_to_temp_variable = { g_psum = global.geneva_push^g_pi1 }
+	add_to_temp_variable = { g_psum = global.geneva_push^g_pi2 }
+	add_to_temp_variable = { g_psum = global.geneva_push^g_pi3 }
+	set_temp_variable = { g_active = 0 }
+	if = {
 		limit = {
 			OR = {
-				check_variable = { geneva_sel_clause = 0 }
-				check_variable = { geneva_sel_clause = 3 }
-				check_variable = { geneva_sel_clause = 5 }
+				check_variable = { g_psum > 0 }
+				check_variable = { global.geneva_neg_clause_count^g_c > 0 }
 			}
 		}
+		set_temp_variable = { g_active = 1 }
+	}
+}
+
+# Clause locks. global.geneva_clause_lock^c: 0 open, 1 agreed, 2 non-negotiable.
+# Agreed: the same option wins two consecutive votes with nothing pushed or
+# negotiated on the clause. Non-negotiable: a core delegation threatened a
+# walkout over the clause and its option carried the vote once the threat
+# landed. Locks hold for the rest of the session.
+geneva_locks_reset = {
+	clear_array = global.geneva_clause_lock
+	resize_array = { array = global.geneva_clause_lock size = 7 value = 0 }
+	clear_array = global.geneva_clause_lock_round
+	resize_array = { array = global.geneva_clause_lock_round size = 7 value = 0 }
+	clear_array = global.geneva_clause_streak
+	resize_array = { array = global.geneva_clause_streak size = 7 value = 0 }
+	clear_array = global.geneva_threat_opt	# threatened option + 1; 0 = no threat pending
+	resize_array = { array = global.geneva_threat_opt size = 7 value = 0 }
+	clear_array = global.geneva_threat_actor
+	resize_array = { array = global.geneva_threat_actor size = 7 value = 0 }
+}
+
+# In: temps g_c, g_best (this vote's winner) and g_active from geneva_vote_tally.
+# Runs before global.geneva_clause_current^g_c is overwritten.
+geneva_locks_after_vote = {
+	set_temp_variable = { g_lk_prev = global.geneva_clause_current^g_c }
+	set_temp_variable = { g_lk_ta = global.geneva_threat_actor^g_c }
+	if = {
+		limit = {
+			check_variable = { global.geneva_threat_opt^g_c > 0 }
+			NOT = {
+				any_country = {
+					check_variable = { THIS.id = g_lk_ta }
+					check_variable = { geneva_neg_mine^g_c = 1 }
+				}
+			}
+		}
+		set_temp_variable = { g_lk_to = global.geneva_threat_opt^g_c }
+		subtract_from_temp_variable = { g_lk_to = 1 }
 		if = {
-			limit = { check_variable = { geneva_sel_option > 2 } }
-			set_variable = { geneva_sel_option = 0 }
+			limit = {
+				check_variable = { g_best = g_lk_to }
+				any_country = {
+					check_variable = { THIS.id = g_lk_ta }
+					NOT = { has_country_flag = geneva_walked_out }
+				}
+			}
+			set_variable = { global.geneva_clause_lock^g_c = 2 }
+			set_variable = { global.geneva_clause_lock_round^g_c = global.geneva_round }
+			set_temp_variable = { g_log_type = 12 }
+			set_temp_variable = { g_log_actor = g_lk_ta }
+			set_temp_variable = { g_log_clause = g_c }
+			set_temp_variable = { g_log_opt = g_best }
+			geneva_log_push = yes
+		}
+		set_variable = { global.geneva_threat_opt^g_c = 0 }
+		set_variable = { global.geneva_threat_actor^g_c = 0 }
+	}
+	if = {
+		limit = { check_variable = { global.geneva_clause_lock^g_c = 0 } }
+		if = {
+			limit = { check_variable = { g_active = 1 } }
+			set_variable = { global.geneva_clause_streak^g_c = 0 }
+		}
+		else_if = {
+			limit = { check_variable = { g_best = g_lk_prev } }
+			add_to_variable = { global.geneva_clause_streak^g_c = 1 }
+		}
+		else = {
+			set_variable = { global.geneva_clause_streak^g_c = 1 }
+		}
+		if = {
+			limit = { check_variable = { global.geneva_clause_streak^g_c > 1 } }
+			set_variable = { global.geneva_clause_lock^g_c = 1 }
+			set_variable = { global.geneva_clause_lock_round^g_c = global.geneva_round }
+			set_temp_variable = { g_log_type = 11 }
+			set_temp_variable = { g_log_clause = g_c }
+			set_temp_variable = { g_log_opt = g_best }
+			geneva_log_push = yes
 		}
 	}
-	else = {
+}
+
+# Conference record: the seven most recent entries, newest at index 0.
+# In: temps g_log_type, g_log_actor, g_log_actor2 (country ids), g_log_clause,
+# g_log_opt. Types: 1 convened, 2 champion, 3 pressure, 4 concede,
+# 5 back-channel, 6 threaten, 7 force the vote, 8 lean on Saigon, 9 walkout,
+# 10 vote moved, 11 agreed, 12 non-negotiable, 13 collapsed, 14 signed.
+geneva_log_clear = {
+	clear_array = global.geneva_log_type
+	clear_array = global.geneva_log_actor
+	clear_array = global.geneva_log_actor2
+	clear_array = global.geneva_log_clause
+	clear_array = global.geneva_log_opt
+	clear_array = global.geneva_log_round
+}
+
+geneva_log_push = {
+	add_to_array = { array = global.geneva_log_type value = g_log_type index = 0 }
+	add_to_array = { array = global.geneva_log_actor value = g_log_actor index = 0 }
+	add_to_array = { array = global.geneva_log_actor2 value = g_log_actor2 index = 0 }
+	add_to_array = { array = global.geneva_log_clause value = g_log_clause index = 0 }
+	add_to_array = { array = global.geneva_log_opt value = g_log_opt index = 0 }
+	add_to_array = { array = global.geneva_log_round value = global.geneva_round index = 0 }
+	if = {
+		limit = { check_variable = { global.geneva_log_type^num > 7 } }
+		remove_from_array = { array = global.geneva_log_type index = 7 }
+		remove_from_array = { array = global.geneva_log_actor index = 7 }
+		remove_from_array = { array = global.geneva_log_actor2 index = 7 }
+		remove_from_array = { array = global.geneva_log_clause index = 7 }
+		remove_from_array = { array = global.geneva_log_opt index = 7 }
+		remove_from_array = { array = global.geneva_log_round index = 7 }
+	}
+	set_temp_variable = { g_log_type = 0 }
+	set_temp_variable = { g_log_actor = 0 }
+	set_temp_variable = { g_log_actor2 = 0 }
+	set_temp_variable = { g_log_clause = 0 }
+	set_temp_variable = { g_log_opt = 0 }
+}
+
+# Chairs around the table. Each global.geneva_seat_N array holds at most one
+# country id and drives one dynamic list in the window. Fixed: 0 FRA, 1 ENG,
+# 2 USA, 3 SOV, 4 VIE, 5 VIN, 6 PRC. Swing chairs 7-9 take the seated minor
+# delegations in the order LOS, CAM, LAO, PQC.
+geneva_ui_assign_seats = {
+	clear_array = global.geneva_seat_0
+	clear_array = global.geneva_seat_1
+	clear_array = global.geneva_seat_2
+	clear_array = global.geneva_seat_3
+	clear_array = global.geneva_seat_4
+	clear_array = global.geneva_seat_5
+	clear_array = global.geneva_seat_6
+	clear_array = global.geneva_seat_7
+	clear_array = global.geneva_seat_8
+	clear_array = global.geneva_seat_9
+	if = { limit = { country_exists = FRA is_in_array = { global.geneva_delegations = FRA.id } } add_to_array = { global.geneva_seat_0 = FRA.id } }
+	if = { limit = { country_exists = ENG is_in_array = { global.geneva_delegations = ENG.id } } add_to_array = { global.geneva_seat_1 = ENG.id } }
+	if = { limit = { country_exists = USA is_in_array = { global.geneva_delegations = USA.id } } add_to_array = { global.geneva_seat_2 = USA.id } }
+	if = { limit = { country_exists = SOV is_in_array = { global.geneva_delegations = SOV.id } } add_to_array = { global.geneva_seat_3 = SOV.id } }
+	if = { limit = { country_exists = VIE is_in_array = { global.geneva_delegations = VIE.id } } add_to_array = { global.geneva_seat_4 = VIE.id } }
+	if = { limit = { country_exists = VIN is_in_array = { global.geneva_delegations = VIN.id } } add_to_array = { global.geneva_seat_5 = VIN.id } }
+	if = { limit = { country_exists = PRC is_in_array = { global.geneva_delegations = PRC.id } } add_to_array = { global.geneva_seat_6 = PRC.id } }
+	set_temp_variable = { g_sw = 7 }
+	if = {
+		limit = { country_exists = LOS is_in_array = { global.geneva_delegations = LOS.id } }
+		set_temp_variable = { g_sw_id = LOS.id }
+		geneva_ui_fill_swing_seat = yes
+	}
+	if = {
+		limit = { country_exists = CAM is_in_array = { global.geneva_delegations = CAM.id } }
+		set_temp_variable = { g_sw_id = CAM.id }
+		geneva_ui_fill_swing_seat = yes
+	}
+	if = {
+		limit = { country_exists = LAO is_in_array = { global.geneva_delegations = LAO.id } }
+		set_temp_variable = { g_sw_id = LAO.id }
+		geneva_ui_fill_swing_seat = yes
+	}
+	if = {
+		limit = { country_exists = PQC is_in_array = { global.geneva_delegations = PQC.id } }
+		set_temp_variable = { g_sw_id = PQC.id }
+		geneva_ui_fill_swing_seat = yes
+	}
+}
+
+# In: temps g_sw (next free swing chair, 7-9) and g_sw_id. A fourth minor
+# delegation still votes; it just has no chair.
+geneva_ui_fill_swing_seat = {
+	if = {
+		limit = { check_variable = { g_sw = 7 } }
+		add_to_array = { global.geneva_seat_7 = g_sw_id }
+	}
+	else_if = {
+		limit = { check_variable = { g_sw = 8 } }
+		add_to_array = { global.geneva_seat_8 = g_sw_id }
+	}
+	else_if = {
+		limit = { check_variable = { g_sw = 9 } }
+		add_to_array = { global.geneva_seat_9 = g_sw_id }
+	}
+	add_to_temp_variable = { g_sw = 1 }
+}
+
+# Dossier clicks, in the viewing player's scope. In: temp g_ui_c (and g_ui_o).
+geneva_ui_select_clause = {
+	set_variable = { geneva_sel_clause = g_ui_c }
+	set_variable = { geneva_sel_option = geneva_pref^g_ui_c }
+	geneva_ui_refresh = yes
+}
+
+geneva_ui_select_option = {
+	set_variable = { geneva_sel_clause = g_ui_c }
+	set_variable = { geneva_sel_option = g_ui_o }
+	geneva_ui_refresh = yes
+}
+
+# Per-viewer readouts, in the viewing player's scope: each delegation's stance
+# on the selected clause, the target marker and the projected vote split.
+# The seat readouts live on the delegations themselves, so with several human
+# players the last one to refresh decides which clause the chairs describe.
+geneva_ui_refresh = {
+	set_temp_variable = { g_vc = geneva_sel_clause }
+	set_temp_variable = { g_vp = geneva_pref^g_vc }
+	set_temp_variable = { g_vt = geneva_sel_target }
+	set_temp_variable = { g_vid = THIS.id }
+	set_variable = { global.geneva_ui_clause = g_vc }
+	every_country = {
+		limit = { is_in_array = { global.geneva_delegations = THIS.id } }
+		set_variable = { geneva_ui_pref_sel = geneva_pref^g_vc }
+		set_variable = { geneva_ui_stance = 2 }	# 1 shares the viewer's position, 2 opposes it, 3 is the viewer
 		if = {
-			limit = { check_variable = { geneva_sel_option > 1 } }
-			set_variable = { geneva_sel_option = 0 }
+			limit = { check_variable = { geneva_ui_pref_sel = g_vp } }
+			set_variable = { geneva_ui_stance = 1 }
 		}
+		if = {
+			limit = { check_variable = { THIS.id = g_vid } }
+			set_variable = { geneva_ui_stance = 3 }
+		}
+		set_variable = { geneva_ui_is_target = 0 }
+		if = {
+			limit = { check_variable = { THIS.id = g_vt } }
+			set_variable = { geneva_ui_is_target = 1 }
+		}
+	}
+	set_temp_variable = { g_c = g_vc }
+	geneva_vote_tally = yes
+	set_temp_variable = { g_tot = g_opt_0 }
+	add_to_temp_variable = { g_tot = g_opt_1 }
+	add_to_temp_variable = { g_tot = g_opt_2 }
+	add_to_temp_variable = { g_tot = g_opt_3 }
+	set_variable = { geneva_ui_pct_0 = 0 }
+	set_variable = { geneva_ui_pct_1 = 0 }
+	set_variable = { geneva_ui_pct_2 = 0 }
+	set_variable = { geneva_ui_pct_3 = 0 }
+	set_variable = { geneva_ui_split_x1 = 0 }
+	set_variable = { geneva_ui_split_x2 = 0 }
+	set_variable = { geneva_ui_split_x3 = 0 }
+	if = {
+		limit = { check_variable = { g_tot > 0 } }
+		set_variable = { geneva_ui_pct_0 = g_opt_0 }
+		set_variable = { geneva_ui_pct_1 = g_opt_1 }
+		set_variable = { geneva_ui_pct_2 = g_opt_2 }
+		set_variable = { geneva_ui_pct_3 = g_opt_3 }
+		multiply_variable = { geneva_ui_pct_0 = 100 }
+		multiply_variable = { geneva_ui_pct_1 = 100 }
+		multiply_variable = { geneva_ui_pct_2 = 100 }
+		multiply_variable = { geneva_ui_pct_3 = 100 }
+		divide_variable = { geneva_ui_pct_0 = g_tot }
+		divide_variable = { geneva_ui_pct_1 = g_tot }
+		divide_variable = { geneva_ui_pct_2 = g_tot }
+		divide_variable = { geneva_ui_pct_3 = g_tot }
+		round_variable = geneva_ui_pct_0
+		round_variable = geneva_ui_pct_1
+		round_variable = geneva_ui_pct_2
+		round_variable = geneva_ui_pct_3
+		# Bar segments are 232 px wide in CWIC_Geneva_Conference.gui; each later
+		# segment starts where the previous options' share ends.
+		set_variable = { geneva_ui_split_x1 = g_opt_0 }
+		set_variable = { geneva_ui_split_x2 = g_opt_0 }
+		add_to_variable = { geneva_ui_split_x2 = g_opt_1 }
+		set_variable = { geneva_ui_split_x3 = geneva_ui_split_x2 }
+		add_to_variable = { geneva_ui_split_x3 = g_opt_2 }
+		multiply_variable = { geneva_ui_split_x1 = 232 }
+		multiply_variable = { geneva_ui_split_x2 = 232 }
+		multiply_variable = { geneva_ui_split_x3 = 232 }
+		divide_variable = { geneva_ui_split_x1 = g_tot }
+		divide_variable = { geneva_ui_split_x2 = g_tot }
+		divide_variable = { geneva_ui_split_x3 = g_tot }
+		round_variable = geneva_ui_split_x1
+		round_variable = geneva_ui_split_x2
+		round_variable = geneva_ui_split_x3
+	}
+}
+
+geneva_ui_refresh_all = {
+	if = {	# a session saved before the conference window existed has no locks or chairs yet
+		limit = {
+			has_global_flag = geneva_conference_in_session
+			NOT = { check_variable = { global.geneva_clause_lock^num > 0 } }
+		}
+		geneva_locks_reset = yes
+		geneva_ui_assign_seats = yes
+	}
+	every_country = {
+		limit = { is_ai = no }
+		geneva_ui_refresh = yes
 	}
 }
