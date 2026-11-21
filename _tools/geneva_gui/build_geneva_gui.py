@@ -52,7 +52,7 @@ EDGE = (72, 72, 72)
 # Sprites that keep their colour; everything else is converted to greyscale.
 COLOUR_SPRITES = ("split_", "swatch_", "st_same", "st_opp", "st_self", "badge_", "stamp_session", "stamp_collapsed",
                   "st_nonneg", "st_contest", "st_mine", "st_agreed", "nonsigne", "banner", "rib_", "btn_",
-                  "por_PQC", "por_LOS", "por_CAM", "chip_", "row_active", "dot_now", "track_fill", "card_mine",
+                  "por_", "chip_", "row_active", "dot_now", "track_fill", "card_mine",
                   "card_target", "card_door", "emblem")
 AMBER = (201, 169, 78)          # colour coding: our position, the tabled option, the current round
 PANEL = (26, 23, 25)            # inner panels, as in the VIE sectarian window
@@ -84,27 +84,31 @@ SHORT_NAMES = {
     "VIE": "State of Vietnam", "VIN": "DR Vietnam", "PRC": "PR China", "LOS": "Laos",
     "CAM": "Cambodia", "LAO": "Pathet Lao", "PQC": "Nationalists",
 }
-# Head-of-delegation portraits (the 1954 delegations where art exists).
+# Head-of-delegation portraits (the 1954 delegations where art exists). Paths
+# are mod-relative, except "portraits/..." which are chair-only source art kept
+# beside this script: they are baked into the chair sprites and never become
+# country-leader portraits.
+PORTRAIT_DIR = Path(__file__).resolve().parent / "portraits"
 PORTRAITS = {
-    "FRA": "gfx/interface/ideas/fra/Georges_Bidault.dds",
+    "FRA": "gfx/leaders/FRA/Prime_Ministers/Georges_Bidault_50s.dds",
     "ENG": "gfx/leaders/ENG/Anthony_Eden_50s.dds",
-    "USA": "gfx/interface/ideas/usa/Walter_Bedell_Smith.dds",
-    "SOV": "gfx/interface/ideas/SOV/Vyacheslav_Molotov.tga",
+    "USA": "portraits/Walter_Bedell_Smith.png",
+    "SOV": "gfx/leaders/SOV/Vyacheslav_Molotov_50s.dds",
     "PRC": "gfx/leaders/PRC/Zhou_Enlai_1955.png",
-    "VIN": "gfx/leaders/VIN/Pham_Van_Dong_old.dds",
-    "VIE": "gfx/leaders/VIE/Nguyen_Phuc_Buu_Loc.dds",
-    "LOS": "gfx/flags/medium/LOS.tga",
-    "CAM": "gfx/flags/medium/CAM.tga",
-    "LAO": "gfx/leaders/LOS/Souphanouvong.dds",
-    "PQC": "gfx/flags/medium/PQC.tga",
+    "VIN": "portraits/Pham_Van_Dong.png",
+    "VIE": "portraits/Tran_Van_Do.png",
+    "LOS": "portraits/Phoui_Sananikone.png",
+    "CAM": "portraits/Tep_Phan.png",
+    "LAO": "portraits/Souphanouvong.png",
+    "PQC": "gfx/leaders/PQC/GENERALS/Vu_Hong_Khanh.dds",
 }
 # Heads of the 1954 delegations, named in each chair's tooltip. The portraits
 # above are these people; delegations without a portrait in the mod show their flag.
 DELEGATES = {
     "FRA": "Georges Bidault", "ENG": "Anthony Eden", "USA": "Walter Bedell Smith",
     "SOV": "Vyacheslav Molotov", "PRC": "Zhou Enlai", "VIN": "Pham Van Dong",
-    "VIE": "Nguyen Phuc Buu Loc", "LOS": "Phoui Sananikone", "CAM": "Tep Phan",
-    "LAO": "Souphanouvong", "PQC": "Nationalist envoys",
+    "VIE": "Tran Van Do", "LOS": "Phoui Sananikone", "CAM": "Tep Phan",
+    "LAO": "Souphanouvong", "PQC": "Vu Hong Khanh",
 }
 
 
@@ -199,14 +203,6 @@ def text_centre(draw, box, text, fnt, fill):
 
 def load_mod_image(rel):
     return Image.open(MOD / rel).convert("RGBA")
-
-
-def sepia(im, amount=0.45):
-    grey = ImageOps.grayscale(im.convert("RGB"))
-    tinted = ImageOps.colorize(grey, (30, 22, 12), (240, 225, 190))
-    out = Image.blend(im.convert("RGB"), tinted, amount)
-    out.putalpha(im.getchannel("A") if im.mode == "RGBA" else 255)
-    return out
 
 
 def noise(size, seed, lo=0, hi=255):
@@ -462,7 +458,10 @@ def draw_sprites(art):
 
     # head-of-delegation portraits
     for tag, rel in PORTRAITS.items():
-        src = load_mod_image(rel)
+        if rel.startswith("portraits/"):
+            src = Image.open(PORTRAIT_DIR / rel.split("/", 1)[1]).convert("RGBA")
+        else:
+            src = load_mod_image(rel)
         if rel.startswith("gfx/flags"):
             p = Image.new("RGBA", (44, 56), (17, 17, 17, 255))
             fl = src.resize((40, int(src.height * 40 / src.width)), Image.LANCZOS)
@@ -474,7 +473,7 @@ def draw_sprites(art):
                 cw = int(src.height * 44 / 56)
                 left = (src.width - cw) // 2
                 src = src.crop((left, 0, left + cw, src.height))
-            p = sepia(src.resize((44, 56), Image.LANCZOS), 0.35)
+            p = src.resize((44, 56), Image.LANCZOS)
         ImageDraw.Draw(p).rectangle((0, 0, 43, 55), outline=(0, 0, 0))
         art.add(f"por_{tag}", p)
 
