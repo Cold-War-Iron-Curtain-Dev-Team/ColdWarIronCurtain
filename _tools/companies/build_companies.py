@@ -8,6 +8,7 @@ CWIC companies (MNC): build + check.
   It (re)writes:  common/scripted_effects/CWIC_MNC_Generated_Effects.txt   (templates.txt)
                   common/ideas/CWIC_Company_Ideas_Generated.txt           (templates_ideas.txt)
                   common/idea_tags/CWIC_Company_Idea_Tags_Generated.txt   (one idea slot per sector)
+                  localisation/english/CWIC_Company_Ideas_l_english.yml   (slot and company idea names)
 
 Adding a company: add a row to companies.csv (key in lower_snake_case, sector one of
 hydrocarbons / mining / agri / manufacturing / electronics, a free CWIC_MNC.1xxx invite event),
@@ -30,6 +31,7 @@ OUTPUTS = [  # (template, generated file)
     ("templates_ideas.txt", os.path.join(MOD, "common/ideas/CWIC_Company_Ideas_Generated.txt")),
 ]
 IDEA_TAGS_OUT = os.path.join(MOD, "common/idea_tags/CWIC_Company_Idea_Tags_Generated.txt")
+OUT_LOC = os.path.join(MOD, "localisation/english/CWIC_Company_Ideas_l_english.yml")
 SECTOR_NAMES = {"hydrocarbons": "Oil", "mining": "Mining", "agri": "Agriculture", "manufacturing": "Manufacturing", "electronics": "Electronics"}
 SECTORS = ("hydrocarbons", "mining", "agri", "manufacturing", "electronics")
 
@@ -102,6 +104,17 @@ def main():
     tags += "\n\t\tledger = civilian\n\n\t\tcost = 25\n\t\tremoval_cost = 0\n\t}\n}\n"
     with open(IDEA_TAGS_OUT, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(tags)
+    loc = ["l_english:", ' foreign_investment: "Foreign Investment"']
+    for sec, nm in SECTOR_NAMES.items():
+        loc.append(' cwic_fi_%s: "%s Partner"' % (sec, nm))
+    for r in rows:
+        sec = SECTOR_NAMES[r["sector"]].lower()
+        loc.append(' cwic_fi_%s: "%s"' % (r["key"], r["name"]))
+        loc.append(' cwic_fi_%s_desc: "Invite §Y%s§! to invest in our %s sector (60 months, 90 day cooldown)."' % (r["key"], r["name"], sec))
+        loc.append(' cwic_fi_%s_concession: "%s (Concession)"' % (r["key"], r["name"]))
+        loc.append(' cwic_fi_%s_concession_desc: "Grant §Y%s§! a concession in our %s sector (84 months, 180 day cooldown)."' % (r["key"], r["name"], sec))
+    with open(OUT_LOC, "w", encoding="utf-8-sig", newline="\n") as fh:
+        fh.write("\n".join(loc) + "\n")
     per_sector = {s: sum(r["sector"] == s for r in rows) for s in SECTORS}
     print("%d companies built %s" % (len(rows), per_sector))
 
