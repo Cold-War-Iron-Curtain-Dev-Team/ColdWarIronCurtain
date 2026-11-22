@@ -26,7 +26,6 @@ MOD = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'Cold War Iron Curtai
 OUTPUTS = [  # (template, generated file)
     ("templates.txt", os.path.join(MOD, "common/scripted_effects/CWIC_MNC_Generated_Effects.txt")),
 ]
-SECTOR_NAMES = {"hydrocarbons": "Oil", "mining": "Mining", "agri": "Agriculture", "manufacturing": "Manufacturing", "electronics": "Electronics"}
 SECTORS = ("hydrocarbons", "mining", "agri", "manufacturing", "electronics")
 
 
@@ -86,7 +85,7 @@ def main():
         duplicates = {key for key in definitions if definitions.count(key) > 1}
         if missing or duplicates:
             sys.exit(f"Incomplete company templates: missing={sorted(missing)}, duplicates={sorted(duplicates)}")
-        with open(out, "w", encoding="utf-8", newline="\r\n") as fh:
+        with open(out, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(text)
     per_sector = {s: sum(r["sector"] == s for r in rows) for s in SECTORS}
     print("%d companies built %s" % (len(rows), per_sector))
