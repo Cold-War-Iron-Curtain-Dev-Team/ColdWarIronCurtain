@@ -2943,3 +2943,161 @@ Money, ideas, flags and company unlocks still apply when the state is lost.
      Hanoi, the delta or the Nung state builds nothing there and adds no
      Hanoi coal; its other effects still apply.
 116. The same focuses with CEFEO owning the state build as before.
+
+## 2026-11-22 run review: 22 Nov AFK run (ran to 1989)
+
+Logs archived in `_local/logs/2026-11-22/`. Log review plus one telemetry
+patch; no engine run this session. The run overshot to 1 Jan 1989; the
+Indochina telemetry retired on schedule (`RETIRED` 5 Aug 1957, 1095
+post-war days), so nothing after 1957 bears on the rework.
+
+- Run arc: Cao Bac clean, Vinh Yen clean, Mao Khe costly, Day River
+  failure, Nghia Lo clean, Hoa Binh clean, Northwest failure (day 100), Na
+  San costly, Northwest Recovery costly, Pathet Lao raid stalemate, Lai
+  Chau costly, Dien Bien Phu clean (launched 17 Apr 1954, day 13), Lower
+  Laos superseded. CEFEO: Bretagne and Camargue superseded, Adolphe and
+  Mouette failure, Hirondelle and Brochet clean, Castor success, Pollux
+  column loss. Post-DBP: briefed 30 Apr, `GENEVA_SOURCE` deferred twice on
+  `VIN_post_DBP_choice_unresolved`, negotiations chosen and invite 25 May,
+  `scripted_Geneva_concluded` 6 Aug 1954 (auto-resolve, source 2). Final
+  margin 794 for the Communist side.
+- Zero `IC_AFK|FAIL`; 80 PASS lines. Every VIN launch passes
+  `VIN_campaign_participant_envelope` and `VIN_campaign_full_armistice`
+  (check 113 holds, including Cao Bac and Mao Khe).
+- error.log (11,348 lines): no line from a rework file. No
+  `relative_focus_id`, `VIN_Events.txt` or `wars_on_actions.txt` lines
+  (checks 91, 101, 114 hold). Adjacent, not rework: `USA tried to declare
+  war on NLF which does not exist` (1964, 1974) from unguarded
+  `declare_war_on` targets in `USA_60s_Diplomatic.txt`, `USA_70s_Diplomacy.txt`
+  and `USA_FP_50s.txt`; USA team's files, not changed. Everything else is
+  unrelated noise (PRC bandit modifiers, border wars, AI commands, JAP,
+  IC_Malaya).
+- Post-war: TAI, TAM, NUN, THO and MEO all report `collapsed` from Oct 1954;
+  NUN postwar ownership logs `1281` owned by VIN. LAO keeps 8 divisions and
+  LOS 14 through 1957. The Geneva Laos clause choice is not logged, so
+  checks 92-100 stay unscored.
+- NLF capitulated to VIE on 13 Aug 1952 with 14 divisions, its capital held
+  and one owned-controlled state, during no VIN campaign. This is the fourth
+  run with a pre-Geneva NLF capitulation (earlier: 2 Jan 1953, 4 Sep 1952,
+  Apr 1954); the logs cannot say whether surrender progress came from lost
+  owned states or a low surrender limit. NLF revives from history on 1 Jan
+  1955 and capitulates again to VIE on 21 Jan 1960 (base content).
+- VIE army cap: at war the cap is 30 and VIE peaks at 31 once (10 Aug 1951,
+  one queued division). After NLF's capitulation VIE is at peace, the
+  generic cap drops to 20, and VIE grows 28 to 33 between Dec 1952 and May
+  1953 while over cap. Check 83 is not proven: the growth may be scripted
+  spawns (73 unit-creating sites in VIE content), not AI recruitment. VIE
+  then drops 33 to 17 in July 1953 (source not logged); the gate itself
+  disbands nothing.
+- Telemetry patch: `ic_afk_nlf_surrender_snapshot` (Indochina_Test_Effects)
+  logs `IC_AFK|NLF_SURRENDER` monthly from `ic_afk_army_cap_sweep`:
+  surrender progress in 10% bands, owned and owned-controlled states,
+  capital held, divisions. Logging only; gameplay unchanged.
+
+Scored this run: 113, 114, 91, 101 hold; 82 holds at war (one division
+over once); 83 inconclusive at peace; 84 holds; 63 not applicable (Geneva
+ending); 81 holds (THO collapsed after Geneva); 92-100, 102-112 and
+115-116 not exercised or not observable from logs.
+
+### Consolidated-playtest checks added
+
+117. Monthly `IC_AFK|NLF_SURRENDER` lines appear while NLF exists. Before
+     any NLF capitulation, read whether `surrender_pct` climbs with
+     `owned_states` above `owned_controlled_states` (lost territory) or
+     with both equal (surrender limit).
+
+## 2026-11-22 patch: Indochina telemetry only in observer or theatre-tag runs
+
+Statically verified only. User report: playing an unrelated country, the
+Indochina AFK logs still flooded the console. Plain `is_ai` checks were
+rejected: the logs run in FRA, VIN, FRE and capitulating-country scopes, so
+`is_ai` on any one tag mutes the wrong runs.
+
+- New trigger `ic_afk_logging_enabled` (Indochina_Theater_Triggers) reads
+  global flag `IC_AFK_Logging_Enabled`. `ic_afk_refresh_logging_flag`
+  (Indochina_Test_Effects) sets it when no country is human-played
+  (observer run) or a human plays a tag in `ic_failsafe_theatre_tag_trigger`
+  (FRA included); it runs at `on_startup` and in the daily FRA tick.
+- `IC_Indochina_AFK_Validation_on_actions.txt`: initialize, the daily
+  tick, the `RETIRED` line, the capitulation and peace-conference hooks
+  run only with the flag. The retirement counter still runs.
+- Every inline `IC_AFK|`, `CEFEO_INTEL|`, `GENEVA_SOURCE|`, `IC_RESPONSE|`
+  and `IC_LAOS_RAID|` log in gameplay files (VIN_Effects 101,
+  FRE_Indochina_Effects 68, Indochina_War decisions 11, VIN_50s 14,
+  CWIC_Geneva_Conference_Effects 9, Indochina_Theater_Effects 9,
+  FRE_50s_Indochina 6, FRE decisions, IC_scripted_effects and
+  FRE_Lower_Laos_Events 1 each) is wrapped in the gate, as are the three
+  validator calls in VIN_Effects (`nlf_resupply_skip`, `vin_severe_cause`,
+  `vin_launch_tick`) and the four `SCORE_WRITE` lines. The traced score
+  totals still accumulate, so turning logging on mid-game keeps
+  `SCORE_UNTRACED` honest. Logging only; gameplay unchanged.
+- Rule for new telemetry: wrap every new Indochina log line or validator
+  call in `if = { limit = { ic_afk_logging_enabled = yes } ... }`.
+
+### Consolidated-playtest checks added
+
+118. Playing an unrelated country (for example USA): no `IC_AFK`,
+     `CEFEO_INTEL`, `GENEVA_SOURCE`, `IC_RESPONSE` or `IC_LAOS_RAID` lines in
+     game.log, and the Indochina war plays out as before.
+119. Observer run and a run as VIN, FRE or FRA: the full telemetry appears,
+     including `IC_AFK|START` and the monthly sweeps.
+
+## 2026-11-22 run review (b): observer run to 1957, NLF root cause
+
+Logs archived in `_local/logs/2026-11-22b/`. Observer run
+(`passive_production_observer`) from 1949 to 13 Mar 1957; log review plus
+static fixes.
+
+- Run arc: Cao Bac failure (day 31), Vinh Yen clean, Mao Khe failure, Day
+  River failure, Nghia Lo clean, Hoa Binh clean (day 105), Northwest clean,
+  Na San costly, Pathet Lao raid stalemate, Dien Bien Phu clean (launched
+  16 Feb 1954, day 12), Lower Laos superseded. CEFEO: Bretagne aborted
+  uncontested, Adolphe, Hirondelle and Brochet clean, Mouette and Castor
+  failure, Camargue superseded. Post-DBP briefed 28 Feb, Geneva deferred
+  twice on the choice latch, negotiations and invite 26 Mar,
+  `scripted_Geneva_concluded` 9 Jun 1954, margin 543.
+- Zero FAIL; 69 PASS. VIN envelope, full armistice and hidden-buff checks
+  pass at all 9 launches (check 113).
+- Check 117, NLF root cause: `NLF_SURRENDER` reads 0% every month from
+  1949 to 3 Dec 1952 with 2 owned and controlled states and 13-14
+  divisions, all in Quang Ngai (`1287`). NLF capitulated to VIE on 15 Dec
+  1952 holding its capital and one state. `1287` had no victory points, so
+  NLF's whole surrender base was the 1 VP in An Xuyen (`1752`, province
+  `4341`), a one-province delta state cut off from Quang Ngai with no NLF
+  units. Losing it was 100% surrender. This explains every pre-Geneva NLF
+  collapse since the 2026-10 runs.
+- Fix (user's choice of three): `1287` gets `victory_points = { 4255 5 }`
+  and the matching `vp_values` entry; `VICTORY_POINTS_4255: "Quang Ngai"`
+  added to `victory_points_l_english.yml`. `4255` is the north-western of
+  the state's two coastal provinces, where the town lies (centroid check on
+  `provinces.bmp`). Losing An Xuyen is now about 17% surrender. The VP
+  persists into later decades (VIE 1973, VIN 1975 owners); Atlante's
+  objective state now carries 5 VP for whoever takes it.
+- Regression from the telemetry gate: `on_startup` has no scope, so
+  `ic_afk_refresh_logging_flag` and the trigger errored once at load and
+  the flag stayed unset until the first daily tick. The startup block now
+  runs inside `FRA = { }`. Telemetry was unaffected (`START` 23 May 1949).
+- `VIN_Effects.txt` `vin_restore_tho_to_french_command`: 9 error lines
+  "Tried to puppet THO while it is already a subject" after the failed Cao
+  Bac. Both FRE branches now skip `puppet` when THO is already a FRE
+  subject; `set_autonomy` still runs.
+- VIE army: flat at 30 against a peacetime cap of 20 from Jan to Oct 1953
+  (no growth, consistent with the gate), then 30 to 45 from Nov 1953 to Oct
+  1955 with an 8-division jump in Apr 1954. Source not logged; check 83
+  stays unproven.
+- error.log otherwise has no rework-file lines; the rest is unrelated
+  noise.
+
+Scored: 113, 117 hold; 119 holds for an observer run (after the startup
+fix the flag is set at load); 81 holds (THO collapsed by Oct 1954); 63 not
+applicable; 118 not tested (observer run).
+
+### Consolidated-playtest checks added
+
+120. `NLF_SURRENDER` shows a nonzero, bounded `surrender_pct` (about 20%)
+     after VIE takes An Xuyen, and NLF survives to Geneva unless it loses
+     Quang Ngai.
+121. The map shows a "Quang Ngai" victory point in state `1287`.
+122. No `IC_Indochina_AFK_Validation_on_actions.txt` or
+     `Indochina_Theater_Triggers.txt` scope errors at load.
+123. A failed Cao Bac logs no "Tried to puppet THO" error.

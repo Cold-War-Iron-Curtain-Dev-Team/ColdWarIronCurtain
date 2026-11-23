@@ -1011,3 +1011,51 @@ plant reward; ledger checks 115-116.
 Next session order:
 1. Score checks 63, 81 and 83-116 in the next run.
 2. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 run review (run overshot to 1989)
+
+Log review of the 22 Nov AFK run plus one telemetry patch; ledger
+"2026-11-22 run review", check 117. The war ended in the Geneva ending on
+6 Aug 1954 through the post-DBP choice latch (negotiations, invite 25 May).
+Zero FAIL lines, no rework-file lines in error.log; checks 81, 91, 101,
+113, 114 hold. The run past 1957 is outside the rework (telemetry retired
+5 Aug 1957). Adjacent: USA foci declare war on a nonexistent NLF in 1964
+and 1974 (USA team's files).
+
+Open: NLF capitulated to VIE on 13 Aug 1952 with 14 divisions and its
+capital, the fourth run with a pre-Geneva NLF collapse. The new monthly
+`IC_AFK|NLF_SURRENDER` line records why. VIE grew from 28 to 33 divisions
+while over its peacetime cap of 20, so check 83 is unproven; the source of
+the growth (AI or scripted spawns) is not logged.
+
+Next session order:
+1. In the next run, read `NLF_SURRENDER` before the NLF capitulation (check
+   117) and decide the NLF fix from it.
+2. Score checks 63, 83, 92-100, 102-112 and 115-116; stop the run soon
+   after 1957.
+3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 patch: telemetry gated to observer and theatre-tag runs
+
+Statically verified only; ledger "Indochina telemetry only in observer or
+theatre-tag runs", checks 118-119. All Indochina log lines and AFK
+validators now run only in an observer run or when a human plays an
+Indochina theatre tag (FRA included), through `ic_afk_logging_enabled`.
+New telemetry must use the same gate.
+Next session order: add checks 118-119 to the list above; run the AFK
+playtest as an observer, or the telemetry stays silent.
+
+## 2026-11-22 run review (b): NLF early-collapse root cause fixed
+
+Observer run to 1957; ledger "2026-11-22 run review (b)", checks 120-123.
+Geneva ending 9 Jun 1954, zero FAILs. The new `NLF_SURRENDER` line showed
+the cause of every early NLF collapse: its capital state Quang Ngai had no
+victory points, so the only VP was cut-off An Xuyen, and losing it meant
+instant capitulation. Quang Ngai now carries 5 VP (user's choice). Also
+fixed: the telemetry gate's startup scope error and a duplicate THO puppet
+after a failed Cao Bac.
+
+Next session order:
+1. Next observer run: score checks 120-123, then 83 and 92-112.
+2. Play one session as an unrelated country and confirm check 118.
+3. Ask the playtester to retry Bretagne as CEFEO.
