@@ -3101,3 +3101,104 @@ applicable; 118 not tested (observer run).
 122. No `IC_Indochina_AFK_Validation_on_actions.txt` or
      `Indochina_Theater_Triggers.txt` scope errors at load.
 123. A failed Cao Bac logs no "Tried to puppet THO" error.
+
+## 2026-11-22 run review (c): observer run with the Quang Ngai VP
+
+Logs archived in `_local/logs/2026-11-22c/`. Observer run to 12 Apr 1957
+on commit `1e7290b510`; log review plus one telemetry patch.
+
+- Run arc: Cao Bac clean (day 12), Vinh Yen clean, Mao Khe failure, Day
+  River failure, Nghia Lo clean, Hoa Binh clean, Northwest clean, Na San
+  clean, Pathet Lao raid stalemate, Dien Bien Phu clean (launched 2 Mar
+  1954, day 12), Lower Laos superseded. CEFEO: Bretagne aborted, Adolphe,
+  Hirondelle and Brochet clean, Mouette failure, Castor success, Pollux
+  column loss. Geneva deferred twice on the choice latch, invite 9 Apr,
+  `scripted_Geneva_concluded` 23 Jun 1954, margin 690. NUN capitulated to
+  VIN on 7 Apr 1951 during Mao Khe.
+- Zero FAIL; 66 PASS. Checks 122 and 123 hold: no startup scope errors, no
+  THO puppet error (Cao Bac was clean, so the restore path did not run).
+  No rework-file lines in error.log.
+- Check 120 fails: NLF capitulated to VIE on 2 Jun 1951, earlier than any
+  previous run, again with 13 divisions, its capital held and one
+  owned-controlled state. Monthly `NLF_SURRENDER` read 0% through 12 May
+  1951. The Quang Ngai VP alone did not stop it, so the 2026-11-22 (b)
+  diagnosis is incomplete: losing An Xuyen (1 of 6 VP) cannot reach the
+  default limit on its own. Either VIE also took province `4255` (the
+  capital check looks at the state, not the VP province) or the
+  capitulation is not VP-driven. Not decided without daily data.
+- VIE army: over its peacetime cap of 20 from Nov 1951 (29 to 37 by May
+  1953), back to 20 by Oct 1953 and 19-20 afterwards. Check 83 still
+  unproven.
+- Telemetry patch (Indochina_Test_Effects): `NLF_SURRENDER` now carries
+  `reason` (1 monthly, 2 change) and `held` bits (1 province `4255`, 2
+  province `1300`, 4 province `4341`). The new
+  `ic_afk_nlf_surrender_watch` runs daily from
+  `ic_afk_validation_daily_tick` and logs whenever the surrender band or a
+  held bit changes. Logging only; behind the existing telemetry gate.
+
+### Consolidated-playtest checks added
+
+124. Before the next NLF capitulation, the `NLF_SURRENDER|reason=2` lines
+     show which of `4255`, `1300` and `4341` fell and in what order, and
+     the surrender band at each step. If the band stays below the limit
+     when NLF capitulates, the cause is not victory points.
+
+## 2026-11-22 run review (d): observer run to 1965, VIE and FUL in the 1960s
+
+Logs in `_local/logs/2026-11-22d/`, save `_local/saves/VIN_1965_03_30_14.hoi4`
+(text format). Observer run to 30 Mar 1965 with the daily NLF watch. Log
+and save review; no script change.
+
+- War: every VIN campaign clean (Cao Bac through Dien Bien Phu), the first
+  run with no costly or failed campaign. CEFEO: Hirondelle clean,
+  Bretagne, Brochet, Mouette and Castor failure, Atlante superseded.
+  `scripted_Geneva_concluded` 9 Jun 1954. Zero FAIL, no rework-file lines
+  in error.log. Watch VIN strength in the next runs before any balance
+  change; one run is not a trend.
+- Check 120 holds and check 124 is answered. `NLF_SURRENDER|reason=2`:
+  An Xuyen fell on 15 Oct 1952 (surrender 30%), progress reached 50% by 19
+  Feb 1954 with nothing else lost, Quang Ngai `4255` fell on 17 Mar 1954
+  (90%), and NLF capitulated to VIE on 18 Mar 1954. The Quang Ngai VP
+  carried NLF to Dien Bien Phu; it now falls only with its capital.
+- Flag for the 1960s Vietnam content (not rework code, not changed):
+  1. FUL is revived in Sep-Oct 1964 by news event `Fulro.1`
+     (`events/Indochina_Flavor_Events.txt`, fired from
+     `IC_scripted_effects.txt` around line 9094). Its immediate block
+     transfers `982` to FUL from whoever owns it. FUL was annexed by VIE in
+     1955 (Decree 21, `VIE_Crown_Domains_Annexed`), so the engine revives the
+     tag with its frozen 1955 state: ruling party monarchism (about 100%),
+     leader `FUL_Bao_Dai` (Bao-Dai), cosmetic tag `FUL_VIE`. The save shows
+     FUL independent, owning only `982`, at peace with VIE. FULRO should be
+     a Montagnard autonomist movement fighting Saigon, not Bao Dai's Crown
+     Domain. The event needs to reset FUL's politics, leader and cosmetic
+     tag before the transfer (and decide whether it starts a war with VIE).
+  2. VIE is a USA subject (`autonomy_associated_state`, freedom 0.5) from
+     15 Aug 1964, set by `USA_60s_The_Gulf_of_Tonkin_Incident`'s follow-up
+     focus in `USA_60s_Diplomatic.txt` (around line 2200). The same reward
+     declares war on NLF, which fails because NLF capitulated again on 15
+     Dec 1960 (`USA tried to declare war on NLF which does not exist`). The
+     Vietnam War therefore starts with no enemy. Whether the USA team wants
+     VIE as a subject at all is their call; the missing NLF is the blocker.
+  Both belong to the 1960s Vietnam and USA owners, not to this rework.
+
+## 2026-11-23 patch: Fulro.1 revives FUL as FULRO
+
+Statically verified only. On the user's call, item 1 of the 2026-11-22 (d)
+flags is fixed here. `Fulro.1` (`events/Indochina_Flavor_Events.txt`) now,
+in FUL scope right after `transfer_state = 982`: drops the cosmetic tag and
+sets `MOT_FUL` (loc "United Front for the Liberation of Oppressed Races",
+already in `Indochina_minorities_misc_l_english.yml`), removes
+`State_of_Vietnam_Faction`, removes the `FUL_Bao_Dai` monarchist and
+`FUL_Leon_Pignon` leader roles, sets nationalist popularity to 100 and
+ruling party, names the party FULRO and promotes `FUL_Ya_Duck` as
+ethnic_nationalism leader. This mirrors FUL's 1980 history setup. No war
+with VIE is started; FULRO stays an independent state holding `982` as
+before. The USA Gulf of Tonkin item (VIE subject, war on a missing NLF) is
+left to the USA owners. The user dropped the USA session, so check 118 is
+retired unscored.
+
+### Consolidated-playtest checks added
+
+125. After `Fulro.1` (Sep-Oct 1964) FUL is named the United Front for the
+     Liberation of Oppressed Races, led by Ya Duck, nationalist, with no
+     Bao Dai leader and no `Fulro.1` lines in error.log.

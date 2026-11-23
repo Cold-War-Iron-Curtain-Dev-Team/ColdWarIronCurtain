@@ -1059,3 +1059,53 @@ Next session order:
 1. Next observer run: score checks 120-123, then 83 and 92-112.
 2. Play one session as an unrelated country and confirm check 118.
 3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 run review (c): Quang Ngai VP did not stop the NLF collapse
+
+Observer run to 1957 on `1e7290b510`; ledger "2026-11-22 run review (c)",
+check 124. Geneva ending 23 Jun 1954, zero FAILs, no rework errors; checks
+122-123 hold. NLF still capitulated to VIE on 2 Jun 1951 with its capital
+and 13 divisions, so check 120 fails and the VP diagnosis is incomplete.
+`NLF_SURRENDER` now logs daily on any change, with control of Quang Ngai
+(`4255`, `1300`) and An Xuyen (`4341`).
+
+Next session order:
+1. USA session: check 118.
+2. Next observer run: read the `NLF_SURRENDER|reason=2` lines before the
+   NLF capitulation (check 124) and pick the fix from them.
+3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 run review (d): NLF fix confirmed, 1960s VIE/FUL flagged
+
+Observer run to 1965; ledger "2026-11-22 run review (d)". Geneva 9 Jun
+1954, zero FAILs, no rework errors. Check 120 holds: NLF lost An Xuyen in
+Oct 1952 and survived to 18 Mar 1954, capitulating only when Quang Ngai
+fell. Every VIN campaign was clean this run; watch VIN strength.
+
+Flagged for the 1960s Vietnam and USA owners, not changed here: the 1964
+`Fulro.1` news event revives FUL with its frozen 1955 politics (Bao Dai,
+monarchism, `FUL_VIE` cosmetic tag), independent and at peace with VIE.
+The USA Gulf of Tonkin focus line makes VIE a USA associated state and
+declares war on an NLF that no longer exists (it capitulated again in
+Dec 1960), so the Vietnam War starts without an enemy.
+
+Next session order:
+1. USA session: check 118.
+2. Hand the two 1960s items above to their owners, or get the user's call
+   on fixing `Fulro.1` here.
+3. One more observer run to see whether VIN's all-clean campaigns repeat.
+4. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-23 patch: Fulro.1 gives a revived FUL the FULRO identity
+
+Statically verified only; ledger "Fulro.1 revives FUL as FULRO", check 125.
+The 1964 event now resets FUL's cosmetic tag, party, popularity and leader
+(Ya Duck) instead of reviving Bao Dai's Crown Domain. Check 118 is dropped
+at the user's request.
+
+Next session order:
+1. Next observer run to 1965: score check 125 and see whether VIN's
+   all-clean campaigns repeat.
+2. Hand the USA Gulf of Tonkin item (VIE subject, war on a missing NLF) to
+   the USA owners.
+3. Ask the playtester to retry Bretagne as CEFEO.
