@@ -3259,3 +3259,39 @@ Statically verified only. User requests on the 2026-11-22 (d) flags.
 128. No `STRUGGLE_INDO_*_LEVEL_11`, `jungle_cell_present`,
      `red_guard_militia_present`, `HUK_disrupted_control_modifier`,
      `MAL_emergency_ai_target` or `BRU_sultan.4` lines in error.log.
+
+## 2026-11-23 patch: 1960s Vietnam War compatibility, victory super events
+
+Statically verified only.
+
+- Why the USA declared war on a missing NLF: the 1960s chain is
+  `NLF_Flavor.1` (VIE, June 1958, `events/Vietnam.txt`) reviving NLF with
+  `1286` and `NLF_1960` OOB, then `tonkin.1` (USA, Aug 1964, needs only VIN
+  and VIE) completing `USA_60s_Begin_The_Vietnam_War`, which declares war on
+  NLF. Since the rework, Geneva annexes NLF into VIE, so the 1958 revival is
+  NLF's only source; with one cut-off state it capitulated to VIE in Dec
+  1960 (run d) and the 1964 war had no enemy.
+- New `indochina_nlf_insurgency_revive` (Indochina_Theater_Effects): when
+  VIE exists, NLF takes `1286` and `1287` from VIE (capital `1287`), gets
+  `The_Vietnam_War_NLF`, declares war on VIE, and loads `NLF_1960` only when
+  newly created. `NLF_Flavor.1` uses it. The 60s Begin the Vietnam War and
+  70s war-restart foci revive NLF the same way if it is gone, then declare
+  war only on an existing NLF not already at war. `white_peace = NLF` in the
+  60s Vietnamization and 70s Paris Peace foci and the 1954 Direct
+  Intervention war on NLF (`USA_FP_50s`) are guarded.
+- Victory super events 7 and 8 (North/South Vietnam First Indochina War
+  victory: GUI art, loc, music all present) were defined but never called.
+  `indochina_struggle_communist_victory` now plays 7 and
+  `indochina_struggle_southern_victory` plays 8, once per game
+  (`indochina_victory_super_event_shown`). All decisive-result routes
+  (failsafe, GUI ending buttons, VIE capitulation on_action) go through
+  these two effects.
+
+### Consolidated-playtest checks added
+
+129. June 1958: NLF holds Upper Trung Phan Highland and Quang Ngai, capital
+     Quang Ngai, at war with VIE.
+130. Aug 1964: if NLF is gone, Begin the Vietnam War revives it; no "USA
+     tried to declare war on NLF" line in error.log.
+131. A Communist victory ending shows the "Reunification of Vietnam" North
+     super event; a southern victory shows the South one; never both.

@@ -1126,3 +1126,12 @@ Next session order:
 2. Commission a Y Bham Enuol portrait.
 3. Hand the USA war on a missing NLF to the USA owners.
 4. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-23 patch: 1960s Vietnam War hook, victory super events
+
+Statically verified only; ledger checks 129-131. NLF's 1958 revival now
+takes two states, and the 1964 and 1970s US war foci revive NLF if it is
+gone instead of declaring war on nothing. The First Indochina War North and
+South victory super events, defined but never called, now play on the
+Communist and southern victory endings.
+Next session order: add checks 129-131 to the observer-run list.
