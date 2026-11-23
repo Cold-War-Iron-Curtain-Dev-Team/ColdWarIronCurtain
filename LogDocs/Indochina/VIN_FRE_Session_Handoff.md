@@ -1011,3 +1011,127 @@ plant reward; ledger checks 115-116.
 Next session order:
 1. Score checks 63, 81 and 83-116 in the next run.
 2. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 run review (run overshot to 1989)
+
+Log review of the 22 Nov AFK run plus one telemetry patch; ledger
+"2026-11-22 run review", check 117. The war ended in the Geneva ending on
+6 Aug 1954 through the post-DBP choice latch (negotiations, invite 25 May).
+Zero FAIL lines, no rework-file lines in error.log; checks 81, 91, 101,
+113, 114 hold. The run past 1957 is outside the rework (telemetry retired
+5 Aug 1957). Adjacent: USA foci declare war on a nonexistent NLF in 1964
+and 1974 (USA team's files).
+
+Open: NLF capitulated to VIE on 13 Aug 1952 with 14 divisions and its
+capital, the fourth run with a pre-Geneva NLF collapse. The new monthly
+`IC_AFK|NLF_SURRENDER` line records why. VIE grew from 28 to 33 divisions
+while over its peacetime cap of 20, so check 83 is unproven; the source of
+the growth (AI or scripted spawns) is not logged.
+
+Next session order:
+1. In the next run, read `NLF_SURRENDER` before the NLF capitulation (check
+   117) and decide the NLF fix from it.
+2. Score checks 63, 83, 92-100, 102-112 and 115-116; stop the run soon
+   after 1957.
+3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 patch: telemetry gated to observer and theatre-tag runs
+
+Statically verified only; ledger "Indochina telemetry only in observer or
+theatre-tag runs", checks 118-119. All Indochina log lines and AFK
+validators now run only in an observer run or when a human plays an
+Indochina theatre tag (FRA included), through `ic_afk_logging_enabled`.
+New telemetry must use the same gate.
+Next session order: add checks 118-119 to the list above; run the AFK
+playtest as an observer, or the telemetry stays silent.
+
+## 2026-11-22 run review (b): NLF early-collapse root cause fixed
+
+Observer run to 1957; ledger "2026-11-22 run review (b)", checks 120-123.
+Geneva ending 9 Jun 1954, zero FAILs. The new `NLF_SURRENDER` line showed
+the cause of every early NLF collapse: its capital state Quang Ngai had no
+victory points, so the only VP was cut-off An Xuyen, and losing it meant
+instant capitulation. Quang Ngai now carries 5 VP (user's choice). Also
+fixed: the telemetry gate's startup scope error and a duplicate THO puppet
+after a failed Cao Bac.
+
+Next session order:
+1. Next observer run: score checks 120-123, then 83 and 92-112.
+2. Play one session as an unrelated country and confirm check 118.
+3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 run review (c): Quang Ngai VP did not stop the NLF collapse
+
+Observer run to 1957 on `1e7290b510`; ledger "2026-11-22 run review (c)",
+check 124. Geneva ending 23 Jun 1954, zero FAILs, no rework errors; checks
+122-123 hold. NLF still capitulated to VIE on 2 Jun 1951 with its capital
+and 13 divisions, so check 120 fails and the VP diagnosis is incomplete.
+`NLF_SURRENDER` now logs daily on any change, with control of Quang Ngai
+(`4255`, `1300`) and An Xuyen (`4341`).
+
+Next session order:
+1. USA session: check 118.
+2. Next observer run: read the `NLF_SURRENDER|reason=2` lines before the
+   NLF capitulation (check 124) and pick the fix from them.
+3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-22 run review (d): NLF fix confirmed, 1960s VIE/FUL flagged
+
+Observer run to 1965; ledger "2026-11-22 run review (d)". Geneva 9 Jun
+1954, zero FAILs, no rework errors. Check 120 holds: NLF lost An Xuyen in
+Oct 1952 and survived to 18 Mar 1954, capitulating only when Quang Ngai
+fell. Every VIN campaign was clean this run; watch VIN strength.
+
+Flagged for the 1960s Vietnam and USA owners, not changed here: the 1964
+`Fulro.1` news event revives FUL with its frozen 1955 politics (Bao Dai,
+monarchism, `FUL_VIE` cosmetic tag), independent and at peace with VIE.
+The USA Gulf of Tonkin focus line makes VIE a USA associated state and
+declares war on an NLF that no longer exists (it capitulated again in
+Dec 1960), so the Vietnam War starts without an enemy.
+
+Next session order:
+1. USA session: check 118.
+2. Hand the two 1960s items above to their owners, or get the user's call
+   on fixing `Fulro.1` here.
+3. One more observer run to see whether VIN's all-clean campaigns repeat.
+4. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-23 patch: Fulro.1 gives a revived FUL the FULRO identity
+
+Statically verified only; ledger "Fulro.1 revives FUL as FULRO", check 125.
+The 1964 event now resets FUL's cosmetic tag, party, popularity and leader
+(Ya Duck) instead of reviving Bao Dai's Crown Domain. Check 118 is dropped
+at the user's request.
+
+Next session order:
+1. Next observer run to 1965: score check 125 and see whether VIN's
+   all-clean campaigns repeat.
+2. Hand the USA Gulf of Tonkin item (VIE subject, war on a missing NLF) to
+   the USA owners.
+3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-23 patch: VIE subject politics, FULRO war, runtime errors
+
+Statically verified only; ledger "VIE subject politics, FULRO war,
+runtime errors", checks 126-128. `keep_current_politics` fixed (missing
+Liberal_Conservatism restore, stale flags) and now protects VIE before the
+USA and federal-Vietnam autonomy changes. `Fulro.1` now promotes the new
+Y Bham Enuol character (portrait still needed), spawns three FULRO
+divisions and starts a VIE war. The hourly phase-11 struggle idea errors
+and five Southeast Asia runtime errors are fixed. Script comments added
+this session were removed per GOTCHAS.
+
+Next session order:
+1. Observer run to 1965: score checks 125-128.
+2. Commission a Y Bham Enuol portrait.
+3. Hand the USA war on a missing NLF to the USA owners.
+4. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-23 patch: 1960s Vietnam War hook, victory super events
+
+Statically verified only; ledger checks 129-131. NLF's 1958 revival now
+takes two states, and the 1964 and 1970s US war foci revive NLF if it is
+gone instead of declaring war on nothing. The First Indochina War North and
+South victory super events, defined but never called, now play on the
+Communist and southern victory endings.
+Next session order: add checks 129-131 to the observer-run list.
