@@ -3295,3 +3295,12 @@ Statically verified only.
      tried to declare war on NLF" line in error.log.
 131. A Communist victory ending shows the "Reunification of Vietnam" North
      super event; a southern victory shows the South one; never both.
+
+### Follow-up (same day): super events after the news event
+
+On the user's preference the victory super events no longer fire inside the
+ending effects. They play from the option of `Indochina_Struggle_Ending.1`
+(North) and `.2` (South) in `events/Indochina_War_Rework.txt`, for a human
+player only and once per game, so the news event shows first and the super
+event follows the click. Check 131 now reads: the super event appears only
+after the ending news event's button is clicked.
