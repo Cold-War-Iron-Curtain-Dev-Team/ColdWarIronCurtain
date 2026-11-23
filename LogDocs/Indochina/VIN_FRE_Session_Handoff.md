@@ -1109,3 +1109,20 @@ Next session order:
 2. Hand the USA Gulf of Tonkin item (VIE subject, war on a missing NLF) to
    the USA owners.
 3. Ask the playtester to retry Bretagne as CEFEO.
+
+## 2026-11-23 patch: VIE subject politics, FULRO war, runtime errors
+
+Statically verified only; ledger "VIE subject politics, FULRO war,
+runtime errors", checks 126-128. `keep_current_politics` fixed (missing
+Liberal_Conservatism restore, stale flags) and now protects VIE before the
+USA and federal-Vietnam autonomy changes. `Fulro.1` now promotes the new
+Y Bham Enuol character (portrait still needed), spawns three FULRO
+divisions and starts a VIE war. The hourly phase-11 struggle idea errors
+and five Southeast Asia runtime errors are fixed. Script comments added
+this session were removed per GOTCHAS.
+
+Next session order:
+1. Observer run to 1965: score checks 125-128.
+2. Commission a Y Bham Enuol portrait.
+3. Hand the USA war on a missing NLF to the USA owners.
+4. Ask the playtester to retry Bretagne as CEFEO.

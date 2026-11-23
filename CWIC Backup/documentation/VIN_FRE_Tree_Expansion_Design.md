@@ -3202,3 +3202,60 @@ retired unscored.
 125. After `Fulro.1` (Sep-Oct 1964) FUL is named the United Front for the
      Liberation of Oppressed Races, led by Ya Duck, nationalist, with no
      Bao Dai leader and no `Fulro.1` lines in error.log.
+
+## 2026-11-23 patch: VIE subject politics, FULRO war, runtime errors
+
+Statically verified only. User requests on the 2026-11-22 (d) flags.
+
+- Puppeting reset Saigon's politics: the save shows VIE ruling
+  Social_Democratic at 60% with every other party flattened to 2.35%, the
+  engine's puppet signature (USA rules Social_Democratic). The fix uses the
+  existing `keep_current_politics` (FRA_scripted_effects) and its restore
+  event `keep_government.1` (events/France.txt). Both had bugs:
+  `was_Liberal_Conservatism` was saved and cleared but never restored, and
+  `was_*` flags from an earlier call were never cleared, so a second call
+  could restore the wrong party. Both are fixed. `VIE = {
+  keep_current_politics = yes }` now runs before VIE becomes a subject in
+  the USA 60s Gulf of Tonkin follow-up focus, the USA 70s war-restart focus
+  (both only when VIE is not already a USA subject) and
+  `indochina_struggle_federal_vietnam` (only when VIE is not already a FRA
+  subject). The leader follows the restored ruling party.
+- FULRO: new character `FUL_Y_Bham_Enuol` ("Y Bham Enuol", placeholder
+  portrait `GFX_CWIC_generic_placeholder`, portrait still needed) is
+  recruited and promoted as the ethnic_nationalism leader in `Fulro.1`,
+  replacing Ya Duck (who keeps the 1980 history role). `Fulro.1` also
+  creates a "FULRO Strike Force" template (3 infantry), three divisions at
+  province `1605` (Ban Me Thuot), 1500 infantry equipment, and, when VIE
+  owned `982`, VIE declares an annex_everything war on FUL, matching the
+  September 1964 rising against Saigon.
+- error.log (run d) fixes:
+  - `STRUGGLE_INDO_*_LEVEL_11 is not associated with any idea` (8348
+    lines, hourly from 18 Mar 1954): phase 11 has no struggle ideas (levels
+    3-8 exist). The struggle GUI tooltips in `CWIC_Struggle.txt` and
+    `indochina_struggle_starting_idea_phase_change` now build the idea
+    tokens only for phases 3-8.
+  - `IC_Malaya_Effects.txt` (jungle_cell_present, red_guard_militia_present)
+    and `events/Philippines.txt` (HUK_disrupted_control_modifier):
+    `remove_dynamic_modifier` now checks `has_dynamic_modifier` first.
+  - `MLA_scripted_effects.txt` AI log: `[event_target:X.GetName]` gave
+    "Unknown promotion"; now `[MAL_emergency_ai_target.GetName]`.
+  - `events/Brunei.txt` `BRU_sultan.5`: removed the three calls to the
+    nonexistent `BRU_sultan.4`.
+  - Left alone (not a clean fix): PRC bandit modifiers, Brunei
+    `promote_character` on a retired character, BRM strategy plan focuses
+    living in `national_focus/Need Fix/`, INO and Congo `create_unit`
+    templates, USA declaring war on a missing NLF.
+- Comments: per GOTCHAS ("No comments"), every script comment added this
+  session was removed.
+
+### Consolidated-playtest checks added
+
+126. After the Gulf of Tonkin focus VIE keeps its pre-puppet ruling party,
+     leader and popularities (the hidden `keep_government.1` fires an hour
+     later).
+127. `Fulro.1`: FUL is led by Y Bham Enuol with placeholder portrait, has
+     three FULRO Strike Force divisions at Ban Me Thuot, and is at war with
+     VIE.
+128. No `STRUGGLE_INDO_*_LEVEL_11`, `jungle_cell_present`,
+     `red_guard_militia_present`, `HUK_disrupted_control_modifier`,
+     `MAL_emergency_ai_target` or `BRU_sultan.4` lines in error.log.
