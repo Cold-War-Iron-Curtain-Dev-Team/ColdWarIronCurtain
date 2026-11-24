@@ -170,6 +170,9 @@ NDefines.NAI.DIPLOMACY_SCARED_MINOR_EXTRA_RELUCTANCE = -50 -- extra reluctance t
 NDefines.NAI.DIPLOMACY_BOOST_PARTY_COST_FACTOR = 0.0	-- Desire to boost party popularity subtracts the daily cost multiplied by this
 NDefines.NAI.DIPLOMACY_IMPROVE_RELATION_COST_FACTOR = 0.0-- Desire to boost relations subtracts the cost multiplied by this
 NDefines.NAI.DIPLOMACY_IMPROVE_RELATION_PP_FACTOR = 0.0	-- Desire to boost relations adds total PP multiplied by this
+NDefines.NAI.DIVISION_UPGRADE_MIN_XP = 9999999
+NDefines.NAI.DIVISION_CREATE_MIN_XP = 9999999
+NDefines.NAI.VARIANT_UPGRADE_MIN_XP = 9999999
 NDefines.NAI.MAX_AHEAD_RESEARCH_PENALTY = 2 -- vanilla 3; max ahead-of-time penalty the AI will consider (was 0)
 NDefines.NAI.RESEARCH_AHEAD_OF_TIME_FACTOR = 4.0 -- vanilla 4.0; was 9999999 which stopped the AI researching anything ahead of time
 
