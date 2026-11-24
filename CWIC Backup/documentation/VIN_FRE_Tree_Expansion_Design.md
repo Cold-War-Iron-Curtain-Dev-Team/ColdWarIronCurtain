@@ -3304,3 +3304,47 @@ ending effects. They play from the option of `Indochina_Struggle_Ending.1`
 player only and once per game, so the news event shows first and the super
 event follows the click. Check 131 now reads: the super event appears only
 after the ending news event's button is clicked.
+
+## 2026-11-24 review: Burma run 1949-1962, Indochina side effects
+
+Logs `_local/logs/2026-11-24/`, save `_local/saves/burma1962.hoi4` (player
+BRM). Indochina: Geneva concluded 2 Aug 1954; NLF capitulated 19 May 1954
+and, after the June 1958 revival, again on 23 Sep 1958. Statically verified
+fixes.
+
+- Diem never took power: `VIE_Buu_Loc_Resign` (fires `VIE_PMs.5`, which
+  reopens the premiership Diem's appointment needs) had two separate
+  prerequisite blocks for the mutually exclusive
+  `VIE_Buu_Loc_Accept_Northern_Communist_Victory` and
+  `VIE_Buu_Loc_Host_Victory_Parade`, so it was never available after a
+  Geneva settlement. Buu Loc stayed PM, the AI took the 1955 Grand Election
+  without Diem (Diem.31, monarchy confirmed) and flew Bao Dai out, leaving
+  VIE on `empty_focus`. Merged into one OR prerequisite. A scan of all live
+  focus trees found the same impossible AND in five more trees, fixed the
+  same way: FRA `FRA_Fund_South_Korean_Reconstruction`,
+  `FRA_Settle_Malayans_South_Vietnam`, `FRA_Funding_Malayan_Reconstruction`,
+  `FRA_Recognize_Sarawak_Borneo`; SIA `SIA_Abide_to_UNs_Human_Rights_Declaration`.
+  Out-of-tree drafts (FOR HOTFIX, Need Finished) were left alone.
+- NLF 1958 revival: `NLF_1960` OOB units at province `1400` (state `982`,
+  VIE) were placed in enemy territory, and NLF lost both states in three
+  months. `indochina_nlf_insurgency_revive` now takes control of `1400`
+  before loading the OOB, and `The_Vietnam_War_NLF`
+  (New_Ideologies_Ideas) gains `surrender_limit = 0.5`, so the insurgency
+  survives to the 1964 US intervention unless it is wiped out.
+- Ha Giang in the Tai-Meo region: by design, `vin_establish_tai_meo_region`
+  includes `1767` (it also anchors the 1959 MEO.18 rising). Historically the
+  1955 Thai-Meo Autonomous Zone covered Lai Chau, Son La and Nghia Lo; Ha
+  Giang went to the 1956 Viet Bac region. Not changed; user decision.
+- Burma draw.io plan cross-check (`~/Downloads/Burma Focus Tree.drawio`,
+  181 nodes, 95 marked new): every plan focus has a counterpart id in
+  `MYR_50s.txt`, including the Indochina, Korea and Malaya intervention
+  branches, which already guard on `country_exists`.
+
+### Consolidated-playtest checks added
+
+132. Post-Geneva VIE: Buu Loc resigns, Diem becomes PM and the Diem
+     branch (referendum, republic) runs; VIE keeps its focus tree.
+133. The fixed FRA and SIA focuses become available after either of their
+     exclusive parents.
+134. June 1958: no "Viet Cong ... placed in 1400 ... enemy territory"
+     lines; NLF still exists in 1964.
