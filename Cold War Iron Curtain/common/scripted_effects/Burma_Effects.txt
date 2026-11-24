@@ -292,6 +292,10 @@ BUR_kmt_pulse = {
 		set_variable = { global.BUR_status^11 = 0 }
 		set_variable = { global.BUR_strength^11 = 150 }
 		set_global_flag = BUR_kmt_spawned
+		if = {
+			limit = { BUR_logging_on = yes }
+			log = "BUR_AFK|KMT_SPAWN|day=[?global.num_days]"
+		}
 	}
 	else_if = {
 		limit = {
@@ -492,6 +496,10 @@ BUR_set_idx_from_tag = {
 }
 
 BUR_declare_war_on_group = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|WAR|day=[?global.num_days]|group=[?BUR_idx]"
+	}
 	if = {
 		limit = { country_exists = BRM }
 		BRM = {
@@ -1020,6 +1028,10 @@ BUR_capitulation_casualties = {
 }
 
 BUR_capitulation_brm_wins = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|CAPITULATION|day=[?global.num_days]|winner=BRM|group=[?BUR_idx]"
+	}
 	BUR_white_peace_group = yes
 	set_temp_variable = { BUR_d_str = -150 }
 	set_temp_variable = { BUR_d_burm = 10 }
@@ -1044,6 +1056,10 @@ BUR_capitulation_brm_wins = {
 }
 
 BUR_capitulation_group_wins = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|CAPITULATION|day=[?global.num_days]|winner=group|group=[?BUR_idx]"
+	}
 	BUR_white_peace_group = yes
 	set_temp_variable = { BUR_d_str = 150 }
 	set_temp_variable = { BUR_d_burm = -5 }
@@ -1066,6 +1082,10 @@ BUR_capitulation_group_wins = {
 }
 
 BUR_resolve_integrate = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|RESOLVE|day=[?global.num_days]|kind=integrate|group=[?BUR_idx]"
+	}
 	set_variable = { global.BUR_status^BUR_idx = 1 }
 	BUR_white_peace_group = yes
 	BUR_annex_group = yes
@@ -1075,6 +1095,10 @@ BUR_resolve_integrate = {
 }
 
 BUR_resolve_autonomy = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|RESOLVE|day=[?global.num_days]|kind=autonomy|group=[?BUR_idx]"
+	}
 	set_variable = { global.BUR_status^BUR_idx = 3 }
 	BUR_white_peace_group = yes
 	BUR_puppet_group = yes
@@ -1084,6 +1108,10 @@ BUR_resolve_autonomy = {
 }
 
 BUR_resolve_subjugate = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|RESOLVE|day=[?global.num_days]|kind=subjugate|group=[?BUR_idx]"
+	}
 	set_variable = { global.BUR_status^BUR_idx = 2 }
 	BUR_white_peace_group = yes
 	BUR_annex_group = yes
@@ -1162,6 +1190,10 @@ BUR_war_full_civil_war = {
 }
 
 BUR_on_phase_changed = {
+	if = {
+		limit = { BUR_logging_on = yes has_global_flag = BUR_phase_changed }
+		log = "BUR_AFK|PHASE|day=[?global.num_days]|phase=[?global.BUR_phase]"
+	}
 	if = {
 		limit = {
 			check_variable = { global.BUR_phase = 1 }
@@ -1284,6 +1316,10 @@ BUR_fire_ending_news = {
 BUR_end_struggle_common = {
 	if = {
 		limit = { NOT = { has_global_flag = BUR_struggle_ended } }
+		if = {
+			limit = { BUR_logging_on = yes }
+			log = "BUR_AFK|ENDING|day=[?global.num_days]|ending=[?BUR_end_id]"
+		}
 		set_variable = { global.BUR_ending_taken = BUR_end_id }
 		set_variable = { global.BUR_ending_available = BUR_end_id }
 		set_global_flag = BUR_struggle_ended
@@ -1565,4 +1601,184 @@ BUR_action_frontier = {
 	set_temp_variable = { BUR_d_friend = 5 }
 	BUR_apply_group_delta = yes
 	add_to_variable = { global.BUR_deescalation = 10 }
+}
+
+BUR_ai_pick_strongest = {
+	set_temp_variable = { BUR_ai_t = 0 }
+	set_temp_variable = { BUR_ai_best = -1 }
+	for_loop_effect = {
+		start = 1
+		end = 13
+		value = BUR_i
+		if = {
+			limit = {
+				check_variable = { global.BUR_status^BUR_i = 0 }
+				check_variable = { global.BUR_strength^BUR_i > BUR_ai_best }
+				NOT = {
+					AND = {
+						check_variable = { BUR_i = 11 }
+						BUR_route_kmt = yes
+					}
+				}
+			}
+			set_temp_variable = { BUR_ai_t = BUR_i }
+			set_temp_variable = { BUR_ai_best = global.BUR_strength^BUR_i }
+		}
+	}
+}
+
+BUR_ai_pick_friendliest = {
+	set_temp_variable = { BUR_ai_t = 0 }
+	set_temp_variable = { BUR_ai_best = -1 }
+	for_loop_effect = {
+		start = 2
+		end = 13
+		value = BUR_i
+		if = {
+			limit = {
+				NOT = { check_variable = { BUR_i = 11 } }
+				check_variable = { global.BUR_status^BUR_i = 0 }
+				check_variable = { global.BUR_friendliness^BUR_i > BUR_ai_best }
+			}
+			set_temp_variable = { BUR_ai_t = BUR_i }
+			set_temp_variable = { BUR_ai_best = global.BUR_friendliness^BUR_i }
+		}
+	}
+}
+
+BUR_ai_run_action = {
+	set_temp_variable = { BUR_ai_prev = global.BUR_selected_group }
+	set_variable = { global.BUR_selected_group = BUR_ai_t }
+	if = {
+		limit = { check_variable = { BUR_ai_act = 1 } }
+		BUR_action_dialogue = yes
+	}
+	else_if = {
+		limit = { check_variable = { BUR_ai_act = 2 } }
+		BUR_action_amnesty = yes
+	}
+	else_if = {
+		limit = { check_variable = { BUR_ai_act = 3 } }
+		BUR_action_burmanize = yes
+	}
+	else_if = {
+		limit = { check_variable = { BUR_ai_act = 4 } }
+		BUR_action_sweep = yes
+	}
+	else_if = {
+		limit = { check_variable = { BUR_ai_act = 5 } }
+		BUR_action_frontier = yes
+	}
+	set_variable = { global.BUR_selected_group = BUR_ai_prev }
+	BUR_clamp_meters = yes
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|AI_ACTION|day=[?global.num_days]|action=[?BUR_ai_act]|group=[?BUR_ai_t]|str=[?global.BUR_strength^BUR_ai_t]|friend=[?global.BUR_friendliness^BUR_ai_t]|burm=[?global.BUR_burmanization^BUR_ai_t]"
+	}
+}
+
+BUR_ai_pulse_brm = {
+	set_temp_variable = { BUR_ai_act = 0 }
+	if = {
+		limit = { BUR_route_brm_passive = yes }
+		if = {
+			limit = { BUR_logging_on = yes }
+			log = "BUR_AFK|AI_PASSIVE|day=[?global.num_days]"
+		}
+	}
+	else_if = {
+		limit = { BUR_route_federal = yes }
+		BUR_ai_pick_friendliest = yes
+		if = {
+			limit = { check_variable = { BUR_ai_t > 0 } }
+			set_temp_variable = { BUR_idx = BUR_ai_t }
+			if = {
+				limit = { BUR_group_can_integrate = yes }
+				BUR_resolve_integrate = yes
+			}
+			else_if = {
+				limit = { BUR_group_can_autonomy = yes }
+				BUR_resolve_autonomy = yes
+			}
+			else_if = {
+				limit = {
+					has_political_power > 49
+					check_variable = { global.num_days > global.BUR_cd_dialogue^BUR_idx }
+				}
+				set_temp_variable = { BUR_ai_act = 1 }
+			}
+			else_if = {
+				limit = {
+					has_political_power > 99
+					check_variable = { global.num_days > global.BUR_cd_frontier^BUR_idx }
+				}
+				set_temp_variable = { BUR_ai_act = 5 }
+			}
+			else_if = {
+				limit = {
+					has_political_power > 74
+					check_variable = { global.BUR_friendliness^BUR_idx > 19 }
+					check_variable = { global.num_days > global.BUR_cd_amnesty^BUR_idx }
+				}
+				set_temp_variable = { BUR_ai_act = 2 }
+			}
+		}
+	}
+	else = {
+		BUR_ai_pick_strongest = yes
+		if = {
+			limit = { check_variable = { BUR_ai_t > 0 } }
+			set_temp_variable = { BUR_idx = BUR_ai_t }
+			if = {
+				limit = {
+					NOT = { BUR_route_historical = yes }
+					BUR_group_can_subjugate = yes
+				}
+				BUR_resolve_subjugate = yes
+			}
+			else_if = {
+				limit = {
+					command_power > 9
+					has_manpower > 1999
+					check_variable = { global.num_days > global.BUR_cd_sweep^BUR_idx }
+				}
+				set_temp_variable = { BUR_ai_act = 4 }
+			}
+			else_if = {
+				limit = {
+					NOT = { BUR_route_historical = yes }
+					check_variable = { BUR_ai_t < 11 }
+					has_political_power > 49
+					check_variable = { global.num_days > global.BUR_cd_burmanize^BUR_idx }
+				}
+				set_temp_variable = { BUR_ai_act = 3 }
+			}
+		}
+	}
+	if = {
+		limit = { check_variable = { BUR_ai_act > 0 } }
+		BUR_ai_run_action = yes
+	}
+}
+
+BUR_log_month = {
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|MONTH|day=[?global.num_days]|active=[?global.BUR_struggle_active]|phase=[?global.BUR_phase]|deesc=[?global.BUR_deescalation]|esc=[?global.BUR_escalation]"
+		log = "BUR_AFK|ENDSTATE|day=[?global.num_days]|ending_avail=[?global.BUR_ending_available]|ending_taken=[?global.BUR_ending_taken]"
+		log = "BUR_AFK|GROUPS|g1=[?global.BUR_status^1]/[?global.BUR_strength^1]/[?global.BUR_friendliness^1]/[?global.BUR_burmanization^1]|g2=[?global.BUR_status^2]/[?global.BUR_strength^2]/[?global.BUR_friendliness^2]/[?global.BUR_burmanization^2]"
+		log = "BUR_AFK|GROUPS|g3=[?global.BUR_status^3]/[?global.BUR_strength^3]/[?global.BUR_friendliness^3]/[?global.BUR_burmanization^3]|g4=[?global.BUR_status^4]/[?global.BUR_strength^4]/[?global.BUR_friendliness^4]/[?global.BUR_burmanization^4]"
+		log = "BUR_AFK|GROUPS|g5=[?global.BUR_status^5]/[?global.BUR_strength^5]/[?global.BUR_friendliness^5]/[?global.BUR_burmanization^5]|g6=[?global.BUR_status^6]/[?global.BUR_strength^6]/[?global.BUR_friendliness^6]/[?global.BUR_burmanization^6]"
+		log = "BUR_AFK|GROUPS|g7=[?global.BUR_status^7]/[?global.BUR_strength^7]/[?global.BUR_friendliness^7]/[?global.BUR_burmanization^7]|g8=[?global.BUR_status^8]/[?global.BUR_strength^8]/[?global.BUR_friendliness^8]/[?global.BUR_burmanization^8]"
+		log = "BUR_AFK|GROUPS|g9=[?global.BUR_status^9]/[?global.BUR_strength^9]/[?global.BUR_friendliness^9]/[?global.BUR_burmanization^9]|g10=[?global.BUR_status^10]/[?global.BUR_strength^10]/[?global.BUR_friendliness^10]/[?global.BUR_burmanization^10]"
+		log = "BUR_AFK|GROUPS|g11=[?global.BUR_status^11]/[?global.BUR_strength^11]/[?global.BUR_friendliness^11]/[?global.BUR_burmanization^11]|g12=[?global.BUR_status^12]/[?global.BUR_strength^12]/[?global.BUR_friendliness^12]/[?global.BUR_burmanization^12]"
+		if = {
+			limit = { country_exists = BRM }
+			BRM = { log = "BUR_AFK|BRM|pp=[?political_power]|stab=[?stability]|ws=[?war_support]|manpower=[?manpower_k]k" }
+		}
+		every_country = {
+			limit = { BUR_is_group_tag = yes }
+			log = "BUR_AFK|TAG_ALIVE|[This.GetTag]"
+		}
+	}
 }
