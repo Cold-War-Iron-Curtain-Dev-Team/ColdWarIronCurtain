@@ -24,6 +24,17 @@ GROUPS = ["", "Communists", "Karen", "Karenni", "Mon", "Shan", "Arakanese", "Roh
 def fields(line):
     return dict(p.split("=", 1) for p in line.split("|") if "=" in p)
 
+def short(v):
+    if v is None:
+        return "-"
+    v = v.rstrip("k")
+    try:
+        x = float(v)
+    except ValueError:
+        return v
+    return f"{x:.2f}" if abs(x) < 10 else f"{x:.0f}"
+
+
 
 def main():
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_LOG
@@ -34,7 +45,7 @@ def main():
         sys.exit(1)
     actions, events, months = Counter(), [], []
     ending = None
-    groups = {}
+    groups, stats, day = {}, {}, ""
     for l in lines:
         kind = l.split("|", 1)[0]
         f = fields(l)
@@ -47,10 +58,13 @@ def main():
             events.append(l)
         elif kind == "MONTH":
             months.append(f)
+            day = f.get("day", "")
         elif kind == "GROUPS":
             for k, v in f.items():
                 if re.fullmatch(r"g\d+", k):
                     groups[int(k[1:])] = v
+        elif kind == "STATS":
+            stats.setdefault(l.split("|")[1], []).append((day, f))
     print(f"{len(lines)} lines, {len(months)} monthly snapshots")
     print("\nTimeline:")
     for e in events:
@@ -62,6 +76,21 @@ def main():
     for n in sorted(groups):
         print(f"  {GROUPS[n]:12} {groups[n]}")
     unknown = [GROUPS[n] for n, v in groups.items() if v.split("/")[0].split(".")[0] == "5"]
+    if stats:
+        keys = ["pp", "cp", "stab", "ws", "mp", "cas", "div", "civ", "mil", "states", "surr"]
+        print("\nCountry stats, first -> last month:")
+        print("  " + "tag  " + " ".join(f"{k:>15}" for k in keys))
+        for tag, rows in sorted(stats.items()):
+            a, b = rows[0][1], rows[-1][1]
+            cell = lambda k: f"{short(a.get(k))}->{short(b.get(k))}"
+            print(f"  {tag:4} " + " ".join(f"{cell(k):>15}" for k in keys))
+        out = path.with_name("burma_afk_stats.csv")
+        with out.open("w", encoding="utf-8") as fh:
+            fh.write("day,tag," + ",".join(keys) + "\n")
+            for tag, rows in sorted(stats.items()):
+                for d, r in rows:
+                    fh.write(f"{d},{tag}," + ",".join(short(r.get(k)) for k in keys) + "\n")
+        print(f"  full series: {out}")
     print(f"\nEnding: {ENDINGS.get(ending, 'none')}")
     ok = ending is not None and not ("Kuomintang" in unknown and any("KMT_SPAWN" in e for e in events))
     print("PASS" if ok else "FAIL")
