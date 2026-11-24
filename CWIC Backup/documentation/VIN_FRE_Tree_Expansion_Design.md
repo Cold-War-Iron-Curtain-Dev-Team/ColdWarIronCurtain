@@ -3369,3 +3369,35 @@ updated.
      direct rule), never Tai-Meo; Tay Bac Bo shows Tai-Meo.
 136. The 1959 rising still fires in Ha Giang and the breakaway leaves no
      region modifier on it.
+
+## 2026-11-24 review (b): observer run, NLF revival, TRP, loc, sphere
+
+Logs `_local/logs/2026-11-24b/`. Statically verified fixes.
+
+- NLF never returned post-Geneva: Diem's Trung Phan Commissariat (TRP)
+  holds `1286` and `1287`, so `indochina_nlf_insurgency_revive` transferred
+  nothing and NLF stayed dead (error.log 18 Jun 1958: "NLF, which does not
+  exist, tried to declare war on VIE"). The revive now takes the states from
+  VIE or TRP (TRP is a VIE puppet and joins the war), loads the 1960 army if
+  NLF holds either state, and takes `1400` from either owner first.
+- TRP showed "Unknown Type of Government": new government type
+  `GOV_TYPE_DELEGATED_AUTOCRACY` "Delegated Regional Autocracy" (name and
+  description) for non-communist TRP, first entry in both defined texts of
+  `CWIC_Government_Types_scripted_localisation.txt`.
+- Raw decision keys: `VIN_Deforestation`, `VIN_Rebuild_River_Levees`
+  (VIN_misc) and `NUN_Hoang_Chinh_Leader_Change` (Indochina_minorities_misc)
+  had no name or description; added. These were the only VIN.txt
+  decisions without loc.
+- Sphere: new `VIE_leave_french_sphere` (VIE_Effects) removes VIE from the
+  French sphere when the Geneva settlement makes it fully independent and
+  when Diem proclaims the republic (historically Saigon left the French
+  Union and turned to Washington in 1955-56).
+
+### Consolidated-playtest checks added
+
+137. June 1958 with TRP alive: NLF exists with Upper Trung Phan Highland
+     and Quang Ngai, at war with VIE and TRP.
+138. TRP shows "Delegated Regional Autocracy".
+139. The three decisions show their names.
+140. After Diem's republic (or a fully independent Geneva VIE), VIE is in no
+     sphere unless another power brings it into one.
