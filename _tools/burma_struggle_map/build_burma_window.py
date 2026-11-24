@@ -96,7 +96,7 @@ def build_gui():
     a('\t\tbuttonType = {\n\t\t\tname = "close_button"\n\t\t\tposition = { x = -45 y = 5 }\n'
       '\t\t\tquadTextureSprite = "GFX_closebutton"\n\t\t\tshortcut = "ESCAPE"\n'
       '\t\t\tOrientation = "UPPER_RIGHT"\n\t\t\tclicksound = click_close\n\t\t\tpdx_tooltip = "CLOSE"\n\t\t}\n')
-    a(text("struggle_title", "BUR_WINDOW_TITLE", 22, 11, 700, 26, "hoi_36header"))
+    a(text("struggle_title", "BUR_WINDOW_TITLE", 22, 6, 700, 26, "hoi_36header"))
 
     a(button("burma_phase_icon", "GFX_Crisis_High_Intensity_Phase", 20, 60, "BUR_TT_CURRENT_PHASE"))
     a(text("current_phase_head", "BUR_CURRENT_PHASE_HEAD", 106, 58, 280))
@@ -266,6 +266,8 @@ def build_scripted_loc():
                                  ("check_variable = { global.BUR_selected_group = 11 } has_global_flag = ROC_Victory", "BUR_GROUP_11_PRC")]
                 + [(f"check_variable = {{ global.BUR_selected_group = {n} }}", f"BUR_GROUP_{n}") for n in range(1, 13)]))
     d.append(dt("BurmaSelectedGroupStatus", [(f"check_variable = {{ global.BUR_sel_status = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(6)]))
+    d.append(dt("BurmaKmtTTBody", [("check_variable = { global.BUR_status^11 = 5 }", "BUR_GROUP_TT_11_UNKNOWN"),
+                                   ("", "BUR_GROUP_TT_11_STATS")]))
     for label, key in ACTIONS:
         d.append(dt(f"BurmaCd{label}", [(f"check_variable = {{ global.num_days > global.BUR_sel_cd_{key} }}", "BUR_CD_READY"),
                                         ("", f"BUR_CD_LEFT_{key.upper()}")]))

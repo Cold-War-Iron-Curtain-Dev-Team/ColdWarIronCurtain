@@ -285,6 +285,38 @@ BUR_update_phase = {
 	}
 }
 
+BUR_sync_dead_groups = {
+	for_loop_effect = {
+		start = 1
+		end = 13
+		value = BUR_i
+		set_temp_variable = { BUR_idx = BUR_i }
+		if = {
+			limit = {
+				NOT = { check_variable = { BUR_i = 11 } }
+				OR = {
+					check_variable = { global.BUR_status^BUR_i = 0 }
+					check_variable = { global.BUR_status^BUR_i = 4 }
+				}
+				NOT = { BUR_group_tag_exists = yes }
+			}
+			set_variable = { global.BUR_status^BUR_i = 2 }
+			if = {
+				limit = { BUR_logging_on = yes }
+				log = "BUR_AFK|RESOLVE|day=[?global.num_days]|kind=tag_gone|group=[?BUR_i]"
+			}
+		}
+	}
+	if = {
+		limit = {
+			has_global_flag = BUR_kmt_spawned
+			check_variable = { global.BUR_status^11 = 0 }
+			NOT = { country_exists = YAN }
+		}
+		set_variable = { global.BUR_status^11 = 2 }
+	}
+}
+
 BUR_monthly_drift = {
 	set_temp_variable = { BUR_hostile = 0 }
 	for_loop_effect = {
@@ -1084,6 +1116,7 @@ BUR_capitulation_brm_wins = {
 			}
 		}
 		set_variable = { global.BUR_status^BUR_idx = 2 }
+		BUR_annex_group = yes
 	}
 	if = {
 		limit = { check_variable = { BUR_idx = 1 } }
@@ -1179,6 +1212,7 @@ BUR_front_recruit = {
 		}
 		set_variable = { global.BUR_status^BUR_idx = 4 }
 		set_temp_variable = { BUR_front_joined = 1 }
+		BUR_group_join_bcp_war = yes
 		BUR_update_ending_available = yes
 	}
 }
@@ -1726,6 +1760,14 @@ BUR_ai_run_action = {
 
 BUR_ai_pulse_brm = {
 	set_temp_variable = { BUR_ai_act = 0 }
+	set_temp_variable = { BUR_dbg_hist = 0 }
+	if = { limit = { BUR_route_historical = yes } set_temp_variable = { BUR_dbg_hist = 1 } }
+	if = { limit = { BUR_route_federal = yes } set_temp_variable = { BUR_dbg_hist = 2 } }
+	if = { limit = { BUR_route_bamar = yes } set_temp_variable = { BUR_dbg_hist = 3 } }
+	if = {
+		limit = { BUR_logging_on = yes }
+		log = "BUR_AFK|AI_PULSE|day=[?global.num_days]|pp=[?political_power]|cp=[?command_power]|mp=[?manpower_k]k|historical=[?BUR_dbg_hist]"
+	}
 	if = {
 		limit = { BUR_route_brm_passive = yes }
 		if = {
