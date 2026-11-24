@@ -6,6 +6,10 @@ BUR_struggle_init = {
 			NOT = { has_global_flag = BUR_struggle_ended }
 		}
 		set_variable = { global.BUR_struggle_active = 1 }
+		if = {
+			limit = { country_exists = BRM }
+			BRM = { set_cosmetic_tag = BRM_UNION }
+		}
 		set_variable = { global.BUR_phase = 2 }
 		set_variable = { global.BUR_deescalation = 100 }
 		set_variable = { global.BUR_escalation = 50 }
@@ -98,15 +102,15 @@ BUR_struggle_init = {
 		clear_array = global.BUR_cd_burmanize
 		clear_array = global.BUR_cd_sweep
 		clear_array = global.BUR_cd_frontier
-		for_loop_effect = {
-			start = 0
-			end = 13
-			value = BUR_i
+		set_temp_variable = { BUR_i = 0 }
+		while_loop_effect = {
+			limit = { check_variable = { BUR_i < 13 } }
 			add_to_array = { global.BUR_cd_dialogue = 0 }
 			add_to_array = { global.BUR_cd_amnesty = 0 }
 			add_to_array = { global.BUR_cd_burmanize = 0 }
 			add_to_array = { global.BUR_cd_sweep = 0 }
 			add_to_array = { global.BUR_cd_frontier = 0 }
+			add_to_temp_variable = { BUR_i = 1 }
 		}
 		set_variable = { global.BUR_selected_group = 1 }
 	}
@@ -286,10 +290,9 @@ BUR_update_phase = {
 }
 
 BUR_sync_dead_groups = {
-	for_loop_effect = {
-		start = 1
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 1 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		set_temp_variable = { BUR_idx = BUR_i }
 		if = {
 			limit = {
@@ -306,6 +309,7 @@ BUR_sync_dead_groups = {
 				log = "BUR_AFK|RESOLVE|day=[?global.num_days]|kind=tag_gone|group=[?BUR_i]"
 			}
 		}
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 	if = {
 		limit = {
@@ -319,14 +323,14 @@ BUR_sync_dead_groups = {
 
 BUR_monthly_drift = {
 	set_temp_variable = { BUR_hostile = 0 }
-	for_loop_effect = {
-		start = 1
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 1 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		if = {
 			limit = { check_variable = { global.BUR_status^BUR_i = 0 } }
 			add_to_temp_variable = { BUR_hostile = global.BUR_strength^BUR_i }
 		}
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 	set_temp_variable = { BUR_load = BUR_hostile }
 	divide_temp_variable = { BUR_load = 100 }
@@ -383,10 +387,9 @@ BUR_update_ending_available = {
 	set_variable = { global.BUR_n_sub = 0 }
 	set_variable = { global.BUR_n_fed = 0 }
 	set_variable = { global.BUR_n_strong = 0 }
-	for_loop_effect = {
-		start = 1
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 1 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		if = {
 			limit = { check_variable = { global.BUR_status^BUR_i = 2 } }
 			add_to_variable = { global.BUR_n_sub = 1 }
@@ -409,6 +412,7 @@ BUR_update_ending_available = {
 			}
 			add_to_variable = { global.BUR_n_strong = 1 }
 		}
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 	if = {
 		limit = { BUR_ending_land_to_the_tillers_trigger = yes }
@@ -1114,6 +1118,8 @@ BUR_capitulation_brm_wins = {
 				check_variable = { global.BUR_status^BUR_idx = 0 }
 				check_variable = { global.BUR_status^BUR_idx = 4 }
 			}
+			check_variable = { global.BUR_strength^BUR_idx < 150 }
+			NOT = { check_variable = { BUR_idx = 11 } }
 		}
 		set_variable = { global.BUR_status^BUR_idx = 2 }
 		BUR_annex_group = yes
@@ -1133,12 +1139,12 @@ BUR_capitulation_group_wins = {
 		log = "BUR_AFK|CAPITULATION|day=[?global.num_days]|winner=group|group=[?BUR_idx]"
 	}
 	set_temp_variable = { BUR_cap_winner = BUR_idx }
-	for_loop_effect = {
-		start = 1
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 1 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		set_temp_variable = { BUR_idx = BUR_i }
 		BUR_white_peace_group = yes
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 	set_temp_variable = { BUR_idx = BUR_cap_winner }
 	set_temp_variable = { BUR_d_str = 150 }
@@ -1253,10 +1259,9 @@ BUR_war_karen = {
 BUR_war_full_civil_war = {
 	if = {
 		limit = { country_exists = BRM }
-		for_loop_effect = {
-			start = 1
-			end = 13
-			value = BUR_i
+		set_temp_variable = { BUR_i = 1 }
+		while_loop_effect = {
+			limit = { check_variable = { BUR_i < 13 } }
 			if = {
 				limit = {
 					check_variable = { global.BUR_status^BUR_i = 0 }
@@ -1265,6 +1270,7 @@ BUR_war_full_civil_war = {
 				set_temp_variable = { BUR_idx = BUR_i }
 				BUR_declare_war_on_group = yes
 			}
+			add_to_temp_variable = { BUR_i = 1 }
 		}
 		news_event = { id = burma_struggle.2 }
 	}
@@ -1325,15 +1331,15 @@ BUR_war_liberation = {
 			limit = { country_exists = CPB NOT = { CPB = { has_war_with = BRM } } }
 			CPB = { add_to_war = { targeted_alliance = BCP enemy = BRM hostility_reason = asked_to_join } }
 		}
-		for_loop_effect = {
-			start = 2
-			end = 13
-			value = BUR_i
+		set_temp_variable = { BUR_i = 2 }
+		while_loop_effect = {
+			limit = { check_variable = { BUR_i < 13 } }
 			if = {
 				limit = { check_variable = { global.BUR_status^BUR_i = 4 } }
 				set_temp_variable = { BUR_idx = BUR_i }
 				BUR_group_join_bcp_war = yes
 			}
+			add_to_temp_variable = { BUR_i = 1 }
 		}
 		BCP = { news_event = { id = BCP.15 } }
 		if = {
@@ -1432,12 +1438,12 @@ BUR_ending_blood_of_the_tyrants_effect = {
 			add_political_power = -100
 		}
 	}
-	for_loop_effect = {
-		start = 1
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 1 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		set_temp_variable = { BUR_idx = BUR_i }
 		BUR_white_peace_group = yes
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 	set_temp_variable = { BUR_end_id = 2 }
 	BUR_end_struggle_common = yes
@@ -1687,10 +1693,9 @@ BUR_action_frontier = {
 BUR_ai_pick_strongest = {
 	set_temp_variable = { BUR_ai_t = 0 }
 	set_temp_variable = { BUR_ai_best = -1 }
-	for_loop_effect = {
-		start = 1
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 1 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		if = {
 			limit = {
 				check_variable = { global.BUR_status^BUR_i = 0 }
@@ -1705,16 +1710,16 @@ BUR_ai_pick_strongest = {
 			set_temp_variable = { BUR_ai_t = BUR_i }
 			set_temp_variable = { BUR_ai_best = global.BUR_strength^BUR_i }
 		}
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 }
 
 BUR_ai_pick_friendliest = {
 	set_temp_variable = { BUR_ai_t = 0 }
 	set_temp_variable = { BUR_ai_best = -1 }
-	for_loop_effect = {
-		start = 2
-		end = 13
-		value = BUR_i
+	set_temp_variable = { BUR_i = 2 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
 		if = {
 			limit = {
 				NOT = { check_variable = { BUR_i = 11 } }
@@ -1724,6 +1729,7 @@ BUR_ai_pick_friendliest = {
 			set_temp_variable = { BUR_ai_t = BUR_i }
 			set_temp_variable = { BUR_ai_best = global.BUR_friendliness^BUR_i }
 		}
+		add_to_temp_variable = { BUR_i = 1 }
 	}
 }
 
