@@ -3348,3 +3348,24 @@ fixes.
      exclusive parents.
 134. June 1958: no "Viet Cong ... placed in 1400 ... enemy territory"
      lines; NLF still exists in 1964.
+
+### Follow-up (same day): Ha Giang joins Viet Bac
+
+User decision. Ha Giang (`1767`) leaves the Tai-Meo region, matching the
+1955 Thai-Meo zone (Tay Bac) and the 1956 Viet Bac region. In
+`Indochina_Minorities_Effects.txt`, `vin_establish_tai_meo_region` and
+`vin_integrate_tai_meo_directly` now cover only `671`; the new
+`vin_settle_ha_giang_after_meo` (called from both) gives Ha Giang the Viet
+Bac modifier if the zone exists, direct rule if it was refused, and leaves it
+for the later Viet Bac decision otherwise (that path already includes
+`1767`). The 1959 Duong Trung Nhan rising stays in Dong Van, Ha Giang: it is
+the Hmong rising of the Vuong/Duong houses there and MEO's cores are only
+`1767`, so Lai Chau would not fit. It still needs the MEO settlement and
+is still prevented by the Vuong Chi Sinh choice. The breakaway clears any
+of the three Ha Giang region modifiers. `MEO.14.d_vin` and `MEO.18.d` text
+updated.
+
+135. After the MEO settlement Ha Giang shows the Viet Bac modifier (or
+     direct rule), never Tai-Meo; Tay Bac Bo shows Tai-Meo.
+136. The 1959 rising still fires in Ha Giang and the breakaway leaves no
+     region modifier on it.

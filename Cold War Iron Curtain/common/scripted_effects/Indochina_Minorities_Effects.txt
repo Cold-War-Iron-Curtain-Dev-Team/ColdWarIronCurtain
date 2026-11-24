@@ -71,7 +71,7 @@ vin_integrate_viet_bac_directly = {
 				state = 1280	# Cao Bang
 				state = 1768	# Lang Son
 				state = 881	# Dong Bac Bo - the tungsten and steel
-				state = 1767	# Ha Giang, if the Tai-Meo settlement did not take it
+				state = 1767	# Ha Giang
 			}
 			vin_highland_state_unsettled = yes
 		}
@@ -83,13 +83,31 @@ vin_integrate_tai_meo_directly = {
 	vin_highland_direct_rule_spirit = yes
 	every_owned_state = {
 		limit = {
-			OR = {
-				state = 671	# Tay Bac Bo - the chromium and tungsten
-				state = 1767	# Ha Giang
-			}
+			state = 671	# Tay Bac Bo - the chromium and tungsten
 			vin_highland_state_unsettled = yes
 		}
 		add_dynamic_modifier = { modifier = VIN_highland_direct_rule_state }
+	}
+	vin_settle_ha_giang_after_meo = yes
+}
+
+vin_settle_ha_giang_after_meo = {
+	if = {
+		limit = {
+			owns_state = 1767
+			1767 = { vin_highland_state_unsettled = yes }
+		}
+		if = {
+			limit = { has_country_flag = VIN_viet_bac_zone_established }
+			1767 = {
+				set_state_flag = VIN_viet_bac_region
+				add_dynamic_modifier = { modifier = VIN_viet_bac_region_state }
+			}
+		}
+		else_if = {
+			limit = { has_country_flag = VIN_viet_bac_zone_refused }
+			1767 = { add_dynamic_modifier = { modifier = VIN_highland_direct_rule_state } }
+		}
 	}
 }
 
@@ -111,25 +129,22 @@ vin_establish_viet_bac_zone = {
 	set_country_flag = VIN_viet_bac_zone_established
 }
 
-# Runs after VIN has annexed MEO, so Ha Giang is Hanoi's again.
 vin_establish_tai_meo_region = {
 	vin_highland_autonomy_spirit = yes
 	every_owned_state = {
 		limit = {
-			OR = {
-				state = 671
-				state = 1767
-			}
+			state = 671
 			vin_highland_state_unsettled = yes
 		}
 		set_state_flag = VIN_tai_meo_region
 		add_dynamic_modifier = { modifier = VIN_tai_meo_region_state }
 	}
 	set_country_flag = VIN_tai_meo_region_established
+	vin_settle_ha_giang_after_meo = yes
 }
 
-# on_daily_VIN. The 1959 Duong Trung Nhan rising, against the region rather than
-# a separate MEO zone. A region chaired by Vuong Chi Sinh never sees it.
+# on_daily_VIN. The 1959 Duong Trung Nhan rising in Dong Van, Ha Giang, after
+# the MEO settlement. Vuong Chi Sinh binding the Hmong notables prevents it.
 vin_tai_meo_revolt_check = {
 	if = {
 		limit = {
@@ -149,7 +164,10 @@ vin_tai_meo_revolt_check = {
 vin_tai_meo_release_duong_trung_nhan = {
 	1767 = {
 		clr_state_flag = VIN_tai_meo_region
-		remove_dynamic_modifier = { modifier = VIN_tai_meo_region_state }
+		clr_state_flag = VIN_viet_bac_region
+		if = { limit = { has_dynamic_modifier = { modifier = VIN_tai_meo_region_state } } remove_dynamic_modifier = { modifier = VIN_tai_meo_region_state } }
+		if = { limit = { has_dynamic_modifier = { modifier = VIN_viet_bac_region_state } } remove_dynamic_modifier = { modifier = VIN_viet_bac_region_state } }
+		if = { limit = { has_dynamic_modifier = { modifier = VIN_highland_direct_rule_state } } remove_dynamic_modifier = { modifier = VIN_highland_direct_rule_state } }
 	}
 	release = MEO
 	MEO = {
