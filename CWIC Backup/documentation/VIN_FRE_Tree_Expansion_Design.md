@@ -3470,3 +3470,18 @@ after retirement while NLF exists (logging-gated).
      about 12 divisions.
 146. If NLF capitulates again, the last `NLF_SURRENDER|reason=2` lines
      before it show the surrender band.
+
+### Follow-up: heavy NLF spirit after Nguyen Binh's death
+
+User decision. `nlf_apply_binh_death` (VIN_Effects) now also adds
+`NLF_southern_collapse` "Collapse of the Southern Command" (common/ideas/
+VIN.txt, loc VIN_misc): attack -25%, defence -20%, recruitable population
+-40%, morale -15%, stability -15%, surrender limit -20%. Pre-Geneva only:
+not added after `Indochina_War_Over`, and `indochina_nlf_insurgency_revive`
+removes it so the 1958 NLF starts clean. The existing three swap
+debuffs and their recovery events are unchanged; the new spirit is not
+cleared by them.
+
+147. After Binh's death NLF shows Collapse of the Southern Command and VIE
+     gains ground in the south before Geneva.
+148. The 1958 NLF does not carry the spirit.
