@@ -3106,6 +3106,35 @@ def validate_legacy_armour_roles() -> None:
                     fail(f"{name} must state {stat} explicitly after the relocation")
 
 
+def validate_legacy_td_piercing() -> None:
+    """Owner ruling 2026-11-24: each legacy medium TD pierces like the newest
+    legacy MBT of its year, so a TD never under-pierces the tank it hunts."""
+    mbt_rows = [
+        (float(direct_values(body, "year")[0]), float(direct_values(body, "ap_attack")[0]))
+        for name, body in top_level_blocks(text(EQUIPMENT_DIR / "tank_medium.txt"), "equipments")
+        if re.fullmatch(r"mbt_equipment_\d+", name)
+        and direct_values(body, "year")
+        and direct_values(body, "ap_attack")
+    ]
+    td_rows = {
+        name: body
+        for name, body in top_level_blocks(text(ROLE_CHASSIS_FILE), "equipments")
+        if re.fullmatch(r"medium_tank_destroyer_equipment_\d+", name)
+    }
+    if len(td_rows) != 5:
+        fail(f"expected 5 legacy medium TD rows, found {sorted(td_rows)}")
+    for name, body in sorted(td_rows.items()):
+        year = float(direct_values(body, "year")[0])
+        eligible = [row for row in mbt_rows if row[0] <= year]
+        if not eligible:
+            fail(f"{name} has no legacy MBT at or before {year:g}")
+            continue
+        expected = max(eligible)[1]
+        actual = float(direct_values(body, "ap_attack")[0])
+        if actual != expected:
+            fail(f"{name} ap_attack = {actual:g}, expected {expected:g} (newest legacy MBT of {year:g})")
+
+
 def validate_tank_rework() -> None:
     armor_techs = dict(top_level_blocks(text(TECH_DIR / "NSB_armor.txt"), "technologies"))
     module_techs = dict(top_level_blocks(text(TECH_DIR / "NSB_armor_modules.txt"), "technologies"))
@@ -3178,6 +3207,7 @@ def validate_tank_rework() -> None:
                 )
     roles = text(TANK_ROLE_FILE)
     validate_legacy_armour_roles()
+    validate_legacy_td_piercing()
     role_blocks = dict(top_level_blocks(roles, "sub_units"))
     for battalion, role in TANK_ROLE_ARMOUR_BATTALIONS.items():
         block = role_blocks.get(battalion)

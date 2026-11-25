@@ -3304,3 +3304,184 @@ ending effects. They play from the option of `Indochina_Struggle_Ending.1`
 player only and once per game, so the news event shows first and the super
 event follows the click. Check 131 now reads: the super event appears only
 after the ending news event's button is clicked.
+
+## 2026-11-24 review: Burma run 1949-1962, Indochina side effects
+
+Logs `_local/logs/2026-11-24/`, save `_local/saves/burma1962.hoi4` (player
+BRM). Indochina: Geneva concluded 2 Aug 1954; NLF capitulated 19 May 1954
+and, after the June 1958 revival, again on 23 Sep 1958. Statically verified
+fixes.
+
+- Diem never took power: `VIE_Buu_Loc_Resign` (fires `VIE_PMs.5`, which
+  reopens the premiership Diem's appointment needs) had two separate
+  prerequisite blocks for the mutually exclusive
+  `VIE_Buu_Loc_Accept_Northern_Communist_Victory` and
+  `VIE_Buu_Loc_Host_Victory_Parade`, so it was never available after a
+  Geneva settlement. Buu Loc stayed PM, the AI took the 1955 Grand Election
+  without Diem (Diem.31, monarchy confirmed) and flew Bao Dai out, leaving
+  VIE on `empty_focus`. Merged into one OR prerequisite. A scan of all live
+  focus trees found the same impossible AND in five more trees, fixed the
+  same way: FRA `FRA_Fund_South_Korean_Reconstruction`,
+  `FRA_Settle_Malayans_South_Vietnam`, `FRA_Funding_Malayan_Reconstruction`,
+  `FRA_Recognize_Sarawak_Borneo`; SIA `SIA_Abide_to_UNs_Human_Rights_Declaration`.
+  Out-of-tree drafts (FOR HOTFIX, Need Finished) were left alone.
+- NLF 1958 revival: `NLF_1960` OOB units at province `1400` (state `982`,
+  VIE) were placed in enemy territory, and NLF lost both states in three
+  months. `indochina_nlf_insurgency_revive` now takes control of `1400`
+  before loading the OOB, and `The_Vietnam_War_NLF`
+  (New_Ideologies_Ideas) gains `surrender_limit = 0.5`, so the insurgency
+  survives to the 1964 US intervention unless it is wiped out.
+- Ha Giang in the Tai-Meo region: by design, `vin_establish_tai_meo_region`
+  includes `1767` (it also anchors the 1959 MEO.18 rising). Historically the
+  1955 Thai-Meo Autonomous Zone covered Lai Chau, Son La and Nghia Lo; Ha
+  Giang went to the 1956 Viet Bac region. Not changed; user decision.
+- Burma draw.io plan cross-check (`~/Downloads/Burma Focus Tree.drawio`,
+  181 nodes, 95 marked new): every plan focus has a counterpart id in
+  `MYR_50s.txt`, including the Indochina, Korea and Malaya intervention
+  branches, which already guard on `country_exists`.
+
+### Consolidated-playtest checks added
+
+132. Post-Geneva VIE: Buu Loc resigns, Diem becomes PM and the Diem
+     branch (referendum, republic) runs; VIE keeps its focus tree.
+133. The fixed FRA and SIA focuses become available after either of their
+     exclusive parents.
+134. June 1958: no "Viet Cong ... placed in 1400 ... enemy territory"
+     lines; NLF still exists in 1964.
+
+### Follow-up (same day): Ha Giang joins Viet Bac
+
+User decision. Ha Giang (`1767`) leaves the Tai-Meo region, matching the
+1955 Thai-Meo zone (Tay Bac) and the 1956 Viet Bac region. In
+`Indochina_Minorities_Effects.txt`, `vin_establish_tai_meo_region` and
+`vin_integrate_tai_meo_directly` now cover only `671`; the new
+`vin_settle_ha_giang_after_meo` (called from both) gives Ha Giang the Viet
+Bac modifier if the zone exists, direct rule if it was refused, and leaves it
+for the later Viet Bac decision otherwise (that path already includes
+`1767`). The 1959 Duong Trung Nhan rising stays in Dong Van, Ha Giang: it is
+the Hmong rising of the Vuong/Duong houses there and MEO's cores are only
+`1767`, so Lai Chau would not fit. It still needs the MEO settlement and
+is still prevented by the Vuong Chi Sinh choice. The breakaway clears any
+of the three Ha Giang region modifiers. `MEO.14.d_vin` and `MEO.18.d` text
+updated.
+
+135. After the MEO settlement Ha Giang shows the Viet Bac modifier (or
+     direct rule), never Tai-Meo; Tay Bac Bo shows Tai-Meo.
+136. The 1959 rising still fires in Ha Giang and the breakaway leaves no
+     region modifier on it.
+
+## 2026-11-24 review (b): observer run, NLF revival, TRP, loc, sphere
+
+Logs `_local/logs/2026-11-24b/`. Statically verified fixes.
+
+- NLF never returned post-Geneva: Diem's Trung Phan Commissariat (TRP)
+  holds `1286` and `1287`, so `indochina_nlf_insurgency_revive` transferred
+  nothing and NLF stayed dead (error.log 18 Jun 1958: "NLF, which does not
+  exist, tried to declare war on VIE"). The revive now takes the states from
+  VIE or TRP (TRP is a VIE puppet and joins the war), loads the 1960 army if
+  NLF holds either state, and takes `1400` from either owner first.
+- TRP showed "Unknown Type of Government": new government type
+  `GOV_TYPE_DELEGATED_AUTOCRACY` "Delegated Regional Autocracy" (name and
+  description) for non-communist TRP, first entry in both defined texts of
+  `CWIC_Government_Types_scripted_localisation.txt`.
+- Raw decision keys: `VIN_Deforestation`, `VIN_Rebuild_River_Levees`
+  (VIN_misc) and `NUN_Hoang_Chinh_Leader_Change` (Indochina_minorities_misc)
+  had no name or description; added. These were the only VIN.txt
+  decisions without loc.
+- Sphere: new `VIE_leave_french_sphere` (VIE_Effects) removes VIE from the
+  French sphere when the Geneva settlement makes it fully independent and
+  when Diem proclaims the republic (historically Saigon left the French
+  Union and turned to Washington in 1955-56).
+
+### Consolidated-playtest checks added
+
+137. June 1958 with TRP alive: NLF exists with Upper Trung Phan Highland
+     and Quang Ngai, at war with VIE and TRP.
+138. TRP shows "Delegated Regional Autocracy".
+139. The three decisions show their names.
+140. After Diem's republic (or a fully independent Geneva VIE), VIE is in no
+     sphere unless another power brings it into one.
+
+## 2026-11-24 review (c): observer run to 1962
+
+Logs `_local/logs/2026-11-24c/`. Geneva 8 Aug 1954; NLF revived June 1958
+(TRP fix works) but capitulated to VIE on 1 Oct 1958 with 12 divisions and
+no owned state controlled. No rework-file errors; one engine warning that
+`recruit_character` in `Fulro.1` should be history-only (not fatal).
+
+- NLF: losing both its states is 100% surrender progress, so
+  `surrender_limit = 0.5` could not hold. `The_Vietnam_War_NLF` now uses
+  `surrender_limit = 1.0`, the pattern FRE_CEFEO uses for the highland
+  domains: the insurgency survives as long as it has divisions and cannot be
+  knocked out by a capitulation. It still ends by peace (US Paris Peace,
+  Vietnamization white peace) or annexation.
+- Economy: every AI on a feudal/rentier/colonial axis takes the generic
+  `convert_to_normal_economic_axis_system` decision (IC_Financial_Decisions),
+  which sets 12/12 = Keynesian. That is why VIE, TRP (which copies VIE's axes
+  at creation) and many other countries read Keynesian. Not changed here
+  (global economy system). For Diem's republic, new
+  `VIE_set_personalist_economy` (VIE_Effects) sets VIE and a subject TRP to
+  x 10, y 15 = Social Corporatist, matching Personalism's corporatist
+  doctrine; called at the republic proclamation.
+
+141. NLF exists in 1962-1964 even after VIE/TRP occupy its states.
+142. After Diem's republic, VIE and TRP show Social Corporatist.
+
+### Follow-up: generic economy conversion by ideology (user's economy system)
+
+`cwic_action_convert_normal_axis` (IC_Economy_Effects; used by the AI
+decision `convert_to_normal_economic_axis_system` and the Finance tab
+button) no longer always sets 12/12 Keynesian. Target by ruling party:
+communist/maoist/trotskyist 3/3 Central Planning; socialist 3/15 Market
+Socialist; Christian Democrat 15/10 Ordoliberal/Social Market;
+conservative, liberal-conservative, liberal, centrist 15/15 Fordist;
+fascist, nationalist, monarchist 10/15 Corporatist; Islamist 10/4 State
+Capitalist; non-aligned 15/4 Dirigisme; everyone else (social democrat,
+social liberal, democratic) 10/10 Keynesian. Axes are set through
+`cwic_set_economic_axes`. The INO focuses calling `convert_to_normal_axis`
+directly keep 12/12.
+
+143. AI countries leaving feudal/rentier/colonial economies show a system
+     matching their ruling party, not all Keynesian.
+
+## 2026-11-24 review (d): Hue capital, NLF 1958, Hanoi support
+
+Logs `_local/logs/2026-11-24d/`. NLF capitulated to VIE on 27 Jun 1958,
+about two weeks after the revival, holding its capital and one state, even
+with `surrender_limit = 1.0` on its spirit. Cause not proven; the telemetry
+had retired in 1957, so the daily `NLF_SURRENDER` watch now keeps running
+after retirement while NLF exists (logging-gated).
+
+- VIE's history capital is Hue (`1758`); only the Bao Dai route moves it to
+  Saigon. When it stayed in Hue, `VIE_create_trung_phan_commissariat` kept
+  Hue for VIE. The commissariat now first moves VIE's capital to Saigon
+  (`286`) if the capital sits in a commissariat state.
+- Hanoi's support for the southern insurgency: new
+  `vin_nlf_insurgency_support_monthly` (VIN_Effects), run from VIN's
+  monthly pulse after the war: while NLF holds the Vietnam War spirit and is
+  at war, VIN sends 500 rifles a month and, below 12 NLF divisions, raises a
+  regiment in Quang Ngai or Upper Trung Phan Highland, spawning in occupied
+  provinces if needed (Group 559 infiltration). Logs
+  `IC_AFK|NLF_INSURGENCY_SUPPORT`.
+
+144. Trung Phan Commissariat creation with VIE's capital in Hue: VIE's
+     capital moves to Saigon and Hue goes to TRP.
+145. `NLF_INSURGENCY_SUPPORT` lines monthly after June 1958; NLF keeps
+     about 12 divisions.
+146. If NLF capitulates again, the last `NLF_SURRENDER|reason=2` lines
+     before it show the surrender band.
+
+### Follow-up: heavy NLF spirit after Nguyen Binh's death
+
+User decision. `nlf_apply_binh_death` (VIN_Effects) now also adds
+`NLF_southern_collapse` "Collapse of the Southern Command" (common/ideas/
+VIN.txt, loc VIN_misc): attack -25%, defence -20%, recruitable population
+-40%, morale -15%, stability -15%, surrender limit -20%. Pre-Geneva only:
+not added after `Indochina_War_Over`, and `indochina_nlf_insurgency_revive`
+removes it so the 1958 NLF starts clean. The existing three swap
+debuffs and their recovery events are unchanged; the new spirit is not
+cleared by them.
+
+147. After Binh's death NLF shows Collapse of the Southern Command and VIE
+     gains ground in the south before Geneva.
+148. The 1958 NLF does not carry the spirit.
