@@ -3443,3 +3443,30 @@ directly keep 12/12.
 
 143. AI countries leaving feudal/rentier/colonial economies show a system
      matching their ruling party, not all Keynesian.
+
+## 2026-11-24 review (d): Hue capital, NLF 1958, Hanoi support
+
+Logs `_local/logs/2026-11-24d/`. NLF capitulated to VIE on 27 Jun 1958,
+about two weeks after the revival, holding its capital and one state, even
+with `surrender_limit = 1.0` on its spirit. Cause not proven; the telemetry
+had retired in 1957, so the daily `NLF_SURRENDER` watch now keeps running
+after retirement while NLF exists (logging-gated).
+
+- VIE's history capital is Hue (`1758`); only the Bao Dai route moves it to
+  Saigon. When it stayed in Hue, `VIE_create_trung_phan_commissariat` kept
+  Hue for VIE. The commissariat now first moves VIE's capital to Saigon
+  (`286`) if the capital sits in a commissariat state.
+- Hanoi's support for the southern insurgency: new
+  `vin_nlf_insurgency_support_monthly` (VIN_Effects), run from VIN's
+  monthly pulse after the war: while NLF holds the Vietnam War spirit and is
+  at war, VIN sends 500 rifles a month and, below 12 NLF divisions, raises a
+  regiment in Quang Ngai or Upper Trung Phan Highland, spawning in occupied
+  provinces if needed (Group 559 infiltration). Logs
+  `IC_AFK|NLF_INSURGENCY_SUPPORT`.
+
+144. Trung Phan Commissariat creation with VIE's capital in Hue: VIE's
+     capital moves to Saigon and Hue goes to TRP.
+145. `NLF_INSURGENCY_SUPPORT` lines monthly after June 1958; NLF keeps
+     about 12 divisions.
+146. If NLF capitulates again, the last `NLF_SURRENDER|reason=2` lines
+     before it show the surrender band.
