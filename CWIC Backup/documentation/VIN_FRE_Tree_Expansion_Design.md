@@ -3426,3 +3426,20 @@ no owned state controlled. No rework-file errors; one engine warning that
 
 141. NLF exists in 1962-1964 even after VIE/TRP occupy its states.
 142. After Diem's republic, VIE and TRP show Social Corporatist.
+
+### Follow-up: generic economy conversion by ideology (user's economy system)
+
+`cwic_action_convert_normal_axis` (IC_Economy_Effects; used by the AI
+decision `convert_to_normal_economic_axis_system` and the Finance tab
+button) no longer always sets 12/12 Keynesian. Target by ruling party:
+communist/maoist/trotskyist 3/3 Central Planning; socialist 3/15 Market
+Socialist; Christian Democrat 15/10 Ordoliberal/Social Market;
+conservative, liberal-conservative, liberal, centrist 15/15 Fordist;
+fascist, nationalist, monarchist 10/15 Corporatist; Islamist 10/4 State
+Capitalist; non-aligned 15/4 Dirigisme; everyone else (social democrat,
+social liberal, democratic) 10/10 Keynesian. Axes are set through
+`cwic_set_economic_axes`. The INO focuses calling `convert_to_normal_axis`
+directly keep 12/12.
+
+143. AI countries leaving feudal/rentier/colonial economies show a system
+     matching their ruling party, not all Keynesian.
