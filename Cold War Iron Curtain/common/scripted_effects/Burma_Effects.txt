@@ -2008,6 +2008,126 @@ BUR_ai_pulse_brm = {
 	}
 }
 
+BUR_ai_pick_front_target = {
+	set_temp_variable = { BUR_ai_t = 0 }
+	set_temp_variable = { BUR_ai_best = -1 }
+	set_temp_variable = { BUR_i = 2 }
+	while_loop_effect = {
+		limit = { check_variable = { BUR_i < 13 } }
+		if = {
+			limit = {
+				NOT = { check_variable = { BUR_i = 11 } }
+				check_variable = { global.BUR_status^BUR_i = 0 }
+				check_variable = { global.BUR_front^BUR_i > BUR_ai_best }
+			}
+			set_temp_variable = { BUR_ai_t = BUR_i }
+			set_temp_variable = { BUR_ai_best = global.BUR_front^BUR_i }
+		}
+		add_to_temp_variable = { BUR_i = 1 }
+	}
+}
+
+BUR_ai_pulse_bcp = {
+	set_temp_variable = { BUR_ai_act = 0 }
+	set_temp_variable = { BUR_ai_t = 0 }
+	if = {
+		limit = { check_variable = { global.BUR_status^1 = 0 } }
+		if = {
+			limit = { BUR_route_historical = yes }
+			if = {
+				limit = {
+					check_variable = { global.BUR_strength^1 < 400 }
+					command_power > 9
+					check_variable = { global.num_days > global.BUR_bcp_cd_recruit }
+				}
+				set_temp_variable = { BUR_ai_act = 1 }
+			}
+		}
+		else_if = {
+			limit = { has_game_rule = { rule = BUR_struggle_route option = BUR_ROUTE_TILLERS } }
+			BUR_ai_pick_front_target = yes
+			if = {
+				limit = {
+					command_power > 24
+					country_exists = PRC
+					check_variable = { global.num_days > global.BUR_bcp_cd_aid }
+				}
+				set_temp_variable = { BUR_ai_act = 5 }
+			}
+			else_if = {
+				limit = {
+					command_power > 9
+					check_variable = { global.num_days > global.BUR_bcp_cd_recruit }
+				}
+				set_temp_variable = { BUR_ai_act = 1 }
+			}
+			else_if = {
+				limit = {
+					command_power > 9
+					check_variable = { BUR_ai_t > 0 }
+					check_variable = { global.num_days > global.BUR_bcp_cd_front }
+				}
+				set_temp_variable = { BUR_ai_act = 2 }
+			}
+			else_if = {
+				limit = {
+					command_power > 14
+					has_manpower > 999
+					check_variable = { global.num_days > global.BUR_bcp_cd_raid }
+				}
+				set_temp_variable = { BUR_ai_act = 4 }
+			}
+		}
+		else = {
+			if = {
+				limit = {
+					check_variable = { global.BUR_strength^1 < 500 }
+					command_power > 9
+					check_variable = { global.num_days > global.BUR_bcp_cd_recruit }
+				}
+				set_temp_variable = { BUR_ai_act = 1 }
+			}
+			else_if = {
+				limit = {
+					command_power > 14
+					has_manpower > 999
+					check_variable = { global.num_days > global.BUR_bcp_cd_raid }
+				}
+				set_temp_variable = { BUR_ai_act = 4 }
+			}
+		}
+	}
+	if = {
+		limit = { check_variable = { BUR_ai_act > 0 } }
+		set_temp_variable = { BUR_ai_prev = global.BUR_selected_group }
+		if = {
+			limit = { check_variable = { BUR_ai_t > 0 } }
+			set_variable = { global.BUR_selected_group = BUR_ai_t }
+		}
+		if = {
+			limit = { check_variable = { BUR_ai_act = 1 } }
+			BUR_bcp_action_recruit = yes
+		}
+		else_if = {
+			limit = { check_variable = { BUR_ai_act = 2 } }
+			BUR_bcp_action_front = yes
+		}
+		else_if = {
+			limit = { check_variable = { BUR_ai_act = 4 } }
+			BUR_bcp_action_raid = yes
+		}
+		else_if = {
+			limit = { check_variable = { BUR_ai_act = 5 } }
+			BUR_bcp_action_aid = yes
+		}
+		set_variable = { global.BUR_selected_group = BUR_ai_prev }
+		if = {
+			limit = { BUR_logging_on = yes }
+			log = "BUR_AFK|BCP_ACTION|day=[?global.num_days]|action=[?BUR_ai_act]|target=[?BUR_ai_t]|str=[?global.BUR_strength^1]|cp=[?command_power]"
+		}
+	}
+}
+
 BUR_log_month = {
 	if = {
 		limit = { BUR_logging_on = yes }
