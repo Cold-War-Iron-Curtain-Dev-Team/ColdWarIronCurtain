@@ -1135,3 +1135,11 @@ gone instead of declaring war on nothing. The First Indochina War North and
 South victory super events, defined but never called, now play on the
 Communist and southern victory endings.
 Next session order: add checks 129-131 to the observer-run list.
+
+## 2026-11-24 Burma run review: Diem, NLF 1958, Ha Giang
+
+Statically verified; ledger checks 132-134. Diem never came to power
+because `VIE_Buu_Loc_Resign` required two mutually exclusive focuses; fixed,
+plus five FRA/SIA focuses with the same bug. The 1958 NLF now spawns its
+army correctly and has a higher surrender limit. Open: whether Ha Giang
+leaves the Tai-Meo region for Viet Bac (user call).
