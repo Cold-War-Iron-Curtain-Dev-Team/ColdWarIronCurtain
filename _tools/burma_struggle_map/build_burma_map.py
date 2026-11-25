@@ -37,7 +37,7 @@ GROUPS = {
     "Kachin": "#4f6aa8", "Chin": "#a89a4f", "Kuomintang": "#2f4f7f", "Pa-O": "#9c6a4a",
 }
 STATES = {
-    1263: "Communists", 1558: "Communists", 1264: "Karen", 1267: "Karen", 1212: "Karen",
+    1263: "Communists", 1558: "Communists", 1264: "Karen", 1267: "Karen", 1212: None,
     1265: "Karenni", 1266: "Mon", 1190: "Shan", 1186: "Arakanese", 1559: "Rohingya",
     1985: "Kokang", 1964: "Kokang", 640: "Kachin", 1817: "Kachin", 1896: "Kachin",
     1260: "Chin", 788: "Kuomintang", 787: "Kuomintang", 1996: "Pa-O",
@@ -186,8 +186,8 @@ def write_window_swatches():
     groups.append(UNKNOWN + (255,))
     swatch_strip(groups, 12, 12).save(win / "BUR_group_swatch.png")
     lw, lh = 22, 14
-    sample = frame_colours("Mon", lh, lw)[:6]
-    strip = np.zeros((lh, lw * 6, 4), np.uint8)
+    sample = frame_colours("Mon", lh, lw)
+    strip = np.zeros((lh, lw * 7, 4), np.uint8)
     for i, col in enumerate(sample):
         tile = np.array(col, np.float32)
         tile[0, :] = tile[-1, :] = tile[:, 0] = tile[:, -1] = BORDER_LIGHT

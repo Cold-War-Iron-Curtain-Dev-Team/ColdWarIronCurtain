@@ -129,8 +129,8 @@ def build_gui():
         else:
             n = STATE_GROUP[st["group"]]
             a(button(f"BUR_State_{sid}", f"GFX_BUR_state_{sid}", x, y, f"BUR_GROUP_TT_{n}"))
-    for i, key in enumerate(["ACTIVE", "INTEGRATED", "SUBJUGATED", "AUTONOMOUS", "JOINED_BCP", "UNKNOWN"]):
-        y = MAP_Y + MAP_H - 18 * 6 - 8 + i * 18
+    for i, key in enumerate(["ACTIVE", "INTEGRATED", "SUBJUGATED", "AUTONOMOUS", "JOINED_BCP", "UNKNOWN", "LOYAL"]):
+        y = MAP_Y + MAP_H - 18 * 7 - 8 + i * 18
         a(icon(f"burma_legend_swatch_{i + 1}", "GFX_BUR_legend_swatch", MAP_X + 12, y + 1,
                f"\t\t\tframe = {i + 1}\n"))
         a(text(f"burma_legend_text_{i + 1}", f"BUR_LEG_{key}", MAP_X + 42, y, 300))
@@ -256,16 +256,16 @@ def build_scripted_loc():
             name.append(("has_global_flag = ROC_Victory", "BUR_GROUP_11_PRC"))
         name.append(("", f"BUR_GROUP_{n}"))
         d.append(dt(f"BurmaRowName{n}", name))
-        d.append(dt(f"BurmaRowStatus{n}", [(f"check_variable = {{ global.BUR_status^{n} = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(6)]))
+        d.append(dt(f"BurmaRowStatus{n}", [(f"check_variable = {{ global.BUR_status^{n} = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(7)]))
         d.append(dt(f"BurmaRowStrength{n}", [(unk, "BUR_UNKNOWN_VALUE"), ("", f"BUR_ROW_STR_{n}")]))
-        d.append(dt(f"BurmaGroupStatusText{n}", [(f"check_variable = {{ global.BUR_status^{n} = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(6)]))
+        d.append(dt(f"BurmaGroupStatusText{n}", [(f"check_variable = {{ global.BUR_status^{n} = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(7)]))
     sel_unk = "check_variable = { global.BUR_sel_status = 5 }"
     for key in ["Friend", "Burman", "Strength", "Front"]:
         d.append(dt(f"BurmaSel{key}Text", [(sel_unk, "BUR_UNKNOWN_VALUE"), ("", f"BUR_SEL_VAL_{key.upper()}")]))
     d.append(dt("BurmaSelName", [(sel_unk, "BUR_GROUP_UNKNOWN"),
                                  ("check_variable = { global.BUR_selected_group = 11 } has_global_flag = ROC_Victory", "BUR_GROUP_11_PRC")]
                 + [(f"check_variable = {{ global.BUR_selected_group = {n} }}", f"BUR_GROUP_{n}") for n in range(1, 13)]))
-    d.append(dt("BurmaSelectedGroupStatus", [(f"check_variable = {{ global.BUR_sel_status = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(6)]))
+    d.append(dt("BurmaSelectedGroupStatus", [(f"check_variable = {{ global.BUR_sel_status = {s} }}", f"BUR_GROUP_STATUS_{s}") for s in range(7)]))
     d.append(dt("BurmaKmtTTBody", [("check_variable = { global.BUR_status^11 = 5 }", "BUR_GROUP_TT_11_UNKNOWN"),
                                    ("", "BUR_GROUP_TT_11_STATS")]))
     for label, key in ACTIONS:
