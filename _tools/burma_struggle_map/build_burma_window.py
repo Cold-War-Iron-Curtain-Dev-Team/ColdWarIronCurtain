@@ -34,6 +34,7 @@ ENDING_ART = ["Government_Victory", "Rebel_Victory", "Federal_Ending",
               "Communist_Victory", "Kuomintang_Victory"]
 ACTIONS = [("Dialogue", "dialogue"), ("Amnesty", "amnesty"), ("Burmanize", "burmanize"),
            ("Sweep", "sweep"), ("Frontier", "frontier")]
+BCP_ACTIONS = {"Dialogue": "recruit", "Amnesty": "front", "Burmanize": "agitate", "Sweep": "raid", "Frontier": "aid"}
 
 MAP_X, MAP_Y, MAP_W, MAP_H = 15, 160, 560, 560
 COL_X, COL_W = 590, 545
@@ -159,8 +160,8 @@ def build_gui():
     for i, (label, key) in enumerate(ACTIONS):
         x = COL_X + 8 + (i % 2) * 270
         y = ACT_Y + HEADER_H + 8 + (i // 2) * 38
-        a(button(f"Burma_Action_{label}_Button", "GFX_button_261x34", x, y, f"BUR_TT_{key.upper()}",
-                 f"BUR_ACTION_{key.upper()}", "hoi_18mbs"))
+        a(button(f"Burma_Action_{label}_Button", "GFX_button_261x34", x, y, f"BUR_BTN_TT_{key.upper()}",
+                 f"[BurmaBtn{label}]", "hoi_18mbs"))
 
     a(header("burma_groups", "BUR_GROUPS_HEAD", COL_X, GRP_Y))
     a(text("burma_col_status", "BUR_COL_STATUS", COL_X + 260, GRP_Y + 11, 150))
@@ -220,10 +221,22 @@ def build_scripted_gui():
         "Frontier": ["has_political_power > 99", "check_variable = { global.BUR_selected_group > 1 }",
                      "check_variable = { global.BUR_selected_group < 11 }"],
     }
+    bconds = {
+        "Dialogue": ["command_power > 9", "check_variable = { global.BUR_status^1 = 0 }"],
+        "Amnesty": ["command_power > 9", "check_variable = { global.BUR_selected_group > 1 }",
+                    "NOT = { check_variable = { global.BUR_selected_group = 11 } }", "check_variable = { global.BUR_sel_status = 0 }"],
+        "Burmanize": ["command_power > 9", "check_variable = { global.BUR_selected_group > 1 }",
+                      "NOT = { check_variable = { global.BUR_selected_group = 11 } }", "check_variable = { global.BUR_sel_status = 0 }"],
+        "Sweep": ["command_power > 14", "has_manpower > 999"],
+        "Frontier": ["command_power > 24", "country_exists = PRC"],
+    }
     for label, key in ACTIONS:
-        body = "\n".join(f"\t\t\t\t{c}" for c in ["tag = BRM", "check_variable = { global.BUR_sel_status = 0 }",
-                                                   f"check_variable = {{ global.num_days > global.BUR_sel_cd_{key} }}"] + conds[label])
-        a(f"\t\t\tBurma_Action_{label}_Button_click_enabled = {{\n{body}\n\t\t\t}}\n")
+        brm = "\n".join(f"\t\t\t\t\t{c}" for c in ["tag = BRM", "check_variable = { global.BUR_sel_status = 0 }",
+                                                    f"check_variable = {{ global.num_days > global.BUR_sel_cd_{key} }}"] + conds[label])
+        bcp = "\n".join(f"\t\t\t\t\t{c}" for c in ["tag = BCP", "check_variable = { global.BUR_struggle_active = 1 }",
+                                                    f"check_variable = {{ global.num_days > global.BUR_bcp_cd_{BCP_ACTIONS[label]} }}"] + bconds[label])
+        a(f"\t\t\tBurma_Action_{label}_Button_click_enabled = {{\n\t\t\t\tOR = {{\n\t\t\t\t\tAND = {{\n{brm}\n\t\t\t\t\t}}\n"
+          f"\t\t\t\t\tAND = {{\n{bcp}\n\t\t\t\t\t}}\n\t\t\t\t}}\n\t\t\t}}\n")
     a("\t\t}\n\t\teffects = {\n\t\t\tclose_button_click = {\n\t\t\t\tset_variable = { View_Burma_Struggle = 0 }\n\t\t\t}\n")
     a("\t\t\tParticipants_Button_click = {\n\t\t\t}\n")
     for sid, st in REPORT["states"].items():
@@ -237,7 +250,8 @@ def build_scripted_gui():
         a(f"\t\t\tBurma_Ending_Card_{k}_click = {{\n\t\t\t\tset_variable = {{ struggle_ending_display_value = {k} }}\n"
           "\t\t\t\tset_variable = { show_burma_end_gui = 1 }\n\t\t\t}\n")
     for label, key in ACTIONS:
-        a(f"\t\t\tBurma_Action_{label}_Button_click = {{\n\t\t\t\tBUR_action_{key} = yes\n\t\t\t}}\n")
+        a(f"\t\t\tBurma_Action_{label}_Button_click = {{\n\t\t\t\tif = {{ limit = {{ tag = BCP }} BUR_bcp_action_{BCP_ACTIONS[label]} = yes }}\n"
+          f"\t\t\t\telse = {{ BUR_action_{key} = yes }}\n\t\t\t}}\n")
     a("\t\t}\n\t}\n")
     (MOD / "common/scripted_guis/Burma_Struggle_Window.txt").write_text("scripted_gui = {\n" + "".join(s) + "}\n", encoding="utf-8")
 
@@ -269,8 +283,13 @@ def build_scripted_loc():
     d.append(dt("BurmaKmtTTBody", [("check_variable = { global.BUR_status^11 = 5 }", "BUR_GROUP_TT_11_UNKNOWN"),
                                    ("", "BUR_GROUP_TT_11_STATS")]))
     for label, key in ACTIONS:
-        d.append(dt(f"BurmaCd{label}", [(f"check_variable = {{ global.num_days > global.BUR_sel_cd_{key} }}", "BUR_CD_READY"),
+        bkey = BCP_ACTIONS[label]
+        d.append(dt(f"BurmaCd{label}", [(f"tag = BCP check_variable = {{ global.num_days > global.BUR_bcp_cd_{bkey} }}", "BUR_CD_READY"),
+                                        ("tag = BCP", f"BUR_CD_BCP_LEFT_{bkey.upper()}"),
+                                        (f"check_variable = {{ global.num_days > global.BUR_sel_cd_{key} }}", "BUR_CD_READY"),
                                         ("", f"BUR_CD_LEFT_{key.upper()}")]))
+        d.append(dt(f"BurmaBtn{label}", [("tag = BCP", f"BUR_ACTION_BCP_{bkey.upper()}"), ("", f"BUR_ACTION_{key.upper()}")]))
+        d.append(dt(f"BurmaTT{label}", [("tag = BCP", f"BUR_TT_BCP_{bkey.upper()}"), ("", f"BUR_TT_{key.upper()}")]))
     for k in range(1, 6):
         d.append(dt(f"BurmaEndingStatus{k}", [(f"check_variable = {{ global.BUR_ending_available = {k} }}", "BUR_STATUS_AVAILABLE"),
                                              ("", "BUR_STATUS_LOCKED")]))
