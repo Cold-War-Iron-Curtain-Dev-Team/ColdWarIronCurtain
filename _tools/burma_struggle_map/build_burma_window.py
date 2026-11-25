@@ -216,7 +216,7 @@ def build_scripted_gui():
         "Dialogue": ["has_political_power > 49", "check_variable = { global.BUR_selected_group < 11 }"],
         "Amnesty": ["has_political_power > 74", "check_variable = { global.BUR_sel_friend > 19 }"],
         "Burmanize": ["has_political_power > 49", "check_variable = { global.BUR_selected_group < 11 }"],
-        "Sweep": ["command_power > 9", "has_manpower > 1999"],
+        "Sweep": ["command_power > 9", "has_manpower > 499"],
         "Frontier": ["has_political_power > 99", "check_variable = { global.BUR_selected_group > 1 }",
                      "check_variable = { global.BUR_selected_group < 11 }"],
     }
