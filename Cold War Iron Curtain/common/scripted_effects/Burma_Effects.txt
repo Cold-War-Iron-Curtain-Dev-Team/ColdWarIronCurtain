@@ -334,6 +334,38 @@ BUR_sync_dead_groups = {
 		}
 		set_variable = { global.BUR_status^11 = 2 }
 	}
+	if = {
+		limit = {
+			OR = {
+				check_variable = { global.BUR_status^11 = 2 }
+				AND = {
+					has_global_flag = BUR_kmt_spawned
+					NOT = { country_exists = YAN }
+				}
+			}
+			country_exists = BRM
+		}
+		BRM = {
+			remove_ideas = BRM_Kuomintang_Tensions_1
+			remove_ideas = BRM_Kuomintang_Tensions_2
+			remove_ideas = BRM_Kuomintang_Tensions_3
+		}
+	}
+	if = {
+		limit = {
+			check_variable = { global.BUR_status^1 = 0 }
+			OR = {
+				country_exists = BCP
+				country_exists = CPB
+			}
+		}
+		add_to_variable = { global.BUR_strength^1 = 10 }
+		if = {
+			limit = { BUR_route_historical = yes }
+			clamp_variable = { var = global.BUR_strength^1 min = 300 max = 1000 }
+			clamp_variable = { var = global.BUR_burmanization^1 min = 0 max = 75 }
+		}
+	}
 }
 
 BUR_monthly_drift = {
@@ -1748,6 +1780,12 @@ BUR_ai_pick_strongest = {
 						BUR_route_kmt = yes
 					}
 				}
+				NOT = {
+					AND = {
+						BUR_route_historical = yes
+						check_variable = { BUR_i = global.BUR_ai_last_t }
+					}
+				}
 			}
 			set_temp_variable = { BUR_ai_t = BUR_i }
 			set_temp_variable = { BUR_ai_best = global.BUR_strength^BUR_i }
@@ -1778,6 +1816,7 @@ BUR_ai_pick_friendliest = {
 BUR_ai_run_action = {
 	set_temp_variable = { BUR_ai_prev = global.BUR_selected_group }
 	set_variable = { global.BUR_selected_group = BUR_ai_t }
+	set_variable = { global.BUR_ai_last_t = BUR_ai_t }
 	if = {
 		limit = { check_variable = { BUR_ai_act = 1 } }
 		BUR_action_dialogue = yes
