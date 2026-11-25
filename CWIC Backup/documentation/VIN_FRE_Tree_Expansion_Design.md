@@ -3485,3 +3485,17 @@ cleared by them.
 147. After Binh's death NLF shows Collapse of the Southern Command and VIE
      gains ground in the south before Geneva.
 148. The 1958 NLF does not carry the spirit.
+
+### Follow-up: post-Geneva NLF as a peacetime skeleton
+
+User decision (1954-75 content not yet staffed). `indochina_nlf_insurgency_revive`
+(June 1958, `NLF_Flavor.1`) now creates NLF in Upper Trung Phan Highland and
+Quang Ngai with three small regiments and no war. New
+`indochina_nlf_insurgency_start_war` (revives if needed, takes `1400`,
+loads `NLF_1960`, declares war on VIE) is called by the US 60s Begin the
+Vietnam War and 70s war-restart foci, so the war opens with US
+intervention; Hanoi's monthly support (needs NLF at war) starts then.
+
+149. 1958-1964: NLF exists with two states and three regiments, at peace.
+150. Begin the Vietnam War: NLF gets its 1960 army and is at war with VIE
+     and the USA; `NLF_INSURGENCY_SUPPORT` lines follow.
