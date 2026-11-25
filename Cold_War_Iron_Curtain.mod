@@ -9,6 +9,7 @@ tags={
 version="1.19"
 replace_path="events"
 replace_path="common/decisions"
+replace_path="common/decisions/categories"
 replace_path="common/national_focus"
 replace_path="common/ideas"
 replace_path="history/units"
