@@ -3401,3 +3401,28 @@ Logs `_local/logs/2026-11-24b/`. Statically verified fixes.
 139. The three decisions show their names.
 140. After Diem's republic (or a fully independent Geneva VIE), VIE is in no
      sphere unless another power brings it into one.
+
+## 2026-11-24 review (c): observer run to 1962
+
+Logs `_local/logs/2026-11-24c/`. Geneva 8 Aug 1954; NLF revived June 1958
+(TRP fix works) but capitulated to VIE on 1 Oct 1958 with 12 divisions and
+no owned state controlled. No rework-file errors; one engine warning that
+`recruit_character` in `Fulro.1` should be history-only (not fatal).
+
+- NLF: losing both its states is 100% surrender progress, so
+  `surrender_limit = 0.5` could not hold. `The_Vietnam_War_NLF` now uses
+  `surrender_limit = 1.0`, the pattern FRE_CEFEO uses for the highland
+  domains: the insurgency survives as long as it has divisions and cannot be
+  knocked out by a capitulation. It still ends by peace (US Paris Peace,
+  Vietnamization white peace) or annexation.
+- Economy: every AI on a feudal/rentier/colonial axis takes the generic
+  `convert_to_normal_economic_axis_system` decision (IC_Financial_Decisions),
+  which sets 12/12 = Keynesian. That is why VIE, TRP (which copies VIE's axes
+  at creation) and many other countries read Keynesian. Not changed here
+  (global economy system). For Diem's republic, new
+  `VIE_set_personalist_economy` (VIE_Effects) sets VIE and a subject TRP to
+  x 10, y 15 = Social Corporatist, matching Personalism's corporatist
+  doctrine; called at the republic proclamation.
+
+141. NLF exists in 1962-1964 even after VIE/TRP occupy its states.
+142. After Diem's republic, VIE and TRP show Social Corporatist.
