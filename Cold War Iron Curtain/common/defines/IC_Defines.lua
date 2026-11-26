@@ -104,11 +104,6 @@ NDefines.NCountry.AIR_VOLUNTEER_BASES_CAPACITY_LIMIT = 0.5	-- Ratio for voluntee
 NDefines.NDiplomacy.BASE_PEACE_TAKE_UNCONTROLLED_STATE_FACTOR = 10.0 -- Base factor for taking state you do not control in %
 NDefines.NDiplomacy.CIVIL_WAR_INVOLVEMENT_MIN_TENSION = 0.0 -- base value of world tension to involve other sides to the civil war
 NDefines.NDiplomacy.IDEOLOGY_JOIN_FACTION_MIN_LEVEL = 0 -- ideology limit required to join faction
--- Declining a guarantee call costs nothing. Vanilla 0.2 war support. Our own
--- guarantee never fires a call at all, but guarantees placed by history and
--- content still do, and being dragged into a client's war by a popup is the
--- behaviour we are removing.
-NDefines.NDiplomacy.BREAKING_GUARANTEE_PENALTY = 0
 NDefines.NDiplomacy.MAX_OPINION_VALUE = 200 -- Max opinion value cap.
 NDefines.NDiplomacy.MIN_OPINION_VALUE = -200
 NDefines.NDiplomacy.TENSION_STATE_VALUE = 0.005 -- Tension value gained by annexing one state (this value used to be divided by 20, this is no longer the case)
