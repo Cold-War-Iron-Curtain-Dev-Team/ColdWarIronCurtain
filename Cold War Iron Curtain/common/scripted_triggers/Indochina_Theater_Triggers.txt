@@ -1698,3 +1698,77 @@ indochina_geneva_three_states_trigger = {
 ic_afk_logging_enabled = {
 	has_global_flag = IC_AFK_Logging_Enabled
 }
+
+indochina_raid_participant_trigger = {
+	NOT = { has_global_flag = Indochina_War_Over }
+	OR = {
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+	}
+}
+
+indochina_raid_enemy_target_trigger = {
+	OR = {
+		AND = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
+			FROM = {
+				OR = {
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = FROM.id }
+				}
+			}
+		}
+		AND = {
+			OR = {
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+			}
+			FROM = {
+				OR = {
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = FROM.id }
+				}
+			}
+		}
+		AND = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+			FROM = {
+				OR = {
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = FROM.id }
+				}
+			}
+		}
+	}
+	INDO_raid_not_own_side_trigger = yes
+}
+
+indochina_raid_show_target_trigger = {
+	indochina_raid_enemy_target_trigger = yes
+	var:target_state = { has_state_flag = cwic_indochina_raid_target }
+	NOT = {
+		AND = {
+			tag = VIN
+			var:target_state = {
+				is_core_of = CAM
+				NOT = { is_core_of = VIN }
+			}
+		}
+	}
+}
+
+indochina_raid_front_state_trigger = {
+	indochina_limited_war_window_trigger = yes
+	controller = {
+		indochina_limited_war_belligerent_trigger = yes
+		has_war = yes
+	}
+}
