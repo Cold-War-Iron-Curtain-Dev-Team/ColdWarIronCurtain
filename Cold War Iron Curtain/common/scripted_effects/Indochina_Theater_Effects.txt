@@ -5236,3 +5236,92 @@ indochina_nlf_insurgency_start_war = {
 		}
 	}
 }
+
+# ============================================================================
+# Chemical raids (common/raids/Indochina_Raids.txt victim_effects)
+
+indo_chem_raid_strike = {
+	var:target_state = {
+		if = {
+			limit = { check_variable = { indo_chem_hits_units = 1 } }
+			damage_units = {
+				state = THIS
+				damage = indo_chem_damage
+				ratio = yes
+			}
+		}
+		set_temp_variable = { indo_chem_struck_state = THIS.id }
+		every_neighbor_state = {
+			limit = {
+				has_border_war_between = {
+					attacker = THIS
+					defender = PREV
+				}
+			}
+			set_temp_variable = { indo_chem_other_state = THIS.id }
+			set_border_war_data = {
+				attacker = var:indo_chem_other_state
+				defender = var:indo_chem_struck_state
+				attacker_modifier = indo_chem_damage
+			}
+		}
+		every_neighbor_state = {
+			limit = {
+				has_border_war_between = {
+					attacker = PREV
+					defender = THIS
+				}
+			}
+			set_temp_variable = { indo_chem_other_state = THIS.id }
+			set_border_war_data = {
+				attacker = var:indo_chem_struck_state
+				defender = var:indo_chem_other_state
+				defender_modifier = indo_chem_damage
+			}
+		}
+		if = {
+			limit = { check_variable = { indo_chem_civilian < 0 } }
+			set_temp_variable = { indo_chem_casualties = state_population }
+			multiply_temp_variable = { indo_chem_casualties = indo_chem_civilian }
+			add_manpower = indo_chem_casualties
+		}
+	}
+}
+
+indo_nerve_raid_agent = {
+	if = {
+		limit = { var:actor_country = { has_tech = nbc_nerve_weapon_5 } }
+		set_temp_variable = { indo_chem_damage = 0.5 }
+		add_to_temp_variable = { indo_chem_civilian = -0.008 }
+		var:target_state = { add_province_modifier = { static_modifiers = { A_234 } days = 60 province = { all_provinces = yes } } }
+	}
+	else_if = {
+		limit = { var:actor_country = { has_tech = nbc_nerve_weapon_4 } }
+		set_temp_variable = { indo_chem_damage = 0.45 }
+		add_to_temp_variable = { indo_chem_civilian = -0.007 }
+		var:target_state = { add_province_modifier = { static_modifiers = { GV } days = 60 province = { all_provinces = yes } } }
+	}
+	else_if = {
+		limit = { var:actor_country = { has_tech = nbc_nerve_weapon_3 } }
+		set_temp_variable = { indo_chem_damage = 0.4 }
+		add_to_temp_variable = { indo_chem_civilian = -0.006 }
+		var:target_state = { add_province_modifier = { static_modifiers = { VM } days = 60 province = { all_provinces = yes } } }
+	}
+	else_if = {
+		limit = { var:actor_country = { has_tech = nbc_nerve_weapon_2 } }
+		set_temp_variable = { indo_chem_damage = 0.35 }
+		add_to_temp_variable = { indo_chem_civilian = -0.005 }
+		var:target_state = { add_province_modifier = { static_modifiers = { EA_3990 } days = 60 province = { all_provinces = yes } } }
+	}
+	else_if = {
+		limit = { var:actor_country = { has_tech = nbc_nerve_weapon_1 } }
+		set_temp_variable = { indo_chem_damage = 0.3 }
+		add_to_temp_variable = { indo_chem_civilian = -0.004 }
+		var:target_state = { add_province_modifier = { static_modifiers = { vx } days = 60 province = { all_provinces = yes } } }
+	}
+	else = {
+		set_temp_variable = { indo_chem_damage = 0.25 }
+		add_to_temp_variable = { indo_chem_civilian = -0.003 }
+		var:target_state = { add_province_modifier = { static_modifiers = { sarin } days = 60 province = { all_provinces = yes } } }
+	}
+}
