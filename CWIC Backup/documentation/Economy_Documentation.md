@@ -1133,7 +1133,7 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 | B3 | Navy clamp targets air | fixed | clamp on `navy_army_expenditure` |
 | B4 | Nuke ×10 on unused temp | fixed | `num_of_nukes × 10` added to strategic cost |
 | B5 | Subsidy hard-codes SOV | fixed | `var:subsidy_payer`, default `SOV.id` (`IncomeGenerator.txt:~535`) |
-| B6 | `totalexp` never read; `IncomeCheck` set twice | not real / open (low) | `totalexp` read by the sector pie. `military_expenditure` still adds `land_army_expenditure` to `IncomeCheck`, overwritten later in the month (dead write). |
+| B6 | `totalexp` never read; `IncomeCheck` set twice | not real / fixed | `totalexp` read by the sector pie. The dead `IncomeCheck` write in `military_expenditure` was removed on 2026-11-27. |
 | B7 | `cwic_default_monthly_check` and `ic_Financial` dead | fixed | both deleted |
 
 **Production**
@@ -1144,14 +1144,14 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 | P2 | Employment coefficients swapped | removed | new jobs table: arms and dockyards both 9.45 × development |
 | P3 | `oilEfficiencyGain` accumulates per state | not real | `Resource_Efficiency_Bonus.txt:10` calls `resource_modifier_set_startup` inside `every_owned_state`, which reaches `resource_idea_effect` (`Resource_Efficiency.txt:376`) and resets `oilEfficiencyGain = 0` (`:2`) before `:32` adds to it, so the value does not accumulate across states [inference: scope of the reset] |
 | P4 | `Privatisation_Level2` counted twice | fixed | one check (`Resource_Efficiency.txt:137`) |
-| P5 | Divide by zero; dead `food_consumption_calculator`; agent-orange decay checks napalm | partly open | No division by factory count (output guards `jobs > 0`). `food_consumption_calculator` (`IC_Industrial_Pulse.txt:2`) still has no callers. Agent-orange reset still tests `napalm_total < 1` (`IncomeGenerator.txt:~32`). |
+| P5 | Divide by zero; dead `food_consumption_calculator`; agent-orange decay checks napalm | fixed / open / fixed | No division by factory count (output guards `jobs > 0`). `food_consumption_calculator` (`IC_Industrial_Pulse.txt:2`) still has no callers. Agent-orange reset tests `agent_orange_total < 1` since 2026-11-27, so the modifier now lasts its full count. |
 
 **Taxes, laws, policies**
 
 | ID | Old finding | Status | Evidence |
 |---|---|---|---|
 | T2 | `tax_avoidance_function` runs before its input | removed | function deleted |
-| T3 | `lower_tax_rate` writes upper-class drift var | open (cosmetic) | `upper_class_tax_rate −0.05` still written (`policy_focus_effects.txt:3569`), never read, never added back |
+| T3 | `lower_tax_rate` writes upper-class drift var | fixed | write removed 2026-11-27 |
 | T4 | `decrease_DOM_Dominican_Nationalist_Fervor` defined twice | fixed | one definition (`policy_focus_effects.txt:5785`) |
 | T5 | `lower_healthcare_rate` bottom tier +50 PP | fixed | the call at `IC_Economic_Scripted_Effects.txt:2229-2231` is an `if` on `healthcare_level_value > 3` with no `else` |
 | T6 | Dead Laffer cluster; Laffer sampler every pulse | partly open | the Laffer function is gone, but the UI and modifier remain: `Laffer_Label` (`Finance_Tab.gui:5068`, visibility `Finance_Tab.txt:1403`), the Laffer graph in `line_graph_sample.gui:362-416`, its sprite (`New_Technology.gfx:1411`), loc (`CWIC_laws_l_english.yml:695`), and `IC_Economy_Effects.txt` still writes `economic_modifier_tax_avoidance_elasticity` (`:56`, `:596`, `:651`), which nothing reads |
@@ -1163,7 +1163,7 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 | R1 | AI buys only from the cheapest exporter | removed / changed | AI now buys from the seller with the most available, one deal per good per month (`cwic_auto_import_native`) |
 | R2, R11 | `chromium_import_ai` writes `nuclear_total` | removed | effect deleted |
 | R3 | Resource concessions dead | fixed (cut) | `resource_concession_evaluation.txt` deleted; stale `resource_concessions` keys remain in non-English loc |
-| R4 | No writers for shipping and `price_adjust_*` | partly open | shipping not modelled; `base_shipping_cost_divisor` is set at `on_startup_defines.txt:2652-2653` and never read. `price_adjust_generic^` does have writers (`decisions/ECSC.txt:701-735`, `50s_NIC.txt:1868-1873`, `DOM_49.txt:1482-1487`, `DOM_60s_Democratic.txt:1872-1877`, `LIB_50s.txt`, `New_Ideologies_Ideas.txt:7102-7117`); whether trade settlement reads it is unverified |
+| R4 | No writers for shipping and `price_adjust_*` | partly open | shipping not modelled; the unread `base_transport_cost_divisor` and `base_shipping_cost_divisor(_cg)` globals were removed on 2026-11-27. `price_adjust_generic^` does have writers (`decisions/ECSC.txt:701-735`, `50s_NIC.txt:1868-1873`, `DOM_49.txt:1482-1487`, `DOM_60s_Democratic.txt:1872-1877`, `LIB_50s.txt`, `New_Ideologies_Ideas.txt:7102-7117`); whether trade settlement reads it is unverified |
 | R5 | Trade bonus lowers exporter price | open (dead modifier) | price no longer cut; `global_trade_bonus_adjustment` is defined (`lar_operation_modifiers_pre_definition.txt:59`) and set by ideas (Indonesia, JAP, Brazil, INS, New Ideologies) but no script reads it; its loc promises exporter ranking [unverified: engine-side use] |
 | R6 | Comecon trade rate has no effect | changed | trade discounts removed; `TRADE_COMECON_RATE` feeds Comecon satisfaction (`COMECON_Effects.txt:183`), is bounded and clamped 0-6 (`:918-924`, `:1165-1166`) and drives GUI visibility (`scripted_guis/COMECON.txt:671-807`) |
 | R7 | `trade_automation` never initialised | fixed | `cwic_trade_manual_default` |
@@ -1180,7 +1180,7 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 |---|---|---|---|
 | U1 | Graph normalisation divides by zero | fixed | range guard in `finance_graph_build_segments` |
 | U2 | Electricity graph stores `resource@coal` | not real | coal is electricity in this mod (9.1) |
-| U3 | `SAMPLE_*` unreachable; duplicate tokens; `tax_efficiacy` spelling | open (cleanup) / fixed / not real | `Finance_Tab.txt:2912, 3005` still call `SAMPLE_add_random_point_to_line` from sample windows whose `add_button` is commented out in `interface/line_graph_sample.gui`. Duplicate tokens removed 2026-10-27 [unverified now]. Spelling consistent. |
+| U3 | `SAMPLE_*` unreachable; duplicate tokens; `tax_efficiacy` spelling | fixed / fixed / not real | the two unreachable `add_button_click` handlers and `SAMPLE_add_random_point_to_line` were removed on 2026-11-27. Duplicate tokens removed 2026-10-27 [unverified now]. Spelling consistent. |
 
 **Treasury flows**
 
@@ -1192,7 +1192,7 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 | F4 | `custom_expenses` reset before charge | fixed | never reset; standing monthly charge |
 | F5 | Reparations double channel | fixed | single `modifier@war_reperations` line |
 | F6 | `custom_income` PRC-only; subsidy inputs have no writers | decided / fixed / open (low) | `custom_income` kept as standing income. Subsidy reads live expenditures. `welfare_cost` still read by `COMECON_Effects.txt:42`, `pie_chart_scripted_effects.txt:165`, `COMECON.txt:1236, 1288` with no writer. |
-| F7 | `fiscal_cor_loss` shows a rate as money; factor reset | open / removed | `CWIC_laws_l_english.yml:184` still shows `CorruptIncomeLoss`, which no longer has a writer; factor gone |
+| F7 | `fiscal_cor_loss` shows a rate as money; factor reset | fixed / removed | the unused English `fiscal_cor_loss` key was removed on 2026-11-27 (French, Japanese, Russian copies left to the translation team); factor gone |
 
 **Debt and credit**
 
@@ -1244,8 +1244,8 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 | # | Issue | Evidence | Impact |
 |---|---|---|---|
 | N1 | GDP ignores productivity levers. `cwic_calc_state_output` does not read `CWIC_productivity_mult`, `CWIC_bm_productivity_penalty`, `productivity_factor`, `workforce_ratio`, the `*_income_bonus` modifiers or their drift variables, or an electricity shortage. | `IC_Econ_2024.txt:482-530`; drift vars written at `:1484-1560` with no reader | Productivity costs of capital controls, tightening, currency reform and the black market, the CG crisis productivity/workforce penalties, and every income-bonus idea and tech do nothing to GDP. `MODEL.md` §1.2 promised them. |
-| N2 | `eta` is unclamped | `cwic_budget_tax_revenue` | large negative tax efficiency or extreme leak could make tax negative |
-| N3 | Military subsidy copy-paste | `IncomeGenerator.txt:~1395-1420`: navy and air subsidy totals add `mil_expend_subsidy` (land) | wrong subsidy amounts for navy and air |
+| N2 | `eta` was unclamped | `cwic_budget_tax_revenue` | fixed 2026-11-27: `cwic_tax_leak` and `cwic_tax_eff` clamped at 0 |
+| N3 | Military subsidy copy-paste | `IncomeGenerator.txt:~1395-1416` | fixed 2026-11-27: navy and air totals and deductions use `navy_expend_subsidy` / `af_expend_subsidy`. Still open: received subsidies are added to the recipient's spending (`land_army_expenditure += mil_expend_subsidy_tot`); sign unconfirmed |
 | N4 | Military GDP-share lines may be lower than intended | `military_expenditure` (`IncomeGenerator.txt:1307-1360`) | monthly land = (`army_spending_modifier` × 0.02 + `strategic_forces_spending_modifier` × 0.01) × GDP/12; navy = `navy_spending_modifier` × 0.01 × GDP/12; air = `air_spending_modifier` × 0.01 × GDP/12. `MODEL.md` §3.3 intended 4/2/2% at full modifier; whether any further divisor applies is unverified |
 | N5 | Country loans may pay interest twice | `cwic_take_loan` lender 11 builds interest into the installment; the monthly loop also charges interest on principal | [inference] overpriced country loans |
 | N6 | 30% import cap may break trade conservation | `ic_calc_trade_imports` (`IncomeGenerator.txt:1852-1859`) | the importer's `resource_cost` is clamped to 30% of monthly GDP while the trade balance uses the raw bill; whether exporters are paid the uncapped amount is unverified |
@@ -1253,10 +1253,10 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 | N8 | Insurgency exit keeps War Economy and level-0 policies | `cwic_exit_insurgency_to_normal_economy` clears a flag only | callers must set axes and levels themselves |
 | N9 | `economic_z_axis` variants unreachable | `cwic_set_economic_variant` has no callers | variant names and icons never show |
 | N10 | `cwic_change_money` gates on lender caps | `IC_Economic_Scripted_Effects.txt:1037+` checks `ReserveMaxBorrowable`, `WorldMaxBorrowable`, `MorganMaxBorrowable`; `IC_Loans_and_Interest_Rate_Effects.txt:1452` recomputes the reserve cap from GDP | caps follow GDP, not each lender's remaining capacity [unverified: whether that lets spending exceed it] |
-| N11 | `cwic_forgive_debt` leaves `domesticTotalDebt` | `IC_Financial_Scripted_Effects_for_Content.txt:151` | domestic debt display drifts high |
-| N12 | Rating 10 has no default/austerity multipliers | `set_interest_rates` | latent; guarded by `Credit_Rating < 10` |
-| N13 | `cropBoost` multiplied but never set in `industrial_pulse_food_script` | `IC_Industrial_Pulse.txt` | no-op |
-| N14 | Empty first `immediate` blocks | `tutorial.2000`, `food_pulse.1` | cosmetic |
+| N11 | `cwic_forgive_debt` left `domesticTotalDebt` | `IC_Financial_Scripted_Effects_for_Content.txt:151` | fixed 2026-11-27: forgiven domestic loans (`debtOwnerDomesticStatusArray^i = 2`) reduce it |
+| N12 | Rating 10 had no default/austerity multipliers | `set_interest_rates` | fixed 2026-11-27: rating 10 uses rating 9's values (15 / 8) |
+| N13 | `cropBoost` multiplied but never set | `IC_Industrial_Pulse.txt:750` | fixed 2026-11-27: colonial (x 26) and rentier (x 24) economies now halve `farm_output` (balance change) |
+| N14 | Empty first `immediate` blocks | `tutorial.2000`, `food_pulse.1` | removed 2026-11-27 |
 | N15 | `CWIC_CRISIS_GRACE` set for VIN every month during the Indochina war | `IncomeGenerator.txt:1290-1297` | intended override, labelled VIN-only |
 | N16 | Two MNC monthly effects never written | `IncomeGenerator.txt:1280-1286` | commented calls |
 | N17 | `MODEL.md` promises not built | no `debt_premium` anywhere; default still compares debt against `default_multiplier` (`IC_Loans_and_Interest_Rate_Effects.txt:40, 52`, values set by credit rating at `:1112-1207`) instead of debt service > 35% of revenue for 3 months; `base_infl` is a flat 0.001/month (`IC_Inflation_Effect.txt:71`) instead of era baselines; no single `cg_shortage` variable (computed separately in `IC_Consumer_Goods.txt:48-51` and `:77-80`); history-layer shocks not wired (`cwic_price_shock_*` uncalled) | design gap |
