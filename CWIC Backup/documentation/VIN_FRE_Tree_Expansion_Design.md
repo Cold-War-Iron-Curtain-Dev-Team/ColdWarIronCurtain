@@ -3499,3 +3499,34 @@ intervention; Hanoi's monthly support (needs NLF at war) starts then.
 149. 1958-1964: NLF exists with two states and three regiments, at peace.
 150. Begin the Vietnam War: NLF gets its 1960 army and is at war with VIE
      and the USA; `NLF_INSURGENCY_SUPPORT` lines follow.
+
+## Note (2026-11-26): the 2026-11-22 to 2026-11-24 entries above predate later work
+
+The entries from "2026-11-22 run review" through "2026-11-24 review (d)",
+and the post-Binh spirit and post-Geneva NLF skeleton follow-ups, record an
+earlier session (commits dated 22-24 Nov). Later commits (25-26 Nov) change
+some of what they describe; treat the code, not those entries, as current.
+
+Superseded details:
+- `NLF_southern_collapse` (`809f3d902c`): attack -35%, defence -50%,
+  surrender limit -40% (the entries say -25%, -20%, -20%).
+- `FUL_Y_Bham_Enuol` (`f0d4c75d1f`): portrait `GFX_CWIC_military_unknown`,
+  not the generic placeholder.
+- `Fulro.1` (`6ada9151cd`): the `recruit_character` line is removed; the
+  leader role is added directly. The same commit guards the Da Lat
+  compliance in `VIE_50s_Bao_Dai` and re-encodes VIN tech icons.
+
+Later work not covered by those entries:
+- Indochina raids rework (`fb33b5500c` through `568a353812`): 12
+  side-agnostic raids, AI command-power and success thresholds, no AI
+  raids during VIN campaigns or FRE operations, chemical raid effects moved
+  into `Indochina_Theater_Effects.txt` (`2ed616afc4`).
+- VIE AI holds the An Xuyen front guarding Saigon in the NLF war
+  (`ec02e33587`).
+- Telemetry: monthly `IC_AFK|VIE_SURRENDER` and surrender progress on every
+  theatre capitulation line (`7403db0693`).
+- FRE Indochina MIOs and FRE access limited to four FRA companies
+  (`1300996203`).
+- Indochina event pictures and event text rewrites (25-26 Nov).
+
+Checks 117-150 from the earlier entries are still unscored.

@@ -1143,3 +1143,13 @@ because `VIE_Buu_Loc_Resign` required two mutually exclusive focuses; fixed,
 plus five FRA/SIA focuses with the same bug. The 1958 NLF now spawns its
 army correctly and has a higher surrender limit. Open: whether Ha Giang
 leaves the Tai-Meo region for Viet Bac (user call).
+
+## Note (2026-11-26): the 22-24 Nov sections above predate later work
+
+The 2026-11-22 to 2026-11-24 sections record an earlier session. Later
+commits (25-26 Nov) superseded parts of them: the post-Binh NLF spirit
+values, Y Bham Enuol's portrait and the `Fulro.1` leader line. They also
+added work not covered here: the Indochina raids rework, the VIE An Xuyen
+front AI, `VIE_SURRENDER` telemetry, FRE MIOs and event pictures. Details
+and commits are in the ledger note of the same date. The code is current;
+the 22-24 Nov sections are history.
