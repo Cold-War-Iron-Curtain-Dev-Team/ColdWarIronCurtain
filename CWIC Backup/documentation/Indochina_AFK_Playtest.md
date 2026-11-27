@@ -405,8 +405,8 @@ no observer notes or screenshots exist, so visual-only items are `NOT COVERED`.
       (margin `+135`, Communist leverage 300, VIN 54 / VIE 43).
 - [x] PASS: Logs preserved before any subsequent launch.
 - [x] PASS: Failures divided into regression, balance, and unrelated-noise
-      queues (see the 2026-09-28 ledger entry in
-      `VIN_FRE_Tree_Expansion_Design.md`).
+      queues (see the 2026-09-28 log entry in
+      `agent_docs/vin_fre_indochina.md`).
 
 ## Decision after the run
 
@@ -417,7 +417,7 @@ no observer notes or screenshots exist, so visual-only items are `NOT COVERED`.
    require another unified run only when campaign ordering, Geneva, shared
    cleanup, faction/war topology, or broad balance changed.
 4. Mark the tested corrective-pass systems engine-accepted in
-   `VIN_FRE_Tree_Expansion_Design.md` and `HANDOFF.md` only after reviewing both
+   `agent_docs/vin_fre_indochina.md` only after reviewing both
    preserved logs and this checkoff.
 5. Once accepted, continue the remaining rework content without reopening
    accepted Brochet or primary-campaign lifecycle code absent a concrete
