@@ -25,7 +25,7 @@ from collections import Counter, OrderedDict
 MOD = "Cold War Iron Curtain"
 FOCUS_DIR = os.path.join(MOD, "common", "national_focus")
 INTERFACE_DIR = os.path.join(MOD, "interface")
-OUT_DIR = os.path.join("CWIC Backup", "documentation", "Icon Audit")
+OUT_DIR = os.path.join("_local", "documentation", "Icon Audit")
 
 THEATRES = OrderedDict([
     ("Icon Audit - South Vietnam.csv", [

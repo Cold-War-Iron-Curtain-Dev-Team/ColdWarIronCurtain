@@ -85,7 +85,7 @@ MANUAL = {
 
 # Not an asset - a Photoshop source file that ships in the mod for no reason.
 PARKED = {"GENERIC_ICONS/Template for dummies.psd": os.path.join(
-    "CWIC Backup", "documentation", "Icon Sources", "Template for dummies.psd")}
+    "_local", "documentation", "Icon Sources", "Template for dummies.psd")}
 
 SOURCE_DIRS = ["Generic_National_Focus", "GENERIC_ICONS", "Generic_Icons", "new_generic"]
 

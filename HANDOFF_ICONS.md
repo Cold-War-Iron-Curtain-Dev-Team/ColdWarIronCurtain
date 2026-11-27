@@ -94,7 +94,7 @@ are referenced by no focus and were already non-functional.
 
 | Tool | Purpose |
 |---|---|
-| `tools/icon_audit.py` | Parses focus blocks, resolves every `icon =` against all sprites declared under `interface/**/*.gfx`, writes round-trippable CSVs to `CWIC Backup/documentation/Icon Audit/`. `--check` lints for MISSING/ILLEGAL, `--summary` prints counts. Hand columns `Verdict`/`Replacement`/`Notes` survive re-runs. |
+| `tools/icon_audit.py` | Parses focus blocks, resolves every `icon =` against all sprites declared under `interface/**/*.gfx`, writes round-trippable CSVs to `_local/documentation/Icon Audit/`. `--check` lints for MISSING/ILLEGAL, `--summary` prints counts. Hand columns `Verdict`/`Replacement`/`Notes` survive re-runs. |
 | `tools/art_to_png.py` | Replaces `dds_to_png.py`. Converts any dds/tga/bmp under `goals/generic/` to png, verifies the round-trip (dims + per-channel means must match exactly), repoints every `.gfx` reference, deletes the original only after everything resolves. |
 | `tools/gfx_lib.py` | Shared SpriteType block parser. Its `read_text`/`write_text` refuse to write a BOM or CRLF into a registry - Clausewitz rejects a `.gfx` with a BOM. |
 | `tools/icon_consolidate.py` | Moved the four generic art directories into `goals/generic/<category>/` and repointed every reference. Kept for the record; the merge it performs is done. |
@@ -176,7 +176,7 @@ goals/new_generic/               3
 - Duplicate sprite declarations across `interface/`: **2598 -> 2226**, generic-focus **280 -> 0**,
   with distinct sprite names unchanged at 57090 (nothing lost).
 - Library is now **100% 8-bit png**: the last 5 dds and 1 tga converted with a round-trip check.
-- `Template for dummies.psd` moved out of the mod into `CWIC Backup/documentation/Icon Sources/`.
+- `Template for dummies.psd` moved out of the mod into `_local/documentation/Icon Sources/` (CWIC-Agent-Workspace `artifacts/_local/documentation/`).
 
 ### 2. Content renaming - done
 
@@ -188,7 +188,7 @@ with no aliases. `GFX_icon_generic_*` collapsed into the same prefix, so the lib
 - Names come from labelled contact sheets read one category at a time:
   `Politics_1` -> `politics_petition`, `Military_2` -> `military_massed_infantry`,
   `USSR_1` -> `ussr_moscow_handshake`.
-- The mapping is kept in `CWIC Backup/documentation/Icon Audit/Icon Rename Map.csv` (365 rows), so
+- The mapping is kept in `_local/documentation/Icon Audit/Icon Rename Map.csv` (365 rows), so
   the rename is reviewable and reversible.
 
 **Found while renaming:** `GFX_Generic_National_Focus_Military_11` and `Politics_19` resolved to

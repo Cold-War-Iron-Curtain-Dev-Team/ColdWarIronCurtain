@@ -5,7 +5,7 @@ GFX_Generic_National_Focus_Agriculture_5 says nothing about what the icon
 shows. This renames every sprite, its _shine twin, the art file and every
 `icon =` reference in one pass, so the five things can never drift apart.
 
-The mapping lives in CWIC Backup/documentation/Icon Audit/Icon Rename Map.csv
+The mapping lives in _local/documentation/Icon Audit/Icon Rename Map.csv
 and is hand-authored from the contact sheets. Rows with an empty Old Sprite are
 art files whose sprite is declared in another registry: the file still moves,
 the sprite name is left alone.
@@ -29,7 +29,7 @@ import gfx_lib as G
 MOD = "Cold War Iron Curtain"
 INTERFACE = os.path.join(MOD, "interface")
 FOCUS = os.path.join(MOD, "common", "national_focus")
-MAP = os.path.join("CWIC Backup", "documentation", "Icon Audit", "Icon Rename Map.csv")
+MAP = os.path.join("_local", "documentation", "Icon Audit", "Icon Rename Map.csv")
 NUMBERED = re.compile(r"GFX_Generic_National_Focus_[A-Za-z]+_\d+|GFX_icon_generic_[a-z0-9_]+")
 ICON_LINE = re.compile(r"(icon\s*=\s*)(GFX_[A-Za-z0-9_]+)")
 
