@@ -790,7 +790,10 @@ shared_focus = {
 	}
 	bypass = {
 		OR = {
-			has_global_flag = geneva_conference_concluded
+			AND = {	# the accords set no ballot: abstaining from the clause is what happened
+				has_global_flag = geneva_conference_concluded
+				NOT = { check_variable = { global.geneva_elections_term > 1 } }
+			}
 			AND = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
@@ -846,7 +849,10 @@ shared_focus = {
 	}
 	bypass = {
 		OR = {
-			has_global_flag = geneva_conference_concluded
+			AND = {	# the accords scheduled a supervised ballot
+				has_global_flag = geneva_conference_concluded
+				check_variable = { global.geneva_elections_term > 1 }
+			}
 			AND = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
@@ -1041,9 +1047,9 @@ shared_focus = {
 			target = VIN
 			type = annex_everything
 		}
-		declare_war_on = {
-			target = NLF
-			type = annex_everything
+		if = {
+			limit = { country_exists = NLF NOT = { has_war_with = NLF } }
+			declare_war_on = { target = NLF type = annex_everything }
 		}
 		add_threat = 3
 		set_global_flag = USA_Direct_Intervention
@@ -1196,10 +1202,6 @@ shared_focus = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
 			}
-			AND = {	# Saigon settled it unilaterally; there is no ballot left to endorse or block
-				country_exists = VIE
-				VIE = { has_country_flag = VIE_reunification_election_refused }
-			}
 		}
 	}
 	ai_will_do = {
@@ -1254,6 +1256,7 @@ shared_focus = {
 			country_exists = VIE
 			country_exists = VIN
 		}
+		has_global_flag = Indochina_War_Over
 	}
 	completion_reward = {
 		USA = {
@@ -1322,7 +1325,10 @@ shared_focus = {
 	}
 	bypass = {
 		OR = {
-			has_global_flag = geneva_election_resolved
+			AND = {	# the ballot was held without American interference
+				has_global_flag = geneva_election_resolved
+				NOT = { has_country_flag = USA_Tampered_With_VIE }
+			}
 			AND = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
@@ -1335,6 +1341,10 @@ shared_focus = {
 						has_country_flag = VIN_liberation_of_the_south_prepared
 					}
 				}
+			}
+			AND = {	# no ballot was ever put to Saigon's vote
+				country_exists = VIE
+				VIE = { has_country_flag = VIE_reunification_election_refused }
 			}
 		}
 	}
@@ -1388,7 +1398,10 @@ shared_focus = {
 	}
 	bypass = {
 		OR = {
-			has_global_flag = geneva_election_resolved
+			AND = {	# the ballot was held and Washington rigged it
+				has_global_flag = geneva_election_resolved
+				has_country_flag = USA_Tampered_With_VIE
+			}
 			AND = {
 				has_global_flag = Indochina_War_Over
 				NOT = { has_global_flag = geneva_conference_concluded }
@@ -1401,6 +1414,10 @@ shared_focus = {
 						has_country_flag = VIN_liberation_of_the_south_prepared
 					}
 				}
+			}
+			AND = {	# no ballot was ever put to Saigon's vote
+				country_exists = VIE
+				VIE = { has_country_flag = VIE_reunification_election_refused }
 			}
 		}
 	}
@@ -6677,6 +6694,39 @@ shared_focus = {
 		y = 8
 		relative_position_id = USA_50s_The_Chinese_Civil_War
 		completion_reward = {
+			USA = {
+				if = {
+					limit = { NOT = { has_template = "Marine Division" } }
+					division_template = {
+						name = "Marine Division"
+						division_names_group = USA_MAR_01
+						regiments = {
+							mechanized_marine = { x = 0 y = 0 }
+							mechanized_marine = { x = 0 y = 1 }
+							mechanized_marine = { x = 0 y = 2 }
+							mechanized_marine = { x = 1 y = 0 }
+							mechanized_marine = { x = 1 y = 1 }
+							mechanized_marine = { x = 1 y = 2 }
+							mechanized_marine = { x = 2 y = 0 }
+							mechanized_marine = { x = 2 y = 1 }
+							mechanized_marine = { x = 2 y = 2 }
+							rocket_sp_artillery = { x = 2 y = 3 }
+							light_artillery = { x = 3 y = 0 }
+							light_artillery = { x = 3 y = 1 }
+							light_artillery = { x = 3 y = 2 }
+							light_artillery = { x = 3 y = 3 }
+							medium_armor = { x = 4 y = 0 }
+						}
+						support = {
+							engineer = { x = 0 y = 0 }
+							recon_motorized = { x = 0 y = 1 }
+							artillery_support = { x = 0 y = 2 }
+							logistics_company = { x = 0 y = 3 }
+							field_hospital = { x = 0 y = 4 }
+						}
+					}
+				}
+			}
 			524 = {
 				create_unit = {
 					division = "name = \"Marine Division\" division_template = \"Marine Division\" start_experience_factor = 1"
@@ -7052,6 +7102,39 @@ shared_focus = {
 			news_event = USA_CCWr.10	#US Marines Return to Qingdao
 			transfer_state = 1571
 			give_military_access = CHI
+			USA = {
+				if = {
+					limit = { NOT = { has_template = "Marine Division" } }
+					division_template = {
+						name = "Marine Division"
+						division_names_group = USA_MAR_01
+						regiments = {
+							mechanized_marine = { x = 0 y = 0 }
+							mechanized_marine = { x = 0 y = 1 }
+							mechanized_marine = { x = 0 y = 2 }
+							mechanized_marine = { x = 1 y = 0 }
+							mechanized_marine = { x = 1 y = 1 }
+							mechanized_marine = { x = 1 y = 2 }
+							mechanized_marine = { x = 2 y = 0 }
+							mechanized_marine = { x = 2 y = 1 }
+							mechanized_marine = { x = 2 y = 2 }
+							rocket_sp_artillery = { x = 2 y = 3 }
+							light_artillery = { x = 3 y = 0 }
+							light_artillery = { x = 3 y = 1 }
+							light_artillery = { x = 3 y = 2 }
+							light_artillery = { x = 3 y = 3 }
+							medium_armor = { x = 4 y = 0 }
+						}
+						support = {
+							engineer = { x = 0 y = 0 }
+							recon_motorized = { x = 0 y = 1 }
+							artillery_support = { x = 0 y = 2 }
+							logistics_company = { x = 0 y = 3 }
+							field_hospital = { x = 0 y = 4 }
+						}
+					}
+				}
+			}
 			1571 = {
 				create_unit = {
 					division = "name = \"Marine Division\" division_template = \"Marine Division\" start_experience_factor = 1"

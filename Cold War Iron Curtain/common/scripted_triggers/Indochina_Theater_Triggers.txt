@@ -416,6 +416,7 @@ geneva_conference_should_be_available_trigger = {
 geneva_panic_collapse_trigger = {
    	NOT = { has_global_flag = Indochina_War_Over }
    	NOT = { has_global_flag = Indochina_Geneva_Panic }
+   	NOT = { has_global_flag = Indochina_Geneva_Panic_Spent }
    	NOT = { has_global_flag = geneva_conference_announced }
    	NOT = { has_global_flag = geneva_conference_in_session }
    	NOT = { has_global_flag = geneva_conference_concluded }
@@ -1195,6 +1196,7 @@ ic_failsafe_theatre_tag_trigger = {
 		tag = CCC
 		tag = FUL
 		tag = NLF
+		tag = TRP
 		tag = PQC
 		tag = TAI
 		tag = TAM
@@ -1343,7 +1345,6 @@ ic_failsafe_active_trigger = {
 # A conference that is genuinely running. Outranks the decisive rungs, the way
 # the wrap-up timer always behaved.
 ic_failsafe_geneva_live_trigger = {
-	has_global_flag = Geneva_Conference
 	OR = {
 		has_global_flag = geneva_conference_announced
 		has_global_flag = geneva_conference_in_session
@@ -1670,6 +1671,7 @@ ic_struggle_intro_tag_trigger = {
 		tag = FRE
 		tag = CCC
 		tag = FUL
+		tag = TRP
 		tag = PQC
 		tag = TAI
 		tag = TAM
@@ -1679,5 +1681,80 @@ ic_struggle_intro_tag_trigger = {
 		tag = LOS
 		tag = LAO
 		tag = CAM
+	}
+}
+
+# Geneva three-states settlement: no unified vote, and PQC still owns a state
+# core to Viet Nam (the northern zone it keeps).
+indochina_geneva_three_states_trigger = {
+   	country_exists = PQC
+   	country_exists = VIN
+   	NOT = { check_variable = { global.geneva_clause_current^1 = 0 } }
+   	PQC = {
+   		any_owned_state = { is_core_of = VIN }
+   	}
+}
+
+ic_afk_logging_enabled = {
+	has_global_flag = IC_AFK_Logging_Enabled
+}
+
+indochina_raid_participant_trigger = {
+	NOT = { has_global_flag = Indochina_War_Over }
+	OR = {
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = THIS.id }
+		is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = THIS.id }
+	}
+}
+
+indochina_raid_enemy_target_trigger = {
+	OR = {
+		AND = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = ROOT.id }
+			FROM = {
+				OR = {
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = FROM.id }
+				}
+			}
+		}
+		AND = {
+			OR = {
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = ROOT.id }
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = ROOT.id }
+				is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = ROOT.id }
+			}
+			FROM = {
+				OR = {
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = FROM.id }
+				}
+			}
+		}
+		AND = {
+			is_in_array = { FRA.StruggleInvolvedNationsIndochinaKuomintang = ROOT.id }
+			FROM = {
+				OR = {
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaCommunist = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProFrance = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProIndependence = FROM.id }
+					is_in_array = { FRA.StruggleInvolvedNationsIndochinaProEthnic = FROM.id }
+				}
+			}
+		}
+	}
+	INDO_raid_not_own_side_trigger = yes
+}
+
+indochina_raid_front_state_trigger = {
+	indochina_limited_war_window_trigger = yes
+	controller = {
+		indochina_limited_war_belligerent_trigger = yes
+		has_war = yes
 	}
 }

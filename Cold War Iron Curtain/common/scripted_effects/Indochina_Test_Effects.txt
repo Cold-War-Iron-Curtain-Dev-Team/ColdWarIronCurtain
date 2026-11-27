@@ -2347,6 +2347,19 @@ test_vie_diem_republic = {	# drops the run straight onto the referendum finale
 	}
 }
 
+ic_afk_refresh_logging_flag = {
+	if = {
+		limit = {
+			OR = {
+				NOT = { any_country = { is_ai = no } }
+				any_country = { is_ai = no ic_failsafe_theatre_tag_trigger = yes }
+			}
+		}
+		set_global_flag = IC_AFK_Logging_Enabled
+	}
+	else = { clr_global_flag = IC_AFK_Logging_Enabled }
+}
+
 ic_afk_validation_initialize = {
 	if = {
 		limit = { NOT = { has_global_flag = IC_AFK_Validation_Initialized } }
@@ -2413,25 +2426,25 @@ ic_afk_validation_score_delta_tick = {
 
 ic_afk_trace_score_communist = {
 	add_to_variable = { global.ic_afk_traced_communist = ic_trace_amount }
-	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=communist|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=communist|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]" }
 	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 ic_afk_trace_score_pro_france = {
 	add_to_variable = { global.ic_afk_traced_pro_france = ic_trace_amount }
-	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_france|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_france|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]" }
 	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 ic_afk_trace_score_pro_independence = {
 	add_to_variable = { global.ic_afk_traced_pro_independence = ic_trace_amount }
-	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_independence|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_independence|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]" }
 	set_temp_variable = { ic_trace_writer = 0 }
 }
 
 ic_afk_trace_score_pro_ethnic = {
 	add_to_variable = { global.ic_afk_traced_pro_ethnic = ic_trace_amount }
-	log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_ethnic|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]"
+	if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|SCORE_WRITE|date=[GetDateText]|track=pro_ethnic|amount=[?ic_trace_amount|0]|writer=[?ic_trace_writer|0]|root=[ROOT.GetTag]" }
 	set_temp_variable = { ic_trace_writer = 0 }
 }
 
@@ -2478,7 +2491,7 @@ ic_afk_validation_vin_balance_contract = {
 			OR = { check_variable = { VIN_camp_current = 2 } NOT = { country_exists = TAM } TAM = { NOT = { has_war_with = ROOT } } }
 			OR = { check_variable = { VIN_camp_current = 4 } NOT = { country_exists = THO } THO = { NOT = { has_war_with = ROOT } } }
 			OR = { check_variable = { VIN_camp_current = 1 } check_variable = { VIN_camp_current = 3 } check_variable = { VIN_camp_current = 5 } check_variable = { VIN_camp_current = 8 } check_variable = { VIN_camp_current = 10 } check_variable = { VIN_camp_current = 11 } NOT = { country_exists = TAI } TAI = { NOT = { has_war_with = ROOT } } }
-			OR = { NOT = { country_exists = NUN } NUN = { NOT = { has_war_with = ROOT } } }
+			OR = { check_variable = { VIN_camp_current = 4 } check_variable = { VIN_camp_current = 6 } NOT = { country_exists = NUN } NUN = { NOT = { has_war_with = ROOT } } }
 		}
 		log = "IC_AFK|PASS|date=[GetDateText]|check=VIN_campaign_participant_envelope|campaign=[?VIN_camp_current|0]"
 	}
@@ -2709,7 +2722,8 @@ ic_afk_validation_capitulation = {
 		if = { limit = { ROOT = { OR = { has_idea = VIN_Campaign_Overextension has_idea = VIN_Campaign_Overextension_Severe } } } set_temp_variable = { ic_afk_cap_overext = 1 } }
 		set_temp_variable = { ic_afk_cap_capital_held = 1 }
 		if = { limit = { ROOT = { capital_scope = { NOT = { is_controlled_by = ROOT } } } } set_temp_variable = { ic_afk_cap_capital_held = 0 } }
-		log = "IC_AFK|CAPITULATION|date=[GetDateText]|tag=[ROOT.GetTag]|winner=[FROM.GetTag]|divisions=[?ROOT.num_divisions|0]|owned_controlled_states=[?ROOT.num_owned_controlled_states|0]|capital_held=[?ic_afk_cap_capital_held|0]|overextended=[?ic_afk_cap_overext|0]|vin_campaign=[?ROOT.VIN_camp_current|0]"
+		ROOT = { ic_afk_nlf_surrender_measure = yes }
+		log = "IC_AFK|CAPITULATION|date=[GetDateText]|tag=[ROOT.GetTag]|winner=[FROM.GetTag]|divisions=[?ROOT.num_divisions|0]|owned_states=[?ROOT.num_owned_states|0]|owned_controlled_states=[?ROOT.num_owned_controlled_states|0]|capital_held=[?ic_afk_cap_capital_held|0]|surrender_pct=[?ic_afk_nlf_surr_pct|0]|overextended=[?ic_afk_cap_overext|0]|vin_campaign=[?ROOT.VIN_camp_current|0]"
 		if = {
 			limit = { ROOT = { tag = VIN } }
 			set_temp_variable = { ic_afk_surr_reason = 3 }
@@ -3518,8 +3532,8 @@ ic_afk_placement_sweep = {
 ic_afk_army_cap_sweep = {
 	if = { limit = { country_exists = VIN } VIN = { ic_afk_army_cap_snapshot = yes } }
 	if = { limit = { country_exists = FRE } FRE = { ic_afk_army_cap_snapshot = yes } }
-	if = { limit = { country_exists = VIE } VIE = { ic_afk_army_cap_snapshot = yes } }
-	if = { limit = { country_exists = NLF } NLF = { ic_afk_army_cap_snapshot = yes } }
+	if = { limit = { country_exists = VIE } VIE = { ic_afk_army_cap_snapshot = yes ic_afk_vie_surrender_snapshot = yes } }
+	if = { limit = { country_exists = NLF } NLF = { ic_afk_army_cap_snapshot = yes ic_afk_nlf_surrender_snapshot = yes } }
 	if = { limit = { country_exists = LOS } LOS = { ic_afk_army_cap_snapshot = yes } }
 	if = { limit = { country_exists = LAO } LAO = { ic_afk_army_cap_snapshot = yes } }
 	if = { limit = { country_exists = MEO } MEO = { ic_afk_army_cap_snapshot = yes } }
@@ -3527,6 +3541,53 @@ ic_afk_army_cap_sweep = {
 	if = { limit = { country_exists = TAM } TAM = { ic_afk_army_cap_snapshot = yes } }
 	if = { limit = { country_exists = THO } THO = { ic_afk_army_cap_snapshot = yes } }
 	if = { limit = { country_exists = NUN } NUN = { ic_afk_army_cap_snapshot = yes } }
+}
+
+ic_afk_nlf_surrender_measure = {
+	set_temp_variable = { ic_afk_nlf_surr_pct = 0 }
+	if = { limit = { surrender_progress > 0.10 } set_temp_variable = { ic_afk_nlf_surr_pct = 10 } }
+	if = { limit = { surrender_progress > 0.20 } set_temp_variable = { ic_afk_nlf_surr_pct = 20 } }
+	if = { limit = { surrender_progress > 0.30 } set_temp_variable = { ic_afk_nlf_surr_pct = 30 } }
+	if = { limit = { surrender_progress > 0.40 } set_temp_variable = { ic_afk_nlf_surr_pct = 40 } }
+	if = { limit = { surrender_progress > 0.50 } set_temp_variable = { ic_afk_nlf_surr_pct = 50 } }
+	if = { limit = { surrender_progress > 0.60 } set_temp_variable = { ic_afk_nlf_surr_pct = 60 } }
+	if = { limit = { surrender_progress > 0.70 } set_temp_variable = { ic_afk_nlf_surr_pct = 70 } }
+	if = { limit = { surrender_progress > 0.80 } set_temp_variable = { ic_afk_nlf_surr_pct = 80 } }
+	if = { limit = { surrender_progress > 0.90 } set_temp_variable = { ic_afk_nlf_surr_pct = 90 } }
+	set_temp_variable = { ic_afk_nlf_capital_held = 1 }
+	if = { limit = { capital_scope = { NOT = { is_controlled_by = PREV } } } set_temp_variable = { ic_afk_nlf_capital_held = 0 } }
+	set_temp_variable = { ic_afk_nlf_held = 0 }
+	if = { limit = { controls_province = 4255 } add_to_temp_variable = { ic_afk_nlf_held = 1 } }
+	if = { limit = { controls_province = 1300 } add_to_temp_variable = { ic_afk_nlf_held = 2 } }
+	if = { limit = { controls_province = 4341 } add_to_temp_variable = { ic_afk_nlf_held = 4 } }
+}
+
+ic_afk_nlf_surrender_write = {
+	log = "IC_AFK|NLF_SURRENDER|date=[GetDateText]|reason=[?ic_afk_nlf_reason|0]|surrender_pct=[?ic_afk_nlf_surr_pct|0]|held=[?ic_afk_nlf_held|0]|owned_states=[?num_owned_states|0]|owned_controlled_states=[?num_owned_controlled_states|0]|capital_held=[?ic_afk_nlf_capital_held|0]|divisions=[?num_divisions|0]"
+}
+
+ic_afk_nlf_surrender_snapshot = {
+	ic_afk_nlf_surrender_measure = yes
+	set_temp_variable = { ic_afk_nlf_reason = 1 }
+	ic_afk_nlf_surrender_write = yes
+}
+
+ic_afk_vie_surrender_snapshot = {
+	ic_afk_nlf_surrender_measure = yes
+	log = "IC_AFK|VIE_SURRENDER|date=[GetDateText]|surrender_pct=[?ic_afk_nlf_surr_pct|0]|owned_states=[?num_owned_states|0]|owned_controlled_states=[?num_owned_controlled_states|0]|capital_held=[?ic_afk_nlf_capital_held|0]|divisions=[?num_divisions|0]"
+}
+
+ic_afk_nlf_surrender_watch = {
+	ic_afk_nlf_surrender_measure = yes
+	set_temp_variable = { ic_afk_nlf_sig = ic_afk_nlf_surr_pct }
+	multiply_temp_variable = { ic_afk_nlf_sig = 10 }
+	add_to_temp_variable = { ic_afk_nlf_sig = ic_afk_nlf_held }
+	if = {
+		limit = { NOT = { check_variable = { global.ic_afk_nlf_sig_last = ic_afk_nlf_sig } } }
+		set_variable = { global.ic_afk_nlf_sig_last = ic_afk_nlf_sig }
+		set_temp_variable = { ic_afk_nlf_reason = 2 }
+		ic_afk_nlf_surrender_write = yes
+	}
 }
 
 # Periodic sampling plus an extra sweep on every campaign/operation transition,
@@ -3697,6 +3758,7 @@ ic_afk_validation_daily_tick = {
 	ic_afk_validation_initialize = yes
 	ic_afk_validation_score_delta_tick = yes
 	ic_afk_validation_dak_doa_gate_tick = yes
+	if = { limit = { country_exists = NLF } NLF = { ic_afk_nlf_surrender_watch = yes } }
 	add_to_variable = { global.ic_afk_heartbeat_days = 1 }
 	if = {
 		limit = { check_variable = { global.ic_afk_heartbeat_days > 179 } }
@@ -5392,7 +5454,7 @@ test_indochina_trigger_never_ending = {
             check_variable = { global.Indochina_War_Active_Phase = 9 }
             NOT = { has_global_flag = Indochina_War_Over }
         }
-        indochina_struggle_run_never_ending_conflict_ending_effect = yes
+        indochina_geneva_conference_collapse_effect = yes
     }
     else = {
     }

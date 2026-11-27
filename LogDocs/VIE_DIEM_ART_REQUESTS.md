@@ -17,37 +17,15 @@ All 52 focus icons have landed (`GFX_VIE_PM_Diem` / `GFX_VIE_Diem_*` in
 real art lands - no idea needs editing.
 
 ## Event pictures
-
-| Event | Wanted GFX name | Currently borrowing | Subject |
-|---|---|---|---|
-| `Diem.1` (Hinh crisis) | `GFX_Diem.1` | `GFX_BaoDai.13` | Hinh giving a press conference, officers behind him |
-| `Diem.2` (Battle of Saigon) | `GFX_Diem.2` | `GFX_BaoDai.13` | Paratroopers at a Cholon barricade |
-| `Diem.3` (Revolutionary Committee) | `GFX_Diem.3` | `GFX_BaoDai.9` | Committee delegates voting the resolution against the throne |
-| `Diem.4` (landslide) | `GFX_Diem.4` | `GFX_BaoDai.9` | Ballot slips, red for Diem and green for Bao-Dai, and a result board |
-| `Diem.5` (contested win) | `GFX_Diem.5` | `GFX_BaoDai.9` | Half-empty polling station, police at the door |
-| `Diem.6` (Bao-Dai holds) | `GFX_Diem.6` | `GFX_BaoDai.9` | Bao-Dai's portrait restored above an official desk |
-| `VIE_PMs.9` (Diem dismissed) | `GFX_VIE_PMs.9` | `GFX_VIE_PMs.5` | Diem leaving the palace, matching the other `VIE_PMs.*` pictures |
-| `Diem.20` (Hinh's ultimatum) | `GFX_Diem.20` | `GFX_French_Coup.1` | Armoured cars at the Independence Palace gates, autumn 1954 |
-| `Diem.21` (cabinet walks out) | `GFX_Diem.21` | `GFX_BaoDai.13` | Empty ministerial chairs around a cabinet table |
-| `Diem.22` (the coup collapses) | `GFX_Diem.22` | `GFX_French_Coup.1` | Hinh boarding an aircraft for Paris, staff dispersing behind him |
-| `Diem.23` (the armour moves) | `GFX_Diem.23` | `GFX_French_Coup.2` | Tanks on Norodom Boulevard before dawn |
-| `Diem.24` (Manila guard detail) | `GFX_Diem.24` | `GFX_French_Coup.1` | Filipino officers training the palace guard companies |
-| `Diem.30` (dismissal telegram) | `GFX_Diem.30` | `GFX_BaoDai.11` | A telegram from Cannes lying face down in an open desk drawer |
-| `Diem.40` (Hoang-Dieu campaign) | `GFX_Diem.40` | `GFX_BaoDai.13` | Duong-Van-Minh briefing over a tidal chart of the Rung-Sac |
-| `Diem.41` (Vy at the palace) | `GFX_Diem.41` | `GFX_BaoDai.13` | Nhi-Lang levelling a pistol across the palace carpet at General Vy |
-| `Diem.50` (Vy dismissed) | `GFX_Diem.50` | `GFX_BaoDai.9` | Royal Guard battalion parading into the National Army, May 1955 |
-| `Diem.60` (End of Content, Republic) | `GFX_Diem.60` | `GFX_BaoDai.100` | The republican flag over the Independence Palace |
-| `Diem.61` (End of Content, throne holds) | `GFX_Diem.61` | `GFX_BaoDai.11` | Bao-Dai's aircraft leaving Saigon again |
-| `Diem.62` (End of Content, junta) | `GFX_Diem.62` | `GFX_French_Hinh.0` | Hinh's officers and their French advisors in adjoining offices |
-| `Diem.10` (monarchy abolished, news) | `GFX_Diem.10` | `GFX_BaoDai.100` | Red and green ballot slips, the green uncounted |
-| `Diem.12` (Geneva vote refused, news) | `GFX_Diem.12` | `GFX_BaoDai.100` | Newspaper front page carrying the 16 July statement |
-| `Can_Lao.1` (party founded, news) | `GFX_Can_Lao.1` | `GFX_BaoDai.100` | Sac-lenh 116/BNV/CT in the official gazette |
-| `DaiViet.1` (barracks conspiracy) | `GFX_DaiViet.1` | `GFX_French_Coup.1` | Officers under arrest in a garrison courtyard |
-| `DaiViet.2` (Dai-Viet coup attempt) | `GFX_DaiViet.2` | `GFX_French_Coup.2` | Battalions leaving barracks without orders before dawn |
-| `DaiViet.3` (Quat's bid) | `GFX_DaiViet.3` | `GFX_French_Coup.2` | Collins and Phan-Huy-Quat; a Washington cable on the table |
-| `DaiViet.4` (Ba-Long war zone) | `GFX_DaiViet.4` | `GFX_BaoDai.13` | The Ba-Long redoubt above the Thach-Han |
-| `Sect_Crisis.1` (France's choice) | `GFX_Sect_Crisis.1` | `GFX_French_Coup.1` | High Commission officials weighing the Front's ultimatum |
-| `Sect_Crisis.2` (Front formed, news) | `GFX_Sect_Crisis.2` | `GFX_BaoDai.100` | Cao-Dai, Hoa-Hao and Binh-Xuyen banners raised together |
+Done (Nov 2026). All of the event pictures below now have their own art in
+`gfx/event_pictures/VIE/` with matching sprites in `interface/eventpictures.gfx`. The
+pictures were built with EventPic Studio from period photographs, mostly Wikimedia
+Commons and the Texas Tech Vietnam Archive. The manifest and sources are in
+`agent_docs/eventpics/vie_diem/`, which is gitignored. Most of the photographs are
+period stand-ins, not exact matches for the subjects listed in the original
+request. `Diem.31` and `Diem.42` were not on the original list and also got
+pictures. `Diem.1`, `Diem.6`, `Diem.61`, `VIE_PMs.9` and `Can_Lao.1` already had
+their own art.
 
 ## Idea icon
 

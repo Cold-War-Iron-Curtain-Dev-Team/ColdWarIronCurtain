@@ -1032,7 +1032,7 @@ FRE_Metropole_Support_category = {
 				fre_change_war_credits = yes
 				set_temp_variable = { fre_patience_delta = 8 }
 				fre_metropole_patience_change = yes
-				log = "IC_AFK|FRE_PATIENCE_SINK|date=[GetDateText]|credits_after=[?FRE_War_Credits|0]|patience_after=[?FRE_Metropole_Patience|0]"
+				if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|FRE_PATIENCE_SINK|date=[GetDateText]|credits_after=[?FRE_War_Credits|0]|patience_after=[?FRE_Metropole_Patience|0]" }
 			}
 		}
 
@@ -1320,6 +1320,228 @@ FRE_Indochina_Allies_category = {
 				factor = 0
 				FRE_mission_pp_reserved_trigger = yes
 			}
+		}
+	}
+}
+
+FRE_Indochina_Economy_category = {
+
+	FRE_ECO_Build_River_Levees = {
+		icon = GFX_decision_water_infrastructure
+		fire_only_once = yes
+		state_target = yes
+		target_root_trigger = {
+			has_completed_focus = FRE_ECO_River_Dikes
+		}
+		target_array = FRE.owned_states
+		target_trigger = {
+			FROM = {
+				is_owned_by = ROOT
+			}
+		}
+		on_map_mode = map_only
+		days_remove = 90
+		cost = 0
+		custom_cost_trigger = {
+			check_variable = { currentMoney > 0.05 }
+		}
+		custom_cost_text = FRE_ECO_has_50_mil
+		complete_effect = {
+			set_temp_variable = { money_to_gain = -0.05 }
+			add_money_with_tooltip_effect = yes
+		}
+		remove_effect = {
+			FROM = {
+				add_building_construction = {
+					type = water_infrastructure
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	FRE_ECO_Request_Metropole_Steel = {
+		icon = generic_industry
+		allowed = { tag = FRE }
+		visible = {
+			has_completed_focus = FRE_ECO_Metropolitan_Economic_Aid
+		}
+		available = {
+			owns_state = 1760
+		}
+		cost = 50
+		days_remove = 180
+		days_re_enable = 60
+		complete_effect = {
+			set_temp_variable = { fre_patience_delta = -2 }
+			fre_metropole_patience_change = yes
+			add_resource = { type = steel amount = 12 state = 1760 }
+		}
+		remove_effect = {
+			add_resource = { type = steel amount = -12 state = 1760 }
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	FRE_ECO_Request_Metropole_Oil = {
+		icon = generic_industry
+		allowed = { tag = FRE }
+		visible = {
+			has_completed_focus = FRE_ECO_Metropolitan_Economic_Aid
+		}
+		available = {
+			owns_state = 1760
+		}
+		cost = 50
+		days_remove = 180
+		days_re_enable = 60
+		complete_effect = {
+			set_temp_variable = { fre_patience_delta = -2 }
+			fre_metropole_patience_change = yes
+			add_resource = { type = oil amount = 10 state = 1760 }
+		}
+		remove_effect = {
+			add_resource = { type = oil amount = -10 state = 1760 }
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	FRE_ECO_Request_Metropole_Rubber = {
+		icon = generic_industry
+		allowed = { tag = FRE }
+		visible = {
+			has_completed_focus = FRE_ECO_Metropolitan_Economic_Aid
+		}
+		available = {
+			owns_state = 1760
+		}
+		cost = 50
+		days_remove = 180
+		days_re_enable = 60
+		complete_effect = {
+			set_temp_variable = { fre_patience_delta = -2 }
+			fre_metropole_patience_change = yes
+			add_resource = { type = rubber amount = 8 state = 1760 }
+		}
+		remove_effect = {
+			add_resource = { type = rubber amount = -8 state = 1760 }
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	FRE_ECO_Convert_Civilian_Factory = {
+		icon = generic_industry
+		state_target = yes
+		target_root_trigger = {
+			has_completed_focus = FRE_ECO_Gia_Lam_Airbase
+		}
+		target_array = FRE.owned_states
+		target_trigger = {
+			FROM = {
+				is_owned_by = ROOT
+				industrial_complex > 0
+			}
+		}
+		on_map_mode = map_only
+		cost = 25
+		days_remove = 30
+		days_re_enable = 30
+		complete_effect = {
+			FROM = {
+				remove_building = { type = industrial_complex level = 1 }
+			}
+		}
+		remove_effect = {
+			FROM = {
+				add_building_construction = {
+					type = arms_factory
+					level = 1
+					instant_build = yes
+				}
+			}
+		}
+		ai_will_do = {
+			factor = 0
+		}
+	}
+
+	FRE_ECO_Invest_In_Ethnostate = {
+		icon = generic_industry
+		allowed = { tag = FRE }
+		target_root_trigger = {
+			has_completed_focus = FRE_ECO_Invest_Ethnostates
+		}
+		targets = { TAI MEO THO TAM NUN }
+		target_trigger = {
+			FROM = {
+				exists = yes
+				NOT = { has_war_with = ROOT }
+			}
+		}
+		cost = 0
+		custom_cost_trigger = {
+			check_variable = { currentMoney > 0.1 }
+		}
+		custom_cost_text = FRE_ECO_has_100_mil
+		days_re_enable = 180
+		complete_effect = {
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			FROM = {
+				capital_scope = {
+					add_building_construction = { type = infrastructure level = 1 instant_build = yes }
+					add_extra_state_shared_building_slots = 1
+					add_building_construction = { type = industrial_complex level = 1 instant_build = yes }
+				}
+				add_opinion_modifier = { target = ROOT modifier = FRE_ECO_French_Investment }
+			}
+		}
+		ai_will_do = {
+			factor = 1
+		}
+	}
+
+	FRE_ECO_Invest_In_VIE = {
+		icon = generic_industry
+		allowed = { tag = FRE }
+		visible = {
+			has_completed_focus = FRE_ECO_Invest_Saigon
+		}
+		available = {
+			country_exists = VIE
+			NOT = { has_war_with = VIE }
+		}
+		cost = 0
+		custom_cost_trigger = {
+			check_variable = { currentMoney > 0.2 }
+		}
+		custom_cost_text = FRE_ECO_has_200_mil
+		days_re_enable = 180
+		complete_effect = {
+			set_temp_variable = { money_to_gain = -0.2 }
+			add_money_with_tooltip_effect = yes
+			VIE = {
+				random_owned_controlled_state = {
+					limit = { is_core_of = VIE }
+					prioritize = { 1756 1755 }
+					add_extra_state_shared_building_slots = 1
+					add_building_construction = { type = industrial_complex level = 1 instant_build = yes }
+				}
+				add_opinion_modifier = { target = ROOT modifier = FRE_ECO_French_Investment }
+			}
+		}
+		ai_will_do = {
+			factor = 1
 		}
 	}
 }

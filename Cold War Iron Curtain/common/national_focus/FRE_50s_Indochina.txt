@@ -277,10 +277,10 @@ focus_tree = {
 				if = {
 					limit = { country_exists = USA }
 					USA = { country_event = { id = IC_Aid.18 days = 2 } }
-					log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.18|to=USA"
+					if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.18|to=USA" }
 				}
 				country_event = { id = FRE_Aid.3 days = 1 }
-				log = "IC_AFK|NOTICE|date=[GetDateText]|event=FRE_Aid.3|to=FRE"
+				if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|NOTICE|date=[GetDateText]|event=FRE_Aid.3|to=FRE" }
 			}
 			set_country_flag = FRE_American_Financing_Secured
 		}
@@ -939,7 +939,7 @@ focus_tree = {
 				if = {
 					limit = { country_exists = FRA }
 					FRA = { country_event = { id = IC_Aid.12 days = 2 } }
-					log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.12|to=FRA"
+					if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.12|to=FRA" }
 				}
 			}
 		}
@@ -1115,15 +1115,15 @@ focus_tree = {
 				if = {
 					limit = { country_exists = FRA }
 					FRA = { country_event = { id = IC_Aid.13 days = 2 } }
-					log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.13|to=FRA"
+					if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.13|to=FRA" }
 				}
 				if = {
 					limit = { country_exists = VIE }
 					VIE = { country_event = { id = IC_Aid.14 days = 2 } }
-					log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.14|to=VIE"
+					if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|NOTICE|date=[GetDateText]|event=IC_Aid.14|to=VIE" }
 				}
 				country_event = { id = FRE_Aid.1 days = 1 }
-				log = "IC_AFK|NOTICE|date=[GetDateText]|event=FRE_Aid.1|to=FRE"
+				if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|NOTICE|date=[GetDateText]|event=FRE_Aid.1|to=FRE" }
 			}
 		}
 	}
@@ -1323,8 +1323,10 @@ focus_tree = {
 		x = 21
 		y = 0
 		relative_position_id = FRE_The_Situation_in_Route_Coloniale_4
-		allow_branch = { always = no }
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_dislocation_improve = yes
+			country_event = { id = FRE_Econ.1 days = 20 }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Japanese_Bases_Gia_Lam
@@ -1333,8 +1335,15 @@ focus_tree = {
 		x = 23
 		y = 0
 		relative_position_id = FRE_The_Situation_in_Route_Coloniale_4
-		allow_branch = { always = no }
-		completion_reward = { }
+		completion_reward = {
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = air_base level = 1 instant_build = yes }
+					add_building_construction = { type = infrastructure level = 1 instant_build = yes }
+				}
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Piastre_Inflation
@@ -1349,7 +1358,13 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Japanese_Bases_Gia_Lam
 		}
-		completion_reward = { }
+		available = {
+			has_country_flag = FRE_ECO_Armorin_Investigated
+		}
+		completion_reward = {
+			fre_eco_piastre_start = yes
+			country_event = FRE_Econ.2
+		}
 	}
 	focus = {
 		id = FRE_ECO_New_Currency
@@ -1362,7 +1377,11 @@ focus_tree = {
 			focus = FRE_ECO_Piastre_Inflation
 		}
 		mutually_exclusive = { focus = FRE_ECO_Keep_Piastre }
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_piastre_improve = yes
+			fre_eco_dependency_worsen = yes
+			country_event = FRE_Econ.3
+		}
 	}
 	focus = {
 		id = FRE_ECO_Keep_Piastre
@@ -1375,7 +1394,11 @@ focus_tree = {
 			focus = FRE_ECO_Piastre_Inflation
 		}
 		mutually_exclusive = { focus = FRE_ECO_New_Currency }
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_piastre_worsen = yes
+			fre_eco_dependency_improve = yes
+			country_event = FRE_Econ.4
+		}
 	}
 	focus = {
 		id = FRE_ECO_Resume_Vidanges
@@ -1388,7 +1411,18 @@ focus_tree = {
 			focus = FRE_ECO_New_Currency
 			focus = FRE_ECO_Keep_Piastre
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_dislocation_improve = yes
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_extra_state_shared_building_slots = 1
+					add_building_construction = { type = water_infrastructure level = 1 instant_build = yes }
+				}
+			}
+			set_country_flag = FRE_SGVBT_Company_Unlocked
+			custom_effect_tooltip = FRE_SGVBT_Company_Unlocked_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Bourgoin_Report
@@ -1401,7 +1435,12 @@ focus_tree = {
 			focus = FRE_ECO_Resume_Vidanges
 		}
 		mutually_exclusive = { focus = FRE_ECO_Resource_Exploitation }
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_piastre_improve = yes
+			fre_eco_dependency_worsen = yes
+			fre_eco_dependency_to_infancy = yes
+			country_event = FRE_Econ.5
+		}
 	}
 	focus = {
 		id = FRE_ECO_River_Dikes
@@ -1413,7 +1452,9 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Resume_Vidanges
 		}
-		completion_reward = { }
+		completion_reward = {
+			custom_effect_tooltip = FRE_ECO_Unlocks_Levees_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Iron_Tungsten_Mines
@@ -1425,7 +1466,11 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Resume_Vidanges
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_resource = { type = steel amount = 10 state = 1761 }
+			add_resource = { type = tungsten amount = 5 state = 1761 }
+			add_tech_bonus = { bonus = 0.05 uses = 2 category = rgo }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Resource_Exploitation
@@ -1438,7 +1483,12 @@ focus_tree = {
 			focus = FRE_ECO_Resume_Vidanges
 		}
 		mutually_exclusive = { focus = FRE_ECO_Bourgoin_Report }
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_piastre_worsen = yes
+			fre_eco_dependency_improve = yes
+			fre_eco_exploitation_start = yes
+			country_event = FRE_Econ.6
+		}
 	}
 	focus = {
 		id = FRE_ECO_Hanoi_Hospital
@@ -1450,7 +1500,19 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Bourgoin_Report
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.05 }
+			add_money_with_tooltip_effect = yes
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = office_park level = 1 instant_build = yes }
+				}
+			}
+			add_ideas = FRE_ECO_Infant_Illness_Prevention
+			set_country_flag = FRE_Institut_Pasteur_Company_Unlocked
+			custom_effect_tooltip = FRE_Institut_Pasteur_Company_Unlocked_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Sell_Wild_Lands
@@ -1462,7 +1524,13 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Bourgoin_Report
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = 0.5 }
+			add_money_with_tooltip_effect = yes
+			every_owned_state = {
+				add_extra_state_shared_building_slots = 1
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Tonkin_Workers_Syndicate
@@ -1474,7 +1542,13 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Bourgoin_Report
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_dependency_improve = yes
+			add_popularity = { ideology = communism popularity = 0.05 }
+			increase_union_policy = yes
+			set_country_flag = FRE_SEOT_Company_Unlocked
+			custom_effect_tooltip = FRE_SEOT_Company_Unlocked_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Bo_Ho_Power_Plant
@@ -1489,7 +1563,28 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Iron_Tungsten_Mines
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.3 }
+			add_money_with_tooltip_effect = yes
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = fossil_fuel_powerplant level = 1 instant_build = yes }
+				}
+			}
+			881 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = fossil_fuel_powerplant level = 1 instant_build = yes }
+				}
+			}
+			if = {
+				limit = { 1760 = { is_owned_by = ROOT } }
+				add_resource = { type = coal amount = 10 state = 1760 }
+			}
+			set_country_flag = FRE_SIE_Company_Unlocked
+			custom_effect_tooltip = FRE_SIE_Company_Unlocked_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Militarize_Haiphong
@@ -1501,7 +1596,17 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Resource_Exploitation
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.05 }
+			add_money_with_tooltip_effect = yes
+			786 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = naval_base level = 1 province = 4119 instant_build = yes }
+					add_building_construction = { type = coastal_bunker level = 2 province = 4119 instant_build = yes }
+				}
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Confiscate_Viet_Minh_Assets
@@ -1513,7 +1618,20 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Resource_Exploitation
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_stability = -0.05
+			set_temp_variable = { money_to_gain = 0.3 }
+			add_money_with_tooltip_effect = yes
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = industrial_complex level = 1 instant_build = yes }
+			}
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = industrial_complex level = 1 instant_build = yes }
+			}
+			fre_eco_piastre_improve = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Raise_Salaries
@@ -1525,7 +1643,12 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Resource_Exploitation
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_stability = 0.10
+			add_ideas = FRE_ECO_CEFEO_Pay_Raise
+			increase_military_policy = yes
+			fre_eco_piastre_worsen = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Rice_Paddies
@@ -1537,7 +1660,20 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Hanoi_Hospital
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_dependency_improve = yes
+			set_temp_variable = { money_to_gain = -0.02 }
+			add_money_with_tooltip_effect = yes
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = agri_industrial_complex level = 1 instant_build = yes }
+			}
+			random_owned_controlled_state = {
+				add_extra_state_shared_building_slots = 1
+				add_building_construction = { type = agri_industrial_complex level = 1 instant_build = yes }
+			}
+			fre_eco_dislocation_worsen = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Franco_American_Investors
@@ -1552,7 +1688,11 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Hanoi_Hospital
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_dislocation_improve = yes
+			add_offsite_building = { type = industrial_complex level = 2 }
+			fre_eco_dependency_worsen = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Native_Middle_Classes
@@ -1567,7 +1707,11 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Sell_Wild_Lands
 		}
-		completion_reward = { }
+		completion_reward = {
+			increase_minorities_policy = yes
+			add_offsite_building = { type = industrial_complex level = 2 }
+			add_tech_bonus = { bonus = 0.05 uses = 2 category = industry }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Campha_Hongai_Mines
@@ -1579,7 +1723,19 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Bo_Ho_Power_Plant
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_resource = { type = coal amount = 20 state = 1281 }
+			set_country_flag = FRE_SFCT_Company_Unlocked
+			custom_effect_tooltip = FRE_SFCT_Company_Unlocked_tt
+			1281 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = infrastructure level = 1 instant_build = yes }
+				}
+			}
+			set_temp_variable = { money_to_gain = 0.1 }
+			add_money_with_tooltip_effect = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Carrieres_du_Vietnam
@@ -1591,7 +1747,14 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Bo_Ho_Power_Plant
 		}
-		completion_reward = { }
+		completion_reward = {
+			random_owned_controlled_state = {
+				add_resource = { type = rubber amount = 10 }
+			}
+			random_owned_controlled_state = {
+				add_resource = { type = oil amount = 2 }
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Import_Military_Trucks
@@ -1606,7 +1769,14 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Confiscate_Viet_Minh_Assets
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_equipment_to_stockpile = { type = motorized_equipment_1 amount = 1000 producer = USA }
+			set_temp_variable = { money_to_gain = -0.05 }
+			add_money_with_tooltip_effect = yes
+			random_owned_controlled_state = {
+				add_building_construction = { type = infrastructure level = 1 instant_build = yes }
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Metropolitan_Economic_Aid
@@ -1621,7 +1791,10 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Raise_Salaries
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_exploitation_improve = yes
+			custom_effect_tooltip = FRE_ECO_Unlocks_Metropole_Requests_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Import_Foodstuffs
@@ -1633,7 +1806,12 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Raise_Salaries
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_exploitation_improve = yes
+			add_offsite_building = { type = agri_industrial_complex level = 2 }
+			set_temp_variable = { money_to_gain = -0.05 }
+			add_money_with_tooltip_effect = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Tong_Airplane_Factory
@@ -1648,7 +1826,19 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Rice_Paddies
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_extra_state_shared_building_slots = 2
+					add_building_construction = { type = arms_factory level = 2 instant_build = yes }
+				}
+			}
+			country_event = FRE_Econ.7
+			# MIO: unlock Tong Aeronautics Company (aircraft MIO) once FRE MIOs exist
+		}
 	}
 	focus = {
 		id = FRE_ECO_Crackdown_Opium
@@ -1663,7 +1853,18 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Franco_American_Investors
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_stability = 0.05
+			fre_eco_piastre_improve = yes
+			if = {
+				limit = { NOT = { has_idea = Opium_Banned } }
+				add_ideas = Opium_Banned
+			}
+			if = {
+				limit = { country_exists = TAI }
+				TAI = { add_opinion_modifier = { target = ROOT modifier = FRE_ECO_Opium_Policy_Resented } }
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Reopen_University
@@ -1678,7 +1879,11 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Carrieres_du_Vietnam
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_research_slot = 1
+			set_country_flag = FRE_Universite_Nationale_Company_Unlocked
+			custom_effect_tooltip = FRE_Universite_Nationale_Company_Unlocked_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Tolerate_Opium
@@ -1693,7 +1898,16 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Metropolitan_Economic_Aid
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_stability = 0.05
+			fre_eco_piastre_worsen = yes
+			if = {
+				limit = { country_exists = TAI }
+				TAI = { add_opinion_modifier = { target = ROOT modifier = FRE_ECO_Opium_Policy_Resented } }
+			}
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 2000 producer = CHI }
+			add_offsite_building = { type = arms_factory level = 2 }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Gia_Lam_Airbase
@@ -1708,7 +1922,15 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Import_Foodstuffs
 		}
-		completion_reward = { }
+		completion_reward = {
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = air_base level = 1 instant_build = yes }
+				}
+			}
+			custom_effect_tooltip = FRE_ECO_Unlocks_Factory_Conversion_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Hanoi_Textiles
@@ -1723,20 +1945,38 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Tong_Airplane_Factory
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_piastre_improve = yes
+			1760 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_extra_state_shared_building_slots = 1
+					add_building_construction = { type = office_park level = 1 instant_build = yes }
+					add_building_construction = { type = industrial_complex level = 1 instant_build = yes }
+				}
+			}
+			add_tech_bonus = { bonus = 0.10 uses = 2 category = industry }
+			add_tech_bonus = { bonus = 0.10 uses = 2 category = agriculture }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Tonkin_Railway_Company
 		icon = GFX_goal_unknown
 		cost = 5
-		x = -2
+		x = -1
 		y = 1
 		relative_position_id = FRE_ECO_Reopen_University
 		prerequisite = {
 			focus = FRE_ECO_Reopen_University
 		}
 		mutually_exclusive = { focus = FRE_ECO_Vientiane_Tonkin_Railway }
-		completion_reward = { }
+		completion_reward = {
+			add_equipment_to_stockpile = { type = train_equipment_1 amount = 10 producer = FRE }
+			fre_eco_dislocation_worsen = yes
+			set_country_flag = FRE_CTEO_Company_Unlocked
+			custom_effect_tooltip = FRE_CTEO_Company_Unlocked_tt
+			# MIO: unlock a tank MIO once FRE military MIOs exist
+		}
 	}
 	focus = {
 		id = FRE_ECO_Vientiane_Tonkin_Railway
@@ -1749,7 +1989,28 @@ focus_tree = {
 			focus = FRE_ECO_Reopen_University
 		}
 		mutually_exclusive = { focus = FRE_ECO_Tonkin_Railway_Company }
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.25 }
+			add_money_with_tooltip_effect = yes
+			build_railway = {
+				level = 2
+				build_only_on_allied = no
+				fallback = yes
+				start_province = 4075
+				target_province = 1464
+			}
+			add_equipment_to_stockpile = { type = train_equipment_1 amount = 2 producer = FRA }
+			fre_eco_dislocation_improve = yes
+			country_event = FRE_Econ.8
+			if = {
+				limit = { country_exists = FRA }
+				FRA = { country_event = FRE_Econ.9 }
+			}
+			if = {
+				limit = { country_exists = LOS }
+				LOS = { country_event = FRE_Econ.10 }
+			}
+		}
 	}
 	focus = {
 		id = FRE_ECO_Pyrotechnic_Factories
@@ -1764,7 +2025,21 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Gia_Lam_Airbase
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.1 }
+			add_money_with_tooltip_effect = yes
+			for_loop_effect = {
+				end = 4
+				random_owned_controlled_state = {
+					limit = { industrial_complex > 0 }
+					remove_building = { type = industrial_complex level = 1 }
+					add_building_construction = { type = arms_factory level = 1 instant_build = yes }
+				}
+			}
+			add_offsite_building = { type = arms_factory level = 1 }
+			fre_eco_dislocation_worsen = yes
+			# MIO: unlock two artillery MIOs once FRE MIOs exist
+		}
 	}
 	focus = {
 		id = FRE_ECO_Resume_Foreign_Trade
@@ -1776,20 +2051,35 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Hanoi_Textiles
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_dislocation_to_growth = yes
+			every_other_country = {
+				limit = {
+					exists = yes
+					NOT = { tag = VIN }
+					NOT = { has_war_with = ROOT }
+					capital_scope = { is_on_continent = asia }
+				}
+				add_opinion_modifier = { target = ROOT modifier = small_increase_trade }
+			}
+			add_equipment_to_stockpile = { type = convoy_1 amount = 25 producer = FRA }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Import_Industrial_Tools
 		icon = GFX_goal_unknown
 		cost = 5
-		x = 2
+		x = 1
 		y = 1
 		relative_position_id = FRE_ECO_Tonkin_Railway_Company
 		prerequisite = {
 			focus = FRE_ECO_Tonkin_Railway_Company
 			focus = FRE_ECO_Vientiane_Tonkin_Railway
 		}
-		completion_reward = { }
+		completion_reward = {
+			add_tech_bonus = { bonus = 0.10 uses = 1 category = computing_tech }
+			add_tech_bonus = { bonus = 0.10 uses = 1 category = construction_tech }
+		}
 	}
 	focus = {
 		id = FRE_ECO_Dien_Bien_Phu_Fort
@@ -1801,7 +2091,14 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Pyrotechnic_Factories
 		}
-		completion_reward = { }
+		completion_reward = {
+			fre_eco_exploitation_improve = yes
+			671 = {
+				add_building_construction = { type = bunker level = 4 province = 4529 instant_build = yes }
+				add_building_construction = { type = bunker level = 2 province = 13757 instant_build = yes }
+			}
+			fre_eco_piastre_worsen = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Invest_Ethnostates
@@ -1816,7 +2113,9 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Resume_Foreign_Trade
 		}
-		completion_reward = { }
+		completion_reward = {
+			custom_effect_tooltip = FRE_ECO_Unlocks_Ethnostate_Investment_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Modernize_Haiphong
@@ -1828,13 +2127,27 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Import_Industrial_Tools
 		}
-		completion_reward = { }
+		completion_reward = {
+			set_temp_variable = { money_to_gain = -0.4 }
+			add_money_with_tooltip_effect = yes
+			786 = {
+				if = {
+					limit = { is_owned_by = ROOT }
+					add_building_construction = { type = naval_base level = 2 province = 4119 instant_build = yes }
+					add_extra_state_shared_building_slots = 2
+					add_building_construction = { type = dockyard level = 2 instant_build = yes }
+				}
+			}
+			fre_eco_dislocation_improve = yes
+			fre_eco_piastre_improve = yes
+			fre_eco_dependency_improve = yes
+		}
 	}
 	focus = {
 		id = FRE_ECO_Invest_Saigon
 		icon = GFX_goal_unknown
 		cost = 5
-		x = 1
+		x = 2
 		y = 1
 		relative_position_id = FRE_ECO_Import_Industrial_Tools
 		prerequisite = {
@@ -1843,7 +2156,9 @@ focus_tree = {
 		prerequisite = {
 			focus = FRE_ECO_Dien_Bien_Phu_Fort
 		}
-		completion_reward = { }
+		completion_reward = {
+			custom_effect_tooltip = FRE_ECO_Unlocks_VIE_Investment_tt
+		}
 	}
 	focus = {
 		id = FRE_ECO_Postwar_Reforms

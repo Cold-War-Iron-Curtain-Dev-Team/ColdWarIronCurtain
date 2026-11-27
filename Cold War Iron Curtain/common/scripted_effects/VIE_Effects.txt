@@ -546,38 +546,6 @@ vietnam_faction_ui_update_number = {
 	subtract_from_variable = { Lien_Minh_Annihilation_number = Lien_Minh_Annihilation }
 }
 
-VIE_annex_country = {
-	if = {
-		limit = {
-			ROOT = {
-				has_country_flag = Easy_CCC_Unification
-			}
-			FROM = {
-				original_tag = CCC
-			}
-		}
-		clr_country_flag = Easy_CCC_Unification
-		every_owned_state = {
-			limit = {
-				is_core_of = FROM
-			}
-			set_compliance = 35
-			set_resistance = 25
-		}
-	}
-	else_if = {
-		ROOT = {
-			every_owned_state = {
-				limit = {
-					is_core_of = FROM
-				}
-				set_compliance = 10
-				set_resistance = 50
-			}
-		}
-	}
-}
-
 Phuong_Mutiny = {
 	CCC = {
 		set_country_flag = CCC_Phuong_Mutiny
@@ -1076,43 +1044,192 @@ VIE_binh_xuyen_revolt_shell = {
 	set_variable = { VIE_Warlord_Status_2 = 2 }	# hostile
 }
 
-# VIE scope. Marks every central state Saigon owns that is not yet in the
-# commissariat. Re-run when Saigon later takes the highlands from FUL, because
-# Diem.75 usually fires before Decree 21 annexes the crown domain.
-VIE_mark_trung_phan_commissariat_states = {
-	capital_scope = { set_state_flag = VIE_Trung_Phan_Keep_Capital }
-	every_owned_state = {
-		limit = {
-			NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
-			NOT = { has_state_flag = VIE_trung_phan_commissariat }
-			OR = {
-				state = 1758
-				state = 757
-				state = 1759
-				state = 1287
-				state = 1288
-				state = 1289
-				state = 1756
-				AND = {
+VIE_create_trung_phan_commissariat = {
+	custom_effect_tooltip = VIE_Trung_Phan_Commissariat_tt
+	hidden_effect = {
+		if = {
+			limit = {
+				owns_state = 286
+				capital_scope = { OR = { state = 1758 state = 757 state = 1759 state = 1287 state = 1288 state = 1289 state = 1756 state = 1286 state = 982 } }
+			}
+			set_capital = { state = 286 }
+		}
+		capital_scope = { set_state_flag = VIE_Trung_Phan_Keep_Capital }
+		every_owned_state = {
+			limit = {
+				NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
+				OR = {
+					state = 1758
+					state = 757
+					state = 1759
+					state = 1287
+					state = 1288
+					state = 1289
+					state = 1756
+				}
+			}
+			TRP = { transfer_state = PREV }
+		}
+		if = {
+			limit = { NOT = { has_country_flag = VIE_Montagnard_Autonomy_Retained } }
+			every_owned_state = {
+				limit = {
+					NOT = { has_state_flag = VIE_Trung_Phan_Keep_Capital }
 					OR = {
 						state = 1286
 						state = 982
 					}
-					NOT = { PREV = { has_country_flag = VIE_Montagnard_Autonomy_Retained } }
+				}
+				TRP = { transfer_state = PREV }
+			}
+		}
+		capital_scope = { clr_state_flag = VIE_Trung_Phan_Keep_Capital }
+		if = {
+			limit = { country_exists = TRP }
+			set_country_flag = VIE_Trung_Phan_Commissariat
+			TRP = {
+				keep_current_politics = yes
+				every_owned_state = { add_core_of = TRP }
+				if = {
+					limit = { owns_state = 1758 }
+					set_capital = { state = 1758 }
+				}
+				else_if = {
+					limit = { owns_state = 757 }
+					set_capital = { state = 757 }
+				}
+				else = {
+					random_owned_state = { save_event_target_as = trp_capital }
+					set_capital = { state = event_target:trp_capital }
+				}
+			}
+			puppet = TRP
+			set_autonomy = {
+				target = TRP
+				autonomy_state = autonomy_indon_union
+				freedom_level = 0.5
+			}
+			every_enemy_country = {
+				TRP = {
+					add_to_war = {
+						targeted_alliance = VIE
+						enemy = PREV
+						hostility_reason = asked_to_join
+					}
+				}
+			}
+			if = {
+				limit = { has_character = VIE_Ngo_Dinh_Can }
+				VIE_Ngo_Dinh_Can = { set_nationality = TRP }
+			}
+			TRP = {
+				set_party_name = {
+					ideology = neutrality
+					long_name = TRP_PARTY_NEUTRALITY_long
+					name = TRP_PARTY_NEUTRALITY
+				}
+				set_politics = {
+					ruling_party = neutrality
+					elections_allowed = no
+				}
+				add_country_leader_role = {
+					character = VIE_Ngo_Dinh_Can
+					promote_leader = yes
+					country_leader = {
+						ideology = despotism
+					}
+				}
+				if = {
+					limit = { VIE = { has_idea = State_of_Vietnam_Faction } }
+					add_ideas = State_of_Vietnam_Faction
+				}
+				init_influence = yes
+				set_variable = { var = domestic_influence_amount value = 100 }
+				add_to_array = { influence_array = VIE.id }
+				add_to_array = { influence_array_val = 1800 }
+				add_to_array = { influence_array = FRA.id }
+				add_to_array = { influence_array_val = 400 }
+				add_to_array = { influence_array = USA.id }
+				add_to_array = { influence_array_val = 400 }
+				set_temp_variable = { influence_total = 0 }
+				set_temp_variable = { new_influence_total = 0 }
+				startup_influence = yes
+				if = {
+					limit = { NOT = { VIE = { check_variable = { Sphere_Leader = 0 } } } }
+					set_temp_variable = { New_sphere_leader = VIE.Sphere_Leader }
+					add_to_sphere = yes
+				}
+				set_variable = { currentMoney = 0.5 }
+				set_variable = { currentDebt = 0 }
+				set_variable = { currentDebtPayments = 0 }
+				set_temp_variable = { economic_x_target_temp = VIE.economic_x_axis }
+				set_temp_variable = { economic_y_target_temp = VIE.economic_y_axis }
+				cwic_set_economic_axes = yes
+				cwic_seed_conventional_economy = yes
+				cwic_init_gdp_growth_tracking = yes
+				add_ideas = TRP_commissariat_remittance
+				if = {
+					limit = { VIE = { has_variable = cwic_start_productivity } }
+					set_variable = { cwic_start_productivity = VIE.cwic_start_productivity }
+					gdp_calculation_effect = yes
+					cwic_init_gdp_growth_tracking = yes
 				}
 			}
 		}
-		set_state_flag = VIE_trung_phan_commissariat
-		add_dynamic_modifier = { modifier = VIE_trung_phan_commissariat_state }
+		# State ownership changed outside the integration GUI. Refresh its cached
+		# map data immediately so the new commissariat is displayed correctly.
+		VIE_state_dirty_variable = yes
 	}
-	capital_scope = { clr_state_flag = VIE_Trung_Phan_Keep_Capital }
 }
 
-VIE_create_trung_phan_commissariat = {
-	custom_effect_tooltip = VIE_Trung_Phan_Commissariat_tt
-	hidden_effect = {
-		VIE_mark_trung_phan_commissariat_states = yes
-		set_country_flag = VIE_Trung_Phan_Commissariat
+# VIE scope, from on_annex. Diem.75 usually fires before Decree 21 annexes FUL,
+# so the highlands reach Saigon after the commissariat exists. Hand them over.
+VIE_transfer_trung_phan_highlands = {
+	if = {
+		limit = {
+			has_country_flag = VIE_Trung_Phan_Commissariat
+			country_exists = TRP
+			TRP = { is_subject_of = VIE }
+			NOT = { has_country_flag = VIE_Montagnard_Autonomy_Retained }
+		}
+		every_owned_state = {
+			limit = {
+				OR = {
+					state = 1286
+					state = 982
+				}
+				NOT = { is_capital = yes }
+			}
+			add_core_of = TRP
+			TRP = { transfer_state = PREV }
+		}
+	}
+}
+
+# TRP scope, monthly. The commissariat remits most of its tax take to Saigon,
+# so central Vietnam's revenue still funds the State of Vietnam.
+TRP_pay_commissariat_remittance = {
+	if = {
+		limit = {
+			country_exists = VIE
+			is_subject_of = VIE
+			has_idea = TRP_commissariat_remittance
+		}
+		set_temp_variable = { trp_remit = cwic_tax_corp }
+		add_to_temp_variable = { trp_remit = cwic_tax_pers }
+		multiply_temp_variable = { trp_remit = 0.8 }
+		if = {
+			limit = { check_variable = { trp_remit > 0 } }
+			set_variable = { TRP_last_remittance = trp_remit }
+			set_temp_variable = { money_change_temp = trp_remit }
+			multiply_temp_variable = { money_change_temp = -1 }
+			cwic_change_money = yes
+			VIE = {
+				set_variable = { VIE_trung_phan_remittance = trp_remit }
+				set_temp_variable = { money_change_temp = trp_remit }
+				cwic_change_money = yes
+			}
+		}
 	}
 }
 
@@ -6898,6 +7015,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_7_Status = 1 }
+				set_variable = { VIE_State_7_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -6981,6 +7105,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_8_Status = 2 }
 				set_variable = { VIE_State_8_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_8_Status = 1 }
+				set_variable = { VIE_State_8_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7070,6 +7201,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_9_Status = 1 }
+				set_variable = { VIE_State_9_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -7153,6 +7291,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_10_Status = 2 }
 				set_variable = { VIE_State_10_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_10_Status = 1 }
+				set_variable = { VIE_State_10_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7251,6 +7396,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_11_Status = 1 }
+				set_variable = { VIE_State_11_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -7343,6 +7495,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_12_Status = 2 }
 				set_variable = { VIE_State_12_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_12_Status = 1 }
+				set_variable = { VIE_State_12_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7441,6 +7600,13 @@ VIE_get_state_info = {
 			}
 		}
 		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_13_Status = 1 }
+				set_variable = { VIE_State_13_Owner = 17 }
+			}
+		}
+		else_if = {
 			limit = {
 				is_owned_by = VIE
 				NOT = { is_fully_controlled_by = VIE }
@@ -7533,6 +7699,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_14_Status = 2 }
 				set_variable = { VIE_State_14_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_14_Status = 1 }
+				set_variable = { VIE_State_14_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -7723,6 +7896,13 @@ VIE_get_state_info = {
 			VIE = {
 				set_variable = { VIE_State_16_Status = 2 }
 				set_variable = { VIE_State_16_Owner = 1 }
+			}
+		}
+		else_if = {
+			limit = { is_owned_by = TRP }
+			VIE = {
+				set_variable = { VIE_State_16_Status = 1 }
+				set_variable = { VIE_State_16_Owner = 17 }
 			}
 		}
 		else_if = {
@@ -10913,7 +11093,7 @@ VIE_border_start_clash = {
 		limit = { event_target:VIE_border_clash_target = { is_controlled_by = ROOT } }
 		set_variable = { VIE_border_attacker_state = event_target:VIE_border_clash_target }
 	}
-	else_if = {
+	else = {
 		random_owned_controlled_state = {
 			limit = {
 				impassable = no
@@ -10944,7 +11124,7 @@ VIE_border_start_clash = {
 			limit = { check_variable = { VIE_border_attacker_state = event_target:VIE_border_clash_target } }
 			country_event = { id = VIE_Border_Settlement.35 days = 3 }
 		}
-		else_if = {
+		else = {
 			start_border_war = {
 				change_state_after_war = no
 				attacker = {
@@ -11207,8 +11387,15 @@ VIE_cuongde_finalize_unification = {
 					}
 				}
 				remove_ideas = State_of_Vietnam_Faction
+				if = { limit = { country_exists = TAM } annex_country = { target = TAM } }
+				if = { limit = { country_exists = TAI } annex_country = { target = TAI } }
+				if = { limit = { country_exists = NUN } annex_country = { target = NUN } }
+				if = { limit = { country_exists = THO } annex_country = { target = THO } }
+				if = { limit = { country_exists = MEO } annex_country = { target = MEO } }
 			}
+			if = { limit = { country_exists = TRP } TRP = { remove_ideas = State_of_Vietnam_Faction } }
 			set_global_flag = diem_ho_chi_minh_reunified
+			news_event = Indochina_Struggle_Ending.5	# the treaty news (.12) announced the process; this is the merge itself
 		}
 	}
 	else = {
@@ -11545,4 +11732,59 @@ VIE_resolve_region_overlaps = {
 	VIE_resolve_region_overlap = yes
 	set_variable = { VIE_Region_24_Faction = vie_rp }
 	set_variable = { VIE_Region_24_Faction_2 = vie_rs }
+}
+
+# Toan's coup (Bao-Dai tree). Success chance is 15% per point of
+# Toan_Radicalism above 2, clamped to 10-90%: radicalism measures how far the
+# Dan-Xa cadres have been mobilised for an armed seizure of power.
+# Range on the forced path is 3-8 (events VIE_Toan.2/.3/.4 decide it).
+VIE_toan_coup_chance = {
+	set_temp_variable = { toan_coup_chance = Toan_Radicalism }
+	subtract_from_temp_variable = { toan_coup_chance = 2 }
+	multiply_temp_variable = { toan_coup_chance = 15 }
+	clamp_temp_variable = {
+		var = toan_coup_chance
+		min = 10
+		max = 90
+	}
+}
+
+VIE_toan_resolve_coup = {
+	VIE_toan_coup_chance = yes
+	custom_effect_tooltip = VIE_toan_coup_odds_tt
+	hidden_effect = {
+		set_temp_variable_to_random = {
+			var = toan_coup_roll
+			max = 100
+			integer = yes
+		}
+		if = {
+			limit = { check_variable = { toan_coup_roll < toan_coup_chance } }
+			complete_national_focus = VIE_Toan_Success
+		}
+		else = {
+			complete_national_focus = VIE_Toan_Assassination
+		}
+	}
+}
+
+VIE_leave_french_sphere = {
+	if = {
+		limit = { check_variable = { Sphere_Leader = FRA.id } }
+		remove_from_sphere = yes
+	}
+}
+
+VIE_set_personalist_economy = {
+	set_temp_variable = { economic_x_target_temp = 10 }
+	set_temp_variable = { economic_y_target_temp = 15 }
+	cwic_set_economic_axes = yes
+	if = {
+		limit = { country_exists = TRP TRP = { is_subject_of = ROOT } }
+		TRP = {
+			set_temp_variable = { economic_x_target_temp = 10 }
+			set_temp_variable = { economic_y_target_temp = 15 }
+			cwic_set_economic_axes = yes
+		}
+	}
 }

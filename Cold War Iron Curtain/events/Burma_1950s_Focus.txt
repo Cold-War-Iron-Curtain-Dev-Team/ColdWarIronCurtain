@@ -65,7 +65,7 @@ country_event = {
 		retire_country_leader = yes
 		create_country_leader = {
 			name = "Ba Swe"
-			picture = "Ba_Swe_50s"
+			picture = "Ba_Swe_50s.dds"
 			ideology = socialism
 		}
     }
@@ -131,8 +131,6 @@ country_event = {
 
 	option = {  
         name = Burmese_Buddhism.0.a2
-        add_political_power = 75
-        add_stability = 0.02
     }
 }
 country_event = {
@@ -198,6 +196,12 @@ country_event = {
                 modifier = large_increase
             }
         }
+        custom_effect_tooltip = BUR_FX_ROH_S50
+        hidden_effect = {
+            set_temp_variable = { BUR_idx = 7 }
+            set_temp_variable = { BUR_d_str = -50 }
+            BUR_apply_group_delta = yes
+        }
     }
 }
 country_event = {
@@ -236,10 +240,6 @@ country_event = {
 
 	option = {  
         name = Burma_Union.1.a2
-        create_intelligence_agency = {
-            name = "Bureau of Special Investigation"
-            icon = ""				#"GFX_intelligence_agency_logo_leea"
-        }
     }
 }
 country_event = {
@@ -253,26 +253,22 @@ country_event = {
 
 	option = {  
         name = NUF_1958.0.a2
+        ai_chance = { factor = 1 }
         BRM = {
             annex_country = {
                 target = BCP
                 transfer_troops = yes
             }
         }
-        trigger = {
-            is_ai = no
-        }
     }
     option = {
         name = NUF_1958.0.b2
+        ai_chance = { factor = 0 }
         annex_country = {
             target = BRM
             transfer_troops = yes
         }
         complete_national_focus = BCP_50s_NUF_Victory
-        trigger = {
-            is_ai = yes
-        }
     }
 }
 country_event = {
@@ -329,6 +325,14 @@ country_event = {
 					rule = BRM_1956_elections
 					option = BRM_AFPFL_1956
 				}
+				factor = 0
+			}
+			modifier = {
+				has_game_rule = {
+					rule = BRM_1956_elections
+					option = DEFAULT
+				}
+				is_historical_focus_on = yes
 				factor = 0
 			}
 		}
@@ -396,7 +400,9 @@ country_event = {
             limit = {
                 tag = MNL
             }
-            country_event = NUF_1958.7
+            BRM = {
+                country_event = NUF_1958.7
+            }
         }
         else = {
             BRM = {
@@ -410,7 +416,9 @@ country_event = {
             limit = {
                 tag = MNL
             }
-            country_event = NUF_1958.8
+            BRM = {
+                country_event = NUF_1958.8
+            }
         }
         else = {
             BRM = {
@@ -430,11 +438,31 @@ country_event = {
 
 	option = {  
         name = NUF_1958.5.a2
-        set_autonomy = {
-            target = KAY
-            autonomy_state = autonomy_associated_state
-            end_wars = no
-            end_civil_wars = no
+        custom_effect_tooltip = BUR_FX_KAREN_ACCEPT
+        hidden_effect = {
+            if = {
+                limit = { check_variable = { global.BUR_status^2 = 0 } }
+                if = {
+                    limit = { country_exists = KAY }
+                    KAY = { news_event = { id = burma_struggle.11 } }
+                }
+                else_if = {
+                    limit = { country_exists = KND }
+                    KND = { news_event = { id = burma_struggle.11 } }
+                }
+                set_temp_variable = { BUR_idx = 2 }
+                BUR_resolve_autonomy = yes
+                if = {
+                    limit = {
+                        country_exists = KAY
+                        KAY = { is_subject_of = BRM }
+                    }
+                    set_autonomy = {
+                        target = KAY
+                        autonomy_state = autonomy_associated_state
+                    }
+                }
+            }
         }
     }
 }
@@ -463,11 +491,27 @@ country_event = {
 
 	option = {  
         name = NUF_1958.7.a2
-        set_autonomy = {
-            target = MNL
-            autonomy_state = autonomy_associated_state
-            end_wars = no
-            end_civil_wars = no
+        custom_effect_tooltip = BUR_FX_MON_ACCEPT
+        hidden_effect = {
+            if = {
+                limit = { check_variable = { global.BUR_status^4 = 0 } }
+                if = {
+                    limit = { country_exists = MNL }
+                    MNL = { news_event = { id = burma_struggle.11 } }
+                }
+                set_temp_variable = { BUR_idx = 4 }
+                BUR_resolve_autonomy = yes
+                if = {
+                    limit = {
+                        country_exists = MNL
+                        MNL = { is_subject_of = BRM }
+                    }
+                    set_autonomy = {
+                        target = MNL
+                        autonomy_state = autonomy_associated_state
+                    }
+                }
+            }
         }
     }
 }

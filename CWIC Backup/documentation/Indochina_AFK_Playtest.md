@@ -7,6 +7,10 @@ rework after the 23 August corrective pass. Because tester availability is
 limited, the former targeted smoke pass and the 1949-to-Geneva `human_ai` run
 are combined into one game.
 
+Telemetry runs only in an observer run or when the human-played (or
+`human_ai`) country is an Indochina theatre tag such as FRA, FRE or VIN
+(`ic_afk_logging_enabled`). Run as any other country and the log stays silent.
+
 The run has three jobs:
 
 1. Reject parser, event, mission, Geneva, or campaign-cleanup regressions as
@@ -269,7 +273,10 @@ Use `FORCE_HEALTH`, `ARMY_CAP`, and placement records to compare VIE and NLF.
 Record:
 
 - VIE and NLF divisions at each 180-day heartbeat;
-- whether NLF retains a useful field force through Dien Bien Phu/Geneva;
+- whether NLF retains a useful field force through Dien Bien Phu/Geneva; the
+  monthly `NLF_SURRENDER` line (surrender progress in 10% bands, owned and
+  owned-controlled states, capital held) shows what drives an early NLF
+  capitulation;
 - whether the bounded reconstitution spirit/cache operates without creating an
   unlimited force or merging the northern and southern wars;
 - whether VIE remains far above its intended division cap/build relationship;
