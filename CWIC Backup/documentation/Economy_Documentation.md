@@ -747,7 +747,10 @@ Native imports cost civilian factories. The effect counts traded units
 offsite `industrial_complex` buildings so imports cost money only; exporters' trade civs are offset through
 `consumer_goods_expected_value`, and resource demand from settlement civs is refunded
 (`cwic_tn_res_*`). `industrial_complex` max level was raised for this. `cwic_update_true_factory_display`
-drives the true-factory panel for players.
+drives the true-factory panel for players. Human players keep 2 spare offsite factories on top of the trade
+need, so several engine trades can be placed in a row (also while paused) before the next daily update
+absorbs them; AI countries get no buffer, and the buffer is removed on the next daily update if the
+country turns AI.
 
 ### 11.7 Embargoes
 
@@ -1035,6 +1038,18 @@ Badge, first match: Invite pending, On cooldown, Fully established (presence 5),
 50 PP, Not eligible. A pending invite blocks both pick triggers. Hit area: card background, flag and texts, then
 a transparent `GFX_cwic_fc_card_hit` button on top (text over a button swallows clicks). Home flags are a fixed
 table (Shell and Unilever HOL, Bunge ARG, Gecamines DOC).
+
+### 18.4a Instant refresh on slider clicks
+
+Every tax and spending slider click calls `cwic_refresh_finance_display` (`IncomeGenerator.txt`) after the
+step effect. It recomputes taxes through `cwic_compute_tax_revenue` (the pure half of
+`cwic_budget_tax_revenue`, shared with the monthly pulse), the five social `calc_*_expenditure` effects
+and the slider-driven military/space share (`cwic_calc_mil_slider_spending`), then applies the
+differences to `display_income`, `IncomeCheck`, `display_balance`, `cwic_monthly_balance`,
+`military_total_exp`, `public_expenditure_total`, `totalexp` and `total_expenses`. It never touches money,
+debt, `IncomeTotal` or `tax_revenue_change`, and bumps `fin_display_dirty` (the `dirty` of
+`Finance_tab_menu`). The military figure is a display estimate (it ignores subsidies); the next monthly
+pulse replaces every value with the full calculation.
 
 ### 18.5 Adding a button
 
