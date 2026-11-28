@@ -816,8 +816,9 @@ Each slider step costs 15 political power (`Finance_Tab.txt:~2301-2441`, `add_po
 - Tax cap by system: 16 (x < 7), 14 (x < 13), 12, 8 (x > 19).
 - Deficit (`display_balance < 0`): raise upper tax one step if under the cap. At the cap, or debt/GDP > 0.6,
   cut public services, welfare and healthcare (floor 3) and army (floor 2, not at war).
-- Surplus above `GDP × 0.0004` and debt/GDP < 0.6: cut upper tax (floor 4); if debt/GDP < 0.3, raise
-  education to 10, else welfare to 8, else healthcare to 8.
+- Surplus above `GDP × 0.0004` and debt/GDP < 0.6: cut upper tax (floor 4). If the surplus is also above
+  `GDP × 0.0042` (about 5% of monthly GDP), cut lower, lower-middle and corporate tax one step each
+  (floor 4). Then, if debt/GDP < 0.3, raise education to 10, else welfare to 8, else healthcare to 8.
 
 ---
 
@@ -862,7 +863,7 @@ All go through `clear_current_economic_modifiers` → set axes → `startup_econ
 | Setter | Result | Callers |
 |---|---|---|
 | `convert_to_normal_axis` (`:668`) | x 12, y 12 (Keynesian) | INO focuses (`INO_LIB_50s.txt:785`, `INO_Natsir_50s.txt:869`, `INO_Soekiman_50s.txt:307`) |
-| `cwic_action_convert_normal_axis` (`:685`) | by ruling party: communism/maoism/trotskyism 3/3; socialist 3/15; Christian Democratic 15/10; conservative, Liberal Conservatism, liberal, centrist 15/15; fascism, nationalist, monarchism 10/15; islamism, radical Shiaism, Salafism 10/4; neutrality 15/4; otherwise 10/10 | Finance button and AI decision |
+| `cwic_action_convert_normal_axis` (`:685`) | by ruling party: communism/maoism/trotskyism 3/3; socialist 3/15; Christian Democratic 15/10; conservative, Liberal Conservatism, liberal, centrist 15/15; fascism, nationalist, neutrality 10/15; monarchism, islamism, radical Shiaism, Salafism 10/4; otherwise 10/10 | Finance button and AI decision |
 | `convert_to_planned` (`:662`) | x 2, y 1 | `cwic_action_convert_planned` (`on_actions/wars_on_actions.txt:275`) |
 | `convert_to_rentier` (`:657`) | x 24 (slow-industry values) | Finance button, `_Decolonization` events, `Malaysia.txt` |
 | `convert_to_petrostate` (`:674`) | x 25 | Finance button (visible at x 24) |
@@ -1245,7 +1246,7 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 |---|---|---|---|
 | N1 | GDP ignores productivity levers. `cwic_calc_state_output` does not read `CWIC_productivity_mult`, `CWIC_bm_productivity_penalty`, `productivity_factor`, `workforce_ratio`, the `*_income_bonus` modifiers or their drift variables, or an electricity shortage. | `IC_Econ_2024.txt:482-530`; drift vars written at `:1484-1560` with no reader | Productivity costs of capital controls, tightening, currency reform and the black market, the CG crisis productivity/workforce penalties, and every income-bonus idea and tech do nothing to GDP. `MODEL.md` §1.2 promised them. |
 | N2 | `eta` was unclamped | `cwic_budget_tax_revenue` | fixed 2026-11-27: `cwic_tax_leak` and `cwic_tax_eff` clamped at 0 |
-| N3 | Military subsidy copy-paste | `IncomeGenerator.txt:~1395-1416` | fixed 2026-11-27: navy and air totals and deductions use `navy_expend_subsidy` / `af_expend_subsidy`. Still open: received subsidies are added to the recipient's spending (`land_army_expenditure += mil_expend_subsidy_tot`); sign unconfirmed |
+| N3 | Military subsidy copy-paste | `IncomeGenerator.txt:~1395-1416` | fixed 2026-11-27: navy and air totals and deductions use `navy_expend_subsidy` / `af_expend_subsidy`. The sign is correct: `military_subsidies` lists the countries a payer funds, so the payer adds the cost and each recipient deducts its share |
 | N4 | Military GDP-share lines may be lower than intended | `military_expenditure` (`IncomeGenerator.txt:1307-1360`) | monthly land = (`army_spending_modifier` × 0.02 + `strategic_forces_spending_modifier` × 0.01) × GDP/12; navy = `navy_spending_modifier` × 0.01 × GDP/12; air = `air_spending_modifier` × 0.01 × GDP/12. `MODEL.md` §3.3 intended 4/2/2% at full modifier; whether any further divisor applies is unverified |
 | N5 | Country loans may pay interest twice | `cwic_take_loan` lender 11 builds interest into the installment; the monthly loop also charges interest on principal | [inference] overpriced country loans |
 | N6 | 30% import cap may break trade conservation | `ic_calc_trade_imports` (`IncomeGenerator.txt:1852-1859`) | the importer's `resource_cost` is clamped to 30% of monthly GDP while the trade balance uses the raw bill; whether exporters are paid the uncapped amount is unverified |
