@@ -342,8 +342,12 @@ read once.
   read by the Finance sector pie (`pie_chart_scripted_effects.txt`).
 - `custom_expenses`: standing monthly charge from content (SOV_Ustinov, SOV_Kaganovich, 50s_SRT,
   stalintreereworknew, SovietUnion_Focus_Events). Never reset; charged every month.
-- Insurgency funding: `paigc + los + vie + vin + mpla + unita + fnla _funding`, computed and charged in the
-  same month.
+- Insurgency funding uses commitment levels, not flat currency. The monthly charge is 0.05% of
+  monthly GDP per active level, with 0-5 levels per program (2.25% of GDP across all nine at maximum).
+  Programs cover Laos, South Vietnam, the National Liberation Front, the PAIGC, the three Angolan
+  factions, Eritrea, and Ethiopia. Closed programs clear their commitments. An AI country with a
+  negative last monthly balance cannot raise funding and cuts one level per active program before
+  the next charge. Existing levels are clamped on the next monthly pass; existing debt is not erased.
 
 ### 5.4 Soviet subsidy
 

@@ -451,27 +451,7 @@ income_effect = {
 	}
 	#if = { limit = { is_ai = no } #log = "current income = [?IncomeTotal] / resource_cost = [?resource_cost]" }
 	#Insurgency Costs
-	set_variable = {
-		total_insurgency_funding = paigc_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = los_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = vie_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = vin_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = mpla_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = unita_funding
-	}
-	add_to_variable = {
-		total_insurgency_funding = fnla_funding
-	}
+	cwic_update_insurgency_funding = yes
 	subtract_from_variable = {
 		IncomeTotal = total_insurgency_funding
 	}
@@ -1932,6 +1912,116 @@ cwic_compute_tax_revenue = {
 		multiply_variable = { actual_tax_rate_adjusted = 12 }
 		divide_variable = { actual_tax_rate_adjusted = grossdomesticproduct }
 	}
+}
+
+cwic_update_insurgency_funding = {
+	set_temp_variable = { cwic_funding_drawdown = 0 }
+	if = {
+		limit = { is_ai = yes check_variable = { display_balance < 0 } }
+		set_temp_variable = { cwic_funding_drawdown = 1 }
+	}
+	set_variable = { total_insurgency_funding = 0 }
+	if = {
+		limit = { has_variable = los_funding }
+		if = {
+			limit = { country_exists = LOS country_exists = LAO }
+			clamp_variable = { var = los_funding min = 0 max = 5 }
+			subtract_from_variable = { los_funding = cwic_funding_drawdown }
+			clamp_variable = { var = los_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = los_funding }
+		}
+		else = { clear_variable = los_funding }
+	}
+	if = {
+		limit = { has_variable = vie_funding }
+		if = {
+			limit = { country_exists = VIE country_exists = NLF }
+			clamp_variable = { var = vie_funding min = 0 max = 5 }
+			subtract_from_variable = { vie_funding = cwic_funding_drawdown }
+			clamp_variable = { var = vie_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = vie_funding }
+		}
+		else = { clear_variable = vie_funding }
+	}
+	if = {
+		limit = { has_variable = nlf_funding }
+		if = {
+			limit = { country_exists = VIE country_exists = NLF }
+			clamp_variable = { var = nlf_funding min = 0 max = 5 }
+			subtract_from_variable = { nlf_funding = cwic_funding_drawdown }
+			clamp_variable = { var = nlf_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = nlf_funding }
+		}
+		else = { clear_variable = nlf_funding }
+	}
+	if = {
+		limit = { has_variable = paigc_funding }
+		if = {
+			limit = { country_exists = GNB GNB = { NOT = { has_country_flag = GNB_Established_State } } }
+			clamp_variable = { var = paigc_funding min = 0 max = 5 }
+			subtract_from_variable = { paigc_funding = cwic_funding_drawdown }
+			clamp_variable = { var = paigc_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = paigc_funding }
+		}
+		else = { clear_variable = paigc_funding }
+	}
+	if = {
+		limit = { has_variable = mpla_funding }
+		if = {
+			limit = { country_exists = ANG NOT = { has_global_flag = ANGOLAN_WAR_END } }
+			clamp_variable = { var = mpla_funding min = 0 max = 5 }
+			subtract_from_variable = { mpla_funding = cwic_funding_drawdown }
+			clamp_variable = { var = mpla_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = mpla_funding }
+		}
+		else = { clear_variable = mpla_funding }
+	}
+	if = {
+		limit = { has_variable = unita_funding }
+		if = {
+			limit = { country_exists = UNT NOT = { has_global_flag = ANGOLAN_WAR_END } }
+			clamp_variable = { var = unita_funding min = 0 max = 5 }
+			subtract_from_variable = { unita_funding = cwic_funding_drawdown }
+			clamp_variable = { var = unita_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = unita_funding }
+		}
+		else = { clear_variable = unita_funding }
+	}
+	if = {
+		limit = { has_variable = fnla_funding }
+		if = {
+			limit = { country_exists = FNL NOT = { has_global_flag = ANGOLAN_WAR_END } }
+			clamp_variable = { var = fnla_funding min = 0 max = 5 }
+			subtract_from_variable = { fnla_funding = cwic_funding_drawdown }
+			clamp_variable = { var = fnla_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = fnla_funding }
+		}
+		else = { clear_variable = fnla_funding }
+	}
+	if = {
+		limit = { has_variable = eri_funding }
+		if = {
+			limit = { country_exists = ERI country_exists = ETH ERI = { has_country_flag = Eritrean_War } }
+			clamp_variable = { var = eri_funding min = 0 max = 5 }
+			subtract_from_variable = { eri_funding = cwic_funding_drawdown }
+			clamp_variable = { var = eri_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = eri_funding }
+		}
+		else = { clear_variable = eri_funding }
+	}
+	if = {
+		limit = { has_variable = eth_funding }
+		if = {
+			limit = { country_exists = ERI country_exists = ETH ETH = { has_country_flag = Eritrean_War owns_state = 1000 } }
+			clamp_variable = { var = eth_funding min = 0 max = 5 }
+			subtract_from_variable = { eth_funding = cwic_funding_drawdown }
+			clamp_variable = { var = eth_funding min = 0 }
+			add_to_variable = { total_insurgency_funding = eth_funding }
+		}
+		else = { clear_variable = eth_funding }
+	}
+	multiply_variable = { total_insurgency_funding = 0.0005 }
+	multiply_variable = { total_insurgency_funding = cwic_gdp_monthly }
 }
 
 cwic_calc_mil_slider_spending = {
