@@ -1047,9 +1047,9 @@ step effect. It recomputes taxes through `cwic_compute_tax_revenue` (the pure ha
 and the slider-driven military/space share (`cwic_calc_mil_slider_spending`), then applies the
 differences to `display_income`, `IncomeCheck`, `display_balance`, `cwic_monthly_balance`,
 `military_total_exp`, `public_expenditure_total`, `totalexp` and `total_expenses`. It never touches money,
-debt, `IncomeTotal` or `tax_revenue_change`, and bumps `fin_display_dirty` (the `dirty` of
-`Finance_tab_menu`). The military figure is a display estimate (it ignores subsidies); the next monthly
-pulse replaces every value with the full calculation.
+debt, `IncomeTotal` or `tax_revenue_change`. Do not add a `dirty =` to `Finance_tab_menu`: it froze the
+window's page visibility (blank pages). The military figure is a display estimate (it ignores subsidies);
+the next monthly pulse replaces every value with the full calculation.
 
 ### 18.5 Adding a button
 
