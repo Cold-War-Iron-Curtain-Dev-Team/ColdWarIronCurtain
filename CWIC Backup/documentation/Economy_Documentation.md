@@ -145,12 +145,13 @@ game year from `on_monthly`, guarded by `cwic_last_yearly_tick = global.year`:
 
 - `on_startup_defines.txt` sets globals (`GlobalCredit 0.45`, `GlobalDebit 0.28`, `GlobalEdictDebit 0.44`,
   `GlobalTaxCredit 1.0`, `UPC_pop*` upgrade costs, world prices), runs `industrial_pulse` and
-  `starting_policies` for every country (`cwic_clear_insurgent_conventional_policies` for insurgents),
-  and fires `tutorial.2000` one hour later.
-- `tutorial.2000` (`events/tutorial.txt:22`) adds the `resource_consumption`, `cwic_market_refunds` and
-  `cwic_trade_civ_neutrality` dynamic modifiers, runs `cwic_seed_conventional_economy`, and then
-  `convert_to_war_economy` for countries with `active_insurgency`, otherwise
-  `cwic_setup_postwar_soviet_reparations`.
+  `starting_policies` for every country (`cwic_clear_insurgent_conventional_policies` for insurgents).
+- After state setup, `on_startup_defines.txt` fires `resource.1250` for each country, whether or not
+  a human is playing. `resource.1250` (`events/IC_Influence_events.txt`) keeps the recipient as
+  `ROOT` for GDP calculations. It adds the three resource and trade modifiers, runs
+  `cwic_seed_conventional_economy`, then converts active insurgencies to War Economy or applies
+  the conventionally seeded country's postwar Soviet reparations. Late-country callers keep
+  using the same event.
 - `cwic_seed_conventional_economy` (`effects/IC_Economy_Effects.txt:779`): starting inflation, drift vars,
   `cwic_set_start_productivity` (generated table, `effects/CWIC_Start_Productivity_Generated.txt:191`),
   `income_effect`, resource and industrial pulses, starting money, FX balance, starting debt (only before
