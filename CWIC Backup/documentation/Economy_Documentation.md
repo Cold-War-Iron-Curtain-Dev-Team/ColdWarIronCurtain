@@ -145,12 +145,13 @@ game year from `on_monthly`, guarded by `cwic_last_yearly_tick = global.year`:
 
 - `on_startup_defines.txt` sets globals (`GlobalCredit 0.45`, `GlobalDebit 0.28`, `GlobalEdictDebit 0.44`,
   `GlobalTaxCredit 1.0`, `UPC_pop*` upgrade costs, world prices), runs `industrial_pulse` and
-  `starting_policies` for every country (`cwic_clear_insurgent_conventional_policies` for insurgents),
-  and fires `tutorial.2000` one hour later.
-- `tutorial.2000` (`events/tutorial.txt:22`) adds the `resource_consumption`, `cwic_market_refunds` and
-  `cwic_trade_civ_neutrality` dynamic modifiers, runs `cwic_seed_conventional_economy`, and then
-  `convert_to_war_economy` for countries with `active_insurgency`, otherwise
-  `cwic_setup_postwar_soviet_reparations`.
+  `starting_policies` for every country (`cwic_clear_insurgent_conventional_policies` for insurgents).
+- After state setup, `on_startup_defines.txt` fires `resource.1250` for each country, whether or not
+  a human is playing. `resource.1250` (`events/IC_Influence_events.txt`) keeps the recipient as
+  `ROOT` for GDP calculations. It adds the three resource and trade modifiers, runs
+  `cwic_seed_conventional_economy`, then converts active insurgencies to War Economy or applies
+  the conventionally seeded country's postwar Soviet reparations. Late-country callers keep
+  using the same event.
 - `cwic_seed_conventional_economy` (`effects/IC_Economy_Effects.txt:779`): starting inflation, drift vars,
   `cwic_set_start_productivity` (generated table, `effects/CWIC_Start_Productivity_Generated.txt:191`),
   `income_effect`, resource and industrial pulses, starting money, FX balance, starting debt (only before
@@ -342,8 +343,12 @@ read once.
   read by the Finance sector pie (`pie_chart_scripted_effects.txt`).
 - `custom_expenses`: standing monthly charge from content (SOV_Ustinov, SOV_Kaganovich, 50s_SRT,
   stalintreereworknew, SovietUnion_Focus_Events). Never reset; charged every month.
-- Insurgency funding: `paigc + los + vie + vin + mpla + unita + fnla _funding`, computed and charged in the
-  same month.
+- Insurgency funding uses commitment levels, not flat currency. The monthly charge is 0.05% of
+  monthly GDP per active level, with 0-5 levels per program (2.25% of GDP across all nine at maximum).
+  Programs cover Laos, South Vietnam, the National Liberation Front, the PAIGC, the three Angolan
+  factions, Eritrea, and Ethiopia. Closed programs clear their commitments. An AI country with a
+  negative last monthly balance cannot raise funding and cuts one level per active program before
+  the next charge. Existing levels are clamped on the next monthly pass; existing debt is not erased.
 
 ### 5.4 Soviet subsidy
 
@@ -747,7 +752,11 @@ Native imports cost civilian factories. The effect counts traded units
 offsite `industrial_complex` buildings so imports cost money only; exporters' trade civs are offset through
 `consumer_goods_expected_value`, and resource demand from settlement civs is refunded
 (`cwic_tn_res_*`). `industrial_complex` max level was raised for this. `cwic_update_true_factory_display`
-drives the true-factory panel for players.
+drives the true-factory panel for players. The engine trade window still checks free civilian factories
+before the daily refund, so a deal it blocks can be placed the next day (explained in
+`CG_IMPORTED_TITLE_TT`). For players, `on_daily` also runs `cwic_cg_sync_trade_display`
+(`IC_Consumer_Goods.txt`), which copies native consumer-goods imports and exports into the Trade tab
+variables so new deals show the next day instead of at the monthly update.
 
 ### 11.7 Embargoes
 
@@ -816,8 +825,9 @@ Each slider step costs 15 political power (`Finance_Tab.txt:~2301-2441`, `add_po
 - Tax cap by system: 16 (x < 7), 14 (x < 13), 12, 8 (x > 19).
 - Deficit (`display_balance < 0`): raise upper tax one step if under the cap. At the cap, or debt/GDP > 0.6,
   cut public services, welfare and healthcare (floor 3) and army (floor 2, not at war).
-- Surplus above `GDP × 0.0004` and debt/GDP < 0.6: cut upper tax (floor 4); if debt/GDP < 0.3, raise
-  education to 10, else welfare to 8, else healthcare to 8.
+- Surplus above `GDP × 0.0004` and debt/GDP < 0.6: cut upper tax (floor 4). If the surplus is also above
+  `GDP × 0.0042` (about 5% of monthly GDP), cut lower, lower-middle and corporate tax one step each
+  (floor 4). Then, if debt/GDP < 0.3, raise education to 10, else welfare to 8, else healthcare to 8.
 
 ---
 
@@ -862,7 +872,7 @@ All go through `clear_current_economic_modifiers` → set axes → `startup_econ
 | Setter | Result | Callers |
 |---|---|---|
 | `convert_to_normal_axis` (`:668`) | x 12, y 12 (Keynesian) | INO focuses (`INO_LIB_50s.txt:785`, `INO_Natsir_50s.txt:869`, `INO_Soekiman_50s.txt:307`) |
-| `cwic_action_convert_normal_axis` (`:685`) | by ruling party: communism/maoism/trotskyism 3/3; socialist 3/15; Christian Democratic 15/10; conservative, Liberal Conservatism, liberal, centrist 15/15; fascism, nationalist, monarchism 10/15; islamism, radical Shiaism, Salafism 10/4; neutrality 15/4; otherwise 10/10 | Finance button and AI decision |
+| `cwic_action_convert_normal_axis` (`:685`) | by ruling party: communism/maoism/trotskyism 3/3; socialist 3/15; Christian Democratic 15/10; conservative, Liberal Conservatism, liberal, centrist 15/15; fascism, nationalist, neutrality 10/15; monarchism, islamism, radical Shiaism, Salafism 10/4; otherwise 10/10 | Finance button and AI decision |
 | `convert_to_planned` (`:662`) | x 2, y 1 | `cwic_action_convert_planned` (`on_actions/wars_on_actions.txt:275`) |
 | `convert_to_rentier` (`:657`) | x 24 (slow-industry values) | Finance button, `_Decolonization` events, `Malaysia.txt` |
 | `convert_to_petrostate` (`:674`) | x 25 | Finance button (visible at x 24) |
@@ -1034,6 +1044,18 @@ Badge, first match: Invite pending, On cooldown, Fully established (presence 5),
 50 PP, Not eligible. A pending invite blocks both pick triggers. Hit area: card background, flag and texts, then
 a transparent `GFX_cwic_fc_card_hit` button on top (text over a button swallows clicks). Home flags are a fixed
 table (Shell and Unilever HOL, Bunge ARG, Gecamines DOC).
+
+### 18.4a Instant refresh on slider clicks
+
+Every tax and spending slider click calls `cwic_refresh_finance_display` (`IncomeGenerator.txt`) after the
+step effect. It recomputes taxes through `cwic_compute_tax_revenue` (the pure half of
+`cwic_budget_tax_revenue`, shared with the monthly pulse), the five social `calc_*_expenditure` effects
+and the slider-driven military/space share (`cwic_calc_mil_slider_spending`), then applies the
+differences to `display_income`, `IncomeCheck`, `display_balance`, `cwic_monthly_balance`,
+`military_total_exp`, `public_expenditure_total`, `totalexp` and `total_expenses`. It never touches money,
+debt, `IncomeTotal` or `tax_revenue_change`. Do not add a `dirty =` to `Finance_tab_menu`: it froze the
+window's page visibility (blank pages). The military figure is a display estimate (it ignores subsidies);
+the next monthly pulse replaces every value with the full calculation.
 
 ### 18.5 Adding a button
 
@@ -1245,7 +1267,7 @@ Status: **fixed**, **removed** (code deleted or rewritten, finding no longer app
 |---|---|---|---|
 | N1 | GDP ignores productivity levers. `cwic_calc_state_output` does not read `CWIC_productivity_mult`, `CWIC_bm_productivity_penalty`, `productivity_factor`, `workforce_ratio`, the `*_income_bonus` modifiers or their drift variables, or an electricity shortage. | `IC_Econ_2024.txt:482-530`; drift vars written at `:1484-1560` with no reader | Productivity costs of capital controls, tightening, currency reform and the black market, the CG crisis productivity/workforce penalties, and every income-bonus idea and tech do nothing to GDP. `MODEL.md` §1.2 promised them. |
 | N2 | `eta` was unclamped | `cwic_budget_tax_revenue` | fixed 2026-11-27: `cwic_tax_leak` and `cwic_tax_eff` clamped at 0 |
-| N3 | Military subsidy copy-paste | `IncomeGenerator.txt:~1395-1416` | fixed 2026-11-27: navy and air totals and deductions use `navy_expend_subsidy` / `af_expend_subsidy`. Still open: received subsidies are added to the recipient's spending (`land_army_expenditure += mil_expend_subsidy_tot`); sign unconfirmed |
+| N3 | Military subsidy copy-paste | `IncomeGenerator.txt:~1395-1416` | fixed 2026-11-27: navy and air totals and deductions use `navy_expend_subsidy` / `af_expend_subsidy`. The sign is correct: `military_subsidies` lists the countries a payer funds, so the payer adds the cost and each recipient deducts its share |
 | N4 | Military GDP-share lines may be lower than intended | `military_expenditure` (`IncomeGenerator.txt:1307-1360`) | monthly land = (`army_spending_modifier` × 0.02 + `strategic_forces_spending_modifier` × 0.01) × GDP/12; navy = `navy_spending_modifier` × 0.01 × GDP/12; air = `air_spending_modifier` × 0.01 × GDP/12. `MODEL.md` §3.3 intended 4/2/2% at full modifier; whether any further divisor applies is unverified |
 | N5 | Country loans may pay interest twice | `cwic_take_loan` lender 11 builds interest into the installment; the monthly loop also charges interest on principal | [inference] overpriced country loans |
 | N6 | 30% import cap may break trade conservation | `ic_calc_trade_imports` (`IncomeGenerator.txt:1852-1859`) | the importer's `resource_cost` is clamped to 30% of monthly GDP while the trade balance uses the raw bill; whether exporters are paid the uncapped amount is unverified |

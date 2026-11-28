@@ -6265,9 +6265,64 @@ vin_change_campaign_supply = {
 	clamp_variable = {
 		var = VIN_Campaign_Supply
 		min = 0
-		max = 1000
+		max = 400
 	}
 	custom_effect_tooltip = VIN_Campaign_Supply_Change_tt
+}
+
+vin_campaign_pay_launch_supply = {
+	set_temp_variable = { vin_launch_cost = 0 }
+	if = {
+		limit = { check_variable = { VIN_camp_current = 4 } }
+		set_temp_variable = { vin_launch_cost = 75 }
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 2 } }
+		set_temp_variable = { vin_launch_cost = 100 }
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 1 } }
+		set_temp_variable = { vin_launch_cost = 125 }
+	}
+	else_if = {
+		limit = { check_variable = { VIN_camp_current = 3 } }
+		set_temp_variable = { vin_launch_cost = 175 }
+	}
+	if = {
+		limit = { check_variable = { vin_launch_cost > 0 } }
+		set_temp_variable = { vin_supply_amount = vin_launch_cost }
+		multiply_temp_variable = { vin_supply_amount = -1 }
+		hidden_effect = { vin_change_campaign_supply = yes }
+	}
+}
+
+vin_campaign_scale_deadlines_by_supply = {
+	if = {
+		limit = {
+			check_variable = { VIN_camp_current > 0 }
+			check_variable = { VIN_camp_current < 5 }
+		}
+		set_temp_variable = { vin_supply_clean = 0 }
+		set_temp_variable = { vin_supply_final = 0 }
+		if = {
+			limit = { check_variable = { VIN_Campaign_Supply < 50 } }
+			set_temp_variable = { vin_supply_clean = -14 }
+			set_temp_variable = { vin_supply_final = -21 }
+		}
+		else_if = {
+			limit = { check_variable = { VIN_Campaign_Supply < 150 } }
+			set_temp_variable = { vin_supply_clean = -7 }
+			set_temp_variable = { vin_supply_final = -10 }
+		}
+		else_if = {
+			limit = { check_variable = { VIN_Campaign_Supply > 299 } }
+			set_temp_variable = { vin_supply_clean = 5 }
+			set_temp_variable = { vin_supply_final = 7 }
+		}
+		add_to_variable = { VIN_camp_deadline_x = vin_supply_clean }
+		add_to_variable = { VIN_camp_deadline_y = vin_supply_final }
+		if = { limit = { ic_afk_logging_enabled = yes } log = "IC_AFK|SUPPLY_LAUNCH|date=[GetDateText]|campaign=[?VIN_camp_current|0]|cost=[?vin_launch_cost|0]|reserve=[?VIN_Campaign_Supply|0]|clean_days=[?vin_supply_clean|0]|final_days=[?vin_supply_final|0]" }
+	}
 }
 
 vin_accrue_monthly_supply = {
@@ -6366,9 +6421,12 @@ vin_nlf_insurgency_support_monthly = {
 			}
 			NOT = { has_war_with = NLF }
 		}
-		NLF = { add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 500 producer = VIN } }
+		NLF = {
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 500 producer = VIN }
+			add_equipment_to_stockpile = { type = artillery_equipment_1 amount = 24 producer = VIN }
+		}
 		if = {
-			limit = { NLF = { num_divisions < 12 } }
+			limit = { NLF = { num_divisions < 15 } }
 			NLF = {
 				if = {
 					limit = { NOT = { has_template = "Trung Doan Bo Binh Infantry" } }
@@ -6383,11 +6441,13 @@ vin_nlf_insurgency_support_monthly = {
 					}
 				}
 				random_owned_state = {
-					limit = { OR = { state = 1287 state = 1286 } }
+					limit = {
+						OR = { state = 1287 state = 1286 }
+						is_controlled_by = NLF
+					}
 					create_unit = {
 						division = "name = \"Trung Doan Bo Binh Infantry\" division_template = \"Trung Doan Bo Binh Infantry\" start_experience_factor = 0.3 start_equipment_factor = 0.8"
 						owner = NLF
-						allow_spawning_on_enemy_provs = yes
 					}
 				}
 			}
@@ -6485,6 +6545,7 @@ vin_campaign_begin = {
 	clr_country_flag = VIN_Command_Inputs_Applied
 	vin_campaign_initialize = yes
 	set_variable = { VIN_camp_current = vin_camp_id }
+	vin_campaign_pay_launch_supply = yes
 	hidden_effect = { vin_notice_campaign_launch = yes }
 	vin_all_in_luang_prabang_campaign_callback = yes
 }
@@ -6999,6 +7060,7 @@ vin_campaign_declare_war = {
 		set_variable = { VIN_camp_deadline_x = -1 }	# every recovery success is costly
 		set_variable = { VIN_camp_deadline_y = 120 }
 	}
+	vin_campaign_scale_deadlines_by_supply = yes
 	vin_campaign_apply_command_inputs = yes
 	set_variable = { VIN_camp_timer_days = VIN_camp_deadline_y }
 	add_to_variable = { VIN_camp_timer_days = 1 }

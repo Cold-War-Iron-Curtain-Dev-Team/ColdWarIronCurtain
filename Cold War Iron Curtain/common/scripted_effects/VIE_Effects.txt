@@ -1052,7 +1052,7 @@ VIE_create_trung_phan_commissariat = {
 				owns_state = 286
 				capital_scope = { OR = { state = 1758 state = 757 state = 1759 state = 1287 state = 1288 state = 1289 state = 1756 state = 1286 state = 982 } }
 			}
-			set_capital = { state = 286 }
+			set_capital = { state = 286 remember_old_capital = no }
 		}
 		capital_scope = { set_state_flag = VIE_Trung_Phan_Keep_Capital }
 		every_owned_state = {
@@ -1203,6 +1203,162 @@ VIE_transfer_trung_phan_highlands = {
 			add_core_of = TRP
 			TRP = { transfer_state = PREV }
 		}
+	}
+}
+
+VIE_annex_post_diem_commissariat = {
+	if = {
+		limit = {
+			has_global_flag = Indochina_War_Over
+			has_country_flag = VIE_Trung_Phan_Commissariat
+			has_capitulated = no
+			NOT = {
+				has_country_leader = {
+					character = VIE_Ngo_Dinh_Diem
+					ruling_only = yes
+				}
+			}
+			country_exists = TRP
+			TRP = {
+				is_subject_of = VIE
+				all_owned_state = {
+					OR = { is_controlled_by = TRP is_controlled_by = VIE }
+				}
+			}
+		}
+		set_temp_variable = { vie_restore_saigon = 0 }
+		if = {
+			limit = {
+				capital_scope = { state = 286 }
+				owns_state = 286
+				controls_state = 286
+			}
+			set_temp_variable = { vie_restore_saigon = 1 }
+		}
+		clr_country_flag = VIE_Trung_Phan_Commissariat
+		clear_variable = VIE_trung_phan_remittance
+		annex_country = { target = TRP transfer_troops = yes }
+		if = {
+			limit = { check_variable = { vie_restore_saigon = 1 } }
+			set_capital = { state = 286 remember_old_capital = no }
+		}
+		VIE_state_dirty_variable = yes
+	}
+}
+
+VIE_install_duong_van_minh = {
+	if = {
+		limit = { has_country_leader = { character = VIE_Ngo_Dinh_Diem ruling_only = yes } }
+		retire_country_leader = yes
+	}
+	set_politics = { ruling_party = neutrality elections_allowed = no }
+	add_country_leader_role = {
+		character = VIE_Duong_Van_Minh
+		promote_leader = yes
+		country_leader = { ideology = military_junta }
+	}
+}
+
+VIE_fulro_uprising_tick = {
+	if = {
+		limit = {
+			has_global_flag = Indochina_War_Over
+			NOT = { has_global_flag = VIE_fulro_uprising_started }
+			has_capitulated = no
+			date > 1964.9.1
+			OR = {
+				AND = {
+					date < 1964.11.1
+					NOT = { country_exists = FUL }
+					982 = {
+						OR = {
+							AND = { is_owned_by = VIE is_controlled_by = VIE }
+							AND = {
+								is_owned_by = TRP
+								OR = { is_controlled_by = TRP is_controlled_by = VIE }
+								TRP = { is_subject_of = VIE }
+							}
+						}
+					}
+				}
+				AND = {
+					country_exists = FUL
+					FUL = {
+						has_country_flag = rise_furlo
+						has_cosmetic_tag = MOT_FUL
+						is_subject = no
+						has_war = no
+						num_divisions < 1
+						owns_state = 982
+						all_owned_state = { state = 982 is_controlled_by = FUL }
+					}
+				}
+			}
+		}
+		set_global_flag = VIE_fulro_uprising_started
+		if = {
+			limit = { NOT = { country_exists = FUL } }
+			FUL = { transfer_state = 982 }
+			news_event = Fulro.1
+		}
+		FUL = {
+			set_cosmetic_tag = MOT_FUL
+			set_capital = { state = 982 }
+			if = { limit = { has_idea = State_of_Vietnam_Faction } remove_ideas = State_of_Vietnam_Faction }
+			set_politics = { ruling_party = nationalist elections_allowed = no }
+			set_party_name = {
+				ideology = nationalist
+				long_name = "United Front for the Liberation of Oppressed Races"
+				name = "FULRO"
+			}
+			set_popularities = {
+				democratic = 0
+				communism = 0
+				fascism = 0
+				nationalist = 100
+				monarchism = 0
+				neutrality = 0
+				islamism = 0
+				radical_shiaism = 0
+				Social_Democratic = 0
+				Social_Liberalism = 0
+				Salafism = 0
+				Liberal_Conservatism = 0
+				conservative = 0
+				Christian_Democratic = 0
+				socialist = 0
+				centrist = 0
+				liberal = 0
+				trotskyism = 0
+				maoism = 0
+			}
+			add_country_leader_role = {
+				character = FUL_Y_Bham_Enuol
+				promote_leader = yes
+				country_leader = {
+					ideology = ethnic_nationalism
+				}
+			}
+			if = {
+				limit = { NOT = { has_template = "FULRO Strike Force" } }
+				division_template = {
+					name = "FULRO Strike Force"
+					regiments = {
+						infantry = { x = 0 y = 0 }
+						infantry = { x = 0 y = 1 }
+						infantry = { x = 0 y = 2 }
+					}
+				}
+			}
+			add_equipment_to_stockpile = { type = infantry_equipment_1 amount = 1500 producer = USA }
+		}
+		982 = {
+			create_unit = { division = "name = \"1st FULRO Strike Force\" division_template = \"FULRO Strike Force\" start_experience_factor = 0.3" owner = FUL prioritize_location = 1605 }
+			create_unit = { division = "name = \"2nd FULRO Strike Force\" division_template = \"FULRO Strike Force\" start_experience_factor = 0.3" owner = FUL prioritize_location = 1605 }
+			create_unit = { division = "name = \"3rd FULRO Strike Force\" division_template = \"FULRO Strike Force\" start_experience_factor = 0.3" owner = FUL prioritize_location = 1605 }
+		}
+		declare_war_on = { target = FUL type = annex_everything }
+		VIE_state_dirty_variable = yes
 	}
 }
 
