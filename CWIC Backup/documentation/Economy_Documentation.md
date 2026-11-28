@@ -747,10 +747,11 @@ Native imports cost civilian factories. The effect counts traded units
 offsite `industrial_complex` buildings so imports cost money only; exporters' trade civs are offset through
 `consumer_goods_expected_value`, and resource demand from settlement civs is refunded
 (`cwic_tn_res_*`). `industrial_complex` max level was raised for this. `cwic_update_true_factory_display`
-drives the true-factory panel for players. Human players keep 2 spare offsite factories on top of the trade
-need, so several engine trades can be placed in a row (also while paused) before the next daily update
-absorbs them; AI countries get no buffer, and the buffer is removed on the next daily update if the
-country turns AI.
+drives the true-factory panel for players. The engine trade window still checks free civilian factories
+before the daily refund, so a deal it blocks can be placed the next day (explained in
+`CG_IMPORTED_TITLE_TT`). For players, `on_daily` also runs `cwic_cg_sync_trade_display`
+(`IC_Consumer_Goods.txt`), which copies native consumer-goods imports and exports into the Trade tab
+variables so new deals show the next day instead of at the monthly update.
 
 ### 11.7 Embargoes
 
